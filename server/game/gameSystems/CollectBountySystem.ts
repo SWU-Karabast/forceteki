@@ -28,7 +28,7 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
                 ...bountyProperties,
                 optional: false
             }
-        )));
+        ).initialize()));
 
         Contract.assertTrue(bountyAbilities.length > 0, `Found empty bounty list for ability on card ${event.context.source.internalName}`);
 

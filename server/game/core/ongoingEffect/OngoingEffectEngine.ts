@@ -286,7 +286,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
 
         const newEvents: CustomDurationEvent[] = [];
         for (const eventName of Object.keys(effect.until)) {
-            const newEvent = new CustomDurationEvent(this.game, eventName, handler, effect);
+            const newEvent = new CustomDurationEvent(this.game, eventName, handler, effect).initialize();
             newEvent.registerEvent();
             newEvents.push(newEvent);
         }

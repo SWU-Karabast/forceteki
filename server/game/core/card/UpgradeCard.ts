@@ -52,7 +52,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     public override checkIsAttachable(): void { }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties));
+        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties).initialize());
     }
 
     public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {

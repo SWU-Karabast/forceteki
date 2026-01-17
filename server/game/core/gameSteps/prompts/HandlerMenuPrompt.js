@@ -24,14 +24,14 @@ class HandlerMenuPrompt extends UiPrompt {
         super(game);
         this.player = player;
         if (typeof properties.source === 'string') {
-            properties.source = new OngoingEffectSource(game, properties.source);
+            properties.source = new OngoingEffectSource(game, properties.source).initialize();
         } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
         }
         if (properties.source && !properties.waitingPromptTitle) {
             properties.waitingPromptTitle = 'Waiting for opponent';
         } else if (!properties.source) {
-            properties.source = new OngoingEffectSource(game);
+            properties.source = new OngoingEffectSource(game).initialize();
         }
         this.properties = properties;
         this.cardCondition = properties.cardCondition || (() => true);

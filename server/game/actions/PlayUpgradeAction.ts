@@ -60,7 +60,7 @@ export class PlayUpgradeAction extends PlayCardAction {
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayUpgradeAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
+        return new PlayUpgradeAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties }).initialize();
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

@@ -46,6 +46,8 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     @undoObject()
     private accessor _deployEpicActionLimit: EpicActionLimit = null;
 
+    private readonly deployBox: string;
+
     protected get deployEpicActionLimit() {
         return this._deployEpicActionLimit;
     }
@@ -79,10 +81,15 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
             ...this.deployActionAbilityProps(this.game.abilityHelper)
         }));
 
+        this.deployBox = cardData.deployBox;
+        this._deployEpicActionLimit = new EpicActionLimit(this.game).initialize();
+    }
+
+    protected override onInitialize(): void {
+        super.onInitialize();
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
-        this.validateCardAbilities(this.triggeredAbilities, cardData.deployBox);
-        this._deployEpicActionLimit = new EpicActionLimit(this.game);
+        this.validateCardAbilities(this.triggeredAbilities, this.deployBox);
     }
 
     protected deployActionAbilityProps(AbilityHelper: IAbilityHelper): Partial<IActionAbilityProps<this>> {

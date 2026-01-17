@@ -1,4 +1,4 @@
-import type { GameObjectBase, GameObjectRef } from './GameObjectBase';
+import type { GameObjectBase, GameObjectRef, IGameObjectBase } from './GameObjectBase';
 import { to } from './utils/TypeHelpers';
 import * as Contract from './utils/Contract';
 
@@ -232,7 +232,7 @@ export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBa
 }
 
 /** Creates a undo safe GameObject reference. */
-export function undoObject<T extends GameObjectBase, TValue extends GameObjectBase>() {
+export function undoObject<T extends IGameObjectBase, TValue extends IGameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>

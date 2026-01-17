@@ -79,7 +79,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
         }
 
         public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
-            return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
+            return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties)).initialize();
         }
 
         private addDamageModificationAbility(properties: IDamageModificationAbilityProps<this>): DamageModificationAbility {
@@ -92,7 +92,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
         }
 
         public createDamageModificationAbility<TSource extends Card = this>(properties: IDamageModificationAbilityProps<TSource>): DamageModificationAbility {
-            return new DamageModificationAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
+            return new DamageModificationAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties)).initialize();
         }
 
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************

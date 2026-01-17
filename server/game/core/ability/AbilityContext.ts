@@ -57,7 +57,7 @@ export class AbilityContext<TSource extends Card = Card> {
 
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
-        this.source = properties.source || new OngoingEffectSource(this.game);
+        this.source = properties.source || new OngoingEffectSource(this.game).initialize();
         this.player = properties.player;
         this.ability = properties.ability;
         this.costs = properties.costs || {};

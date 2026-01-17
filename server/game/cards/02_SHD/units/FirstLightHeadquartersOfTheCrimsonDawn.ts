@@ -16,7 +16,7 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
 
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
         const firstLightSmuggleAction = playType === PlayType.Smuggle
-            ? [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new FirstLightSmuggleAction(this.game.abilityHelper, this))]
+            ? [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new FirstLightSmuggleAction(this.game.abilityHelper, this).initialize())]
             : [];
 
         return super.buildPlayCardActions(playType, propertyOverrides).concat(firstLightSmuggleAction);
@@ -66,6 +66,6 @@ class FirstLightSmuggleAction extends PlayUnitAction {
                 ...this.createdWithProperties,
                 ...overrideProperties
             })
-        );
+        ).initialize();
     }
 }

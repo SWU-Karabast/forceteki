@@ -21,7 +21,7 @@ export interface IGameObjectBase<T extends IGameObjectBaseState = IGameObjectBas
  * const player = this.game.gameObjectManager.get(this.state.controllerRef);
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
+export interface GameObjectRef<T extends IGameObjectBase = IGameObjectBase> {
     isRef: true;
     uuid: string;
 }
@@ -59,6 +59,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     private _cannotHaveRefs = false;
     private _hasRef = false;
+    private _initalized = false;
 
     public get cannotHaveRefs() {
         return this._cannotHaveRefs;
@@ -66,6 +67,10 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     public get hasRef() {
         return this._hasRef || this.alwaysTrackState;
+    }
+
+    public get initialized() {
+        return this._initalized;
     }
 
     /** Subclasses can override this to force the state manager to keep track of this object, even if refs aren't created for it */
@@ -90,6 +95,21 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         this.setupDefaultState();
         this.game.gameObjectManager.register(this);
     }
+
+    /** This function will be called after the class has initialized. Do not override this method, instead override onInitialize. */
+    public initialize() {
+        // if (this._initalized) {
+        //     throw new Error(`Attempting to initialize an already initialized GameObject: ${this.getGameObjectName()} (UUID: ${this.state.uuid})`);
+        // }
+
+        this._initalized = true;
+        this.onInitialize();
+        return this;
+    }
+
+    /** A overridable method . Always ensure to call super.setupDefaultState() as the first line if you do override this.  */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected onInitialize() { }
 
     /** A overridable method so a child can set defaults for it's state. Always ensure to call super.setupDefaultState() as the first line if you do override this.  */
     // eslint-disable-next-line @typescript-eslint/no-empty-function

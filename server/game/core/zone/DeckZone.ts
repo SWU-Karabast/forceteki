@@ -47,7 +47,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
         this.name = ZoneName.Deck;
     }
 
-    public initialize(cards: IPlayableCard[]) {
+    public initializeDeck(cards: IPlayableCard[]) {
         this._deck = cards;
 
         cards.forEach((card) => card.initializeZone(this));

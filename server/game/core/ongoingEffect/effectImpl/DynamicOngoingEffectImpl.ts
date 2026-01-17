@@ -62,7 +62,7 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
             return value;
         }
 
-        return new OngoingEffectValueWrapper(this.game, value);
+        return new OngoingEffectValueWrapper(this.game, value).initialize();
     }
 
     private compareValues(oldValue: TValue, newValue: TValue) {

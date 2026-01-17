@@ -26,7 +26,7 @@ export default class Bamboozle extends EventCard {
 
         const bamboozleAction = playType === PlayType.Smuggle || playType === PlayType.Piloting
             ? []
-            : [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper))];
+            : [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper).initialize())];
 
         return playActions.concat(bamboozleAction);
     }
@@ -75,6 +75,6 @@ class PlayBamboozleAction extends PlayEventAction {
                     ...this.createdWithProperties,
                     ...overrideProperties
                 }, this.abilityHelper)
-            , this.abilityHelper);
+            , this.abilityHelper).initialize();
     }
 }

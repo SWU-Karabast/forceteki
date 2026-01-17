@@ -241,7 +241,7 @@ class Game extends EventEmitter {
         /** @private @readonly @type {Lobby} */
         this._router = options.router;
 
-        this.ongoingEffectEngine = new OngoingEffectEngine(this);
+        this.ongoingEffectEngine = new OngoingEffectEngine(this).initialize();
 
         /** @type {import('../AbilityHelper.js').IAbilityHelper} */
         this.abilityHelper = getAbilityHelper(this);
@@ -308,13 +308,13 @@ class Game extends EventEmitter {
         };
 
         this.tokenFactories = null;
-        this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
+        this.stateWatcherRegistrar = new StateWatcherRegistrar(this).initialize();
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
         this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
 
         /** @public @readonly @type {import('../../gameStatistics/GameStatisticsTracker.js').IGameStatisticsTracker} */
-        this.statsTracker = new GameStatisticsLogger(this);
+        this.statsTracker = new GameStatisticsLogger(this).initialize();
 
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
@@ -334,16 +334,16 @@ class Game extends EventEmitter {
                 player,
                 this,
                 details.useActionTimer ?? false
-            );
+            ).initialize();
         });
 
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
         });
 
-        this.spaceArena = new SpaceArenaZone(this);
-        this.groundArena = new GroundArenaZone(this);
-        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
+        this.spaceArena = new SpaceArenaZone(this).initialize();
+        this.groundArena = new GroundArenaZone(this).initialize();
+        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena).initialize();
 
         this.setMaxListeners(0);
     }
@@ -1626,7 +1626,7 @@ class Game extends EventEmitter {
             return false;
         }
 
-        this.playersAndSpectators[user.username] = new Player(socketId, user, this);
+        this.playersAndSpectators[user.username] = new Player(socketId, user, this).initialize();
 
         return true;
     }
@@ -1802,6 +1802,7 @@ class Game extends EventEmitter {
     generateToken(player, tokenName, additionalProperties = null) {
         /** @type {import('./card/propertyMixins/Token.js').ITokenCard} */
         const token = this.tokenFactories[tokenName](player, additionalProperties);
+        token.initialize();
 
         // TODO: Rework allCards to be GO Refs
         this.state.allCards.push(token.getRef());

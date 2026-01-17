@@ -223,13 +223,18 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         }
 
         this.canTakeActionsThisPhase = null;
-        this.state.handZone = new HandZone(game, this).getRef();
-        this.state.resourceZone = new ResourceZone(game, this).getRef();
-        this.state.discardZone = new DiscardZone(game, this).getRef();
+        this.state.handZone = new HandZone(game, this).initialize()
+            .getRef();
+        this.state.resourceZone = new ResourceZone(game, this).initialize()
+            .getRef();
+        this.state.discardZone = new DiscardZone(game, this).initialize()
+            .getRef();
         // mainly used for staging tokens when they are created / removed
-        this.state.outsideTheGameZone = new OutsideTheGameZone(game, this).getRef();
+        this.state.outsideTheGameZone = new OutsideTheGameZone(game, this).initialize()
+            .getRef();
         this.state.baseZone = null;
-        this.state.deckZone = new DeckZone(game, this).getRef();
+        this.state.deckZone = new DeckZone(game, this).initialize()
+            .getRef();
 
         /** @type {Deck} */
         this.decklistNames = null;
@@ -741,7 +746,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         this.state.base = preparedDecklist.base;
         this.state.leader = preparedDecklist.leader;
 
-        this.deckZone.initialize(preparedDecklist.deckCards.map((x) => this.game.getFromRef(x)));
+        this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromRef(x)));
 
         // set up playable zones now that all relevant zones are created
         // STATE: This _is_ OK for now, as the gameObject references are still kept, but ideally these would also be changed to Refs in the future.
@@ -757,7 +762,8 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this.state.baseZone = new BaseZone(this.game, this, this.base, this.leader).getRef();
+        this.state.baseZone = new BaseZone(this.game, this, this.base, this.leader).initialize()
+            .getRef();
 
         this.state.decklist = preparedDecklist;
     }
@@ -801,7 +807,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         if (this.creditTokenCount === 0 && creditTokenAdjusters.length > 0) {
             this.removeCostAdjuster(creditTokenAdjusters[0]);
         } else if (this.creditTokenCount > 0 && creditTokenAdjusters.length === 0) {
-            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
+            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this).initialize();
             this.addCostAdjuster(newAdjuster);
         }
     }

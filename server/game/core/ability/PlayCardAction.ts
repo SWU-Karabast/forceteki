@@ -82,7 +82,7 @@ export abstract class PlayCardAction extends PlayerAction {
             propertiesWithDefaults = Helpers.mergeArrayProperty(
                 propertiesWithDefaults,
                 'costAdjusters',
-                [new ExploitCostAdjuster(card.game, card, { costAdjustType: CostAdjustType.Exploit, exploitKeywordAmount: properties.exploitValue })]
+                [new ExploitCostAdjuster(card.game, card, { costAdjustType: CostAdjustType.Exploit, exploitKeywordAmount: properties.exploitValue }).initialize()]
             );
         }
 

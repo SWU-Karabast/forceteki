@@ -377,7 +377,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     }
 
     protected createPreEnterPlayAbility<TSource extends Card = this>(properties: IAbilityPropsWithSystems<AbilityContext<TSource>>): PreEnterPlayAbility {
-        return new PreEnterPlayAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties));
+        return new PreEnterPlayAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties)).initialize();
     }
 
     private buildCostAdjusterGenericProperties() {

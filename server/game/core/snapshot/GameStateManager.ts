@@ -138,6 +138,9 @@ export class GameStateManager implements IGameObjectRegistrar {
                 // Indexes in last to first for the purpose of removal.
                 for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
                     const go = this.allGameObjects[i];
+                    if (!go.initialized) {
+                        throw new Error(`GameObject ${go.getGameObjectName()} (UUID: ${go.uuid}, Type: ${go.constructor.name}) is not initialized during rollback. This should not be possible.`);
+                    }
 
                     const updatedState = snapshotStatesByUuid[go.uuid];
                     if (!updatedState) {

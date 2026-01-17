@@ -219,6 +219,7 @@ export class Deck {
         for (let i = 0; i < count; i++) {
             const CardConstructor = cards.get(cardData.id) ?? CardHelpers.createUnimplementedCard;
             const card: Card = new CardConstructor(player, cardData);
+            card.initialize();
             generatedCards.push(card);
         }
 

@@ -1063,7 +1063,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     played(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Played, card, this.player);
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Played, card, this.player).initialize();
     }
 
     /**
@@ -1072,7 +1072,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     drew(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Drawn, card, this.player);
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Drawn, card, this.player).initialize();
     }
 
     /**
@@ -1081,7 +1081,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     discarded(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Discarded, card, this.player);
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Discarded, card, this.player).initialize();
     }
 
     /**
@@ -1090,7 +1090,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     resourced(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Resourced, card, this.player);
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Resourced, card, this.player).initialize();
     }
 
 
@@ -1100,7 +1100,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     activated(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Activated, card, this.player);
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Activated, card, this.player).initialize();
     }
 }
 

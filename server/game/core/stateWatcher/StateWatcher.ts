@@ -68,6 +68,10 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
         return true;
     }
 
+    public override getGameObjectName(): string {
+        return `StateWatcher_${this.name}`;
+    }
+
     // Child classes override this method to perform their addUpdater() calls
     protected abstract setupWatcher(): void;
 

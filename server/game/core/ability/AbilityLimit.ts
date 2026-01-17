@@ -88,7 +88,7 @@ export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitSt
     }
 
     public clone() {
-        return new UnlimitedAbilityLimit(this.game);
+        return new UnlimitedAbilityLimit(this.game).initialize();
     }
 
     public isRepeatable(): boolean {
@@ -133,7 +133,7 @@ export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState>
     }
 
     public clone() {
-        return new PerGameAbilityLimit(this.game, this.max);
+        return new PerGameAbilityLimit(this.game, this.max).initialize();
     }
 
     public isRepeatable(): boolean {
@@ -172,7 +172,7 @@ export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbility
     }
 
     public clone() {
-        return new PerPlayerPerGameAbilityLimit(this.game, this.max);
+        return new PerPlayerPerGameAbilityLimit(this.game, this.max).initialize();
     }
 
     public isRepeatable(): boolean {
@@ -220,7 +220,7 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     }
 
     public override clone() {
-        return new RepeatableAbilityLimit(this.game, this.max, this.eventName);
+        return new RepeatableAbilityLimit(this.game, this.max, this.eventName).initialize();
     }
 
     public override isRepeatable(): boolean {
@@ -264,7 +264,7 @@ export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
     }
 
     public override clone() {
-        return new EpicActionLimit(this.game);
+        return new EpicActionLimit(this.game).initialize();
     }
 
     public override isEpicActionLimit(): this is EpicActionLimit {
@@ -283,15 +283,15 @@ export class AbilityLimitInstance {
     }
 
     public repeatable(max: number, eventName: EventName) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([eventName]));
+        return new RepeatableAbilityLimit(this.game, max, new Set([eventName])).initialize();
     }
 
     public perPhase(max: number) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnPhaseEnded]));
+        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnPhaseEnded])).initialize();
     }
 
     public perRound(max: number) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnRoundEnded]));
+        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnRoundEnded])).initialize();
     }
 
     /**
@@ -303,18 +303,18 @@ export class AbilityLimitInstance {
      * @param max The maximum number of times this ability can be used in a game.
      */
     public perGame(max: number) {
-        return new PerGameAbilityLimit(this.game, max);
+        return new PerGameAbilityLimit(this.game, max).initialize();
     }
 
     public perPlayerPerGame(max: number) {
-        return new PerPlayerPerGameAbilityLimit(this.game, max);
+        return new PerPlayerPerGameAbilityLimit(this.game, max).initialize();
     }
 
     public epicAction() {
-        return new EpicActionLimit(this.game);
+        return new EpicActionLimit(this.game).initialize();
     }
 
     public unlimited() {
-        return new UnlimitedAbilityLimit(this.game);
+        return new UnlimitedAbilityLimit(this.game).initialize();
     }
 }

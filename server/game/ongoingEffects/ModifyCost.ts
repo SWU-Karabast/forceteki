@@ -28,7 +28,7 @@ export function addExploit(properties: IExploitCostAdjusterProperties) {
     return OngoingEffectBuilder.player.detached(EffectName.CostAdjuster, {
         apply: (player: Player, context: AbilityContext) => {
             Contract.assertTrue(context.source.hasCost());
-            const adjuster = new ExploitCostAdjuster(context.game, context.source, properties);
+            const adjuster = new ExploitCostAdjuster(context.game, context.source, properties).initialize();
             player.addCostAdjuster(adjuster);
             return adjuster;
         },
@@ -42,7 +42,7 @@ export function exhaustUnitsInsteadOfResources(
     return OngoingEffectBuilder.player.detached(EffectName.CostAdjuster, {
         apply: (player: Player, context: AbilityContext) => {
             Contract.assertTrue(context.source.hasCost());
-            const adjuster = new ExhaustUnitsCostAdjuster(context.game, context.source, properties);
+            const adjuster = new ExhaustUnitsCostAdjuster(context.game, context.source, properties).initialize();
             player.addCostAdjuster(adjuster);
             return adjuster;
         },

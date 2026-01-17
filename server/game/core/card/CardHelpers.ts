@@ -21,21 +21,21 @@ export function createUnimplementedCard(owner: Player, cardData: ICardDataJson):
 
     switch (cardType) {
         case CardType.Event:
-            return new EventCard(owner, cardData);
+            return new EventCard(owner, cardData).initialize();
         case CardType.Base:
-            return new BaseCard(owner, cardData);
+            return new BaseCard(owner, cardData).initialize();
         case CardType.BasicUpgrade:
-            return new UpgradeCard(owner, cardData);
+            return new UpgradeCard(owner, cardData).initialize();
         case CardType.Leader:
-            return new LeaderUnitCard(owner, cardData);
+            return new LeaderUnitCard(owner, cardData).initialize();
         case CardType.BasicUnit:
-            return new NonLeaderUnitCard(owner, cardData);
+            return new NonLeaderUnitCard(owner, cardData).initialize();
         case CardType.TokenUnit:
-            return new TokenUnitCard(owner, cardData);
+            return new TokenUnitCard(owner, cardData).initialize();
         case CardType.TokenUpgrade:
-            return new TokenUpgradeCard(owner, cardData);
+            return new TokenUpgradeCard(owner, cardData).initialize();
         case CardType.TokenCard:
-            return new TokenCard(owner, cardData);
+            return new TokenCard(owner, cardData).initialize();
         default:
             throw new Error(`Unexpected card type: ${cardType}`);
     }

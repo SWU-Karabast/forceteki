@@ -39,6 +39,10 @@ export function WithLeaderProperties<TState extends IPlayableOrDeployableCardSta
         public constructor(...args: any[]) {
             super(...args);
             Contract.assertEqual(this.printedType, CardType.Leader);
+        }
+
+        protected override onInitialize(): void {
+            super.onInitialize();
 
             this.callSetupLeaderWithRegistrar();
         }

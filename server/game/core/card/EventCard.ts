@@ -41,6 +41,10 @@ export class EventCard extends EventCardParent implements IEventCard {
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Event);
+    }
+
+    protected override onInitialize(): void {
+        super.onInitialize();
 
         Contract.assertFalse(this.hasImplementationFile && !this.state.eventAbility, 'Event card\'s ability was not initialized');
 
@@ -55,7 +59,7 @@ export class EventCard extends EventCardParent implements IEventCard {
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayEventAction(this.game, this, properties));
+        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayEventAction(this.game, this, properties).initialize());
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
@@ -84,14 +88,14 @@ export class EventCard extends EventCardParent implements IEventCard {
                 effect: 'do nothing due to an ongoing effect of {1}',
                 effectArgs: [blankSource],
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
-            });
+            }).initialize();
         } else if (!this.hasImplementationFile) {
             return new EventAbility(this.game, this, {
                 title: 'Unimplemented event card ability',
                 printedAbility: false,
                 effect: 'do nothing because the card is not implemented yet',
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
-            });
+            }).initialize();
         }
 
         return this.eventAbility;
@@ -137,7 +141,8 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
-        this.state.eventAbility = new EventAbility(this.game, this, properties).getRef();
+        this.state.eventAbility = new EventAbility(this.game, this, properties).initialize()
+            .getRef();
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */

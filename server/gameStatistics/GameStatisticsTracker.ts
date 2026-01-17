@@ -88,7 +88,7 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
         card: Card,
         player: Player
     ): void {
-        this.cardMetrics = [...this.cardMetrics, new TrackedGameCardMetric(this.game, metric, card, player)];
+        this.cardMetrics = [...this.cardMetrics, new TrackedGameCardMetric(this.game, metric, card, player).initialize()];
     }
 
     /**

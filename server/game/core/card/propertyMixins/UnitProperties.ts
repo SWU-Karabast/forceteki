@@ -293,17 +293,29 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                Contract.assertNotNullLike(cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
-                Contract.assertNotNullLike(cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
+            // if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            //     Contract.assertNotNullLike(cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
+            //     Contract.assertNotNullLike(cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
 
-                this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
-            }
+            //     this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
+            // }
 
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
 
-            this.defaultAttackAction = new InitiateAttackAction(this.game, this);
+            this.defaultAttackAction = new InitiateAttackAction(this.game, this).initialize();
+        }
+
+        protected override onInitialize(): void {
+            super.onInitialize();
+
+
+            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                Contract.assertNotNullLike(this.cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
+                Contract.assertNotNullLike(this.cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
+
+                this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], this.cardData.pilotText);
+            }
         }
 
         protected override initializeStateForAbilitySetup() {
@@ -332,7 +344,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
             // STATE TODO: Is this a leak? It's a GO but it can be thrown out.
-            const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this) : null;
+            const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this).initialize() : null;
             this._captureZone = zone;
         }
 
@@ -819,7 +831,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             for (const bountyKeyword of bountyKeywords) {
                 const abilityProps = bountyKeyword.abilityProps;
 
-                const bountyAbility = new BountyAbility(this.game, this, { ...this.buildGeneralAbilityProps('triggered'), ...abilityProps });
+                const bountyAbility = new BountyAbility(this.game, this, { ...this.buildGeneralAbilityProps('triggered'), ...abilityProps }).initialize();
 
                 bountyAbility.registerEvents();
                 registeredAbilities.push(bountyAbility);

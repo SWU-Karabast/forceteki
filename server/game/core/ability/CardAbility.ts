@@ -22,7 +22,7 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
-        this.limit = properties.limit || new UnlimitedAbilityLimit(this.game);
+        this.limit = properties.limit || new UnlimitedAbilityLimit(this.game).initialize();
         this.limit.registerEvents();
         this.limit.ability = this;
 

@@ -52,6 +52,7 @@ import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbi
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
 import { registerState, undoArray, undoObject, undoState } from '../GameObjectUtils';
+import type { ZoneAbstract } from '../zone/ZoneAbstract';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -303,14 +304,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     @undoObject()
-    private accessor _zone: Zone | null = null;
+    private accessor _zone: ZoneAbstract | null = null;
 
     public get zone(): Zone | null {
-        return this._zone;
+        return this._zone as Zone;
     }
 
     protected set zone(value: Zone | null) {
-        this._zone = value;
+        this._zone = value as ZoneAbstract;
     }
 
     public get zoneName(): ZoneName {
@@ -325,13 +326,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile);
     }
 
+    protected readonly cardData: ICardDataJson;
+
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
-        owner: Player,
-        private readonly cardData: ICardDataJson
+        owner: Player, cardData: ICardDataJson
     ) {
         super(owner.game, cardData.title);
 
+        this.cardData = cardData;
         this.validateCardData(cardData);
 
         const implementationId = this.getImplementationId();
@@ -376,7 +379,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 )
             );
         }
+    }
 
+    protected override onInitialize(): void {
+        super.onInitialize();
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar, this.game.abilityHelper);
         this.initializeStateForAbilitySetup();
     }
@@ -534,15 +540,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // ******************************************* ABILITY HELPERS *******************************************
     public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
-        return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
+        return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties)).initialize();
     }
 
     public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
-        return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties));
+        return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties)).initialize();
     }
 
     protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
-        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
+        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties)).initialize();
     }
 
     protected getAbilityRegistrar() {

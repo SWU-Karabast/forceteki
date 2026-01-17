@@ -73,6 +73,6 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
      */
     private generateAttackAbilityNoTarget(card: IUnitCard, properties: IAttackProperties, initiateAttackSource: Card) {
         const { target, ...propertiesNoTarget } = properties;
-        return card.game.gameObjectManager.createWithoutRefsUnsafe(() => new InitiateAttackAction(card.game, card, propertiesNoTarget, initiateAttackSource));
+        return card.game.gameObjectManager.createWithoutRefsUnsafe(() => new InitiateAttackAction(card.game, card, propertiesNoTarget, initiateAttackSource).initialize());
     }
 }

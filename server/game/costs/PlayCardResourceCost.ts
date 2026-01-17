@@ -54,7 +54,7 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
         if (exploitAdjusters.length > 1) {
             Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
             Contract.assertTrue(context.source.hasCost());
-            const mergedExploitAdjuster = new MergedExploitCostAdjuster(exploitAdjusters, context.source, context);
+            const mergedExploitAdjuster = new MergedExploitCostAdjuster(exploitAdjusters, context.source, context).initialize();
             costAdjustersByStage.set(CostAdjustStage.Exploit_1, [mergedExploitAdjuster]);
         }
 
