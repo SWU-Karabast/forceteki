@@ -28,7 +28,7 @@ export default class TheCloneWars extends EventCard {
                 thenCondition: (context) => this.readyResourcesCount(context) > 0,
                 title: 'Create that many Clone Trooper tokens. Each opponent creates that many Battle Droid tokens.',
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.payResourceCost({
+                    AbilityHelper.immediateEffects.payResourcesWithoutAdjustment({
                         amount: parseInt(thenContext.select),
                         target: thenContext.player
                     }),

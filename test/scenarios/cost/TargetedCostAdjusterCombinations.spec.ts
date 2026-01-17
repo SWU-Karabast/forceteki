@@ -60,7 +60,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickCardInDisplayCardPrompt(context.captainTypho);
 
                 // Prompt for credits should appear, as Captain Typho costs 1 after the discount
-                expect(context.player1).toHavePrompt('Use Credit tokens for Captain Typho');
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Captain Typho');
                 expect(context.player1).toHaveExactPromptButtons(['Use 1 Credit']);
                 context.player1.clickPrompt('Use 1 Credit');
 
@@ -126,7 +126,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickCard(context.captainRex);
 
                 // Prompt to use credits
-                expect(context.player1).toHavePrompt('Use Credit tokens for Captain Rex');
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Captain Rex');
                 expect(context.player1).toHaveExactPromptButtons(['Select amount', 'Cancel']);
                 context.player1.clickPrompt('Select amount');
 
@@ -213,7 +213,7 @@ describe('Cost adjuster combinations', function() {
                 context.player1.clickPrompt('Done');
 
                 // Prompt for credits should appear
-                expect(context.player1).toHavePrompt('Use Credit tokens for Asajj Ventress');
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Asajj Ventress');
                 expect(context.player1).toHaveExactPromptButtons(['Select amount', 'Pay costs without Credit tokens']);
                 context.player1.clickPrompt('Select amount');
 
@@ -919,6 +919,58 @@ describe('Cost adjuster combinations', function() {
                 expect(context.theFather).toBeInZone('groundArena');
                 expect(context.player1.credits).toBe(0);
                 expect(context.player1.readyResourceCount).toBe(0);
+            });
+        });
+
+        describe('Vuutun Palaa + Starhawk + Credits:', function () {
+            it('when all adjusters are active, only the credit token should be triggered for game effect payments', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'chopper-base', // For cunning aspect
+                        credits: 2,
+                        resources: 5,
+                        hand: ['freelance-assassin'],
+                        spaceArena: [
+                            'vuutun-palaa#droid-control-ship',
+                            'the-starhawk#prototype-battleship'
+                        ],
+                        groundArena: [
+                            'imperial-dark-trooper',
+                            'oomseries-officer'
+                        ],
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Freelance Assassin
+                context.player1.clickCard(context.freelanceAssassin);
+
+                // Should trigger adjusters, but we'll pay costs normally for playing the unit
+                expect(context.player1).toHavePrompt('Choose pay mode for Freelance Assassin'); // Vuutun Palaa prompt
+                context.player1.clickPrompt('Pay cost normally');
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Freelance Assassin');
+                context.player1.clickPrompt('Pay costs without Credit tokens');
+                expect(context.player1.exhaustedResourceCount).toBe(2); // 1 resource discount from Starhawk
+
+                // When Played ability triggers
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to deal 2 damage to a unit');
+                context.player1.clickPrompt('Trigger');
+
+                // Credit token payment should be the only cost adjustment option
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Freelance Assassin\'s effect');
+                context.player1.clickPrompt('Pay costs without Credit tokens');
+
+                expect(context.player1).toHavePrompt('Deal 2 damage to a unit');
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Verify damage was done and Starhawk did not discount resource payment
+                expect(context.consularSecurityForce.damage).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(4); // 2 resources to play, 2 resources for effect
             });
         });
 

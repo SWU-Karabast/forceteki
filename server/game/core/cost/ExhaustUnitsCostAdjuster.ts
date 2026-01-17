@@ -100,7 +100,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
 
         Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.sourceCard.internalName} of ExhaustUnitsCostAdjuster not found in costAdjusterTargets`);
 
-        const maxTargetableUnits = context.player.getArenaUnits()
+        const maxTargetableUnits = this.sourcePlayer.getArenaUnits()
             .filter((unit) => this.isTargetableForExhaust(unit, context))
             .length;
 
