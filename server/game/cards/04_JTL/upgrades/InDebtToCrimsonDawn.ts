@@ -23,7 +23,7 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
                 choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.source.parentCard.controller),
                 activePromptTitle: (context) => `[Exhaust] ${context.source.parentCard.title} or [Pay] 2 resources`,
                 unlessEffect: {
-                    effect: (context) => AbilityHelper.immediateEffects.payResourceCost({
+                    effect: (context) => AbilityHelper.immediateEffects.payResources({
                         target: context.source.parentCard.controller,
                         amount: 2
                     }),

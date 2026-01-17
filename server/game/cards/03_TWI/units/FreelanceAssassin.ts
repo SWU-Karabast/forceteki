@@ -15,7 +15,7 @@ export default class FreelanceAssassin extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Pay 2 resources to deal 2 damage to a unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 2,
                 target: context.player
             })),
