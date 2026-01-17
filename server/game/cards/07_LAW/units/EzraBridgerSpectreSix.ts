@@ -7,7 +7,7 @@ import { aspectString } from '../../../core/utils/EnumHelpers';
 export default class EzraBridgerSpectreSix extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ezra-bridger#spectre-six-id',
+            id: '8944855119',
             internalName: 'ezra-bridger#spectre-six',
         };
     }

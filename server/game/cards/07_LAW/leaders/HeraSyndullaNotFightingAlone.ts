@@ -11,7 +11,7 @@ import type { IConstantAbilityProps } from '../../../Interfaces';
 export default class HeraSyndullaNotFightingAlone extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'hera-syndulla#not-fighting-alone-id',
+            id: '3422452539',
             internalName: 'hera-syndulla#not-fighting-alone',
         };
     }
