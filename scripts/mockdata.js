@@ -269,6 +269,43 @@ const mockCards = [
         arena: 'ground',
         internalName: '4lom#devious',
     }),
+    buildMockCard({
+        title: 'Finn',
+        subtitle: 'Looking Closer',
+        power: 6,
+        hp: 5,
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'cunning'],
+        keywords: ['ambush'],
+        types: ['unit'],
+        traits: ['resistance'],
+        setId: {
+            set: 'LAW',
+            number: 95,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'finn#looking-closer',
+    }),
+    buildMockCard({
+        title: 'The Blade Wing',
+        subtitle: 'The Secret of Shantipole',
+        power: 3,
+        hp: 3,
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'fighter'],
+        setId: {
+            set: 'LAW',
+            number: 241,
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'the-blade-wing#the-secret-of-shantipole',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

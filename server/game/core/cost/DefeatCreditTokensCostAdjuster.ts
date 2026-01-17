@@ -70,6 +70,10 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         abilityCostResult?: ICostResult
     ) {
+        if (this.isCancelled || costAdjustTriggerResult.adjustedCost.value <= 0) {
+            return;
+        }
+
         const credits = this.sourcePlayer.creditTokenCount;
         const availableResources = this.sourcePlayer.readyResourceCount;
         const minimumCreditsRequiredToPay = Math.max(0, costAdjustTriggerResult.adjustedCost.value - availableResources);
@@ -80,6 +84,8 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
 
         // Max credit value should be non-zero if we reached this point
         Contract.assertTrue(maximumCreditsThatCanBeUsed > 0);
+
+        this.checkAddAdjusterToTriggerList(context.source, costAdjustTriggerResult);
 
         const canPlayWithoutAdjuster = minimumCreditsRequiredToPay === 0;
 
