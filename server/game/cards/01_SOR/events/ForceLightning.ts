@@ -30,9 +30,9 @@ export default class ForceLightning extends EventCard {
                     mode: TargetMode.DropdownList,
                     options: (context) => Array.from({ length: context.player.readyResourceCount + 1 }, (_x, i) => `${i}`),
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.payResourceCost((context) => ({
+                        AbilityHelper.immediateEffects.payResourcesWithoutAdjustment((context) => ({
                             amount: parseInt(context.select),
-                            target: context.player,
+                            target: context.player
                         })),
                         AbilityHelper.immediateEffects.damage((context) => ({
                             amount: parseInt(context.select) * 2,

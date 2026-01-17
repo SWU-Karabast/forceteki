@@ -15,7 +15,7 @@ export default class BobaFettForAPrice extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Pay 1 to deal 3 damage to a ground unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 1,
                 target: context.player
             })),
@@ -32,7 +32,7 @@ export default class BobaFettForAPrice extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'Pay 1 to deal 3 damage to a ground unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 1,
                 target: context.player
             })),

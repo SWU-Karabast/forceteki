@@ -16,7 +16,8 @@ export enum CostAdjustStage {
 
 export enum ResourceCostType {
     Ability = 'ability',
-    PlayCard = 'playCard'
+    PlayCard = 'playCard',
+    CardEffectPayment = 'cardEffectPayment'
 }
 
 export interface IEvaluationOpportunityCost {
