@@ -29,9 +29,14 @@ export interface ICostAdjusterEvaluationTarget {
     opportunityCost?: Map<CostAdjustStage, IEvaluationOpportunityCost>;
 }
 
+export interface IPenaltyAspectFilters {
+    aspect?: Aspect;
+    isIgnored?: boolean;
+}
+
 export interface IAbilityCostAdjustmentProperties {
     getTotalResourceCost: (includeAspectPenalties?: boolean) => number;
-    getPenaltyAspects: () => Aspect[];
+    getPenaltyAspects: (filter?: IPenaltyAspectFilters) => Aspect[];
     matchingAdjusters: Map<CostAdjustStage, CostAdjuster[]>;
     resourceCostType: ResourceCostType;
 }

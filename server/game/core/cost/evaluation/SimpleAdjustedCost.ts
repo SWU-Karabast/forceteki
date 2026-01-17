@@ -1,5 +1,6 @@
 import type { Aspect } from '../../Constants';
 import * as Contract from '../../utils/Contract';
+import type { IPenaltyAspectFilters } from '../CostInterfaces';
 
 interface IPenaltyAspect {
     aspect: Aspect;
@@ -16,8 +17,19 @@ export class SimpleAdjustedCost {
     private _totalResourceCost: number;
     private _value: number;
 
-    public get penaltyAspects(): Aspect[] {
-        return this._penaltyAspects.map((entry) => entry.aspect);
+    public penaltyAspects(filter?: IPenaltyAspectFilters): Aspect[] {
+        const filterFunction = (entry: IPenaltyAspect): boolean => {
+            if (!filter) {
+                return true;
+            }
+
+            return (!filter.isIgnored || entry.penaltyDisabled === filter.isIgnored) &&
+              (!filter.aspect || entry.aspect === filter.aspect);
+        };
+
+        return this._penaltyAspects
+            .filter(filterFunction)
+            .map((entry) => entry.aspect);
     }
 
     public get value(): number {
@@ -91,7 +103,7 @@ export class SimpleAdjustedCost {
     }
 
     public getTotalResourceCost(includeAspectPenalties = true): number {
-        return this._totalResourceCost - (includeAspectPenalties ? 0 : this.penaltyAspects.length * 2);
+        return this._totalResourceCost - (includeAspectPenalties ? 0 : this.penaltyAspects().length * 2);
     }
 
     protected createCopy(): SimpleAdjustedCost {

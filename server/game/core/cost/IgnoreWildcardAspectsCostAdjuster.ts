@@ -31,7 +31,7 @@ export class IgnoreWildcardAspectsCostAdjuster extends CostAdjuster {
     }
 
     protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]): void {
-        const penaltyAspects = result.getPenaltyAspects()
+        const penaltyAspects = result.getPenaltyAspects({ isIgnored: false }) // Only pick aspects that are not already ignored
             .filter((aspect) => this.wildcardAspects.has(aspect));
 
         const aspectsIgnored: Aspect[] = [];
