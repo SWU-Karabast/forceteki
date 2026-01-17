@@ -57,12 +57,12 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     public getOngoingEffectValues<V = any>(type: EffectName): V[] {
-        const effects = this.state.ongoingEffects;
+        const effects = this._ongoingEffects;
         const result: V[] = [];
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < effects.length; i++) {
             // This call will want to be swapped out when the decorator is in place
-            const effect = this.game.getFromRef(effects[i]);
+            const effect = effects[i];
             if (effect.type === type) {
                 result.push(effect.getValue(this));
             }
@@ -71,12 +71,12 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     public getOngoingEffectSources(type: EffectName): Card[] {
-        const effects = this.state.ongoingEffects;
+        const effects = this._ongoingEffects;
         const result: Card[] = [];
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < effects.length; i++) {
             // This call will want to be swapped out when the decorator is in place
-            const effect = this.game.getFromRef(effects[i]);
+            const effect = effects[i];
             if (effect.type === type) {
                 result.push(effect.context.source);
             }
@@ -85,11 +85,12 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     public hasOngoingEffect(type: EffectName): boolean {
-        const effects = this.state.ongoingEffects;
+        const effects = this._ongoingEffects;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < effects.length; i++) {
+            const effect = effects[i];
             // This call will want to be swapped out when the decorator is in place
-            if (this.game.getFromRef(effects[i]).type === type) {
+            if (effect.type === type) {
                 return true;
             }
         }
