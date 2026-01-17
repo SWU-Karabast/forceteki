@@ -1117,7 +1117,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return attackLimit;
         }
 
-        public override getSummary(activePlayer: Player) {
+        public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
             if (this.isInPlay()) {
                 const hasSentinel = this.hasSomeKeyword(KeywordName.Sentinel);
                 const cannotBeAttacked = (this.hasRestriction(AbilityRestriction.BeAttacked) && !hasSentinel);
@@ -1125,7 +1125,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 const clonedCardTitle = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].title : null;
 
                 return {
-                    ...super.getSummary(activePlayer),
+                    ...super.getSummary(activePlayer, overrideHidden),
                     power: this.getPower(),
                     hp: this.getHp(),
                     sentinel: hasSentinel,
@@ -1138,7 +1138,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             return {
-                ...super.getSummary(activePlayer),
+                ...super.getSummary(activePlayer, overrideHidden),
                 parentCardId: this.getCaptor()?.uuid,
             };
         }

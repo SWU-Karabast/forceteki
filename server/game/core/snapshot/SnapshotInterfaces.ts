@@ -145,6 +145,7 @@ export interface IGameState {
     readonly winnerNames: string[];
     currentPhase: PhaseName | null;
     prevActionPhasePlayerPassed: boolean | null;
+    movedCards: GameObjectRef<Card>[];
 }
 
 export enum QuickUndoAvailableState {

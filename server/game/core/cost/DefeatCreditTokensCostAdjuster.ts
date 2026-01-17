@@ -38,6 +38,15 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
             return false;
         }
 
+        Contract.assertNonEmpty(context.player.baseZone.credits, 'Player has no Credit tokens in base zone but creditTokenCount is greater than zero');
+
+        // TODO: If there is ever an effect that can selectively blank Credit tokens,
+        // this class will need to account for which Credits can actually be used to
+        // adjust costs. For now, it's all or nothing (Galen Erso's effect).
+        if (this.sourcePlayer.baseZone.credits[0].isBlank()) {
+            return false;
+        }
+
         return super.canAdjust(card, context, evaluationResult);
     }
 
@@ -56,6 +65,10 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         costAdjustTriggerResult: ICostAdjustTriggerResult,
         abilityCostResult?: ICostResult
     ) {
+        if (this.isCancelled || costAdjustTriggerResult.adjustedCost.value <= 0) {
+            return;
+        }
+
         const credits = context.player.creditTokenCount;
         const availableResources = context.player.readyResourceCount;
         const minimumCreditsRequiredToPay = Math.max(0, costAdjustTriggerResult.adjustedCost.value - availableResources);
@@ -66,6 +79,8 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
 
         // Max credit value should be non-zero if we reached this point
         Contract.assertTrue(maximumCreditsThatCanBeUsed > 0);
+
+        this.checkAddAdjusterToTriggerList(context.source, costAdjustTriggerResult);
 
         const canPlayWithoutAdjuster = minimumCreditsRequiredToPay === 0;
 

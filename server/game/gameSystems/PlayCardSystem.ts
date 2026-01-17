@@ -5,6 +5,7 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import * as Helpers from '../core/utils/Helpers';
 import { AbilityRestriction, CardType, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
@@ -75,13 +76,10 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.playType && properties.playType === PlayType.Plot) {
-            return ['play {0} using Plot', [this.getTargetMessage(properties.target, context)]];
+            return [`${this.effectDescription}{1} using Plot`, [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
         }
 
-        // TODO: Add more details about how and where the card is being played from
-        // https://github.com/SWU-Karabast/forceteki/issues/1953
-
-        return super.getEffectMessage(context, additionalProperties);
+        return [`${this.effectDescription}{1}`, [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
     }
 
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {

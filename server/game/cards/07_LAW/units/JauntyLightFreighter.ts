@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class JauntyLightFreighter extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'jaunty-light-freighter-id',
+            id: '1925389607',
             internalName: 'jaunty-light-freighter',
         };
     }
