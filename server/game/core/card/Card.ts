@@ -14,8 +14,8 @@ import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
-import { ChatObjectType, KeywordName } from '../Constants';
-import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import { ChatObjectType, KeywordName, WildcardRelativePlayer } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
 import type { AbilityContext } from '../ability/AbilityContext';
@@ -609,6 +609,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return false;
     }
 
+    public isCreditToken(): this is ITokenCard {
+        return false;
+    }
+
     public isTokenUnit(): this is ITokenUnitCard {
         return false;
     }
@@ -941,6 +945,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 this.zone.removeLeader();
             } else if (this.isForceToken()) {
                 this.zone.removeForceToken();
+            } else if (this.isCreditToken()) {
+                this.zone.removeCreditToken(this);
             } else {
                 Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
             }
@@ -990,8 +996,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                     this.zone.setLeader(this);
                 } else if (this.isForceToken()) {
                     this.zone.setForceToken(this);
+                } else if (this.isCreditToken()) {
+                    this.zone.addCreditToken(this);
                 } else {
-                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader or force token`);
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, or credit token`);
                 }
 
                 break;
@@ -1325,41 +1333,41 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     /*
     * This is the infomation for each card that is sent to the client.
     */
-
-    public getSummary(activePlayer: Player): any {
+    public getSummary(activePlayer: Player, overrideHidden: boolean = false): any {
         const isActivePlayer = activePlayer === this.controller;
         const selectionState = activePlayer.getCardSelectionState(this);
+        const shouldBeHidden = this.zone.hiddenForPlayers === WildcardRelativePlayer.Any ||
+          (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent);
 
-        // If it is not the active player and in opposing hand or deck - return facedown card
-        if (this.zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent)) {
+        if (overrideHidden || !shouldBeHidden) {
             const state = {
+                id: this.cardData.id,
+                setId: this.setId,
                 controllerId: this.controller.id,
                 ownerId: this.owner.id,
+                aspects: this.aspects,
                 zone: this.zoneName,
-                uuid: isActivePlayer ? this.uuid : undefined
+                name: this.cardData.title,
+                power: this.cardData.power,
+                hp: this.cardData.hp,
+                unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client
+                type: this.type,
+                uuid: this.uuid,
+                printedType: this.printedType,
+                isBlanked: this.isBlank(),
+                ...selectionState
             };
-            return { ...state, ...selectionState };
+
+            return state;
         }
 
         const state = {
-            id: this.cardData.id,
-            setId: this.setId,
             controllerId: this.controller.id,
             ownerId: this.owner.id,
-            aspects: this.aspects,
             zone: this.zoneName,
-            name: this.cardData.title,
-            power: this.cardData.power,
-            hp: this.cardData.hp,
-            unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client
-            type: this.type,
-            uuid: this.uuid,
-            printedType: this.printedType,
-            isBlanked: this.isBlank(),
-            ...selectionState
+            uuid: isActivePlayer ? this.uuid : undefined
         };
-
-        return state;
+        return { ...state, ...selectionState };
     }
 
     public getCardState(): any {

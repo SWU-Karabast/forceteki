@@ -44,11 +44,6 @@ export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract
         return this._cards as TCard[];
     }
 
-    /** Get the cards from this zone with an optional filter */
-    public getCards(filter?: IZoneCardFilterProperties): TCard[] {
-        return this.cards.filter(this.buildFilterFn(filter));
-    }
-
     public addCard(card: TCard) {
         Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
 
@@ -56,11 +51,35 @@ export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract
         this._cards = [...this._cards, card];
     }
 
+    /**
+     * Adds multiple cards to the zone in a single operation.
+     * More efficient than calling addCard multiple times as it only triggers state tracking once.
+     */
+    public addCards(cards: TCard[]) {
+        if (cards.length === 0) {
+            return;
+        }
+        for (const card of cards) {
+            Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
+        }
+        this._cards = [...this._cards, ...cards];
+    }
+
     public removeCard(card: Card) {
         const cards = this.cards.filter((x) => x !== card);
         Contract.assertFalse(cards.length === this._cards.length, `Attempting to remove card ${card.internalName} from ${this} but it is not there. Its current zone is ${card.zone}.`);
 
         this._cards = cards;
+    }
+
+    /**
+     * Clears all cards from the zone in a single operation.
+     * More efficient than removing cards one by one.
+     */
+    public clearCards(): TCard[] {
+        const removed = [...this._cards];
+        this._cards = [];
+        return removed;
     }
 
     public override toString() {

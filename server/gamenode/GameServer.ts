@@ -6,25 +6,23 @@ import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
-import { getHeapStatistics } from 'v8';
+import { getHeapStatistics, getHeapSpaceStatistics } from 'v8';
 import { freemem, cpus } from 'os';
 import { monitorEventLoopDelay, performance, PerformanceObserver, constants as NodePerfConstants, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
 
 import { logger, jsonOnlyLogger } from '../logger';
 
-import { Lobby, MatchType } from './Lobby';
+import { Lobby, MatchmakingType } from './Lobby';
 import Socket from '../socket';
 import type { User } from '../utils/user/User';
 import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
-import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbFormatDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
-import type { QueuedPlayer } from './QueueHandler';
+import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
@@ -41,7 +39,8 @@ import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
-
+import { GamesToWinMode } from '../game/core/Constants';
+import { SwuGameFormat } from '../game/core/Constants';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -91,10 +90,7 @@ export class GameServer {
         console.log('SETUP: Retrieving card data.');
         if (process.env.ENVIRONMENT === 'development') {
             testGameBuilder = this.getTestGameBuilder();
-
-            cardDataGetter = process.env.FORCE_REMOTE_CARD_DATA === 'true'
-                ? await GameServer.buildRemoteCardDataGetter()
-                : testGameBuilder.cardDataGetter;
+            cardDataGetter = testGameBuilder.cardDataGetter;
         } else {
             try {
                 cardDataGetter = await LocalFolderCardDataGetter.createAsync(
@@ -139,11 +135,6 @@ export class GameServer {
         );
     }
 
-    private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
-        // TODO: move this url to a config
-        return RemoteCardDataGetter.createAsync('https://karabast-data.s3.amazonaws.com/data/');
-    }
-
     private static getTestGameBuilder() {
         const testDirPath = path.resolve(__dirname, '../../test');
         const gameStateBuilderPath = path.resolve(__dirname, '../../test/helpers/GameStateBuilder.js');
@@ -169,6 +160,7 @@ export class GameServer {
     private lastCpuUsageTime: bigint;
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
+    private matchmakingTimer?: NodeJS.Timeout;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -255,7 +247,8 @@ export class GameServer {
 
         // check if NEXTAUTH variable is set
         requireEnvVars(
-            ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+            ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
+                'DISCORD_BUG_REPORT_WEBHOOK_URL', 'DISCORD_ERROR_REPORT_WEBHOOK_URL', 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
@@ -342,6 +335,7 @@ export class GameServer {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
+
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
 
@@ -979,7 +973,7 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, lobbyName, allow30CardsInMainBoard } = req.body;
+                const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
                 const user = req.user;
 
                 // Check if the user is already in a lobby
@@ -997,8 +991,15 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
+                // Check Bo3 access restrictions for anonymous users
+                const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, isPrivate, 'create a public best of three lobby');
+                if (bo3AccessError) {
+                    logger.info(`GameServer (create-lobby): Anonymous user ${user.getId()} blocked from creating public Bo3 lobby`);
+                    return res.status(400).json({ success: false, message: bo3AccessError });
+                }
+
                 await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, isPrivate, allow30CardsInMainBoard);
+                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, allow30CardsInMainBoard);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1017,6 +1018,7 @@ export class GameServer {
                         id,
                         name: lobby.name,
                         format: lobby.format,
+                        gamesToWinMode: lobby.gamesToWinMode,
                         host: lobbyOwnerUser?.deck ? {
                             leader: lobbyOwnerUser.deck.leader,
                             base: lobbyOwnerUser.deck.base
@@ -1052,6 +1054,13 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: 'Lobby is full' });
                 }
 
+                // Check Bo3 access restrictions for anonymous users
+                const bo3AccessError = this.validateBo3Access(user, lobby.gamesToWinMode, lobby.isPrivate, 'join a public best of three lobby');
+                if (bo3AccessError) {
+                    logger.info(`GameServer (join-lobby): Anonymous user ${user.getId()} blocked from joining public Bo3 lobby ${lobbyId}`);
+                    return res.status(400).json({ success: false, message: bo3AccessError });
+                }
+
                 // Add the user to the lobby
                 this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
                 return res.status(200).json({ success: true });
@@ -1084,7 +1093,7 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { format, deck } = req.body;
+                const { format, gamesToWinMode, deck } = req.body;
                 const user = req.user;
                 // check if user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
@@ -1100,8 +1109,15 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
+                // Check Bo3 access restrictions for anonymous users (queue is always public)
+                const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, false, 'queue for a best of three match');
+                if (bo3AccessError) {
+                    logger.info(`GameServer (enter-queue): Anonymous user ${user.getId()} blocked from entering Bo3 queue`);
+                    return res.status(400).json({ success: false, message: bo3AccessError });
+                }
+
                 await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
-                    const success = this.enterQueue(format, user, deck);
+                    const success = this.enterQueue(format, gamesToWinMode, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1143,10 +1159,13 @@ export class GameServer {
                         cosmetics = fetchedCosmetics;
                     }
                 }
+
+                const isContributor = checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Contributor, this.serverRoleUsersCache).success;
                 return res.status(200).json({
                     success: true,
                     cosmetics,
-                    count: cosmetics.length
+                    count: cosmetics.length,
+                    isContributor
                 });
             } catch (error) {
                 logger.error('GameServer (cosmetics) Server error:', error);
@@ -1317,6 +1336,30 @@ export class GameServer {
         return true;
     }
 
+    /**
+     * Validates that the user is allowed to access a Bo3 game mode.
+     * Anonymous users are not allowed to create/join public Bo3 lobbies or queue for Bo3 matches.
+     * In development mode, this restriction is disabled unless FORCE_BLOCK_BO3_ANON_LOCAL is set to 'true'.
+     * @param user The user attempting the action
+     * @param gamesToWinMode The game mode being requested
+     * @param isPrivate Whether the lobby is private (always true for queue operations)
+     * @param operation Description of the operation for the error message
+     * @returns An error message if access is denied, or null if access is allowed
+     */
+    private validateBo3Access(user: User, gamesToWinMode: GamesToWinMode, isPrivate: boolean, operation: string): string | null {
+        if (gamesToWinMode !== GamesToWinMode.BestOfThree) {
+            return null; // Not Bo3, no restriction
+        }
+        if (isPrivate || user.isAuthenticatedUser()) {
+            return null; // Private lobby or authenticated user, allowed
+        }
+        // In development mode, allow anonymous Bo3 access unless explicitly blocked
+        if (process.env.ENVIRONMENT === 'development' && process.env.FORCE_BLOCK_BO3_ANON_LOCAL !== 'true') {
+            return null;
+        }
+        return `You must be logged in to ${operation}`;
+    }
+
     public getUserLobbyId(userId: string): string | undefined {
         return this.userLobbyMap.get(userId)?.lobbyId;
     }
@@ -1358,7 +1401,7 @@ export class GameServer {
                     numberOfOngoingGames++;
 
                     // don't show entries for private games
-                    if (lobby.gameType !== MatchType.Private) {
+                    if (lobby.matchmakingType !== MatchmakingType.PrivateLobby) {
                         ongoingGames.push(gameState);
                     }
                 }
@@ -1406,7 +1449,7 @@ export class GameServer {
             Array.from(this.lobbies.entries()).filter(([, lobby]) =>
                 !lobby.isFilled() &&
                 !lobby.isPrivate &&
-                lobby.gameType !== MatchType.Quick &&
+                lobby.matchmakingType !== MatchmakingType.Quick &&
                 !lobby.hasOngoingGame() &&
                 lobby.hasConnectedPlayer()
             )
@@ -1422,7 +1465,15 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean, allow30CardsInMainBoard: boolean = false) {
+    private createLobby(
+        lobbyName: string,
+        user: User,
+        deck: Deck,
+        format: SwuGameFormat,
+        gamesToWinMode: GamesToWinMode,
+        isPrivate: boolean,
+        allow30CardsInMainBoard: boolean = false
+    ) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -1433,8 +1484,9 @@ export class GameServer {
         // set default user if anonymous user is supplied for private lobbies
         const lobby = new Lobby(
             lobbyName,
-            isPrivate ? MatchType.Private : MatchType.Custom,
+            isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
             format,
+            gamesToWinMode,
             allow30CardsInMainBoard,
             this.cardDataGetter,
             this.deckValidator,
@@ -1451,8 +1503,9 @@ export class GameServer {
     private async startTestGame(filename: string) {
         const lobby = new Lobby(
             'Test Game',
-            MatchType.Custom,
+            MatchmakingType.PublicLobby,
             SwuGameFormat.Open,
+            GamesToWinMode.BestOfOne,
             false,
             this.cardDataGetter,
             this.deckValidator,
@@ -1584,10 +1637,10 @@ export class GameServer {
 
             // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
             // this is why we reinitialize the requeue listener
-            if (lobby.gameType === MatchType.Quick) {
+            if (lobby.matchmakingType === MatchmakingType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser?.deck?.originalDeckList));
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.queueFormatKey, user, lobbyUser?.deck?.originalDeckList));
                 }
             }
 
@@ -1619,6 +1672,16 @@ export class GameServer {
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
+
+            // Check Bo3 access restrictions for anonymous users joining via link
+            const bo3AccessError = this.validateBo3Access(user, lobby.gamesToWinMode, lobby.isPrivate, 'join a public best of three lobby');
+            if (bo3AccessError) {
+                logger.info(`GameServer (onConnectionAsync): Anonymous user ${user.getId()} blocked from joining public Bo3 lobby ${lobby.id} via link`);
+                ioSocket.emit('connection_error', bo3AccessError);
+                ioSocket.disconnect();
+                return Promise.resolve();
+            }
+
             // anonymous user joining existing game
             /* if (!user.username) {
                 const newUser = { username: 'Player2', id: user.id };
@@ -1668,9 +1731,14 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, user: User, deck: ISwuDbFormatDecklist): boolean {
+    private enterQueue(format: SwuGameFormat, gamesToWinMode: GamesToWinMode, user: User, deck: ISwuDbFormatDecklist): boolean {
+        const formatKey: IQueueFormatKey = {
+            swuFormat: format,
+            gamesToWinMode
+        };
+
         this.queue.addPlayer(
-            format,
+            formatKey,
             {
                 user,
                 deck,
@@ -1682,7 +1750,14 @@ export class GameServer {
     }
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
+        // If there's a pending timer-based matchmaking task, clear it out
+        if (this.matchmakingTimer) {
+            clearTimeout(this.matchmakingTimer);
+            this.matchmakingTimer = undefined;
+        }
+
         const formatsWithMatches = this.queue.findReadyFormats();
+        let needsTimedRetry = false;
 
         for (const format of formatsWithMatches) {
             // track exceptions to avoid getting stuck in a loop
@@ -1694,7 +1769,10 @@ export class GameServer {
                 // try-catch here so that all matchmaking doesn't halt on a single failure
                 try {
                     matchedPlayers = this.queue.getNextMatchPair(format);
+
                     if (!matchedPlayers) {
+                        // If matchmaking failed to find a pair, flag that we need a timed retry
+                        needsTimedRetry = true;
                         break;
                     }
 
@@ -1716,19 +1794,33 @@ export class GameServer {
             }
         }
 
+        if (needsTimedRetry) {
+            this.matchmakingTimer = setTimeout(() => {
+                try {
+                    this.matchmakeAllQueuesAsync();
+                } catch (error) {
+                    logger.error(
+                        'GameServer: Error in scheduled matchmaking retry:',
+                        { error: { message: error.message, stack: error.stack } }
+                    );
+                }
+            }, QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
+        }
+
         return Promise.resolve();
     }
 
     /**
      * Matchmake two users in a queue
      */
-    private async matchmakeQueuePlayersAsync(format: SwuGameFormat, [p1, p2]: [QueuedPlayer, QueuedPlayer]): Promise<void> {
+    private async matchmakeQueuePlayersAsync(format: IQueueFormatKey, [p1, p2]: [QueuedPlayer, QueuedPlayer]): Promise<void> {
         Contract.assertFalse(p1.user.getId() === p2.user.getId(), 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
             'Quick Game',
-            MatchType.Quick,
-            format,
+            MatchmakingType.Quick,
+            format.swuFormat,
+            format.gamesToWinMode,
             false,
             this.cardDataGetter,
             this.deckValidator,
@@ -1759,7 +1851,7 @@ export class GameServer {
         return Promise.resolve();
     }
 
-    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby, format: SwuGameFormat): Promise<void> {
+    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby, format: IQueueFormatKey): Promise<void> {
         const socket = player?.socket;
         if (!socket) {
             return Promise.resolve();
@@ -1777,7 +1869,7 @@ export class GameServer {
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: ISwuDbFormatDecklist) {
+    public requeueUser(socket: Socket, format: IQueueFormatKey, user: User, deck: ISwuDbFormatDecklist) {
         try {
             if (!deck) {
                 logger.error(`GameServer: Cannot requeue user ${user.getId()} - no deck provided`);
@@ -1904,6 +1996,14 @@ export class GameServer {
         }
     }
 
+    /**
+     * Records matchmaking info (opponent and game end time) for future matchmaking.
+     * Called when a lobby ends or a player leaves, to prevent immediate rematches.
+     */
+    public recordExpiringMatchmakingEntry(player1Id: string, player2Id: string, endTimestamp: number): void {
+        this.queue.setPreviousMatchEntry(player1Id, player2Id, endTimestamp);
+    }
+
     private logCpuUsage(): void {
         try {
             const cpuUsageDiff = process.cpuUsage(this.lastCpuUsage);
@@ -1929,14 +2029,18 @@ export class GameServer {
     private logHeapStats(): void {
         try {
             const heapStats = getHeapStatistics();
+            const heapSpaceStats = getHeapSpaceStatistics();
             const usedHeapSizeInMB = (heapStats.used_heap_size / 1024 / 1024).toFixed(1);
             const totalHeapSizeInMB = (heapStats.total_heap_size / 1024 / 1024).toFixed(1);
             const heapSizeLimitInMB = (heapStats.heap_size_limit / 1024 / 1024).toFixed(1);
             const heapUsagePercent = ((heapStats.used_heap_size / heapStats.heap_size_limit) * 100).toFixed(1);
             const rssSizeInMB = (process.memoryUsage().rss / 1024 / 1024).toFixed(1);
 
+            const newSpace = heapSpaceStats.find((s) => s.space_name === 'new_space');
+            const newSpaceSizeMB = newSpace ? (newSpace.space_size / 1024 / 1024).toFixed(1) : 'N/A';
+
             const freeSystemMemoryInGB = (freemem() / 1024 / 1024 / 1024).toFixed(2);
-            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | Total physical usage: ${rssSizeInMB}MB | System free: ${freeSystemMemoryInGB}GB`);
+            logger.info(`[HeapStats] Used: ${usedHeapSizeInMB}MB / ${totalHeapSizeInMB}MB (${heapUsagePercent}% of ${heapSizeLimitInMB}MB limit) | New space: ${newSpaceSizeMB}MB | Total physical usage: ${rssSizeInMB}MB | System free: ${freeSystemMemoryInGB}GB`);
         } catch (error) {
             logger.error(`Error logging heap stats: ${error}`);
         }

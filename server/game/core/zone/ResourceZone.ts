@@ -11,7 +11,14 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
     public override readonly name: ZoneName.Resource;
 
     public get exhaustedResourceCount() {
-        return this.exhaustedResources.length;
+        let count = 0;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < this.cards.length; i++) {
+            if (this.cards[i].exhausted) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public get exhaustedResources(): readonly IPlayableCard[] {
@@ -19,7 +26,14 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
     }
 
     public get readyResourceCount() {
-        return this.readyResources.length;
+        let count = 0;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < this.cards.length; i++) {
+            if (!this.cards[i].exhausted) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public get readyResources(): readonly IPlayableCard[] {

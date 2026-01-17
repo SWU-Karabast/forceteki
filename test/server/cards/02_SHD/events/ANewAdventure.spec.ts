@@ -51,7 +51,7 @@ describe('A New Adventure', function() {
             });
         });
 
-        it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the onwer can play it for free', async function () {
+        it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the owner can play it for free', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

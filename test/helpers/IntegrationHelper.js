@@ -64,7 +64,7 @@ global.integration = function (definitions, enableUndo = false) {
         beforeEach(function () {
             process.env.ENVIRONMENT = 'development';
 
-            var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError', 'handleGameEnd']);
+            var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError', 'handleGameEnd', 'handleUndoGameEnd']);
             gameRouter.handleError.and.callFake((game, error) => {
                 throw error;
             });

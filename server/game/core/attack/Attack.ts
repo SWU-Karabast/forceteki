@@ -130,6 +130,14 @@ export class Attack {
         return this.attacker.isInPlay() && !this.unitControllersChanged.has(this.attacker);
     }
 
+    public isTargetStillInPlay(target: IAttackableCard): boolean {
+        return target.isBase() || (
+            target.isInPlay() &&
+            // If inPlayId has changed, the target has left and re-entered play
+            this.targetInPlayMap.get(target) === target.inPlayId
+        );
+    }
+
     public isInvolved(card: Card): boolean {
         return (
             ([this.attacker as Card, this.targets as Card[]].includes(card))

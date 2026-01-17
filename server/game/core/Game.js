@@ -278,6 +278,9 @@ class Game extends EventEmitter {
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
 
+        /** @public @readonly @type {string | undefined} Player ID who gets to choose who starts with initiative, or undefined for random selection */
+        this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
+
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
         // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
@@ -300,12 +303,12 @@ class Game extends EventEmitter {
             winnerNames: [],
             lastGameEventId: 0,
             currentPhase: null,
-            prevActionPhasePlayerPassed: null
+            prevActionPhasePlayerPassed: null,
+            movedCards: []
         };
 
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
-        this.movedCards = [];
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
         this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
@@ -663,7 +666,7 @@ class Game extends EventEmitter {
 
     /**
      * Returns if a card is in play (units, upgrades, base, leader) that has the passed trait
-     * @param {Trait} trait
+     * @param {Trait | Trait[]} trait
      * @returns {boolean} true/false if the trait is in pay
      */
     isTraitInPlay(trait) {
@@ -1006,7 +1009,7 @@ class Game extends EventEmitter {
             return;
         }
 
-        this.addMessage('{0} concedes', player);
+        this.addMessage('{0} concedes the game', player);
 
         var otherPlayer = this.getOtherPlayer(player);
 
@@ -1713,7 +1716,7 @@ class Game extends EventEmitter {
     checkUniqueRule() {
         const checkedCards = new Array();
 
-        for (const movedCard of this.movedCards) {
+        for (const movedCard of this.state.movedCards.map((ref) => this.getFromRef(ref))) {
             if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
                 const existingCard = checkedCards.find((otherCard) =>
                     otherCard.title === movedCard.title &&
@@ -1721,7 +1724,7 @@ class Game extends EventEmitter {
                     otherCard.controller === movedCard.controller
                 );
 
-                if (!existingCard) {
+                if (!existingCard && movedCard.canBeInPlay()) {
                     checkedCards.push(movedCard);
                     movedCard.checkUnique();
                 }
@@ -1731,10 +1734,10 @@ class Game extends EventEmitter {
 
     resolveGameState(hasChanged = false, events = []) {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
-        for (const movedCard of this.movedCards) {
+        for (const movedCard of this.state.movedCards.map((ref) => this.getFromRef(ref))) {
             movedCard.resolveAbilitiesForNewZone();
         }
-        this.movedCards = [];
+        this.state.movedCards = [];
 
         if (events.length > 0) {
             // check for any delayed effects which need to fire
@@ -1750,7 +1753,9 @@ class Game extends EventEmitter {
             // if the state has changed, check for:
 
             // - any defeated units
-            this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeatedByOngoingEffect());
+            for (const card of this.getArenaUnits()) {
+                card.checkDefeatedByOngoingEffect();
+            }
         }
     }
 
@@ -1831,7 +1836,7 @@ class Game extends EventEmitter {
      * @param {Card} card
      */
     registerMovedCard(card) {
-        this.movedCards.push(card);
+        this.state.movedCards.push(card.getRef());
     }
 
     /**
@@ -1991,9 +1996,8 @@ class Game extends EventEmitter {
                     undoEnabled: this.isUndoEnabled,
                 };
 
-                // convert null to undefined to reduce the message size (undefined is omitted from JSON)
+                // Convert nulls to undefined so JSON.stringify strips them (reduces payload size)
                 Helpers.convertNullToUndefinedRecursiveInPlace(gameState);
-
                 return gameState;
             }
             return {};
@@ -2196,6 +2200,10 @@ class Game extends EventEmitter {
             this._actionsSinceLastUndo = 0;
 
             this.postRollbackOperations(rollbackResult.entryPoint);
+
+            if (rollbackResult.rolledPastGameEnd) {
+                this._router.handleUndoGameEnd();
+            }
 
             const postUndoState = this.captureGameState('any');
 

@@ -66,7 +66,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         // Handle any targets that left play
         for (const target of legalTargets) {
-            if (target.isBase() || target.isInPlay()) {
+            if (this.attack.isTargetStillInPlay(target)) {
                 // Do nothing - normal attacks
                 inPlayTargets.push(target);
             } else if (this.attack.hasOverwhelm()) {

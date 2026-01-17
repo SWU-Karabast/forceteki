@@ -112,7 +112,9 @@ export function asArray<T>(val: T | T[]): T[] {
     return Array.isArray(val) ? val : [val];
 }
 
-export const isDevelopment = () => process.env.ENVIRONMENT === 'development';
+// Memoize the development check since process.env.ENVIRONMENT doesn't change at runtime
+const _isDevelopment = process.env.ENVIRONMENT === 'development';
+export const isDevelopment = () => _isDevelopment;
 
 export function getSingleOrThrow<T>(val: T | T[]): T {
     Contract.assertNotNullLike(val);
@@ -223,6 +225,49 @@ export function filterMap<T extends Record<any, any>, U = any>(obj: T, mapCallba
     return results;
 }
 
+/** Transform the values of a Map, based on the provided `transform` function */
+export function mapValues<TKey, TValue, TResult>(
+    inputMap: Map<TKey, TValue>,
+    transform: (value: TValue) => TResult
+): Map<TKey, TResult> {
+    const resultMap = new Map<TKey, TResult>();
+
+    inputMap.forEach((value, key) => {
+        resultMap.set(key, transform(value));
+    });
+
+    return resultMap;
+}
+
+/** Transforms the values of a Set, based on the provided `transform` function */
+export function mapSet<TValue, TResult>(
+    inputSet: Set<TValue>,
+    transform: (value: TValue) => TResult
+): Set<TResult> {
+    const resultSet = new Set<TResult>();
+
+    inputSet.forEach((value) => {
+        resultSet.add(transform(value));
+    });
+
+    return resultSet;
+}
+
+/** Reduces the values of a set into an accumulating value, based on the provided `accumulator` function */
+export function reduceSet<TValue, TResult>(
+    inputSet: Set<TValue>,
+    initialValue: TResult,
+    accumulator: (accumulated: TResult, value: TValue) => TResult
+): TResult {
+    let result = initialValue;
+
+    inputSet.forEach((value) => {
+        result = accumulator(result, value);
+    });
+
+    return result;
+}
+
 export function mergeNumericProperty<TPropertySet extends { [key in TPropName]?: number }, TPropName extends string>(
     propertySet: TPropertySet,
     newPropName: TPropName,
@@ -321,27 +366,43 @@ export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
     return union;
 }
 
+/** Perform a set union for an arbitrary number of sets with the same element type */
+export function setUnionMultiple<T>(...sets: Set<T>[]): Set<T> {
+    const union = new Set<T>();
+    for (const set of sets) {
+        for (const item of set) {
+            union.add(item);
+        }
+    }
+    return union;
+}
+
 /**
  * Recurses through an object's properties and converts any null values to undefined.
  * This is an _in-place_ operation, meaning it modifies the original object.
  * When serialized to JSON, undefined properties are omitted, reducing message size.
  */
 export function convertNullToUndefinedRecursiveInPlace(obj) {
+    if (obj == null) {
+        return;
+    }
     convertNullToUndefinedRecursiveInPlaceInternal(obj, new Set());
 }
 
 function convertNullToUndefinedRecursiveInPlaceInternal(obj, visited) {
-    if (obj == null || visited.has(obj)) {
+    if (visited.has(obj)) {
         return;
     }
 
     visited.add(obj);
 
     for (const key in obj) {
-        if (obj[key] === null) { // explicit null check here (== matches both undefined and null)
+        const value = obj[key];
+        if (value === null) {
             obj[key] = undefined;
-        } else if (obj[key] instanceof Object) {
-            convertNullToUndefinedRecursiveInPlaceInternal(obj[key], visited);
+        } else if (typeof value === 'object') {
+            // value is guaranteed non-null here due to the if above
+            convertNullToUndefinedRecursiveInPlaceInternal(value, visited);
         }
     }
 }

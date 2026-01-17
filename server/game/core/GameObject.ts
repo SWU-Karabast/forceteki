@@ -57,24 +57,50 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     public getOngoingEffectValues<V = any>(type: EffectName): V[] {
-        const filteredEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === type);
-        return filteredEffects.map((ongoingEffect) => ongoingEffect.getValue(this));
+        const effects = this.state.ongoingEffects;
+        const result: V[] = [];
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < effects.length; i++) {
+            // This call will want to be swapped out when the decorator is in place
+            const effect = this.game.getFromRef(effects[i]);
+            if (effect.type === type) {
+                result.push(effect.getValue(this));
+            }
+        }
+        return result;
     }
 
     public getOngoingEffectSources(type: EffectName): Card[] {
-        const filteredEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === type);
-        return filteredEffects.map((ongoingEffect) => ongoingEffect.context.source);
+        const effects = this.state.ongoingEffects;
+        const result: Card[] = [];
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < effects.length; i++) {
+            // This call will want to be swapped out when the decorator is in place
+            const effect = this.game.getFromRef(effects[i]);
+            if (effect.type === type) {
+                result.push(effect.context.source);
+            }
+        }
+        return result;
     }
 
-    public hasOngoingEffect(type: EffectName) {
-        return this.getOngoingEffectValues(type).length > 0;
+    public hasOngoingEffect(type: EffectName): boolean {
+        const effects = this.state.ongoingEffects;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < effects.length; i++) {
+            // This call will want to be swapped out when the decorator is in place
+            if (this.game.getFromRef(effects[i]).type === type) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
      * Returns true if the card has any ability restriction matching the given name. Restriction names
      * can be a value of {@link AbilityRestriction} or an arbitrary string such as a card name.
      */
-    public hasRestriction(actionType: string, context?: AbilityContext) {
+    public hasRestriction(actionType: (AbilityRestriction | EffectName) | (AbilityRestriction | EffectName)[], context?: AbilityContext) {
         return this.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions).some((restriction) =>
             restriction.isMatch(actionType, context)
         );
@@ -128,21 +154,9 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return effects[effects.length - 1];
     }
 
-    // TODO: Convert to for loop where possible.
-    protected getOngoingEffects() {
-        // const ongoings = this._ongoingEffects;
-        // const suppressedEffects = [];
-        // for (const ongoing of ongoings) {
-        //     if (ongoing.type !== EffectName.SuppressEffects) {
-        //         continue;
-        //     }
-
-        //     suppressedEffects.push(ongoing.getValue(this));
-        // }
-
-        const suppressEffects = this._ongoingEffects.filter((ongoingEffect) => ongoingEffect.type === EffectName.SuppressEffects);
-        const suppressedEffects = suppressEffects.reduce((array, ongoingEffect) => array.concat(ongoingEffect.getValue(this)), []);
-        return this._ongoingEffects.filter((ongoingEffect) => !suppressedEffects.includes(ongoingEffect));
+    protected getOngoingEffects(): readonly OngoingCardEffect[] {
+        // Curently this still derefs the entire array of ongoing effects from the gamestate manager
+        return this._ongoingEffects;
     }
 
     public isPlayer(): this is Player {

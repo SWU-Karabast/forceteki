@@ -38,6 +38,7 @@ function populateMissingData(attributes, id) {
             attributes.upgradeHp = 0;
             attributes.upgradePower = 0;
             break;
+        case '8015500527': // Credit token
         case '4571900905': // The Force
             attributes.cost = 0;
             attributes.type = {
@@ -132,6 +133,8 @@ function populateMissingData(attributes, id) {
                 ]
             };
             break;
+        case '6658095148': // Zeb Orrelios - Spectre Four
+            attributes.title = 'Zeb Orrelios'; // Fix spelling
     }
 
     // Plot cards from Secrets of Power
@@ -206,6 +209,34 @@ function getAttributeNames(attributeList) {
     return attributeList.data.attributes.name.toLowerCase();
 }
 
+function buildSetCodeList(card) {
+    if (!card.reprints || !card.reprints.data || card.reprints.data.length === 0) {
+        return [card.setId];
+    }
+
+    const reprintSetIds = card.reprints.data
+        .map((reprint) => {
+            return {
+                set: reprint.attributes.expansion.data.attributes.code,
+                number: reprint.attributes.cardNumber
+            };
+        })
+        .filter((setId) => {
+            // Filter out reprints that are Promos/Convention Exclusives - e.g., 'C24', 'P25'
+            return !(/^[a-zA-Z]\d\d$/g).test(setId.set) &&
+            // Filter out Gamegenic promo bases
+              setId.set !== 'GG' &&
+            // Filter out OP Promos (These codes are 4 or 5 characters and end in P or OP)
+              !(/^\w{2,3}O?P$/g).test(setId.set);
+        });
+
+    return [card.setId].concat(reprintSetIds);
+}
+
+function makeSetCodeString(setCode) {
+    return `${setCode.set}_${String(setCode.number).padStart(3, '0')}`;
+}
+
 function filterValues(card) {
     try {
         // just filter out variants for now
@@ -263,32 +294,11 @@ function filterValues(card) {
         // tokens use a different numbering scheme, can ignore for now
         if (!filteredObj.types.includes('token')) {
             filteredObj.setId.number = card.attributes.cardNumber;
+            filteredObj.setCodes = buildSetCodeList(filteredObj);
         }
 
-        let reprintsMap = new Map();
-
-        let lofReprintMap = new Map();
-        lofReprintMap.set(58, { set: 'SOR', number: 61 }); // Guardian of the Whills - SOR 61
-        lofReprintMap.set(60, { set: 'TWI', number: 58 }); // Padawan Starfighter - TWI 58
-        lofReprintMap.set(162, { set: 'SHD', number: 168 }); // Hunting Nexu - SHD 168
-        lofReprintMap.set(164, { set: 'SOR', number: 164 }); // Wampa - SOR 164
-
-        reprintsMap.set('LOF', lofReprintMap);
-
-        let secReprintMap = new Map();
-        secReprintMap.set(30, { set: 'SOR', number: 33 }); // Death Trooper - SOR 33
-        secReprintMap.set(184, { set: 'SOR', number: 176 }); // ISB Agent - SOR 176
-        secReprintMap.set(239, { set: 'SOR', number: 228 }); // Viper Probe Droid - SOR 228
-        secReprintMap.set(250, { set: 'SOR', number: 239 }); // Rebel Pathfinder - SOR 239
-
-        reprintsMap.set('SEC', secReprintMap);
-
-        if (reprintsMap.has(filteredObj.setId.set) && reprintsMap.get(filteredObj.setId.set).has(filteredObj.setId.number)) {
-            let reprintData = reprintsMap.get(filteredObj.setId.set).get(filteredObj.setId.number);
-            filteredObj.setId.set = reprintData.set;
-            filteredObj.setId.number = reprintData.number;
-        }
-
+        // Reprint data no longer needed
+        delete filteredObj.reprints;
 
         if (filteredObj.keywords.includes('piloting')) {
             filteredObj.pilotText = filteredObj.epicAction;
@@ -339,44 +349,60 @@ function buildCardLists(cards) {
     const playableCardTitlesSet = new Set();
     const seenNames = [];
     const leaderNames = [];
-    var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
-    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4], ['LOF', 5], ['IBH', 6], ['SEC', 6]]);
+    const setNumber = new Map([
+        ['SOR', 1],
+        ['SHD', 2],
+        ['TWI', 3],
+        ['JTL', 4],
+        ['LOF', 5],
+        ['IBH', 5.9],
+        ['SEC', 6],
+        ['LAW', 7]
+    ]);
 
     for (const card of cards) {
-        // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data
+        if (seenNames.includes(card.internalName)) {
+            // We already have this card, add its set code to the existing entry (if needed) then skip it
+            const existingCard = uniqueCardsMap.get(card.internalName);
+            const thisSetCode = card.setId;
+
+            if (existingCard.setCodes) { // Should always be true except for tokens
+                if (
+                    setNumber.has(thisSetCode.set) && // Skip if this is not in a core set
+                    !existingCard.setCodes.find((sc) => // Only add it if we don't already have this set code
+                        sc.set === thisSetCode.set &&
+                        sc.number === thisSetCode.number
+                    )
+                ) {
+                    // This currently only picks up the duplicate cards within IBH
+                    // (e.g. rogue-squadron-speeder is IBH_004, IBH_017, and IBH_034)
+                    existingCard.setCodes.push(thisSetCode);
+                    setCodeMap[makeSetCodeString(thisSetCode)] = existingCard.id;
+                }
+            }
+
+            continue;
+        }
+
+        // creates a map of set code + card number to card id
         if (!card.types.includes('token')) {
-            const setCodeStr = `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
+            const setCodeStr = makeSetCodeString(card.setId);
+
             if (!setCodeMap.hasOwnProperty(setCodeStr)) {
                 setCodeMap[setCodeStr] = card.id;
             }
 
             let mostRecentSetCode = card.setId;
-            for (const reprint of card.reprints.data) {
-                const setCode = reprint.attributes.expansion.data.attributes.code;
-                if (setCode && setNumber.has(setCode)) {
-                    setCodeMap[`${setCode}_${String(reprint.attributes.cardNumber).padStart(3, '0')}`] = card.id;
 
-                    mostRecentSetCode = {
-                        set: reprint.attributes.expansion.data.attributes.code,
-                        number: reprint.attributes.cardNumber
-                    };
+            for (const setCode of card.setCodes) {
+                if (setNumber.has(setCode.set)) {
+                    setCodeMap[makeSetCodeString(setCode)] = card.id;
+                    mostRecentSetCode = setCode;
                 }
             }
-            card.setId = mostRecentSetCode;
-        }
-        delete card.reprints;
 
-        if (seenNames.includes(card.internalName)) {
-            if (duplicatesWithSetCode[card.internalName] === null) {
-                duplicatesWithSetCode[card.internalName] = cards.filter((c) => c.internalName === card.internalName)
-                    .map((c) => c.debugObject.attributes.expansion.data.attributes.code);
-            }
-            const uniqueCardEntry = uniqueCardsMap.get(card.internalName);
-            if (setNumber.get(card.setId.set) < setNumber.get(uniqueCardEntry.setId.set)) {
-                uniqueCardEntry.setId = card.setId;
-            }
-            continue;
+            card.setId = mostRecentSetCode;
         }
 
         seenNames.push(card.internalName);
@@ -405,7 +431,7 @@ function buildCardLists(cards) {
     playableCardTitles.sort();
 
     const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
-    return { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames };
+    return { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames };
 }
 
 async function main() {
@@ -444,7 +470,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, duplicatesWithSetCode, setCodeMap, leaderNames } = buildCardLists(cards);
+    const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -459,11 +485,6 @@ async function main() {
 
     fileWriteProgressBar.stop();
 
-    // TODO: better way to handle duplicates between sets
-    // if (duplicatesWithSetCode) {
-    //     console.log(`Duplicate cards found, with set codes: ${JSON.stringify(duplicatesWithSetCode, null, 2)}`);
-    // }
-
     fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_allNonLeaderCardTitles.json'), JSON.stringify(allNonLeaderCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
@@ -474,6 +495,5 @@ async function main() {
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
-
 
 main();

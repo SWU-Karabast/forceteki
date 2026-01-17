@@ -45,13 +45,14 @@ import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
-import { StandardActionTimer } from './actionTimer/StandardActionTimer';
+import { GameActionTimer } from './actionTimer/GameActionTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
 import type { IActionTimer } from './actionTimer/IActionTimer';
 import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
+import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -200,7 +201,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         this.left = false;
 
         if (useTimer) {
-            this.actionTimer = new StandardActionTimer(
+            this.actionTimer = new GameActionTimer(
                 60,
                 this,
                 this.game,
@@ -301,6 +302,10 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     public get hasTheForce(): boolean {
         return this.baseZone.hasForceToken();
+    }
+
+    public get creditTokenCount(): number {
+        return this.baseZone.credits.length;
     }
 
     public incrementRejectedOpponentUndoRequests() {
@@ -483,7 +488,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isTraitInPlay(trait: Trait, ignoreUnit: any = null): boolean {
+    public isTraitInPlay(trait: Trait | Trait[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ trait, otherThan: ignoreUnit });
     }
 
@@ -493,7 +498,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isAspectInPlay(aspect: Aspect, ignoreUnit: any = null): boolean {
+    public isAspectInPlay(aspect: Aspect | Aspect[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ aspect, otherThan: ignoreUnit });
     }
 
@@ -503,7 +508,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    public isKeywordInPlay(keyword: KeywordName, ignoreUnit: any = null): boolean {
+    public isKeywordInPlay(keyword: KeywordName | KeywordName[], ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ keyword, otherThan: ignoreUnit });
     }
 
@@ -604,7 +609,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card, or null if the deck is empty
      */
     public getTopCardOfDeck(): IPlayableCard | null {
         if (this.drawDeck.length > 0) {
@@ -617,7 +622,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     /**
      * Returns ths top cards of the player's deck
      * @param {number} numCard
-     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card, or null if the deck is empty
      */
     public getTopCardsOfDeck(numCard: number): IPlayableCard[] {
         Contract.assertPositiveNonZero(numCard);
@@ -783,6 +788,21 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.cancel();
             this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
+        }
+    }
+
+    public updateCreditTokenCostAdjuster() {
+        const creditTokenAdjusters = this.costAdjusters.filter((adjuster) =>
+            adjuster.isCreditTokenAdjuster()
+        );
+
+        Contract.assertFalse(creditTokenAdjusters.length > 1, `Multiple credit token cost adjusters found on player ${this.id}`);
+
+        if (this.creditTokenCount === 0 && creditTokenAdjusters.length > 0) {
+            this.removeCostAdjuster(creditTokenAdjusters[0]);
+        } else if (this.creditTokenCount > 0 && creditTokenAdjusters.length === 0) {
+            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
+            this.addCostAdjuster(newAdjuster);
         }
     }
 
@@ -1136,21 +1156,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         );
     }
 
-    // eventsCannotBeCancelled() {
-    //     return this.hasOngoingEffect(EffectName.EventsCannotBeCancelled);
-    // }
-
-    // // TODO STATE SAVE: what stats are we interested in?
-    // getStats() {
-    //     return {
-    //         fate: this.fate,
-    //         honor: this.getTotalHonor(),
-    //         conflictsRemaining: this.getConflictOpportunities(),
-    //         militaryRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Military),
-    //         politicalRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Political)
-    //     };
-    // }
-
     public override getShortSummary() {
         return {
             ...super.getShortSummary(),
@@ -1202,21 +1207,31 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             clock: undefined,
             aspects: this.getAspects(),
             hasForceToken: this.hasTheForce,
+            credits: this.getCreditsSummary(),
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
+            topCardOfDeck: undefined
         };
 
-        // if (this.showDeck) {
-        //     state.showDeck = true;
-        //     state.cardPiles.deck = this.getSummaryForZone(this.deck, activePlayer);
-        // }
-
-        // if (this.role) {
-        //     state.role = this.role.getSummary(activePlayer);
-        // }
+        if (this.isTopCardShown(activePlayer)) {
+            const topCard = activePlayer.getTopCardOfDeck();
+            summary.topCardOfDeck = topCard.getSummary(activePlayer, true);
+        }
 
         return summary;
+    }
+
+    private getCreditsSummary() {
+        // TODO: If there is ever an effect that can selectively blank Credit tokens,
+        // this class will need to account for which Credits can actually be used to
+        // adjust costs. For now, it's all or nothing (Galen Erso's effect).
+        const creditsAreBlanked = this.baseZone.credits.length > 0 && this.baseZone.credits[0].isBlank();
+
+        return {
+            count: this.creditTokenCount,
+            blanked: creditsAreBlanked ? true : undefined // Don't include in summary if false
+        };
     }
 
     private buildAvailableSnapshotsState(isActionPhaseActivePlayer = false) {
@@ -1317,6 +1332,11 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
             // Force Token
             state.hasForceToken = this.hasTheForce;
+
+            // Credits
+            if (this.creditTokenCount > 0) {
+                state.credits = this.creditTokenCount;
+            }
         } catch (error) {
             logger.error('Error capturing player state', {
                 error: { message: error.message, stack: error.stack },

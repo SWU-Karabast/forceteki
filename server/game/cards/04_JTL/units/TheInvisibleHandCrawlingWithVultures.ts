@@ -3,7 +3,6 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -22,7 +21,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
             },
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
-                cardCondition: (card) => EnumHelpers.isUnit(card.type) && card.hasSomeTrait(Trait.Droid),
+                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Droid),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.drawSpecificCard(),
                     AbilityHelper.immediateEffects.conditional({

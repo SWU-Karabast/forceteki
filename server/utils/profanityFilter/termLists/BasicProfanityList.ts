@@ -16,6 +16,7 @@ type EnglishProfaneWord =
   | 'bestiality'
   | 'bitch'
   | 'blowjob'
+  | 'blowme'
   | 'bollocks'
   | 'boob'
   | 'boonga'
@@ -39,6 +40,7 @@ type EnglishProfaneWord =
   | 'fellatio'
   | 'finger bang'
   | 'fisting'
+  | 'foreskin'
   | 'fuck'
   | 'gangbang'
   | 'handjob'
@@ -60,6 +62,7 @@ type EnglishProfaneWord =
   | 'porn'
   | 'prick'
   | 'pussy'
+  | 'queer'
   | 'rape'
   | 'retard'
   | 'scat'
@@ -67,6 +70,7 @@ type EnglishProfaneWord =
   | 'sex'
   | 'shit'
   | 'slut'
+  | 'tedbundy'
   | 'tit'
   | 'tranny'
   | 'turd'
@@ -210,6 +214,7 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .addPattern(pattern`bich|`),
     )
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'blowjob' }).addPattern(pattern`b[b]l[l][o]wj[o]b`))
+    .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'blowme' }).addPattern(pattern`b[b]l[l]o[w][ ]me`))
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'bollocks' }).addPattern(pattern`bol[l]ock`))
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'boob' }).addPattern(pattern`boob`))
     .addPhrase((phrase) =>
@@ -369,6 +374,7 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
     )
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'prick' }).addPattern(pattern`|prick[s]|`))
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'pussy' }).addPattern(pattern`p[u]ssy`))
+    .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'queer' }).addPattern(pattern`queer[s]`))
     .addPhrase((phrase) =>
         phrase
             .setMetadata({ originalWord: 'rape' })
@@ -448,4 +454,15 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .addPattern(pattern`col[o][u]red[ ]girl`)
             .addPattern(pattern`col[o][u]red[ ]woman`)
             .addPattern(pattern`col[o][u]red[ ]person`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'tedbundy' })
+            .addPattern(pattern`ted[ ]bundy`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'foreskin' })
+            .addPattern(pattern`for[e][ ]skin`)
+            .addPattern(pattern`4skin`)
     );

@@ -15,9 +15,6 @@ describe('Boba Fett, Daimyo', function () {
                         hand: ['outer-rim-headhunter'],
                         groundArena: ['wampa'],
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -75,6 +72,7 @@ describe('Boba Fett, Daimyo', function () {
 
                 context.player1.clickCard(context.r2d2);
                 context.player1.clickPrompt('Play R2-D2 with Piloting');
+                context.player1.clickCard(context.cartelTurncoat);
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -90,9 +88,6 @@ describe('Boba Fett, Daimyo', function () {
                         leader: 'boba-fett#daimyo',
                         resources: 4
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -123,9 +118,6 @@ describe('Boba Fett, Daimyo', function () {
                         leader: 'boba-fett#daimyo',
                         resources: 4
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -138,7 +130,38 @@ describe('Boba Fett, Daimyo', function () {
             });
         });
 
-        // TODO should add tests with timely intervention or ecl
+        it('Boba Fett\'s leader ability should trigger when play a unit with a modified action which give an keyword', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['battlefield-marine'],
+                    leader: 'boba-fett#daimyo',
+                    base: 'energy-conversion-lab',
+                    resources: 4
+                },
+                player2: {
+                    groundArena: ['duchesss-champion']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.energyConversionLab);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Exhaust this leader to give a friendly unit +1/+0 for this phase']);
+            context.player1.clickPrompt('Exhaust this leader to give a friendly unit +1/+0 for this phase');
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.duchesssChampion);
+
+            expect(context.player2).toBeActivePlayer();
+
+            expect(context.duchesssChampion.damage).toBe(4);
+            expect(context.battlefieldMarine.getPower()).toBe(4);
+            expect(context.battlefieldMarine.getHp()).toBe(3);
+        });
 
         describe('Boba Fett\'s leader unit ability', function () {
             it('should give +1/+0 to other friendly unit with keyword', async function () {
@@ -152,9 +175,6 @@ describe('Boba Fett, Daimyo', function () {
                     player2: {
                         spaceArena: ['outer-rim-headhunter'],
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -167,6 +187,8 @@ describe('Boba Fett, Daimyo', function () {
                 // attack with heroic resolve, as the unit gain Overwhelm, boba should buff him
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
+                context.player1.clickCard(context.heroicResolve);
+                context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(8);
                 expect(context.battlefieldMarine.getPower()).toBe(3);

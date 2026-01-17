@@ -34,11 +34,27 @@ class PlayerInteractionWrapper {
      * be moved into their proper starting zones for the test.
      */
     moveAllNonBaseZonesToRemoved() {
-        this.player.getArenaCards().forEach((card) => this.moveCard(card, 'outsideTheGame'));
-        this.player.resourceZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
-        this.player.discardZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
-        this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
-        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        // Collect all cards from all zones
+        const arenaCards = this.player.getArenaCards();
+        const resourceCards = this.player.resourceZone.clearCards();
+        const discardCards = this.player.discardZone.clearCards();
+        const handCards = this.player.handZone.clearCards();
+        const deckCards = this.player.deckZone.clearDeck();
+
+        // Remove arena cards from their zones
+        for (let i = 0; i < arenaCards.length; i++) {
+            arenaCards[i].zone.removeCard(arenaCards[i]);
+        }
+
+        // Combine all cards into one list
+        const allCards = [...arenaCards, ...resourceCards, ...discardCards, ...handCards, ...deckCards];
+
+        // Update zone references and add to outsideTheGame in batch
+        const outsideZone = this.player.outsideTheGameZone;
+        for (let i = 0; i < allCards.length; i++) {
+            allCards[i].zone = outsideZone;
+        }
+        outsideZone.addCards(allCards);
 
         Util.refreshGameState(this.game);
     }
@@ -53,11 +69,11 @@ class PlayerInteractionWrapper {
      * @param {String|DrawCard[]} [newContents] - a list of card names or objects
      */
     setHand(newContents = [], prevZones = ['deck']) {
-        this.hand.forEach((card) => this.moveCard(card, 'deck'));
+        this.hand.forEach((card) => this.setupMoveCard(card, 'deck'));
 
         newContents.forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
-            this.moveCard(card, 'hand');
+            this.setupMoveCard(card, 'hand');
         });
     }
 
@@ -227,7 +243,7 @@ class PlayerInteractionWrapper {
     setArenaUnits(arenaName, currentUnitsInArena, newState = [], prevZones = ['deck', 'hand']) {
         // First, move all cards in play back to the deck
         currentUnitsInArena.forEach((card) => {
-            this.moveCard(card, 'deck');
+            this.setupMoveCard(card, 'deck');
         });
         // Set up each of the cards
         newState.forEach((options) => {
@@ -256,7 +272,7 @@ class PlayerInteractionWrapper {
             }
 
             // Move card to play
-            this.moveCard(card, arenaName);
+            this.setupMoveCard(card, arenaName);
 
             if (opponentControlled) {
                 card.takeControl(card.owner.opponent);
@@ -352,11 +368,11 @@ class PlayerInteractionWrapper {
 
     setDeck(newContents = [], prevZones = ['any']) {
         this.player.deckZone.cards.forEach(
-            (card) => this.moveCard(card, 'outsideTheGame')
+            (card) => this.setupMoveCard(card, 'outsideTheGame')
         );
         newContents.reverse().forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
-            this.moveCard(card, 'deck');
+            this.setupMoveCard(card, 'deck');
         });
     }
 
@@ -385,14 +401,14 @@ class PlayerInteractionWrapper {
     setResourceCards(newContents = [], prevZones = ['deck', 'hand']) {
         //  Move cards to the deck
         this.resources.forEach((card) => {
-            this.moveCard(card, 'deck');
+            this.setupMoveCard(card, 'deck');
         });
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((resource) => {
             const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
-            this.moveCard(card, 'resource');
+            this.setupMoveCard(card, 'resource');
             card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
         });
         Util.refreshGameState(this.game);
@@ -433,12 +449,12 @@ class PlayerInteractionWrapper {
      */
     setDiscard(newContents = [], prevZones = ['deck']) {
         //  Move cards to the deck
-        this.discard.forEach((card) => this.moveCard(card, 'deck'));
+        this.discard.forEach((card) => this.setupMoveCard(card, 'deck'));
         // Move cards to the discard in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((name) => {
             const card = typeof name === 'string' ? this.findCardByName(name, prevZones) : name;
-            this.moveCard(card, 'discard');
+            this.setupMoveCard(card, 'discard');
         });
     }
 
@@ -452,6 +468,10 @@ class PlayerInteractionWrapper {
 
     get hasTheForce() {
         return this.player.hasTheForce;
+    }
+
+    get credits() {
+        return this.player.creditTokenCount;
     }
 
     get actionPhaseActivePlayer() {
@@ -840,6 +860,23 @@ class PlayerInteractionWrapper {
         return card;
     }
 
+    /**
+     * Moves cards between zones WITHOUT calling game.continue().
+     * Use this for batch operations during test setup to avoid pipeline overhead.
+     * Call Util.refreshGameState() once after all moves are complete.
+     * @param {String|DrawCard} card - card to be moved
+     * @param {String} targetZone - zone where the card should be moved
+     * @param {String | String[]} searchZones - zones where to find the card object
+     */
+    setupMoveCard(card, targetZone, searchZones = 'any') {
+        if (!(card instanceof Card)) {
+            const cardName = typeof card === 'string' ? card : card.card;
+            card = this.mixedListToCardList([cardName], searchZones)[0];
+        }
+        card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
+        return card;
+    }
+
     togglePromptedActionWindow(window, value) {
         this.player.promptedActionWindows[window] = value;
     }
@@ -914,6 +951,30 @@ class PlayerInteractionWrapper {
             }
 
             forceToken.moveTo(ZoneName.OutsideTheGame);
+        }
+    }
+
+    setCreditTokenCount(count) {
+        const currentCount = this.player.creditTokenCount;
+
+        if (count < currentCount) {
+            const tokensToRemove = currentCount - count;
+            const tokens = this.player.baseZone.credits.slice(0, tokensToRemove);
+            for (const token of tokens) {
+                token.moveTo(ZoneName.OutsideTheGame);
+            }
+            return;
+        }
+
+        const tokensToAdd = count - currentCount;
+        let tokens = [];
+
+        for (let i = 0; i < count; i++) {
+            tokens.push(this.game.generateToken(this.player, 'credit'));
+        }
+
+        for (const token of tokens) {
+            token.moveTo(ZoneName.Base);
         }
     }
 

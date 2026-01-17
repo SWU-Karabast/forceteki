@@ -96,9 +96,9 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return this._epicActionAbility ? this._epicActionAbility.limit.isAtMax(this.owner) : false;
     }
 
-    public override getSummary(activePlayer: Player) {
+    public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
         return {
-            ...super.getSummary(activePlayer),
+            ...super.getSummary(activePlayer, overrideHidden),
             epicActionSpent: this.epicActionSpentInternal(),
             isDefender: this.isDefending(),
         };

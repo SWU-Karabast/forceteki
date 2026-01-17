@@ -3,15 +3,31 @@ import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardTy
 import type { Player } from '../Player';
 import * as Helpers from './Helpers';
 
-// convert a set of strings to map to an enum type, throw if any of them is not a legal value
-export function checkConvertToEnum<T>(values: string | string[], enumObj: T): T[keyof T][] {
-    const result: T[keyof T][] = [];
+// Cache for enum lookup maps (lowercase string -> enum value)
+const enumLookupCache = new Map<object, Map<string, unknown>>();
 
-    const enumValues = Object.values(enumObj);
+// Get or create a cached lookup map for an enum
+function getEnumLookupMap<T extends object>(enumObj: T): Map<string, T[keyof T]> {
+    let lookupMap = enumLookupCache.get(enumObj) as Map<string, T[keyof T]> | undefined;
+    if (!lookupMap) {
+        lookupMap = new Map<string, T[keyof T]>();
+        for (const enumValue of Object.values(enumObj)) {
+            lookupMap.set((enumValue as string).toLowerCase(), enumValue as T[keyof T]);
+        }
+        enumLookupCache.set(enumObj, lookupMap);
+    }
+    return lookupMap;
+}
+
+// convert a set of strings to map to an enum type, throw if any of them is not a legal value
+export function checkConvertToEnum<T extends object>(values: string | string[], enumObj: T): T[keyof T][] {
+    const result: T[keyof T][] = [];
+    const lookupMap = getEnumLookupMap(enumObj);
+
     for (const value of Helpers.asArray(values)) {
-        const matchingValue = enumValues.find((enumValue) => enumValue.toLowerCase() === value.toLowerCase());
-        if (matchingValue) {
-            result.push(matchingValue as T[keyof T]);
+        const matchingValue = lookupMap.get(value.toLowerCase());
+        if (matchingValue !== undefined) {
+            result.push(matchingValue);
         } else {
             throw new Error(`Invalid value for enum: ${value}`);
         }
@@ -25,7 +41,6 @@ export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
 
-// TODO: Use type predicates in similar functions in this file to enable type narrowing
 export const isArena = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneName.SpaceArena | WildcardZoneName.AnyArena => {
     switch (zone) {
         case ZoneName.GroundArena:
@@ -37,7 +52,7 @@ export const isArena = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneNa
     }
 };
 
-export const isAttackableZone = (zone: ZoneFilter) => {
+export const isAttackableZone = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Base | WildcardZoneName.AnyArena => {
     switch (zone) {
         case ZoneName.GroundArena:
         case ZoneName.SpaceArena:
@@ -89,7 +104,7 @@ export const asConcreteZone = (zoneName: ZoneName | MoveZoneDestination): ZoneNa
         : zoneName;
 };
 
-export const isDeckMoveZone = (zoneName: MoveZoneDestination): boolean => {
+export const isDeckMoveZone = (zoneName: MoveZoneDestination): zoneName is DeckZoneDestination.DeckBottom | DeckZoneDestination.DeckTop => {
     return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
 };
 
@@ -98,7 +113,7 @@ export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: Mo
     return (isArena(prevZone) || prevZone === ZoneName.Resource) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
 };
 
-export const isUnit = (cardType: CardTypeFilter) => {
+export const isUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.Unit | WildcardCardType.NonLeaderUnit | CardType.BasicUnit | CardType.LeaderUnit | CardType.TokenUnit => {
     switch (cardType) {
         case WildcardCardType.Unit:
         case WildcardCardType.NonLeaderUnit:
@@ -111,7 +126,7 @@ export const isUnit = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isNonLeaderUnit = (cardType: CardTypeFilter) => {
+export const isNonLeaderUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.NonLeaderUnit | CardType.BasicUnit | CardType.TokenUnit => {
     switch (cardType) {
         case WildcardCardType.NonLeaderUnit:
         case CardType.BasicUnit:
@@ -122,7 +137,7 @@ export const isNonLeaderUnit = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isNonLeaderUpgrade = (cardType: CardTypeFilter) => {
+export const isNonLeaderUpgrade = (cardType: CardTypeFilter): cardType is WildcardCardType.NonLeaderUpgrade | CardType.BasicUpgrade | CardType.TokenUpgrade | CardType.NonLeaderUnitUpgrade => {
     switch (cardType) {
         case WildcardCardType.NonLeaderUpgrade:
         case CardType.BasicUpgrade:
@@ -134,7 +149,7 @@ export const isNonLeaderUpgrade = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isUnitUpgrade = (cardType: CardTypeFilter) => {
+export const isUnitUpgrade = (cardType: CardTypeFilter): cardType is WildcardCardType.UnitUpgrade | CardType.NonLeaderUnitUpgrade | CardType.LeaderUpgrade => {
     switch (cardType) {
         case WildcardCardType.UnitUpgrade:
         case CardType.NonLeaderUnitUpgrade:
@@ -145,7 +160,7 @@ export const isUnitUpgrade = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isUpgrade = (cardType: CardTypeFilter) => {
+export const isUpgrade = (cardType: CardTypeFilter): cardType is WildcardCardType.Upgrade | WildcardCardType.UnitUpgrade | CardType.BasicUpgrade | CardType.LeaderUpgrade | CardType.TokenUpgrade | CardType.NonLeaderUnitUpgrade => {
     switch (cardType) {
         case WildcardCardType.Upgrade:
         case WildcardCardType.UnitUpgrade:
@@ -159,7 +174,7 @@ export const isUpgrade = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isToken = (cardType: CardTypeFilter) => {
+export const isToken = (cardType: CardTypeFilter): cardType is WildcardCardType.Token | CardType.TokenUpgrade | CardType.TokenUnit | CardType.TokenCard => {
     switch (cardType) {
         case WildcardCardType.Token:
         case CardType.TokenUpgrade:
@@ -171,7 +186,7 @@ export const isToken = (cardType: CardTypeFilter) => {
     }
 };
 
-export const isPlayable = (cardType: CardTypeFilter) => {
+export const isPlayable = (cardType: CardTypeFilter): cardType is WildcardCardType.Playable | CardType.Event | CardType.BasicUnit | CardType.BasicUpgrade | CardType.NonLeaderUnitUpgrade => {
     switch (cardType) {
         case WildcardCardType.Playable:
         case CardType.Event:

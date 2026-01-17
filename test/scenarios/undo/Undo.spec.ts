@@ -288,7 +288,6 @@ describe('Undo', function() {
             });
         });
 
-
         describe('Pyrrhic Assault\'s ability', function () {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
@@ -618,7 +617,6 @@ describe('Undo', function() {
             });
         });
 
-
         describe('Echo, Valiant Arc Trooper\'s constant Coordinate ability', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
@@ -880,6 +878,47 @@ describe('Undo', function() {
                 // context.player1.clickCard(context.wroshyrTreeTender);
                 // expect(context.player1.exhaustedResourceCount).toBe(1);
                 // expect(context.wroshyrTreeTender).toBeInZone('groundArena');
+            });
+        });
+
+        describe('The Force is With Me\'s ability', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['the-force-is-with-me'],
+                        leader: 'luke-skywalker#faithful-friend',
+                        groundArena: ['secretive-sage']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+            });
+
+            it('can be rolled back before the attack target is chosen', function () {
+                const { context } = contextRef;
+
+                rollback(contextRef, () => {
+                    context.player1.clickCard(context.theForceIsWithMe);
+                    expect(context.player1).toBeAbleToSelectExactly([context.secretiveSage]);
+                    context.player1.clickCard(context.secretiveSage);
+
+                    // Upgrades given
+                    expect(context.secretiveSage).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
+
+                    // Targeting selection for attack
+                    expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.p2Base]);
+                }, () => {
+                    // Ensure Secretive Sage is back to original state
+                    expect(context.secretiveSage).toHaveExactUpgradeNames([]);
+
+                    // Choose to deploy Luke skywalker instead
+                    context.player1.clickCard(context.lukeSkywalker);
+                    context.player1.clickPrompt('Deploy Luke Skywalker');
+
+                    expect(context.lukeSkywalker).toBeInZone('groundArena');
+                });
             });
         });
 

@@ -137,8 +137,8 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
             return this._attackEnabled;
         }
 
-        public override getSummary(activePlayer: Player) {
-            return { ...super.getSummary(activePlayer), damage: this._damage };
+        public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
+            return { ...super.getSummary(activePlayer, overrideHidden), damage: this._damage };
         }
 
         public override getCardState(): any {

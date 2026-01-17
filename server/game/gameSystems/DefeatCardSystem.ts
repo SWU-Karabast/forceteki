@@ -8,6 +8,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../IDamageOrDefeatSource';
 
@@ -43,7 +44,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
     public override effectDescription = 'defeat {0}';
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event, CardType.TokenCard];
 
     protected override readonly defaultProperties: Partial<IDefeatCardPropertiesBase> = {
         defeatSource: DefeatSourceType.Ability
@@ -68,9 +69,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
     public eventHandler(event): void {
         const card: Card = event.card;
-        Contract.assertTrue(card.canBeExhausted());
 
         if (card.zoneName === ZoneName.Resource) {
+            Contract.assertTrue(card.canBeExhausted());
             this.leavesResourceZoneEventHandler(card, event.context);
         } else if (card.isUpgrade()) {
             card.unattach(event);
@@ -84,6 +85,11 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         } else {
             card.moveTo(ZoneName.Discard);
         }
+    }
+
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        return ['defeat {0}{1}', [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
     }
 
     public override getTargetMessage(targets: PlayerOrCard | PlayerOrCard[], context: TContext): MsgArg[] {
@@ -102,7 +108,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
+        if (!card.isCreditToken() && card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context);

@@ -4,7 +4,7 @@ import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Consta
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
-import type { IAddRemoveZone, IZoneCardFilterProperties } from './ZoneAbstract';
+import type { IAddRemoveZone } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
@@ -53,14 +53,6 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
         cards.forEach((card) => card.initializeZone(this));
     }
 
-    public override getCards(filter?: IZoneCardFilterProperties): IPlayableCard[] {
-        return this.cards.filter(this.buildFilterFn(filter));
-    }
-
-    public override hasSomeCard(filter: IZoneCardFilterProperties): boolean {
-        return this.getCards(filter).length > 0;
-    }
-
     public override hasCard(card: Card): boolean {
         const cardCount = this.cards.filter((zoneCard: IPlayableCard) => zoneCard === card).length;
 
@@ -100,6 +92,16 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
             default:
                 Contract.fail(`Unknown value for DeckZoneDestination enum: ${zone}`);
         }
+    }
+
+    /**
+     * Clears all cards from the deck in a single operation.
+     * More efficient than removing cards one by one.
+     */
+    public clearDeck(): IPlayableCard[] {
+        const removed = [...this._deck];
+        this._deck = [];
+        return removed;
     }
 
     public removeTopCard(): IPlayableCard | null {
