@@ -293,7 +293,9 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
         phrase
             .setMetadata({ originalWord: 'fag' })
             .addPattern(pattern`|fag`)
-            .addPattern(pattern`fggot`),
+            .addPattern(pattern`f[a]ggot`)
+            .addPattern(pattern`|phag`)
+            .addPattern(pattern`ph[a]ggot`),
     )
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'felch' }).addPattern(pattern`fe[e]l[l]ch`))
     .addPhrase((phrase) => phrase.setMetadata({ originalWord: 'fellatio' }).addPattern(pattern`f[e][e]llat`))
