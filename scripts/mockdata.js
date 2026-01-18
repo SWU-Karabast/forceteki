@@ -460,20 +460,6 @@ const mockCards = [
         arena: 'ground',
         internalName: 'lepi-lookout',
     }),
-    buildMockCard({
-        title: 'Alliance Outpost',
-        hp: 26,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance'],
-        types: ['base'],
-        traits: ['lowick'],
-        setId: {
-            set: 'LAW',
-            number: 19,
-        },
-        unique: false,
-        internalName: 'alliance-outpost',
-    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
