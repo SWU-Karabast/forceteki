@@ -66,6 +66,37 @@ describe('Backed By The Hutts', function() {
                 expect(context.wampa.damage).toBe(4);
             });
 
+            it('should deal damage equal to the number of Credit tokens (Galen Erso name Credit token)', async function () {
+                pending('TODO: Enable this test when Backed By The Hutts is no longer flagged as unimplemented');
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['backed-by-the-hutts'],
+                        groundArena: ['wampa'],
+                        credits: 3
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: ['pyke-sentinel']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.galenErso);
+                context.player2.chooseListOption('Credit');
+
+                context.player1.clickCard(context.backedByTheHutts);
+
+                expect(context.player1.credits).toBe(4);
+
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.damage).toBe(4);
+            });
+
             it('should allow passing on the optional damage ability', async function () {
                 pending('TODO: Enable this test when Backed By The Hutts is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
