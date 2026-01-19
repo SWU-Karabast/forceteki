@@ -4,6 +4,11 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class LukeSkywalkerProfitOrBeDestroyed extends NonLeaderUnitCard {
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    protected override get overrideNotImplemented(): boolean {
+        return true;
+    }
+
     protected override getImplementationId() {
         return {
             id: 'luke-skywalker#profit-or-be-destroyed-id',
@@ -18,7 +23,7 @@ export default class LukeSkywalkerProfitOrBeDestroyed extends NonLeaderUnitCard 
                 mode: TargetMode.Select,
                 choosingPlayer: RelativePlayer.Opponent,
                 choices: (context) => ({
-                    [`${context.player.name} create a Credit token and ready this unit`]:
+                    [`${context.player.name} creates a Credit token and readies Luke Skywalker`]:
                         abilityHelper.immediateEffects.simultaneous([
                             abilityHelper.immediateEffects.createCreditToken(),
                             abilityHelper.immediateEffects.ready()
