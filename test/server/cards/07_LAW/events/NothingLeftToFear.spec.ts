@@ -32,7 +32,7 @@ describe('Nothing Left To Fear', function() {
                 expect(context.wampa.getHp()).toBe(7);
 
                 // Then prompt to defeat a non-leader unit with power <= 6
-                expect(context.player1).toHavePrompt('Defeat a non-leader unit with power equal to or less than the chosen unit');
+                expect(context.player1).toHavePrompt('Defeat a non-leader unit with 6 power or less');
                 expect(context.player1).toHavePassAbilityButton();
 
                 // pyke-sentinel (2 power), atst (6 power), cartel-spacer (2 power), battlefield-marine (3 power), alliance-xwing (2 power), wampa itself (6 power)

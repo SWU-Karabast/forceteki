@@ -4,6 +4,11 @@ import { EventCard } from '../../../core/card/EventCard';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class BackedByTheHutts extends EventCard {
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    protected override get overrideNotImplemented(): boolean {
+        return true;
+    }
+
     protected override getImplementationId () {
         return {
             id: 'backed-by-the-hutts-id',
