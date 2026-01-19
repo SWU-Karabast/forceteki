@@ -3,7 +3,7 @@ import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
 import type Game from '../Game';
 import type { IIgnoreWildcardAspectsCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
-import { CostAdjuster, CostAdjusterRelativePriority } from './CostAdjuster';
+import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustResult, ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
@@ -16,7 +16,7 @@ export class IgnoreWildcardAspectsCostAdjuster extends CostAdjuster {
         source: Card,
         properties: IIgnoreWildcardAspectsCostAdjusterProperties
     ) {
-        super(game, source, CostAdjustStage.Standard_0, { ...properties, relativePriority: CostAdjusterRelativePriority.Low });
+        super(game, source, CostAdjustStage.IgnoreWildcard_1, { ...properties });
 
         this.wildcardAspects = properties.wildcardAspects;
         this.ignoreCount = properties.ignoreCount;
