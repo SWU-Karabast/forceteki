@@ -499,8 +499,12 @@ export class GameServer {
 
                 // Sort favorites to the top, then by name
                 transformedDecks.sort((a, b) => {
-                    if (a.isFavorite && !b.isFavorite) return -1;
-                    if (!a.isFavorite && b.isFavorite) return 1;
+                    if (a.isFavorite && !b.isFavorite) {
+                        return -1;
+                    }
+                    if (!a.isFavorite && b.isFavorite) {
+                        return 1;
+                    }
                     return (a.name || '').localeCompare(b.name || '');
                 });
 
