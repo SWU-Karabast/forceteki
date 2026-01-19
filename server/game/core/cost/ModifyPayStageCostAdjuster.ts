@@ -17,7 +17,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         source: Card,
         properties: IModifyPayStageCostAdjusterProperties
     ) {
-        super(game, source, CostAdjustStage.PayStage_2, properties);
+        super(game, source, CostAdjustStage.PayStage_3, properties);
 
         this.payStageAmountAfterDiscount = properties.payStageAmount;
     }
@@ -57,7 +57,7 @@ export class ModifyPayStageCostAdjuster extends CostAdjuster {
         this.setOrAddOpportunityCost(
             adjustSourceEntry,
             opportunityCost,
-            CostAdjustStage.Exploit_1,
+            CostAdjustStage.Exploit_2,
         );
     }
 }
