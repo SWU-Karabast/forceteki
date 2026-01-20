@@ -407,6 +407,42 @@ const mockCards = [
         unique: false,
         internalName: 'shadow-cloaking',
     }),
+    buildMockCard({
+        title: 'Bix Caleen',
+        subtitle: 'Selling Scrap',
+        power: 4,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'LAW',
+            number: 236,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bix-caleen#selling-scrap',
+    }),
+    buildMockCard({
+        title: 'Rose Tico',
+        subtitle: 'Now It\'s Worth It',
+        power: 5,
+        hp: 5,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['resistance'],
+        setId: {
+            set: 'LAW',
+            number: 223,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rose-tico#now-its-worth-it',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
