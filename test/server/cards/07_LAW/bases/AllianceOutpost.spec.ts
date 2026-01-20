@@ -9,6 +9,10 @@ describe('Alliance Outpost', function() {
                         hasForceToken: true,
                         credits: 1,
                         base: 'alliance-outpost',
+                        spaceArena: [
+                            'xwing',
+                            'tie-fighter'
+                        ],
                         groundArena: [
                             'consular-security-force',
                             { card: 'battlefield-marine', upgrades: ['experience'] },
@@ -21,6 +25,10 @@ describe('Alliance Outpost', function() {
                     player2: {
                         hasForceToken: true,
                         credits: 1,
+                        spaceArena: [
+                            'xwing',
+                            'tie-fighter'
+                        ],
                         groundArena: [
                             { card: 'imperial-dark-trooper', upgrades: ['experience'] },
                             { card: 'crafty-smuggler', upgrades: ['shield'] },
@@ -37,6 +45,8 @@ describe('Alliance Outpost', function() {
                     credit: context.player1.findCardByName('credit'),
                     experience: context.player1.findCardByName('experience'),
                     shield: context.player1.findCardByName('shield'),
+                    xwing: context.player1.findCardByName('xwing'),
+                    tieFighter: context.player1.findCardByName('tie-fighter'),
                     spy: context.player1.findCardByName('spy'),
                     cloneTrooper: context.player1.findCardByName('clone-trooper'),
                     battleDroid: context.player1.findCardByName('battle-droid'),
@@ -46,6 +56,8 @@ describe('Alliance Outpost', function() {
                     credit: context.player2.findCardByName('credit'),
                     experience: context.player2.findCardByName('experience'),
                     shield: context.player2.findCardByName('shield'),
+                    xwing: context.player2.findCardByName('xwing'),
+                    tieFighter: context.player2.findCardByName('tie-fighter'),
                     spy: context.player2.findCardByName('spy'),
                     cloneTrooper: context.player2.findCardByName('clone-trooper'),
                     battleDroid: context.player2.findCardByName('battle-droid'),
@@ -73,6 +85,8 @@ describe('Alliance Outpost', function() {
                     context.p1Tokens.credit,
                     context.p1Tokens.experience,
                     context.p1Tokens.shield,
+                    context.p1Tokens.xwing,
+                    context.p1Tokens.tieFighter,
                     context.p1Tokens.spy,
                     context.p1Tokens.cloneTrooper,
                     context.p1Tokens.battleDroid
@@ -90,11 +104,15 @@ describe('Alliance Outpost', function() {
                     context.consularSecurityForce,
                     context.battlefieldMarine,
                     context.secretiveSage,
+                    context.p1Tokens.xwing,
+                    context.p1Tokens.tieFighter,
                     context.p1Tokens.spy,
                     context.p1Tokens.cloneTrooper,
                     context.p1Tokens.battleDroid,
                     context.imperialDarkTrooper,
                     context.craftySmuggler,
+                    context.p2Tokens.xwing,
+                    context.p2Tokens.tieFighter,
                     context.p2Tokens.spy,
                     context.p2Tokens.cloneTrooper,
                     context.p2Tokens.battleDroid
@@ -124,6 +142,8 @@ describe('Alliance Outpost', function() {
                     context.p1Tokens.credit,
                     context.p1Tokens.experience,
                     context.p1Tokens.shield,
+                    context.p1Tokens.xwing,
+                    context.p1Tokens.tieFighter,
                     context.p1Tokens.spy,
                     context.p1Tokens.cloneTrooper,
                     context.p1Tokens.battleDroid
@@ -141,11 +161,15 @@ describe('Alliance Outpost', function() {
                     context.consularSecurityForce,
                     context.battlefieldMarine,
                     context.secretiveSage,
+                    context.p1Tokens.xwing,
+                    context.p1Tokens.tieFighter,
                     context.p1Tokens.spy,
                     context.p1Tokens.cloneTrooper,
                     context.p1Tokens.battleDroid,
                     context.imperialDarkTrooper,
                     context.craftySmuggler,
+                    context.p2Tokens.xwing,
+                    context.p2Tokens.tieFighter,
                     context.p2Tokens.spy,
                     context.p2Tokens.cloneTrooper,
                     context.p2Tokens.battleDroid
@@ -175,6 +199,8 @@ describe('Alliance Outpost', function() {
                     context.p1Tokens.credit,
                     context.p1Tokens.experience,
                     context.p1Tokens.shield,
+                    context.p1Tokens.xwing,
+                    context.p1Tokens.tieFighter,
                     context.p1Tokens.spy,
                     context.p1Tokens.cloneTrooper,
                     context.p1Tokens.battleDroid
