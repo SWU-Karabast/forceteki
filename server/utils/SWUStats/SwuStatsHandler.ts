@@ -8,10 +8,9 @@ import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import { GameCardMetric, type IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
 import type { IStatsMessageFormat } from '../../gamenode/Lobby';
-import { StatsSource } from '../../gamenode/Lobby';
-import { StatsSaveStatus } from '../../gamenode/Lobby';
+import { StatsSaveStatus, StatsSource } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
-import type { UserFactory } from '../user/UserFactory';
+import { RefreshTokenSource, type UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
 
 
@@ -364,7 +363,7 @@ export class SwuStatsHandler {
         } else {
             // Token is expired or doesn't exist, refresh it
             logger.info(`SWUStatsHandler: Access token expired or missing for player (${userId}), attempting to refreshing...`, lobbyId ? { lobbyId, userId } : { userId });
-            const userRefreshToken = await this.userFactory.getUserSwuStatsRefreshTokenAsync(userId);
+            const userRefreshToken = await this.userFactory.getUserRefreshTokenAsync(userId, RefreshTokenSource.SWUStats);
             if (!userRefreshToken) {
                 logger.info(`SWUStatsHandler: Refresh token missing for player (${userId}), aborting refresh...`, lobbyId ? { lobbyId, userId } : { userId });
                 return null;
@@ -372,7 +371,7 @@ export class SwuStatsHandler {
             const resultTokens = await this.refreshTokensAsync(userRefreshToken);
             serverObject.swuStatsTokenMapping.set(userId, resultTokens);
             playerAccessToken = resultTokens.accessToken;
-            await this.userFactory.addSwuStatsRefreshTokenAsync(userId, resultTokens.refreshToken);
+            await this.userFactory.addRefreshTokenAsync(userId, resultTokens.refreshToken, RefreshTokenSource.SWUStats);
         }
         return playerAccessToken;
     }

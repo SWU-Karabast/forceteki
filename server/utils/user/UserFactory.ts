@@ -35,6 +35,19 @@ export const getDefaultPreferences = (): IUserPreferences => ({
 });
 
 
+export enum RefreshTokenSource {
+    SWUStats = 'SWUStats',
+    SWUBase = 'SWUBase',
+}
+
+const refreshTokenFieldMap: Record<RefreshTokenSource, {
+    [K in keyof IUserDataEntity]: IUserDataEntity[K] extends string | undefined ? K : never;
+}[keyof IUserDataEntity]> = {
+    [RefreshTokenSource.SWUStats]: 'swuStatsRefreshToken',
+    [RefreshTokenSource.SWUBase]: 'swubaseRefreshToken',
+};
+
+
 /**
  * Factory class responsible for creating the appropriate User instance
  * based on authentication status and data
@@ -346,6 +359,7 @@ export class UserFactory {
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
                 swuStatsRefreshToken: null,
+                swubaseRefreshToken: null,
                 moderation: null,
                 undoPopupSeenDate: null,
             };
@@ -409,20 +423,20 @@ export class UserFactory {
     }
 
     /**
-     * Add or update the SWUstats refresh token for a user.
+     * Add or update the SWUstats / SWUBase refresh token for a user.
      * - Calling again overwrites the old token.
      * - Does NOT return the token.
      */
-    public async addSwuStatsRefreshTokenAsync(userId: string, refreshToken: string): Promise<void> {
+    public async addRefreshTokenAsync(userId: string, refreshToken: string, source: RefreshTokenSource): Promise<void> {
         Contract.assertNotNullLike(userId, 'userId is required');
         Contract.assertTrue(!!refreshToken, 'refreshToken is required');
         try {
             const dbService = await this.dbServicePromise;
             await dbService.updateUserProfileAsync(userId, {
-                swuStatsRefreshToken: refreshToken,
+                [refreshTokenFieldMap[source]]: refreshToken,
             });
         } catch (error: any) {
-            logger.error('Error linking SWUstats refresh token:', {
+            logger.error(`Error linking ${source} refresh token:`, {
                 error: { message: error.message, stack: error.stack }, userId
             });
             throw error;
@@ -430,11 +444,12 @@ export class UserFactory {
     }
 
     /**
-     * Fetches the SWUstats refresh token for a user
+     * Fetches the SWUstats / SWUBase refresh token for a user
      * @returns The refresh token
      * @param userId a users id
+     * @param source a source of the refresh token (SWUStats or SWUBase)
      */
-    public async getUserSwuStatsRefreshTokenAsync(userId: string): Promise<string | null> {
+    public async getUserRefreshTokenAsync(userId: string, source: RefreshTokenSource): Promise<string | null> {
         Contract.assertNotNullLike(userId, 'user is required');
         try {
             const dbService = await this.dbServicePromise;
@@ -443,9 +458,9 @@ export class UserFactory {
             if (!userProfile) {
                 throw new Error(`No user profile found for userId ${userId}`);
             }
-            return userProfile.swuStatsRefreshToken;
+            return userProfile[refreshTokenFieldMap[source]];
         } catch (error: any) {
-            logger.error('Error refreshing user SWUstats token:', {
+            logger.error(`Error refreshing user ${source} token:`, {
                 error: { message: error.message, stack: error.stack },
                 userId
             });
@@ -454,18 +469,18 @@ export class UserFactory {
     }
 
     /**
-     * Remove the SWUstats refresh token (unlink account).
+     * Remove the SWUstats / SWUBase refresh token (unlink account).
      */
-    public async unlinkSwuStatsAsync(userId: string): Promise<void> {
+    public async unlinkRefreshTokenAsync(userId: string, source: RefreshTokenSource): Promise<void> {
         Contract.assertTrue(!!userId, 'userId is required');
 
         try {
             const dbService = await this.dbServicePromise;
             await dbService.updateUserProfileAsync(userId, {
-                swuStatsRefreshToken: null,
+                [refreshTokenFieldMap[source]]: null,
             });
         } catch (error: any) {
-            logger.error('Error unlinking SWUstats:', {
+            logger.error(`Error unlinking ${source}:`, {
                 error: { message: error.message, stack: error.stack }, userId
             });
             throw error;
