@@ -25,15 +25,16 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
 
                 // Opponent should be prompted to choose
                 expect(context.player2).toHaveExactPromptButtons([
-                    `${context.player1.name} create a Credit token and ready this unit`,
+                    `${context.player1.name} readies Luke Skywalker and you create a Credit token`,
                     `${context.player1.name} may deal 5 damage to a unit`
                 ]);
 
                 // Opponent chooses to give credit and ready
-                context.player2.clickPrompt(`${context.player1.name} create a Credit token and ready this unit`);
+                context.player2.clickPrompt(`${context.player1.name} readies Luke Skywalker and you create a Credit token`);
 
                 // Player 1 should have a credit token and Luke should be ready
-                expect(context.player1.credits).toBe(1);
+                expect(context.player1.credits).toBe(0);
+                expect(context.player2.credits).toBe(1);
                 expect(context.lukeSkywalker.exhausted).toBe(false);
 
                 // No damage was dealt
@@ -71,6 +72,7 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
 
                 // No credit was created, Luke remains exhausted
                 expect(context.player1.credits).toBe(0);
+                expect(context.player2.credits).toBe(0);
                 expect(context.lukeSkywalker.exhausted).toBe(true);
 
                 expect(context.player2).toBeActivePlayer();
@@ -105,6 +107,7 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
 
                 // No credit, Luke stays exhausted
                 expect(context.player1.credits).toBe(0);
+                expect(context.player2.credits).toBe(0);
                 expect(context.lukeSkywalker.exhausted).toBe(true);
 
                 expect(context.player2).toBeActivePlayer();
