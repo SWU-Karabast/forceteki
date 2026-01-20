@@ -1240,7 +1240,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return {
             count: this.creditTokenCount,
             uuids: uuids, // UUID is needed for selection on the client
-            blanked: creditsAreBlanked ? true : undefined, // Don't include in summary if false
+            isBlanked: creditsAreBlanked ? true : undefined, // Don't include in summary if false
             selectionState: this.baseZone.credits.length > 0 ? this.getCardSelectionState(this.baseZone.credits[0]) : undefined
         };
     }
