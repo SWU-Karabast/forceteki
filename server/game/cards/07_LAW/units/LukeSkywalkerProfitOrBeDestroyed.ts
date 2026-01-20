@@ -23,9 +23,9 @@ export default class LukeSkywalkerProfitOrBeDestroyed extends NonLeaderUnitCard 
                 mode: TargetMode.Select,
                 choosingPlayer: RelativePlayer.Opponent,
                 choices: (context) => ({
-                    [`${context.player.name} creates a Credit token and readies Luke Skywalker`]:
+                    [`${context.player.name} readies Luke Skywalker and you create a Credit token`]:
                         abilityHelper.immediateEffects.simultaneous([
-                            abilityHelper.immediateEffects.createCreditToken(),
+                            abilityHelper.immediateEffects.createCreditToken({ target: context.player.opponent }),
                             abilityHelper.immediateEffects.ready()
                         ]),
                     [`${context.player.name} may deal 5 damage to a unit`]:
