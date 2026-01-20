@@ -1,5 +1,6 @@
 import type { Aspect } from '../../Constants';
 import * as Contract from '../../utils/Contract';
+import type { IPenaltyAspectFilters } from '../CostInterfaces';
 
 interface IPenaltyAspect {
     aspect: Aspect;
@@ -16,8 +17,19 @@ export class SimpleAdjustedCost {
     private _totalResourceCost: number;
     private _value: number;
 
-    public get penaltyAspects(): Aspect[] {
-        return this._penaltyAspects.map((entry) => entry.aspect);
+    public penaltyAspects(filter?: IPenaltyAspectFilters): Aspect[] {
+        const filterFunction = (entry: IPenaltyAspect): boolean => {
+            if (!filter) {
+                return true;
+            }
+
+            return (!filter.isIgnored || entry.penaltyDisabled === filter.isIgnored) &&
+              (!filter.aspect || entry.aspect === filter.aspect);
+        };
+
+        return this._penaltyAspects
+            .filter(filterFunction)
+            .map((entry) => entry.aspect);
     }
 
     public get value(): number {
@@ -54,7 +66,14 @@ export class SimpleAdjustedCost {
         this._value = value;
     }
 
-    public disableAspectPenalty(aspect: Aspect) {
+    /**
+     * Disables the penalty for the specified aspect, optionally matching multiple instances.
+     *
+     * @param aspect The aspect whose penalty is to be disabled
+     * @param matchMultiple Whether to disable all instances of the aspect, or only
+     * the first instance found
+     */
+    public disableAspectPenalty(aspect: Aspect, matchMultiple: boolean) {
         const matchingEnabledPenalties = this._penaltyAspects.filter(
             (entry) => entry.aspect === aspect && !entry.penaltyDisabled
         );
@@ -62,6 +81,10 @@ export class SimpleAdjustedCost {
         for (const penaltyEntry of matchingEnabledPenalties) {
             penaltyEntry.penaltyDisabled = true;
             this.applyStaticDecrease(2);
+
+            if (!matchMultiple) {
+                break;
+            }
         }
     }
 
@@ -80,7 +103,7 @@ export class SimpleAdjustedCost {
     }
 
     public getTotalResourceCost(includeAspectPenalties = true): number {
-        return this._totalResourceCost - (includeAspectPenalties ? 0 : this.penaltyAspects.length * 2);
+        return this._totalResourceCost - (includeAspectPenalties ? 0 : this.penaltyAspects().length * 2);
     }
 
     protected createCopy(): SimpleAdjustedCost {
