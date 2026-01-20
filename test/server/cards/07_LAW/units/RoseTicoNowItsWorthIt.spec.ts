@@ -18,7 +18,7 @@ describe('Rose Tico, Now It\'s Worth It', function () {
             expect(context.roseTico.exhausted).toBeFalse();
         });
 
-        it('should enter play exhausted when not controlling a non-unique unit', async function () {
+        it('should not enter play ready when not controlling a non-unique unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -38,7 +38,7 @@ describe('Rose Tico, Now It\'s Worth It', function () {
             expect(context.roseTico.exhausted).toBeTrue();
         });
 
-        it('should enter play exhausted when controlling no units', async function () {
+        it('should not enter play ready when controlling no units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
