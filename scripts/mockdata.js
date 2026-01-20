@@ -375,6 +375,38 @@ const mockCards = [
         arena: 'ground',
         internalName: 'lepi-lookout',
     }),
+    buildMockCard({
+        title: 'Darth Vader',
+        subtitle: 'Unstoppable',
+        power: 6,
+        hp: 8,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['leader'],
+        traits: ['force', 'imperial', 'sith'],
+        setId: {
+            set: 'LAW',
+            number: 11,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'darth-vader#unstoppable',
+    }),
+    buildMockCard({
+        title: 'Shadow Cloaking',
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression', 'villainy'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'LAW',
+            number: 43,
+        },
+        unique: false,
+        internalName: 'shadow-cloaking',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
