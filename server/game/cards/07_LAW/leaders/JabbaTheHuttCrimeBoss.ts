@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { EventName, KeywordName, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { EventName, GameStateChangeRequired, KeywordName, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 
 export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
@@ -38,6 +38,7 @@ export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Underworld),
+                mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand({
                         playAsType: WildcardCardType.Unit
