@@ -2,7 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { Aspect, TargetMode } from '../../../core/Constants';
-import { aspectString } from '../../../core/utils/EnumHelpers';
+import { aspectString, checkConvertToEnum } from '../../../core/utils/EnumHelpers';
 
 export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,23 +20,17 @@ export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
                 onAttack: true,
             },
             targetResolver: {
-                mode: TargetMode.Select,
-                choices: () => ({
-                    [aspectString([Aspect.Vigilance])]: LawbringerShadowOverLothal.buildAbility(Aspect.Vigilance, abilityHelper),
-                    [aspectString([Aspect.Command])]: LawbringerShadowOverLothal.buildAbility(Aspect.Command, abilityHelper),
-                    [aspectString([Aspect.Aggression])]: LawbringerShadowOverLothal.buildAbility(Aspect.Aggression, abilityHelper),
-                    [aspectString([Aspect.Cunning])]: LawbringerShadowOverLothal.buildAbility(Aspect.Cunning, abilityHelper),
-                    [aspectString([Aspect.Villainy])]: LawbringerShadowOverLothal.buildAbility(Aspect.Villainy, abilityHelper),
-                    [aspectString([Aspect.Heroism])]: LawbringerShadowOverLothal.buildAbility(Aspect.Heroism, abilityHelper),
-                })
+                activePromptTitle: 'Choose an Aspect',
+                mode: TargetMode.DropdownList,
+                options: [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning, Aspect.Villainy, Aspect.Heroism]
+                    .map((a) => aspectString([a])),
+                immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+                    target: context.player.opponent.getArenaUnits({
+                        aspect: checkConvertToEnum(context.select.toLowerCase(), Aspect)[0]
+                    }),
+                    effect: abilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 })
+                }))
             }
         });
-    }
-
-    private static buildAbility(aspect: Aspect, abilityHelper: IAbilityHelper) {
-        return abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
-            target: context.player.opponent.getArenaUnits({ aspect: aspect }),
-            effect: abilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 })
-        }));
     }
 }
