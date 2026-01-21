@@ -7,11 +7,10 @@ import { DeckSource } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import { GameCardMetric, type IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
-import type { IStatsMessageFormat } from '../../gamenode/Lobby';
-import { StatsSaveStatus, StatsSource } from '../../gamenode/Lobby';
 import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
 import { RefreshTokenSource, type UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
+import { StatsMessageKey } from '../stats/statsMessages';
 
 
 interface TurnResults {
@@ -118,15 +117,13 @@ export class SwuStatsHandler {
         lobbyId: string,
         serverObject: GameServer,
         sequenceNumber?: number,
-    ): Promise<IStatsMessageFormat> {
+    ): Promise<StatsMessageKey> {
         try {
             // Determine winner
             const winner = this.determineWinner(game, player1, player2);
             if (winner === 0) {
                 logger.info(`Game ${game.id} ended in a draw or without clear winner, not sending to SWUStats`, { lobbyId });
-                return { type: StatsSaveStatus.Warning,
-                    source: StatsSource.SwuStats,
-                    message: 'draws are currently not supported by SWUStats' };
+                return StatsMessageKey.SwustatsDrawsNotSupported;
             }
 
             // Build the payload
@@ -160,9 +157,7 @@ export class SwuStatsHandler {
                 throw new Error(`SWUStats API returned error: ${response.status} - ${errorText}`);
             }
             logger.info(`Successfully sent game result to SWUStats for game ${game.id}`, { lobbyId });
-            return { type: StatsSaveStatus.Success,
-                source: StatsSource.SwuStats,
-                message: 'successfully sent game result to SWUStats' };
+            return StatsMessageKey.SwustatsSuccess;
         } catch (error) {
             logger.error('Failed to send game result to SWUStats', {
                 error: { message: error.message, stack: error.stack },

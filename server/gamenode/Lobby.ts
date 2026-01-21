@@ -1,23 +1,23 @@
 import Game from '../game/core/Game';
-import { v4 as uuid, v4 as uuidv4 } from 'uuid';
+import {v4 as uuid, v4 as uuidv4} from 'uuid';
 import type Socket from '../socket';
 import * as Contract from '../game/core/utils/Contract';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import fs from 'fs';
 import path from 'path';
-import { logger } from '../logger';
-import { GameChat } from '../game/core/chat/GameChat';
-import type { User } from '../utils/user/User';
-import type { IUser } from '../Settings';
-import { getUserWithDefaultsSet } from '../Settings';
-import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
-import { Deck } from '../utils/deck/Deck';
-import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
-import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
-import type { GameConfiguration } from '../game/core/GameInterfaces';
-import { GameMode } from '../GameMode';
-import type { GameServer } from './GameServer';
+import {logger} from '../logger';
+import {GameChat} from '../game/core/chat/GameChat';
+import type {User} from '../utils/user/User';
+import type {IUser} from '../Settings';
+import {getUserWithDefaultsSet} from '../Settings';
+import type {CardDataGetter} from '../utils/cardData/CardDataGetter';
+import {Deck} from '../utils/deck/Deck';
+import {DeckValidator} from '../utils/deck/DeckValidator';
+import type {IDeckValidationFailures, IDeckValidationProperties} from '../utils/deck/DeckInterfaces';
+import {DeckSource, ScoreType} from '../utils/deck/DeckInterfaces';
+import type {GameConfiguration} from '../game/core/GameInterfaces';
+import {GameMode} from '../GameMode';
+import type {GameServer} from './GameServer';
 import {
     AlertType,
     GameEndReason,
@@ -26,16 +26,24 @@ import {
     RematchMode,
     SwuGameFormat
 } from '../game/core/Constants';
-import { UndoMode } from '../game/core/snapshot/SnapshotManager';
-import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
-import type { Player } from '../game/core/Player';
-import type { IQueueFormatKey } from './QueueHandler';
-import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
-import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
-import { ModerationType } from '../services/DynamoDBInterfaces';
-import type { MessageText } from '../game/Interfaces';
-import { ReportType } from '../game/Interfaces';
-import { PlayerReportType } from '../game/Interfaces';
+import {UndoMode} from '../game/core/snapshot/SnapshotManager';
+import type {DiscordDispatcher} from '../game/core/DiscordDispatcher';
+import type {Player} from '../game/core/Player';
+import type {IQueueFormatKey} from './QueueHandler';
+import {SimpleActionTimer} from '../game/core/actionTimer/SimpleActionTimer';
+import {PlayerTimeRemainingStatus} from '../game/core/actionTimer/IActionTimer';
+import {ModerationType} from '../services/DynamoDBInterfaces';
+import type {MessageText} from '../game/Interfaces';
+import {PlayerReportType, ReportType} from '../game/Interfaces';
+import {
+    createStatsMessage,
+    IStatsMessageFormat,
+    sendBasedOnStatus,
+    StatsMessageKey,
+    StatsSaveStatus,
+    StatsSource,
+    updateStatsMessage
+} from '../utils/stats/statsMessages';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -126,22 +134,6 @@ export enum MatchmakingType {
     Quick = 'quick',
 }
 
-export enum StatsSource {
-    Karabast = 'Karabast',
-    SwuStats = 'SWUStats'
-}
-
-export enum StatsSaveStatus {
-    Warning = 'Warning',
-    Error = 'Error',
-    Success = 'Success'
-}
-export interface IStatsMessageFormat {
-    type: StatsSaveStatus;
-    source: StatsSource;
-    message: string;
-}
-
 export interface RematchRequest {
     initiator?: string;
     mode: RematchMode;
@@ -161,6 +153,7 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
+    private readonly swuBaseEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
     private readonly allow30CardsInMainBoard: boolean;
@@ -1562,7 +1555,7 @@ export class Lobby {
      */
     public sendStatsMessageToUser(userId: string, messageParameters: IStatsMessageFormat) {
         // if the user doesn't exist in the lobby skip
-        if (this.hasPlayer(userId)) {
+        if (this.hasPlayer(userId) && messageParameters.type !== StatsSaveStatus.DoNotSend) {
             // we try/catch in the offchance the user disconnects after the if statement
             try {
                 // cache update message in case we undo the game-end and end again
@@ -1583,20 +1576,16 @@ export class Lobby {
     /**
      * Private method to update a players stats on Karabast
      */
-    private async updateKarabastPlayerStatsAsync(updatingPlayer: Player, opponentPlayer: Player, score: ScoreType): Promise<IStatsMessageFormat> {
+    private async updateKarabastPlayerStatsAsync(updatingPlayer: Player, opponentPlayer: Player, score: ScoreType): Promise<StatsMessageKey> {
         try {
             Contract.assertNotNullLike(updatingPlayer.lobbyDeck, `Updating player ${updatingPlayer.id} has no deck assigned at stats update time`);
             Contract.assertNotNullLike(opponentPlayer.lobbyDeck, `Opponent player ${opponentPlayer.id} has no deck assigned at stats update time`);
 
             if (!updatingPlayer.lobbyUser.isAuthenticatedUser()) {
-                return { type: StatsSaveStatus.Warning,
-                    source: StatsSource.Karabast,
-                    message: 'deck stats can only be saved for logged-in users' };
+                return StatsMessageKey.LoggedInOnly;
             }
             if (!updatingPlayer.lobbyDeck.isPresentInDb) {
-                return { type: StatsSaveStatus.Warning,
-                    source: StatsSource.Karabast,
-                    message: 'stats can only be updated for saved decks' };
+                return StatsMessageKey.SavedDecksOnly;
             }
 
             // Get the deck service
@@ -1610,25 +1599,24 @@ export class Lobby {
                 opponentPlayerBaseId.internalName,
             );
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: updatingPlayer.lobbyUser.getId() });
-            return { type: StatsSaveStatus.Success,
-                source: StatsSource.Karabast,
-                message: 'deck stats successfully updated' };
+            return StatsMessageKey.Success;
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck Karabast stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: updatingPlayer.lobbyUser.getId() });
-            return { type: StatsSaveStatus.Error,
-                source: StatsSource.Karabast,
-                message: 'an error occurred while updating stats' };
+            return StatsMessageKey.DefaultErrorUpdatingStats;
         }
     }
 
 
     /**
      * Private method to update a players SWU stats
+     * @param game
+     * @param player1
+     * @param player2
      * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
      */
-    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1SwuStatsStatus: IStatsMessageFormat | null; player2SwuStatsStatus: IStatsMessageFormat | null }> {
+    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1StatsMessageKey: StatsMessageKey | null; player2StatsMessageKey: StatsMessageKey | null }> {
         try {
-            const swuStatsMessage = await this.server.swuStatsHandler.sendSWUStatsGameResultAsync(
+            const swuStatsMessageKey = await this.server.swuStatsHandler.sendSWUStatsGameResultAsync(
                 game,
                 player1,
                 player2,
@@ -1639,23 +1627,42 @@ export class Lobby {
             // Success return message
             logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
             return {
-                player1SwuStatsStatus: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessage : null,
-                player2SwuStatsStatus: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessage : null
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessageKey : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessageKey : null
             };
         } catch (error) {
             // return error stat message for SWUStats
             logger.error(`Lobby ${this.id}: An error occurred while sending stats to SWUStats in ${game.id}`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
             return {
-                player1SwuStatsStatus: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? {
-                    type: StatsSaveStatus.Error,
-                    source: StatsSource.SwuStats,
-                    message: 'an error occurred while sending stats'
-                } : null,
-                player2SwuStatsStatus: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? {
-                    type: StatsSaveStatus.Error,
-                    source: StatsSource.SwuStats,
-                    message: 'an error occurred while sending stats'
-                } : null
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? StatsMessageKey.DefaultErrorSendingStats : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? StatsMessageKey.DefaultErrorSendingStats : null
+            };
+        }
+    }
+
+
+    /**
+     * Private method to update a players SWU stats
+     * @param game
+     * @param player1
+     * @param player2
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
+     */
+    private async updatePlayerSWUBaseAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1StatsMessageKey: StatsMessageKey | null; player2StatsMessageKey: StatsMessageKey | null }> {
+        try {
+            const [p1statsMessageKey, p2statsMessageKey] = await this.server.swuBaseHandler.sendGameResultAsync(game, player1, player2, this.id, this.server, sequenceNumber ?? 1, this.format);
+            // Success return message
+            logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
+            return {
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUBase ? p1statsMessageKey : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUBase ? p2statsMessageKey : null
+            };
+        } catch (error) {
+            // return error stat message for SWUStats
+            logger.error(`Lobby ${this.id}: An error occurred while sending stats to SWUBase in ${game.id}`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            return {
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUBase ? StatsMessageKey.DefaultErrorSendingStats : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUBase ? StatsMessageKey.DefaultErrorSendingStats : null
             };
         }
     }
@@ -1668,8 +1675,8 @@ export class Lobby {
     private async endGameUpdateStatsAsync(game: Game, sequenceNumber?: number): Promise<void> {
         logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`, { lobbyId: this.id });
         // pre-populate the status messages with an error that we will send by default in case something fails
-        let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
-        let player2KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
+        const player1KarabastStatus = createStatsMessage(StatsSource.Karabast);
+        const player2KarabastStatus = createStatsMessage(StatsSource.Karabast);
 
         // Get the players from the game
         const players = game.getPlayers();
@@ -1688,11 +1695,19 @@ export class Lobby {
         Contract.assertNotNullLike(player2.lobbyDeck, `Lobby ${this.id}: player2 ${player2.id} has no deck assigned at stats send time`);
 
         // SWUStats
-        let player1SwuStatsStatus = player1.lobbyDeck?.deckSource === DeckSource.SWUStats
-            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
+        const player1SwuStatsStatus = player1.lobbyDeck?.deckSource === DeckSource.SWUStats
+            ? createStatsMessage(StatsSource.SwuStats)
             : null;
-        let player2SwuStatsStatus = player2.lobbyDeck?.deckSource === DeckSource.SWUStats
-            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
+        const player2SwuStatsStatus = player2.lobbyDeck?.deckSource === DeckSource.SWUStats
+            ? createStatsMessage(StatsSource.SwuStats)
+            : null;
+
+        // SWUBase
+        const player1SwuBaseStatus = player1.lobbyDeck?.deckSource === DeckSource.SWUBase
+            ? createStatsMessage(StatsSource.SwuBase)
+            : null;
+        const player2SwuBaseStatus = player2.lobbyDeck?.deckSource === DeckSource.SWUBase
+            ? createStatsMessage(StatsSource.SwuBase)
             : null;
 
         try {
@@ -1721,50 +1736,61 @@ export class Lobby {
             }
 
             if (this.game.roundNumber <= 1) {
-                player1KarabastStatus.message = 'stats not updated due to game ending before round 2';
-                player1KarabastStatus.type = StatsSaveStatus.Warning;
-                player2KarabastStatus.message = 'stats not updated due to game ending before round 2';
-                player2KarabastStatus.type = StatsSaveStatus.Warning;
-                if (player1SwuStatsStatus) {
-                    player1SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
-                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
-                }
-                if (player2SwuStatsStatus) {
-                    player2SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
-                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
-                }
+                updateStatsMessage(player1KarabastStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player2KarabastStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player1SwuStatsStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player2SwuStatsStatus, StatsMessageKey.NotUpdatedBeforeRound2);
                 logger.info('stats not updated due to game ending before round 2', { lobbyId: this.id });
                 return;
             }
 
             // Update Karabast stats
-            player1KarabastStatus = await this.updateKarabastPlayerStatsAsync(player1, player2, player1Score);
-            player2KarabastStatus = await this.updateKarabastPlayerStatsAsync(player2, player1, player2Score);
+            const player1KarabastMessageKey = await this.updateKarabastPlayerStatsAsync(player1, player2, player1Score);
+            const player2KarabastMessageKey = await this.updateKarabastPlayerStatsAsync(player2, player1, player2Score);
+
+            updateStatsMessage(player1KarabastStatus, player1KarabastMessageKey);
+            updateStatsMessage(player2KarabastStatus, player2KarabastMessageKey);
 
             // Send to SWUstats if handler is available
-            if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
-                ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1, player2, sequenceNumber));
+            if (this.swuStatsEnabled && (player1SwuStatsStatus || player2SwuStatsStatus)) {
+                if (this.format === SwuGameFormat.Premier) {
+                    const {
+                        player1StatsMessageKey,
+                        player2StatsMessageKey
+                    } = await this.updatePlayerSWUStatsAsync(game, player1, player2, sequenceNumber);
+                    updateStatsMessage(player1SwuStatsStatus, player1StatsMessageKey);
+                    updateStatsMessage(player2SwuStatsStatus, player2StatsMessageKey);
+                } else { // Send warning that swustats are not updated when in non-premier format.
+                    updateStatsMessage(player1SwuStatsStatus, StatsMessageKey.NonPremierNotSupported);
+                    updateStatsMessage(player2SwuStatsStatus, StatsMessageKey.NonPremierNotSupported);
+                }
             }
-            // Send warning that swustats are not updated when in non-premier format.
-            if (this.format !== SwuGameFormat.Premier && this.swuStatsEnabled) {
-                if (player1SwuStatsStatus) {
-                    player1SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
-                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
-                }
-                if (player2SwuStatsStatus) {
-                    player2SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
-                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
-                }
+
+            // Send to SWUBase if handler is available
+            if (this.swuBaseEnabled && (player1SwuBaseStatus || player2SwuBaseStatus)) {
+                const {
+                    player1StatsMessageKey,
+                    player2StatsMessageKey
+                } = await this.updatePlayerSWUBaseAsync(game, player1, player2, sequenceNumber ?? 1);
+
+                updateStatsMessage(player1SwuBaseStatus, player1StatsMessageKey);
+                updateStatsMessage(player2SwuBaseStatus, player2StatsMessageKey);
             }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
         } finally {
             this.sendStatsMessageToUser(player1.id, player1KarabastStatus);
             this.sendStatsMessageToUser(player2.id, player2KarabastStatus);
-            if (player1SwuStatsStatus && this.swuStatsEnabled) {
+            if (sendBasedOnStatus(player1SwuStatsStatus) && this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player1.id, player1SwuStatsStatus);
             }
-            if (player2SwuStatsStatus && this.swuStatsEnabled) {
+            if (sendBasedOnStatus(player2SwuStatsStatus) && this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player2.id, player2SwuStatsStatus);
+            }
+            if (sendBasedOnStatus(player1SwuBaseStatus) && this.swuBaseEnabled) {
+                this.sendStatsMessageToUser(player1.id, player1SwuBaseStatus);
+            }
+            if (sendBasedOnStatus(player2SwuBaseStatus) && this.swuBaseEnabled) {
+                this.sendStatsMessageToUser(player2.id, player2SwuBaseStatus);
             }
         }
     }

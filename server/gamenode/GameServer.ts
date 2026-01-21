@@ -46,7 +46,7 @@ import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
-import type { SwuBaseHandler } from '../utils/SWUBase/SwuBaseHandler';
+import { SwuBaseHandler } from '../utils/SWUBase/SwuBaseHandler';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -347,6 +347,7 @@ export class GameServer {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
+        this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
 
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
@@ -718,6 +719,7 @@ export class GameServer {
                         message: 'Error attempting to unlink swu-base'
                     });
                 }
+                await this.swuBaseHandler.unlinkAccountAsync(user.getId());
                 await this.userFactory.unlinkRefreshTokenAsync(user.getId(), RefreshTokenSource.SWUBase);
                 this.swuBaseTokenMapping.delete(user.getId());
                 return res.status(200).json({
