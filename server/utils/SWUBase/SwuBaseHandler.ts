@@ -1,65 +1,13 @@
 import { logger } from '../../logger';
-import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import type { GameServer, ISwuBaseToken } from '../../gamenode/GameServer';
 import { RefreshTokenSource, type UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
-
-
-interface TurnResults {
-    cardsUsed: number;           // Cards played this turn
-    resourcesUsed: number;       // Resources spent
-    resourcesLeft: number;       // Resources remaining
-    cardsLeft: number;           // Cards left in hand
-    damageDealt: number;         // Damage dealt this turn
-    damageTaken: number;         // Damage received this turn
-}
-
-interface CardResults {
-    cardId: string;            // Card id (FFG UID format)
-    played: number;            // Times played
-    resourced: number;         // Times used as resource
-    activated: number;         // Times ability activated
-    drawn: number;             // Times drawn
-    discarded: number;         // Times discarded
-}
-
-interface SWUBaseGameResult {
-    apiKey: string;
-    winner: number; // 1 or 2
-    firstPlayer: number; // 1 or 2
-    round: number;
-    winHero: string;
-    loseHero: string;
-    winnerDeck?: IDecklistInternal;
-    loserDeck?: IDecklistInternal;
-    winnerHealth: number;
-    player1: PlayerData;
-    player2: PlayerData;
-    p1SWUBaseToken: string;
-    p2SWUBaseToken: string;
-    p1DeckLink: string;
-    p2DeckLink: string;
-    p1id?: string;
-    p2id?: string;
-    gameName: string;
-    sequenceNumber?: number;
-}
-
-interface PlayerData {
-    gameId?: string;            // Unique game identifier (optional)
-    gameName?: string;          // Custom game name (optional)
-    deckId: string;             // The last part of the deck link
-    leader: string;             // Leader id (FFG UID format)
-    base: string;               // Base id (FFG UID format)
-    turns: number;              // Number of turns played
-    result: number;             // 1 if this player won, 0 for loss
-    firstPlayer: number;        // 1 if this player went first, 0 otherwise
-    opposingHero: string;       // Opponent's leader id (FFG UID format)
-    opposingBaseColor: string;  // Opponent's base color (Red, Blue, Yellow, Green, Colorless)
-    deckbuilderID?: string;     // Deckbuilder user ID
-    cardResults?: CardResults[];
-    turnResults?: TurnResults[];
-}
+import type Game from '../../game/core/Game';
+import type { Player } from '../../game/core/Player';
+import type { SwuGameFormat } from '../../game/core/Constants';
+import { StatsMessageKey } from '../stats/statsMessages';
+import type { IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
+import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker';
 
 interface OAuthTokenResponse {
     access_token: string;
@@ -67,6 +15,14 @@ interface OAuthTokenResponse {
     expires_in?: number;
     token_type?: string;
     scope?: string;
+}
+
+interface CardMetrics {
+    played: number;
+    resourced: number;
+    activated: number;
+    drawn: number;
+    discarded: number;
 }
 
 export class SwuBaseHandler {
@@ -84,13 +40,159 @@ export class SwuBaseHandler {
             'SWUBASE_CLIENT_ID',
             'SWUBASE_CLIENT_SECRET'
         ], 'SWUBase Handler');
-        this.apiUrl = 'https://swubase.com/api/integration/karabast/game-result';
-        this.tokenUrl = 'https://swubase.com/api/integration/token';
-        this.linkAccountUrl = 'https://swubase.com/api/integration/link-confirm';
-        this.unlinkAccountUrl = 'https://swubase.com/api/integration/unlink';
+        const baseUrl = process.env.NODE_ENV === 'development' && process.env.SWUBASE_LOCAL_DEV === 'true'
+            ? 'http://localhost:5173'
+            : 'https://swubase.com';
+        this.apiUrl = `${baseUrl}/api/integration/karabast/game-result`;
+        this.tokenUrl = `${baseUrl}/api/integration/refresh-token`;
+        this.linkAccountUrl = `${baseUrl}/api/integration/link-confirm`;
+        this.unlinkAccountUrl = `${baseUrl}/api/integration/unlink`;
         this.clientId = process.env.SWUBASE_CLIENT_ID;
         this.clientSecret = process.env.SWUBASE_CLIENT_SECRET;
         this.userFactory = userFactory;
+    }
+
+    /**
+     * Send game result to SWUBase API
+     * @param game The completed game
+     * @param player1 player 1
+     * @param player2 player 2
+     * @param lobbyId the id of the lobby in string format
+     * @param serverObject the server object from where we gain access to the user x accessToken
+     * @param sequenceNumber number of a game in Bo3 (1,2 or 3), for Bo1 always 1
+     * @param format
+     * @returns Promise that resolves to true if successful, false otherwise
+     */
+    public async sendGameResultAsync(
+        game: Game,
+        player1: Player,
+        player2: Player,
+        lobbyId: string,
+        serverObject: GameServer,
+        sequenceNumber: number,
+        format: SwuGameFormat,
+    ): Promise<[StatsMessageKey | null, StatsMessageKey | null]> {
+        try {
+            const p1AccessToken = player1.lobbyUser.isAuthenticatedUser() ? await this.getAccessTokenAsync(player1.lobbyUser.getId(), serverObject, lobbyId) : null;
+            const p2AccessToken = player2.lobbyUser.isAuthenticatedUser() ? await this.getAccessTokenAsync(player2.lobbyUser.getId(), serverObject, lobbyId) : null;
+
+            if (!p1AccessToken && !p2AccessToken) {
+                logger.info(`SWUBaseHandler: No authenticated players with SWUBase link for game ${game.id}, skipping sendGameResultAsync`, { lobbyId });
+                return [null, null];
+            }
+
+            const payload = {
+                gameId: game.id,
+                lobbyId: lobbyId,
+                startedAt: game.startedAt,
+                finishedAt: game.finishedAt,
+                winnerNames: game.winnerNames,
+                roundNumber: game.roundNumber,
+                sequenceNumber,
+                format,
+                players: [
+                    {
+                        data: this.buildPlayerData(player1, p1AccessToken),
+                        cardMetrics: this.buildCardMetricsForPlayer(player1, game.statsTracker.cardMetrics),
+                    },
+                    {
+                        data: this.buildPlayerData(player2, p2AccessToken),
+                        cardMetrics: this.buildCardMetricsForPlayer(player2, game.statsTracker.cardMetrics),
+                    },
+                ],
+            };
+
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    integration: 'karabast',
+                    client_id: process.env.SWUBASE_CLIENT_ID,
+                    client_secret: process.env.SWUBASE_CLIENT_SECRET,
+                    data: payload
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`SWUBase API returned error: ${response.status} - ${errorText}`);
+            }
+            logger.info(`SWUBaseHandler: Successfully sent game result to SWUBase for game ${game.id}`, { lobbyId });
+            return [p1AccessToken ? StatsMessageKey.SwuBaseSuccess : null, p2AccessToken ? StatsMessageKey.SwuBaseSuccess : null];
+        } catch (error) {
+            logger.error('SWUBaseHandler: Error sending game result', {
+                error: { message: error.message, stack: error.stack },
+                gameId: game.id,
+                lobbyId: lobbyId
+            });
+            throw error;
+        }
+    }
+
+    private buildPlayerData(player: Player, accessToken: string | null) {
+        const d = player.lobbyDeck;
+        return {
+            name: player.name,
+            id: player.id,
+            accessToken: accessToken,
+            leader: player.leader?.id,
+            base: player.base?.id,
+            deck: {
+                id: accessToken ? 'unknown' : d.id, // "unknown" deck ids for players NOT linked to swubase
+                name: d.name,
+                base: d.base,
+                leader: d.leader,
+                deckSource: d.deckSource,
+            },
+            isWinner: player.game.winnerNames.includes(player.name)
+        };
+    }
+
+
+    private buildCardMetricsForPlayer(player: Player, cardMetrics: IGameStatisticsTracker['cardMetrics']) {
+        const cardResultsByTrackingId = {} satisfies Record<string, CardMetrics>;
+        for (const card of player.allCards) {
+            if (cardResultsByTrackingId[card.trackingId]) {
+                continue;
+            }
+
+            cardResultsByTrackingId[card.trackingId] = {
+                played: 0,
+                resourced: 0,
+                activated: 0,
+                drawn: 0,
+                discarded: 0,
+            };
+        }
+
+        cardMetrics.forEach((cardMetric) => {
+            if (cardMetric.player === player.trackingId && cardResultsByTrackingId[cardMetric.card]) {
+                const cardResult = cardResultsByTrackingId[cardMetric.card];
+                switch (cardMetric.metric) {
+                    case GameCardMetric.Activated:
+                        cardResult.activated += 1;
+                        break;
+                    case GameCardMetric.Discarded:
+                        cardResult.discarded += 1;
+                        break;
+                    case GameCardMetric.Drawn:
+                        cardResult.drawn += 1;
+                        break;
+                    case GameCardMetric.Played:
+                        cardResult.played += 1;
+                        break;
+                    case GameCardMetric.Resourced:
+                        cardResult.resourced += 1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        return cardResultsByTrackingId;
     }
 
     /**
@@ -171,7 +273,7 @@ export class SwuBaseHandler {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                logger.error(`SWUBaseHandler: Token refresh failed: ${response.status} - ${errorText}`);
+                logger.error(`SWUBaseHandler(refreshTokensAsync): Token refresh failed: ${response.status} - ${errorText}`);
                 return null;
             }
             const tokenResponse = await response.json() as OAuthTokenResponse;
@@ -217,7 +319,7 @@ export class SwuBaseHandler {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                logger.error(`SWUBaseHandler: Token refresh failed: ${response.status} - ${errorText}`);
+                logger.error(`SWUBaseHandler(linkAccountAsync): Token refresh failed: ${response.status} - ${errorText}`);
                 return null;
             }
             const tokenResponse = await response.json() as OAuthTokenResponse;
