@@ -33,7 +33,7 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
             },
             then: (thenContext) => ({
                 title: 'Create a Credit token',
-                thenCondition: () => this.hasChosenAspect(thenContext),
+                thenCondition: () => thenContext.select && this.hasChosenAspect(thenContext),
                 immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
             })
         });
