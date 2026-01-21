@@ -33,7 +33,7 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
             },
             then: (thenContext) => ({
                 title: 'Create a Credit token',
-                thenCondition: (_) => this.hasChosenAspect(thenContext),
+                thenCondition: () => this.hasChosenAspect(thenContext),
                 immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
             })
         });
@@ -41,7 +41,7 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Defeat a friendly credit token to create 3 Credit tokens',
+            title: 'Defeat a friendly Credit token to create 3 Credit tokens',
             optional: true,
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
@@ -63,13 +63,14 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
 
     private hasChosenAspect(context: AbilityContext): boolean {
         const chosenAspect = checkConvertToEnum(context.select.toLowerCase(), Aspect)[0];
-        const discardedCard = context.events
-            .filter((e) => e.name === EventName.OnCardDiscarded);
+        const discardedCards = context.events
+            .filter((e) => e.name === EventName.OnCardDiscarded)
+            .map((e) => e.card);
 
-        if (discardedCard.length === 0) {
+        if (discardedCards.length === 0) {
             return false;
         }
 
-        return discardedCard[0].card.aspects.includes(chosenAspect);
+        return discardedCards[0].aspects.includes(chosenAspect);
     }
 }
