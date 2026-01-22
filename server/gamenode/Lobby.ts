@@ -1,23 +1,23 @@
 import Game from '../game/core/Game';
-import {v4 as uuid, v4 as uuidv4} from 'uuid';
+import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import * as Contract from '../game/core/utils/Contract';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import fs from 'fs';
 import path from 'path';
-import {logger} from '../logger';
-import {GameChat} from '../game/core/chat/GameChat';
-import type {User} from '../utils/user/User';
-import type {IUser} from '../Settings';
-import {getUserWithDefaultsSet} from '../Settings';
-import type {CardDataGetter} from '../utils/cardData/CardDataGetter';
-import {Deck} from '../utils/deck/Deck';
-import {DeckValidator} from '../utils/deck/DeckValidator';
-import type {IDeckValidationFailures, IDeckValidationProperties} from '../utils/deck/DeckInterfaces';
-import {DeckSource, ScoreType} from '../utils/deck/DeckInterfaces';
-import type {GameConfiguration} from '../game/core/GameInterfaces';
-import {GameMode} from '../GameMode';
-import type {GameServer} from './GameServer';
+import { logger } from '../logger';
+import { GameChat } from '../game/core/chat/GameChat';
+import type { User } from '../utils/user/User';
+import type { IUser } from '../Settings';
+import { getUserWithDefaultsSet } from '../Settings';
+import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
+import { Deck } from '../utils/deck/Deck';
+import { DeckValidator } from '../utils/deck/DeckValidator';
+import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
+import type { GameConfiguration } from '../game/core/GameInterfaces';
+import { GameMode } from '../GameMode';
+import type { GameServer } from './GameServer';
 import {
     AlertType,
     GameEndReason,
@@ -26,18 +26,18 @@ import {
     RematchMode,
     SwuGameFormat
 } from '../game/core/Constants';
-import {UndoMode} from '../game/core/snapshot/SnapshotManager';
-import type {DiscordDispatcher} from '../game/core/DiscordDispatcher';
-import type {Player} from '../game/core/Player';
-import type {IQueueFormatKey} from './QueueHandler';
-import {SimpleActionTimer} from '../game/core/actionTimer/SimpleActionTimer';
-import {PlayerTimeRemainingStatus} from '../game/core/actionTimer/IActionTimer';
-import {ModerationType} from '../services/DynamoDBInterfaces';
-import type {MessageText} from '../game/Interfaces';
-import {PlayerReportType, ReportType} from '../game/Interfaces';
+import { UndoMode } from '../game/core/snapshot/SnapshotManager';
+import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import type { Player } from '../game/core/Player';
+import type { IQueueFormatKey } from './QueueHandler';
+import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
+import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
+import { ModerationType } from '../services/DynamoDBInterfaces';
+import type { MessageText } from '../game/Interfaces';
+import { PlayerReportType, ReportType } from '../game/Interfaces';
+import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
 import {
     createStatsMessage,
-    IStatsMessageFormat,
     sendBasedOnStatus,
     StatsMessageKey,
     StatsSaveStatus,
