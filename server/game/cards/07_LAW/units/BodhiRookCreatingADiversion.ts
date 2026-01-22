@@ -13,7 +13,7 @@ export default class BodhiRookCreatingADiversion extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Create a Credit token',
+            title: 'Give a friendly Rebel unit Sentinel for this phase',
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
