@@ -7,11 +7,12 @@ import type { Aspect } from '../Constants';
 
 export enum CostAdjustStage {
     Standard_0 = 'standard_0',
-    Exploit_1 = 'exploit_1',
-    PayStage_2 = 'payStage_2',
-    ExhaustUnits_3 = 'exhaustUnits_3',
-    DefeatCredits_4 = 'defeatCredits_4',
-    Increase_5 = 'increase_5'
+    IgnoreWildcard_1 = 'ignoreWildcard_1',
+    Exploit_2 = 'exploit_2',
+    PayStage_3 = 'payStage_3',
+    ExhaustUnits_4 = 'exhaustUnits_4',
+    DefeatCredits_5 = 'defeatCredits_5',
+    Increase_6 = 'increase_6'
 }
 
 export enum ResourceCostType {
@@ -30,9 +31,14 @@ export interface ICostAdjusterEvaluationTarget {
     opportunityCost?: Map<CostAdjustStage, IEvaluationOpportunityCost>;
 }
 
+export interface IPenaltyAspectFilters {
+    aspect?: Aspect;
+    isIgnored?: boolean;
+}
+
 export interface IAbilityCostAdjustmentProperties {
     getTotalResourceCost: (includeAspectPenalties?: boolean) => number;
-    getPenaltyAspects: () => Aspect[];
+    getPenaltyAspects: (filter?: IPenaltyAspectFilters) => Aspect[];
     matchingAdjusters: Map<CostAdjustStage, CostAdjuster[]>;
     resourceCostType: ResourceCostType;
 }

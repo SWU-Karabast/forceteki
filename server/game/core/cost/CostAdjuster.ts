@@ -28,6 +28,7 @@ export enum CostAdjustType {
     Free = 'free',
     IgnoreAllAspects = 'ignoreAllAspects',
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
+    IgnoreWildcardAspects = 'ignoreWildcardAspects',
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
     ExhaustUnits = 'exhaustUnits',
@@ -94,6 +95,16 @@ export interface IIgnoreSpecificAspectsCostAdjusterProperties extends ICostAdjus
     ignoredAspect: Aspect;
 }
 
+export interface IIgnoreWildcardAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.IgnoreWildcardAspects;
+
+    /** The aspects to ignore the cost of */
+    wildcardAspects: Set<Aspect>;
+
+    /** How many aspects can be ignored from the wildcards */
+    ignoreCount: number;
+}
+
 export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.ModifyPayStage;
 
@@ -110,6 +121,7 @@ export type ICostAdjusterProperties =
   | IIncreaseOrDecreaseCostAdjusterProperties
   | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties
+  | IIgnoreWildcardAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties

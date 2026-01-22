@@ -29,7 +29,7 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
     }
 
     public usesExploit(context: AbilityContext<ICardWithCostProperty>): boolean {
-        return this.getCostAdjustersByStage(context).get(CostAdjustStage.Exploit_1).length > 0;
+        return this.getCostAdjustersByStage(context).get(CostAdjustStage.Exploit_2).length > 0;
     }
 
     public override canPay(context: AbilityContext<ICardWithCostProperty>): boolean {
@@ -53,12 +53,12 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
         );
 
         // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
-        const exploitAdjusters = costAdjustersByStage.get(CostAdjustStage.Exploit_1);
+        const exploitAdjusters = costAdjustersByStage.get(CostAdjustStage.Exploit_2);
         if (exploitAdjusters.length > 1) {
             Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
             Contract.assertTrue(context.source.hasCost());
             const mergedExploitAdjuster = new MergedExploitCostAdjuster(exploitAdjusters, context.source, context);
-            costAdjustersByStage.set(CostAdjustStage.Exploit_1, [mergedExploitAdjuster]);
+            costAdjustersByStage.set(CostAdjustStage.Exploit_2, [mergedExploitAdjuster]);
         }
 
         return costAdjustersByStage;
