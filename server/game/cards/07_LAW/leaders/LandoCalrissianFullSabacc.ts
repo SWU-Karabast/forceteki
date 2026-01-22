@@ -8,7 +8,7 @@ import { aspectString, checkConvertToEnum } from '../../../core/utils/EnumHelper
 export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lando-calrissian#full-sabacc-id',
+            id: '8647843496',
             internalName: 'lando-calrissian#full-sabacc',
         };
     }
