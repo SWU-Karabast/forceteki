@@ -41,6 +41,9 @@ describe('Black Sun Cabalist', function() {
 
             context.player1.clickCard(context.blackSunCabalist);
 
+            expect(context.blackSunCabalist).toHaveExactUpgradeNames([]);
+            expect(context.wampa).toHaveExactUpgradeNames([]);
+            expect(context.pykeSentinel).toHaveExactUpgradeNames([]);
             expect(context.player2).toBeActivePlayer();
         });
     });
