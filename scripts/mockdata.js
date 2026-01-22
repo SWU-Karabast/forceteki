@@ -94,19 +94,6 @@ const mockCards = [
         internalName: 'yellow-common-law-base'
     }),
     buildMockCard({
-        title: 'Alliance Outpost',
-        hp: 26,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance'],
-        types: ['base'],
-        setId: {
-            set: 'LAW',
-            number: 19
-        },
-        unique: false,
-        internalName: 'alliance-outpost'
-    }),
-    buildMockCard({
         title: 'Qui-Gon Jinn',
         subtitle: 'Influencing Chance',
         power: 3,

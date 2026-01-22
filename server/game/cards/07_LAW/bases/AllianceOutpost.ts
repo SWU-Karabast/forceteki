@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Cons
 export default class AllianceOutpost extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'alliance-outpost-id',
+            id: '3469239154',
             internalName: 'alliance-outpost',
         };
     }
