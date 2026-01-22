@@ -14,9 +14,10 @@ export default class SyndicateSpiceRunner extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Search the top 3 cards of your deck for an Underworld unit, reveal it, and draw it',
-            immediateEffect: abilityHelper.immediateEffects.playMultipleCardsFromDeck({
+            immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 3,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Underworld),
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
             })
         });
     }
