@@ -7,7 +7,7 @@ import { aspectString } from '../../../core/utils/EnumHelpers';
 export default class PuttingATeamTogether extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'putting-a-team-together-id',
+            id: '4634587022',
             internalName: 'putting-a-team-together',
         };
     }

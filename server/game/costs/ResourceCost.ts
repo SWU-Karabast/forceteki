@@ -5,7 +5,7 @@ import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
 import { CostAdjustResolutionMode, type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { Card } from '../core/card/Card';
-import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTarget, ICostAdjustTriggerResult, ResourceCostType } from '../core/cost/CostInterfaces';
+import type { IAbilityCostAdjustmentProperties, ICostAdjusterEvaluationTarget, ICostAdjustTriggerResult, IPenaltyAspectFilters, ResourceCostType } from '../core/cost/CostInterfaces';
 import { CostAdjustStage, type ICostAdjustEvaluationIntermediateResult } from '../core/cost/CostInterfaces';
 import * as CostHelpers from '../core/cost/CostHelpers';
 import type { MetaActionCost } from '../core/cost/MetaActionCost';
@@ -196,9 +196,9 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return {
             resolutionMode: CostAdjustResolutionMode.Evaluate,
             getTotalResourceCost: (includeAspectPenalties) => costTracker.getTotalResourceCost(includeAspectPenalties),
-            getPenaltyAspects: () => costTracker.penaltyAspects,
+            getPenaltyAspects: (filter?: IPenaltyAspectFilters) => costTracker.penaltyAspects(filter),
             adjustedCost: costTracker,
-            adjustStage: CostAdjustStage.Increase_5,
+            adjustStage: CostAdjustStage.Increase_6,
             matchingAdjusters: new Map<CostAdjustStage, CostAdjuster[]>(),
             resourceCostType: this.resourceCostType,
             costAdjusterTargets,
@@ -212,7 +212,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return {
             resolutionMode: CostAdjustResolutionMode.Trigger,
             getTotalResourceCost: (includeAspectPenalties) => costTracker.getTotalResourceCost(includeAspectPenalties),
-            getPenaltyAspects: () => costTracker.penaltyAspects,
+            getPenaltyAspects: (filter?: IPenaltyAspectFilters) => costTracker.penaltyAspects(filter),
             adjustedCost: costTracker,
             adjustStage: CostAdjustStage.Standard_0,
             matchingAdjusters: evaluationResult.matchingAdjusters,

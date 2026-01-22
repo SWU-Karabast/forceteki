@@ -40,7 +40,8 @@ export class IgnoreAspectCostAdjuster extends CostAdjuster {
                 result.adjustedCost.disableAllAspectPenalties();
                 break;
             case CostAdjustType.IgnoreSpecificAspects:
-                result.adjustedCost.disableAspectPenalty(this.ignoredAspect);
+                Contract.assertNotNullLike(this.ignoredAspect, 'Ignored Aspect must be defined for IgnoreSpecificAspects cost adjuster');
+                result.adjustedCost.disableAspectPenalty(this.ignoredAspect, true);
                 break;
             default:
                 throw new Error(`Unsupported cost adjust type for IgnoreAspectCostAdjuster: ${this.costAdjustType}`);
