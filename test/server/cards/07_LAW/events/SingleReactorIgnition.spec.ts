@@ -30,6 +30,28 @@ describe('Single Reactor Ignition', function() {
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(3); // Wampa, Alliance X-Wing, Luke
             });
+
+            it('should not deal damage for a unit that is not actually defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['single-reactor-ignition']
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['lurking-tie-phantom']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.singleReactorIgnition);
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
+
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(1); // Wampa
+            });
         });
     });
 });

@@ -29,8 +29,12 @@ export default class SingleReactorIgnition extends EventCard {
     }
 
     private getOpponentBaseDamage(player: Player, events: any[]): number {
-        const defeatedEnemyUnits = events.filter((event) => event.name === EventName.OnCardDefeated && event.lastKnownInformation.controller === player.opponent)
-            .map((event) => event.card);
+        const defeatedEnemyUnits: any[] = [];
+        events.forEach((event) => {
+            if (!event.isCancelled && event.name === EventName.OnCardDefeated && event.lastKnownInformation.controller === player.opponent) {
+                defeatedEnemyUnits.push(event.card);
+            }
+        });
         return defeatedEnemyUnits.length;
     }
 }
