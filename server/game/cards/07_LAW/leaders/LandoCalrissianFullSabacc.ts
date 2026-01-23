@@ -15,7 +15,7 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Choose an Aspect, then discard the top card of your deck',
+            title: 'Choose an Aspect, then discard the top card from a deck',
             cost: [
                 AbilityHelper.costs.abilityActivationResourceCost(1),
                 AbilityHelper.costs.exhaustSelf()
@@ -25,17 +25,26 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
                 mode: TargetMode.DropdownList,
                 condition: (context) => context.player.drawDeck.length > 0,
                 options: [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning, Aspect.Villainy, Aspect.Heroism]
-                    .map((a) => aspectString([a])),
-                immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
-                    amount: 1,
-                    target: context.player
-                }))
+                    .map((a) => aspectString([a]))
             },
-            then: (thenContext) => ({
-                title: 'Create a Credit token',
-                thenCondition: () => thenContext.select && this.hasChosenAspect(thenContext),
-                immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
-            })
+            then: {
+                title: 'Choose a deck to discard from',
+                targetResolver: {
+                    activePromptTitle: 'Choose a deck to discard from',
+                    mode: TargetMode.Player,
+                    immediateEffect: AbilityHelper.immediateEffects.discardFromDeck({
+                        amount: 1
+                    })
+                },
+                ifYouDo: {
+
+                }
+            }
+            // then: (thenContext) => ({
+            //     title: 'Create a Credit token',
+            //     thenCondition: () => thenContext.select && this.hasChosenAspect(thenContext),
+            //     immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
+            // })
         });
     }
 
