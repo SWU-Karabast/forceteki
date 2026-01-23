@@ -17,18 +17,11 @@ export default class BoKatanKryzeFightingForMandalore extends NonLeaderUnitCard 
         registrar.addWhenDefeatedAbility({
             title: 'For each player with 15 or more damage on their base, draw a card.',
             // simultaneous condition check of base damage
-            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                AbilityHelper.immediateEffects.conditional({
-                    // player base damage check
-                    condition: (context) => context.player.base.damage >= 15,
-                    onTrue: AbilityHelper.immediateEffects.draw(),
-                }),
-                AbilityHelper.immediateEffects.conditional({
-                    // Opponent base damage check
-                    condition: (context) => context.player.opponent.base.damage >= 15,
-                    onTrue: AbilityHelper.immediateEffects.draw(),
-                }),
-            ]),
+            immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({
+                amount: context.game.getPlayers()
+                    .filter((p) => p.base.damage >= 15)
+                    .length
+            }))
         });
     }
 }

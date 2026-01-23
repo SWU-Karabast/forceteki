@@ -2,7 +2,6 @@ describe('Backed By The Hutts', function() {
     integration(function(contextRef) {
         describe('Backed By The Hutts\'s ability', function() {
             it('should create a Credit token and optionally deal damage to a unit equal to friendly Credit count', async function () {
-                pending('TODO: Enable this test when Backed By The Hutts is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -40,7 +39,6 @@ describe('Backed By The Hutts', function() {
             });
 
             it('should deal damage equal to the number of Credit tokens (multiple credits)', async function () {
-                pending('TODO: Enable this test when Backed By The Hutts is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -67,7 +65,6 @@ describe('Backed By The Hutts', function() {
             });
 
             it('should deal damage equal to the number of Credit tokens (Galen Erso name Credit token)', async function () {
-                pending('TODO: Enable this test when Backed By The Hutts is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -98,7 +95,6 @@ describe('Backed By The Hutts', function() {
             });
 
             it('should allow passing on the optional damage ability', async function () {
-                pending('TODO: Enable this test when Backed By The Hutts is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
