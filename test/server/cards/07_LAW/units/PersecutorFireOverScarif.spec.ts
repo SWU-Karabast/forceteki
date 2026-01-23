@@ -1,7 +1,7 @@
 describe('Persecutor, Fire Over Scarif', function () {
     integration(function (contextRef) {
         describe('Persecutor\'s triggered ability', function () {
-            it('should deal 3 damage to each non-shielded space unit when choosing Space', async function () {
+            it('should deal 3 damage to each space unit when choosing Space', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -23,7 +23,7 @@ describe('Persecutor, Fire Over Scarif', function () {
                 context.player1.clickPrompt('Space');
 
                 expect(context.persecutor.damage).toBe(3);
-                expect(context.lurkingTiePhantom.damage).toBe(0); // Shielded
+                expect(context.lurkingTiePhantom.damage).toBe(0); // prevent damage
                 expect(context.jediStarfighter.damage).toBe(3);
                 expect(context.firstLight.damage).toBe(3);
                 expect(context.wampa.damage).toBe(0);
