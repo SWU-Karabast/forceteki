@@ -108,7 +108,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (!card.isCreditToken() && card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
+        if (!(card.isForceToken() || card.isCreditToken()) && card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context);

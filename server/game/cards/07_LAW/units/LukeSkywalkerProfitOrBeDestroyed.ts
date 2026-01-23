@@ -4,11 +4,6 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class LukeSkywalkerProfitOrBeDestroyed extends NonLeaderUnitCard {
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    protected override get overrideNotImplemented(): boolean {
-        return true;
-    }
-
     protected override getImplementationId() {
         return {
             id: 'luke-skywalker#profit-or-be-destroyed-id',

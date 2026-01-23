@@ -1407,7 +1407,6 @@ describe('Galen Erso - You\'ll Never Win', function() {
 
                     // P2 plays Unmarked Credits to create a credit token
                     context.player2.clickCard(context.unmarkedCredits);
-                    context.player2.clickPrompt('Play anyway'); // TODO: Remove this when it can be marked as implemented
                     expect(context.player2.credits).toBe(1);
 
                     context.player1.passAction();
@@ -1471,7 +1470,6 @@ describe('Galen Erso - You\'ll Never Win', function() {
 
                     // P1 plays Unmarked Credits to create a credit token
                     context.player1.clickCard(context.unmarkedCredits);
-                    context.player1.clickPrompt('Play anyway'); // TODO: Remove this when it can be marked as implemented
                     expect(context.player1.credits).toBe(1);
                     expect(context.player1.readyResourceCount).toBe(0);
 
