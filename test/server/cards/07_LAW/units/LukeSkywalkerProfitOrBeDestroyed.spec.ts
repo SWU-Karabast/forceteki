@@ -2,7 +2,6 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
     integration(function(contextRef) {
         describe('Luke Skywalker\'s when played ability', function() {
             it('should let opponent choose to give player a Credit token and ready Luke', async function () {
-                pending('TODO: Enable this test when Luke Skywalker is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -45,7 +44,6 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
             });
 
             it('should let opponent choose to allow player to deal 5 damage to a unit', async function () {
-                pending('TODO: Enable this test when Luke Skywalker is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -79,7 +77,6 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
             });
 
             it('should allow player to pass on dealing damage when opponent chooses that option', async function () {
-                pending('TODO: Enable this test when Luke Skywalker is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

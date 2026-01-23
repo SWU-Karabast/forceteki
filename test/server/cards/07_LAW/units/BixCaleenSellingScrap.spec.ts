@@ -2,7 +2,6 @@ describe('Bix Caleen, Selling Scrap', function () {
     integration(function (contextRef) {
         describe('When Played ability', function () {
             it('should create a Credit token when discarding a card', async function () {
-                pending('TODO: Enable these tests when Bix Calling is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -27,7 +26,6 @@ describe('Bix Caleen, Selling Scrap', function () {
             });
 
             it('should allow passing the ability when played', async function () {
-                pending('TODO: Enable these tests when Bix Calling is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -48,7 +46,6 @@ describe('Bix Caleen, Selling Scrap', function () {
             });
 
             it('should not trigger when hand is empty', async function () {
-                pending('TODO: Enable these tests when Bix Calling is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -67,7 +64,6 @@ describe('Bix Caleen, Selling Scrap', function () {
         });
         describe('On Attack ability', function () {
             it('should create a Credit token when discarding a card', async function () {
-                pending('TODO: Enable these tests when Bix Calling is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -94,7 +90,6 @@ describe('Bix Caleen, Selling Scrap', function () {
             });
 
             it('should allow passing the ability when played', async function () {
-                pending('TODO: Enable these tests when Bix Calling is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -117,7 +112,6 @@ describe('Bix Caleen, Selling Scrap', function () {
             });
 
             it('should not trigger when hand is empty', async function () {
-                pending('TODO: Enable these tests when Bix Calling is no longer flagged as unimplemented');
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
