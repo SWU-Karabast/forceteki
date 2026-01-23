@@ -7,7 +7,7 @@ import type { Player } from '../../../core/Player';
 export default class SingleReactorIgnition extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'single-reactor-ignition-id',
+            id: '5657954810',
             internalName: 'single-reactor-ignition',
         };
     }

@@ -6,7 +6,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class ThatsARock extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'thats-a-rock-id',
+            id: '8051235147',
             internalName: 'thats-a-rock',
         };
     }
@@ -26,6 +26,7 @@ export default class ThatsARock extends EventCard {
             when: {
                 onCardDiscarded: (event, context) => event.card === context.source && (event.discardedFromZone === ZoneName.Hand || event.discardedFromZone === ZoneName.Deck),
             },
+            zoneFilter: ZoneName.Discard,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })

@@ -442,35 +442,7 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'rose-tico#now-its-worth-it',
-    }),
-    buildMockCard({
-        title: 'Single Reactor Ignition',
-        cost: 8,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'aggression', 'villainy'],
-        types: ['event'],
-        traits: ['disaster', 'tactic'],
-        setId: {
-            set: 'LAW',
-            number: 44,
-        },
-        unique: false,
-        internalName: 'single-reactor-ignition',
-    }),
-    buildMockCard({
-        title: 'That\'s a Rock',
-        cost: 1,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression'],
-        types: ['event'],
-        traits: ['gambit'],
-        setId: {
-            set: 'LAW',
-            number: 206,
-        },
-        unique: false,
-        internalName: 'thats-a-rock',
-    }),
+    })
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
