@@ -42,6 +42,7 @@ type EnglishProfaneWord =
   | 'fisting'
   | 'foreskin'
   | 'fuck'
+  | 'fys'
   | 'gangbang'
   | 'handjob'
   | 'hentai'
@@ -51,6 +52,7 @@ type EnglishProfaneWord =
   | 'jizz'
   | 'kike'
   | 'kkk'
+  | 'kys'
   | 'lube'
   | 'masturbate'
   | 'negro'
@@ -59,6 +61,7 @@ type EnglishProfaneWord =
   | 'orgy'
   | 'penis'
   | 'piss'
+  | 'poofter'
   | 'porn'
   | 'prick'
   | 'pussy'
@@ -70,6 +73,7 @@ type EnglishProfaneWord =
   | 'sex'
   | 'shit'
   | 'slut'
+  | 'swisher'
   | 'tedbundy'
   | 'tit'
   | 'tranny'
@@ -467,4 +471,27 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
             .setMetadata({ originalWord: 'foreskin' })
             .addPattern(pattern`for[e][ ]skin`)
             .addPattern(pattern`4skin`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'fys' })
+            .addPattern(pattern`|fys|`)
+            .addPattern(pattern`|gfys|`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'kys' })
+            .addPattern(pattern`|kys|`)
+            .addPattern(pattern`|gkys|`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'poofter' })
+            .addPattern(pattern`poofter`)
+            .addPattern(pattern`phoofer`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'swisher' })
+            .addPattern(pattern`swisher`)
     );
