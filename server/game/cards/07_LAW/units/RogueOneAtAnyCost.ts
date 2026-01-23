@@ -13,7 +13,7 @@ export default class RogueOneAtAnyCost extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'This unit gains Sentinel for this phase',
+            title: 'look at the top 2 cards of your deck. Put any number of them on the bottom of your deck and the rest on top in any order',
             when: {
                 onCardDefeated: (event, context) =>
                     EnumHelpers.isUnit(event.lastKnownInformation.type) &&
