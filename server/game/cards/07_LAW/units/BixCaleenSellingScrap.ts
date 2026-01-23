@@ -4,11 +4,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class BixCaleenSellingScrap extends NonLeaderUnitCard {
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    protected override get overrideNotImplemented(): boolean {
-        return true;
-    }
-
     protected override getImplementationId() {
         return {
             id: 'bix-caleen#selling-scrap-id',
