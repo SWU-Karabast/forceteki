@@ -90,7 +90,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickCard(context.missionBriefing);
                 context.player1.clickPrompt('You');
 
-                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
                 context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
             });
@@ -115,7 +115,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickCard(context.missionBriefing);
                 context.player1.clickPrompt('You');
 
-                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
                 context.player1.clickPrompt('Trigger');
 
                 // Rey is revealed
@@ -152,7 +152,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickCard(context.missionBriefing);
                 context.player1.clickPrompt('You');
 
-                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
                 context.player1.clickPrompt('Trigger');
 
                 // Rey is revealed
@@ -191,7 +191,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player2.clickCard(context.lothalInsurgent);
 
                 expect(context.rey).toBeInZone('discard');
-                expect(context.player1).not.toHavePrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                expect(context.player1).not.toHavePrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
                 expect(context.player1).toBeActivePlayer();
             });
 
@@ -218,12 +218,12 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickPrompt('You');
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base.',
-                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base.'
+                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base',
+                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base'
                 ]);
 
                 // Activate the first Rey's trigger
-                context.player1.clickPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                context.player1.clickPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
 
@@ -281,12 +281,12 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickPrompt('You');
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base.',
-                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base.'
+                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base',
+                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base'
                 ]);
 
                 // Activate the first Rey's trigger
-                context.player1.clickPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                context.player1.clickPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
 
@@ -326,7 +326,7 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickCardInDisplayCardPrompt(context.rey);
                 expect(context.getChatLogs(2)).toContain('player1 takes Rey');
 
-                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base.');
+                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([context.reyWithPalpatinesPower]);
