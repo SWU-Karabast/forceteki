@@ -42,7 +42,7 @@ describe('Syndicate Spice Runner', function() {
             context.player1.clickCard(context.syndicateSpiceRunner);
 
             expect(context.player1).toHaveExactDisplayPromptCards({
-                selectable: [context.weequayPirate, context.pykeSentinel],
+                selectable: [context.weequayPirate],
                 invalid: [context.wampa]
             });
             expect(context.player1).toHaveEnabledPromptButton('Take nothing');
