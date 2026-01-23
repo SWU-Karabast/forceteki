@@ -48,6 +48,7 @@ describe('Thats A Rock', function() {
 
                 expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.wampa, context.imperialInterceptor]);
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(1);
@@ -81,6 +82,7 @@ describe('Thats A Rock', function() {
 
                 expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.wampa, context.imperialInterceptor]);
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(1);
