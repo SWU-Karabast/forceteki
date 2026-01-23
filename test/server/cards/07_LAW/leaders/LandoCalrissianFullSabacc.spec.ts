@@ -29,9 +29,57 @@ describe('Lando Calrissian, Full Sabacc', () => {
                 ]);
                 context.player1.chooseListOption('Cunning');
 
+                // Choose deck prompt
+                expect(context.player1).toHavePrompt('Choose a deck to discard from');
+                expect(context.player1).toHaveExactPromptButtons(['Your deck', 'Opponent\'s deck']);
+                context.player1.clickPrompt('Your deck');
+
                 // Check top card discarded
                 expect(context.jamCommunications).toBeInZone('discard', context.player1);
                 expect(context.resupply).toBeInZone('deck', context.player2); // Sanity check, no discard for P2
+
+                // Check Credit token created, costs paid
+                expect(context.player1.credits).toBe(1);
+                expect(context.landoCalrissian.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('chooses an Aspect and discards a card the opponent\'s deck. If the discarded card has the chosen Aspect, it creates a Credit token', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'lando-calrissian#full-sabacc',
+                        resources: 5,
+                        deck: ['jam-communications']
+                    },
+                    player2: {
+                        deck: ['resupply']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use Lando's leader-side ability
+                context.player1.clickCard(context.landoCalrissian);
+                expect(context.player1).toHavePrompt('Choose an option from the list');
+                expect(context.player1).toHaveExactDropdownListOptions([
+                    'Vigilance',
+                    'Command',
+                    'Aggression',
+                    'Cunning',
+                    'Villainy',
+                    'Heroism'
+                ]);
+                context.player1.chooseListOption('Command');
+
+                // Choose deck prompt
+                expect(context.player1).toHavePrompt('Choose a deck to discard from');
+                expect(context.player1).toHaveExactPromptButtons(['Your deck', 'Opponent\'s deck']);
+                context.player1.clickPrompt('Opponent\'s deck');
+
+                // Check top card discarded
+                expect(context.resupply).toBeInZone('discard', context.player2);
+                expect(context.jamCommunications).toBeInZone('deck', context.player1); // Sanity check, no discard for P1
 
                 // Check Credit token created, costs paid
                 expect(context.player1.credits).toBe(1);
@@ -54,6 +102,7 @@ describe('Lando Calrissian, Full Sabacc', () => {
                 // Use Lando's leader-side ability
                 context.player1.clickCard(context.landoCalrissian);
                 context.player1.chooseListOption('Heroism');
+                context.player1.clickPrompt('Your Deck');
 
                 // Check top card discarded
                 expect(context.resupply).toBeInZone('discard', context.player1);
@@ -78,8 +127,34 @@ describe('Lando Calrissian, Full Sabacc', () => {
 
                 // Use Lando's leader-side ability
                 context.player1.clickCard(context.landoCalrissian);
-                expect(context.player1).toHaveNoEffectAbilityPrompt('Choose an Aspect, then discard the top card of your deck');
-                context.player1.clickPrompt('Use it anyway');
+                context.player1.chooseListOption('Aggression');
+                context.player1.clickPrompt('Your deck');
+
+                // Check costs paid, no Credit token created
+                expect(context.player1.credits).toBe(0);
+                expect(context.landoCalrissian.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('can be used to no effect if neither player has any cards in their deck', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'lando-calrissian#full-sabacc',
+                        resources: 5,
+                        deck: []
+                    },
+                    player2: {
+                        deck: []
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use Lando's leader-side ability
+                context.player1.clickCard(context.landoCalrissian);
+                context.player1.chooseListOption('Aggression');
+                context.player1.clickPrompt('Opponent\'s deck');
 
                 // Check costs paid, no Credit token created
                 expect(context.player1.credits).toBe(0);

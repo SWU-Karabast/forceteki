@@ -23,11 +23,10 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Choose an Aspect',
                 mode: TargetMode.DropdownList,
-                condition: (context) => context.player.drawDeck.length > 0,
                 options: [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning, Aspect.Villainy, Aspect.Heroism]
                     .map((a) => aspectString([a]))
             },
-            then: {
+            then: (outerContext) => ({
                 title: 'Choose a deck to discard from',
                 targetResolver: {
                     activePromptTitle: 'Choose a deck to discard from',
@@ -36,15 +35,12 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
                         amount: 1
                     })
                 },
-                ifYouDo: {
-
-                }
-            }
-            // then: (thenContext) => ({
-            //     title: 'Create a Credit token',
-            //     thenCondition: () => thenContext.select && this.hasChosenAspect(thenContext),
-            //     immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
-            // })
+                then: (innerContext) => ({
+                    title: 'Create a Credit token',
+                    thenCondition: () => outerContext.select && this.hasChosenAspect(outerContext.select, innerContext),
+                    immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
+                })
+            })
         });
     }
 
@@ -70,8 +66,8 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
         });
     }
 
-    private hasChosenAspect(context: AbilityContext): boolean {
-        const chosenAspect = checkConvertToEnum(context.select.toLowerCase(), Aspect)[0];
+    private hasChosenAspect(aspectStr: string, context: AbilityContext): boolean {
+        const chosenAspect = checkConvertToEnum(aspectStr.toLowerCase(), Aspect)[0];
         const discardedCards = context.events
             .filter((e) => e.name === EventName.OnCardDiscarded)
             .map((e) => e.card);
