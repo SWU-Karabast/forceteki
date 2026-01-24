@@ -66,7 +66,7 @@ describe('Rogue One, At Any Cost', function() {
             });
         });
 
-        describe('Inferno Four - Unforgetting\'s ability', function() {
+        describe('Rogue One\'s ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -116,6 +116,52 @@ describe('Rogue One, At Any Cost', function() {
             expect(context.rogueOne).toBeInZone('discard', context.player1);
 
             context.player1.passAction();
+        });
+
+        it('should work if a friendly leader unit dies', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['rogue-one#at-any-cost'],
+                    leader: { card: 'cal-kestis#i-cant-keep-hiding', deployed: true },
+                    deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay'],
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: [{ card: 'atst', exhausted: true }],
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.calKestis);
+            context.player1.clickCard(context.atst);
+            expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.sabineWren, context.battlefieldMarine]);
+            expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+            context.player1.clickDisplayCardPromptButton(context.sabineWren.uuid, 'top');
+            context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'bottom');
+        });
+
+        it('should not trigger off of a pilot being defeated', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: [{ card: 'rogue-one#at-any-cost', upgrades: ['clone-pilot'] }],
+                    leader: { card: 'cal-kestis#i-cant-keep-hiding', deployed: true },
+                    deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay'],
+                },
+                player2: {
+                    hand: ['confiscate'],
+                    groundArena: [{ card: 'atst', exhausted: true }],
+                    hasInitiative: true,
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.confiscate);
+            context.player2.clickCard(context.clonePilot);
+            expect(context.player1).not.toHaveExactSelectableDisplayPromptCards([context.sabineWren, context.battlefieldMarine]);
+            expect(context.player1).not.toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+            expect(context.player1).toBeAbleToSelectExactly([context.rogueOne, context.calKestis]);
         });
     });
 });

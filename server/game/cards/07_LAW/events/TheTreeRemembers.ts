@@ -13,7 +13,7 @@ export default class TheTreeRemembers extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Choose a unit. It loses all abilities for this phase. If it costs 3 or less, defeat it',
+            title: 'An enemy unit loses all abilities for this phase. If it costs 3 or less, defeat it',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
