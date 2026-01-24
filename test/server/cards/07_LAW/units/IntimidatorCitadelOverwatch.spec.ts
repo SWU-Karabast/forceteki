@@ -47,12 +47,14 @@ describe('Intimidator, Citadel Overwatch', function() {
                 context.player1.clickCard(context.intimidatorCitadelOverwatch);
 
                 expect(context.player1).toBeAbleToSelectExactly(context.player1.resources);
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.superlaserTechnician);
                 context.player1.clickCard(context.openFire);
+                expect(context.player1).toHaveEnabledPromptButtons(['Done']);
                 context.player1.clickDone();
 
-                expect(context.player1.handSize).toBe(1);
-                expect(context.player2.handSize).toBe(2);
+                expect(context.openFire).toBeInZone('hand', context.player1);
+                expect(context.superlaserTechnician).toBeInZone('hand', context.player2);
                 expect(context.player1.exhaustedResourceCount).toBe(14);
                 expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.player1.credits).toBe(2);

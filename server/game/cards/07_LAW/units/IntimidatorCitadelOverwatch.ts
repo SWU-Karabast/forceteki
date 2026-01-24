@@ -16,14 +16,14 @@ export default class IntimidatorCitadelOverwatch extends NonLeaderUnitCard {
             title: 'Return up any number of friendly resources to their owners’ hands. For each resource returned this way, create a credit token',
             targetResolver: {
                 mode: TargetMode.Unlimited,
+                canChooseNoCards: true,
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             then: (thenContext) => ({
-                title: 'For each resource returned this way, create a credit token',
-                effect: 'create {1} credit',
-                effectArgs: [thenContext.target.length],
+                title: 'Create ${amount} Credit tokens',
+                thenCondition: (thenContext) => thenContext.target.length > 0,
                 immediateEffect: AbilityHelper.immediateEffects.createCreditToken({ amount: thenContext.target.length }),
             })
         });
