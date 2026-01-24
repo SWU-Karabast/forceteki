@@ -443,6 +443,25 @@ const mockCards = [
         arena: 'ground',
         internalName: 'rose-tico#now-its-worth-it',
     }),
+
+    buildMockCard({
+        title: 'Intimidator',
+        subtitle: 'Citadel Overwatch',
+        power: 11,
+        hp: 11,
+        cost: 11,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'LAW',
+            number: 140,
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'intimidator#citadel-overwatch',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
