@@ -38,18 +38,19 @@ export default class DoubleCross extends EventCard {
                                 newController: context.targets.enemyUnit.controller.opponent,
                             }),
                         ])),
-                        abilityHelper.immediateEffects.createCreditToken((context) => {
-                            // Calculate cost difference
+                        abilityHelper.immediateEffects.conditional((context) => {
+                            // Calculate cost difference and determine who gets the credits
                             const friendlyCost = context.targets.friendlyUnit.cost;
                             const enemyCost = context.targets.enemyUnit.cost;
                             const costDifference = Math.abs(friendlyCost - enemyCost);
-
-                            // Determine who gets the credit tokens
                             const creditRecipient = friendlyCost < enemyCost ? context.player.opponent : context.player;
 
                             return {
-                                amount: costDifference,
-                                target: creditRecipient
+                                condition: costDifference > 0,
+                                onTrue: abilityHelper.immediateEffects.createCreditToken({
+                                    amount: costDifference,
+                                    target: creditRecipient
+                                })
                             };
                         })
                     ])
