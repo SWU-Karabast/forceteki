@@ -21,7 +21,7 @@ export default class Haymaker extends EventCard {
             },
             then: (thenContext) => ({
                 title: 'Deal damage equal to the unit\'s power to an enemy unit in the same arena',
-                thenCondition: (context) => context.target != null,
+                thenCondition: (thenContext) => thenContext.target != null,
                 targetResolver: {
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.Unit,
@@ -29,7 +29,6 @@ export default class Haymaker extends EventCard {
                         card.zone === thenContext.target?.zone,
                     immediateEffect: AbilityHelper.immediateEffects.damage({
                         amount: thenContext.target?.getPower(),
-                        optional: false,
                     })
                 }
             })

@@ -1,6 +1,6 @@
-describe('The Axe Forgets', function() {
+describe('Haymaker', function() {
     integration(function(contextRef) {
-        describe('The Axe Forgets\' ability', function() {
+        describe('Haymaker\' ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -26,6 +26,7 @@ describe('The Axe Forgets', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst]);
+                expect(context.player1).not.toHavePrompt('Pass');
                 context.player1.clickCard(context.atst);
                 expect(context.atst.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
