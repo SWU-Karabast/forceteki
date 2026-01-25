@@ -75,9 +75,3 @@ export function updateStatsMessage(
     message.type = StatsMessageText[key].type;
     message.message = StatsMessageText[key].message;
 }
-
-export function sendBasedOnStatus(
-    message: IStatsMessageFormat | null
-): boolean {
-    return message && message.type !== StatsSaveStatus.DoNotSend;
-}
