@@ -1,5 +1,5 @@
 import { logger } from '../../logger';
-import type { GameServer, ISwuBaseToken } from '../../gamenode/GameServer';
+import type { GameServer, IToken } from '../../gamenode/GameServer';
 import { RefreshTokenSource, type UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
 import type Game from '../../game/core/Game';
@@ -8,22 +8,7 @@ import type { SwuGameFormat } from '../../game/core/Constants';
 import { StatsMessageKey } from '../stats/statsMessages';
 import type { IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker';
-
-interface OAuthTokenResponse {
-    access_token: string;
-    refresh_token: string;
-    expires_in?: number;
-    token_type?: string;
-    scope?: string;
-}
-
-interface CardMetrics {
-    played: number;
-    resourced: number;
-    activated: number;
-    drawn: number;
-    discarded: number;
-}
+import type { ICardMetrics, IOAuthTokenResponse } from './statHandlerTypes';
 
 export class SwuBaseHandler {
     private readonly apiUrl: string;
@@ -40,9 +25,7 @@ export class SwuBaseHandler {
             'SWUBASE_CLIENT_ID',
             'SWUBASE_CLIENT_SECRET'
         ], 'SWUBase Handler');
-        const baseUrl = process.env.NODE_ENV === 'development' && process.env.SWUBASE_LOCAL_DEV === 'true'
-            ? 'http://localhost:5173'
-            : 'https://swubase.com';
+        const baseUrl = 'https://swubase.com';
         this.apiUrl = `${baseUrl}/api/integration/karabast/game-result`;
         this.tokenUrl = `${baseUrl}/api/integration/refresh-token`;
         this.linkAccountUrl = `${baseUrl}/api/integration/link-confirm`;
@@ -132,7 +115,7 @@ export class SwuBaseHandler {
     }
 
     private buildPlayerData(player: Player, accessToken: string | null) {
-        const d = player.lobbyDeck;
+        const { id, name, base, leader, deckSource } = player.lobbyDeck;
         return {
             name: player.name,
             id: player.id,
@@ -140,11 +123,11 @@ export class SwuBaseHandler {
             leader: player.leader?.id,
             base: player.base?.id,
             deck: {
-                id: accessToken ? 'unknown' : d.id, // "unknown" deck ids for players NOT linked to swubase
-                name: d.name,
-                base: d.base,
-                leader: d.leader,
-                deckSource: d.deckSource,
+                id: accessToken ? id : 'unknown', // "unknown" deck ids for players NOT linked to swubase
+                name,
+                base,
+                leader,
+                deckSource,
             },
             isWinner: player.game.winnerNames.includes(player.name)
         };
@@ -152,7 +135,7 @@ export class SwuBaseHandler {
 
 
     private buildCardMetricsForPlayer(player: Player, cardMetrics: IGameStatisticsTracker['cardMetrics']) {
-        const cardResultsByTrackingId = {} satisfies Record<string, CardMetrics>;
+        const cardResultsByTrackingId = {} satisfies Record<string, ICardMetrics>;
         for (const card of player.allCards) {
             if (cardResultsByTrackingId[card.trackingId]) {
                 continue;
@@ -234,7 +217,7 @@ export class SwuBaseHandler {
      * @param token The token to check
      * @returns True if token is valid, false if expired
      */
-    public isTokenValid(token: ISwuBaseToken): boolean {
+    public isTokenValid(token: IToken): boolean {
         const now = new Date();
         const tokenCreationTime = new Date(token.creationDateTime);
         const tokenExpirationTime = new Date(tokenCreationTime.getTime() + (token.timeToLiveSeconds * 1000));
@@ -252,7 +235,7 @@ export class SwuBaseHandler {
      * @param userId
      * @returns Promise that resolves to the new access token, or null if refresh failed
      */
-    public async refreshTokensAsync(refreshToken: string, userId: string): Promise<ISwuBaseToken> {
+    public async refreshTokensAsync(refreshToken: string, userId: string): Promise<IToken> {
         try {
             if (!this.clientId || !this.clientSecret) {
                 logger.warn('SWUBaseHandler: Cannot refresh token - OAuth credentials not configured or missing refreshToken');
@@ -276,7 +259,7 @@ export class SwuBaseHandler {
                 logger.error(`SWUBaseHandler(refreshTokensAsync): Token refresh failed: ${response.status} - ${errorText}`);
                 return null;
             }
-            const tokenResponse = await response.json() as OAuthTokenResponse;
+            const tokenResponse = await response.json() as IOAuthTokenResponse;
             logger.info('SWUBaseHandler: Successfully refreshed access token');
             return {
                 creationDateTime: new Date(),
@@ -298,7 +281,7 @@ export class SwuBaseHandler {
      * @param linkToken
      * @param userId
      */
-    public async linkAccountAsync(linkToken: string, userId: string): Promise<ISwuBaseToken> {
+    public async linkAccountAsync(linkToken: string, userId: string): Promise<IToken> {
         try {
             if (!this.clientId || !this.clientSecret) {
                 logger.warn('SWUBaseHandler: Cannot refresh token - OAuth credentials not configured or missing refreshToken');
@@ -322,7 +305,7 @@ export class SwuBaseHandler {
                 logger.error(`SWUBaseHandler(linkAccountAsync): Token refresh failed: ${response.status} - ${errorText}`);
                 return null;
             }
-            const tokenResponse = await response.json() as OAuthTokenResponse;
+            const tokenResponse = await response.json() as IOAuthTokenResponse;
             logger.info('SWUBaseHandler: Successfully refreshed access token');
             return {
                 creationDateTime: new Date(),
