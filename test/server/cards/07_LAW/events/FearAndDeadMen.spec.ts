@@ -59,7 +59,7 @@ describe('Fear And Dead Men', function () {
                 context.player1.clickCard(context.lurkingTiePhantom);
                 context.player1.clickCard(context.atst);
 
-                // Cards discarded from opponent should not count for Fear and Dead Men
+                // Cards discarded from deck should not count for Fear and Dead Men
                 context.player2.clickCard(context.chopper);
                 context.player2.clickCard(context.p1Base);
                 expect(context.awing).toBeInZone('discard', context.player1);

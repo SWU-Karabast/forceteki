@@ -111,6 +111,27 @@ describe('You Hold This', function () {
             expect(context.battlefieldMarine.controller).toBe(context.player2Object);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should not have any effect if there is no friendly unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['you-hold-this'],
+                },
+                player2: {
+                    spaceArena: ['cartel-spacer']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.youHoldThis);
+            expect(context.player1).toHavePrompt('Playing You Hold This will have no effect. Are you sure you want to play it?');
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.cartelSpacer.controller).toBe(context.player2Object);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 
     // TODO ADD TESTS WITH REY

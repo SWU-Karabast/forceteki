@@ -5,7 +5,7 @@ describe('Common Cause', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['common-cause'],
+                        hand: ['common-cause', 'battlefield-marine'],
                         // Wampa has Aggression
                         groundArena: ['wampa']
                     },
@@ -25,7 +25,14 @@ describe('Common Cause', function () {
                 // With 1 aspect (Aggression), Wampa should get +1/+1
                 expect(context.wampa.getPower()).toBe(wampaPower + 1);
                 expect(context.wampa.getHp()).toBe(wampaHp + 1);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.battlefieldMarine);
+
                 expect(context.player2).toBeActivePlayer();
+                expect(context.wampa.getPower()).toBe(wampaPower + 1);
+                expect(context.wampa.getHp()).toBe(wampaHp + 1);
             });
 
             it('should give +0/+0 if no units are controlled', async function () {
