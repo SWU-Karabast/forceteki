@@ -562,6 +562,20 @@ const mockCards = [
         unique: false,
         internalName: 'you-hold-this',
     }),
+    buildMockCard({
+        title: 'Double-Cross',
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LAW',
+            number: 170,
+        },
+        unique: false,
+        internalName: 'doublecross',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
