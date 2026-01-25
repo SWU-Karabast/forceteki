@@ -22,7 +22,7 @@ export default class IntimidatorCitadelOverwatch extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             then: (thenContext) => ({
-                title: `Create ${thenContext.target?.length} Credit tokens`,
+                title: `Create ${thenContext.target.length} Credit tokens`,
                 thenCondition: (thenContext) => thenContext.target.length > 0,
                 immediateEffect: AbilityHelper.immediateEffects.createCreditToken({ amount: thenContext.target.length }),
             })
