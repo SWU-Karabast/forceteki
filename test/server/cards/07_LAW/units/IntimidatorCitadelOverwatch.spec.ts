@@ -59,6 +59,19 @@ describe('Intimidator, Citadel Overwatch', function() {
                 expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.player1.credits).toBe(2);
             });
+
+            it('should function if nothing is chosen', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.intimidatorCitadelOverwatch);
+
+                context.player1.clickPrompt('Choose Nothing');
+
+                expect(context.player1.readyResourceCount).toBe(4);
+                expect(context.player1.exhaustedResourceCount).toBe(11);
+                expect(context.player1.credits).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
