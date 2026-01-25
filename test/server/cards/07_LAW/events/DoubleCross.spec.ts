@@ -1,6 +1,8 @@
 describe('Double-Cross', function() {
     integration(function(contextRef) {
         describe('Double-Cross\'s event ability', function() {
+            // TODO: Add test for LAW Rey once that's implemented
+
             it('does nothing when there are no enemy non-leader units in play', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
