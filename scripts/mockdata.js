@@ -461,6 +461,33 @@ const mockCards = [
         unique: true,
         arena: 'space',
         internalName: 'intimidator#citadel-overwatch',
+    buildMockCard({
+        title: 'Fear and Dead Men',
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'LAW',
+            number: 179,
+        },
+        unique: false,
+        internalName: 'fear-and-dead-men',
+    }),
+    buildMockCard({
+        title: 'You Hold This',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LAW',
+            number: 85,
+        },
+        unique: false,
+        internalName: 'you-hold-this',
     }),
 ];
 
