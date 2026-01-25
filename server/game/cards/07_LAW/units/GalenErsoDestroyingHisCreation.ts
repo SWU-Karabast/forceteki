@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class GalenErsoDestroyingHisCreation extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -23,9 +23,8 @@ export default class GalenErsoDestroyingHisCreation extends NonLeaderUnitCard {
 
         registrar.addConstantAbility({
             title: 'Enemy units gain Raid 1 and Saboteur',
-            matchTarget: (card, context) =>
-                card.isUnit() &&
-                card.controller !== context.source.controller,
+            targetController: RelativePlayer.Opponent,
+            targetCardTypeFilter: WildcardCardType.Unit,
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 }),
                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)
