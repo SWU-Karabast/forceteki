@@ -461,6 +461,7 @@ const mockCards = [
         unique: true,
         arena: 'space',
         internalName: 'intimidator#citadel-overwatch',
+    }),
     buildMockCard({
         title: 'Fear and Dead Men',
         cost: 7,
