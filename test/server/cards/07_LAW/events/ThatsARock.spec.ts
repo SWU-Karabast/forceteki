@@ -55,6 +55,55 @@ describe('Thats A Rock', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('when discarded from hand, can interact with other prompts', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'padme-amidala#what-do-you-have-to-hide',
+                        hand: ['thats-a-rock'],
+                        groundArena: ['furtive-handmaiden']
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Attack with Furtive Handmaiden to discard a card from hand
+                context.player1.clickCard(context.furtiveHandmaiden);
+                context.player1.clickCard(context.p2Base);
+
+                // Discard That's a Rock from hand
+                expect(context.player1).toHavePassAbilityPrompt('Discard a card from your hand. If you do, draw a card.');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.thatsARock);
+
+                // Padmé's ability triggered
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust Padmé Amidala to deal 1 damage to a unit', 'Deal 1 damage to a unit.']);
+
+                // Choose to use Padmé's ability
+                context.player1.clickPrompt('Exhaust Padmé Amidala to deal 1 damage to a unit');
+                context.player1.clickPrompt('Trigger');
+
+                // All units are valid targets
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.furtiveHandmaiden,
+                    context.consularSecurityForce
+                ]);
+
+                context.player1.clickCard(context.consularSecurityForce);
+
+                expect(context.consularSecurityForce.damage).toBe(1);
+                expect(context.padmeAmidala.exhausted).toBe(true);
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.consularSecurityForce.damage).toBe(2);
+            });
+
             it('can deal damage to a unit when discarded from deck', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -87,6 +136,35 @@ describe('Thats A Rock', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(1);
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('can deal damage to a unit when discarded from deck and returned to hand', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['boshek#charismatic-smuggler'],
+                        spaceArena: ['strafing-gunship'],
+                        deck: ['battlefield-marine', 'thats-a-rock', 'atst']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.boshek);
+                context.player1.clickPrompt('Play BoShek with Piloting');
+                context.player1.clickCard(context.strafingGunship);
+
+                expect(context.thatsARock).toBeInZone('hand');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+
+                expect(context.atst).toBeInZone('deck');
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
+                expect(context.player1).toBeAbleToSelectExactly([context.strafingGunship]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
+
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
