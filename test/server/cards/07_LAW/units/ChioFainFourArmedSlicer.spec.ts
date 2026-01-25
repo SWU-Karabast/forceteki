@@ -82,7 +82,7 @@ describe('Chio Fain, Four-Armed Slicer', function() {
             expect(context.player1.handSize).toBe(player1HandSizeBefore + 1);
             expect(context.vanquish).toBeInZone('hand', context.player1);
             expect(context.player2.handSize).toBe(player2HandSizeBefore);
-            expect(context.p2Base.damage).toBe(5); //3 from empty deck + 2 from Chio Fain
+            expect(context.p2Base.damage).toBe(5); // 3 from empty deck + 2 from Chio Fain
             expect(context.player2).toBeActivePlayer();
         });
     });
