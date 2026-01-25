@@ -515,6 +515,34 @@ const mockCards = [
         arena: 'space',
         internalName: 'vult-skerriss-defender#secret-project',
     }),
+    buildMockCard({
+        title: 'Fear and Dead Men',
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'LAW',
+            number: 179,
+        },
+        unique: false,
+        internalName: 'fear-and-dead-men',
+    }),
+    buildMockCard({
+        title: 'You Hold This',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LAW',
+            number: 85,
+        },
+        unique: false,
+        internalName: 'you-hold-this',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

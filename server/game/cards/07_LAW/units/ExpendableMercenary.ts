@@ -16,7 +16,7 @@ export default class ExpendableMercenary extends NonLeaderUnitCard {
             title: 'Resource this unit from its owner\'s discard pile',
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.zoneName === ZoneName.Discard && context.source.controller === context.source.owner,
+                condition: (context) => context.source.zoneName === ZoneName.Discard,
                 onTrue: abilityHelper.immediateEffects.resourceCard((context) => ({ target: context.source }))
             })
         });
