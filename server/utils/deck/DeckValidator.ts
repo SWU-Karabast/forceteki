@@ -20,6 +20,9 @@ enum SwuSet {
     LAW = 'law'
 }
 
+// Configurable: the set allowed in Limited format (update when new sets release)
+const limitedLegalSet: SwuSet = SwuSet.SEC;
+
 enum SwuRotationBlock {
     Block0,
     BlockA,
@@ -38,6 +41,11 @@ const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
     [SwuGameFormat.NextSetPreview, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])]
 ]);
 
+// For formats that restrict to specific sets (not rotation blocks)
+const legalSetsForFormat = new Map<SwuGameFormat, Set<SwuSet>>([
+    [SwuGameFormat.Limited, new Set([limitedLegalSet])]
+]);
+
 const bannedPremierCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty'],
     ['4002861992', 'dj#blatant-thief'],
@@ -49,7 +57,8 @@ const bannedPremierCards = new Map([
 const bannedCardsPerFormat = new Map<SwuGameFormat, Map<string, string>>([
     [SwuGameFormat.Premier, bannedPremierCards],
     [SwuGameFormat.Open, new Map<string, string>()],
-    [SwuGameFormat.NextSetPreview, bannedPremierCards]
+    [SwuGameFormat.NextSetPreview, bannedPremierCards],
+    [SwuGameFormat.Limited, new Map<string, string>()]
 ]);
 
 const maxCopiesOfCards = new Map([
@@ -90,6 +99,10 @@ export class DeckValidator {
         return filtered;
     }
 
+    public static formatUses30CardMinimum(format: SwuGameFormat): boolean {
+        return format === SwuGameFormat.Limited;
+    }
+
     public static async createAsync(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
         const allCardsData: ICardDataJson[] = [];
         for (const cardId of cardDataGetter.cardIds) {
@@ -122,11 +135,18 @@ export class DeckValidator {
     private constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
         const implementedCardIds = new Set(cards.keys());
         const overrideNotImplementedCardIds = new Set(overrideNotImplementedCards.keys());
+
+        // Build format to sets map from block-based formats
         const formatToSetsMap = Helpers.mapValues(legalBlocksForFormat, (blocks) =>
             Helpers.reduceSet(blocks, new Set<SwuSet>(), (acc, block) =>
                 Helpers.setUnion(acc, rotationBlocks.get(block))
             )
         );
+
+        // Add set-based formats (Limited)
+        for (const [format, sets] of legalSetsForFormat) {
+            formatToSetsMap.set(format, sets);
+        }
 
         this.cardData = new Map<string, ICardCheckData>();
         this.setCodeToId = setCodeToId;
@@ -170,7 +190,7 @@ export class DeckValidator {
     // update this function if anything affects the sideboard count
     public getMaxSideboardSize(format: SwuGameFormat): number {
         // sideboard is only restricted in Premier
-        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
+        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview || format === SwuGameFormat.Limited) {
             return -1;
         }
         return 10;
@@ -230,7 +250,10 @@ export class DeckValidator {
 
     private validateCommonDeck(deck: IDecklistInternal | ISwuDbFormatDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
         try {
-            Contract.assertFalse(format !== SwuGameFormat.Open && allow30CardsInMainBoard, '30-card setting can only be used in Open format');
+            Contract.assertFalse(
+                format !== SwuGameFormat.Open && format !== SwuGameFormat.Limited && allow30CardsInMainBoard,
+                '30-card setting can only be used in Open or Limited format'
+            );
 
             const failures: IDeckValidationFailures = {
                 [DeckValidationFailureReason.IllegalInFormat]: [],
@@ -289,7 +312,7 @@ export class DeckValidator {
                     failures[DeckValidationFailureReason.InvalidDeckData] = true;
                 }
 
-                this.checkMaxCopiesOfCard(card, cardData, format, failures, allow30CardsInMainBoard);
+                this.checkMaxCopiesOfCard(card, cardData, format, failures);
             }
 
             // Remove any failure entries that are empty arrays.
@@ -366,11 +389,10 @@ export class DeckValidator {
         card: ISwuDbFormatCardEntry,
         cardData: ICardCheckData,
         format: SwuGameFormat,
-        failures: IDeckValidationFailures,
-        allow30CardsInMainBoard: boolean
+        failures: IDeckValidationFailures
     ) {
-        // bit of a hack to allow limited formats to work using this setting for now
-        if (allow30CardsInMainBoard) {
+        // Limited format has no copy restrictions (play what you draft/open)
+        if (format === SwuGameFormat.Limited) {
             return;
         }
 
@@ -387,7 +409,7 @@ export class DeckValidator {
 
     protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, failures: IDeckValidationFailures) {
         // sideboard is only restricted in Premier
-        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
+        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview || format === SwuGameFormat.Limited) {
             return;
         }
 
