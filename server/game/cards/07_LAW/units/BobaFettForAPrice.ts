@@ -6,7 +6,7 @@ import { ZoneName, WildcardCardType } from '../../../core/Constants';
 export default class BobaFettForAPrice extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'boba-fett#for-a-price-id',
+            id: '2562671677',
             internalName: 'boba-fett#for-a-price'
         };
     }

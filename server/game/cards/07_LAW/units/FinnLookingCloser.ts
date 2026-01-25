@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class FinnLookingCloser extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'finn#looking-closer-id',
+            id: '6365678821',
             internalName: 'finn#looking-closer',
         };
     }

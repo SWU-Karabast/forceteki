@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class BackedByTheHutts extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'backed-by-the-hutts-id',
+            id: '0800992259',
             internalName: 'backed-by-the-hutts',
         };
     }

@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../cor
 export default class DoubleCross extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'doublecross-id',
+            id: '3933327047',
             internalName: 'doublecross',
         };
     }
