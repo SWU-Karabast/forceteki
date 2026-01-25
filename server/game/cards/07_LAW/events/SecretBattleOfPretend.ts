@@ -21,12 +21,13 @@ export default class SecretBattleOfPretend extends EventCard {
             },
             ifYouDo: (ifYouDoContext) => {
                 const differentAspectCount = new Set(ifYouDoContext.target?.aspects).size;
+                const numCards = Math.min(differentAspectCount, ifYouDoContext.player.opponent.getArenaUnits({ arena: ifYouDoContext.target?.zoneName }).length);
                 return {
                     title: 'For each different aspect it has, exhaust an enemy unit in the same arena',
                     targetResolver: {
                         activePromptTitle: () => `Exhaust ${differentAspectCount} enemy unit in ${ifYouDoContext.target?.zoneName === ZoneName.GroundArena ? 'Ground' : 'Space'} arena`,
-                        mode: TargetMode.ExactlyVariable,
-                        numCardsFunc: (context) => Math.min(differentAspectCount, context.player.opponent.getArenaUnits({ arena: ifYouDoContext.target?.zoneName }).length),
+                        mode: TargetMode.Exactly,
+                        numCards: numCards,
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: RelativePlayer.Opponent,
                         cardCondition: (card) => card.zone === ifYouDoContext.target?.zone,
