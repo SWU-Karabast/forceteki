@@ -38,7 +38,6 @@ import { PlayerReportType, ReportType } from '../game/Interfaces';
 import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
 import {
     createStatsMessage,
-    sendBasedOnStatus,
     StatsMessageKey,
     StatsSaveStatus,
     StatsSource,
@@ -1553,9 +1552,9 @@ export class Lobby {
     /**
      * Public method to send a statsSubmitNotification message to a player.
      */
-    public sendStatsMessageToUser(userId: string, messageParameters: IStatsMessageFormat) {
+    public sendStatsMessageToUser(userId: string, messageParameters: IStatsMessageFormat | null) {
         // if the user doesn't exist in the lobby skip
-        if (this.hasPlayer(userId) && messageParameters.type !== StatsSaveStatus.DoNotSend) {
+        if (this.hasPlayer(userId) && messageParameters && messageParameters.type !== StatsSaveStatus.DoNotSend) {
             // we try/catch in the offchance the user disconnects after the if statement
             try {
                 // cache update message in case we undo the game-end and end again
@@ -1564,7 +1563,6 @@ export class Lobby {
                 } else {
                     this.statsUpdateStatus.set(userId, new Map([[messageParameters.source, messageParameters]]));
                 }
-
                 this.getUser(userId).socket.send('statsSubmitNotification', messageParameters);
             } catch (error) {
                 logger.error('(sendStatsMessageToUser): Error sending statsSubmitNotification', { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
@@ -1740,6 +1738,8 @@ export class Lobby {
                 updateStatsMessage(player2KarabastStatus, StatsMessageKey.NotUpdatedBeforeRound2);
                 updateStatsMessage(player1SwuStatsStatus, StatsMessageKey.NotUpdatedBeforeRound2);
                 updateStatsMessage(player2SwuStatsStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player1SwuBaseStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player2SwuBaseStatus, StatsMessageKey.NotUpdatedBeforeRound2);
                 logger.info('stats not updated due to game ending before round 2', { lobbyId: this.id });
                 return;
             }
@@ -1780,16 +1780,12 @@ export class Lobby {
         } finally {
             this.sendStatsMessageToUser(player1.id, player1KarabastStatus);
             this.sendStatsMessageToUser(player2.id, player2KarabastStatus);
-            if (sendBasedOnStatus(player1SwuStatsStatus) && this.swuStatsEnabled) {
+            if (this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player1.id, player1SwuStatsStatus);
-            }
-            if (sendBasedOnStatus(player2SwuStatsStatus) && this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player2.id, player2SwuStatsStatus);
             }
-            if (sendBasedOnStatus(player1SwuBaseStatus) && this.swuBaseEnabled) {
+            if (this.swuBaseEnabled) {
                 this.sendStatsMessageToUser(player1.id, player1SwuBaseStatus);
-            }
-            if (sendBasedOnStatus(player2SwuBaseStatus) && this.swuBaseEnabled) {
                 this.sendStatsMessageToUser(player2.id, player2SwuBaseStatus);
             }
         }

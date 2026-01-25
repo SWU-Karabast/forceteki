@@ -7,13 +7,14 @@ import { DeckSource } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import { GameCardMetric, type IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
-import type { GameServer, ISwuStatsToken } from '../../gamenode/GameServer';
+import type { GameServer, IToken } from '../../gamenode/GameServer';
 import { RefreshTokenSource, type UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
 import { StatsMessageKey } from '../stats/statsMessages';
+import type { ICardMetrics, IOAuthTokenResponse } from './statHandlerTypes';
 
 
-interface TurnResults {
+interface ITurnResults {
     cardsUsed: number;           // Cards played this turn
     resourcesUsed: number;       // Resources spent
     resourcesLeft: number;       // Resources remaining
@@ -22,16 +23,11 @@ interface TurnResults {
     damageTaken: number;         // Damage received this turn
 }
 
-interface CardResults {
+interface ICardResults extends ICardMetrics {
     cardId: string;            // Card id (FFG UID format)
-    played: number;            // Times played
-    resourced: number;         // Times used as resource
-    activated: number;         // Times ability activated
-    drawn: number;             // Times drawn
-    discarded: number;         // Times discarded
 }
 
-interface SWUstatsGameResult {
+interface ISWUStatsGameResult {
     apiKey: string;
     winner: number; // 1 or 2
     firstPlayer: number; // 1 or 2
@@ -41,8 +37,8 @@ interface SWUstatsGameResult {
     winnerDeck?: IDecklistInternal;
     loserDeck?: IDecklistInternal;
     winnerHealth: number;
-    player1: PlayerData;
-    player2: PlayerData;
+    player1: IPlayerData;
+    player2: IPlayerData;
     p1SWUStatsToken: string;
     p2SWUStatsToken: string;
     p1DeckLink: string;
@@ -53,7 +49,7 @@ interface SWUstatsGameResult {
     sequenceNumber?: number;
 }
 
-interface PlayerData {
+interface IPlayerData {
     gameId?: string;            // Unique game identifier (optional)
     gameName?: string;          // Custom game name (optional)
     deckId: string;             // The last part of the deck link
@@ -65,16 +61,8 @@ interface PlayerData {
     opposingHero: string;       // Opponent's leader id (FFG UID format)
     opposingBaseColor: string;  // Opponent's base color (Red, Blue, Yellow, Green, Colorless)
     deckbuilderID?: string;     // Deckbuilder user ID
-    cardResults?: CardResults[];
-    turnResults?: TurnResults[];
-}
-
-interface OAuthTokenResponse {
-    access_token: string;
-    refresh_token: string;
-    expires_in?: number;
-    token_type?: string;
-    scope?: string;
+    cardResults?: ICardResults[];
+    turnResults?: ITurnResults[];
 }
 
 export class SwuStatsHandler {
@@ -208,8 +196,8 @@ export class SwuStatsHandler {
         return 'colorless';
     }
 
-    private getCardResultsByPlayer(player: Player, statsTracker: IGameStatisticsTracker): CardResults[] {
-        const cardResultsByTrackingId = new Map<string, CardResults>();
+    private getCardResultsByPlayer(player: Player, statsTracker: IGameStatisticsTracker): ICardResults[] {
+        const cardResultsByTrackingId = new Map<string, ICardResults>();
         for (const card of player.allCards) {
             if (cardResultsByTrackingId.has(card.trackingId)) {
                 continue;
@@ -264,7 +252,7 @@ export class SwuStatsHandler {
         game: Game,
         winner: number,
         playerNumber: number
-    ): PlayerData {
+    ): IPlayerData {
         const leaderStr = player.leader?.id;
         const baseStr = player.base?.id;
         const opponentLeaderStr = opponentPlayer.leader?.id;
@@ -296,7 +284,7 @@ export class SwuStatsHandler {
         lobbyId: string,
         serverObject: GameServer,
         sequenceNumber?: number
-    ): Promise<SWUstatsGameResult> {
+    ): Promise<ISWUStatsGameResult> {
         Contract.assertNotNullLike(player1.lobbyDeck, `Player1 ${player1.id} has no deck assigned at SWUStats payload build time`);
         Contract.assertNotNullLike(player2.lobbyDeck, `Player2 ${player2.id} has no deck assigned at SWUStats payload build time`);
 
@@ -376,7 +364,7 @@ export class SwuStatsHandler {
      * @param token The token to check
      * @returns True if token is valid, false if expired
      */
-    public isTokenValid(token: ISwuStatsToken): boolean {
+    public isTokenValid(token: IToken): boolean {
         const now = new Date();
         const tokenCreationTime = new Date(token.creationDateTime);
         const tokenExpirationTime = new Date(tokenCreationTime.getTime() + (token.timeToLiveSeconds * 1000));
@@ -393,7 +381,7 @@ export class SwuStatsHandler {
      * @param refreshToken The refresh token to use
      * @returns Promise that resolves to the new access token, or null if refresh failed
      */
-    public async refreshTokensAsync(refreshToken: string): Promise<ISwuStatsToken> {
+    public async refreshTokensAsync(refreshToken: string): Promise<IToken> {
         try {
             if (!this.clientId || !this.clientSecret) {
                 logger.warn('SWUStatsHandler: Cannot refresh token - OAuth credentials not configured or missing refreshToken');
@@ -418,7 +406,7 @@ export class SwuStatsHandler {
                 logger.error(`SWUStatsHandler: Token refresh failed: ${response.status} - ${errorText}`);
                 return null;
             }
-            const tokenResponse = await response.json() as OAuthTokenResponse;
+            const tokenResponse = await response.json() as IOAuthTokenResponse;
             logger.info('SWUStatsHandler: Successfully refreshed access token');
             return {
                 creationDateTime: new Date(),

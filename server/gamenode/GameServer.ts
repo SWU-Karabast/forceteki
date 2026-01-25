@@ -36,7 +36,7 @@ import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { RefreshTokenSource, UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
-import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
+import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
@@ -46,7 +46,7 @@ import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
-import { SwuBaseHandler } from '../utils/SWUBase/SwuBaseHandler';
+import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -74,9 +74,6 @@ export interface IToken {
     creationDateTime: Date;
     timeToLiveSeconds: number;
 }
-
-export type ISwuStatsToken = IToken;
-export type ISwuBaseToken = IToken;
 
 // Interface for GC performance entries using the modern 'detail' property
 interface GCPerformanceEntry {
@@ -160,8 +157,8 @@ export class GameServer {
     private readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
-    public swuStatsTokenMapping = new Map<string, ISwuStatsToken>();
-    public swuBaseTokenMapping = new Map<string, ISwuBaseToken>();
+    public swuStatsTokenMapping = new Map<string, IToken>();
+    public swuBaseTokenMapping = new Map<string, IToken>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -2178,7 +2175,7 @@ export class GameServer {
      */
     private cleanupInvalidTokens(): void {
         try {
-            const newTokenMapping = new Map<string, ISwuStatsToken>();
+            const newTokenMapping = new Map<string, IToken>();
             // Create new map with only valid tokens
             for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
                 if (this.swuStatsHandler.isTokenValid(token)) {
