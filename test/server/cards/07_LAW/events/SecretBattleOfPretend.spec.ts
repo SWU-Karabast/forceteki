@@ -143,7 +143,8 @@ describe('Secret Battle Of Pretend', function() {
                     groundArena: ['luke-skywalker#jedi-knight']
                 },
                 player2: {
-                    groundArena: ['wampa']
+                    groundArena: ['wampa'],
+                    spaceArena: ['awing', 'green-squadron-awing']
                 }
             });
 

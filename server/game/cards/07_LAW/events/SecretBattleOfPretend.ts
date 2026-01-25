@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class SecretBattleOfPretend extends EventCard {
     protected override getImplementationId () {
@@ -24,9 +24,9 @@ export default class SecretBattleOfPretend extends EventCard {
                 return {
                     title: 'For each different aspect it has, exhaust an enemy unit in the same arena',
                     targetResolver: {
-                        activePromptTitle: () => `Exhaust ${differentAspectCount} enemy unit in ${ifYouDoContext.target?.zone} arena`,
+                        activePromptTitle: () => `Exhaust ${differentAspectCount} enemy unit in ${ifYouDoContext.target?.zoneName === ZoneName.GroundArena ? 'Ground' : 'Space'} arena`,
                         mode: TargetMode.ExactlyVariable,
-                        numCardsFunc: (context) => Math.min(differentAspectCount, context.player.opponent.getArenaUnits().length),
+                        numCardsFunc: (context) => Math.min(differentAspectCount, context.player.opponent.getArenaUnits({ arena: ifYouDoContext.target?.zoneName }).length),
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: RelativePlayer.Opponent,
                         cardCondition: (card) => card.zone === ifYouDoContext.target?.zone,
