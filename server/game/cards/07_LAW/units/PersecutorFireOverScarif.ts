@@ -23,11 +23,11 @@ export default class PersecutorFireOverScarif extends NonLeaderUnitCard {
                 activePromptTitle: 'Choose an arena',
                 choices: {
                     ['Space']: abilityHelper.immediateEffects.damage((context) => ({
-                        target: context.player.opponent.getArenaUnits({ arena: ZoneName.SpaceArena }).concat(context.player.getArenaUnits({ arena: ZoneName.SpaceArena })),
+                        target: context.game.getArenaUnits({ arena: ZoneName.SpaceArena }),
                         amount: 3
                     })),
                     ['Ground']: abilityHelper.immediateEffects.damage((context) => ({
-                        target: context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena }).concat(context.player.getArenaUnits({ arena: ZoneName.GroundArena })),
+                        target: context.game.getArenaUnits({ arena: ZoneName.GroundArena }),
                         amount: 3
                     })),
                     ['Pass']: abilityHelper.immediateEffects.noAction({ hasLegalTarget: true })

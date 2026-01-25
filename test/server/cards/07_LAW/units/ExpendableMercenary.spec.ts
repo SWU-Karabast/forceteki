@@ -125,6 +125,28 @@ describe('Expendable Mercenary', function () {
                 expect(context.player1.resources.length).toBe(3);
                 expect(context.player1).toBeActivePlayer();
             });
+
+            it('should not be resourced if target by JTL Chimaera ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chimaera#reinforcing-the-center'],
+                        groundArena: ['expendable-mercenary'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                const p1Resources = context.player1.resources.length;
+
+                context.player1.clickCard(context.chimaera);
+
+                // expendable mercenary is not even selectable because his ability will not work
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.expendableMercenary).toBeInZone('groundArena', context.player1);
+                expect(context.player1.resources.length).toBe(p1Resources);
+            });
         });
     });
 });
