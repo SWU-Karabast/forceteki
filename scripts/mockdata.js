@@ -443,6 +443,25 @@ const mockCards = [
         arena: 'ground',
         internalName: 'rose-tico#now-its-worth-it',
     }),
+
+    buildMockCard({
+        title: 'Intimidator',
+        subtitle: 'Citadel Overwatch',
+        power: 11,
+        hp: 11,
+        cost: 11,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'LAW',
+            number: 140,
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'intimidator#citadel-overwatch',
+    }),
     buildMockCard({
         title: 'Persecutor',
         subtitle: 'Fire Over Scarif',
@@ -542,6 +561,20 @@ const mockCards = [
         },
         unique: false,
         internalName: 'you-hold-this',
+    }),
+    buildMockCard({
+        title: 'Double-Cross',
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['trick'],
+        setId: {
+            set: 'LAW',
+            number: 170,
+        },
+        unique: false,
+        internalName: 'doublecross',
     }),
 ];
 
