@@ -400,6 +400,42 @@ const mockCards = [
         unique: false,
         internalName: 'combat-exercise',
     }),
+    buildMockCard({
+        title: 'Max Rebo',
+        subtitle: 'Encore!',
+        power: 2,
+        hp: 7,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        types: ['unit'],
+        traits: ['underworld', 'musician'],
+        setId: {
+            set: 'LAW',
+            number: 72,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'max-rebo#encore',
+    }),
+    buildMockCard({
+        title: 'The Max Rebo Band',
+        subtitle: 'Jatz-Wailers',
+        power: 1,
+        hp: 5,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        types: ['unit'],
+        traits: ['underworld', 'musician'],
+        setId: {
+            set: 'LAW',
+            number: 71,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-max-rebo-band#jatzwailers',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
