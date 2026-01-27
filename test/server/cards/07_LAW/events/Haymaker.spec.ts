@@ -27,6 +27,7 @@ describe('Haymaker', function() {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst]);
                 expect(context.player1).not.toHavePrompt('Pass');
+                expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit in the same arena');
                 context.player1.clickCard(context.atst);
                 expect(context.atst.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
