@@ -2133,7 +2133,7 @@ export class Lobby {
 
         const requestedMessages = allMessages.slice(safeStart, safeEnd);
 
-        socket.send('messagesResponse', {
+        socket.send('retransmitResponse', {
             messages: requestedMessages,
             startIndex: safeStart,
             totalCount: totalCount
