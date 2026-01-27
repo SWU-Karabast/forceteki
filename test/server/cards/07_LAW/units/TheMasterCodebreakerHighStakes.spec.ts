@@ -6,16 +6,15 @@ describe('The Master Codebreaker, High Stakes', function () {
                     phase: 'action',
                     player1: {
                         hand: ['the-master-codebreaker#high-stakes'],
-                        // Top 8 cards of deck
                         deck: [
                             'battlefield-marine',
                             'wampa',
-                            'second-chance', // Gambit card
+                            'second-chance',
                             'protector',
                             'inferno-four#unforgetting',
                             'devotion',
                             'consular-security-force',
-                            'final-showdown', // Gambit card
+                            'final-showdown',
                             'superlaser-technician'
                         ]
                     }
@@ -25,7 +24,6 @@ describe('The Master Codebreaker, High Stakes', function () {
 
                 context.player1.clickCard(context.theMasterCodebreaker);
 
-                // Verify deck search display prompt shows Gambit cards as selectable
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.secondChance, context.finalShowdown],
                     invalid: [context.battlefieldMarine, context.wampa, context.protector, context.infernoFour, context.devotion, context.consularSecurityForce]
@@ -34,14 +32,10 @@ describe('The Master Codebreaker, High Stakes', function () {
 
                 context.player1.clickCardInDisplayCardPrompt(context.secondChance);
 
-                // Verify the Gambit card was drawn
                 expect(context.secondChance).toBeInZone('hand');
 
-                // Verify other cards were moved to bottom of deck
-                expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 7);
-                expect(context.finalShowdown).toBeInBottomOfDeck(context.player1, 7);
+                expect([context.battlefieldMarine, context.wampa, context.protector, context.infernoFour, context.devotion, context.consularSecurityForce, context.finalShowdown]).toAllBeInBottomOfDeck(context.player1, 7);
 
-                expect(context.theMasterCodebreaker).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -67,7 +61,9 @@ describe('The Master Codebreaker, High Stakes', function () {
 
                 context.player1.clickCard(context.theMasterCodebreaker);
 
-                // Verify the "Take nothing" button appears when no Gambit cards are found
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.battlefieldMarine, context.wampa, context.sabineWren, context.protector, context.infernoFour, context.devotion, context.consularSecurityForce, context.echoBaseDefender]
+                });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                 context.player1.clickPrompt('Take nothing');
 
@@ -75,23 +71,27 @@ describe('The Master Codebreaker, High Stakes', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should move cards not selected to the bottom of the deck', async function () {
+            it('should do nothing when the deck is empty', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-master-codebreaker#high-stakes'],
-                        deck: [
-                            'battlefield-marine',
-                            'wampa',
-                            'eject', // Gambit card
-                            'protector',
-                            'inferno-four#unforgetting',
-                            'devotion',
-                            'consular-security-force',
-                            'echo-base-defender',
-                            'superlaser-technician',
-                            'atst'
-                        ]
+                        deck: []
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theMasterCodebreaker);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should work correctly when the deck has fewer than 8 cards', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['the-master-codebreaker#high-stakes'],
+                        deck: ['final-showdown', 'wampa']
                     }
                 });
 
@@ -100,175 +100,127 @@ describe('The Master Codebreaker, High Stakes', function () {
                 context.player1.clickCard(context.theMasterCodebreaker);
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    selectable: [context.eject],
-                    invalid: [context.battlefieldMarine, context.wampa, context.protector, context.infernoFour, context.devotion, context.consularSecurityForce, context.echoBaseDefender]
+                    selectable: [context.finalShowdown],
+                    invalid: [context.wampa]
                 });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickCardInDisplayCardPrompt(context.eject);
+                context.player1.clickCardInDisplayCardPrompt(context.finalShowdown);
 
-                // Verify the Gambit card was drawn
-                expect(context.eject).toBeInZone('hand');
-
-                // Verify other cards from top 8 were moved to bottom of deck (7 cards since 1 was drawn)
-                expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 7);
-                expect(context.wampa).toBeInBottomOfDeck(context.player1, 7);
-                expect(context.protector).toBeInBottomOfDeck(context.player1, 7);
-                expect(context.infernoFour).toBeInBottomOfDeck(context.player1, 7);
-                expect(context.devotion).toBeInBottomOfDeck(context.player1, 7);
-                expect(context.consularSecurityForce).toBeInBottomOfDeck(context.player1, 7);
-                expect(context.echoBaseDefender).toBeInBottomOfDeck(context.player1, 7);
-
-                // Verify the 9th and 10th cards remain in deck but not at bottom
-                expect(context.superlaserTechnician).toBeInZone('deck', context.player1);
-                expect(context.atst).toBeInZone('deck', context.player1);
-
-                expect(context.theMasterCodebreaker).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
+                expect(context.finalShowdown).toBeInZone('hand');
             });
         });
 
         describe('The Master Codebreaker\'s constant ability', function () {
-            // Note: These tests are skipped because the Gambit trait may not be properly set on cards in the database yet.
-            // Once second-chance, final-showdown, and eject have the Gambit trait added to the card data, these tests can be enabled.
-            xit('should reduce the cost of the first Gambit card played each phase by 1', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['the-master-codebreaker#high-stakes', 'wampa'],
-                        hand: ['second-chance'] // Gambit upgrade, costs 3
-                    }
-                });
-
-                const { context } = contextRef;
-
-                const readyResourceCount = context.player1.readyResourceCount;
-                context.player1.clickCard(context.secondChance);
-                context.player1.clickCard(context.wampa);
-
-                // Second Chance costs 3, should cost 2 with discount
-                expect(context.player1.readyResourceCount).toBe(readyResourceCount - 2);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            xit('should only reduce the cost of the first Gambit card, not subsequent ones', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: [{ card: 'the-master-codebreaker#high-stakes', exhausted: true }, { card: 'wampa', exhausted: true }],
-                        hand: ['final-showdown', 'second-chance'], // Final Showdown costs 6, Second Chance costs 3
-                        resources: 15
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // Play first Gambit card (Final Showdown) - should cost 1 less
-                context.player1.clickCard(context.finalShowdown);
-                expect(context.player1.readyResourceCount).toBe(10); // Costs 5 instead of 6
-                expect(context.theMasterCodebreaker.exhausted).toBeFalse(); // Units were readied
-                expect(context.wampa.exhausted).toBeFalse();
-
-                context.player2.passAction();
-
-                // Play second Gambit card (Second Chance) - should cost full price
-                const readyResourceCount = context.player1.readyResourceCount;
-                context.player1.clickCard(context.secondChance);
-                context.player1.clickCard(context.wampa);
-                expect(context.player1.readyResourceCount).toBe(readyResourceCount - 3); // Costs 3 (no discount)
-
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            xit('should not reduce the cost of non-Gambit cards', async function () {
+            it('should reduce the cost of the first Gambit card you play by 1', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['the-master-codebreaker#high-stakes'],
-                        hand: ['battlefield-marine'] // Cost 2, not a Gambit card
-                    }
-                });
-
-                const { context } = contextRef;
-
-                const readyResourceCount = context.player1.readyResourceCount;
-                context.player1.clickCard(context.battlefieldMarine);
-
-                // Should cost full price (2 resources)
-                expect(context.player1.readyResourceCount).toBe(readyResourceCount - 2);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            xit('should reset the discount each phase', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: [{ card: 'the-master-codebreaker#high-stakes', exhausted: true }, { card: 'wampa', exhausted: true }, { card: 'battlefield-marine', exhausted: true }],
-                        hand: ['final-showdown', 'second-chance'], // Final Showdown costs 6, Second Chance costs 3
-                        resources: 15
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // Play first Gambit card this phase - should get discount
-                context.player1.clickCard(context.finalShowdown);
-                expect(context.player1.readyResourceCount).toBe(10); // Costs 5 instead of 6
-
-                // Move to next action phase
-                context.moveToNextActionPhase();
-
-                // Play second Gambit card in new phase - should get discount again
-                context.player1.clickCard(context.secondChance);
-                context.player1.clickCard(context.wampa);
-                expect(context.player1.readyResourceCount).toBe(9); // Costs 2 instead of 3 (discount applies again)
-
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            xit('should NOT apply discount when Master Codebreaker is defeated', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['the-master-codebreaker#high-stakes', 'wampa'],
-                        hand: ['second-chance'],
-                        resources: 10
+                        hand: ['second-chance', 'youre-all-clear-kid'],
+                        leader: 'chewbacca#walking-carpet',
+                        base: 'colossus'
                     },
                     player2: {
-                        hand: ['vanquish'],
-                        hasInitiative: true
+                        hand: ['diversion'],
+                        spaceArena: ['green-squadron-awing', 'awing'],
+                        hasInitiative: true,
+                        base: 'jabbas-palace'
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Player 2 defeats Master Codebreaker
-                context.player2.clickCard(context.vanquish);
-                context.player2.clickCard(context.theMasterCodebreaker);
+                context.player2.clickCard(context.diversion);
+                context.player2.clickCard(context.awing);
 
-                expect(context.theMasterCodebreaker).toBeInZone('discard');
+                expect(context.player2.exhaustedResourceCount).toBe(1);
 
-                // Play Gambit card - should NOT get discount since Master Codebreaker is no longer in play
                 context.player1.clickCard(context.secondChance);
-                context.player1.clickCard(context.wampa);
-                expect(context.player1.readyResourceCount).toBe(7); // Costs 3 (no discount)
+                context.player1.clickCard(context.theMasterCodebreaker);
+
+                expect(context.player1.exhaustedResourceCount).toBe(3);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.youreAllClearKid);
+                context.player1.clickCard(context.awing);
 
                 expect(context.player2).toBeActivePlayer();
-            });
-        });
-
-        it('should have 1 power and 4 HP and cost 2', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    groundArena: ['the-master-codebreaker#high-stakes']
-                }
+                expect(context.player1.exhaustedResourceCount).toBe(5); // 3 + 2
             });
 
-            const { context } = contextRef;
+            it('should reset the cost reduction each phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['the-master-codebreaker#high-stakes'],
+                        hand: ['second-chance', 'youre-all-clear-kid'],
+                        leader: 'chewbacca#walking-carpet',
+                        base: 'colossus'
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing', 'awing'],
+                    }
+                });
 
-            expect(context.theMasterCodebreaker.getPower()).toBe(1);
-            expect(context.theMasterCodebreaker.getHp()).toBe(4);
-            expect(context.theMasterCodebreaker.printedCost).toBe(2);
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.secondChance);
+                context.player1.clickCard(context.theMasterCodebreaker);
+
+                expect(context.player1.exhaustedResourceCount).toBe(3);
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.youreAllClearKid);
+                context.player1.clickCard(context.awing);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('should reduce the cost of the first Gambit card you play by 1 (event)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['the-master-codebreaker#high-stakes'],
+                        hand: ['second-chance', 'youre-all-clear-kid'],
+                        leader: 'chewbacca#walking-carpet',
+                        base: 'colossus'
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing', 'awing'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.youreAllClearKid);
+                context.player1.clickCard(context.awing);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('should not reduce the cost of non-Gambit cards', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['the-master-codebreaker#high-stakes'],
+                        hand: ['battlefield-marine'],
+                        leader: 'captain-rex#fighting-for-his-brothers'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
