@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class Haymaker extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'haymaker-id',
+            id: '6417951289',
             internalName: 'haymaker',
         };
     }

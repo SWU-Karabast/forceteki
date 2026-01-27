@@ -595,20 +595,6 @@ const mockCards = [
         internalName: 'admiral-motti#chain-of-command',
     }),
     buildMockCard({
-        title: 'Haymaker',
-        cost: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['command'],
-        types: ['event'],
-        traits: ['tactic'],
-        setId: {
-            set: 'LAW',
-            number: 168,
-        },
-        unique: false,
-        internalName: 'haymaker',
-    }),
-    buildMockCard({
         title: 'Stockpile',
         cost: 6,
         hasNonKeywordAbility: true,
