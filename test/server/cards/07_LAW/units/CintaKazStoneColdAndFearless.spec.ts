@@ -8,15 +8,14 @@ describe('Cinta Kaz, Stone Cold and Fearless', function() {
                         groundArena: [{ card: 'cinta-kaz#stone-cold-and-fearless', upgrades: ['shield'] }],
                     },
                     player2: {
-                        groundArena: ['wampa', 'jedha-agitator'],
+                        groundArena: ['wampa', 'crafty-smuggler'],
+                        hasInitiative: true,
                     },
                 });
             });
 
             it('should give it sentinel only as long as it is upgraded', function () {
                 const { context } = contextRef;
-
-                context.player1.clickPrompt('Pass');
 
                 context.player2.clickCard(context.wampa);
                 expect(context.player2).toBeAbleToSelectExactly(context.cintaKazStoneColdAndFearless);
@@ -28,7 +27,7 @@ describe('Cinta Kaz, Stone Cold and Fearless', function() {
 
                 context.player1.clickPrompt('Pass');
 
-                context.player2.clickCard(context.jedhaAgitator);
+                context.player2.clickCard(context.craftySmuggler);
 
                 expect(context.player2).toBeAbleToSelectExactly([context.cintaKazStoneColdAndFearless, context.p1Base]);
                 context.player2.clickCard(context.p1Base);
