@@ -10,7 +10,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class AgentKallusReconsiderYourAllegiance extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'agent-kallus#reconsider-your-allegiance-id',
+            id: '9236732601',
             internalName: 'agent-kallus#reconsider-your-allegiance',
         };
     }

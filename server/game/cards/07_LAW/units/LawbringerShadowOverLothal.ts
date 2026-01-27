@@ -7,7 +7,7 @@ import { aspectString } from '../../../core/utils/EnumHelpers';
 export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lawbringer#shadow-over-lothal-id',
+            id: '6116264542',
             internalName: 'lawbringer#shadow-over-lothal',
         };
     }

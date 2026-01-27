@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Cons
 export default class LukeSkywalkerProfitOrBeDestroyed extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'luke-skywalker#profit-or-be-destroyed-id',
+            id: '9677099296',
             internalName: 'luke-skywalker#profit-or-be-destroyed',
         };
     }
