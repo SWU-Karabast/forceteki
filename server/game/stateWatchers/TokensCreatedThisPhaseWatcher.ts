@@ -42,13 +42,14 @@ export class TokensCreatedThisPhaseWatcher extends StateWatcher<CreatedTokenEntr
             when: {
                 onTokensCreated: () => true,
             },
-            update: (currentState: CreatedTokenEntry[], event: any) =>
-                currentState.concat(
+            update: (currentState: CreatedTokenEntry[], event: any) => {
+                return !event.generatedTokens ? currentState : currentState.concat(
                     event.generatedTokens.map((token) => ({
                         token: token.getRef(),
                         createdBy: event.player.getRef(),
                     }))
-                )
+                );
+            }
         });
     }
 
