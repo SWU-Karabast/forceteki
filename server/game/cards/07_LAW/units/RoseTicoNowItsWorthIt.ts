@@ -6,7 +6,7 @@ import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectB
 export default class RoseTicoNowItsWorthIt extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rose-tico#now-its-worth-it-id',
+            id: '1266774503',
             internalName: 'rose-tico#now-its-worth-it'
         };
     }

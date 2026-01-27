@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class QuiGonJinnInfluencingChance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'quigon-jinn#influencing-chance-id',
+            id: '9949055416',
             internalName: 'quigon-jinn#influencing-chance',
         };
     }

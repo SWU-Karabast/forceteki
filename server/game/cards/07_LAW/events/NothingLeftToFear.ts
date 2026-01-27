@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class NothingLeftToFear extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'nothing-left-to-fear-id',
+            id: '0080292869',
             internalName: 'nothing-left-to-fear',
         };
     }
