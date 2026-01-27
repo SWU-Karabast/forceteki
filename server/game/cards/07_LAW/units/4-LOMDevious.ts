@@ -5,7 +5,7 @@ import { Trait } from '../../../core/Constants';
 export default class _4LOMDevious extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '4lom#devious-id',
+            id: '8950998844',
             internalName: '4lom#devious'
         };
     }

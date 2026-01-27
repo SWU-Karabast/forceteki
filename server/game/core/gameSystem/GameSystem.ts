@@ -119,7 +119,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
                 card,
                 title: card.title,
                 controller: card.controller,
-                arena: card.zoneName
+                arena: card.zoneName,
+                traits: card.traits
             };
         }
         Contract.assertTrue(card.canBeInPlay());
@@ -134,7 +135,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
                 arena: card.zoneName,
                 controller: card.controller,
                 damage: card.damage,
-                upgrades: card.upgrades
+                upgrades: card.upgrades,
+                traits: card.traits
             };
         }
 
@@ -147,7 +149,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
                 type: card.type,
                 arena: card.zoneName,
                 controller: card.controller,
-                parentCard: card.parentCard
+                parentCard: card.parentCard,
+                traits: card.traits
             };
         }
 

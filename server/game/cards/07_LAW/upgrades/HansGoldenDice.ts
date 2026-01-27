@@ -6,7 +6,7 @@ import { EventName } from '../../../core/Constants';
 export default class HansGoldenDice extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'hans-golden-dice-id',
+            id: '6269526870',
             internalName: 'hans-golden-dice',
         };
     }
