@@ -46,7 +46,7 @@ import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/Pri
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
-import type { CardsEnteredPlayThisPhaseWatcher } from '../../../stateWatchers/CardsEnteredPlayThisPhaseWatcher';
+import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -205,7 +205,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return this.state.pilotingConstantAbilities.map((x) => this.game.getFromRef(x));
         }
 
-        private _cardsEnteredPlayThisWatcher: CardsEnteredPlayThisPhaseWatcher;
+        private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
         private _leadersDeployedThisPhaseWatcher: LeadersDeployedThisPhaseWatcher;
 
@@ -317,7 +317,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
             }
 
-            this._cardsEnteredPlayThisWatcher = this.game.abilityHelper.stateWatchers.cardsEnteredPlayThisPhase();
+            this._tokensCreatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.tokensCreatedThisPhase();
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
 
@@ -720,7 +720,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             try {
                 return this._cardsPlayedThisWatcher.someCardPlayed((entry) => entry.card === card && entry.inPlayId === card.inPlayId) ||
                   this._leadersDeployedThisPhaseWatcher.someLeaderDeployed((entry) => entry.card === card) ||
-                  this._cardsEnteredPlayThisWatcher.someCardEnteredPlay((entry) => entry.card === card && entry.card.isTokenUnit());
+                  this._tokensCreatedThisPhaseWatcher.someTokenCreated((entry) => entry.token === card && entry.token.isTokenUnit());
             } catch (err) {
                 return false;
             }
