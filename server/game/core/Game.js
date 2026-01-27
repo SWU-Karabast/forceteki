@@ -1960,8 +1960,8 @@ class Game extends EventEmitter {
             if (this._serializationFailure) {
                 return {
                     newMessages: [`A severe server error has occurred and made this game unplayable. This incident has been reported to the dev team. Please feel free to reach out in the Karabast discord to provide additional details so we can resolve this faster (game id ${this.id}).`],
-                    messageOffset: 0,
-                    totalMessages: 1,
+                    messageOffset: lastMessageOffset,
+                    totalMessages: lastMessageOffset + 1,
                     playerUpdate: activePlayer.name,
                     id: this.id,
                     owner: this.owner,
