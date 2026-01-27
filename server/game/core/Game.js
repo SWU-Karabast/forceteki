@@ -21,7 +21,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity, GameEndReason } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity, GameEndReason, EffectName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -1323,7 +1323,9 @@ class Game extends EventEmitter {
         this.pipeline.initialise([
             ...roundStartStep,
             ...actionPhaseStep,
+            new SimpleStep(this, () => this.checkCreateAdditionalActionPhase(rollbackEntryPoint), 'checkCreateAdditionalActionPhase'),
             ...regroupPhaseStep,
+            new SimpleStep(this, () => this.checkCreateAdditionalRegroupPhase(rollbackEntryPoint), 'checkCreateAdditionalRegroupPhase'),
             new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
             new SimpleStep(this, () => this.beginRound(), 'beginRound')
         ]);
@@ -1390,6 +1392,46 @@ class Game extends EventEmitter {
         }
 
         return [new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)];
+    }
+
+    /**
+     * Creates additional action phases as needed based on ongoing effects.
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    checkCreateAdditionalActionPhase(rollbackEntryPoint = null) {
+        const additionalCount = this.getPlayers()
+            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
+            .filter((value) => value.phase === PhaseName.Action)
+            .length;
+
+        // Create additional action phase steps per ongoing effect
+        for (let i = 0; i < additionalCount; i++) {
+            const actionPhaseStep = this.buildActionPhaseStep(rollbackEntryPoint);
+
+            for (const step of actionPhaseStep) {
+                this.pipeline.queueStep(step);
+            }
+        }
+    }
+
+    /**
+     * Creates additional regroup phases as needed based on ongoing effects.
+     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     */
+    checkCreateAdditionalRegroupPhase(rollbackEntryPoint = null) {
+        const additionalCount = this.getPlayers()
+            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
+            .filter((value) => value.phase === PhaseName.Regroup)
+            .length;
+
+        // Create additional regroup phase steps per ongoing effect
+        for (let i = 0; i < additionalCount; i++) {
+            const regroupPhaseStep = this.buildRegroupPhaseStep(rollbackEntryPoint);
+
+            for (const step of regroupPhaseStep) {
+                this.pipeline.queueStep(step);
+            }
+        }
     }
 
     roundEnded() {

@@ -76,6 +76,7 @@ export enum DamageType {
 export enum EffectName {
     AbilityRestrictions = 'abilityRestrictions',
     AdditionalAction = 'additionalActions',
+    AdditionalPhase = 'additionalPhase',
     AdditionalActionAfterWindowCompleted = 'additionalActionsAfterWindowCompleted',
     AdditionalPlayCost = 'additionalPlaycost',
     AdditionalTriggerCost = 'additionalTriggercost',
@@ -412,6 +413,7 @@ export enum Trait {
     Lightsaber = 'lightsaber',
     Mandalorian = 'mandalorian',
     Modification = 'modification',
+    Musician = 'musician',
     Naboo = 'naboo',
     NewRepublic = 'new republic',
     Night = 'night',
