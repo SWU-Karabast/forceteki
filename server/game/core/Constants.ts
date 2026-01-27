@@ -308,7 +308,7 @@ export enum EventName {
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnTakeControl = 'onTakeControl',
-    OnTokensCreated = 'OnTokensCreated',
+    OnTokensCreated = 'onTokensCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
     OnUpgradeUnattached = 'onUpgradeUnattached',
@@ -503,6 +503,7 @@ export enum StateWatcherName {
     DamageDealtThisPhase = 'damageDealtThisPhase',
     ForceUsedThisPhase = 'forceUsedThisPhase',
     LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
+    TokensCreatedThisPhase = 'tokensCreatedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
 
