@@ -13,7 +13,7 @@ export default class JynErsoTakeTheNextChance extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Ready a resource or exhaust a unit',
+            title: 'Give an Experience token to a unit or exhaust a unit',
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: {
