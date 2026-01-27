@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class BibFortunaDieWannaWanga extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bib-fortuna#die-wanna-wanga-id',
+            id: '2210391815',
             internalName: 'bib-fortuna#die-wanna-wanga'
         };
     }
