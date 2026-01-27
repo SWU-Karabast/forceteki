@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { Aspect, CardType, EventName, RelativePlayer, TargetMode } from '../../../core/Constants';
+import { Aspect, EventName, TargetMode } from '../../../core/Constants';
 import { aspectString, checkConvertToEnum } from '../../../core/utils/EnumHelpers';
 
 export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
@@ -51,12 +51,12 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
-            targetResolver: {
-                cardTypeFilter: CardType.TokenCard,
-                controller: RelativePlayer.Self,
-                cardCondition: (card) => card.isCreditToken(),
-                immediateEffect: AbilityHelper.immediateEffects.defeat(),
-            },
+            immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
+                condition: context.player.creditTokenCount > 0,
+                onTrue: AbilityHelper.immediateEffects.defeat({
+                    target: context.player.baseZone.credits[0]
+                })
+            })),
             ifYouDo: {
                 title: 'Create 3 Credit tokens',
                 immediateEffect: AbilityHelper.immediateEffects.createCreditToken({

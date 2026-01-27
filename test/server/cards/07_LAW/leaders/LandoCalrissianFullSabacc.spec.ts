@@ -184,10 +184,8 @@ describe('Lando Calrissian, Full Sabacc', () => {
                 context.player1.clickPrompt('Deploy Lando Calrissian');
 
                 // Ability triggers
-                expect(context.player1).toHavePrompt('Defeat a friendly Credit token to create 3 Credit tokens');
-                expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([p1Credit]);
-                context.player1.clickCard(p1Credit);
+                expect(context.player1).toHavePassAbilityPrompt('Defeat a friendly Credit token to create 3 Credit tokens');
+                context.player1.clickPrompt('Trigger');
 
                 // Check Credit token defeated and 3 created
                 expect(p1Credit).toBeInZone('outsideTheGame');
@@ -214,8 +212,7 @@ describe('Lando Calrissian, Full Sabacc', () => {
                 context.player1.clickPrompt('Deploy Lando Calrissian');
 
                 // Ability triggers
-                expect(context.player1).toHavePrompt('Defeat a friendly Credit token to create 3 Credit tokens');
-                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHavePassAbilityPrompt('Defeat a friendly Credit token to create 3 Credit tokens');
                 context.player1.clickPrompt('Pass');
 
                 // Check no Credit tokens created
