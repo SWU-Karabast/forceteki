@@ -576,6 +576,38 @@ const mockCards = [
         unique: false,
         internalName: 'doublecross',
     }),
+    buildMockCard({
+        title: 'Admiral Motti',
+        subtitle: 'Chain of Command',
+        power: 4,
+        hp: 5,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'LAW',
+            number: 139,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'admiral-motti#chain-of-command',
+    }),
+    buildMockCard({
+        title: 'Stockpile',
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['supply'],
+        setId: {
+            set: 'LAW',
+            number: 171,
+        },
+        unique: false,
+        internalName: 'stockpile',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
