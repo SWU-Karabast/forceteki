@@ -79,7 +79,7 @@ export interface ICardIdAndName {
 
 export interface IDeckValidationProperties {
     format: SwuGameFormat;
-    allow30CardsInMainBoard: boolean;
+    allow30CardsInMainBoard?: boolean;
 }
 
 export enum DecklistLocation {
