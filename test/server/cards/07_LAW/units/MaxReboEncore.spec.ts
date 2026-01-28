@@ -18,7 +18,8 @@ describe('Max Rebo, Encore!', () => {
                             'max-rebo#encore'
                         ],
                         groundArena: [
-                            'zorii-bliss#valiant-smuggler'
+                            'zorii-bliss#valiant-smuggler',
+                            'dryden-vos#i-get-all-worked-up'
                         ],
                         deck: [
                             // To have specific cards to check during regroup phase (in alphabetical order)
@@ -36,7 +37,8 @@ describe('Max Rebo, Encore!', () => {
                         base: 'data-vault',
                         hand: [
                             'max-rebo#encore',
-                            'fireball#an-explosion-with-wings'
+                            'fireball#an-explosion-with-wings',
+                            'contracted-hunter'
                         ],
                         resources: context.startingResourceCount,
                         deck: [
@@ -141,7 +143,7 @@ describe('Max Rebo, Encore!', () => {
                 // Move to Regroup Phase
                 context.moveToRegroupPhase();
 
-                // Max Rebo is in discard (defeated due to Sneak Attack)
+                // Max Rebo is defeated due to Sneak Attack
                 expect(context.p1MaxRebo).toBeInZone('discard');
 
                 // Regroup Phase begins (draw A,B but not C,D)
@@ -170,7 +172,7 @@ describe('Max Rebo, Encore!', () => {
             });
 
             describe('Interactions with other "Regroup Phase" effects', function() {
-                it('abilities that trigger at the start of the Regroup Phase still trigger for the additional Regroup Phase', function() {
+                it('abilities that trigger at the start of the Regroup Phase still trigger for the additional Regroup Phase (Fireball)', function() {
                     const { context } = contextRef;
 
                     // P1 plays Max Rebo
@@ -246,15 +248,207 @@ describe('Max Rebo, Encore!', () => {
                     expect(context.p2Draws.c).toBeInZone('hand');
                     expect(context.p2Draws.d).toBeInZone('hand');
                 });
+
+                it('lasting effects that apply to the "next" Regroup Phase only last for the next Regroup Phase (Dryden Vos)', function() {
+                    const { context } = contextRef;
+
+                    // P1 attacks with Dryden Vos
+                    context.player1.clickCard(context.drydenVos);
+                    context.player1.clickCard(context.p2Base);
+
+                    // Dryden's ability triggers to double power but not ready next Regroup Phase
+                    expect(context.player1).toHavePassAbilityPrompt('Double this unit\'s power for this attack. If you do, this unit does not ready during the next regroup phase.');
+                    context.player1.clickPrompt('Trigger');
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.p2Base.damage).toBe(4);
+
+                    // P2 plays Max Rebo
+                    context.player2.clickCard(context.p2MaxRebo);
+
+                    // Move to Regroup Phase
+                    context.moveToRegroupPhase();
+
+                    // First Regroup Phase begins
+                    expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+
+                    // Each player passes resourcing
+                    context.player1.clickDone();
+                    context.player2.clickDone();
+
+                    // Dryden is still exhausted
+                    expect(context.drydenVos.exhausted).toBeTrue();
+
+                    // Second Regroup Phase begins
+                    expect(context.getChatLog()).toEqual('Round: 1 - Additional Regroup Phase (granted by Max Rebo)');
+
+                    // Each player passes resourcing
+                    context.player1.clickDone();
+                    context.player2.clickDone();
+
+                    // Dryden readies this time
+                    expect(context.drydenVos.exhausted).toBeFalse();
+                });
+
+                it('effects that apply for the round do not expire before the end of the additional Regroup Phase (Kazuda Xiono)', function() {
+                    const { context } = contextRef;
+
+                    // P1 plays Max Rebo
+                    context.player1.clickCard(context.p1MaxRebo);
+
+                    // P2 plays Contracted Hunter
+                    context.player2.clickCard(context.contractedHunter);
+                    context.player2.clickPrompt('Pass'); // No ambush
+
+                    context.player1.claimInitiative();
+
+                    // P2 uses Kazuda to remove all abilities from Contracted Hunter for the round
+                    context.player2.clickCard(context.kazudaXiono);
+                    context.player2.clickPrompt('Remove all abilities from a friendly unit, then take another action');
+                    context.player2.clickCard(context.contractedHunter);
+                    context.player2.clickPrompt('Pass'); // No additional action
+
+                    // First Regroup Phase begins, Contracted Hunter is not defeated by its own ability
+                    expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+                    expect(context.contractedHunter).toBeInZone('groundArena');
+
+                    // Each player passes resourcing
+                    context.player1.clickDone();
+                    context.player2.clickDone();
+
+                    // Second Regroup Phase begins, Contracted Hunter is still not defeated by its own ability
+                    expect(context.getChatLog()).toEqual('Round: 1 - Additional Regroup Phase (granted by Max Rebo)');
+                    expect(context.contractedHunter).toBeInZone('groundArena');
+
+                    // Each player passes resourcing
+                    context.player1.clickDone();
+                    context.player2.clickDone();
+
+                    // Action phase begins, Contracted Hunter is still in play
+                    expect(context.getChatLog()).toEqual('Round: 2 - Action Phase');
+                    expect(context.contractedHunter).toBeInZone('groundArena');
+                });
+
+                // TODO: Add a test for doubling up Patient Hunters's ability, since it specifies "this Regroup Phase"
             });
 
-            // describe('With multiple Max Rebo units in play', function() {
-            //     it('creates one additional Regroup Phase for each Max Rebo unit in play at the end of the first Regroup Phase', async function() {
-            //     });
+            describe('With multiple Max Rebo units in play', function() {
+                it('creates one additional Regroup Phase for each Max Rebo unit in play at the end of the first Regroup Phase', async function() {
+                    const { context } = contextRef;
 
-            //     it('if one Max Rebo is defeated at the start of the first Regroup Phase, it does not create an additional Regroup Phase for that unit', async function() {
-            //     });
-            // });
+                    // P1 plays Max Rebo
+                    context.player1.clickCard(context.p1MaxRebo);
+
+                    // P2 plays Max Rebo
+                    context.player2.clickCard(context.p2MaxRebo);
+
+                    // Move to Regroup Phase
+                    context.moveToRegroupPhase();
+
+                    // First Regroup Phase begins
+                    expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+
+                    // Each player draws A,B and resources A
+                    expect(context.p1Draws.a).toBeInZone('hand');
+                    expect(context.p1Draws.b).toBeInZone('hand');
+                    expect(context.p2Draws.a).toBeInZone('hand');
+                    expect(context.p2Draws.b).toBeInZone('hand');
+
+                    context.player1.clickCard(context.p1Draws.a);
+                    context.player1.clickDone();
+                    context.player2.clickCard(context.p2Draws.a);
+                    context.player2.clickDone();
+                    expect(context.p1Draws.a).toBeInZone('resource');
+                    expect(context.p2Draws.a).toBeInZone('resource');
+
+                    // Second Regroup Phase begins
+                    expect(context.getChatLog()).toEqual('Round: 1 - Additional Regroup Phase (granted by Max Rebo)');
+
+                    // Each player draws C,D and resources C
+                    expect(context.p1Draws.c).toBeInZone('hand');
+                    expect(context.p1Draws.d).toBeInZone('hand');
+                    expect(context.p2Draws.c).toBeInZone('hand');
+                    expect(context.p2Draws.d).toBeInZone('hand');
+
+                    context.player1.clickCard(context.p1Draws.c);
+                    context.player1.clickDone();
+                    context.player2.clickCard(context.p2Draws.c);
+                    context.player2.clickDone();
+                    expect(context.p1Draws.c).toBeInZone('resource');
+                    expect(context.p2Draws.c).toBeInZone('resource');
+
+                    // Third Regroup Phase begins
+                    expect(context.getChatLog()).toEqual('Round: 1 - Additional Regroup Phase (granted by Max Rebo)');
+
+                    // Each player draws E,F and resources E
+                    expect(context.p1Draws.e).toBeInZone('hand');
+                    expect(context.p1Draws.f).toBeInZone('hand');
+                    expect(context.p2Draws.e).toBeInZone('hand');
+                    expect(context.p2Draws.f).toBeInZone('hand');
+
+                    context.player1.clickCard(context.p1Draws.e);
+                    context.player1.clickDone();
+                    context.player2.clickCard(context.p2Draws.e);
+                    context.player2.clickDone();
+                    expect(context.p1Draws.e).toBeInZone('resource');
+                    expect(context.p2Draws.e).toBeInZone('resource');
+
+                    // Action phase begins
+                    expect(context.getChatLog()).toEqual('Round: 2 - Action Phase');
+                });
+
+                it('if one Max Rebo is defeated at the start of the first Regroup Phase, it does not create an additional Regroup Phase for that unit', async function() {
+                    const { context } = contextRef;
+
+                    // P1 plays Max Rebo with Sneak Attack
+                    context.player1.clickCard(context.sneakAttack);
+                    context.player1.clickCard(context.p1MaxRebo);
+                    expect(context.p1MaxRebo).toBeInZone('groundArena');
+
+                    // P2 plays Max Rebo
+                    context.player2.clickCard(context.p2MaxRebo);
+
+                    // Move to Regroup Phase
+                    context.moveToRegroupPhase();
+
+                    // First Regroup Phase begins
+                    expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+
+                    // P1's Max Rebo is defeated due to Sneak Attack
+                    expect(context.p1MaxRebo).toBeInZone('discard');
+
+                    // Each player draws A,B and resources A
+                    expect(context.p1Draws.a).toBeInZone('hand');
+                    expect(context.p1Draws.b).toBeInZone('hand');
+                    expect(context.p2Draws.a).toBeInZone('hand');
+                    expect(context.p2Draws.b).toBeInZone('hand');
+
+                    context.player1.clickCard(context.p1Draws.a);
+                    context.player1.clickDone();
+                    context.player2.clickCard(context.p2Draws.a);
+                    context.player2.clickDone();
+                    expect(context.p1Draws.a).toBeInZone('resource');
+                    expect(context.p2Draws.a).toBeInZone('resource');
+
+                    // Second Regroup Phase begins
+                    expect(context.getChatLog()).toEqual('Round: 1 - Additional Regroup Phase (granted by Max Rebo)');
+
+                    // Each player draws C,D and resources C
+                    expect(context.p1Draws.c).toBeInZone('hand');
+                    expect(context.p1Draws.d).toBeInZone('hand');
+                    expect(context.p2Draws.c).toBeInZone('hand');
+                    expect(context.p2Draws.d).toBeInZone('hand');
+
+                    context.player1.clickCard(context.p1Draws.c);
+                    context.player1.clickDone();
+                    context.player2.clickCard(context.p2Draws.c);
+                    context.player2.clickDone();
+                    expect(context.p1Draws.c).toBeInZone('resource');
+                    expect(context.p2Draws.c).toBeInZone('resource');
+
+                    // Action phase begins (only one additional Regroup Phase occurred)
+                    expect(context.getChatLog()).toEqual('Round: 2 - Action Phase');
+                });
+            });
         });
     });
 });
