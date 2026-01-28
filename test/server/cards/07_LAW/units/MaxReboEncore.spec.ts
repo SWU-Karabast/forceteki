@@ -38,7 +38,8 @@ describe('Max Rebo, Encore!', () => {
                         hand: [
                             'max-rebo#encore',
                             'fireball#an-explosion-with-wings',
-                            'contracted-hunter'
+                            'contracted-hunter',
+                            'arrest'
                         ],
                         resources: context.startingResourceCount,
                         deck: [
@@ -132,7 +133,7 @@ describe('Max Rebo, Encore!', () => {
                 expect(context.getChatLog()).toEqual('Round: 2 - Action Phase');
             });
 
-            it('does not create additional Regroup Phases if it leaves play during the first Regroup Phase', function() {
+            it('does not create an additional Regroup Phase if it leaves play during the first Regroup Phase (Sneak Attack)', function() {
                 const { context } = contextRef;
 
                 // P1 plays Max Rebo with Sneak Attack
@@ -170,6 +171,60 @@ describe('Max Rebo, Encore!', () => {
                 // Action phase begins (no second Regroup Phase)
                 expect(context.getChatLog()).toEqual('Round: 2 - Action Phase');
             });
+
+            it('does create an additional Regroup Phase if it enters play during the first Regroup Phase (Arrest)', function() {
+                const { context } = contextRef;
+
+                // P1 plays Max Rebo
+                context.player1.clickCard(context.p1MaxRebo);
+
+                // P2 plays Arrest to capture Max Rebo (he will be rescued during the first Regroup Phase)
+                context.player2.clickCard(context.arrest);
+                context.player2.clickCard(context.p1MaxRebo);
+                expect(context.p1MaxRebo).toBeCapturedBy(context.p2Base);
+
+                // Move to Regroup Phase
+                context.moveToRegroupPhase();
+
+                // First Regroup Phase begins
+                expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+
+                // Max Rebo is rescued at the beginning of the Regroup Phase
+                expect(context.p1MaxRebo).toBeInZone('groundArena', context.player1);
+
+                // Each player draws A,B and resources A
+                expect(context.p1Draws.a).toBeInZone('hand');
+                expect(context.p1Draws.b).toBeInZone('hand');
+                expect(context.p2Draws.a).toBeInZone('hand');
+                expect(context.p2Draws.b).toBeInZone('hand');
+
+                context.player1.clickCard(context.p1Draws.a);
+                context.player1.clickDone();
+                context.player2.clickCard(context.p2Draws.a);
+                context.player2.clickDone();
+                expect(context.p1Draws.a).toBeInZone('resource');
+                expect(context.p2Draws.a).toBeInZone('resource');
+
+                // Second Regroup Phase begins
+                expect(context.getChatLog()).toEqual('Round: 1 - Additional Regroup Phase (granted by Max Rebo)');
+
+                // Each player draws C,D and resources C
+                expect(context.p1Draws.c).toBeInZone('hand');
+                expect(context.p1Draws.d).toBeInZone('hand');
+                expect(context.p2Draws.c).toBeInZone('hand');
+                expect(context.p2Draws.d).toBeInZone('hand');
+
+                context.player1.clickCard(context.p1Draws.c);
+                context.player1.clickDone();
+                context.player2.clickCard(context.p2Draws.c);
+                context.player2.clickDone();
+                expect(context.p1Draws.c).toBeInZone('resource');
+                expect(context.p2Draws.c).toBeInZone('resource');
+
+                // Action phase begins
+                expect(context.getChatLog()).toEqual('Round: 2 - Action Phase');
+            });
+
 
             describe('Interactions with other "Regroup Phase" effects', function() {
                 it('abilities that trigger at the start of the Regroup Phase still trigger for the additional Regroup Phase (Fireball)', function() {
@@ -329,10 +384,15 @@ describe('Max Rebo, Encore!', () => {
                 });
 
                 // TODO: Add a test for doubling up Patient Hunters's ability, since it specifies "this Regroup Phase"
+
+                // TODO: Once we know more about when regroup phases should be queued up according to the rules, we should add a test where
+                //       there are multiple copies of Max Rebo in play during the first regroup phase, but one leaves play during the second
+                //       regroup phase. Currently we queue up all additional regroup phases at the end of the first regroup phase, but we
+                //       don't yet know if that's correct.
             });
 
             describe('With multiple Max Rebo units in play', function() {
-                it('creates one additional Regroup Phase for each Max Rebo unit in play at the end of the first Regroup Phase', async function() {
+                it('creates one additional Regroup Phase for each Max Rebo unit in play at the end of the first Regroup Phase', function() {
                     const { context } = contextRef;
 
                     // P1 plays Max Rebo
@@ -396,7 +456,7 @@ describe('Max Rebo, Encore!', () => {
                     expect(context.getChatLog()).toEqual('Round: 2 - Action Phase');
                 });
 
-                it('if one Max Rebo is defeated at the start of the first Regroup Phase, it does not create an additional Regroup Phase for that unit', async function() {
+                it('if one Max Rebo is defeated at the start of the first Regroup Phase, it does not create an additional Regroup Phase for that unit', function() {
                     const { context } = contextRef;
 
                     // P1 plays Max Rebo with Sneak Attack
