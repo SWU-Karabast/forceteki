@@ -1946,10 +1946,8 @@ class Game extends EventEmitter {
         return this.state.lastGameEventId;
     }
 
-    // /*
-    //  * This information is sent to the client
-    //  */
     /**
+     * Returns the serialized game state for a specific player/spectator.
      * @param {string} notInactivePlayerId - The player/spectator ID to get state for
      * @param {number} [lastMessageOffset=0] - The index to start sending messages from (for incremental sync)
      */
