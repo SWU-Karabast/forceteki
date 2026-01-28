@@ -39,7 +39,7 @@ const mockCards = [
         types: ['base'],
         setId: {
             set: 'LAW',
-            number: 24
+            number: 25
         },
         unique: false,
         internalName: 'red-common-law-base'
@@ -52,7 +52,7 @@ const mockCards = [
         types: ['base'],
         setId: {
             set: 'LAW',
-            number: 27
+            number: 28
         },
         unique: false,
         internalName: 'yellow-common-law-base'
