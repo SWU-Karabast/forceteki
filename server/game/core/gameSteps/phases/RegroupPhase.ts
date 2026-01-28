@@ -1,5 +1,6 @@
 import { AbilityRestriction, EventName, PhaseName, ZoneName } from '../../Constants';
 import type Game from '../../Game';
+import type { IAdditionalPhaseEffectProperties } from './Phase';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';
@@ -13,7 +14,12 @@ import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 
 export class RegroupPhase extends Phase {
-    public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
+    public constructor(
+        game: Game,
+        snapshotManager: SnapshotManager,
+        initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal,
+        additionalPhaseEffect: IAdditionalPhaseEffectProperties = null
+    ) {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'RegroupPhase does not support rolling back to the end of the phase');
 
         const resourceSteps = [];
@@ -25,7 +31,7 @@ export class RegroupPhase extends Phase {
             resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
         }
 
-        super(game, PhaseName.Regroup, snapshotManager);
+        super(game, PhaseName.Regroup, snapshotManager, additionalPhaseEffect);
         this.initialise(
             [
                 ...resourceSteps,

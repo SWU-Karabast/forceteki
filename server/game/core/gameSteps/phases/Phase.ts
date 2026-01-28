@@ -8,6 +8,8 @@ import { TriggerHandlingMode } from '../../event/EventWindow';
 import * as Helpers from '../../utils/Helpers';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
+import type { Card } from '../../card/Card';
+import type { FormatMessage } from '../../chat/GameChat';
 
 /** Indicates whether a new phase is being constructed during normal game flow or as part of a rollback of some type */
 export enum PhaseInitializeMode {
@@ -17,19 +19,26 @@ export enum PhaseInitializeMode {
     RollbackToEndOfPhase = 'rollbackToEndOfPhase',
 }
 
+export interface IAdditionalPhaseEffectProperties {
+    source: Card;
+}
+
 export abstract class Phase extends BaseStepWithPipeline {
     protected readonly name: PhaseName;
     protected readonly snapshotManager: SnapshotManager;
+    protected readonly additionalPhaseEffect: IAdditionalPhaseEffectProperties = null;
 
     public constructor(
         game: Game,
         name: PhaseName,
-        snapshotManager: SnapshotManager
+        snapshotManager: SnapshotManager,
+        additionalPhaseEffect: IAdditionalPhaseEffectProperties = null
     ) {
         super(game);
 
         this.name = name;
         this.snapshotManager = snapshotManager;
+        this.additionalPhaseEffect = additionalPhaseEffect;
     }
 
     protected initialise(steps: IStep[], initializeMode: PhaseInitializeMode): void {
@@ -61,13 +70,19 @@ export abstract class Phase extends BaseStepWithPipeline {
         });
     }
 
+    protected isAdditionalPhase(): boolean {
+        return this.additionalPhaseEffect !== null;
+    }
+
     protected startPhase(): void {
         // reset trackers indicating if a player has been prompted
         this.game.resetPromptedPlayersTracking();
 
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
             if (this.name !== PhaseName.Setup) {
-                this.game.addAlert(AlertType.Notification, 'Round: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
+                const additionalArg = this.isAdditionalPhase() ? 'Additional ' : '';
+                const additionalSourceArg: FormatMessage | string = this.isAdditionalPhase() ? { format: ' (granted by {0})', args: [this.additionalPhaseEffect.source] } : '';
+                this.game.addAlert(AlertType.Notification, 'Round: {0} - {1}{2} Phase{3}', this.game.roundNumber, additionalArg, Helpers.upperCaseFirstLetter(this.name), additionalSourceArg);
             }
         });
     }
