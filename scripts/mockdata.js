@@ -279,6 +279,43 @@ const mockCards = [
         arena: 'ground',
         internalName: 'the-master-codebreaker#high-stakes',
     }),
+    buildMockCard({
+        title: 'Sebulba\'s Podracer',
+        subtitle: 'Taking The Lead',
+        power: 3,
+        hp: 3,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['vehicle', 'speeder'],
+        setId: {
+            set: 'LAW',
+            number: 176,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sebulbas-podracer#taking-the-lead',
+    }),
+    buildMockCard({
+        title: 'Sebulba',
+        subtitle: 'Especially Dangerous Dug',
+        power: 2,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        keywords: ['raid 1'],
+        types: ['leader'],
+        traits: ['fringe'],
+        setId: {
+            set: 'LAW',
+            number: 12,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sebulba#especially-dangerous-dug',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

@@ -1,0 +1,37 @@
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+
+export default class SebulbaEspeciallyDangerousDug extends LeaderUnitCard {
+    protected override getImplementationId() {
+        return {
+            id: 'sebulba#especially-dangerous-dug-id',
+            internalName: 'sebulba#especially-dangerous-dug',
+        };
+    }
+
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
+        registrar.addActionAbility({
+            title: 'A friendly unit gains Raid 1 for this phase',
+            cost: [
+                AbilityHelper.costs.exhaustSelf(),
+                AbilityHelper.costs.discardFromDeck()
+            ],
+            targetResolver: {
+                controller: RelativePlayer.Self,
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    effect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
+                })
+            }
+        });
+    }
+
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
+        registrar.addOnAttackAbility({
+            title: 'Discard a card from your deck',
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck({ amount: 1 })
+        });
+    }
+}
