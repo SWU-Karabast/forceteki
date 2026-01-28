@@ -1,5 +1,6 @@
 import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
+import type { IAdditionalPhaseEffectProperties } from './Phase';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
@@ -16,9 +17,10 @@ export class ActionPhase extends Phase {
         game: Game,
         getNextActionNumber: () => number,
         snapshotManager: SnapshotManager,
-        initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal
+        initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal,
+        additionalPhaseEffect: IAdditionalPhaseEffectProperties = null
     ) {
-        super(game, PhaseName.Action, snapshotManager);
+        super(game, PhaseName.Action, snapshotManager, additionalPhaseEffect);
 
         this.getNextActionNumber = getNextActionNumber;
 
