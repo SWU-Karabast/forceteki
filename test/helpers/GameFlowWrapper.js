@@ -9,7 +9,6 @@ const playableCardTitles = require('../json/_playableCardTitles.json');
 const Util = require('./Util.js');
 const { GameMode } = require('../../server/GameMode.js');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
-const { get } = require('underscore');
 
 class GameFlowWrapper {
     /**
