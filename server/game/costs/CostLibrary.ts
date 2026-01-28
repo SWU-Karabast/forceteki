@@ -17,6 +17,7 @@ import { UseTheForceSystem } from '../gameSystems/UseTheForceSystem';
 import type { DistributiveOmit } from '../core/utils/Helpers';
 import { DiscardCardsFromHandSystem } from '../gameSystems/DiscardCardsFromHandSystem';
 import type { Player } from '../core/Player';
+import { DiscardFromDeckSystem } from '../gameSystems/DiscardFromDeckSystem';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = DistributiveOmit<ISelectCardProperties<TContext>, 'immediateEffect'>;
 
@@ -101,6 +102,13 @@ export function discardCardFromOwnHand<TContext extends AbilityContext = Ability
  */
 export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(amount: number, targetPlayer: Player): ICost<TContext> {
     return new GameSystemCost<TContext>(new DiscardCardsFromHandSystem<TContext>({ isCost: true, amount: amount, target: targetPlayer }));
+}
+
+/**
+ * Cost that requires discarding cards from the top of the deck.
+ */
+export function discardFromDeck<TContext extends AbilityContext = AbilityContext>(amount: number = 1): ICost<TContext> {
+    return new GameSystemCost<TContext>(new DiscardFromDeckSystem<TContext>({ isCost: true, amount }));
 }
 
 /**
