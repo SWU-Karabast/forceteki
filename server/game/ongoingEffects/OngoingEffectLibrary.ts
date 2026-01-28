@@ -9,7 +9,7 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import type { RelativePlayerFilter, Trait } from '../core/Constants';
+import type { PhaseName, RelativePlayerFilter, Trait } from '../core/Constants';
 import { KeywordName, RelativePlayer } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
@@ -225,6 +225,8 @@ export = {
     // unlessActionCost: (properties) => OngoingEffectBuilder.card.static(EffectName.UnlessActionCost, properties),
     // // Player effects
     additionalAction: () => OngoingEffectBuilder.player.static(EffectName.AdditionalAction, (game) => new OngoingEffectValueWrapper(game, true, 'give an additional action')),
+    additionalPhase: (properties: { phase: PhaseName }) =>
+        OngoingEffectBuilder.player.static(EffectName.AdditionalPhase, properties),
     // additionalCardPlayed: (amount = 1) => OngoingEffectBuilder.player.flexible(EffectName.AdditionalCardPlayed, amount),
     // additionalCharactersInConflict: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.AdditionalCharactersInConflict, amount),
