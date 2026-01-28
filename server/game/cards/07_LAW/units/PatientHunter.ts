@@ -25,9 +25,9 @@ export default class PatientHunter extends NonLeaderUnitCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'This unit can\'t ready during this regroup phase',
-                immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     target: ifYouDoContext.target,
-                    effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup)
+                    effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Ready)
                 })
             }),
         });
