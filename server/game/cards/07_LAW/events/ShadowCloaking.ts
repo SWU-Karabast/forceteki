@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class ShadowCloaking extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'shadow-cloaking-id',
+            id: '6384323164',
             internalName: 'shadow-cloaking',
         };
     }

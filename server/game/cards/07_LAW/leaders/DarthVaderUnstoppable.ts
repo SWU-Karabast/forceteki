@@ -9,7 +9,7 @@ import { CardType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from
 export default class DarthVaderUnstoppable extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'darth-vader#unstoppable-id',
+            id: '2554022314',
             internalName: 'darth-vader#unstoppable',
         };
     }

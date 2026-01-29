@@ -3,6 +3,7 @@ import { Card } from '../core/card/Card';
 import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { MsgArg } from '../core/chat/GameChat';
+import type { Trait } from '../core/Constants';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
@@ -37,6 +38,7 @@ export interface ILastKnownInformation {
     damage?: number;
     parentCard?: IUnitCard;
     upgrades?: IUpgradeCard[];
+    traits: Set<Trait>;
 }
 
 export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IDefeatCardPropertiesBase = IDefeatCardProperties> extends CardTargetSystem<TContext, TProperties> {
