@@ -609,7 +609,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card, or null if the deck is empty
      */
     public getTopCardOfDeck(): IPlayableCard | null {
         if (this.drawDeck.length > 0) {
@@ -622,7 +622,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     /**
      * Returns ths top cards of the player's deck
      * @param {number} numCard
-     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card, or null if the deck is empty
      */
     public getTopCardsOfDeck(numCard: number): IPlayableCard[] {
         Contract.assertPositiveNonZero(numCard);
@@ -1156,21 +1156,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         );
     }
 
-    // eventsCannotBeCancelled() {
-    //     return this.hasOngoingEffect(EffectName.EventsCannotBeCancelled);
-    // }
-
-    // // TODO STATE SAVE: what stats are we interested in?
-    // getStats() {
-    //     return {
-    //         fate: this.fate,
-    //         honor: this.getTotalHonor(),
-    //         conflictsRemaining: this.getConflictOpportunities(),
-    //         militaryRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Military),
-    //         politicalRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Political)
-    //     };
-    // }
-
     public override getShortSummary() {
         return {
             ...super.getShortSummary(),
@@ -1221,23 +1206,28 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),
-            hasForceToken: this.hasTheForce,
+            forceToken: this.getForceTokenSummary(),
             credits: this.getCreditsSummary(),
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
+            topCardOfDeck: undefined
         };
 
-        // if (this.showDeck) {
-        //     state.showDeck = true;
-        //     state.cardPiles.deck = this.getSummaryForZone(this.deck, activePlayer);
-        // }
-
-        // if (this.role) {
-        //     state.role = this.role.getSummary(activePlayer);
-        // }
+        if (this.isTopCardShown(activePlayer)) {
+            const topCard = activePlayer.getTopCardOfDeck();
+            summary.topCardOfDeck = topCard.getSummary(activePlayer, true);
+        }
 
         return summary;
+    }
+
+    private getForceTokenSummary() {
+        return {
+            active: this.hasTheForce,
+            uuid: this.hasTheForce ? this.baseZone.forceToken.uuid : undefined, // UUID is needed for selection on the client
+            selectionState: this.hasTheForce ? this.getCardSelectionState(this.baseZone.forceToken) : undefined,
+        };
     }
 
     private getCreditsSummary() {
@@ -1245,10 +1235,13 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         // this class will need to account for which Credits can actually be used to
         // adjust costs. For now, it's all or nothing (Galen Erso's effect).
         const creditsAreBlanked = this.baseZone.credits.length > 0 && this.baseZone.credits[0].isBlank();
+        const uuids = this.baseZone.credits.map((credit) => credit.uuid);
 
         return {
             count: this.creditTokenCount,
-            blanked: creditsAreBlanked ? true : undefined // Don't include in summary if false
+            uuids: uuids, // UUID is needed for selection on the client
+            isBlanked: creditsAreBlanked ? true : undefined, // Don't include in summary if false
+            selectionState: this.baseZone.credits.length > 0 ? this.getCardSelectionState(this.baseZone.credits[0]) : undefined
         };
     }
 

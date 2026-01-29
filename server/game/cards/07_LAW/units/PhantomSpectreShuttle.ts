@@ -6,7 +6,7 @@ import { Aspect, WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class PhantomSpectreShuttle extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'phantom#spectre-shuttle-id',
+            id: '1739891839',
             internalName: 'phantom#spectre-shuttle',
         };
     }

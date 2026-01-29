@@ -19,8 +19,15 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
     public override readonly name = 'discardFromDeck';
     public override readonly eventName = EventName.OnDiscardFromDeck;
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(_event): void { }
+    public override eventHandler(event) {
+        const gameEvent = event as GameEvent;
+        Contract.assertNotNullLike(gameEvent.context);
+        Contract.assertNotNullLike(gameEvent.context.player);
+
+        if (event.player === gameEvent.context.player && event.amount > 0 && event.player.drawDeck.length > 0) {
+            gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
+        }
+    }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
