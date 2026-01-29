@@ -1,6 +1,6 @@
-describe('Frozen in Carbonite', function() {
+describe('Shadow of Stygeon Prime', function() {
     integration(function(contextRef) {
-        describe('Frozen in Carbonite\'s ability', function() {
+        describe('Shadow of Stygeon Prime\'s ability', function() {
             it('should exhaust attached unit and restrict it to be ready', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
