@@ -14,17 +14,15 @@ export default class CombatExercise extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Exhaust a friendly unit. If you do, give 2 Experience tokens to it.',
-            targetResolvers: {
-                friendlyUnit: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    controller: RelativePlayer.Self,
-                    immediateEffect: AbilityHelper.immediateEffects.exhaust()
-                }
+            targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Self,
+                immediateEffect: AbilityHelper.immediateEffects.exhaust()
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give 2 Experience tokens to it',
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience({
-                    target: ifYouDoContext.targets.friendlyUnit,
+                    target: ifYouDoContext.target,
                     amount: 2
                 })
             })
