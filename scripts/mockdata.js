@@ -332,7 +332,7 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'bt1#blastomech',
-      }),
+    }),
     buildMockCard({
         title: 'Latts Razzi',
         subtitle: 'Deadly Whipmaster',
