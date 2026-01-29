@@ -332,6 +332,19 @@ const mockCards = [
         arena: 'space',
         internalName: 'millennium-falcon#dodging-patrols',
     }),
+        title: 'Combat Exercise',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'LAW',
+            number: 165,
+        },
+        unique: false,
+        internalName: 'combat-exercise',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
