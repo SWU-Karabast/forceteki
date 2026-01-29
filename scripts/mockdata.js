@@ -279,6 +279,50 @@ const mockCards = [
         arena: 'ground',
         internalName: 'the-master-codebreaker#high-stakes',
     }),
+    buildMockCard({
+        title: 'Citadel Research Center',
+        hp: 26,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['base'],
+        setId: {
+            set: 'LAW',
+            number: 29
+        },
+        unique: false,
+        internalName: 'citadel-research-center'
+    }),
+    buildMockCard({
+        title: 'Improvise',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['gambit'],
+        setId: {
+            set: 'LAW',
+            number: 242,
+        },
+        unique: false,
+        internalName: 'improvise',
+    }),
+    buildMockCard({
+        title: 'Interrogation Droid',
+        power: 3,
+        hp: 1,
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'droid'],
+        setId: {
+            set: 'LAW',
+            number: 75,
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'interrogation-droid',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
