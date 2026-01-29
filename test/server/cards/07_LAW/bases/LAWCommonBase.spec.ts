@@ -33,7 +33,7 @@ describe('Common bases in A Lawless Time', function() {
                     phase: 'action',
                     player1: {
                         leader: 'kazuda-xiono#best-pilot-in-the-galaxy', // Cunning
-                        base: 'green-common-law-base', // Command
+                        base: 'aldhani-garrison', // Command
                         resources: 7,
                         hand: ['zeb-orrelios#spectre-four'], // Aggression, Vigilance, Heroism
                     }
@@ -45,7 +45,7 @@ describe('Common bases in A Lawless Time', function() {
                 expect(context.player1).not.toBeAbleToSelect(context.zebOrrelios);
 
                 // Use the base's Epic Action to play Zeb Orrelios, ignoring one aspect penalty
-                context.player1.clickCard(context.greenCommonLawBase);
+                context.player1.clickCard(context.aldhaniGarrison);
                 expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios]);
                 context.player1.clickCard(context.zebOrrelios);
                 context.player1.clickPrompt('Pass'); // Pass Zeb's when played ability
@@ -53,7 +53,7 @@ describe('Common bases in A Lawless Time', function() {
                 // Verify Zeb Orrelios is now in play and resources were spent
                 expect(context.zebOrrelios).toBeInZone('groundArena', context.player1);
                 expect(context.player1.exhaustedResourceCount).toBe(7); // Base cost 5, ignoring 1 of 2 penalty aspects
-                expect(context.greenCommonLawBase.epicActionSpent).toBeTrue();
+                expect(context.aldhaniGarrison.epicActionSpent).toBeTrue();
             });
 
             it('when there are multiple of the same penalty aspect, only one of them is ignored', async function () {
@@ -120,7 +120,7 @@ describe('Common bases in A Lawless Time', function() {
                     },
                     player2: {
                         leader: 'kylo-ren#were-not-done-yet', // Vigilance
-                        base: 'red-common-law-base', // Aggression
+                        base: 'stygeon-spire', // Aggression
                         hand: ['village-protectors'], // Vigilance, Heroism
                     }
                 });
@@ -138,14 +138,14 @@ describe('Common bases in A Lawless Time', function() {
                 expect(context.daimyosPalace.epicActionSpent).toBeTrue();
 
                 // P2 uses Red Common LAW Base to play Village Protectors
-                context.player2.clickCard(context.redCommonLawBase);
+                context.player2.clickCard(context.stygeonSpire);
                 expect(context.player2).toBeAbleToSelectExactly([context.villageProtectors]);
                 context.player2.clickCard(context.villageProtectors);
 
                 // It was not discounted since ability does not ignore Heroism aspect penalty
                 expect(context.villageProtectors).toBeInZone('groundArena', context.player2);
                 expect(context.player2.exhaustedResourceCount).toBe(5); // Base cost 3 + 2 penalty
-                expect(context.redCommonLawBase.epicActionSpent).toBeTrue();
+                expect(context.stygeonSpire.epicActionSpent).toBeTrue();
             });
 
             it('gives no discount if there are no penalized aspects', async function () {
@@ -210,7 +210,7 @@ describe('Common bases in A Lawless Time', function() {
                     phase: 'action',
                     player1: {
                         leader: 'hera-syndulla#spectre-two', // Command, Heroism
-                        base: 'yellow-common-law-base', // Cunning
+                        base: 'canto-bight', // Cunning
                         hand: ['zeb-orrelios#spectre-four'], // Aggression, Vigilance, Heroism
                     }
                 });
@@ -218,7 +218,7 @@ describe('Common bases in A Lawless Time', function() {
                 const { context } = contextRef;
 
                 // Use the base's Epic Action to play Zeb Orrelios
-                context.player1.clickCard(context.yellowCommonLawBase);
+                context.player1.clickCard(context.cantoBight);
                 expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios]);
                 context.player1.clickCard(context.zebOrrelios);
                 context.player1.clickPrompt('Pass'); // Pass Zeb's when played ability
@@ -226,7 +226,7 @@ describe('Common bases in A Lawless Time', function() {
                 // Verify Zeb Orrelios is now in play and resources were spent
                 expect(context.zebOrrelios).toBeInZone('groundArena', context.player1);
                 expect(context.player1.exhaustedResourceCount).toBe(5); // Base cost 5, all aspect pentalties ignored, no extra discount
-                expect(context.yellowCommonLawBase.epicActionSpent).toBeTrue();
+                expect(context.cantoBight.epicActionSpent).toBeTrue();
             });
 
             it('works correctly with multiple specific aspect ignoring effects', async function () {
@@ -234,7 +234,7 @@ describe('Common bases in A Lawless Time', function() {
                     phase: 'action',
                     player1: {
                         leader: 'kylo-ren#rash-and-deadly', // Aggression, Villainy
-                        base: 'red-common-law-base', // Aggression
+                        base: 'stygeon-spire', // Aggression
                         resources: 5,
                         hand: ['rey#keeping-the-past'], // Vigilance, Heroism
                     }
@@ -246,14 +246,14 @@ describe('Common bases in A Lawless Time', function() {
                 expect(context.player1).not.toBeAbleToSelect(context.rey);
 
                 // Use the base's Epic Action to play Rey, ignoring Vigilance aspect penalty
-                context.player1.clickCard(context.redCommonLawBase);
+                context.player1.clickCard(context.stygeonSpire);
                 expect(context.player1).toBeAbleToSelectExactly([context.rey]);
                 context.player1.clickCard(context.rey);
 
                 // Verify Rey is now in play and resources were spent
                 expect(context.rey).toBeInZone('groundArena', context.player1);
                 expect(context.player1.exhaustedResourceCount).toBe(5); // Base cost 5, Heroism ignored from Kylo, Vigilance ignored from base
-                expect(context.redCommonLawBase.epicActionSpent).toBeTrue();
+                expect(context.stygeonSpire.epicActionSpent).toBeTrue();
             });
 
             it('can be used to soft pass if there are no legal targets in hand', async function () {

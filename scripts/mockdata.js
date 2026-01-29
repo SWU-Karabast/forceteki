@@ -19,7 +19,7 @@ const mockCards = [
         internalName: 'doctor-aphra#digging-for-answers',
     }),
     buildMockCard({
-        title: 'Green Common LAW Base',
+        title: 'Aldhani Garrison',
         hp: 27,
         hasNonKeywordAbility: true,
         aspects: ['command'],
@@ -29,23 +29,23 @@ const mockCards = [
             number: 22
         },
         unique: false,
-        internalName: 'green-common-law-base'
+        internalName: 'aldhani-garrison'
     }),
     buildMockCard({
-        title: 'Red Common LAW Base',
+        title: 'Stygeon Spire',
         hp: 27,
         hasNonKeywordAbility: true,
         aspects: ['aggression'],
         types: ['base'],
         setId: {
             set: 'LAW',
-            number: 25
+            number: 27
         },
         unique: false,
-        internalName: 'red-common-law-base'
+        internalName: 'stygeon-spire'
     }),
     buildMockCard({
-        title: 'Yellow Common LAW Base',
+        title: 'Canto Bight',
         hp: 27,
         hasNonKeywordAbility: true,
         aspects: ['cunning'],
@@ -55,7 +55,7 @@ const mockCards = [
             number: 28
         },
         unique: false,
-        internalName: 'yellow-common-law-base'
+        internalName: 'canto-bight'
     }),
     buildMockCard({
         title: 'Intimidator',
