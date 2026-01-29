@@ -20,7 +20,7 @@ export default class CovetousRivals extends NonLeaderUnitCard {
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => card.hasSomeKeyword(KeywordName.Bounty),
+                cardCondition: (card) => card.hasKeyword(KeywordName.Bounty),
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
             }
         });
