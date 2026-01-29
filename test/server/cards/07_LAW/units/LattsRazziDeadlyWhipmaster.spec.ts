@@ -1,11 +1,11 @@
-describe('Latts Razzi, Deadly Whisperer', function() {
+describe('Latts Razzi, Deadly Whipmaster', function() {
     integration(function(contextRef) {
         describe('Latts Razzi\'s when played ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['latts-razzi#deadly-whisperer'],
+                        hand: ['latts-razzi#deadly-whipmaster'],
                         groundArena: [{ card: 'atst', exhausted: true }],
                         spaceArena: ['cartel-spacer'],
                         leader: { card: 'grand-inquisitor#hunting-the-jedi', deployed: true }
@@ -21,10 +21,10 @@ describe('Latts Razzi, Deadly Whisperer', function() {
             it('should be able to give an Experience token to herself, then damage an enemy ground unit', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.lattsRazziDeadlyWhisperer);
+                context.player1.clickCard(context.lattsRazziDeadlyWhipmaster);
                 expect(context.player1).toHaveEnabledPromptButtons(['Give a Shield token to this unit', 'Give an Experience token to this unit']);
                 context.player1.clickPrompt('Give an Experience token to this unit');
-                expect(context.lattsRazziDeadlyWhisperer).toHaveExactUpgradeNames(['experience']);
+                expect(context.lattsRazziDeadlyWhipmaster).toHaveExactUpgradeNames(['experience']);
 
                 expect(context.player1).toHavePrompt('Deal 3 damage to an enemy ground unit');
                 expect(context.player1).toBeAbleToSelectExactly([
@@ -41,10 +41,10 @@ describe('Latts Razzi, Deadly Whisperer', function() {
             it('should be able to give a Shield token to herself, then damage an enemy ground leader unit', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.lattsRazziDeadlyWhisperer);
+                context.player1.clickCard(context.lattsRazziDeadlyWhipmaster);
                 expect(context.player1).toHaveEnabledPromptButtons(['Give a Shield token to this unit', 'Give an Experience token to this unit']);
                 context.player1.clickPrompt('Give a Shield token to this unit');
-                expect(context.lattsRazziDeadlyWhisperer).toHaveExactUpgradeNames(['shield']);
+                expect(context.lattsRazziDeadlyWhipmaster).toHaveExactUpgradeNames(['shield']);
 
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.wampa,
@@ -63,7 +63,7 @@ describe('Latts Razzi, Deadly Whisperer', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['latts-razzi#deadly-whisperer'],
+                        hand: ['latts-razzi#deadly-whipmaster'],
                         groundArena: ['battlefield-marine'],
                     },
                     player2: {
@@ -75,15 +75,15 @@ describe('Latts Razzi, Deadly Whisperer', function() {
             it('should give token and then do no damage if there are no enemy ground units', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.lattsRazziDeadlyWhisperer);
+                context.player1.clickCard(context.lattsRazziDeadlyWhipmaster);
                 context.player1.clickPrompt('Give an Experience token to this unit');
 
-                expect(context.lattsRazziDeadlyWhisperer.damage).toBe(0);
+                expect(context.lattsRazziDeadlyWhipmaster.damage).toBe(0);
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
-                expect(context.lattsRazziDeadlyWhisperer).toBeInZone('groundArena');
-                expect(context.lattsRazziDeadlyWhisperer.exhausted).toBe(true);
+                expect(context.lattsRazziDeadlyWhipmaster).toBeInZone('groundArena');
+                expect(context.lattsRazziDeadlyWhipmaster.exhausted).toBe(true);
             });
         });
     });

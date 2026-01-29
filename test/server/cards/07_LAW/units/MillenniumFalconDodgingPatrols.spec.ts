@@ -1,6 +1,6 @@
-describe('Patient Hunter', function() {
+describe('Millennium Falcon, Dodging Patrols', function() {
     integration(function(contextRef) {
-        describe('Patient Hunter\'s ability', function() {
+        describe('Millennium Falcon\'s ability', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -76,7 +76,7 @@ describe('Patient Hunter', function() {
                 expect(context.p2Base.damage).toBe(0);
             });
 
-            it('should be able to be passed', function () {
+            it('should be able to be pass both', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.millenniumFalconDodgingPatrols);
@@ -102,6 +102,74 @@ describe('Patient Hunter', function() {
                 context.player1.clickPrompt('Choose nothing');
 
                 expect(context.lurkingTiePhantom.getPower()).toBe(2);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.cartelSpacer.getPower()).toBe(2);
+                expect(context.millenniumFalconDodgingPatrols.getPower()).toBe(2);
+                expect(context.emperorPalpatineGalacticRuler.getPower()).toBe(4);
+                expect(context.pykeSentinel.getPower()).toBe(2);
+                expect(context.darthVaderDarkLordOfTheSith.getPower()).toBe(5);
+            });
+
+            it('should be able to be pass space and use ground', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.millenniumFalconDodgingPatrols);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Give a space unit -2/-0 for this phase');
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.millenniumFalconDodgingPatrols,
+                    context.cartelSpacer,
+                    context.lurkingTiePhantom
+                ]);
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.player1).toHavePrompt('Give a ground unit +2/+0 for this phase');
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.emperorPalpatineGalacticRuler,
+                    context.battlefieldMarine,
+                    context.pykeSentinel,
+                    context.darthVaderDarkLordOfTheSith
+                ]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.lurkingTiePhantom.getPower()).toBe(2);
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                expect(context.cartelSpacer.getPower()).toBe(2);
+                expect(context.millenniumFalconDodgingPatrols.getPower()).toBe(2);
+                expect(context.emperorPalpatineGalacticRuler.getPower()).toBe(4);
+                expect(context.pykeSentinel.getPower()).toBe(2);
+                expect(context.darthVaderDarkLordOfTheSith.getPower()).toBe(5);
+            });
+
+            it('should be able to be use space and pass ground', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.millenniumFalconDodgingPatrols);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Give a space unit -2/-0 for this phase');
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.millenniumFalconDodgingPatrols,
+                    context.cartelSpacer,
+                    context.lurkingTiePhantom
+                ]);
+                context.player1.clickCard(context.lurkingTiePhantom);
+
+                expect(context.player1).toHavePrompt('Give a ground unit +2/+0 for this phase');
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.emperorPalpatineGalacticRuler,
+                    context.battlefieldMarine,
+                    context.pykeSentinel,
+                    context.darthVaderDarkLordOfTheSith
+                ]);
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.lurkingTiePhantom.getPower()).toBe(0);
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.cartelSpacer.getPower()).toBe(2);
                 expect(context.millenniumFalconDodgingPatrols.getPower()).toBe(2);

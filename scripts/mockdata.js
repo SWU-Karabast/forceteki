@@ -281,7 +281,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Latts Razzi',
-        subtitle: 'Deadly Whisperer',
+        subtitle: 'Deadly Whipmaster',
         power: 2,
         hp: 1,
         cost: 3,
@@ -295,7 +295,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'latts-razzi#deadly-whisperer',
+        internalName: 'latts-razzi#deadly-whipmaster',
     }),
     buildMockCard({
         title: 'Patient Hunter',
@@ -321,7 +321,7 @@ const mockCards = [
         hp: 5,
         cost: 3,
         hasNonKeywordAbility: true,
-        aspects: ['command', 'vigilance', 'heroism'],
+        aspects: ['command', 'cunning', 'heroism'],
         types: ['unit'],
         traits: ['rebel', 'vehicle', 'transport'],
         setId: {

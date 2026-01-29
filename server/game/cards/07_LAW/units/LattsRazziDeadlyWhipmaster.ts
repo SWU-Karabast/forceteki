@@ -3,11 +3,11 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
-export default class LattsRazziDeadlyWhisperer extends NonLeaderUnitCard {
+export default class LattsRazziDeadlyWhipmaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'latts-razzi#deadly-whisperer-id',
-            internalName: 'latts-razzi#deadly-whisperer'
+            id: 'latts-razzi#deadly-whipmaster-id',
+            internalName: 'latts-razzi#deadly-whipmaster'
         };
     }
 

@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class MillenniumFalconDodgingPatrols extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -18,7 +18,6 @@ export default class MillenniumFalconDodgingPatrols extends NonLeaderUnitCard {
                 spaceTarget: {
                     optional: true,
                     activePromptTitle: 'Give a space unit -2/-0 for this phase',
-                    mode: TargetMode.Single,
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: ZoneName.SpaceArena,
                     immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
@@ -28,7 +27,6 @@ export default class MillenniumFalconDodgingPatrols extends NonLeaderUnitCard {
                 groundTarget: {
                     optional: true,
                     activePromptTitle: 'Give a ground unit +2/+0 for this phase',
-                    mode: TargetMode.Single,
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: ZoneName.GroundArena,
                     immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({

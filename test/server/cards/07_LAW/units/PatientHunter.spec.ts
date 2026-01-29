@@ -88,5 +88,34 @@ describe('Patient Hunter', function() {
                 expect(context.darthVaderDarkLordOfTheSith.exhausted).toBeFalse();
             });
         });
+
+        it('Patient Hunter\'s extra test ability', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['patient-hunter'],
+                    deck: ['cloudrider'],
+                },
+                player2: {
+                    groundArena: [{ card: 'chewbacca#loyal-companion', exhausted: true }],
+                    spaceArena: [{ card: 'fireball#an-explosion-with-wings', damage: 2, upgrades: ['bounty-hunters-quarry'] }]
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickPrompt('Claim Initiative');
+            context.player2.clickPrompt('Pass');
+
+            context.player1.clickPrompt('You');
+            context.player1.clickCard(context.chewbaccaLoyalCompanion);
+            expect(context.chewbaccaLoyalCompanion).toHaveExactUpgradeNames(['experience']);
+
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCardInDisplayCardPrompt(context.cloudrider);
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.chewbaccaLoyalCompanion);
+            expect(context.chewbaccaLoyalCompanion.damage).toBe(3);
+            expect(context.chewbaccaLoyalCompanion.exhausted).toBe(true);
+        });
     });
 });
