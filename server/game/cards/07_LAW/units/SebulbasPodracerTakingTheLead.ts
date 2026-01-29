@@ -16,6 +16,7 @@ export default class SebulbasPodracerTakingTheLead extends NonLeaderUnitCard {
             title: 'Ready this unit',
             contextTitle: (context) => `Ready ${context.source.title}`,
             optional: true,
+            collectiveTrigger: true, // Since it has a once per-round limit, just collate simultaneous triggers
             limit: AbilityHelper.limit.perRound(1),
             when: {
                 onCardDiscarded: (event, context) =>

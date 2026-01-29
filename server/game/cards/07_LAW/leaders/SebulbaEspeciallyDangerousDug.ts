@@ -16,9 +16,10 @@ export default class SebulbaEspeciallyDangerousDug extends LeaderUnitCard {
             title: 'A friendly unit gains Raid 1 for this phase',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
-                AbilityHelper.costs.discardFromDeck()
+                AbilityHelper.costs.discardFromOwnDeck()
             ],
             targetResolver: {
+                activePromptTitle: 'Select a friendly unit to gain Raid 1 for this phase',
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
@@ -31,7 +32,10 @@ export default class SebulbaEspeciallyDangerousDug extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addOnAttackAbility({
             title: 'Discard a card from your deck',
-            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck({ amount: 1 })
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
+                amount: 1,
+                target: context.player
+            }))
         });
     }
 }
