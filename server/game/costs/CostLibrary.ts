@@ -107,8 +107,8 @@ export function discardCardsFromOwnHand<TContext extends AbilityContext = Abilit
 /**
  * Cost that requires discarding cards from the top of the deck.
  */
-export function discardFromDeck<TContext extends AbilityContext = AbilityContext>(amount: number = 1): ICost<TContext> {
-    return new GameSystemCost<TContext>(new DiscardFromDeckSystem<TContext>({ isCost: true, amount }));
+export function discardFromOwnDeck<TContext extends AbilityContext = AbilityContext>(amount: number = 1): ICost<TContext> {
+    return new GameSystemCost<TContext>(new DiscardFromDeckSystem<TContext>((context) => ({ isCost: true, amount, target: context.player })));
 }
 
 /**
