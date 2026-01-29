@@ -332,6 +332,7 @@ const mockCards = [
         arena: 'space',
         internalName: 'millennium-falcon#dodging-patrols',
     }),
+    buildMockCard({
         title: 'Combat Exercise',
         cost: 1,
         hasNonKeywordAbility: true,
