@@ -400,6 +400,42 @@ const mockCards = [
         unique: false,
         internalName: 'combat-exercise',
     }),
+    buildMockCard({
+        title: 'Tantive IV',
+        subtitle: 'Carrying Hope',
+        power: 5,
+        hp: 8,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        keywords: ['restore 2'],
+        traits: ['rebel', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'LAW',
+            number: 109,
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'tantive-iv#carrying-hope',
+    }),
+    buildMockCard({
+        title: 'Scavenging Sandcrawler',
+        power: 1,
+        hp: 7,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['vehicle', 'transport'],
+        setId: {
+            set: 'LAW',
+            number: 238,
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'scavenging-sandcrawler',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
