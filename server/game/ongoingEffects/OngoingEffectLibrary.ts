@@ -33,6 +33,7 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
+import { AdditionalPhase } from '../core/ongoingEffect/effectImpl/AdditionalPhase';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -226,7 +227,7 @@ export = {
     // // Player effects
     additionalAction: () => OngoingEffectBuilder.player.static(EffectName.AdditionalAction, (game) => new OngoingEffectValueWrapper(game, true, 'give an additional action')),
     additionalPhase: (properties: { phase: PhaseName }) =>
-        OngoingEffectBuilder.player.static(EffectName.AdditionalPhase, properties),
+        OngoingEffectBuilder.player.static(EffectName.AdditionalPhase, (game) => new AdditionalPhase(game, properties.phase)),
     // additionalCardPlayed: (amount = 1) => OngoingEffectBuilder.player.flexible(EffectName.AdditionalCardPlayed, amount),
     // additionalCharactersInConflict: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.AdditionalCharactersInConflict, amount),

@@ -59,6 +59,7 @@ const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
 const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.js');
 const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
 const UndoConfirmationPrompt = require('./gameSteps/prompts/UndoConfirmationPrompt.js');
+const { AdditionalPhase } = require('./ongoingEffect/effectImpl/AdditionalPhase.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -1317,15 +1318,13 @@ class Game extends EventEmitter {
             ));
         }
 
-        const actionPhaseStep = this.buildActionPhaseStep(null, rollbackEntryPoint);
-        const regroupPhaseStep = this.buildRegroupPhaseStep(null, rollbackEntryPoint);
+        const actionPhaseStep = this.buildActionPhaseStep(rollbackEntryPoint);
+        const regroupPhaseStep = this.buildRegroupPhaseStep(rollbackEntryPoint);
 
         this.pipeline.initialise([
             ...roundStartStep,
             ...actionPhaseStep,
-            new SimpleStep(this, () => this.checkCreateAdditionalActionPhase(rollbackEntryPoint), 'checkCreateAdditionalActionPhase'),
             ...regroupPhaseStep,
-            new SimpleStep(this, () => this.checkCreateAdditionalRegroupPhase(rollbackEntryPoint), 'checkCreateAdditionalRegroupPhase'),
             new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
             new SimpleStep(this, () => this.beginRound(), 'beginRound')
         ]);
@@ -1333,10 +1332,9 @@ class Game extends EventEmitter {
 
     /**
      * Initializes the action phase step in the pipeline.
-     * @param {import('./gameSteps/phases/Phase.js').IAdditionalPhaseEffectProperties | null} additionalPhaseEffectProps
      * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    buildActionPhaseStep(additionalPhaseEffectProps = null, rollbackEntryPoint = null) {
+    buildActionPhaseStep(rollbackEntryPoint = null) {
         if (
             rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase ||
             rollbackEntryPoint === RollbackRoundEntryPoint.WithinRegroupPhase ||
@@ -1363,15 +1361,34 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown or invalid rollback entry point for action phase: ${rollbackEntryPoint}`);
         }
 
-        return [new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode, additionalPhaseEffectProps)];
+        /** @type {AdditionalPhase[]} */
+        const additionalActionPhaseEffects = this.getPlayers()
+            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
+            .filter((value) => value.phase === PhaseName.Action);
+
+        const checkAdditionalActionPhasesStep = new SimpleStep(
+            this,
+            () => this.checkCreateAdditionalActionPhases(actionInitializeMode),
+            'checkCreateAdditionalActionPhases'
+        );
+
+        // If any additional action phases have started, we shouldn't create the main action phase again
+        if (additionalActionPhaseEffects.some((effect) => effect.hasStartedPhaseThisRound(this.roundNumber))) {
+            return [checkAdditionalActionPhasesStep];
+        }
+
+        return [
+            new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode),
+            checkAdditionalActionPhasesStep
+        ];
     }
 
     /**
      * Initializes the regroup phase step in the pipeline.
-     * @param {import('./gameSteps/phases/Phase.js').IAdditionalPhaseEffectProperties | null} additionalPhaseEffectProps
      * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    buildRegroupPhaseStep(additionalPhaseEffectProps = null, rollbackEntryPoint = null) {
+    buildRegroupPhaseStep(rollbackEntryPoint = null) {
+        console.log('[Game] Building regroup phase step with rollback entry point:', rollbackEntryPoint);
         let regroupInitializeMode;
         switch (rollbackEntryPoint) {
             case RollbackRoundEntryPoint.StartOfRegroupPhase:
@@ -1393,53 +1410,88 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown rollback entry point for regroup phase: ${rollbackEntryPoint}`);
         }
 
-        return [new RegroupPhase(this, this._snapshotManager, regroupInitializeMode, additionalPhaseEffectProps)];
+        /** @type {AdditionalPhase[]} */
+        const additionalRegroupPhaseEffects = this.getPlayers()
+            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
+            .filter((value) => value.phase === PhaseName.Regroup);
+
+        const debugValues = additionalRegroupPhaseEffects.map((effect) => ({
+            effect: effect,
+            startedForRounds: Array.from(effect.getState().phaseStartedForRounds),
+            endedForRounds: Array.from(effect.getState().phaseEndedForRounds)
+        }));
+        console.log('[Game] Additional Regroup Phase Effects:', debugValues);
+
+        const checkAdditionalRegroupPhasesStep = new SimpleStep(
+            this,
+            () => this.checkCreateAdditionalRegroupPhases(regroupInitializeMode),
+            'checkCreateAdditionalRegroupPhases'
+        );
+
+        // If any additional regroup phases have started, we shouldn't create the main regroup phase again
+        if (additionalRegroupPhaseEffects.some((effect) => effect.hasStartedPhaseThisRound(this.roundNumber))) {
+            console.log('[Game] Skipping main regroup phase due to additional regroup phases having started this round');
+            return [checkAdditionalRegroupPhasesStep];
+        }
+
+        return [
+            new RegroupPhase(this, this._snapshotManager, regroupInitializeMode),
+            checkAdditionalRegroupPhasesStep
+        ];
     }
 
     /**
      * Creates additional action phases as needed based on ongoing effects.
-     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     * @param {PhaseInitializeMode} actionInitializeMode
      */
-    checkCreateAdditionalActionPhase(rollbackEntryPoint = null) {
+    checkCreateAdditionalActionPhases(actionInitializeMode) {
+        /** @type {AdditionalPhase[]} */
         const additionalActionPhaseEffects = this.getPlayers()
-            .flatMap((p) => p.filterOngoingEffects({
-                type: EffectName.AdditionalPhase,
-                value: (value) => value.phase === PhaseName.Action
-            }));
+            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
+            .filter((value) =>
+                value.phase === PhaseName.Action &&
+                // Skip if this effect has completed an additional phase this round
+                !value.hasEndedPhaseThisRound(this.roundNumber)
+            );
 
         // Create additional action phase steps per ongoing effect
         for (const effect of additionalActionPhaseEffects) {
-            const actionPhaseStep = this.buildActionPhaseStep(
-                { source: effect.source },
-                rollbackEntryPoint
+            const actionPhase = new ActionPhase(
+                this,
+                () => this.getNextActionNumber(),
+                this._snapshotManager,
+                actionInitializeMode,
+                effect.getRef()
             );
-            for (const step of actionPhaseStep) {
-                this.pipeline.queueStep(step);
-            }
+
+            this.pipeline.queueStep(actionPhase);
         }
     }
 
     /**
      * Creates additional regroup phases as needed based on ongoing effects.
-     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
+     * @param {PhaseInitializeMode} regroupInitializeMode
      */
-    checkCreateAdditionalRegroupPhase(rollbackEntryPoint = null) {
+    checkCreateAdditionalRegroupPhases(regroupInitializeMode = null) {
+        /** @type {AdditionalPhase[]} */
         const additionalRegroupPhaseEffects = this.getPlayers()
-            .flatMap((p) => p.filterOngoingEffects({
-                type: EffectName.AdditionalPhase,
-                value: (value) => value.phase === PhaseName.Regroup
-            }));
+            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
+            .filter((value) =>
+                value.phase === PhaseName.Regroup &&
+                // Skip if this effect has completed an additional phase this round
+                !value.hasEndedPhaseThisRound(this.roundNumber)
+            );
 
         // Create additional regroup phase steps per ongoing effect
         for (const effect of additionalRegroupPhaseEffects) {
-            const regroupPhaseStep = this.buildRegroupPhaseStep(
-                { source: effect.source },
-                rollbackEntryPoint
+            const regroupPhase = new RegroupPhase(
+                this,
+                this._snapshotManager,
+                regroupInitializeMode,
+                effect.getRef()
             );
 
-            for (const step of regroupPhaseStep) {
-                this.pipeline.queueStep(step);
-            }
+            this.pipeline.queueStep(regroupPhase);
         }
     }
 

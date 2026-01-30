@@ -95,29 +95,6 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return result;
     }
 
-    public filterOngoingEffects<Value = any>(filter: IOngoingEffectFilters): { source: Card; type: EffectName; value: Value }[] {
-        const effects = this.state.ongoingEffects;
-        const result: { source: Card; type: EffectName; value: Value }[] = [];
-        // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let i = 0; i < effects.length; i++) {
-            // This call will want to be swapped out when the decorator is in place
-            const effect = this.game.getFromRef(effects[i]);
-            if (
-                (!filter.type || effect.type === filter.type) &&
-                (!filter.source || effect.context.source === filter.source) &&
-                (!filter.value || filter.value(effect.getValue(this)))
-            ) {
-                result.push({
-                    source: effect.context.source,
-                    type: effect.type,
-                    value: effect.getValue(this)
-                });
-            }
-        }
-
-        return result;
-    }
-
     public hasOngoingEffect(type: EffectName): boolean {
         const effects = this.state.ongoingEffects;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of

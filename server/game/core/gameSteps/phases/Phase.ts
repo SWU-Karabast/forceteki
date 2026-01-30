@@ -8,8 +8,9 @@ import { TriggerHandlingMode } from '../../event/EventWindow';
 import * as Helpers from '../../utils/Helpers';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
-import type { Card } from '../../card/Card';
 import type { FormatMessage } from '../../chat/GameChat';
+import type { AdditionalPhase } from '../../ongoingEffect/effectImpl/AdditionalPhase';
+import type { GameObjectRef } from '../../GameObjectBase';
 
 /** Indicates whether a new phase is being constructed during normal game flow or as part of a rollback of some type */
 export enum PhaseInitializeMode {
@@ -19,20 +20,17 @@ export enum PhaseInitializeMode {
     RollbackToEndOfPhase = 'rollbackToEndOfPhase',
 }
 
-export interface IAdditionalPhaseEffectProperties {
-    source: Card;
-}
-
 export abstract class Phase extends BaseStepWithPipeline {
     protected readonly name: PhaseName;
     protected readonly snapshotManager: SnapshotManager;
-    protected readonly additionalPhaseEffect: IAdditionalPhaseEffectProperties = null;
+    protected readonly onPhaseStarted: (Phase) => void = null;
+    protected readonly additionalPhaseEffect: GameObjectRef<AdditionalPhase>;
 
     public constructor(
         game: Game,
         name: PhaseName,
         snapshotManager: SnapshotManager,
-        additionalPhaseEffect: IAdditionalPhaseEffectProperties = null
+        additionalPhaseEffect: GameObjectRef<AdditionalPhase> = null
     ) {
         super(game);
 
@@ -63,6 +61,13 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     private takeStartOfPhaseSnapshot() {
+        if (this.additionalPhaseEffect) {
+            // Mark the additional phase as started for this round
+            // Do this before snapshot so it is preserved in case of rollback
+            const additionalPhase = this.game.getFromRef(this.additionalPhaseEffect);
+            additionalPhase.markAdditionalPhaseStarted(this.game.roundNumber);
+        }
+
         this.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.StartOfPhase);
         this.snapshotManager.takeSnapshot({
             type: SnapshotType.Phase,
@@ -81,7 +86,9 @@ export abstract class Phase extends BaseStepWithPipeline {
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
             if (this.name !== PhaseName.Setup) {
                 const additionalArg = this.isAdditionalPhase() ? 'Additional ' : '';
-                const additionalSourceArg: FormatMessage | string = this.isAdditionalPhase() ? { format: ' (granted by {0})', args: [this.additionalPhaseEffect.source] } : '';
+                const effect = this.isAdditionalPhase() ? this.game.getFromRef(this.additionalPhaseEffect) : null;
+                const effectSource = this.isAdditionalPhase() ? this.game.getFromRef(effect.getState().source) : null;
+                const additionalSourceArg: FormatMessage | string = this.isAdditionalPhase() ? { format: ' (granted by {0})', args: [effectSource] } : '';
                 this.game.addAlert(AlertType.Notification, 'Round: {0} - {1}{2} Phase{3}', this.game.roundNumber, additionalArg, Helpers.upperCaseFirstLetter(this.name), additionalSourceArg);
             }
         });
@@ -113,6 +120,12 @@ export abstract class Phase extends BaseStepWithPipeline {
         if (checkTakeSnapshot) {
             // checks if a player was prompted during the end step and if so, takes a snapshot so they can unwind to the prompt
             this.game.queueSimpleStep(() => this.takeActionSnapshotsForPromptedPlayers(), 'takeActionSnapshotsForPromptedPlayers');
+        }
+
+        if (this.additionalPhaseEffect) {
+            // Mark the additional phase as ended for this round
+            const additionalPhase = this.game.getFromRef(this.additionalPhaseEffect);
+            additionalPhase.markAdditionalPhaseEnded(this.game.roundNumber);
         }
 
         // for post-phase state cleanup. emit directly, don't need a window.
