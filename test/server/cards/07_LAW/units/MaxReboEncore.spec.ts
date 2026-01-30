@@ -39,7 +39,8 @@ describe('Max Rebo, Encore!', () => {
                             'max-rebo#encore',
                             'fireball#an-explosion-with-wings',
                             'contracted-hunter',
-                            'arrest'
+                            'arrest',
+                            'patient-hunter'
                         ],
                         resources: context.startingResourceCount,
                         deck: [
@@ -383,7 +384,44 @@ describe('Max Rebo, Encore!', () => {
                     expect(context.contractedHunter).toBeInZone('groundArena');
                 });
 
-                // TODO: Add a test for doubling up Patient Hunters's ability, since it specifies "this Regroup Phase"
+                it('effects that apply to "this Regroup Phase" will not carry over to additional Regroup Phases (Patient Hunter)', function() {
+                    const { context } = contextRef;
+
+                    // P1 plays Max Rebo
+                    context.player1.clickCard(context.p1MaxRebo);
+
+                    // P2 plays Patient Hunter
+                    context.player2.clickCard(context.patientHunter);
+
+                    // Move to Regroup Phase
+                    context.moveToRegroupPhase();
+
+                    // First Regroup Phase begins, Patient Hunter ability triggers
+                    expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+                    expect(context.player2).toHavePrompt('Give an Experience token to a unit. If you do, that unit can\'t ready during this regroup phase');
+                    context.player2.clickCard(context.p1MaxRebo);
+
+                    // Each player passes resourcing
+                    context.player1.clickDone();
+                    context.player2.clickDone();
+
+                    // Max Rebo is still exhausted, but Patient Hunter has readied
+                    expect(context.p1MaxRebo.exhausted).toBeTrue();
+                    expect(context.patientHunter.exhausted).toBeFalse();
+
+                    // Second Regroup Phase begins, Patient Hunter triggers again
+                    expect(context.getChatLog()).toEqual('Round: 1 - Additional Regroup Phase (granted by Max Rebo)');
+                    expect(context.player2).toHavePrompt('Give an Experience token to a unit. If you do, that unit can\'t ready during this regroup phase');
+                    context.player2.clickCard(context.patientHunter);
+
+                    // Each player passes resourcing
+                    context.player1.clickDone();
+                    context.player2.clickDone();
+
+                    // Both units are readied since the effect only applied to "this Regroup Phase"
+                    expect(context.p1MaxRebo.exhausted).toBeFalse();
+                    expect(context.patientHunter.exhausted).toBeFalse();
+                });
 
                 // TODO: Once we know more about when regroup phases should be queued up according to the rules, we should add a test where
                 //       there are multiple copies of Max Rebo in play during the first regroup phase, but one leaves play during the second

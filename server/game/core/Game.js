@@ -1388,7 +1388,6 @@ class Game extends EventEmitter {
      * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
     buildRegroupPhaseStep(rollbackEntryPoint = null) {
-        console.log('[Game] Building regroup phase step with rollback entry point:', rollbackEntryPoint);
         let regroupInitializeMode;
         switch (rollbackEntryPoint) {
             case RollbackRoundEntryPoint.StartOfRegroupPhase:
@@ -1415,28 +1414,17 @@ class Game extends EventEmitter {
             .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
             .filter((value) => value.phase === PhaseName.Regroup);
 
-        const debugValues = additionalRegroupPhaseEffects.map((effect) => ({
-            effect: effect,
-            startedForRounds: Array.from(effect.getState().phaseStartedForRounds),
-            endedForRounds: Array.from(effect.getState().phaseEndedForRounds)
-        }));
-        console.log('[Game] Additional Regroup Phase Effects:', debugValues);
-
-        const checkAdditionalRegroupPhasesStep = new SimpleStep(
-            this,
-            () => this.checkCreateAdditionalRegroupPhases(regroupInitializeMode),
-            'checkCreateAdditionalRegroupPhases'
-        );
-
         // If any additional regroup phases have started, we shouldn't create the main regroup phase again
         if (additionalRegroupPhaseEffects.some((effect) => effect.hasStartedPhaseThisRound(this.roundNumber))) {
-            console.log('[Game] Skipping main regroup phase due to additional regroup phases having started this round');
-            return [checkAdditionalRegroupPhasesStep];
+            return [
+                new SimpleStep(this, () => this.checkCreateAdditionalRegroupPhases(regroupInitializeMode), 'checkCreateAdditionalRegroupPhases')
+            ];
         }
 
         return [
             new RegroupPhase(this, this._snapshotManager, regroupInitializeMode),
-            checkAdditionalRegroupPhasesStep
+            // All phases except for the first should use Normal initialize mode
+            new SimpleStep(this, () => this.checkCreateAdditionalRegroupPhases(PhaseInitializeMode.Normal), 'checkCreateAdditionalRegroupPhases')
         ];
     }
 
@@ -1454,17 +1442,22 @@ class Game extends EventEmitter {
                 !value.hasEndedPhaseThisRound(this.roundNumber)
             );
 
+        let usedInitializeMode = false;
+
         // Create additional action phase steps per ongoing effect
         for (const effect of additionalActionPhaseEffects) {
             const actionPhase = new ActionPhase(
                 this,
                 () => this.getNextActionNumber(),
                 this._snapshotManager,
-                actionInitializeMode,
+                usedInitializeMode  // All initialize modes after the first should be Normal
+                    ? PhaseInitializeMode.Normal
+                    : actionInitializeMode,
                 effect.getRef()
             );
 
             this.pipeline.queueStep(actionPhase);
+            usedInitializeMode = true;
         }
     }
 
@@ -1472,7 +1465,7 @@ class Game extends EventEmitter {
      * Creates additional regroup phases as needed based on ongoing effects.
      * @param {PhaseInitializeMode} regroupInitializeMode
      */
-    checkCreateAdditionalRegroupPhases(regroupInitializeMode = null) {
+    checkCreateAdditionalRegroupPhases(regroupInitializeMode) {
         /** @type {AdditionalPhase[]} */
         const additionalRegroupPhaseEffects = this.getPlayers()
             .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
@@ -1482,16 +1475,21 @@ class Game extends EventEmitter {
                 !value.hasEndedPhaseThisRound(this.roundNumber)
             );
 
+        let usedInitializeMode = false;
+
         // Create additional regroup phase steps per ongoing effect
         for (const effect of additionalRegroupPhaseEffects) {
             const regroupPhase = new RegroupPhase(
                 this,
                 this._snapshotManager,
-                regroupInitializeMode,
+                usedInitializeMode  // All initialize modes after the first should be Normal
+                    ? PhaseInitializeMode.Normal
+                    : regroupInitializeMode,
                 effect.getRef()
             );
 
             this.pipeline.queueStep(regroupPhase);
+            usedInitializeMode = true;
         }
     }
 
