@@ -11,9 +11,16 @@ import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOr
 import * as Contract from '../../utils/Contract';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
+import type { GameObjectRef } from '../../GameObjectBase';
+import type { AdditionalPhase } from '../../ongoingEffect/effectImpl/AdditionalPhase';
 
 export class RegroupPhase extends Phase {
-    public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
+    public constructor(
+        game: Game,
+        snapshotManager: SnapshotManager,
+        initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal,
+        additionalPhaseEffect: GameObjectRef<AdditionalPhase> = null
+    ) {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'RegroupPhase does not support rolling back to the end of the phase');
 
         const resourceSteps = [];
@@ -25,7 +32,7 @@ export class RegroupPhase extends Phase {
             resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
         }
 
-        super(game, PhaseName.Regroup, snapshotManager);
+        super(game, PhaseName.Regroup, snapshotManager, additionalPhaseEffect);
         this.initialise(
             [
                 ...resourceSteps,
