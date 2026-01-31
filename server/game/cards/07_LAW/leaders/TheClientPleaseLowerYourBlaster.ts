@@ -4,9 +4,9 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
-import { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 
 export default class TheClientPleaseLowerYourBlaster extends LeaderUnitCard {
     private tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
@@ -48,7 +48,6 @@ export default class TheClientPleaseLowerYourBlaster extends LeaderUnitCard {
                     immediateEffect: abilityHelper.immediateEffects.exhaust()
                 })
             }),
-            
         });
     }
 }
