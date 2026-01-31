@@ -14,3 +14,4 @@ test/gameSetups/*.json
 .env
 *.zip
 Dockerfile.test
+.claude/
