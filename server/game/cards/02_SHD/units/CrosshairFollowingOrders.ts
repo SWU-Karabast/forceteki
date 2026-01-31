@@ -26,7 +26,10 @@ export default class CrosshairFollowingOrders extends NonLeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 zoneFilter: ZoneName.GroundArena,
-                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: context.source.getPower() }))
+                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                    amount: context.source.getPower(),
+                    source: context.source,
+                }))
             }
         });
     }
