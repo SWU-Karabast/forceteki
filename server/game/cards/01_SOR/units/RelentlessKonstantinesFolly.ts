@@ -25,7 +25,7 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'The first event played by each opponent each round loses all abilities',
-            ongoingEffect: AbilityHelper.ongoingEffects.blankEventCard(),
+            ongoingEffect: AbilityHelper.ongoingEffects.blankCard({ includeOutOfPlay: false }),
             targetZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: CardType.Event,
