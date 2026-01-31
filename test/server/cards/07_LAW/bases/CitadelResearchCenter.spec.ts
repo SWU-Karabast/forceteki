@@ -77,6 +77,39 @@ describe('Citadel Research Center', function () {
                 expect(context.player1.resources.length).toBe(2);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
             });
+
+            it('will allow Citadel Research Center to return a resource to hand and resource the top card of the deck one time', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'citadel-research-center',
+                        leader: 'bail-organa#doing-everything-he-can',
+                        deck: ['entrenched', 'r2d2#ignoring-protocol'],
+                        hand: ['arquitens-assault-cruiser'],
+                        groundArena: ['battlefield-marine'],
+                        resources: ['wampa', 'moisture-farmer', 'pyke-sentinel', 'wampa', 'wampa', 'lurking-tie-phantom', 'lurking-tie-phantom', 'lurking-tie-phantom', 'surprise-strike'],
+                    },
+                    player2: {
+                        spaceArena: ['cartel-spacer'],
+                        hand: ['takedown']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.arquitensAssaultCruiser);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.cartelSpacer);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.citadelResearchCenter);
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer).toBeInZone('hand', context.player2);
+                expect(context.player1.resources.length).toBe(10);
+                expect(context.player1.exhaustedResourceCount).toBe(10);
+                expect(context.entrenched).toBeInZone('resource');
+            });
         });
     });
 });

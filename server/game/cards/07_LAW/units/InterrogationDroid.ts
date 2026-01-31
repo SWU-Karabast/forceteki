@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class InterrogationDroid extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'interrogation-droid-id',
+            id: '9623555910',
             internalName: 'interrogation-droid'
         };
     }

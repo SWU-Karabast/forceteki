@@ -7,7 +7,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class Improvise extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'improvise-id',
+            id: '1925903426',
             internalName: 'improvise',
         };
     }

@@ -6,7 +6,7 @@ import { GameStateChangeRequired, RelativePlayer, ZoneName } from '../../../core
 export default class CitadelResearchCenter extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'citadel-research-center-id',
+            id: '5020758299',
             internalName: 'citadel-research-center',
         };
     }
@@ -15,12 +15,12 @@ export default class CitadelResearchCenter extends BaseCard {
         registrar.setEpicActionAbility({
             title: 'Return a friendly resource to its owner\'s hand. If you do, resource the top card of your deck',
             cost: AbilityHelper.costs.abilityActivationResourceCost(1),
-            immediateEffect: AbilityHelper.immediateEffects.selectCard({
+            targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
                 mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
-            }),
+            },
             ifYouDo: {
                 title: 'Put the top card of your deck into play as a resource',
                 immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({

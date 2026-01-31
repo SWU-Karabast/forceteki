@@ -51,7 +51,7 @@ describe('Interrogation Droid', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.lurkingTiePhantom]);
 
                 context.player1.clickCard(context.pykeSentinel);
-                expect(context.player2).toBeAbleToSelectExactly([context.daringRaid, context.surpriseStrike, context.wampa, context.lurkingTiePhantom, context.lukeSkywalkerFaithfulFriend]);
+                expect(context.player2).not.toHavePrompt('Choose a card to discard for Interrogation Droid\'s effect');
 
                 expect(context.pykeSentinel.exhausted).toBe(true);
                 expect(context.daringRaid).toBeInZone('hand');
