@@ -1,6 +1,6 @@
-describe('Seasoned Fleet Admiral', function () {
+describe('The Mandalorian, Let\'s See the Puck', function () {
     integration(function (contextRef) {
-        describe('Seasoned Fleet Admiral\'s ability', function () {
+        describe('The Mandalorian\'s ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',

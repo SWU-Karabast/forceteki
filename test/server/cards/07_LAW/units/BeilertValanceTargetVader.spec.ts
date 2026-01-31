@@ -24,6 +24,7 @@ describe('Beilert Valance, Target: Vader', function () {
             expect(context.wampa).toBeInZone('hand');
 
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.beilertValanceTargetVader]);
+            expect(context.player1).toHavePrompt('Deal 1 damage to a ground unit');
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.battlefieldMarine);
 

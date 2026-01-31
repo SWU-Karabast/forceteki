@@ -17,7 +17,7 @@ export default class TheMandalorianLetsSeeThePuck extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.draw()
         });
         registrar.addTriggeredAbility({
-            title: 'Draw a card',
+            title: 'Give a Shield token to this unit',
             collectiveTrigger: true,
             when: {
                 onCardsDrawn: (event, context) => event.player === context.player && context.game.currentPhase === PhaseName.Action,
