@@ -14,16 +14,29 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
     public override readonly effectDescription = 'gain the Force';
 
     public override eventHandler(event, additionalProperties: Partial<ICreateForceTokenProperties> = {}): void {
-        const context = event.context;
+        for (const token of event.generatedTokens) {
+            token.moveTo(ZoneName.Base);
+        }
+    }
+
+    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ICreateForceTokenProperties>): void {
+        super.updateEvent(event, player, context, additionalProperties);
+
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
+        event.generatedTokens = [];
+
         for (const player of Helpers.asArray(properties.target)) {
+            if (player.hasTheForce) {
+                continue;
+            }
+
             const forceTokens = player.outsideTheGameZone
                 .getCards({ condition: (card) => card.isForceToken() });
 
             Contract.assertEqual(forceTokens.length, 1, `There should be exactly one Force token in the outside the game zone for player ${player.name}.`);
 
-            forceTokens[0].moveTo(ZoneName.Base);
+            event.generatedTokens.push(forceTokens[0]);
         }
     }
 
