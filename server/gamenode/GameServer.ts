@@ -1116,7 +1116,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
+                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: format === SwuGameFormat.Limited }, res, () => {
                     const success = this.enterQueue(format, gamesToWinMode, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -1821,7 +1821,7 @@ export class GameServer {
             MatchmakingType.Quick,
             format.swuFormat,
             format.gamesToWinMode,
-            false,
+            format.swuFormat === SwuGameFormat.Limited,
             this.cardDataGetter,
             this.deckValidator,
             this,
