@@ -9,7 +9,7 @@ export default class TantiveIVCarryingHope extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'tantive-iv#carrying-hope-id',
+            id: '4287527709',
             internalName: 'tantive-iv#carrying-hope',
         };
     }
@@ -20,7 +20,7 @@ export default class TantiveIVCarryingHope extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Put a card from your discard pile on the bottom of your deck. If you do, create a Credit token',
+            title: 'Heal 4 damage from your base',
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
                 onTrue: abilityHelper.immediateEffects.heal((context) => ({

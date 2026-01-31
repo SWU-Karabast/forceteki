@@ -42,6 +42,7 @@ describe('Scavenging Sandcrawler', function () {
 
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
+                expect(context.takedown).toBeInZone('discard');
 
                 expect(context.player1.credits).toBe(0);
             });

@@ -6,7 +6,7 @@ import { RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class ScavengingSandcrawler extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'scavenging-sandcrawler-id',
+            id: '2471168752',
             internalName: 'scavenging-sandcrawler',
         };
     }
