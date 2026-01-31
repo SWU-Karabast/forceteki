@@ -14,7 +14,6 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
     public override readonly effectDescription = 'gain the Force';
 
     public override eventHandler(event, additionalProperties: Partial<ICreateForceTokenProperties> = {}): void {
-        const context = event.context;
         for (const token of event.generatedTokens) {
             token.moveTo(ZoneName.Base);
         }
@@ -28,6 +27,10 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
         event.generatedTokens = [];
 
         for (const player of Helpers.asArray(properties.target)) {
+            if (player.hasTheForce) {
+                continue;
+            }
+
             const forceTokens = player.outsideTheGameZone
                 .getCards({ condition: (card) => card.isForceToken() });
 
