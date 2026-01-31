@@ -400,40 +400,6 @@ const mockCards = [
         unique: false,
         internalName: 'combat-exercise',
     }),
-    buildMockCard({
-        title: 'Conveyex Security Captain',
-        power: 2,
-        hp: 4,
-        cost: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance'],
-        types: ['unit'],
-        traits: ['imperial', 'trooper'],
-        setId: {
-            set: 'LAW',
-            number: 117,
-        },
-        unique: false,
-        arena: 'ground',
-        internalName: 'conveyex-security-captain',
-    }),
-    buildMockCard({
-        title: 'Champion\'s KT9 Podracer',
-        power: 2,
-        hp: 3,
-        cost: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning'],
-        types: ['unit'],
-        traits: ['vehicle', 'speeder'],
-        setId: {
-            set: 'LAW',
-            number: 232,
-        },
-        unique: false,
-        arena: 'ground',
-        internalName: 'champions-kt9-podracer',
-    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

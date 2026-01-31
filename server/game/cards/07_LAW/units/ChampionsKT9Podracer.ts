@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ChampionsKT9Podracer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'champions-kt9-podracer-id',
+            id: '6136678864',
             internalName: 'champions-kt9-podracer',
         };
     }

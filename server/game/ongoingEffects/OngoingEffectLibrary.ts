@@ -57,8 +57,7 @@ export = {
     // attachmentTraitRestriction: (traits) => OngoingEffectBuilder.card.static(EffectName.AttachmentTraitRestriction, traits),
     // attachmentUniqueRestriction: () => OngoingEffectBuilder.card.static(EffectName.AttachmentUniqueRestriction),
     blankAllCardsForPlayer: () => OngoingEffectBuilder.allCardsForPlayer.static(EffectName.Blank, { includeOutOfPlay: true }),
-    blankCard: (properties: { includeOutOfPlay?: boolean } = { includeOutOfPlay: true }) =>
-        OngoingEffectBuilder.card.static(EffectName.Blank, properties),
+    blankEventCard: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     // calculatePrintedMilitarySkill: (func) => OngoingEffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
     // canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>

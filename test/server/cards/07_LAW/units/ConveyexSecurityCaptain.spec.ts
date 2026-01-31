@@ -26,6 +26,32 @@ describe('Conveyex Security Captain', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should prevent enemy Credit tokens created after Conveyex is played from being used to pay costs', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'sabe#queens-shadow',
+                        credits: 0,
+                        resources: 3,
+                        hand: ['champions-kt9-podracer', 'jawa-scavenger']
+                    },
+                    player2: {
+                        groundArena: ['conveyex-security-captain'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.championsKt9Podracer);
+
+                expect(context.player1.credits).toBe(1);
+
+                context.player2.passAction();
+
+                // Should not be able to play the jawa
+                expect(context.jawaScavenger).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            });
+
             it('should not affect friendly Credit tokens', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -73,6 +99,42 @@ describe('Conveyex Security Captain', function() {
                 context.player1.clickCard(context.conveyexSecurityCaptain);
 
                 expect(context.conveyexSecurityCaptain).toBeInZone('discard');
+
+                // Now player 2 should be able to use their credits
+                context.player2.clickCard(context.consularSecurityForce);
+
+                // Should get a prompt to use credits
+                expect(context.player2).toHavePrompt('Use Credit tokens to pay for Consular Security Force');
+
+                context.player2.clickPrompt('Use 2 Credits');
+
+                expect(context.consularSecurityForce).toBeInZone('groundArena');
+                expect(context.player2.credits).toBe(0);
+                expect(context.player2.exhaustedResourceCount).toBe(2);
+            });
+
+            it('should restore ability to use enemy Credit tokens if Conveyex loses it\'s abilities', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'kazuda-xiono#best-pilot-in-the-galaxy', deployed: true },
+                        groundArena: ['conveyex-security-captain'],
+                        hand: ['vanquish']
+                    },
+                    player2: {
+                        credits: 2,
+                        resources: 2,
+                        hand: ['consular-security-force'] // 4 cost unit
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Remove Conveyx's abilities
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickCard(context.player2.base);
+                context.player1.clickCard(context.conveyexSecurityCaptain);
+                context.player1.clickPrompt('Done');
 
                 // Now player 2 should be able to use their credits
                 context.player2.clickCard(context.consularSecurityForce);
