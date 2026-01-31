@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class SebulbasPodracerTakingTheLead extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sebulbas-podracer#taking-the-lead-id',
+            id: '9969121799',
             internalName: 'sebulbas-podracer#taking-the-lead',
         };
     }

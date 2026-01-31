@@ -6,7 +6,7 @@ import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Con
 export default class SebulbaEspeciallyDangerousDug extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sebulba#especially-dangerous-dug-id',
+            id: '6320413972',
             internalName: 'sebulba#especially-dangerous-dug',
         };
     }
