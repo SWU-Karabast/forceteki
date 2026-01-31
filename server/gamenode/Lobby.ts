@@ -363,28 +363,6 @@ export class Lobby {
         };
     }
 
-    private useLawBase(socket: Socket) {
-        const user = this.getUser(socket.user.getId());
-        const userDeck = user.deck;
-        const baseId = userDeck.base.id;
-        const blueBase = ['SOR_019', 'SOR_020', 'SOR_021', 'SHD_019', 'SHD_020', 'TWI_019', 'TWI_020', 'TWI_021', 'JTL_019', 'JTL_020', 'JTL_021', 'SEC_019', 'SEC_020'];
-        const greenBase = ['SOR_022', 'SOR_023', 'SOR_024', 'SHD_021', 'SHD_022', 'TWI_022', 'TWI_023', 'TWI_024', 'JTL_022', 'JTL_023', 'JTL_024', 'SEC_021', 'SEC_022'];
-        const redBase = ['SOR_025', 'SOR_026', 'SOR_027', 'SHD_023', 'SHD_024', 'TWI_025', 'TWI_026', 'TWI_027', 'JTL_025', 'JTL_026', 'JTL_027', 'SEC_023', 'SEC_024'];
-        const yellowBase = ['SOR_028', 'SOR_029', 'SOR_030', 'SHD_025', 'SHD_026', 'TWI_028', 'TWI_029', 'TWI_030', 'JTL_028', 'JTL_029', 'JTL_030', 'SEC_025', 'SEC_026'];
-
-        if (blueBase.includes(baseId)) {
-            userDeck.base.id = 'LAW_020';
-        } else if (greenBase.includes(baseId)) {
-            userDeck.base.id = 'LAW_022';
-        } else if (redBase.includes(baseId)) {
-            userDeck.base.id = 'LAW_025';
-        } else if (yellowBase.includes(baseId)) {
-            userDeck.base.id = 'LAW_028';
-        }
-
-        this.sendLobbyState();
-    }
-
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
         const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
 

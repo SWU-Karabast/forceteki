@@ -19,7 +19,7 @@ const mockCards = [
         internalName: 'doctor-aphra#digging-for-answers',
     }),
     buildMockCard({
-        title: 'Green Common LAW Base',
+        title: 'Aldhani Garrison',
         hp: 27,
         hasNonKeywordAbility: true,
         aspects: ['command'],
@@ -29,23 +29,23 @@ const mockCards = [
             number: 22
         },
         unique: false,
-        internalName: 'green-common-law-base'
+        internalName: 'aldhani-garrison'
     }),
     buildMockCard({
-        title: 'Red Common LAW Base',
+        title: 'Stygeon Spire',
         hp: 27,
         hasNonKeywordAbility: true,
         aspects: ['aggression'],
         types: ['base'],
         setId: {
             set: 'LAW',
-            number: 25
+            number: 27
         },
         unique: false,
-        internalName: 'red-common-law-base'
+        internalName: 'stygeon-spire'
     }),
     buildMockCard({
-        title: 'Yellow Common LAW Base',
+        title: 'Canto Bight',
         hp: 27,
         hasNonKeywordAbility: true,
         aspects: ['cunning'],
@@ -55,7 +55,7 @@ const mockCards = [
             number: 28
         },
         unique: false,
-        internalName: 'yellow-common-law-base'
+        internalName: 'canto-bight'
     }),
     buildMockCard({
         title: 'Intimidator',
@@ -278,6 +278,127 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'the-master-codebreaker#high-stakes',
+    }),
+    buildMockCard({
+        title: '0-0-0',
+        subtitle: 'Translation and Torture',
+        power: 4,
+        hp: 4,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'droid'],
+        setId: {
+            set: 'LAW',
+            number: 174,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: '000#translation-and-torture',
+    }),
+    buildMockCard({
+        title: 'Shadow of Stygeon Prime',
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning', 'villainy'],
+        types: ['upgrade'],
+        traits: ['condition'],
+        setId: {
+            set: 'LAW',
+            number: 77,
+        },
+        unique: false,
+        internalName: 'shadow-of-stygeon-prime',
+    }),
+    buildMockCard({
+        title: 'BT-1',
+        subtitle: 'Blastomech',
+        power: 2,
+        hp: 4,
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'droid'],
+        setId: {
+            set: 'LAW',
+            number: 173,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bt1#blastomech',
+    }),
+    buildMockCard({
+        title: 'Latts Razzi',
+        subtitle: 'Deadly Whipmaster',
+        power: 2,
+        hp: 1,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'vigilance'],
+        types: ['unit'],
+        traits: ['underworld', 'bounty hunter'],
+        setId: {
+            set: 'LAW',
+            number: 39,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'latts-razzi#deadly-whipmaster',
+    }),
+    buildMockCard({
+        title: 'Patient Hunter',
+        power: 3,
+        hp: 3,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        types: ['unit'],
+        traits: ['bounty hunter'],
+        setId: {
+            set: 'LAW',
+            number: 73,
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'patient-hunter',
+    }),
+    buildMockCard({
+        title: 'Millennium Falcon',
+        subtitle: 'Dodging Patrols',
+        power: 2,
+        hp: 5,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'transport'],
+        setId: {
+            set: 'LAW',
+            number: 68,
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'millennium-falcon#dodging-patrols',
+    }),
+    buildMockCard({
+        title: 'Combat Exercise',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'LAW',
+            number: 165,
+        },
+        unique: false,
+        internalName: 'combat-exercise',
     }),
 ];
 
