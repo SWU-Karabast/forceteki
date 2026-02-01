@@ -18,6 +18,9 @@ export abstract class TriggerWindowBase extends BaseStep {
     /** Already resolved effects / abilities */
     protected resolved: { ability: TriggeredAbility; event: GameEvent }[] = [];
 
+    /** Map tracking which events have triggered which abilities (for duplicate prevention) */
+    protected triggeredAbilityEvents = new Map<TriggeredAbility, GameEvent[]>();
+
     /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
 
@@ -114,6 +117,15 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     public addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
         if ((context.event.canResolve || context.event.isResolved) && context.ability) {
+            // Check if this ability has already been triggered by this event (duplicate prevention)
+            const existingEvents = this.triggeredAbilityEvents.get(context.ability) || [];
+            if (existingEvents.includes(context.event)) {
+                return; // Don't add duplicate triggers
+            }
+
+            // Track that this ability was triggered by this event
+            this.triggeredAbilityEvents.set(context.ability, [...existingEvents, context.event]);
+
             if (!this.unresolved.has(context.player)) {
                 this.unresolved.set(context.player, [context]);
             } else {

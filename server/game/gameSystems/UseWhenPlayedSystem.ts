@@ -62,7 +62,10 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
         const whenPlayedProps = { ...(whenPlayedAbility.properties as ITriggeredAbilityProps), optional: false, target: whenPlayedSource };
         const ability = event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new TriggeredAbility(event.context.game, whenPlayedSource, whenPlayedProps));
 
-        event.context.game.resolveAbility(ability.createContext(event.context.player, onCardPlayedEvent));
+        // Mark this as a manually activated ability (not naturally triggered by game events)
+        const context = ability.createContext(event.context.player, onCardPlayedEvent);
+        context.manuallyActivated = true;
+        event.context.game.resolveAbility(context);
     }
 
     // Since the actual When Played effect is resolved in a sub-window, we don't check its effects here

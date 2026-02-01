@@ -7,11 +7,17 @@ export interface ITriggeredAbilityContextProperties extends IAbilityContextPrope
     // TODO: rename this to "triggeringEvent"
     event: any;
     overrideTitle?: string;
+    /** 
+     * True if this ability was manually activated by a game system (e.g., UseWhenDefeatedSystem)
+     * rather than being naturally triggered by a game event through the normal event handler flow.
+     */
+    manuallyActivated?: boolean;
 }
 
 export class TriggeredAbilityContext<TSource extends Card = Card> extends AbilityContext<TSource> {
     public readonly event: any;
     public declare readonly ability: TriggeredAbility;
+    public readonly manuallyActivated: boolean;
 
     private _overrideTitle: string = null;
 
@@ -23,6 +29,7 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
         super(properties);
         this.event = properties.event;
         this._overrideTitle = properties.overrideTitle;
+        this.manuallyActivated = properties.manuallyActivated || false;
     }
 
     public setOverrideTitle(title: string) {
@@ -39,7 +46,7 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
     }
 
     public override getProps() {
-        return Object.assign(super.getProps(), { event: this.event, overrideTitle: this.overrideTitle });
+        return Object.assign(super.getProps(), { event: this.event, overrideTitle: this.overrideTitle, manuallyActivated: this.manuallyActivated });
     }
 
     public cancel() {

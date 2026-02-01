@@ -52,7 +52,6 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
 
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
-    protected eventsTriggeredFor: GameEvent[] = [];
 
     private readonly mustChangeGameState: GameStateChangeRequired;
 
@@ -115,10 +114,9 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
             if (
                 this.card.getTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
-                this.meetsRequirements(context) === '' &&
-                !this.eventsTriggeredFor.includes(event)
+                this.meetsRequirements(context) === ''
             ) {
-                this.eventsTriggeredFor.push(event);
+                // Duplicate prevention is now handled by the window
                 window.addTriggeredAbilityToWindow(context);
             }
         }
@@ -261,11 +259,11 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     protected override buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContext: AbilityContext) {
         const context = super.buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy, parentContext);
 
-        Contract.assertNotNullLike(this.eventsTriggeredFor);
-        if (this.eventsTriggeredFor.length > 0) {
+        // If the parent context is a triggered ability context, use its event
+        if (parentContext.isTriggered()) {
             return new TriggeredAbilityContext({
                 ...context.getProps(),
-                event: this.eventsTriggeredFor[0]
+                event: parentContext.event
             });
         }
         return context;

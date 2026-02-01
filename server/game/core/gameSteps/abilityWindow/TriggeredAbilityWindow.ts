@@ -1,4 +1,5 @@
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
+import type TriggeredAbility from '../../ability/TriggeredAbility';
 import { AbilityType } from '../../Constants';
 import type { EventWindow } from '../../event/EventWindow';
 import type Game from '../../Game';
@@ -31,6 +32,16 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
                 this.postResolutionUpdate(resolver);
             }
         }, `Check resolution of triggered ability ${resolver.context.ability}`);
+    }
+
+    /**
+     * Check if an ability was triggered by an event with a specific name through this window.
+     * This is used by cards like ShadowCaster to determine if an ability was naturally triggered
+     * vs manually activated by systems like UseWhenDefeatedSystem.
+     */
+    public wasAbilityTriggeredByEventType(ability: TriggeredAbility, eventName: string): boolean {
+        const events = this.triggeredAbilityEvents.get(ability);
+        return events?.some((event) => event.name === eventName) || false;
     }
 
     public override toString() {

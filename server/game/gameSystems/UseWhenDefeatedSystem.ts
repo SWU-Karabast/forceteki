@@ -65,7 +65,10 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         // This is needed for cards that use Last Known Information i.e. Raddus
         const whenDefeatedEvent = onDefeatEvent || new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, whenDefeatedSource, true);
 
-        event.context.game.resolveAbility(ability.createContext(event.context.player, whenDefeatedEvent));
+        // Mark this as a manually activated ability (not naturally triggered by game events)
+        const context = ability.createContext(event.context.player, whenDefeatedEvent);
+        context.manuallyActivated = true;
+        event.context.game.resolveAbility(context);
     }
 
     // Since the actual When Defeated effect is resolved in a sub-window, we don't check its effects here
