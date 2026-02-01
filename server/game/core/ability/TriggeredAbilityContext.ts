@@ -7,7 +7,8 @@ export interface ITriggeredAbilityContextProperties extends IAbilityContextPrope
     // TODO: rename this to "triggeringEvent"
     event: any;
     overrideTitle?: string;
-    /** 
+
+    /**
      * True if this ability was manually activated by a game system (e.g., UseWhenDefeatedSystem)
      * rather than being naturally triggered by a game event through the normal event handler flow.
      */

@@ -3,19 +3,19 @@ describe('Abilities with multiple triggers track type', function() {
     integration(function(contextRef) {
         it('Thrawn should not trigger when playing a unit with played/defeated trigger that was defeated this phase', async function () {
             await contextRef.setupTestAsync({
-                phase: "action",
+                phase: 'action',
                 player1: {
-                    leader: "grand-admiral-thrawn#how-unfortunate",
+                    leader: 'grand-admiral-thrawn#how-unfortunate',
                     hand: [
-                        "salvage"
+                        'salvage'
                     ],
                     spaceArena: [
-                        "ruthless-raider"
+                        'ruthless-raider'
                     ]
                 },
                 player2: {
                     hand: [
-                        "vanquish"
+                        'vanquish'
                     ]
                 }
             });
