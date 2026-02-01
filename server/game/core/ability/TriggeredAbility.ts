@@ -116,7 +116,6 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
                 this.isTriggeredByEvent(event, context) &&
                 this.meetsRequirements(context) === ''
             ) {
-                // Duplicate prevention is now handled by the window
                 window.addTriggeredAbilityToWindow(context);
             }
         }

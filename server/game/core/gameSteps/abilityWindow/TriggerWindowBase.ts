@@ -120,7 +120,7 @@ export abstract class TriggerWindowBase extends BaseStep {
             // Check if this ability has already been triggered by this event (duplicate prevention)
             const existingEvents = this.triggeredAbilityEvents.get(context.ability) || [];
             if (existingEvents.includes(context.event)) {
-                return; // Don't add duplicate triggers
+                return;
             }
 
             // Track that this ability was triggered by this event

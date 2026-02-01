@@ -1,5 +1,4 @@
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
-import type TriggeredAbility from '../../ability/TriggeredAbility';
 import { AbilityType } from '../../Constants';
 import type { EventWindow } from '../../event/EventWindow';
 import type Game from '../../Game';
