@@ -34,16 +34,6 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
         }, `Check resolution of triggered ability ${resolver.context.ability}`);
     }
 
-    /**
-     * Check if an ability was triggered by an event with a specific name through this window.
-     * This is used by cards like ShadowCaster to determine if an ability was naturally triggered
-     * vs manually activated by systems like UseWhenDefeatedSystem.
-     */
-    public wasAbilityTriggeredByEventType(ability: TriggeredAbility, eventName: string): boolean {
-        const events = this.triggeredAbilityEvents.get(ability);
-        return events?.some((event) => event.name === eventName) || false;
-    }
-
     public override toString() {
         const windowName = this.triggerAbilityType === AbilityType.Triggered ? 'TriggeredAbilityWindow' : 'DelayedEffectWindow';
         return `'${windowName}: ${this.triggeringEvents.map((event) => event.name).join(', ')}'`;
