@@ -41,7 +41,7 @@ describe('Bossk, Deadly Stalker', function () {
                 expect(context.greenSquadronAwing.isUpgraded()).toBeFalse();
             });
 
-            it('should not trigger off of the event card that played him', async function () {
+            it('should not trigger off of the event card that played him (Now There Are Two)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -54,6 +54,44 @@ describe('Bossk, Deadly Stalker', function () {
 
                 context.player1.clickCard(context.nowThereAreTwoOfThem);
                 context.player1.clickCard(context.bossk);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger off of the event card that played him (Sneak Attack)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['sneak-attack', 'bossk#deadly-stalker'],
+                        groundArena: ['boba-fett#disintegrator'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.bossk);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger off of playing No Glory Only Results on opponent\'s Bossk', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['no-glory-only-results'],
+                        groundArena: [],
+                    },
+                    player2: {
+                        hand: ['now-there-are-two-of-them'],
+                        groundArena: ['boba-fett#disintegrator', 'bossk#deadly-stalker'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.bosskDeadlyStalker);
 
                 expect(context.player2).toBeActivePlayer();
             });

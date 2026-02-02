@@ -53,6 +53,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
 
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
     protected eventsTriggeredFor: GameEvent[] = [];
+    protected eventsCheckedForControllerMap = new Map<GameEvent, Player>();
 
     private readonly mustChangeGameState: GameStateChangeRequired;
 
@@ -108,6 +109,17 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     public eventHandler(event, window) {
         Contract.assertNotNullLike(window);
         Contract.assertTrue(this.card.canRegisterTriggeredAbilities());
+
+        // Capture the controller at the first check for this event.
+        if (!this.eventsCheckedForControllerMap.has(event)) {
+            this.eventsCheckedForControllerMap.set(event, this.card.controller);
+        }
+        const controllerWhenFirstChecked = this.eventsCheckedForControllerMap.get(event);
+
+        // If controller has changed since we first checked this event, don't allow new triggers
+        if (controllerWhenFirstChecked !== this.card.controller) {
+            return;
+        }
 
         // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
         for (const player of this.game.getPlayers()) {
