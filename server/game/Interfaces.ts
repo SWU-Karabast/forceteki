@@ -236,7 +236,7 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     then?: ((context?: TriggeredAbilityContext<TSource>) => IThenAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
     ifYouDo?: ((context?: TriggeredAbilityContext<TSource>) => IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
     ifYouDoNot?: ((context?: TriggeredAbilityContext<TSource>) => IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
-    ignorePostResolutionEventTriggers?: boolean;
+    ignoreAlreadyResolvedEvents?: boolean;
 };
 
 /** Interface definition for setEventAbility */

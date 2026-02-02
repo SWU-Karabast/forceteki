@@ -50,7 +50,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     public readonly anyPlayer: boolean;
     public readonly collectiveTrigger: boolean;
     public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
-    public readonly ignorePostResolutionEventTriggers: boolean;
+    public readonly ignoreAlreadyResolvedEvents: boolean;
 
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
     protected eventsTriggeredFor: GameEvent[] = [];
@@ -95,7 +95,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         }
 
         this.collectiveTrigger = !!properties.collectiveTrigger;
-        this.ignorePostResolutionEventTriggers = !!properties.ignorePostResolutionEventTriggers;
+        this.ignoreAlreadyResolvedEvents = !!properties.ignoreAlreadyResolvedEvents;
 
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
@@ -113,7 +113,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
 
         // If this ability should ignore post-resolution triggers and the event has already resolved,
         // skip this trigger. This handles cases like Sneak Attack and No Glory with Bossk.  Bossk ability shouldn't be eligible to trigger the second time
-        if (this.ignorePostResolutionEventTriggers && event.isResolved) {
+        if (this.ignoreAlreadyResolvedEvents && event.isResolved) {
             return;
         }
 
