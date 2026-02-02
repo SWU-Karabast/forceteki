@@ -11,13 +11,13 @@ describe('Rey, Skywalker', function () {
                         groundArena: ['rey#skywalker'],
                     }
                 });
-    
+
                 const { context } = contextRef;
                 context.player1.clickCard(context.fellTheDragon);
                 context.player1.clickCard(context.rey);
                 expect(context.rey).toBeInZone('groundArena');
             });
-    
+
             it('cannot be defeated by opponent\'s unit that says defeat', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -28,14 +28,14 @@ describe('Rey, Skywalker', function () {
                         groundArena: [{ card: 'rey#skywalker', damage: 7 }],
                     }
                 });
-    
+
                 const { context } = contextRef;
                 context.player1.clickCard(context.devastatingGunship);
                 expect(context.player1).toBeAbleToSelectExactly([context.rey]);
                 context.player1.clickCard(context.rey);
                 expect(context.rey).toBeInZone('groundArena');
             });
-    
+
             it('can be defeated by state based effects', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -46,7 +46,7 @@ describe('Rey, Skywalker', function () {
                         groundArena: [{ card: 'rey#skywalker', damage: 7 }],
                     }
                 });
-    
+
                 const { context } = contextRef;
                 context.player1.clickCard(context.makeAnOpening);
                 context.player1.clickCard(context.rey);
@@ -61,7 +61,7 @@ describe('Rey, Skywalker', function () {
                         groundArena: ['rey#skywalker'],
                     }
                 });
-    
+
                 const { context } = contextRef;
                 context.player1.clickCard(context.rivalsFall);
                 context.player1.clickCard(context.rey);
@@ -76,14 +76,14 @@ describe('Rey, Skywalker', function () {
                         groundArena: [{ card: 'rey#skywalker', damage: 7 }],
                     }
                 });
-    
+
                 const { context } = contextRef;
                 context.player1.clickCard(context.countDooku);
                 context.player1.clickPrompt('Defeat a unit with 4 or less remaining HP');
                 context.player1.clickCard(context.rey);
                 expect(context.rey).toBeInZone('discard');
             });
-    
+
             it('cannot be defeated by opponent event even if you pick', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -94,7 +94,7 @@ describe('Rey, Skywalker', function () {
                         groundArena: ['battlefield-marine', 'rey#skywalker'],
                     }
                 });
-    
+
                 const { context } = contextRef;
                 context.player1.clickCard(context.powerOfTheDarkSide);
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.rey]);
