@@ -17,7 +17,7 @@ export default class TheMandalorianLetsSeeThePuck extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.draw()
         });
         registrar.addTriggeredAbility({
-            title: 'Give a Shield token to this unit',
+            title: 'Give a Shield token to The Mandalorian, Let\'s See the Puck',
             collectiveTrigger: true,
             when: {
                 onCardsDrawn: (event, context) => event.player === context.player && context.game.currentPhase === PhaseName.Action,
