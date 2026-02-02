@@ -149,7 +149,7 @@ describe('You Hold This', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.youHoldThis);
-            // The "Play anyway" prompt doesn't work in this case
+            context.player1.clickCard(context.rey);
 
             expect(context.rey).toBeInZone('groundArena', context.player1);
             expect(context.wampa).toBeInZone('groundArena', context.player2);
