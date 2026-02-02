@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, EventName, WildcardCardType } from '../core/Constants';
+import { GameStateChangeRequired, EventName, WildcardCardType, AbilityRestriction } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { Player } from '../core/Player';
 import { DefeatSourceType } from '../IDamageOrDefeatSource';
@@ -45,7 +45,8 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
         if (
             mustChangeGameState !== GameStateChangeRequired.None && (
                 properties.newController === card.controller ||
-                properties.excludeLeaderUnit && card.isLeader()
+                properties.excludeLeaderUnit && card.isLeader() ||
+                card.hasRestriction(AbilityRestriction.BeTakenControlOfByOpponents, context)
             )
         ) {
             return false;
