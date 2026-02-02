@@ -255,6 +255,31 @@ describe('Sebulba\'s Podracer, Taking the Lead', () => {
                 // It is P2's turn. No trigger, Podracer is still exhausted
                 expect(context.sebulbasPodracer.exhausted).toBeTrue();
             });
+
+            it('does not trigger if the player\'s deck is empty when a discard effect targets them', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'sebulbas-podracer#taking-the-lead', exhausted: true }],
+                        deck: []
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        groundArena: ['chopper#metal-menace']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P2 attacks with Chopper to discard from P1's deck
+                context.player2.clickCard(context.chopper);
+                context.player2.clickCard(context.p1Base);
+
+                // Since P1's deck is empty, no discard happens, and no trigger occurs
+                expect(context.sebulbasPodracer.exhausted).toBeTrue();
+                expect(context.player1).not.toHavePassAbilityPrompt('Ready Sebulba\'s Podracer');
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });
