@@ -21,7 +21,8 @@ export default class BosskDeadlyStalker extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
-            }
+            },
+            ignorePostResolutionEventTriggers: true
         });
     }
 }

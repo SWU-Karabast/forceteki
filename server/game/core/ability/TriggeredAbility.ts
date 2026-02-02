@@ -50,10 +50,10 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     public readonly anyPlayer: boolean;
     public readonly collectiveTrigger: boolean;
     public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
+    public readonly ignorePostResolutionEventTriggers: boolean;
 
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
     protected eventsTriggeredFor: GameEvent[] = [];
-    protected eventsCheckedForControllerMap = new Map<GameEvent, Player>();
 
     private readonly mustChangeGameState: GameStateChangeRequired;
 
@@ -95,6 +95,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         }
 
         this.collectiveTrigger = !!properties.collectiveTrigger;
+        this.ignorePostResolutionEventTriggers = !!properties.ignorePostResolutionEventTriggers;
 
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
@@ -110,14 +111,9 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         Contract.assertNotNullLike(window);
         Contract.assertTrue(this.card.canRegisterTriggeredAbilities());
 
-        // Capture the controller at the first check for this event.
-        if (!this.eventsCheckedForControllerMap.has(event)) {
-            this.eventsCheckedForControllerMap.set(event, this.card.controller);
-        }
-        const controllerWhenFirstChecked = this.eventsCheckedForControllerMap.get(event);
-
-        // If controller has changed since we first checked this event, don't allow new triggers
-        if (controllerWhenFirstChecked !== this.card.controller) {
+        // If this ability should ignore post-resolution triggers and the event has already resolved,
+        // skip this trigger. This handles cases like Sneak Attack and No Glory with Bossk.  Bossk ability shouldn't be eligible to trigger the second time
+        if (this.ignorePostResolutionEventTriggers && event.isResolved) {
             return;
         }
 
