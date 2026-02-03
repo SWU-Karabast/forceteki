@@ -257,8 +257,11 @@ class GameFlowWrapper {
         for (let i = 0; i < this.game.messages.length && i < numBack; i++) {
             let result = '';
             let chatMessage = this.game.messages[this.game.messages.length - i - 1];
-            for (let j = 0; j < chatMessage.message.length; j++) {
-                result += getChatString(chatMessage.message[j]);
+
+            const actualMessages = chatMessage.message?.alert ? chatMessage.message.alert.message : chatMessage.message;
+
+            for (let j = 0; j < actualMessages.length; j++) {
+                result += getChatString(actualMessages[j]);
             }
             results.push(result);
         }
