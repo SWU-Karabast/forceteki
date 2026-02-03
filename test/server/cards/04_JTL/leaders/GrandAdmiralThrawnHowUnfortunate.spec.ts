@@ -692,6 +692,39 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toBeActivePlayer();
             });
+
+            it('should not trigger when playing a unit with played/defeated trigger that was defeated this phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        hand: [
+                            'salvage'
+                        ],
+                        spaceArena: [
+                            'ruthless-raider'
+                        ]
+                    },
+                    player2: {
+                        hand: [
+                            'vanquish'
+                        ]
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.ruthlessRaider);
+
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.ruthlessRaider.title));
+                context.player1.clickPrompt('Pass');
+
+                context.player1.clickCard(context.salvage);
+                context.player1.clickCard(context.ruthlessRaider);
+
+                expect(context.player1).not.toHavePassAbilityPrompt(whenDefeatedPrompt(context.ruthlessRaider.title));
+            });
         });
     });
 });
