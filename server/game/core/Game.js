@@ -1318,13 +1318,13 @@ class Game extends EventEmitter {
             ));
         }
 
-        const actionPhaseStep = this.buildActionPhaseStep(rollbackEntryPoint);
-        const regroupPhaseStep = this.buildRegroupPhaseStep(rollbackEntryPoint);
+        const actionPhaseSteps = this.buildActionPhaseSteps(rollbackEntryPoint);
+        const regroupPhaseSteps = this.buildRegroupPhaseSteps(rollbackEntryPoint);
 
         this.pipeline.initialise([
             ...roundStartStep,
-            ...actionPhaseStep,
-            ...regroupPhaseStep,
+            ...actionPhaseSteps,
+            ...regroupPhaseSteps,
             new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
             new SimpleStep(this, () => this.beginRound(), 'beginRound')
         ]);
@@ -1334,7 +1334,7 @@ class Game extends EventEmitter {
      * Initializes the action phase step in the pipeline.
      * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    buildActionPhaseStep(rollbackEntryPoint = null) {
+    buildActionPhaseSteps(rollbackEntryPoint = null) {
         if (
             rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase ||
             rollbackEntryPoint === RollbackRoundEntryPoint.WithinRegroupPhase ||
@@ -1361,25 +1361,8 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown or invalid rollback entry point for action phase: ${rollbackEntryPoint}`);
         }
 
-        /** @type {AdditionalPhaseEffect[]} */
-        const additionalActionPhaseEffects = this.getPlayers()
-            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
-            .filter((value) => value.phase === PhaseName.Action);
-
-        const checkAdditionalActionPhasesStep = new SimpleStep(
-            this,
-            () => this.checkCreateAdditionalActionPhases(actionInitializeMode),
-            'checkCreateAdditionalActionPhases'
-        );
-
-        // If any additional action phases have started, we shouldn't create the main action phase again
-        if (additionalActionPhaseEffects.some((effect) => effect.hasStartedPhaseThisRound(this.roundNumber))) {
-            return [checkAdditionalActionPhasesStep];
-        }
-
         return [
-            new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode),
-            checkAdditionalActionPhasesStep
+            new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode)
         ];
     }
 
@@ -1387,7 +1370,7 @@ class Game extends EventEmitter {
      * Initializes the regroup phase step in the pipeline.
      * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    buildRegroupPhaseStep(rollbackEntryPoint = null) {
+    buildRegroupPhaseSteps(rollbackEntryPoint = null) {
         let regroupInitializeMode;
         switch (rollbackEntryPoint) {
             case RollbackRoundEntryPoint.StartOfRegroupPhase:
@@ -1429,39 +1412,6 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Creates additional action phases as needed based on ongoing effects.
-     * @param {PhaseInitializeMode} actionInitializeMode
-     */
-    checkCreateAdditionalActionPhases(actionInitializeMode) {
-        /** @type {AdditionalPhaseEffect[]} */
-        const additionalActionPhaseEffects = this.getPlayers()
-            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
-            .filter((value) =>
-                value.phase === PhaseName.Action &&
-                // Skip if this effect has completed an additional phase this round
-                !value.hasEndedPhaseThisRound(this.roundNumber)
-            );
-
-        let usedInitializeMode = false;
-
-        // Create additional action phase steps per ongoing effect
-        for (const effect of additionalActionPhaseEffects) {
-            const actionPhase = new ActionPhase(
-                this,
-                () => this.getNextActionNumber(),
-                this._snapshotManager,
-                usedInitializeMode  // All initialize modes after the first should be Normal
-                    ? PhaseInitializeMode.Normal
-                    : actionInitializeMode,
-                effect.getRef()
-            );
-
-            this.pipeline.queueStep(actionPhase);
-            usedInitializeMode = true;
-        }
-    }
-
-    /**
      * Creates additional regroup phases as needed based on ongoing effects.
      * @param {PhaseInitializeMode} regroupInitializeMode
      */
@@ -1472,6 +1422,7 @@ class Game extends EventEmitter {
             .filter((value) =>
                 value.phase === PhaseName.Regroup &&
                 // Skip if this effect has completed an additional phase this round
+                // This can happen if we're rebuilding the pipline after a rollback
                 !value.hasEndedPhaseThisRound(this.roundNumber)
             );
 
