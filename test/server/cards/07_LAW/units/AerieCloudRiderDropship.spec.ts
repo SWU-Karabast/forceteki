@@ -4,7 +4,7 @@ describe('Aerie, Cloud-Rider Dropship ability\'s', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    spaceArena: ['aerie#cloud-rider-dropship'],
+                    spaceArena: ['aerie#cloudrider-dropship'],
                     groundArena: ['battlefield-marine']
                 },
                 player2: {
@@ -15,7 +15,7 @@ describe('Aerie, Cloud-Rider Dropship ability\'s', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.aerieCloudRiderDropship);
+            context.player1.clickCard(context.aerieCloudriderDropship);
             context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
@@ -34,7 +34,7 @@ describe('Aerie, Cloud-Rider Dropship ability\'s', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    spaceArena: ['aerie#cloud-rider-dropship'],
+                    spaceArena: ['aerie#cloudrider-dropship'],
                     groundArena: ['battlefield-marine']
                 },
                 player2: {
@@ -44,7 +44,7 @@ describe('Aerie, Cloud-Rider Dropship ability\'s', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.aerieCloudRiderDropship);
+            context.player1.clickCard(context.aerieCloudriderDropship);
             context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);

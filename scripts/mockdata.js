@@ -434,7 +434,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'space',
-        internalName: 'aerie#cloud-rider-dropship',
+        internalName: 'aerie#cloudrider-dropship',
     }),
     buildMockCard({
         title: 'Weazel',

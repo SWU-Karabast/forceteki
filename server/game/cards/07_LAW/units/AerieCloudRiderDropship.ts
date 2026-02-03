@@ -6,8 +6,8 @@ import { CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class AerieCloudRiderDropship extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'aerie#cloud-rider-dropship-id',
-            internalName: 'aerie#cloud-rider-dropship',
+            id: 'aerie#cloudrider-dropship-id',
+            internalName: 'aerie#cloudrider-dropship',
         };
     }
 
@@ -16,11 +16,13 @@ export default class AerieCloudRiderDropship extends NonLeaderUnitCard {
             title: 'Deal 2 damage to an enemy ground unit and 2 damage to a base',
             targetResolvers: {
                 unit: {
+                    activePromptTitle: 'Select an enemy ground unit to deal 2 damage to',
                     zoneFilter: ZoneName.GroundArena,
                     controller: RelativePlayer.Opponent,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                 },
                 base: {
+                    activePromptTitle: 'Select a base to deal 2 damage to',
                     cardTypeFilter: CardType.Base,
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 }
