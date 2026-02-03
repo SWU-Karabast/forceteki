@@ -40,10 +40,10 @@ export default class DoubleCross extends EventCard {
                         ])),
                         abilityHelper.immediateEffects.conditional((context) => {
                             // Calculate cost difference and determine who gets the credits
-                            const friendlyCost = context.targets.friendlyUnit.cost;
-                            const enemyCost = context.targets.enemyUnit.cost;
-                            const costDifference = Math.abs(friendlyCost - enemyCost);
-                            const creditRecipient = friendlyCost < enemyCost ? context.player.opponent : context.player;
+                            const friendlyUnit = context.targets.friendlyUnit;
+                            const enemyUnit = context.targets.enemyUnit;
+                            const costDifference = Math.abs(friendlyUnit.cost - enemyUnit.cost);
+                            const creditRecipient = friendlyUnit.cost < enemyUnit.cost ? friendlyUnit.controller : enemyUnit.controller;
 
                             return {
                                 condition: costDifference > 0,
