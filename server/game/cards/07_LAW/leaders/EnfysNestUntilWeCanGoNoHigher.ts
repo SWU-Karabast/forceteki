@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { EventName } from '../../../core/Constants';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class EnfysNestUntilWeCanGoNoHigher extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -23,16 +24,18 @@ export default class EnfysNestUntilWeCanGoNoHigher extends LeaderUnitCard {
                 onCardAbilityInitiated: (event, context) =>
                     event.context.player === context.player &&
                     event.ability.isOnAttackAbility &&
-                    (event.ability.eventsTriggeredFor.some((event) => event.name === EventName.OnAttackDeclared) ||
-                      event.context.event.name === EventName.OnAttackDeclared)
+                    event.context.event.name === EventName.OnAttackDeclared
             },
-            immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => [
-                AbilityHelper.immediateEffects.exhaust(),
-                AbilityHelper.immediateEffects.payResources({
-                    amount: 2,
-                    target: context.player
-                })
-            ]),
+            immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => ({
+                resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,
+                gameSystems: [
+                    AbilityHelper.immediateEffects.exhaust(),
+                    AbilityHelper.immediateEffects.payResources({
+                        amount: 2,
+                        target: context.player
+                    })
+                ]
+            })),
             ifYouDo: (ifYouDoContext) => ({
                 title: `Use ${ifYouDoContext.event.card.title}'s On Attack ability again`,
                 immediateEffect: AbilityHelper.immediateEffects.useOnAttackAbility({
