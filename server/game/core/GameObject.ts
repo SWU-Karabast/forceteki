@@ -15,6 +15,12 @@ export interface IGameObjectState extends IGameObjectBaseState {
     ongoingEffects: GameObjectRef<OngoingCardEffect>[];
 }
 
+export interface IOngoingEffectFilters {
+    type?: EffectName;
+    source?: Card;
+    value?: (value: any) => boolean;
+}
+
 // TODO: Rename to TargetableGameObject? Or something to imply this is a object with effects (as opposed to an Ability).
 export abstract class GameObject<T extends IGameObjectState = IGameObjectState> extends GameObjectBase<T> {
     private get ongoingEffects(): readonly OngoingCardEffect[] {
@@ -106,9 +112,17 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
      * can be a value of {@link AbilityRestriction} or an arbitrary string such as a card name.
      */
     public hasRestriction(actionType: (AbilityRestriction | EffectName) | (AbilityRestriction | EffectName)[], context?: AbilityContext) {
-        return this.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions).some((restriction) =>
-            restriction.isMatch(actionType, context)
-        );
+        return this.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions)
+            .some((restriction) => restriction.isMatch(actionType, context));
+    }
+
+    /**
+     * Returns true if the card has any ability restriction matching the given name. Restriction names
+     * can be a value of {@link AbilityRestriction} or an arbitrary string such as a card name.
+     */
+    public getMatchingRestrictions(actionType: (AbilityRestriction | EffectName) | (AbilityRestriction | EffectName)[], context?: AbilityContext) {
+        return this.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions)
+            .filter((restriction) => restriction.isMatch(actionType, context));
     }
 
     public getShortSummary() {
