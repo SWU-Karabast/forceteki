@@ -11,7 +11,6 @@ import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOr
 import * as Contract from '../../utils/Contract';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
-import type { GameObjectRef } from '../../GameObjectBase';
 import type { AdditionalPhaseEffect } from '../../ongoingEffect/effectImpl/AdditionalPhaseEffect';
 
 export class RegroupPhase extends Phase {
@@ -19,7 +18,7 @@ export class RegroupPhase extends Phase {
         game: Game,
         snapshotManager: SnapshotManager,
         initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal,
-        additionalPhaseEffect: GameObjectRef<AdditionalPhaseEffect> = null
+        additionalPhaseEffect: AdditionalPhaseEffect = null
     ) {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'RegroupPhase does not support rolling back to the end of the phase');
 

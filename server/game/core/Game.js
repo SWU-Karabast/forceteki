@@ -1436,7 +1436,7 @@ class Game extends EventEmitter {
                 usedInitializeMode  // All initialize modes after the first should be Normal
                     ? PhaseInitializeMode.Normal
                     : regroupInitializeMode,
-                effect.getRef()
+                effect
             );
 
             this.pipeline.queueStep(regroupPhase);

@@ -10,7 +10,6 @@ import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { AdditionalPhaseEffect } from '../../ongoingEffect/effectImpl/AdditionalPhaseEffect';
-import type { GameObjectRef } from '../../GameObjectBase';
 
 /** Indicates whether a new phase is being constructed during normal game flow or as part of a rollback of some type */
 export enum PhaseInitializeMode {
@@ -24,13 +23,13 @@ export abstract class Phase extends BaseStepWithPipeline {
     protected readonly name: PhaseName;
     protected readonly snapshotManager: SnapshotManager;
     protected readonly onPhaseStarted: (Phase) => void = null;
-    protected readonly additionalPhaseEffect: GameObjectRef<AdditionalPhaseEffect>;
+    protected readonly additionalPhaseEffect: AdditionalPhaseEffect;
 
     public constructor(
         game: Game,
         name: PhaseName,
         snapshotManager: SnapshotManager,
-        additionalPhaseEffect: GameObjectRef<AdditionalPhaseEffect> = null
+        additionalPhaseEffect: AdditionalPhaseEffect = null
     ) {
         super(game);
 
@@ -64,7 +63,7 @@ export abstract class Phase extends BaseStepWithPipeline {
         if (this.additionalPhaseEffect) {
             // Mark the additional phase as started for this round
             // Do this before snapshot so it is preserved in case of rollback
-            const additionalPhase = this.game.getFromRef(this.additionalPhaseEffect);
+            const additionalPhase = this.additionalPhaseEffect;
             additionalPhase.markAdditionalPhaseStarted(this.game.roundNumber);
         }
 
@@ -86,7 +85,7 @@ export abstract class Phase extends BaseStepWithPipeline {
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
             if (this.name !== PhaseName.Setup) {
                 const additionalArg = this.isAdditionalPhase() ? 'Additional ' : '';
-                const effect = this.isAdditionalPhase() ? this.game.getFromRef(this.additionalPhaseEffect) : null;
+                const effect = this.isAdditionalPhase() ? this.additionalPhaseEffect : null;
                 const effectSource = this.isAdditionalPhase() ? this.game.getFromRef(effect.getState().source) : null;
                 const additionalSourceArg: FormatMessage | string = this.isAdditionalPhase() ? { format: ' (granted by {0})', args: [effectSource] } : '';
                 this.game.addAlert(AlertType.Notification, 'Round: {0} - {1}{2} Phase{3}', this.game.roundNumber, additionalArg, Helpers.upperCaseFirstLetter(this.name), additionalSourceArg);
@@ -124,7 +123,7 @@ export abstract class Phase extends BaseStepWithPipeline {
 
         if (this.additionalPhaseEffect) {
             // Mark the additional phase as ended for this round
-            const additionalPhase = this.game.getFromRef(this.additionalPhaseEffect);
+            const additionalPhase = this.additionalPhaseEffect;
             additionalPhase.markAdditionalPhaseEnded(this.game.roundNumber);
         }
 
