@@ -9,7 +9,7 @@ import * as Helpers from '../../utils/Helpers';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 import type { FormatMessage } from '../../chat/GameChat';
-import type { AdditionalPhase } from '../../ongoingEffect/effectImpl/AdditionalPhase';
+import type { AdditionalPhaseEffect } from '../../ongoingEffect/effectImpl/AdditionalPhaseEffect';
 import type { GameObjectRef } from '../../GameObjectBase';
 
 /** Indicates whether a new phase is being constructed during normal game flow or as part of a rollback of some type */
@@ -24,13 +24,13 @@ export abstract class Phase extends BaseStepWithPipeline {
     protected readonly name: PhaseName;
     protected readonly snapshotManager: SnapshotManager;
     protected readonly onPhaseStarted: (Phase) => void = null;
-    protected readonly additionalPhaseEffect: GameObjectRef<AdditionalPhase>;
+    protected readonly additionalPhaseEffect: GameObjectRef<AdditionalPhaseEffect>;
 
     public constructor(
         game: Game,
         name: PhaseName,
         snapshotManager: SnapshotManager,
-        additionalPhaseEffect: GameObjectRef<AdditionalPhase> = null
+        additionalPhaseEffect: GameObjectRef<AdditionalPhaseEffect> = null
     ) {
         super(game);
 

@@ -59,7 +59,7 @@ const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
 const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.js');
 const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
 const UndoConfirmationPrompt = require('./gameSteps/prompts/UndoConfirmationPrompt.js');
-const { AdditionalPhase } = require('./ongoingEffect/effectImpl/AdditionalPhase.js');
+const { AdditionalPhaseEffect } = require('./ongoingEffect/effectImpl/AdditionalPhaseEffect.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -1361,7 +1361,7 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown or invalid rollback entry point for action phase: ${rollbackEntryPoint}`);
         }
 
-        /** @type {AdditionalPhase[]} */
+        /** @type {AdditionalPhaseEffect[]} */
         const additionalActionPhaseEffects = this.getPlayers()
             .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
             .filter((value) => value.phase === PhaseName.Action);
@@ -1409,7 +1409,7 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown rollback entry point for regroup phase: ${rollbackEntryPoint}`);
         }
 
-        /** @type {AdditionalPhase[]} */
+        /** @type {AdditionalPhaseEffect[]} */
         const additionalRegroupPhaseEffects = this.getPlayers()
             .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
             .filter((value) => value.phase === PhaseName.Regroup);
@@ -1433,7 +1433,7 @@ class Game extends EventEmitter {
      * @param {PhaseInitializeMode} actionInitializeMode
      */
     checkCreateAdditionalActionPhases(actionInitializeMode) {
-        /** @type {AdditionalPhase[]} */
+        /** @type {AdditionalPhaseEffect[]} */
         const additionalActionPhaseEffects = this.getPlayers()
             .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
             .filter((value) =>
@@ -1466,7 +1466,7 @@ class Game extends EventEmitter {
      * @param {PhaseInitializeMode} regroupInitializeMode
      */
     checkCreateAdditionalRegroupPhases(regroupInitializeMode) {
-        /** @type {AdditionalPhase[]} */
+        /** @type {AdditionalPhaseEffect[]} */
         const additionalRegroupPhaseEffects = this.getPlayers()
             .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
             .filter((value) =>

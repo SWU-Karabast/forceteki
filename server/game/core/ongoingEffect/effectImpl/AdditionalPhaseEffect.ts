@@ -12,7 +12,7 @@ export interface IAdditionalPhaseState extends IGameObjectBaseState {
     source: GameObjectRef<Card>;
 }
 
-export class AdditionalPhase extends OngoingEffectValueWrapper<AdditionalPhase, IAdditionalPhaseState> {
+export class AdditionalPhaseEffect extends OngoingEffectValueWrapper<AdditionalPhaseEffect, IAdditionalPhaseState> {
     public readonly phase: PhaseName;
 
     public constructor(game: Game, phase: PhaseName) {
@@ -56,7 +56,7 @@ export class AdditionalPhase extends OngoingEffectValueWrapper<AdditionalPhase, 
         return this.state.phaseEndedForRounds.has(roundNumber);
     }
 
-    public override isAdditionalPhase(): this is AdditionalPhase {
+    public override isAdditionalPhase(): this is AdditionalPhaseEffect {
         return true;
     }
 }

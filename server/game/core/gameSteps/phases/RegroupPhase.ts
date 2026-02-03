@@ -12,14 +12,14 @@ import * as Contract from '../../utils/Contract';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 import type { GameObjectRef } from '../../GameObjectBase';
-import type { AdditionalPhase } from '../../ongoingEffect/effectImpl/AdditionalPhase';
+import type { AdditionalPhaseEffect } from '../../ongoingEffect/effectImpl/AdditionalPhaseEffect';
 
 export class RegroupPhase extends Phase {
     public constructor(
         game: Game,
         snapshotManager: SnapshotManager,
         initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal,
-        additionalPhaseEffect: GameObjectRef<AdditionalPhase> = null
+        additionalPhaseEffect: GameObjectRef<AdditionalPhaseEffect> = null
     ) {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'RegroupPhase does not support rolling back to the end of the phase');
 

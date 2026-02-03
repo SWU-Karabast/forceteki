@@ -5,7 +5,7 @@ import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import type { IStep } from '../IStep';
-import type { AdditionalPhase } from '../../ongoingEffect/effectImpl/AdditionalPhase';
+import type { AdditionalPhaseEffect } from '../../ongoingEffect/effectImpl/AdditionalPhaseEffect';
 import type { GameObjectRef } from '../../GameObjectBase';
 
 export class ActionPhase extends Phase {
@@ -19,7 +19,7 @@ export class ActionPhase extends Phase {
         getNextActionNumber: () => number,
         snapshotManager: SnapshotManager,
         initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal,
-        additionalPhaseEffect: GameObjectRef<AdditionalPhase> = null
+        additionalPhaseEffect: GameObjectRef<AdditionalPhaseEffect> = null
     ) {
         super(game, PhaseName.Action, snapshotManager, additionalPhaseEffect);
 
