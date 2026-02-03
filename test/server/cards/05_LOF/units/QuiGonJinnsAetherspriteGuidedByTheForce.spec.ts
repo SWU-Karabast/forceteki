@@ -1038,7 +1038,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
             context.player1.clickCard(context.p2Base);
 
             // Target Green Squadron A-Wing with On Attack ability bounce
-            context.clickCard(context.greenSquadronAwing);
+            context.player1.clickCard(context.greenSquadronAwing);
 
             // Verify that the ability does not trigger again
             expect(context.player2).toBeActivePlayer();
