@@ -1,6 +1,6 @@
-describe('Han Solo Reluctant Hero', function() {
+describe('Anakin\'s Podracer, So Wizard', function() {
     integration(function(contextRef) {
-        describe('Han Solo Reluctant Hero\'s ability', function() {
+        describe('Anakin\'s Podracers\'s ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
