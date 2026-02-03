@@ -6,7 +6,7 @@ import { PhaseName } from '../../../core/Constants';
 export default class TheMaxReboBandJatzWailers extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-max-rebo-band#jatzwailers-id',
+            id: '6040947512',
             internalName: 'the-max-rebo-band#jatzwailers',
         };
     }

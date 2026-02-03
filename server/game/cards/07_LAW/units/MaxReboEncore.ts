@@ -6,7 +6,7 @@ import { PhaseName } from '../../../core/Constants';
 export default class MaxReboEncore extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'max-rebo#encore-id',
+            id: '5320092651',
             internalName: 'max-rebo#encore',
         };
     }
