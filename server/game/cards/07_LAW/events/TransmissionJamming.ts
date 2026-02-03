@@ -20,24 +20,14 @@ export default class TransmissionJamming extends EventCard {
             },
             then: (thenContext) => ({
                 title: 'The named card cannot be played for this phase',
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.playerLastingEffect((context) => ({
-                        duration: Duration.UntilEndOfPhase,
-                        target: context.player.opponent,
-                        effect: AbilityHelper.ongoingEffects.playerCannot({
-                            cannot: AbilityRestriction.Play,
-                            restrictedActionCondition: (context) => context.ability.card.title === thenContext.select,
-                        })
-                    })),
-                    AbilityHelper.immediateEffects.playerLastingEffect((context) => ({
-                        duration: Duration.UntilEndOfPhase,
-                        target: context.player,
-                        effect: AbilityHelper.ongoingEffects.playerCannot({
-                            cannot: AbilityRestriction.Play,
-                            restrictedActionCondition: (context) => context.ability.card.title === thenContext.select,
-                        })
-                    }))
-                ])
+                immediateEffect: AbilityHelper.immediateEffects.playerLastingEffect((context) => ({
+                    duration: Duration.UntilEndOfPhase,
+                    target: context.game.getPlayers(),
+                    effect: AbilityHelper.ongoingEffects.playerCannot({
+                        cannot: AbilityRestriction.Play,
+                        restrictedActionCondition: (context) => context.ability.card.title === thenContext.select,
+                    })
+                })),
             })
         });
     }

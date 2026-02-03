@@ -10,7 +10,8 @@ describe('Han Solo Reluctant Hero', function() {
                         groundArena: ['snowspeeder'],
                     },
                     player2: {
-                        groundArena: [{ card: 'wampa', upgrades: ['shield'] }, 'consular-security-force', 'battlefield-marine']
+                        groundArena: [{ card: 'wampa', upgrades: ['shield'] }, 'consular-security-force', 'battlefield-marine'],
+                        hand: ['waylay']
 
                     }
                 });
@@ -94,6 +95,28 @@ describe('Han Solo Reluctant Hero', function() {
 
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.anakinsPodracerSoWizard).toBeInZone('discard');
+            });
+
+            it('should not prevent damage after being bounced', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.anakinsPodracerSoWizard);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.anakinsPodracerSoWizard).toBeInZone('groundArena');
+                expect(context.anakinsPodracerSoWizard.damage).toBe(0);
+
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.anakinsPodracerSoWizard);
+
+                context.player1.clickCard(context.anakinsPodracerSoWizard);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.consularSecurityForce);
+
+                expect(context.anakinsPodracerSoWizard).toBeInZone('discard');
+                expect(context.consularSecurityForce.damage).toBe(3);
             });
         });
     });
