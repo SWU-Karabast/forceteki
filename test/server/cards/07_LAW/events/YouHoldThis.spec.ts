@@ -132,7 +132,29 @@ describe('You Hold This', function () {
             expect(context.cartelSpacer.controller).toBe(context.player2Object);
             expect(context.player2).toBeActivePlayer();
         });
-    });
 
-    // TODO ADD TESTS WITH REY
+        it('should not have any effect if opponent cannot take control of the friendly unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['you-hold-this'],
+                    groundArena: ['rey#skywalker'],
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    spaceArena: ['cartel-spacer'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.youHoldThis);
+            context.player1.clickCard(context.rey);
+
+            expect(context.rey).toBeInZone('groundArena', context.player1);
+            expect(context.wampa).toBeInZone('groundArena', context.player2);
+            expect(context.cartelSpacer).toBeInZone('spaceArena', context.player2);
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
 });
