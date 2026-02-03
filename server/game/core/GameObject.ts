@@ -15,6 +15,12 @@ export interface IGameObjectState extends IGameObjectBaseState {
     ongoingEffects: GameObjectRef<OngoingCardEffect>[];
 }
 
+export interface IOngoingEffectFilters {
+    type?: EffectName;
+    source?: Card;
+    value?: (value: any) => boolean;
+}
+
 // TODO: Rename to TargetableGameObject? Or something to imply this is a object with effects (as opposed to an Ability).
 export abstract class GameObject<T extends IGameObjectState = IGameObjectState> extends GameObjectBase<T> {
     private get ongoingEffects(): readonly OngoingCardEffect[] {
