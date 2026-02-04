@@ -17,7 +17,7 @@ export default class ShadowCasterJustBusiness extends NonLeaderUnitCard {
             optional: true,
             when: {
                 // This is technically a little incorrect from a rules perspective, but it's better for user experience
-                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && (event.ability.eventsTriggeredFor.some((event) => (event.name === EventName.OnCardDefeated)))
+                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && !event.context.retriggeredByAbility && event.context.event.name === EventName.OnCardDefeated
             },
             immediateEffect: AbilityHelper.immediateEffects.useWhenDefeatedAbility((context) => ({
                 target: context.event.card,
