@@ -124,7 +124,8 @@ export abstract class TriggerWindowBase extends BaseStep {
             }
 
             // Track that this ability was triggered by this event
-            this.triggeredAbilityEvents.set(context.ability, [...existingEvents, context.event]);
+            existingEvents.push(context.event);
+            this.triggeredAbilityEvents.set(context.ability, existingEvents);
 
             if (!this.unresolved.has(context.player)) {
                 this.unresolved.set(context.player, [context]);

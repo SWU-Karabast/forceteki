@@ -67,7 +67,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
 
         // Mark this as a manually activated ability (not naturally triggered by game events)
         const context = ability.createContext(event.context.player, whenDefeatedEvent);
-        context.manuallyActivated = true;
+        context.retriggeredByAbility = true;
         event.context.game.resolveAbility(context);
     }
 

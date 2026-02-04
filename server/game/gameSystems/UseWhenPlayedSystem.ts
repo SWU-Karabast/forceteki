@@ -64,7 +64,7 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
 
         // Mark this as a manually activated ability (not naturally triggered by game events)
         const context = ability.createContext(event.context.player, onCardPlayedEvent);
-        context.manuallyActivated = true;
+        context.retriggeredByAbility = true;
         event.context.game.resolveAbility(context);
     }
 
