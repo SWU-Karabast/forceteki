@@ -543,6 +543,24 @@ const mockCards = [
         unique: false,
         internalName: 'thermal-detonator',
     }),
+    buildMockCard({
+        title: 'Vel Sartha',
+        subtitle: 'Aldhani Insurgent',
+        power: 4,
+        hp: 7,
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['leader'],
+        traits: ['rebel'],
+        setId: {
+            set: 'LAW',
+            number: 6,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'vel-sartha#aldhani-insurgent',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
