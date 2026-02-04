@@ -313,6 +313,7 @@ export enum EventName {
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
     OnUpgradeUnattached = 'onUpgradeUnattached',
+    OnUseOnAttack = 'onUseOnAttack',
     OnUseWhenDefeated = 'onUseWhenDefeated',
     OnUseWhenPlayed = 'onUseWhenPlayed',
 }

@@ -454,6 +454,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'weazel#fighting-back',
     }),
+    buildMockCard({
+        title: 'Enfys Nest',
+        subtitle: 'Until We Can Go No Higher',
+        power: 3,
+        hp: 7,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['leader'],
+        traits: ['underworld'],
+        setId: {
+            set: 'LAW',
+            number: 14,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'enfys-nest#until-we-can-go-no-higher',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
