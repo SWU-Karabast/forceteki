@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityRestriction } from '../../../core/Constants';
+import { AbilityRestriction, PhaseName } from '../../../core/Constants';
 
 export default class DrydenVosIGetAllWorkedUp extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -24,9 +24,16 @@ export default class DrydenVosIGetAllWorkedUp extends NonLeaderUnitCard {
             })),
             ifYouDo: {
                 title: 'This unit does not ready during the next regroup phase',
-                immediateEffect: abilityHelper.immediateEffects.forThisRoundCardEffect({
-                    effect: abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup)
-                })
+                immediateEffect: abilityHelper.immediateEffects.delayedCardEffect((context) => ({
+                    title: 'This unit does not ready during this regroup phase',
+                    target: context.source,
+                    when: {
+                        onPhaseStarted: (context) => context.phase === PhaseName.Regroup
+                    },
+                    immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        effect: abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup)
+                    })
+                }))
             }
         });
     }

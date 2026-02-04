@@ -986,5 +986,62 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
             expect(context.clone).toHaveExactUpgradeNames(['experience', 'experience']);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('does not double WhenPlayed/OnAttack triggers on attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'quigon-jinn#student-of-the-living-force',
+                    base: 'echo-base',
+                    hand: [
+                        'enfys-nest#champion-of-justice',
+                        'wing-leader',
+                        'undercover-operation'
+                    ],
+                    spaceArena: [
+                        'quigon-jinns-aethersprite#guided-by-the-force'
+                    ],
+                },
+                player2: {
+                    hand: [
+                        'vanquish'
+                    ],
+                    spaceArena: [
+                        'green-squadron-awing',
+                        'phoenix-squadron-awing'
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Enfys Nest to trigger its When Played/On Attack ability
+            context.player1.clickCard(context.enfysNest);
+            context.player1.passAction(); // Skip bouncing
+
+            context.player2.passAction();
+
+            // Attack with the Aethersprite to activate the ability
+            context.player1.clickCard(context.quigonJinnsAethersprite);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.passAction();
+
+            // Ready Enfys
+            context.player1.clickCard(context.undercoverOperation);
+            context.player1.clickCard(context.enfysNest);
+
+            context.player2.passAction();
+
+            // Attack with Enfys
+            context.player1.clickCard(context.enfysNest);
+            context.player1.clickCard(context.p2Base);
+
+            // Target Green Squadron A-Wing with On Attack ability bounce
+            context.player1.clickCard(context.greenSquadronAwing);
+
+            // Verify that the ability does not trigger again
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

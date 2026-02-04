@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { DamageType, RelativePlayer, WildcardCardType, ZoneName } from '../core/Constants';
+import { DamageType, RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../core/Constants';
 import type { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
@@ -17,6 +17,7 @@ import { UseTheForceSystem } from '../gameSystems/UseTheForceSystem';
 import type { DistributiveOmit } from '../core/utils/Helpers';
 import { DiscardCardsFromHandSystem } from '../gameSystems/DiscardCardsFromHandSystem';
 import type { Player } from '../core/Player';
+import { DiscardFromDeckSystem } from '../gameSystems/DiscardFromDeckSystem';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = DistributiveOmit<ISelectCardProperties<TContext>, 'immediateEffect'>;
 
@@ -104,6 +105,13 @@ export function discardCardsFromOwnHand<TContext extends AbilityContext = Abilit
 }
 
 /**
+ * Cost that requires discarding cards from the top of the deck.
+ */
+export function discardFromOwnDeck<TContext extends AbilityContext = AbilityContext>(amount: number = 1): ICost<TContext> {
+    return new GameSystemCost<TContext>(new DiscardFromDeckSystem<TContext>((context) => ({ isCost: true, amount, target: context.player })));
+}
+
+/**
  * Cost that requires dealing the given amount of damage to a card that matches
  * the passed condition predicate function.
  */
@@ -123,6 +131,14 @@ export function dealDamageSpecific<TContext extends AbilityContext = AbilityCont
  */
 export function returnSelfToHandFromPlay<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
     return new GameSystemCost<TContext>(new MoveCardSystem({ isCost: true, destination: ZoneName.Hand }));
+}
+
+export function returnToHandFromPlay<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
+    return getSelectCost(
+        new MoveCardSystem({ isCost: true, destination: ZoneName.Hand }),
+        { ...properties, zoneFilter: WildcardZoneName.AnyArena },
+        'Choose a card to return to hand'
+    );
 }
 
 // /**

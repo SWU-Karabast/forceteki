@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class TheBladeWingTheSecretOfShantipole extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-blade-wing#the-secret-of-shantipole-id',
+            id: '0188366437',
             internalName: 'the-blade-wing#the-secret-of-shantipole',
         };
     }
