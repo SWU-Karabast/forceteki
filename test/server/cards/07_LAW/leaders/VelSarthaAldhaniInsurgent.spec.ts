@@ -11,8 +11,7 @@ describe('Vel Sartha, Aldhani Insurgent', function() {
                     },
                     player2: {
                         groundArena: ['wookiee-warrior'],
-                        spaceArena: ['tieln-fighter'],
-                        leader: 'rio-durant#wisecracking-wheelman'
+                        spaceArena: ['tieln-fighter']
                     }
                 });
             });
@@ -23,14 +22,12 @@ describe('Vel Sartha, Aldhani Insurgent', function() {
                 context.player1.clickCard(context.velSarthaAldhaniInsurgent);
                 context.player1.clickPrompt('Give an experience token to a unit, an opponent creates a Credit token');
                 expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.heroicArc170, context.wookieeWarrior, context.tielnFighter]);
-                expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.rebelPathfinder);
 
                 expect(context.rebelPathfinder).toHaveExactUpgradeNames(['experience']);
                 expect(context.velSarthaAldhaniInsurgent.exhausted).toBeTrue();
 
-                const creditTokens = context.player2.findCardsByName('credit');
-                expect(creditTokens.length).toBe(1);
+                expect(context.player2.credits).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -47,8 +44,7 @@ describe('Vel Sartha, Aldhani Insurgent', function() {
                 context.player1.clickPrompt('Give an experience token to a unit, an opponent creates a Credit token');
                 expect(context.velSarthaAldhaniInsurgent.exhausted).toBeTrue();
 
-                const creditTokens = context.player2.findCardsByName('credit');
-                expect(creditTokens.length).toBe(1);
+                expect(context.player2.credits).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -77,12 +73,24 @@ describe('Vel Sartha, Aldhani Insurgent', function() {
 
                 expect(context.player1).toHavePrompt('Give an experience token to a unit, an opponent creates a Credit token');
                 expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.heroicArc170, context.wookieeWarrior, context.tielnFighter, context.velSarthaAldhaniInsurgent]);
-                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.velSarthaAldhaniInsurgent);
 
                 expect(context.velSarthaAldhaniInsurgent).toHaveExactUpgradeNames(['experience']);
-                const creditTokens = context.player2.findCardsByName('credit');
-                expect(creditTokens.length).toBe(1);
+                expect(context.player2.credits).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should have pass ability option and no Credit tokens are created', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.velSarthaAldhaniInsurgent);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Give an experience token to a unit, an opponent creates a Credit token');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
+
+                expect(context.player2.credits).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
         });
