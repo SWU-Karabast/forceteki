@@ -455,6 +455,24 @@ const mockCards = [
         internalName: 'weazel#fighting-back',
     }),
     buildMockCard({
+        title: 'Taramyn Barcona',
+        subtitle: 'Eyes Front!',
+        power: 4,
+        hp: 6,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command'],
+        types: ['unit'],
+        traits: ['rebel', 'trooper'],
+        setId: {
+            set: 'LAW',
+            number: 40,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'taramyn-barcona#eyes-front',
+    }),
+    buildMockCard({
         title: 'Enfys Nest',
         subtitle: 'Until We Can Go No Higher',
         power: 3,
@@ -505,7 +523,7 @@ const mockCards = [
         },
         unique: false,
         arena: 'ground',
-        internalName: 'cloud-rider-veteran',
+        internalName: 'cloudrider-veteran',
     }),
     buildMockCard({
         title: 'Sullustan Sapper',

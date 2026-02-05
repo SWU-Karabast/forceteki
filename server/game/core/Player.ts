@@ -1207,7 +1207,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             clock: undefined,
             aspects: this.getAspects(),
             forceToken: this.getForceTokenSummary(),
-            credits: this.getCreditsSummary(),
+            credits: this.getCreditsSummary(activePlayer),
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
@@ -1230,7 +1230,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         };
     }
 
-    private getCreditsSummary() {
+    private getCreditsSummary(activePlayer: Player) {
         // TODO: If there is ever an effect that can selectively blank Credit tokens,
         // this class will need to account for which Credits can actually be used to
         // adjust costs. For now, it's all or nothing (Galen Erso's effect).
@@ -1241,7 +1241,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             count: this.creditTokenCount,
             uuids: uuids, // UUID is needed for selection on the client
             isBlanked: creditsAreBlanked ? true : undefined, // Don't include in summary if false
-            selectionState: this.baseZone.credits.length > 0 ? this.getCardSelectionState(this.baseZone.credits[0]) : undefined
+            selectionState: this.baseZone.credits.length > 0 ? activePlayer.getCardSelectionState(this.baseZone.credits[0]) : undefined
         };
     }
 
