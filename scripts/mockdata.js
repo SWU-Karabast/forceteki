@@ -543,6 +543,37 @@ const mockCards = [
         unique: false,
         internalName: 'thermal-detonator',
     }),
+    buildMockCard({
+        title: 'Payroll Heist',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'LAW',
+            number: 169,
+        },
+        unique: false,
+        internalName: 'payroll-heist',
+    }),
+    buildMockCard({
+        title: 'Defiant Scrapper',
+        power: 3,
+        hp: 4,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'LAW',
+            number: 106,
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'defiant-scrapper',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
