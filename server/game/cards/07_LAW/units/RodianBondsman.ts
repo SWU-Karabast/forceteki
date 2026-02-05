@@ -13,10 +13,7 @@ export default class RodianBondsman extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
             title: 'Each player creates a Credit token',
-            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                AbilityHelper.immediateEffects.createCreditToken(),
-                AbilityHelper.immediateEffects.createCreditToken((context) => ({ target: context.player.opponent })),
-            ]),
+            immediateEffect: AbilityHelper.immediateEffects.createCreditToken((context) => ({ target: context.game.getPlayers() }))
         });
     }
 }

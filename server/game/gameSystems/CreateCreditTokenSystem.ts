@@ -2,7 +2,6 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, TokenCardName, ZoneName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
-import * as Helpers from '../core/utils/Helpers';
 import type { Player } from '../core/Player';
 
 export interface ICreateCreditTokenProperties extends IPlayerTargetSystemProperties {
@@ -34,10 +33,8 @@ export class CreateCreditTokenSystem<TContext extends AbilityContext = AbilityCo
 
         event.generatedTokens = [];
 
-        for (const player of Helpers.asArray(properties.target)) {
-            for (let i = 0; i < properties.amount; i++) {
-                event.generatedTokens.push(context.game.generateToken(player, TokenCardName.Credit));
-            }
+        for (let i = 0; i < properties.amount; i++) {
+            event.generatedTokens.push(context.game.generateToken(player, TokenCardName.Credit));
         }
     }
 
