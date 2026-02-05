@@ -23,8 +23,9 @@ export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = Ab
 
     public override eventHandler(event, additionalProperties: Partial<ITakeControlOfCreditTokenProperties>): void {
         const newController = event.newController as Player;
+        const actualAmount = Math.min(event.amount, event.player.creditTokenCount);
 
-        for (const credit of event.player.baseZone.credits.slice(0, event.amount)) {
+        for (const credit of event.player.baseZone.credits.slice(0, actualAmount)) {
             credit.takeControl(newController);
         }
     }
