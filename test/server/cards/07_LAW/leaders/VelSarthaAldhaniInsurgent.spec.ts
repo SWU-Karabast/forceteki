@@ -23,6 +23,7 @@ describe('Vel Sartha, Aldhani Insurgent', function() {
                 context.player1.clickCard(context.velSarthaAldhaniInsurgent);
                 context.player1.clickPrompt('Give an experience token to a unit, an opponent creates a Credit token');
                 expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.heroicArc170, context.wookieeWarrior, context.tielnFighter]);
+                expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.rebelPathfinder);
 
                 expect(context.rebelPathfinder).toHaveExactUpgradeNames(['experience']);
@@ -76,6 +77,7 @@ describe('Vel Sartha, Aldhani Insurgent', function() {
 
                 expect(context.player1).toHavePrompt('Give an experience token to a unit, an opponent creates a Credit token');
                 expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.heroicArc170, context.wookieeWarrior, context.tielnFighter, context.velSarthaAldhaniInsurgent]);
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.velSarthaAldhaniInsurgent);
 
                 expect(context.velSarthaAldhaniInsurgent).toHaveExactUpgradeNames(['experience']);
