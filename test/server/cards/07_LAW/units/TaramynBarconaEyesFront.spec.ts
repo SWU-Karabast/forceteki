@@ -27,7 +27,7 @@ describe('Taramyn Barcona, Eyes Front!', function () {
             context.player1.clickPrompt('Pay costs without Credit tokens');
 
             expect(context.player1).toBeAbleToSelectExactly([...p1Credits, ...p2Credits]);
-            context.player1.clickCard(...p1Credits);
+            context.player1.clickCard(p1Credits[0]);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.strafingGunship]);
             expect(context.player1).toHavePrompt('Give an Experience token to this unit and a friendly unit');
@@ -69,7 +69,7 @@ describe('Taramyn Barcona, Eyes Front!', function () {
             context.player1.clickPrompt('Pay costs without Credit tokens');
 
             expect(context.player1).toBeAbleToSelectExactly([...p1Credits, ...p2Credits]);
-            context.player1.clickCard(...p2Credits);
+            context.player1.clickCard(p2Credits[0]);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.strafingGunship]);
             expect(context.player1).toHavePrompt('Give an Experience token to this unit and a friendly unit');
@@ -110,7 +110,7 @@ describe('Taramyn Barcona, Eyes Front!', function () {
             context.player1.clickPrompt('Pay costs without Credit tokens');
 
             expect(context.player1).toBeAbleToSelectExactly([...p1Credits, ...p2Credits]);
-            context.player1.clickCard(...p1Credits);
+            context.player1.clickCard(p1Credits[0]);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.strafingGunship]);
             expect(context.player1).toHavePrompt('Give an Experience token to this unit and a friendly unit');
@@ -150,7 +150,7 @@ describe('Taramyn Barcona, Eyes Front!', function () {
             context.player1.clickCard(context.taramynBarconaEyesFront);
 
             expect(context.player1).toBeAbleToSelectExactly([...p1Credits, ...p2Credits]);
-            context.player1.clickCard(...p2Credits);
+            context.player1.clickCard(p2Credits[0]);
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.strafingGunship]);
             expect(context.player1).toHavePrompt('Give an Experience token to this unit and a friendly unit');
