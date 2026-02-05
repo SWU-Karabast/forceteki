@@ -39,6 +39,7 @@ export interface ILastKnownInformation {
     parentCard?: IUnitCard;
     upgrades?: IUpgradeCard[];
     traits: Set<Trait>;
+    exhausted?: boolean;
 }
 
 export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IDefeatCardPropertiesBase = IDefeatCardProperties> extends CardTargetSystem<TContext, TProperties> {
