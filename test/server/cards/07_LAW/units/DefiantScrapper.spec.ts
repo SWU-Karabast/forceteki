@@ -13,14 +13,11 @@ describe('Defiant Scrapper', function () {
             });
 
             const { context } = contextRef;
-            const p2Credits = context.player2.findCardsByName('credit');
 
             context.player1.clickCard(context.defiantScrapper);
             context.player1.clickPrompt('Pay costs without Credit tokens');
-
             expect(context.player1).toHavePassAbilityButton();
-            expect(context.player1).toBeAbleToSelectExactly([...p2Credits]);
-            context.player1.clickCard(p2Credits[0]);
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player1.credits).toBe(3);
             expect(context.player2.credits).toBe(2);
@@ -63,9 +60,8 @@ describe('Defiant Scrapper', function () {
 
             context.player1.clickCard(context.defiantScrapper);
             context.player1.clickPrompt('Pay costs without Credit tokens');
-
             expect(context.player1).toHavePassAbilityButton();
-            expect(context.player1).toHavePrompt('Defeat an enemy Credit token');
+
             context.player1.clickPrompt('Pass');
 
             expect(context.player2.credits).toBe(3);

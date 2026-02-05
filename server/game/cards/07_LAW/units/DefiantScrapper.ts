@@ -1,7 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
 
 export default class DefiantScrapper extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,11 +14,12 @@ export default class DefiantScrapper extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Defeat an enemy Credit token',
             optional: true,
-            targetResolver: {
-                cardTypeFilter: WildcardCardType.Token,
-                cardCondition: (card) => card.isCreditToken() && card.controller !== this.controller,
-                immediateEffect: AbilityHelper.immediateEffects.defeat(),
-            }
+            immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
+                condition: context.player.opponent.creditTokenCount > 0,
+                onTrue: AbilityHelper.immediateEffects.defeat({
+                    target: context.player.opponent.baseZone.credits[0]
+                })
+            }))
         });
     }
 }
