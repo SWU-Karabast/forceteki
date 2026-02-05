@@ -24,7 +24,7 @@ export default class ThermalDetonator extends UpgradeCard {
         registrar.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'Deal 2 damage to each enemy ground unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => !context.events[0]?.lastKnownInformation?.parentCard.exhausted,
+                condition: (context) => !context.event.lastKnownInformation.exhausted,
                 onTrue: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 2,
                     target: context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena })
