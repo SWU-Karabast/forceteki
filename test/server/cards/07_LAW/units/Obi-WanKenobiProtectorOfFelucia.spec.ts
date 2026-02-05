@@ -91,6 +91,8 @@ describe('Obi-Wan Kenobi, Protector of Felucia', function () {
                     }
                 });
 
+                // TODO: We aren't exactly sure how this is meant to work and should be revisted pending clarification or CR7 update
+
                 const { context } = contextRef;
 
                 expect(context.echoBaseDefender.getPower()).toBe(5);
