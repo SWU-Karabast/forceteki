@@ -561,6 +561,24 @@ const mockCards = [
         unique: false,
         internalName: 'thermal-detonator',
     }),
+    buildMockCard({
+        title: 'Lieutenant Gorn',
+        subtitle: 'I Deserve Worse',
+        cost: 3,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['imperial', 'rebel'],
+        setId: {
+            set: 'LAW',
+            number: 221
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'lieutenant-gorn#i-deserve-worse',
+    })
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
