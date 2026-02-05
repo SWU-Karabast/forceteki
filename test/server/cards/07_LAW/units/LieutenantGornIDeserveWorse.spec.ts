@@ -27,6 +27,7 @@ describe('Lieutenant Gorn, I Deserve Worse', () => {
                 expect(context.player1.credits).toBe(1);
                 expect(context.player2.credits).toBe(0);
                 expect(p2CreditToken).toBeInZone('base', context.player1);
+                expect(context.getChatLog()).toEqual('player1 uses Lieutenant Gorn to take control of a Credit token from player2');
 
                 context.player2.passAction();
 
@@ -67,6 +68,7 @@ describe('Lieutenant Gorn, I Deserve Worse', () => {
                 expect(context.player1.credits).toBe(1);
                 expect(context.player2.credits).toBe(0);
                 expect(p2CreditToken).toBeInZone('base', context.player1);
+                expect(context.getChatLog()).toEqual('player1 uses Lieutenant Gorn to take control of a Credit token from player2');
 
                 context.player2.clickCard(context.resilient);
                 context.player2.clickCard(context.wampa);
@@ -98,6 +100,7 @@ describe('Lieutenant Gorn, I Deserve Worse', () => {
                 // Verify that nothing happens since P2 has no Credit tokens
                 expect(context.player1.credits).toBe(1);
                 expect(context.player2.credits).toBe(0);
+                expect(context.getChatLogs(3)).not.toContain('player1 uses Lieutenant Gorn to take control of a Credit token from player2');
             });
         });
     });
