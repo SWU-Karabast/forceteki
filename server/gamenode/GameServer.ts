@@ -974,8 +974,12 @@ export class GameServer {
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const { deck, format, isPrivate, gamesToWinMode, lobbyName } = req.body;
+                const user = req.user as User;
+
                 let { allow30CardsInMainBoard } = req.body;
-                const user = req.user;
+
+                // Limited format always uses 30-card minimum
+                allow30CardsInMainBoard = allow30CardsInMainBoard || (format === SwuGameFormat.Limited);
 
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
@@ -990,11 +994,6 @@ export class GameServer {
                 if (!EnumHelpers.isEnumValue(format, SwuGameFormat)) {
                     logger.error(`GameServer (create-lobby): Invalid game format parameter ${format}`);
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
-                }
-
-                // Limited format always uses 30-card minimum
-                if (format === SwuGameFormat.Limited) {
-                    allow30CardsInMainBoard = true;
                 }
 
                 // Check Bo3 access restrictions for anonymous users

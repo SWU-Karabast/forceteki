@@ -99,10 +99,6 @@ export class DeckValidator {
         return filtered;
     }
 
-    public static formatUses30CardMinimum(format: SwuGameFormat): boolean {
-        return format === SwuGameFormat.Limited;
-    }
-
     public static async createAsync(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
         const allCardsData: ICardDataJson[] = [];
         for (const cardId of cardDataGetter.cardIds) {
@@ -312,7 +308,7 @@ export class DeckValidator {
                     failures[DeckValidationFailureReason.InvalidDeckData] = true;
                 }
 
-                this.checkMaxCopiesOfCard(card, cardData, format, failures);
+                this.checkMaxCopiesOfCard(card, cardData, format, failures, allow30CardsInMainBoard);
             }
 
             // Remove any failure entries that are empty arrays.
@@ -389,10 +385,11 @@ export class DeckValidator {
         card: ISwuDbFormatCardEntry,
         cardData: ICardCheckData,
         format: SwuGameFormat,
-        failures: IDeckValidationFailures
+        failures: IDeckValidationFailures,
+        allow30CardsInMainBoard: boolean
     ) {
         // Limited format has no copy restrictions (play what you draft/open)
-        if (format === SwuGameFormat.Limited) {
+        if (allow30CardsInMainBoard) {
             return;
         }
 
