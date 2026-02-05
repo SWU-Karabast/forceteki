@@ -2,6 +2,7 @@ import type { ICardCanChangeControllers } from '../../../core/card/CardInterface
 import { TokenCard } from '../../../core/card/TokenCards';
 import { ZoneName } from '../../../core/Constants';
 import type { Player } from '../../../core/Player';
+import * as Contract from '../../../core/utils/Contract';
 
 export default class CreditToken extends TokenCard implements ICardCanChangeControllers {
     protected override getImplementationId() {
@@ -16,13 +17,14 @@ export default class CreditToken extends TokenCard implements ICardCanChangeCont
     }
 
     public override takeControl(newController: Player): boolean {
-        if (this.controller === newController || this.zoneName !== ZoneName.Base) {
+        if (this.controller === newController) {
             return false;
         }
 
+        Contract.assertTrue(this.zoneName === ZoneName.Base, `Attempted to take control of Credit token, but it is in zone ${this.zoneName}`);
+
         this.controller = newController;
-        // TODO: Should these tokens change ownership when control changes?
-        this.owner = newController;
+        this.owner = newController; // TODO: Verify ownership should change (similar to token upgrades) when CR7 is released
         this.moveTo(ZoneName.Base);
 
         return true;

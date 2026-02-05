@@ -1,75 +1,83 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { GameStateChangeRequired, ZoneName } from '../core/Constants';
-import { CardType, EventName } from '../core/Constants';
-import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { GameStateChangeRequired } from '../core/Constants';
+import { EventName } from '../core/Constants';
 import * as Helpers from '../core/utils/Helpers';
-import * as Contract from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { Player } from '../core/Player';
-import type { Card } from '../core/card/Card';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type { FormatMessage } from '../core/chat/GameChat';
 
-export interface ITakeControlOfCreditTokenProperties extends ICardTargetSystemProperties {
+export interface ITakeControlOfCreditTokenProperties extends IPlayerTargetSystemProperties {
+
+    /** The number of tokens being taken. Defaults to 1. */
+    amount?: number;
+
+    /** The new controller of the credit token(s) */
     newController: Player;
 }
 
-export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ITakeControlOfCreditTokenProperties> {
+export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ITakeControlOfCreditTokenProperties> {
     public override readonly name = 'takeControl';
     public override readonly eventName = EventName.OnTakeControl;
-    protected override readonly targetTypeFilter = [CardType.TokenCard];
 
     public override eventHandler(event, additionalProperties: Partial<ITakeControlOfCreditTokenProperties>): void {
-        const card = event.card as Card;
         const newController = event.newController as Player;
 
-        Contract.assertTrue(card.isCreditToken(), 'Card must be a Credit token');
-
-        if (newController === card.controller) {
-            return;
+        for (const credit of event.player.baseZone.credits.slice(0, event.amount)) {
+            credit.takeControl(newController);
         }
-
-        card.takeControl(newController);
     }
 
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ITakeControlOfCreditTokenProperties>): [string, any[]] {
-        const { target, newController } = this.generatePropertiesFromContext(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const targetsArray = Helpers.asArray(target);
+        const amount = properties.amount ?? 1;
+        const newController = properties.newController;
+        const players = Helpers.asArray(properties.target);
 
-        Contract.assertNonEmpty(targetsArray, 'At least one target must be provided for the effect message');
+        const effectMessage = (player: Player): FormatMessage => {
+            const newControllerIsSelf = newController === context.player;
+            const verb = newControllerIsSelf ? 'take' : 'give';
+            const preposition = newControllerIsSelf ? 'from' : 'to';
+            const objectOfPreposition = newControllerIsSelf ? player : newController;
 
-        const currentController = targetsArray[0].controller;
-        const verb = newController === context.player ? 'take' : 'give';
-        const preposition = newController === context.player ? 'from' : 'to';
-        const objectOfPreposition = newController === context.player ? currentController : newController;
+            return {
+                format: '{0} control of {1} {2} {3}',
+                args: [verb, ChatHelpers.pluralize(amount, 'a Credit token', 'Credit tokens'), preposition, objectOfPreposition]
+            };
+        };
 
-        return ['{0} control of {1} {2} {3}', [verb, ChatHelpers.pluralize(targetsArray.length, 'a Credit token', 'Credit tokens'), preposition, objectOfPreposition]];
+        return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
     public override canAffectInternal(
-        card: Card,
+        target: Player | Player[],
         context: TContext,
         additionalProperties?: Partial<ITakeControlOfCreditTokenProperties>,
         mustChangeGameState?: GameStateChangeRequired
     ): boolean {
-        if (!card.isCreditToken() || card.zoneName !== ZoneName.Base) {
+        const targets = Helpers.asArray(target);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const amount = properties.amount ?? 1;
+
+        if (amount === 0 || targets.every((p) => p.creditTokenCount === 0)) {
             return false;
         }
 
-        const properties = this.generatePropertiesFromContext(context);
-
-        if (mustChangeGameState !== GameStateChangeRequired.None && properties.newController === card.controller) {
+        if (mustChangeGameState !== GameStateChangeRequired.None && targets.every((p) => p === properties.newController)) {
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<ITakeControlOfCreditTokenProperties>): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ITakeControlOfCreditTokenProperties>): void {
+        super.addPropertiesToEvent(event, player, context, additionalProperties);
 
-        const properties = this.generatePropertiesFromContext(context);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         event.newController = properties.newController;
+        event.amount = properties.amount ?? 1;
     }
 }

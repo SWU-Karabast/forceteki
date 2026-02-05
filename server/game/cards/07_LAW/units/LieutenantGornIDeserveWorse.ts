@@ -13,12 +13,8 @@ export default class LieutenantGornIDeserveWorse extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addOnAttackAbility({
             title: 'Take control of an enemy Credit token',
-            immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
-                condition: context.player.opponent.creditTokenCount > 0,
-                onTrue: AbilityHelper.immediateEffects.takeControlOfCreditToken({
-                    target: context.player.opponent.baseZone.credits[0],
-                    newController: context.player
-                })
+            immediateEffect: AbilityHelper.immediateEffects.takeControlOfCreditToken((context) => ({
+                newController: context.player
             }))
         });
     }
