@@ -1052,6 +1052,8 @@ export class Lobby {
                 player1Base: player1.deck.base,
                 player2Leader: player2.deck.leader,
                 player2Base: player2.deck.base,
+                format: this.gameFormat,
+                gamesToWinMode: this.gamesToWinMode,
             };
         } catch (error) {
             logger.error('Lobby: error retrieving lobby game data',

@@ -6,7 +6,7 @@ import { RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class BixCaleenSellingScrap extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bix-caleen#selling-scrap-id',
+            id: '5249469281',
             internalName: 'bix-caleen#selling-scrap'
         };
     }

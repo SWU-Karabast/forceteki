@@ -742,9 +742,9 @@ var customMatchers = {
                 result.pass = zoneOwningPlayer.getCardsInZone(zone).includes(card);
 
                 if (result.pass) {
-                    result.message = `Expected ${card.internalName} not to be in zone '${zone}' but it is`;
+                    result.message = `Expected ${card.internalName} not to be in zone '${zone}' of ${zoneOwningPlayer.name} but it is`;
                 } else {
-                    result.message = `Expected ${card.internalName} to be in zone '${zone}' but it is in zone '${card.zoneName}'`;
+                    result.message = `Expected ${card.internalName} to be in zone '${zone}' of ${zoneOwningPlayer.name} but it is in zone '${card.zoneName}' of ${card.controller.name}`;
                 }
 
                 return result;
