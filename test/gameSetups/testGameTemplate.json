@@ -6,8 +6,11 @@
             "wilderness-fighter"
         ],
         "groundArena": [
-            "blizzard-assault-atat",
-            "rodian-bondsman"
+            {
+                "card": "pyke-sentinel",
+                "damage": 1
+            },
+            "blizzard-assault-atat"
         ],
         "spaceArena": [
             {
@@ -26,16 +29,20 @@
     },
     "player2": {
         "deck": [
+            "wampa",
             "atst"
         ],
         "hand": [
             "superlaser-blast",
-            "takedown",
-            "doublecross"
+            "takedown"
         ],
         "groundArena": [
-            "seasoned-shoretrooper",
-            "wampa"
+            {
+                "card": "seasoned-shoretrooper",
+                "upgrades": [
+                    "shield"
+                ]
+            }
         ],
         "discard": [
             "tactical-advantage",
