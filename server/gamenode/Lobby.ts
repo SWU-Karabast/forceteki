@@ -1837,8 +1837,7 @@ export class Lobby {
         if (this.game) {
             const spectator = this.spectators.find((s) => s.id === spectatorId);
             if (spectator) {
-                const gameState = this.game.getState(spectatorId, spectator.lastMessageOffset);
-                spectator.lastMessageOffset = this.game.messages.length;
+                const gameState = this.getGameStateAndAdvanceOffset(spectator, this.game);
                 socket.send('gamestate', gameState);
             } else {
                 // Fallback for edge cases where spectator isn't found yet (sends all messages)
@@ -2096,20 +2095,24 @@ export class Lobby {
     }
 
 
+    private getGameStateAndAdvanceOffset(participant: LobbySpectatorWrapper, game: Game) {
+        const gameState = game.getState(participant.id, participant.lastMessageOffset);
+        participant.lastMessageOffset = gameState.messageOffset + gameState.newMessages.length;
+        return gameState;
+    }
+
     public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
         // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                const clientGameState = game.getState(user.id, user.lastMessageOffset);
-                user.lastMessageOffset = clientGameState.messageOffset + clientGameState.newMessages.length;
+                const clientGameState = this.getGameStateAndAdvanceOffset(user, game);
                 user.socket.send('gamestate', clientGameState, () => this.safeSetUserConnected(user.id));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                const clientGameState = game.getState(spectator.id, spectator.lastMessageOffset);
-                spectator.lastMessageOffset = clientGameState.messageOffset + clientGameState.newMessages.length;
+                const clientGameState = this.getGameStateAndAdvanceOffset(spectator, game);
                 spectator.socket.send('gamestate', clientGameState, () => this.safeSetUserConnected(spectator.id));
             }
         }
