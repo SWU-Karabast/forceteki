@@ -164,6 +164,8 @@ import type { ICardEffectResourcePaymentProperties } from './CardEffectResourceP
 import { CardEffectResourcePaymentSystem } from './CardEffectResourcePaymentSystem';
 import type { IUseOnAttackProperties } from './UseOnAttackSystem';
 import { UseOnAttackSystem } from './UseOnAttackSystem';
+import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditTokenSystem';
+import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -659,6 +661,10 @@ export function winGame<TContext extends AbilityContext = AbilityContext>(proper
 }
 export function takeControlOfResource<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfResourceProperties, TContext> = {}) {
     return new TakeControlOfResourceSystem(propertyFactory);
+}
+
+export function takeControlOfCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfCreditTokenProperties, TContext>) {
+    return new TakeControlOfCreditTokenSystem(propertyFactory);
 }
 
 // //////////////

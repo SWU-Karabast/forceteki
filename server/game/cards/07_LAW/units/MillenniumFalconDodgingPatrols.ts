@@ -6,7 +6,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class MillenniumFalconDodgingPatrols extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'millennium-falcon#dodging-patrols-id',
+            id: '4954007620',
             internalName: 'millennium-falcon#dodging-patrols',
         };
     }

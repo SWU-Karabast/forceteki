@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../cor
 export default class DirectorKrennicAmidstMyAchievement extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'director-krennic#amidst-my-achievement-id',
+            id: '1627648051',
             internalName: 'director-krennic#amidst-my-achievement'
         };
     }

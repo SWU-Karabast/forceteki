@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class _000TranslationAndTorture extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '000#translation-and-torture-id',
+            id: '7641310547',
             internalName: '000#translation-and-torture',
         };
     }
