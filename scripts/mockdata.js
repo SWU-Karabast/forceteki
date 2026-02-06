@@ -561,23 +561,6 @@ const mockCards = [
         internalName: 'thermal-detonator',
     }),
     buildMockCard({
-        title: 'Rodian Bondsman',
-        power: 2,
-        hp: 3,
-        cost: 2,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance'],
-        types: ['unit'],
-        traits: ['bounty hunter'],
-        setId: {
-            set: 'LAW',
-            number: 116,
-        },
-        unique: false,
-        arena: 'ground',
-        internalName: 'rodian-bondsman',
-    }),
-    buildMockCard({
         title: 'Obi-Wan Kenobi',
         subtitle: 'Protector of Felucia',
         power: 7,

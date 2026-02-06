@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class RodianBondsman extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rodian-bondsman-id',
+            id: '3754002046',
             internalName: 'rodian-bondsman',
         };
     }
