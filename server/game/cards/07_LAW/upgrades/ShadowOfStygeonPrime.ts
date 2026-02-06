@@ -6,7 +6,7 @@ import { AbilityRestriction, PhaseName } from '../../../core/Constants';
 export default class ShadowOfStygeonPrime extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'shadow-of-stygeon-prime-id',
+            id: '3645451698',
             internalName: 'shadow-of-stygeon-prime',
         };
     }

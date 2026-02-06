@@ -6,7 +6,7 @@ import { ZoneName, RelativePlayer, TargetMode } from '../../../core/Constants';
 export default class IntimidatorCitadelOverwatch extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'intimidator#citadel-overwatch-id',
+            id: '2038476769',
             internalName: 'intimidator#citadel-overwatch'
         };
     }

@@ -4,7 +4,7 @@ import { LAWCommonBase } from '../common/LAWCommonBase';
 export default class CantoBight extends LAWCommonBase {
     protected override getImplementationId() {
         return {
-            id: 'canto-bight-id',
+            id: '2937103129',
             internalName: 'canto-bight',
         };
     }

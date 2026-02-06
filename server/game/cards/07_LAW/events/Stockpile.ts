@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class Stockpile extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'stockpile-id',
+            id: '8221105498',
             internalName: 'stockpile',
         };
     }

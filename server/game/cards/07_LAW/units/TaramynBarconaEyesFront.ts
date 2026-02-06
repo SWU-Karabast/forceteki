@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class TaramynBarconaEyesFront extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'taramyn-barcona#eyes-front-id',
+            id: '8701330334',
             internalName: 'taramyn-barcona#eyes-front',
         };
     }

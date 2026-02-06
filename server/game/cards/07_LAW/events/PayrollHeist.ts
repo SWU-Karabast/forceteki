@@ -6,7 +6,7 @@ import { AbilityType } from '../../../core/Constants';
 export default class PayrollHeist extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'payroll-heist-id',
+            id: '2585003236',
             internalName: 'payroll-heist',
         };
     }

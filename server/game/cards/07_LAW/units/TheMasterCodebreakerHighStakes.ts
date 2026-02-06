@@ -11,7 +11,7 @@ export default class TheMasterCodebreakerHighStakes extends NonLeaderUnitCard {
 
     protected override getImplementationId () {
         return {
-            id: 'the-master-codebreaker#high-stakes-id',
+            id: '4763371184',
             internalName: 'the-master-codebreaker#high-stakes'
         };
     }

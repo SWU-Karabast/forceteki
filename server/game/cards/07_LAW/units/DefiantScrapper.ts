@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class DefiantScrapper extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'defiant-scrapper-id',
+            id: '3108628614',
             internalName: 'defiant-scrapper',
         };
     }

@@ -6,7 +6,7 @@ import { Aspect, ZoneName } from '../../../core/Constants';
 export default class BT1Blastomech extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bt1#blastomech-id',
+            id: '9876200854',
             internalName: 'bt1#blastomech'
         };
     }
