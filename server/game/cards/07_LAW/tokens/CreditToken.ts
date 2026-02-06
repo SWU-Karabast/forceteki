@@ -17,11 +17,11 @@ export default class CreditToken extends TokenCard implements ICardCanChangeCont
     }
 
     public override takeControl(newController: Player): boolean {
+        Contract.assertTrue(this.zoneName === ZoneName.Base, `Attempted to take control of Credit token, but it is in zone ${this.zoneName}`);
+
         if (this.controller === newController) {
             return false;
         }
-
-        Contract.assertTrue(this.zoneName === ZoneName.Base, `Attempted to take control of Credit token, but it is in zone ${this.zoneName}`);
 
         this.controller = newController;
         this.owner = newController; // TODO: Verify ownership should change (similar to token upgrades) when CR7 is released

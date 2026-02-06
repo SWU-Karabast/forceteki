@@ -20,6 +20,10 @@ export interface ITakeControlOfCreditTokenProperties extends IPlayerTargetSystem
 export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ITakeControlOfCreditTokenProperties> {
     public override readonly name = 'takeControl';
     public override readonly eventName = EventName.OnTakeControl;
+    protected override readonly defaultProperties: ITakeControlOfCreditTokenProperties = {
+        amount: 1,
+        newController: null
+    };
 
     public override eventHandler(event, additionalProperties: Partial<ITakeControlOfCreditTokenProperties>): void {
         const newController = event.newController as Player;
@@ -33,7 +37,6 @@ export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = Ab
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ITakeControlOfCreditTokenProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const amount = properties.amount ?? 1;
         const newController = properties.newController;
         const players = Helpers.asArray(properties.target);
 
@@ -42,10 +45,11 @@ export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = Ab
             const verb = newControllerIsSelf ? 'take' : 'give';
             const preposition = newControllerIsSelf ? 'from' : 'to';
             const objectOfPreposition = newControllerIsSelf ? player : newController;
+            const actualAmount = Math.min(properties.amount, player.creditTokenCount);
 
             return {
                 format: '{0} control of {1} {2} {3}',
-                args: [verb, ChatHelpers.pluralize(amount, 'a Credit token', 'Credit tokens'), preposition, objectOfPreposition]
+                args: [verb, ChatHelpers.pluralize(actualAmount, 'a Credit token', 'Credit tokens'), preposition, objectOfPreposition]
             };
         };
 
@@ -60,13 +64,12 @@ export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = Ab
     ): boolean {
         const targets = Helpers.asArray(target);
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const amount = properties.amount ?? 1;
 
-        if (amount === 0 || targets.every((p) => p.creditTokenCount === 0)) {
-            return false;
-        }
+        const wouldHaveNoEffect = properties.amount === 0 ||
+          targets.every((p) => p.creditTokenCount === 0) ||
+          targets.every((p) => p === properties.newController);
 
-        if (mustChangeGameState !== GameStateChangeRequired.None && targets.every((p) => p === properties.newController)) {
+        if (mustChangeGameState !== GameStateChangeRequired.None && wouldHaveNoEffect) {
             return false;
         }
 
@@ -79,6 +82,6 @@ export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = Ab
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         event.newController = properties.newController;
-        event.amount = properties.amount ?? 1;
+        event.amount = properties.amount;
     }
 }

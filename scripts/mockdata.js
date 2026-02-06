@@ -562,24 +562,6 @@ const mockCards = [
         internalName: 'thermal-detonator',
     }),
     buildMockCard({
-        title: 'Lieutenant Gorn',
-        subtitle: 'I Deserve Worse',
-        cost: 3,
-        power: 4,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'heroism'],
-        types: ['unit'],
-        traits: ['imperial', 'rebel'],
-        setId: {
-            set: 'LAW',
-            number: 221
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'lieutenant-gorn#i-deserve-worse',
-    }),
-    buildMockCard({
         title: 'Payroll Heist',
         cost: 4,
         hasNonKeywordAbility: true,

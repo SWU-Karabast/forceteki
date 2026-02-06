@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class LieutenantGornIDeserveWorse extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lieutenant-gorn#i-deserve-worse-id',
+            id: '8232418666',
             internalName: 'lieutenant-gorn#i-deserve-worse',
         };
     }
