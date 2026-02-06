@@ -19,7 +19,7 @@ export default class BetrayedTrust extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DealCombatDamage),
-                    ongoingEffectDescription: 'prevent combat damage from being dealt by'
+                    ongoingEffectDescription: 'prevent {0} from dealing combat damage'
                 })
             }
         });
