@@ -25,6 +25,8 @@ describe('Rodian Bondsman', function () {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.rodianBondsman);
 
+                expect(context.getChatLog()).toEqual('player2 uses Rodian Bondsman to make player1 create a Credit token and to create a Credit token');
+
                 // Both players should have received a Credit token
                 expect(context.player1.credits).toBe(1);
                 expect(context.player2.credits).toBe(3);

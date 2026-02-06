@@ -120,7 +120,7 @@ describe('Double-Cross', function() {
                 });
             });
 
-            it('exchanges control of only one unit when Rey is the other one', async function() {
+            it('exchanges control of only one unit when Rey is the other one, selecting higher cost card', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -146,6 +146,35 @@ describe('Double-Cross', function() {
                 expect(context.rey.controller).toBe(context.player1Object);
                 expect(context.devastator.controller).toBe(context.player1Object);
                 expect(context.player1.credits).toBe(2);
+                expect(context.player2.credits).toBe(0);
+            });
+
+            it('exchanges control of only one unit when Rey is the other one, selecting lower cost card', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['doublecross'],
+                        groundArena: ['battlefield-marine', 'wampa', 'rey#skywalker'], // cost 2, cost 4, cost 8
+                        spaceArena: [],
+                        leader: { card: 'boba-fett#daimyo', deployed: true },
+                    },
+                    player2: {
+                        groundArena: ['atst', 'loan-shark'], // cost 6, cost 4
+                        spaceArena: ['cartel-spacer', 'devastator#inescapable'], // cost 2, cost 10
+                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.doublecross);
+                context.player1.clickCard(context.rey);
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.rey.controller).toBe(context.player1Object);
+                expect(context.cartelSpacer.controller).toBe(context.player1Object);
+                expect(context.player1.credits).toBe(6);
                 expect(context.player2.credits).toBe(0);
             });
         });
