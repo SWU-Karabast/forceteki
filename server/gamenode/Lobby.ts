@@ -1396,7 +1396,7 @@ export class Lobby {
                 return;
             }
 
-            this.updateUserLastActivity(socket.user.getId());
+            this.updateUserLastActivity(socket.user.getId(), false);
 
             // this command is a no-op since we reset the timer just above
             if (command === 'resetActionTimer') {

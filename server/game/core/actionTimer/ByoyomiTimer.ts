@@ -65,7 +65,7 @@ export class ByoyomiTimer implements IByoyomiTimer {
             player,
             game,
             () => this.onTurnTimerExpired(),
-            checkLiveStatus
+            (promptUuid: string, playerActionId: number) => checkLiveStatus(promptUuid, playerActionId)
         );
 
         // Create main timer - when it expires, call the timeout callback
@@ -74,7 +74,7 @@ export class ByoyomiTimer implements IByoyomiTimer {
             player,
             game,
             () => this.onMainTimerExpired(),
-            checkLiveStatus
+            (promptUuid: string, playerActionId: number) => checkLiveStatus(promptUuid, playerActionId)
         );
 
         // Initialize main timer at full time but paused
@@ -131,14 +131,7 @@ export class ByoyomiTimer implements IByoyomiTimer {
      */
     private onTurnTimerExpired(): void {
         this.isOnMainTimer = true;
-
-        // Resume main timer if it was paused, otherwise start it fresh
-        if (this.mainTimer.isPaused) {
-            this.mainTimer.resume();
-        } else if (!this.mainTimerHasStarted) {
-            this.mainTimerHasStarted = true;
-            this.mainTimer.start();
-        }
+        this.mainTimer.resume();
 
         // Notify the game to push updated state to players
         // so the FE knows we've transitioned to main timer

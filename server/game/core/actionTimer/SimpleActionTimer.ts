@@ -93,8 +93,6 @@ export class SimpleActionTimer {
 
         this.stop();
         this.initializeTimersForTimeRemaining(this.getTimeLimitMs());
-
-        this.onStart();
     }
 
     /**
@@ -110,8 +108,6 @@ export class SimpleActionTimer {
         this.timers = [];
         this.endTime = null;
         this.pauseTime = null;
-
-        this.onStop();
     }
 
     /**
@@ -144,20 +140,6 @@ export class SimpleActionTimer {
         this.endTime = null;
         this.pauseTime = null;
         this.initializeTimersForTimeRemaining(timeRemainingMs);
-    }
-
-    /**
-     * Hook called when the timer starts. Override in subclasses for custom behavior.
-     */
-    protected onStart(): void {
-        // Default: no-op
-    }
-
-    /**
-     * Hook called when the timer stops. Override in subclasses for custom behavior.
-     */
-    protected onStop(): void {
-        // Default: no-op
     }
 
     /**
