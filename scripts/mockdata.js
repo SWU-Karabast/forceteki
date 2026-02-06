@@ -578,7 +578,7 @@ const mockCards = [
         arena: 'ground',
         internalName: 'rodian-bondsman',
     }),
-      buildMockCard({
+    buildMockCard({
         title: 'Obi-Wan Kenobi',
         subtitle: 'Protector of Felucia',
         power: 7,
