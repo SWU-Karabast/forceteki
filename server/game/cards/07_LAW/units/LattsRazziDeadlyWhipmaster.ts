@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../..
 export default class LattsRazziDeadlyWhipmaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'latts-razzi#deadly-whipmaster-id',
+            id: '3422504128',
             internalName: 'latts-razzi#deadly-whipmaster'
         };
     }

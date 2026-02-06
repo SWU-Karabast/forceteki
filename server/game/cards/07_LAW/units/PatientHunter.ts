@@ -6,7 +6,7 @@ import { AbilityRestriction, PhaseName, WildcardCardType } from '../../../core/C
 export default class PatientHunter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'patient-hunter-id',
+            id: '4874716188',
             internalName: 'patient-hunter',
         };
     }

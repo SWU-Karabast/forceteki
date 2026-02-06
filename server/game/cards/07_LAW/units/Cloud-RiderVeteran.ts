@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class CloudriderVeteran extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cloudrider-veteran-id',
+            id: '1794819723',
             internalName: 'cloudrider-veteran',
         };
     }

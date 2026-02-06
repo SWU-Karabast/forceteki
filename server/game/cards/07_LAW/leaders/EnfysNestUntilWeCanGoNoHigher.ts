@@ -7,7 +7,7 @@ import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSys
 export default class EnfysNestUntilWeCanGoNoHigher extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'enfys-nest#until-we-can-go-no-higher-id',
+            id: '6232613278',
             internalName: 'enfys-nest#until-we-can-go-no-higher'
         };
     }

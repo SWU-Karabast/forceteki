@@ -6,7 +6,7 @@ import { TargetMode, ZoneName } from '../../../core/Constants';
 export default class PersecutorFireOverScarif extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'persecutor#fire-over-scarif-id',
+            id: '5725363168',
             internalName: 'persecutor#fire-over-scarif',
         };
     }
