@@ -2136,6 +2136,10 @@ export class Lobby {
 
         const requestedMessages = allMessages.slice(safeStart, safeEnd);
 
+        const userId = socket.user.getId();
+        const participant = this.users.find((u) => u.id === userId) ?? this.spectators.find((s) => s.id === userId);
+        logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: participant?.lastMessageOffset ?? null });
+
         socket.send('retransmitResponse', {
             messages: requestedMessages,
             startIndex: safeStart,
