@@ -578,7 +578,57 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'lieutenant-gorn#i-deserve-worse',
-    })
+    }),
+    buildMockCard({
+        title: 'Payroll Heist',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'LAW',
+            number: 169,
+        },
+        unique: false,
+        internalName: 'payroll-heist',
+    }),
+    buildMockCard({
+        title: 'Defiant Scrapper',
+        power: 3,
+        hp: 4,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['fringe'],
+        setId: {
+            set: 'LAW',
+            number: 106,
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'defiant-scrapper',
+    }),
+    buildMockCard({
+        title: 'Obi-Wan Kenobi',
+        subtitle: 'Protector of Felucia',
+        power: 7,
+        hp: 7,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command', 'heroism'],
+        types: ['unit'],
+        keywords: ['sentinel'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LAW',
+            number: 36,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'obiwan-kenobi#protector-of-felucia',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
