@@ -4,7 +4,7 @@ import { LAWCommonBase } from '../common/LAWCommonBase';
 export default class StygeonSpire extends LAWCommonBase {
     protected override getImplementationId() {
         return {
-            id: 'stygeon-spire-id',
+            id: '5020919647',
             internalName: 'stygeon-spire',
         };
     }

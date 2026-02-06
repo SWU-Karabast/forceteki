@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class YouHoldThis extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'you-hold-this-id',
+            id: '8819729767',
             internalName: 'you-hold-this',
         };
     }

@@ -9,7 +9,7 @@ export default class VultSkerrissDefenderSecretProject extends NonLeaderUnitCard
 
     protected override getImplementationId() {
         return {
-            id: 'vult-skerriss-defender#secret-project-id',
+            id: '5139032378',
             internalName: 'vult-skerriss-defender#secret-project',
         };
     }

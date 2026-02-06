@@ -9,7 +9,7 @@ export default class ThermalDetonator extends UpgradeCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
     protected override getImplementationId () {
         return {
-            id: 'thermal-detonator-id',
+            id: '4576623485',
             internalName: 'thermal-detonator'
         };
     }

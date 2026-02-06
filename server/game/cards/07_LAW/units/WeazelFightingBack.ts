@@ -6,7 +6,7 @@ import { KeywordName, RelativePlayer } from '../../../core/Constants';
 export default class WeazelFightingBack extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'weazel#fighting-back-id',
+            id: '5336968217',
             internalName: 'weazel#fighting-back',
         };
     }

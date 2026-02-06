@@ -4,7 +4,7 @@ import { LAWCommonBase } from '../common/LAWCommonBase';
 export default class AldhaniGarrison extends LAWCommonBase {
     protected override getImplementationId() {
         return {
-            id: 'aldhani-garrison-id',
+            id: '2248996839',
             internalName: 'aldhani-garrison',
         };
     }
