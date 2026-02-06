@@ -5,7 +5,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 export default class VelSarthaAldhaniInsurgent extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '0165690736',
+            id: '2626264815',
             internalName: 'vel-sartha#aldhani-insurgent',
         };
     }
