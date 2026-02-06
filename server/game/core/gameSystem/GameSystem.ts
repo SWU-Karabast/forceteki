@@ -136,7 +136,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
                 controller: card.controller,
                 damage: card.damage,
                 upgrades: card.upgrades,
-                traits: card.traits
+                traits: card.traits,
+                exhausted: card.exhausted
             };
         }
 
