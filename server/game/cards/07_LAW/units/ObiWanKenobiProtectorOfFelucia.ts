@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ObiwanKenobiProtectorOfFelucia extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'obiwan-kenobi#protector-of-felucia-id',
+            id: '7680761643',
             internalName: 'obiwan-kenobi#protector-of-felucia',
         };
     }

@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class ExpendableMercenary extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'expendable-mercenary-id',
+            id: '6434969978',
             internalName: 'expendable-mercenary',
         };
     }

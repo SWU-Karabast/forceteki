@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class LadyProximaWheresTheMoney extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lady-proxima#wheres-the-money-id',
+            id: '3293298610',
             internalName: 'lady-proxima#wheres-the-money',
         };
     }

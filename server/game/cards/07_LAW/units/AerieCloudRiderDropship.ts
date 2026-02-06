@@ -6,7 +6,7 @@ import { CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class AerieCloudRiderDropship extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'aerie#cloudrider-dropship-id',
+            id: '0475417545',
             internalName: 'aerie#cloudrider-dropship',
         };
     }

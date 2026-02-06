@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class CombatExercise extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'combat-exercise-id',
+            id: '0030257743',
             internalName: 'combat-exercise',
         };
     }

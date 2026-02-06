@@ -1,5 +1,4 @@
 const mockCards = [
-
     buildMockCard({
         title: 'Doctor Aphra',
         subtitle: 'Digging For Answers',

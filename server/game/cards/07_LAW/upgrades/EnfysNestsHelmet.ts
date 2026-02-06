@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class EnfysNestsHelmet extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'enfys-nests-helmet-id',
+            id: '9472544840',
             internalName: 'enfys-nests-helmet'
         };
     }
