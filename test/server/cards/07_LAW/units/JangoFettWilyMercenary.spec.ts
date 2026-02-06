@@ -7,11 +7,12 @@ describe('Jango Fett, Wily Mercenary', function() {
                     player1: {
                         hand: ['academy-training'],
                         groundArena: ['jango-fett#wily-mercenary'],
-                        spaceArena: ['green-squadron-awing']
+                        spaceArena: ['green-squadron-awing'],
                     },
                     player2: {
                         groundArena: ['wampa'],
-                        spaceArena: ['cartel-spacer']
+                        spaceArena: ['cartel-spacer'],
+                        leader: { card: 'mace-windu#vaapad-form-master', deployed: true },
                     }
                 });
             });
@@ -35,7 +36,7 @@ describe('Jango Fett, Wily Mercenary', function() {
                 context.player1.clickCard(context.p2Base);
 
                 // Jango Fett should be able to select ground unit to exhaust
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.maceWindu]);
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.wampa);
 
