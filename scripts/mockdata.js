@@ -43,7 +43,7 @@ const mockCards = [
         hasNonKeywordAbility: true,
         aspects: ['Command', 'Aggression'],
         types: ['unit'],
-        traits: ['rebel', 'twi\'lek'],
+        traits: ['rebel', 'twilek'],
         setId: {
             set: 'LAW',
             number: 58,
