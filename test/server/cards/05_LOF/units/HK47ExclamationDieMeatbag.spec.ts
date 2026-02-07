@@ -156,7 +156,7 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
         });
 
 
-        it('HK-47\'s triggered ability should be prevent by Close the Shield Gate', async function () {
+        it('HK-47 should not be triggered when units die while he is captured', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
