@@ -973,8 +973,13 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
-                const user = req.user;
+                const { deck, format, isPrivate, gamesToWinMode, lobbyName } = req.body;
+                const user = req.user as User;
+
+                let { allow30CardsInMainBoard } = req.body;
+
+                // Limited format always uses 30-card minimum
+                allow30CardsInMainBoard = allow30CardsInMainBoard || (format === SwuGameFormat.Limited);
 
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
@@ -1116,7 +1121,10 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
+                // Limited format always uses 30-card minimum
+                const allow30CardsInMainBoard = format === SwuGameFormat.Limited;
+
+                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard }, res, () => {
                     const success = this.enterQueue(format, gamesToWinMode, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -1815,13 +1823,17 @@ export class GameServer {
      */
     private async matchmakeQueuePlayersAsync(format: IQueueFormatKey, [p1, p2]: [QueuedPlayer, QueuedPlayer]): Promise<void> {
         Contract.assertFalse(p1.user.getId() === p2.user.getId(), 'Cannot matchmake the same user');
+
+        // Limited format always uses 30-card minimum
+        const allow30CardsInMainBoard = format.swuFormat === SwuGameFormat.Limited;
+
         // Create a new Lobby
         const lobby = new Lobby(
             'Quick Game',
             MatchmakingType.Quick,
             format.swuFormat,
             format.gamesToWinMode,
-            false,
+            allow30CardsInMainBoard,
             this.cardDataGetter,
             this.deckValidator,
             this,
