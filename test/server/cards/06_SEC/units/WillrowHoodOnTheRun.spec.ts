@@ -17,7 +17,7 @@ describe('Willrow Hood On the Run', function () {
                 context.p2Bamboozle = context.player2.findCardByName('bamboozle');
             });
 
-            it('should prevent the upgrade from being defeated by an enemy ability (System Shock should not deal damage)', function () {
+            it('should prevent the upgrade from being defeated by an enemy ability', function () {
                 const { context } = contextRef;
 
                 context.player1.passAction();
@@ -25,9 +25,12 @@ describe('Willrow Hood On the Run', function () {
                 context.player2.clickCard(context.theDarksaber);
 
                 expect(context.willrowHoodOnTheRun).toHaveExactUpgradeNames(['the-darksaber']);
+                expect(context.getChatLog()).toEqual(
+                    'player1 uses Willrow Hood to cancel the effects of Disabling Fang Fighter'
+                );
             });
 
-            it('should prevent the upgrade from being returned to hand by an enemy ability', function () {
+            it('should prevent the upgrade from being defeated by an enemy ability (System Shock should not deal damage)', function () {
                 const { context } = contextRef;
 
                 context.player1.passAction();
