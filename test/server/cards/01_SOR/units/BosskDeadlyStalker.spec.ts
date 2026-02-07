@@ -87,6 +87,27 @@ describe('Bossk, Deadly Stalker', function () {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.wampa.damage).toBe(0);
             });
+
+            it('should not trigger off of playing No Glory Only Results on opponent\'s Bossk', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['no-glory-only-results'],
+                        groundArena: [],
+                    },
+                    player2: {
+                        hand: ['now-there-are-two-of-them'],
+                        groundArena: ['boba-fett#disintegrator', 'bossk#deadly-stalker'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.bosskDeadlyStalker);
+
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
