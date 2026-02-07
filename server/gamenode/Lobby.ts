@@ -1013,7 +1013,6 @@ export class Lobby {
             }
 
             user.state = 'disconnected';
-            user.lastMessageOffset = 0;
             logger.info(`Lobby: setting user ${user.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
 
@@ -1024,7 +1023,6 @@ export class Lobby {
             }
 
             spectator.state = 'disconnected';
-            spectator.lastMessageOffset = 0;
             logger.info(`Lobby: setting spectator ${spectator.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
         }
     }
