@@ -62,7 +62,7 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
         const whenPlayedProps = { ...(whenPlayedAbility.properties as ITriggeredAbilityProps), optional: false, target: whenPlayedSource };
         const ability = event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new TriggeredAbility(event.context.game, whenPlayedSource, whenPlayedProps));
 
-        const onPlayedEvent = onCardPlayedEvent || new PlayCardSystem({ playAsType: null }).generateEvent(event.context);
+        const onPlayedEvent = onCardPlayedEvent || new PlayCardSystem({ playAsType: WildcardCardType.Any }).generateEvent(event.context);
 
         // Mark this as a manually activated ability (not naturally triggered by game events)
         const context = ability.createContext(event.context.player, onPlayedEvent);

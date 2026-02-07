@@ -15,6 +15,7 @@ export default class FireAcrossTheGalaxy extends EventCard {
         registrar.setEventAbility({
             title: 'Use any number of When Played abilities on friendly Spectre units',
             targetResolver: {
+                activePromptTitle: 'Choose Spectre units with a "When Played" ability to activate',
                 mode: TargetMode.Unlimited,
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
