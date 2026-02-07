@@ -37,6 +37,9 @@ describe('Chewbacca, Faithful First Mate', function() {
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.homeOne);
                 expect(context.homeOne).toBeInZone('spaceArena', context.player1);
+                expect(context.getChatLog()).toEqual(
+                    'player1 uses Home One\'s gained ability from Chewbacca to cancel the effects of Rival\'s Fall'
+                );
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -51,6 +54,9 @@ describe('Chewbacca, Faithful First Mate', function() {
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.homeOne);
                 expect(context.homeOne).toBeInZone('spaceArena', context.player1);
+                expect(context.getChatLog()).toEqual(
+                    'player1 uses Home One\'s gained ability from Chewbacca to cancel the effects of Waylay'
+                );
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -177,6 +183,9 @@ describe('Chewbacca, Faithful First Mate', function() {
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.chewbacca);
                 expect(context.chewbacca).toBeInZone('groundArena', context.player1);
+                expect(context.getChatLog()).toEqual(
+                    'player1 uses Chewbacca to cancel the effects of Rival\'s Fall'
+                );
 
                 expect(context.player1).toBeActivePlayer();
             });
@@ -190,6 +199,9 @@ describe('Chewbacca, Faithful First Mate', function() {
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.chewbacca);
                 expect(context.chewbacca).toBeInZone('groundArena', context.player1);
+                expect(context.getChatLog()).toEqual(
+                    'player1 uses Chewbacca to cancel the effects of Waylay'
+                );
 
                 expect(context.player1).toBeActivePlayer();
             });
