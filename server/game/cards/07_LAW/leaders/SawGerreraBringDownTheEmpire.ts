@@ -23,8 +23,7 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
                         attackerLastingEffects: [
                             { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) },
                             { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm) },
-                        ],
-                        allowExhaustedAttacker: false,
+                        ]
                     }),
                     AbilityHelper.immediateEffects.defeat()
                 ]),

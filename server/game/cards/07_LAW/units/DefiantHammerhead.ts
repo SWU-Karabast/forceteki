@@ -13,7 +13,7 @@ export default class DefiantHammerhead extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'If this unit is attack a unit, you may give it +4/+0',
+            title: 'If this unit is attacking a unit, you may give it +4/+0',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional(({
                 condition: (context) => context.event.attack.targetIsUnit(),
@@ -26,7 +26,7 @@ export default class DefiantHammerhead extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect({
                     effect: AbilityHelper.ongoingEffects.gainAbility({
                         type: AbilityType.Triggered,
-                        title: 'When this unit deals combat damage: Defeat it.',
+                        title: 'Defeat Defiant Hammerhead',
                         when: {
                             onAttackCompleted: () => true,
                         },
