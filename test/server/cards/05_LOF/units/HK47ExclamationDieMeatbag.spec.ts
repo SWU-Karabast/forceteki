@@ -156,28 +156,41 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
         });
 
 
-        it('HK-47 should not be triggered when units die while he is captured', async function () {
+        it('a captured HK-47 should not trigger when his captor dies', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['takedown'],
-                    groundArena: ['hk47#exclamation-die-meatbag'],
+                    hand: ['takedown']
                 },
                 player2: {
-                    hand: ['take-captive'],
-                    groundArena: ['wampa'],
-                    hasInitiative: true,
+                    groundArena: [{ card: 'wampa', capturedUnits: ['hk47#exclamation-die-meatbag'] }]
                 }
             });
 
             const { context } = contextRef;
 
-            context.player2.clickCard(context.takeCaptive);
-            context.player2.clickCard(context.wampa);
-            context.player2.clickCard(context.hk47);
-            expect(context.hk47).toBeCapturedBy(context.wampa);
-
             context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(0);
+        });
+
+
+        it('a captured HK-47 should not trigger when his captor dies to damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['open-fire']
+                },
+                player2: {
+                    groundArena: [{ card: 'wampa', capturedUnits: ['hk47#exclamation-die-meatbag'], damage: 1 }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.openFire);
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
