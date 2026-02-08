@@ -1,7 +1,7 @@
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -25,7 +25,10 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
                             { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm) },
                         ]
                     }),
-                    AbilityHelper.immediateEffects.defeat()
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => context.target.zoneName === ZoneName.GroundArena || context.target.zoneName === ZoneName.SpaceArena,
+                        onTrue: AbilityHelper.immediateEffects.defeat()
+                    })
                 ]),
             },
         });
@@ -47,7 +50,10 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
                             { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm) },
                         ],
                     }),
-                    AbilityHelper.immediateEffects.defeat()
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => context.target.zoneName === ZoneName.GroundArena || context.target.zoneName === ZoneName.SpaceArena,
+                        onTrue: AbilityHelper.immediateEffects.defeat()
+                    })
                 ]),
             },
         });

@@ -57,6 +57,35 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
                 expect(context.p2Base.damage).toBe(4);
             });
 
+            it('should work if Expendable Mercenary dies from combat', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['expendable-mercenary'],
+                        leader: 'saw-gerrera#bring-down-the-empire',
+                        base: 'colossus',
+                        resources: 4,
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sawGerrera);
+                expect(context.player1).toBeAbleToSelectExactly([context.expendableMercenary]);
+                expect(context.player1).not.toHaveChooseNothingButton();
+                context.player1.clickCard(context.expendableMercenary);
+                context.player1.clickCard(context.deathStarStormtrooper);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.sawGerrera.exhausted).toBeTrue();
+                expect(context.expendableMercenary).toBeInZone('resource', context.player1);
+                expect(context.p2Base.damage).toBe(4);
+            });
+
             it('should be able to be used with no targets', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -128,6 +157,36 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should work if Expendable Mercenary dies from combat while Saw is deployed', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['expendable-mercenary'],
+                        leader: { card: 'saw-gerrera#bring-down-the-empire', deployed: true },
+                        base: 'colossus',
+                        resources: 4,
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sawGerrera);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.expendableMercenary]);
+                expect(context.player1).not.toHaveChooseNothingButton();
+                context.player1.clickCard(context.expendableMercenary);
+                context.player1.clickCard(context.deathStarStormtrooper);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.sawGerrera.exhausted).toBeTrue();
+                expect(context.expendableMercenary).toBeInZone('resource', context.player1);
+                expect(context.p2Base.damage).toBe(8);
             });
         });
     });
