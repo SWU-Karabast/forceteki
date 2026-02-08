@@ -19,7 +19,10 @@ describe('Force Throw', function() {
 
                 // Damage dealt by opponent discarded card
                 context.player1.clickCard(context.forceThrow);
-                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards']);
+                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards', 'Cancel']);
+                context.player1.clickPrompt('Cancel');
+                context.player1.clickCard(context.forceThrow);
+                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards', 'Cancel']);
 
                 // Opponent discards a card
                 context.player1.clickPrompt('Opponent discards');
