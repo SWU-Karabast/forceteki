@@ -91,6 +91,7 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
                     phase: 'action',
                     player1: {
                         leader: 'saw-gerrera#bring-down-the-empire',
+                        groundArena: [{ card: 'battlefield-marine', exhausted: true }],
                         base: 'colossus',
                         resources: 4,
                     },

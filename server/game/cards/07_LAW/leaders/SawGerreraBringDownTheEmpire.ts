@@ -1,7 +1,7 @@
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
             title: 'Attack with a unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, defeat it.',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card) => card.isUnit() && !card.exhausted,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.attack({
@@ -39,9 +39,8 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
             title: 'Attack with another unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, defeat it.',
             optional: true,
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
-                cardCondition: (card, context) => card !== context.source,
+                cardCondition: (card, context) => card !== context.source && card.isUnit() && !card.exhausted,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.attack({
                         allowExhaustedAttacker: false,
