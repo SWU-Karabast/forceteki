@@ -4,23 +4,55 @@ import type { Attack } from './Attack';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import type { GameEvent } from '../event/GameEvent';
+import { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
 import type { IAttackableCard } from '../card/CardInterfaces';
+import * as Contract from '../utils/Contract';
+
+export enum AttackRulesVersion {
+    CR6 = 'cr6',
+    CR7 = 'cr7'
+}
 
 export class AttackFlow extends BaseStepWithPipeline {
+    private context: AbilityContext;
+    private attack: Attack;
+    private attackRulesVersion: AttackRulesVersion;
+
     public constructor(
-        private context: AbilityContext,
-        private attack: Attack,
+        context: AbilityContext,
+        attack: Attack
     ) {
         super(context.game);
+
+        this.context = context;
+        this.attack = attack;
+        this.attackRulesVersion = context.game.attackRulesVersion;
+
+        let attackResolutionSteps: SimpleStep[];
+
+        switch (this.attackRulesVersion) {
+            case AttackRulesVersion.CR6:
+                attackResolutionSteps = [
+                    new SimpleStep(this.game, () => this.openDealDamageWindow(), 'openDealDamageWindow'),
+                    new SimpleStep(this.game, () => this.completeAttack(), 'completeAttack')
+                ];
+                break;
+            case AttackRulesVersion.CR7:
+                attackResolutionSteps = [
+                    new SimpleStep(this.game, () => this.dealDamageAndCompleteAttack(), 'dealDamageAndCompleteAttack'),
+                ];
+                break;
+            default:
+                Contract.fail(`Unsupported attack rules version '${this.attackRulesVersion}'`);
+        }
+
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.setCurrentAttack(), 'setCurrentAttack'),
             new SimpleStep(this.game, () => this.declareAttack(), 'declareAttack'),
-            new SimpleStep(this.game, () => this.openDealDamageWindow(), 'openDealDamageWindow'),
-            new SimpleStep(this.game, () => this.completeAttack(), 'completeAttack'),
+            ...attackResolutionSteps,
             new SimpleStep(this.game, () => this.cleanUpAttack(), 'cleanUpAttack'),
             new SimpleStep(this.game, () => this.game.resolveGameState(true), 'resolveGameState')
         ]);
@@ -157,6 +189,23 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, this.context, {
             attack: this.attack,
         }, TriggerHandlingMode.ResolvesTriggers);
+    }
+
+    private dealDamageAndCompleteAttack() {
+        const resolveDamageEvent = new GameEvent(
+            EventName.OnAttackDamageResolved,
+            this.context,
+            { attack: this.attack },
+            () => this.dealDamage()
+        );
+
+        const completeAttackEvent = new GameEvent(
+            EventName.OnAttackCompleted,
+            this.context,
+            { attack: this.attack }
+        );
+
+        this.context.game.openEventWindow([resolveDamageEvent, completeAttackEvent], TriggerHandlingMode.ResolvesTriggers);
     }
 
     private cleanUpAttack() {

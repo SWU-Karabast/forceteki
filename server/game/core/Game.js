@@ -60,6 +60,7 @@ const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.j
 const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
 const UndoConfirmationPrompt = require('./gameSteps/prompts/UndoConfirmationPrompt.js');
 const { AdditionalPhaseEffect } = require('./ongoingEffect/effectImpl/AdditionalPhaseEffect.js');
+const { AttackRulesVersion } = require('./attack/AttackFlow.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -232,6 +233,9 @@ class Game extends EventEmitter {
         validateGameConfiguration(details);
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
+
+        /** @public @readonly @type {import('./attack/AttackFlow.js').AttackRulesVersion} */
+        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR6;
 
         /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
@@ -2385,6 +2389,7 @@ class Game extends EventEmitter {
 
         return {
             phase: this.currentPhase,
+            attackRulesVersion: this.attackRulesVersion,
             player1: Helpers.safeSerialize(this, () => player1.capturePlayerState('player1'), null),
             player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
         };

@@ -36,6 +36,7 @@ import { ModerationType } from '../services/DynamoDBInterfaces';
 import type { MessageText } from '../game/Interfaces';
 import { ReportType } from '../game/Interfaces';
 import { PlayerReportType } from '../game/Interfaces';
+import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -1333,6 +1334,7 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
+            attackRulesVersion: this.format === SwuGameFormat.Premier ? AttackRulesVersion.CR6 : AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
