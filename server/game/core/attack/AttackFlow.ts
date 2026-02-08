@@ -209,6 +209,10 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private cleanUpAttack() {
+        if (this.attackRulesVersion === AttackRulesVersion.CR7) {
+            this.game.ongoingEffectEngine.unregisterOnAttackEffects();
+        }
+
         this.game.currentAttack = this.attack.previousAttack;
         this.checkUnsetActiveAttack(this.attack.attacker);
         this.attack.getAllTargets().forEach((target) => this.checkUnsetActiveAttack(target));
