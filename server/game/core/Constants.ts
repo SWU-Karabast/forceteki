@@ -486,6 +486,7 @@ export enum AbilityRestriction {
     BeCaptured = 'beCaptured',
     BeDefeated = 'beDefeated',
     ReturnToHand = 'returnToHand',
+    DealCombatDamage = 'dealCombatDamage',
 }
 
 export enum DamageModificationType {
