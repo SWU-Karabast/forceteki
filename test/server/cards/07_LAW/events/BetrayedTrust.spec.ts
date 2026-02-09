@@ -197,6 +197,31 @@ describe('Betrayed Trust', function () {
             expect(context.consularSecurityForce.damage).toBe(3);
         });
 
+        it('prevents combat damage from being dealt to Vigil', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['betrayed-trust'],
+                    spaceArena: ['vigil#securing-the-future']
+                },
+                player2: {
+                    spaceArena: ['ruthless-raider']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 plays Betrayed Trust on Ruthless Raider
+            context.player1.clickCard(context.betrayedTrust);
+            context.player1.clickCard(context.ruthlessRaider);
+
+            // P2 attacks Vigil with Ruthless Raider, but it deals no combat damage
+            context.player2.clickCard(context.ruthlessRaider);
+            context.player2.clickCard(context.vigil);
+            expect(context.vigil.damage).toBe(0);
+            expect(context.ruthlessRaider.damage).toBe(5);
+        });
+
         describe('cases with multiple attack targets', function () {
             it('it works on units that can attack multiple units', async function () {
                 await contextRef.setupTestAsync({

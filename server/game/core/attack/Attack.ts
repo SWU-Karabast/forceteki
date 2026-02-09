@@ -51,7 +51,7 @@ export class Attack {
 
     public getAttackerCombatDamage(context: AbilityContext): number | null {
         if (this.attacker.hasRestriction(AbilityRestriction.DealCombatDamage)) {
-            return 0;
+            return null;
         }
 
         const attackDamage = this.attackerCombatDamageOverride
@@ -107,6 +107,10 @@ export class Attack {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public getTargetCombatDamage(_context: AbilityContext): number | null {
+        if (this.targets.every((t) => t.hasRestriction(AbilityRestriction.DealCombatDamage))) {
+            return null;
+        }
+
         // If we ever need to override the combat damage for the defender, we can follow the same pattern as attackerCombatDamageOverride
         const reducer = (totalDamage: number, target: IAttackableCard): number => {
             if (target.isBase() || target.hasRestriction(AbilityRestriction.DealCombatDamage)) {
