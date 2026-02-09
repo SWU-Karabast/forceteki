@@ -17,7 +17,7 @@ describe('Pursue the Lead', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pursueTheLead);
-                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards']);
+                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards', 'Cancel']);
                 context.player1.clickPrompt('Opponent discards');
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.yoda, context.porg]);
                 context.player2.clickCard(context.yoda);
@@ -34,7 +34,7 @@ describe('Pursue the Lead', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pursueTheLead);
-                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards']);
+                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards', 'Cancel']);
                 context.player1.clickPrompt('Opponent discards');
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.yoda, context.porg]);
                 context.player2.clickCard(context.porg);
@@ -51,7 +51,7 @@ describe('Pursue the Lead', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pursueTheLead);
-                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards']);
+                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards', 'Cancel']);
                 context.player1.clickPrompt('Opponent discards');
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.yoda, context.porg]);
                 context.player2.clickCard(context.wampa);
@@ -66,7 +66,7 @@ describe('Pursue the Lead', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pursueTheLead);
-                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards']);
+                expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards', 'Cancel']);
                 context.player1.clickPrompt('You discard');
                 expect(context.player1).toBeAbleToSelectExactly([context.resupply]);
                 context.player1.clickCard(context.resupply);
@@ -91,7 +91,7 @@ describe('Pursue the Lead', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.pursueTheLead);
-            expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards']);
+            expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards', 'Cancel']);
             context.player1.clickPrompt('Opponent discards');
 
             expect(context.player2).toBeActivePlayer();
@@ -112,7 +112,7 @@ describe('Pursue the Lead', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.pursueTheLead);
-            expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards']);
+            expect(context.player1).toHaveExactPromptButtons(['You discard', 'Opponent discards', 'Cancel']);
             context.player1.clickPrompt('You discard');
 
             expect(context.player2).toBeActivePlayer();
