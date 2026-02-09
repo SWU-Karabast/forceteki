@@ -316,7 +316,7 @@ describe('Brain Invaders', () => {
 
                 // Admiral Trench regains his action abilities
                 expect(context.admiralTrench).toHaveAvailableActionWhenClickedBy(context.player2);
-                context.player2.clickPrompt('Discard a card that costs 3 or more from your hand. If you do, draw a card');
+                context.player2.clickPrompt('(No effect) Discard a card that costs 3 or more from your hand. If you do, draw a card');
                 context.player2.clickPrompt('Use it anyway');
             });
 

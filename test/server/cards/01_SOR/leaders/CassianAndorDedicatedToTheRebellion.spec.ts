@@ -148,7 +148,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.cassianAndor);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt(`(No effect) ${prompt}`);
 
                 expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);
                 context.player1.clickPrompt('Use it anyway');

@@ -19,7 +19,7 @@ describe('I Am The Senate', function() {
             expect(spies).toAllBeInZone('groundArena');
             expect(spies.every((spy) => spy.exhausted)).toBeTrue();
             expect(context.player2.getArenaCards().length).toBe(0);
-            expect(context.getChatLogs(1)).toEqual(['player1 plays I Am the Senate to create 5 Spys']);
+            expect(context.getChatLogs(1)).toEqual(['player1 plays I Am the Senate to create 5 Spy tokens']);
         });
     });
 });

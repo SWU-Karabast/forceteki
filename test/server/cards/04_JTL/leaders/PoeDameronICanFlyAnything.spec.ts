@@ -43,7 +43,7 @@ describe('Poe Dameron, I Can Fly Anything', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.poeDameron);
-                context.player1.clickPrompt('Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it');
+                context.player1.clickPrompt('(No effect) Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it');
                 context.player1.clickPrompt('Use it anyway');
 
                 expect(context.player2).toBeActivePlayer();
