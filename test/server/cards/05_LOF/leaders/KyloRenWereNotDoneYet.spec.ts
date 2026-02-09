@@ -100,7 +100,7 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
 
                 // Use Kylo Ren's ability
                 context.player1.clickCard(context.kyloRen);
-                context.player1.clickPrompt('Discard a card from your hand. If you discard an Upgrade this way, draw a card');
+                context.player1.clickPrompt('(No effect) Discard a card from your hand. If you discard an Upgrade this way, draw a card');
                 expect(context.player1).toHaveNoEffectAbilityPrompt('Discard a card from your hand. If you discard an Upgrade this way, draw a card');
                 context.player1.clickPrompt('Use it anyway');
 

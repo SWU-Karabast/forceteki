@@ -214,8 +214,8 @@ describe('Anakin Skywalker, Tempted by the Dark Side', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.anakinSkywalker);
-                context.player1.clickPrompt('Play a Villainy non-unit card from your hand, ignoring its aspect penalties.');
-                expect(context.player1).toHaveExactPromptButtons(['Use it anyway', 'Cancel']);
+                context.player1.clickPrompt('(No effect) Play a Villainy non-unit card from your hand, ignoring its aspect penalties.');
+                expect(context.player1).toHaveNoEffectAbilityPrompt('Play a Villainy non-unit card from your hand, ignoring its aspect penalties.');
                 context.player1.clickPrompt('Use it anyway');
 
                 expect(context.anakinSkywalker.exhausted).toBeFalse();
@@ -356,7 +356,7 @@ describe('Anakin Skywalker, Tempted by the Dark Side', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.anakinSkywalker);
-                context.player1.clickPrompt('Play a Villainy non-unit card from your hand, ignoring its aspect penalties.');
+                context.player1.clickPrompt('(No effect) Play a Villainy non-unit card from your hand, ignoring its aspect penalties.');
                 context.player1.clickPrompt('Use it anyway');
                 expect(context.anakinSkywalker.exhausted).toBeFalse();
                 expect(context.player1.hasTheForce).toBeFalse();
