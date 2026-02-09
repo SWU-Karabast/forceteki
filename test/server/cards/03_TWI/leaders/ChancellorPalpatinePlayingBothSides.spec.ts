@@ -46,7 +46,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(cloneTroopers.length).toBe(1);
                 expect(cloneTroopers[0]).toBeInZone('groundArena');
                 expect(context.getChatLogs(1)).toContain(
-                    'player1 uses Darth Sidious, exhausting Darth Sidious to create a Clone Trooper, then to deal 2 damage to player2\'s base, and then to flip Darth Sidious'
+                    'player1 uses Darth Sidious, exhausting Darth Sidious to create a Clone Trooper token, then to deal 2 damage to player2\'s base, and then to flip Darth Sidious'
                 );
 
                 // Move to next phase and enable Palpatine hero flip
