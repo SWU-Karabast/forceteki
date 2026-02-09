@@ -92,7 +92,7 @@ describe('Wedge Antilles, Leader of Red Squadron', function () {
 
                 // Deploy Wedge Antilles as a ground unit
                 context.player1.clickCard(context.wedgeAntilles);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play a card from your hand using Piloting. It costs 1 less.', 'Deploy Wedge Antilles']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', '(No effect) Play a card from your hand using Piloting. It costs 1 less.', 'Deploy Wedge Antilles']);
                 context.player1.clickPrompt('Deploy Wedge Antilles');
                 expect(context.wedgeAntilles.getPower()).toBe(3);
                 expect(context.wedgeAntilles.getHp()).toBe(6);
