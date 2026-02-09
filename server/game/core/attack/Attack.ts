@@ -1,7 +1,7 @@
 import type Game from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
-import { EffectName, KeywordName } from '../Constants';
+import { AbilityRestriction, EffectName, KeywordName } from '../Constants';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Player } from '../Player';
@@ -50,6 +50,10 @@ export class Attack {
     }
 
     public getAttackerCombatDamage(context: AbilityContext): number | null {
+        if (this.attacker.hasRestriction(AbilityRestriction.DealCombatDamage)) {
+            return null;
+        }
+
         const attackDamage = this.attackerCombatDamageOverride
             ? this.attackerCombatDamageOverride(this, context)
             : this.getUnitPower(this.attacker);
@@ -103,10 +107,19 @@ export class Attack {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public getTargetCombatDamage(_context: AbilityContext): number | null {
+        if (this.targets.every((t) => t.hasRestriction(AbilityRestriction.DealCombatDamage))) {
+            return null;
+        }
+
         // If we ever need to override the combat damage for the defender, we can follow the same pattern as attackerCombatDamageOverride
-        return this.targets.reduce(
-            (total, target) => total + (target.isBase() ? 0 : this.getUnitPower(target)), 0
-        );
+        const reducer = (totalDamage: number, target: IAttackableCard): number => {
+            if (target.isBase() || target.hasRestriction(AbilityRestriction.DealCombatDamage)) {
+                return totalDamage;
+            }
+            return totalDamage + this.getUnitPower(target);
+        };
+
+        return this.targets.reduce(reducer, 0);
     }
 
     public hasOverwhelm(): boolean {
