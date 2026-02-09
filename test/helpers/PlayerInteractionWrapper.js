@@ -729,6 +729,7 @@ class PlayerInteractionWrapper {
         for (let i = 0; i < nCardsToChoose; i++) {
             this.game.cardClicked(this.player.id, availableCards[i].uuid);
         }
+        this.game.continue();
 
         // this.checkUnserializableGameState();
     }
