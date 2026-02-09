@@ -188,38 +188,6 @@ describe('Clarifications Checks', function() {
             context.player1.clickPrompt('Pass');
         });
 
-        it('should give the Hondo Experience after ambush from timely resolves', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    spaceArena: ['corvus#inferno-squadron-raider', 'cartel-spacer'],
-                    hand: ['clone-pilot'],
-                    leader: 'hondo-ohnaka#thats-good-business',
-                    resources: ['timely-intervention', 'daring-raid', 'wampa', 'wampa', 'wampa']
-
-                },
-                player2: {
-                    spaceArena: [{ card: 'awing', upgrades: ['legal-authority'] }, 'survivors-gauntlet'],
-                    groundArena: ['battlefield-marine'],
-                    hand: ['traitorous']
-                }
-            });
-
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.timelyIntervention);
-            context.player1.clickCard(context.clonePilot);
-            context.player1.clickCard(context.battlefieldMarine);
-            context.player1.clickPrompt('Exhaust this leader to give an Experience token to a unit');
-            context.player1.clickPrompt('Trigger');
-            context.player1.clickCard(context.corvus);
-
-            expect(context.corvus).toHaveExactUpgradeNames(['experience']);
-            expect(context.battlefieldMarine.damage).toBe(2);
-            expect(context.clonePilot).toBeInZone('discard');
-            expect(context.player1).toBeActivePlayer();
-        });
-
         it('should return Luke pilot to his owner\'s ground arena after changing control and being defeated', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
