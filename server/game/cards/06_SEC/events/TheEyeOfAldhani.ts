@@ -34,7 +34,7 @@ export default class TheEyeOfAldhani extends EventCard {
                         abilityHelper.immediateEffects.exhaust((context) => ({
                             target: context.player.opponent.getArenaUnits({ condition: (card) => !context.targets.target.includes(card) }),
                         })),
-                        abilityHelper.immediateEffects.payResourceCost((context) => ({
+                        abilityHelper.immediateEffects.payResources((context) => ({
                             amount: context.targets.target.length,
                             target: context.player.opponent,
                         })),

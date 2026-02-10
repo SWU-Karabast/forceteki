@@ -9,8 +9,8 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import type { Trait } from '../core/Constants';
-import { KeywordName } from '../core/Constants';
+import type { PhaseName, RelativePlayerFilter, Trait } from '../core/Constants';
+import { KeywordName, RelativePlayer } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
@@ -33,6 +33,7 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
+import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/AdditionalPhaseEffect';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -225,6 +226,8 @@ export = {
     // unlessActionCost: (properties) => OngoingEffectBuilder.card.static(EffectName.UnlessActionCost, properties),
     // // Player effects
     additionalAction: () => OngoingEffectBuilder.player.static(EffectName.AdditionalAction, (game) => new OngoingEffectValueWrapper(game, true, 'give an additional action')),
+    additionalPhase: (properties: { phase: PhaseName }) =>
+        OngoingEffectBuilder.player.static(EffectName.AdditionalPhase, (game) => new AdditionalPhaseEffect(game, properties.phase)),
     // additionalCardPlayed: (amount = 1) => OngoingEffectBuilder.player.flexible(EffectName.AdditionalCardPlayed, amount),
     // additionalCharactersInConflict: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.AdditionalCharactersInConflict, amount),
@@ -281,6 +284,7 @@ export = {
     addExploit: (properties: Omit<IExploitCostAdjusterProperties, 'costAdjustType'>) => addExploit({ ...properties, costAdjustType: CostAdjustType.Exploit }),
     canExhaustUnitsInsteadOfResources: (properties: Omit<IExhaustUnitsCostAdjusterProperties, 'costAdjustType'>) =>
         exhaustUnitsInsteadOfResources({ ...properties, costAdjustType: CostAdjustType.ExhaustUnits }),
+    canLookAtTopOfDeck: (player: RelativePlayerFilter = RelativePlayer.Self) => OngoingEffectBuilder.player.static(EffectName.ShowTopCard, player),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>

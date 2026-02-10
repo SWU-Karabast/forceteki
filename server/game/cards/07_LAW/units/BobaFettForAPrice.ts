@@ -6,7 +6,7 @@ import { ZoneName, WildcardCardType } from '../../../core/Constants';
 export default class BobaFettForAPrice extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'boba-fett#for-a-price-id',
+            id: '2562671677',
             internalName: 'boba-fett#for-a-price'
         };
     }
@@ -15,7 +15,7 @@ export default class BobaFettForAPrice extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Pay 1 to deal 3 damage to a ground unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 1,
                 target: context.player
             })),
@@ -32,7 +32,7 @@ export default class BobaFettForAPrice extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'Pay 1 to deal 3 damage to a ground unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 1,
                 target: context.player
             })),

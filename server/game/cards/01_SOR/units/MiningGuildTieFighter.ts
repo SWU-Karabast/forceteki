@@ -14,7 +14,7 @@ export default class MiningGuildTieFighter extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'Pay 2 resources to draw',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 target: context.player,
                 amount: 2
             })),

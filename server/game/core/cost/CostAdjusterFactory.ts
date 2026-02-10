@@ -6,6 +6,7 @@ import type { CostAdjuster } from './CostAdjuster';
 import { CostAdjustType } from './CostAdjuster';
 import { FreeCostAdjuster } from './FreeCostAdjuster';
 import { IgnoreAspectCostAdjuster } from './IgnoreAspectCostAdjuster';
+import { IgnoreWildcardAspectsCostAdjuster } from './IgnoreWildcardAspectsCostAdjuster';
 import { IncreaseCostAdjuster } from './IncreaseCostAdjuster';
 import { ModifyPayStageCostAdjuster } from './ModifyPayStageCostAdjuster';
 import { SimpleCostAdjuster } from './SimpleCostAdjuster';
@@ -19,6 +20,8 @@ export function create(game: Game, source: Card, properties: ICostAdjusterProper
         case CostAdjustType.IgnoreAllAspects:
         case CostAdjustType.IgnoreSpecificAspects:
             return new IgnoreAspectCostAdjuster(game, source, properties);
+        case CostAdjustType.IgnoreWildcardAspects:
+            return new IgnoreWildcardAspectsCostAdjuster(game, source, properties);
         case CostAdjustType.Free:
             return new FreeCostAdjuster(game, source, properties);
         case CostAdjustType.Decrease:

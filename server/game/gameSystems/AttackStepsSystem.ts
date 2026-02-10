@@ -100,7 +100,15 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         const attack: Attack = event.attack;
 
         const attackMessage: FormatMessage[] = [
-            { format: '{0} attacks {1} with {2}', args: [attack.attackingPlayer, this.getTargetMessage(attack.getAllTargets(), event.context), attack.attacker] },
+            {
+                format: '{0} attacks {1} with {2}{3}',
+                args: [
+                    attack.attackingPlayer,
+                    this.getTargetMessage(attack.getAllTargets(), event.context),
+                    attack.attacker,
+                    attack.attackerDealsDamageBeforeDefender() ? ' (dealing damage before the defender)' : ''
+                ]
+            },
         ];
 
         const effectMessage: FormatMessage[] = [];

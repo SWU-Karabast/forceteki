@@ -51,7 +51,7 @@ describe('Caretaker Matron', function () {
 
             // Use Caretaker Matron's ability
             context.player1.clickCard(context.caretakerMatron);
-            context.player1.clickPrompt('Draw a card');
+            context.player1.clickPrompt('(No effect) Draw a card');
             context.player1.clickPrompt('Use it anyway');
 
             // Verify the unit is exhausted

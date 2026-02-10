@@ -21,7 +21,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity, GameEndReason } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity, GameEndReason, EffectName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -59,6 +59,7 @@ const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
 const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.js');
 const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
 const UndoConfirmationPrompt = require('./gameSteps/prompts/UndoConfirmationPrompt.js');
+const { AdditionalPhaseEffect } = require('./ongoingEffect/effectImpl/AdditionalPhaseEffect.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -1330,13 +1331,13 @@ class Game extends EventEmitter {
             ));
         }
 
-        const actionPhaseStep = this.buildActionPhaseStep(rollbackEntryPoint);
-        const regroupPhaseStep = this.buildRegroupPhaseStep(rollbackEntryPoint);
+        const actionPhaseSteps = this.buildActionPhaseSteps(rollbackEntryPoint);
+        const regroupPhaseSteps = this.buildRegroupPhaseSteps(rollbackEntryPoint);
 
         this.pipeline.initialise([
             ...roundStartStep,
-            ...actionPhaseStep,
-            ...regroupPhaseStep,
+            ...actionPhaseSteps,
+            ...regroupPhaseSteps,
             new SimpleStep(this, () => this.roundEnded(), 'roundEnded'),
             new SimpleStep(this, () => this.beginRound(), 'beginRound')
         ]);
@@ -1346,7 +1347,7 @@ class Game extends EventEmitter {
      * Initializes the action phase step in the pipeline.
      * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    buildActionPhaseStep(rollbackEntryPoint = null) {
+    buildActionPhaseSteps(rollbackEntryPoint = null) {
         if (
             rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase ||
             rollbackEntryPoint === RollbackRoundEntryPoint.WithinRegroupPhase ||
@@ -1373,14 +1374,16 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown or invalid rollback entry point for action phase: ${rollbackEntryPoint}`);
         }
 
-        return [new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode)];
+        return [
+            new ActionPhase(this, () => this.getNextActionNumber(), this._snapshotManager, actionInitializeMode)
+        ];
     }
 
     /**
      * Initializes the regroup phase step in the pipeline.
      * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    buildRegroupPhaseStep(rollbackEntryPoint = null) {
+    buildRegroupPhaseSteps(rollbackEntryPoint = null) {
         let regroupInitializeMode;
         switch (rollbackEntryPoint) {
             case RollbackRoundEntryPoint.StartOfRegroupPhase:
@@ -1402,7 +1405,56 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown rollback entry point for regroup phase: ${rollbackEntryPoint}`);
         }
 
-        return [new RegroupPhase(this, this._snapshotManager, regroupInitializeMode)];
+        /** @type {AdditionalPhaseEffect[]} */
+        const additionalRegroupPhaseEffects = this.getPlayers()
+            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
+            .filter((value) => value.phase === PhaseName.Regroup);
+
+        // If any additional regroup phases have started, we shouldn't create the main regroup phase again
+        if (additionalRegroupPhaseEffects.some((effect) => effect.hasStartedPhaseThisRound(this.roundNumber))) {
+            return [
+                new SimpleStep(this, () => this.checkCreateAdditionalRegroupPhases(regroupInitializeMode), 'checkCreateAdditionalRegroupPhases')
+            ];
+        }
+
+        return [
+            new RegroupPhase(this, this._snapshotManager, regroupInitializeMode),
+            // All phases except for the first should use Normal initialize mode
+            new SimpleStep(this, () => this.checkCreateAdditionalRegroupPhases(PhaseInitializeMode.Normal), 'checkCreateAdditionalRegroupPhases')
+        ];
+    }
+
+    /**
+     * Creates additional regroup phases as needed based on ongoing effects.
+     * @param {PhaseInitializeMode} regroupInitializeMode
+     */
+    checkCreateAdditionalRegroupPhases(regroupInitializeMode) {
+        /** @type {AdditionalPhaseEffect[]} */
+        const additionalRegroupPhaseEffects = this.getPlayers()
+            .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
+            .filter((value) =>
+                value.phase === PhaseName.Regroup &&
+                // Skip if this effect has completed an additional phase this round
+                // This can happen if we're rebuilding the pipline after a rollback
+                !value.hasEndedPhaseThisRound(this.roundNumber)
+            );
+
+        let usedInitializeMode = false;
+
+        // Create additional regroup phase steps per ongoing effect
+        for (const effect of additionalRegroupPhaseEffects) {
+            const regroupPhase = new RegroupPhase(
+                this,
+                this._snapshotManager,
+                usedInitializeMode  // All initialize modes after the first should be Normal
+                    ? PhaseInitializeMode.Normal
+                    : regroupInitializeMode,
+                effect
+            );
+
+            this.pipeline.queueStep(regroupPhase);
+            usedInitializeMode = true;
+        }
     }
 
     roundEnded() {

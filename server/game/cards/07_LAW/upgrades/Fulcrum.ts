@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class Fulcrum extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'fulcrum-id',
+            id: '4894267161',
             internalName: 'fulcrum',
         };
     }

@@ -20,31 +20,22 @@ export class VariableResourcePrompt extends ResourcePrompt {
         this.maxCardsToResource = maxCardsToResource;
     }
 
-    public override activePromptInternal(): IPlayerPromptStateProperties {
+    public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`;
+
+        const hasEnoughSelected = this.hasEnoughSelected(player);
 
         return {
             selectCardMode: SelectCardMode.Multiple,
             menuTitle: promptText,
-            buttons: [{ text: 'Done', arg: 'done' }],
+            buttons: [{ text: 'Done', arg: 'done', disabled: !hasEnoughSelected }],
             promptTitle: VariableResourcePrompt.title,
             promptUuid: this.uuid,
             promptType: PromptType.Resource
         };
     }
 
-    public override menuCommand(player: Player, arg: string) {
-        if (arg === 'done') {
-            if (this.completionCondition(player)) {
-                return false;
-            }
-            if (this.selectedCards[player.name].length < this.minCardsToResource) {
-                return false;
-            }
-
-            this.playersDone[player.name] = true;
-            return true;
-        }
-        return false;
+    protected override hasEnoughSelected(player: Player): boolean {
+        return this.selectedCards[player.name].length >= this.minCardsToResource;
     }
 }

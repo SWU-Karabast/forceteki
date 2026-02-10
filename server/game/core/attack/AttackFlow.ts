@@ -92,20 +92,29 @@ export class AttackFlow extends BaseStepWithPipeline {
         if (inPlayTargets.length > 0) {
             const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
 
-            const attackerDamageEvents = inPlayTargets.map((target) => this.createAttackerDamageEvent(target));
+            const attackerDamageEvents = inPlayTargets
+                .map((target) => this.createAttackerDamageEvent(target))
+                .filter((event) => event !== null);
+
             damageEvents.push(...attackerDamageEvents);
 
             if (attackerDealsDamageBeforeDefender) {
                 this.context.game.openEventWindow(damageEvents);
                 this.context.game.queueSimpleStep(() => {
                     if (legalTargets.some((target) => !target.isBase() && target.isInPlay())) {
-                        this.context.game.openEventWindow(this.createDefenderDamageEvent());
+                        const defenderDamageEvent = this.createDefenderDamageEvent();
+                        if (defenderDamageEvent !== null) {
+                            this.context.game.openEventWindow(defenderDamageEvent);
+                        }
                     }
                 }, 'check and queue event for defender damage');
             } else {
                 // normal attack
                 if (inPlayTargets.some((target) => !target.isBase())) {
-                    damageEvents.push(this.createDefenderDamageEvent());
+                    const defenderDamageEvent = this.createDefenderDamageEvent();
+                    if (defenderDamageEvent !== null) {
+                        damageEvents.push(defenderDamageEvent);
+                    }
                 }
                 this.context.game.openEventWindow(damageEvents);
             }
@@ -114,10 +123,16 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
     }
 
-    private createAttackerDamageEvent(target: IAttackableCard): GameEvent {
+    private createAttackerDamageEvent(target: IAttackableCard): GameEvent | null {
+        const combatDamage = this.attack.getAttackerCombatDamage(this.context);
+
+        if (combatDamage === null) {
+            return null;
+        }
+
         const attackerDamageEvent = new DamageSystem({
             type: DamageType.Combat,
-            amount: this.attack.getAttackerCombatDamage(this.context),
+            amount: combatDamage,
             sourceAttack: this.attack,
             target: target
         }).generateEvent(this.context);
@@ -144,10 +159,16 @@ export class AttackFlow extends BaseStepWithPipeline {
         return attackerDamageEvent;
     }
 
-    private createDefenderDamageEvent(): GameEvent {
+    private createDefenderDamageEvent(): GameEvent | null {
+        const combatDamage = this.attack.getTargetCombatDamage(this.context);
+
+        if (combatDamage === null) {
+            return null;
+        }
+
         return new DamageSystem({
             type: DamageType.Combat,
-            amount: this.attack.getTargetCombatDamage(this.context),
+            amount: combatDamage,
             sourceAttack: this.attack,
             target: this.attack.attacker
         }).generateEvent(this.context);
