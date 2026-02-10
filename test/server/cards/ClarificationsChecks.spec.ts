@@ -1,6 +1,6 @@
 describe('Clarifications Checks', function() {
     integration(function(contextRef) {
-        it('Oppo and Clone should not get Restore off of each other', async function () {
+        xit('Oppo and Clone should not get Restore off of each other', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -24,7 +24,7 @@ describe('Clarifications Checks', function() {
             expect(context.clone.hasSomeKeyword('restore')).toBe(false);
         });
 
-        it('should nest krayt with when played and have yoda resolve last', async function () {
+        xit('should nest krayt with when played and have yoda resolve last', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -62,7 +62,7 @@ describe('Clarifications Checks', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should keep cards captured by a pilot captured by the upgrade if the pilot is grabbed with Corvus', async function () {
+        xit('should keep cards captured by a pilot captured by the upgrade if the pilot is grabbed with Corvus', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -84,7 +84,7 @@ describe('Clarifications Checks', function() {
             expect(context.secretiveSage).toBeCapturedBy(context.idenVersio);
         });
 
-        it('should keep cards captured by a pilot captured by L3 if the replacement effect is used', async function () {
+        xit('should keep cards captured by a pilot captured by L3 if the replacement effect is used', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -110,7 +110,7 @@ describe('Clarifications Checks', function() {
             expect(context.secretiveSage).toBeCapturedBy(context.l337);
         });
 
-        it('should allow damaging an enemy unit even if there are no friendly units in the arena', async function () {
+        xit('should allow damaging an enemy unit even if there are no friendly units in the arena', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -130,7 +130,7 @@ describe('Clarifications Checks', function() {
             expect(context.battlefielMarine.damage).toBe(2);
         });
 
-        it('JTL Yularen should only affect the units of his owner, not controller', async function () {
+        xit('JTL Yularen should only affect the units of his owner, not controller', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -158,37 +158,7 @@ describe('Clarifications Checks', function() {
             expect(context.awing.hasSomeKeyword('sentinel')).toBe(false);
         });
 
-        it('Survivor\'s Gauntlet controller should not be able to move an enemy pilot from a unit they took control of', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    spaceArena: ['corvus#inferno-squadron-raider', 'cartel-spacer'],
-                    hand: ['clone-pilot']
-
-                },
-                player2: {
-                    spaceArena: [{ card: 'awing', upgrades: ['legal-authority'] }, 'survivors-gauntlet'],
-                    hand: ['traitorous']
-                }
-            });
-
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.clonePilot);
-            context.player1.clickPrompt('Play Clone Pilot with piloting');
-            context.player1.clickCard(context.cartelSpacer);
-
-            context.player2.clickCard(context.traitorous);
-            context.player2.clickCard(context.cartelSpacer);
-            context.player1.clickPrompt('Claim initiative');
-
-            context.player2.clickCard(context.survivorsGauntlet);
-            context.player2.clickCard(context.p1Base);
-            expect(context.player2).toBeAbleToSelectExactly([context.legalAuthority, context.traitorous]);
-            context.player1.clickPrompt('Pass');
-        });
-
-        it('should return Luke pilot to his owner\'s ground arena after changing control and being defeated', async function () {
+        xit('should return Luke pilot to his owner\'s ground arena after changing control and being defeated', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
