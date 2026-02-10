@@ -378,6 +378,14 @@ export class GameServer {
             try {
                 const { gameId, user } = req.body;
                 const lobby = this.lobbies.get(gameId);
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (spectate-game): Anonymous user ${user.getId()} is attempting to spectate a game.`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to spectate game.'
+                    });
+                }
+
                 // if they are in a game already we give them 403 forbidden
                 if (!this.canUserJoinNewLobby(user.id)) {
                     logger.error(`GameServer (spectate-game): User ${user.id} attempted to spectate a game while playing a game`);
@@ -1573,6 +1581,11 @@ export class GameServer {
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
         // 0. If user is spectator
         if (isSpectator) {
+            if (user.isAnonymousUser()) {
+                logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect as spectator to a lobby, disconnecting`);
+                ioSocket.disconnect();
+                return Promise.resolve();
+            }
             // Check if user is registered as a spectator
             if (!lobbyUserEntry || lobbyUserEntry.role !== UserRole.Spectator) {
                 logger.warn(`GameServer: User ${user.getId()} attempted to connect as spectator but is not registered in any lobby, disconnecting`);
