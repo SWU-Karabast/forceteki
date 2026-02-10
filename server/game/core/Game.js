@@ -793,11 +793,11 @@ class Game extends EventEmitter {
     }
 
     /** @param {Player} player */
-    onActionTimerExpired(player) {
+    onGameTimerExpired(player) {
         player.opponent.actionTimer.stop();
 
-        this.userTimeoutDisconnect(player.id);
-        this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
+        this.endGame(player.opponent, GameEndReason.Timeout);
+        this.addAlert(AlertType.Notification, 'Game ended due to player timeout.');
         return null;
     }
 

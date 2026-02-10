@@ -202,7 +202,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             this.actionTimer = new ByoyomiTimer(
                 this,
                 this.game,
-                () => this.game.onActionTimerExpired(this),
+                () => this.game.onGameTimerExpired(this),
                 (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId),
                 () => this.game.sendUpdatedGameStateToPlayers()
             );
