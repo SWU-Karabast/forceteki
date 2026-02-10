@@ -522,6 +522,7 @@ export class Lobby {
 
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
+        socket.registerEvent('typingstate', (socket, isTyping: boolean) => this.onTypingStateMessage(socket, isTyping));
 
         if (existingUser) {
             existingUser.state = 'connected';
@@ -1434,6 +1435,21 @@ export class Lobby {
             }
         } catch (error) {
             logger.error('Game: error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
+    }
+
+    private onTypingStateMessage(socket: Socket, isTyping: boolean) {
+        const fromUserId = socket.user.getId();
+        const payload = {
+            username: socket.user.getUsername(),
+            isTyping,
+        };
+
+        // No need to send indication back to the typing user
+        for (const user of this.users) {
+            if (user.id !== fromUserId && user.socket && user.socket.socket.connected) {
+                user.socket.send('typingstate', payload);
+            }
         }
     }
 
