@@ -12,23 +12,12 @@ export default class ArvelSkeenWinAndWalkAway extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addWhenPlayedAbility({
+        registrar.addTriggeredAbility({
             title: 'Defeat a Credit token',
-            optional: true,
-            targetResolver: {
-                cardTypeFilter: WildcardCardType.Token,
-                cardCondition: (card) => card.isCreditToken(),
-                immediateEffect: AbilityHelper.immediateEffects.defeat(),
+            when: {
+                onAttack: true,
+                whenPlayed: true,
             },
-            ifYouDo: {
-                title: 'Deal 1 damage to a unit or base',
-                targetResolver: {
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
-                }
-            }
-        });
-        registrar.addOnAttackAbility({
-            title: 'Defeat a Credit token',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Token,
