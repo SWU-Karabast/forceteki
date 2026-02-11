@@ -1404,12 +1404,6 @@ export class Lobby {
                 return;
             }
 
-            // Handle message retransmit requests from clients
-            if (command === 'retransmitGameMessages') {
-                this.retransmitGameMessages(socket, args[0], args[1]);
-                return;
-            }
-
             // if (command === 'leavegame') {
             //     return this.onLeaveGame(socket);
             // }
