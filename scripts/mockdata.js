@@ -292,6 +292,20 @@ const mockCards = [
         arena: 'ground',
         internalName: 'the-stranger#no-survivors',
     }),
+    buildMockCard({
+        title: 'Windfall',
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning'],
+        types: ['event'],
+        traits: ['supply'],
+        setId: {
+            set: 'LAW',
+            number: 248,
+        },
+        unique: false,
+        internalName: 'windfall',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
