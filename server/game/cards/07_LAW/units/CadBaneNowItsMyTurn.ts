@@ -12,16 +12,17 @@ export default class CadBaneNowItsMyTurn extends NonLeaderUnitCard {
         };
     }
 
-
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Defeat any number of friendly Credit tokens',
             targetResolver: {
-                condition: (context) => context.player.creditTokenCount > 0,
+                activePromptTitle: 'Defeat any number of friendly Credit tokens',
                 mode: TargetMode.DropdownList,
-                options: (context) => Array.from({ length: context.player.creditTokenCount + 1 }, (_x, i) => `${i}`),
+                condition: (context) => context.source.controller.creditTokenCount > 0,
+                logSelection: false,
+                options: (context) => Array.from({ length: context.source.controller.creditTokenCount + 1 }, (_x, i) => `${i}`),
                 immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({
-                    target: context.player.baseZone.credits.slice(parseInt(context.select))
+                    target: context.source.controller.baseZone.credits.slice(0, parseInt(context.select))
                 })),
             },
             ifYouDo: (ifYouDoContext) => ({
