@@ -248,6 +248,9 @@ class Game extends EventEmitter {
 
         /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
+
+        /** @type {Map<string, number>} Tracks the last message offset sent to each user/spectator */
+        this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
         this.pipeline = new GamePipeline();
         this.id = details.id;
@@ -422,6 +425,11 @@ class Game extends EventEmitter {
 
     get messages() {
         return this.gameChat.messages;
+    }
+
+    /** @param {string} participantId */
+    getChatMessageOffset(participantId) {
+        return this.chatMessageOffsets.get(participantId) ?? 0;
     }
 
     /**
@@ -1948,10 +1956,11 @@ class Game extends EventEmitter {
 
     /**
      * Returns the serialized game state for a specific player/spectator.
+     * Tracks message offsets internally per player/spectator for incremental message sync.
      * @param {string} notInactivePlayerId - The player/spectator ID to get state for
-     * @param {number} [lastMessageOffset=0] - The index to start sending messages from (for incremental sync)
      */
-    getState(notInactivePlayerId, lastMessageOffset = 0) {
+    getState(notInactivePlayerId) {
+        const lastMessageOffset = this.chatMessageOffsets.get(notInactivePlayerId) ?? 0;
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
 
@@ -2005,6 +2014,9 @@ class Game extends EventEmitter {
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                 };
+
+                // Advance the offset for this participant
+                this.chatMessageOffsets.set(notInactivePlayerId, totalMessages);
 
                 // Convert nulls to undefined so JSON.stringify strips them (reduces payload size)
                 Helpers.convertNullToUndefinedRecursiveInPlace(gameState);

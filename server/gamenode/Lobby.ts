@@ -43,7 +43,6 @@ interface LobbySpectatorWrapper {
     state: 'connected' | 'disconnected';
     socket?: Socket;
     user?: User;
-    lastMessageOffset: number;
 }
 
 interface IChatMessageEntry {
@@ -445,8 +444,7 @@ export class Lobby {
                 ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard })
                 : {},
             deck,
-            reportedBugs: 0,
-            lastMessageOffset: 0
+            reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         this.gameChat.addMessage(`${user.getUsername()} has created and joined the lobby`);
@@ -469,8 +467,7 @@ export class Lobby {
                 username: user.getId(),
                 socket,
                 user: socket.user,
-                state: 'connected',
-                lastMessageOffset: 0
+                state: 'connected'
             });
         } else {
             existingSpectator.state = 'connected';
@@ -538,8 +535,7 @@ export class Lobby {
                 ready: false,
                 socket,
                 user: socket.user,
-                reportedBugs: 0,
-                lastMessageOffset: 0
+                reportedBugs: 0
             });
             logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()}, socket id: ${socket.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
             this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
@@ -1208,14 +1204,6 @@ export class Lobby {
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
 
-            // Reset message tracking for all clients on new game
-            for (const user of this.users) {
-                user.lastMessageOffset = 0;
-            }
-            for (const spectator of this.spectators) {
-                spectator.lastMessageOffset = 0;
-            }
-
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
             game.started = true;
@@ -1833,14 +1821,7 @@ export class Lobby {
 
     private sendGameStateToSpectator(socket: Socket, spectatorId: string): void {
         if (this.game) {
-            const spectator = this.spectators.find((s) => s.id === spectatorId);
-            if (spectator) {
-                const gameState = this.getGameStateAndAdvanceOffset(spectator, this.game);
-                socket.send('gamestate', gameState);
-            } else {
-                // Fallback for edge cases where spectator isn't found yet (sends all messages)
-                socket.send('gamestate', this.game.getState(spectatorId, 0));
-            }
+            socket.send('gamestate', this.game.getState(spectatorId));
         }
     }
 
@@ -2093,24 +2074,18 @@ export class Lobby {
     }
 
 
-    private getGameStateAndAdvanceOffset(participant: LobbySpectatorWrapper, game: Game) {
-        const gameState = game.getState(participant.id, participant.lastMessageOffset);
-        participant.lastMessageOffset = gameState.messageOffset + gameState.newMessages.length;
-        return gameState;
-    }
-
     public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
         // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                const clientGameState = this.getGameStateAndAdvanceOffset(user, game);
+                const clientGameState = game.getState(user.id);
                 user.socket.send('gamestate', clientGameState, () => this.safeSetUserConnected(user.id));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                const clientGameState = this.getGameStateAndAdvanceOffset(spectator, game);
+                const clientGameState = game.getState(spectator.id);
                 spectator.socket.send('gamestate', clientGameState, () => this.safeSetUserConnected(spectator.id));
             }
         }
@@ -2135,8 +2110,7 @@ export class Lobby {
         const requestedMessages = allMessages.slice(safeStart, safeEnd);
 
         const userId = socket.user.getId();
-        const participant = this.users.find((u) => u.id === userId) ?? this.spectators.find((s) => s.id === userId);
-        logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: participant?.lastMessageOffset ?? null });
+        logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: this.game.getChatMessageOffset(userId) });
 
         socket.send('retransmitResponse', {
             messages: requestedMessages,
