@@ -2073,14 +2073,12 @@ export class Lobby {
         // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                const clientGameState = game.getState(user.id);
-                user.socket.send('gamestate', clientGameState, () => this.safeSetUserConnected(user.id));
+                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                const clientGameState = game.getState(spectator.id);
-                spectator.socket.send('gamestate', clientGameState, () => this.safeSetUserConnected(spectator.id));
+                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
             }
         }
     }
