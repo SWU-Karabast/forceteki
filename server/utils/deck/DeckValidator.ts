@@ -17,19 +17,22 @@ enum SwuSet {
     LOF = 'lof',
     IBH = 'ibh',
     SEC = 'sec',
-    LAW = 'law'
+    LAW = 'law',
+    TS26 = 'ts26'
 }
 
 enum SwuRotationBlock {
     Block0,
     BlockA,
-    BlockB
+    BlockB,
+    BlockTS
 }
 
 const rotationBlocks = new Map<SwuRotationBlock, Set<SwuSet>>([
     [SwuRotationBlock.Block0, new Set([SwuSet.SOR, SwuSet.SHD, SwuSet.TWI])],
     [SwuRotationBlock.BlockA, new Set([SwuSet.JTL, SwuSet.LOF, SwuSet.IBH, SwuSet.SEC])],
-    [SwuRotationBlock.BlockB, new Set([SwuSet.LAW])]
+    [SwuRotationBlock.BlockB, new Set([SwuSet.LAW])],
+    [SwuRotationBlock.BlockTS, new Set([SwuSet.TS26])]
 ]);
 
 const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
