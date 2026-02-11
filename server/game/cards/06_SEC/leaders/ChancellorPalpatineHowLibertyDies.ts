@@ -17,7 +17,7 @@ export default class ChancellorPalpatineHowLibertyDies extends LeaderUnitCard {
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
-                cardCondition: (card) => card.hasSomeKeyword(KeywordName.Plot),
+                cardCondition: (card) => card.hasKeyword(KeywordName.Plot),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
             })
         });
