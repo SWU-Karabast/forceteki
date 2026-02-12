@@ -18,14 +18,11 @@ describe('Cad Bane, Now it\'s My Turn', function() {
             it('should prompt to choose a number, allowing the controller to pick, defeat all of their credits, then give Cad Experience', function () {
                 const { context } = contextRef;
 
-
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.p2Base);
 
-
                 expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 5 }, (x, i) => `${i}`));
                 context.player1.chooseListOption('4');
-
 
                 expect(context.p2Base.damage).toBe(10);
                 expect(context.cadBane).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
@@ -34,18 +31,14 @@ describe('Cad Bane, Now it\'s My Turn', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-
             it('should prompt to choose a number, allowing the controller to pick, defeat some of their credits, then give Cad Experience', function () {
                 const { context } = contextRef;
-
 
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.p2Base);
 
-
                 expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 5 }, (x, i) => `${i}`));
                 context.player1.chooseListOption('2');
-
 
                 expect(context.p2Base.damage).toBe(8);
                 expect(context.cadBane).toHaveExactUpgradeNames(['experience', 'experience']);
@@ -54,18 +47,14 @@ describe('Cad Bane, Now it\'s My Turn', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-
             it('should prompt to choose a number, allowing the controller to pick, defeat no credits, give Cad no Experience', function () {
                 const { context } = contextRef;
-
 
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.p2Base);
 
-
                 expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 5 }, (x, i) => `${i}`));
                 context.player1.chooseListOption('0');
-
 
                 expect(context.p2Base.damage).toBe(6);
                 expect(context.cadBane).toHaveExactUpgradeNames([]);
@@ -74,7 +63,6 @@ describe('Cad Bane, Now it\'s My Turn', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
-
 
         describe('Cad\'s ability', function() {
             beforeEach(function () {
@@ -89,10 +77,8 @@ describe('Cad Bane, Now it\'s My Turn', function() {
                 });
             });
 
-
             it('should do nothing if the player has no Credits', function () {
                 const { context } = contextRef;
-
 
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.p2Base);
