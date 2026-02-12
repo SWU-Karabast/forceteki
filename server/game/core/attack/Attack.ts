@@ -105,8 +105,15 @@ export class Attack {
         return matchingUnits.length > 0;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public getTargetCombatDamage(_context: AbilityContext): number | null {
+
+    /**
+     * Get total combat damage from targets.
+     * @param earlyOnly - true: only targets that deal damage first, false: only targets that don't deal damage first
+     */
+    public getTargetCombatDamage(
+        _context: AbilityContext,
+        earlyOnly: boolean = false
+    ): number | null {
         if (this.targets.every((t) => t.hasRestriction(AbilityRestriction.DealCombatDamage))) {
             return null;
         }
@@ -119,15 +126,30 @@ export class Attack {
             return totalDamage + this.getUnitPower(target);
         };
 
-        return this.targets.reduce(reducer, 0);
+        return this.targets
+            .filter((t) => {
+                const dealsFirst = this.targetDealsCombatDamageFirst(t);
+                return earlyOnly ? dealsFirst : !dealsFirst;
+            })
+            .reduce(reducer, 0);
     }
 
     public hasOverwhelm(): boolean {
         return this.attacker.hasSomeKeyword(KeywordName.Overwhelm);
     }
 
-    public attackerDealsDamageBeforeDefender(): boolean {
-        return this.attacker.hasOngoingEffect(EffectName.DealsDamageBeforeDefender);
+    public attackerDealsCombatDamageFirst(): boolean {
+        return this.attacker.hasOngoingEffect(EffectName.DealsCombatDamageFirst);
+    }
+
+    public targetDealsCombatDamageFirst(attackTarget: IAttackableCard): boolean {
+        return this.targets.includes(attackTarget) &&
+          !attackTarget.isBase() &&
+          attackTarget.hasOngoingEffect(EffectName.DealsCombatDamageFirst);
+    }
+
+    public anyTargetDealsCombatDamageFirst(): boolean {
+        return this.targets.some((t) => this.targetDealsCombatDamageFirst(t));
     }
 
     public getLegalTargets(): IAttackableCard[] {

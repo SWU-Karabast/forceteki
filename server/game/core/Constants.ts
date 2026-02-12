@@ -97,7 +97,7 @@ export enum EffectName {
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
-    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
+    DealsCombatDamageFirst = 'dealsCombatDamageFirst',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
