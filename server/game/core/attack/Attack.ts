@@ -108,11 +108,11 @@ export class Attack {
 
     /**
      * Get total combat damage from targets.
-     * @param earlyOnly - true: only targets that deal damage first, false: only targets that don't deal damage first
+     * @param earlyCombatDamageOnly - `true`: only include damage for targets that deal damage first, `false`: only include damage for targets that don't deal damage first
      */
     public getTargetCombatDamage(
         _context: AbilityContext,
-        earlyOnly: boolean = false
+        earlyCombatDamageOnly: boolean = false
     ): number | null {
         if (this.targets.every((t) => t.hasRestriction(AbilityRestriction.DealCombatDamage))) {
             return null;
@@ -129,7 +129,7 @@ export class Attack {
         return this.targets
             .filter((t) => {
                 const dealsFirst = this.targetDealsCombatDamageFirst(t);
-                return earlyOnly ? dealsFirst : !dealsFirst;
+                return earlyCombatDamageOnly ? dealsFirst : !dealsFirst;
             })
             .reduce(reducer, 0);
     }

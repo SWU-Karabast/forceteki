@@ -202,10 +202,10 @@ export class AttackFlow extends BaseStepWithPipeline {
 
     /**
      * Create a damage event for defenders dealing damage to the attacker.
-     * @param earlyOnly - true: only defenders that deal damage first, false: only defenders that don't deal damage first
+     * @param earlyCombatDamageOnly - `true`: only include damage for defenders that deal damage first, `false`: only include damage for defenders that don't deal damage first
      */
-    private createDefenderDamageEvent(earlyOnly: boolean = false): GameEvent | null {
-        const combatDamage = this.attack.getTargetCombatDamage(this.context, earlyOnly);
+    private createDefenderDamageEvent(earlyCombatDamageOnly: boolean = false): GameEvent | null {
+        const combatDamage = this.attack.getTargetCombatDamage(this.context, earlyCombatDamageOnly);
 
         if (combatDamage === null || combatDamage === 0) {
             return null;

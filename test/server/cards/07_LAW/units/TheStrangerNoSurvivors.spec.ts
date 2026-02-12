@@ -9,6 +9,7 @@ describe('The Stranger, No Survivors', function() {
                         groundArena: ['the-stranger#no-survivors'],
                     },
                     player2: {
+                        hand: ['open-fire'],
                         groundArena: [
                             'battlefield-marine',
                             'consular-security-force',
@@ -77,6 +78,28 @@ describe('The Stranger, No Survivors', function() {
                 // The Stranger takes 3 damage first, then attacks with Grit bonus
                 expect(context.theStranger.damage).toBe(3);
                 expect(context.consularSecurityForce.damage).toBe(4);
+            });
+
+            it('should not deal damage back if The Stranger is defeated by the defender\'s first strike damage', function() {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                // P2 plays Open Fire to deal 4 damage to The Stranger
+                context.player2.clickCard(context.openFire);
+                context.player2.clickCard(context.theStranger);
+
+                // P1 attacks Battlefield Marine with The Stranger, letting the defender deal damage first
+                context.player1.clickCard(context.theStranger);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Prompt should appear for the choice
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                context.player1.clickPrompt('Defender deals damage first');
+
+                // The Stranger should be defeated by Open Fire's damage and not deal any damage to Battlefield Marine
+                expect(context.theStranger).toBeInZone('discard');
+                expect(context.battlefieldMarine.damage).toBe(0);
             });
 
             it('should not prompt the player when The Stranger is already dealing damage first', function() {
