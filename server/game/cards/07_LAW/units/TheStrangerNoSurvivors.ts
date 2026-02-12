@@ -24,10 +24,11 @@ export default class TheStrangerNoSurvivors extends NonLeaderUnitCard {
                     !context.event.attack.attackerDealsCombatDamageFirst(), // Only offer the choice if the attacker isn't already dealing damage first
                 choices: (context) => ({
                     ['Defender deals damage first']: AbilityHelper.immediateEffects.forThisAttackCardEffect({
-                        target: context.event.attack.getAllTargets(),
+                        target: context.event.attack
+                            .getAllTargets()
+                            .filter((t) => t.isUnit()),
                         effect: AbilityHelper.ongoingEffects.dealsCombatDamageFirst(),
-                        ongoingEffectDescription: 'make {0} deal combat damage after the defender',
-                        ongoingEffectTargetDescription: 'him',
+                        ongoingEffectDescription: 'deal combat damage after'
                     }),
                     ['Deal damage normally']: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                 })

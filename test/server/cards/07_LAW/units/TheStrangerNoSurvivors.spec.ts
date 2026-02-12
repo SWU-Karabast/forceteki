@@ -61,6 +61,7 @@ describe('The Stranger, No Survivors', function() {
                 // Battlefield Marine is defeated due to taking 4 damage
                 expect(context.theStranger.damage).toBe(3);
                 expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.getChatLogs(3)).toContain('player1 uses The Stranger to deal combat damage after Battlefield Marine for this attack');
             });
 
             it('should allow defender to deal damage first, but the defender survives', function() {
