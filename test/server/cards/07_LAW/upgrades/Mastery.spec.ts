@@ -6,43 +6,38 @@ describe('Mastery', function() {
                     phase: 'action',
                     player1: {
                         hand: ['mastery'],
-                        groundArena: ['rebel-pathfinder'], // unique unit
-                        spaceArena: ['cartel-spacer'] // non-unique unit
+                        groundArena: ['rebel-pathfinder', 'yoda#old-master'],
+                        spaceArena: ['cartel-spacer'],
+                        leader: 'chewbacca#walking-carpet'
                     },
                     player2: {
-                        groundArena: ['wampa'], // unique unit
-                        spaceArena: ['imperial-interceptor'] // non-unique unit
+                        groundArena: ['wampa', 'gungi#finding-himself'],
                     }
                 });
             });
 
-            it('should attach to any unit', function () {
+            it('should cost 1 resource less when played on a unique unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.mastery);
-                
-                // Should be able to target any unit
-                expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.cartelSpacer, context.wampa, context.imperialInterceptor]);
-                
-                context.player1.clickCard(context.rebelPathfinder);
-                
-                // Verify the upgrade is attached
-                expect(context.mastery).toBeAttachedTo(context.rebelPathfinder);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.yoda, context.gungi, context.cartelSpacer, context.wampa]);
+
+                context.player1.clickCard(context.yoda);
+
+                expect(context.yoda).toHaveExactUpgradeNames(['mastery']);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should attach to non-unique units', function () {
+            it('should not cost 1 resource less when played on a unique unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.mastery);
-                
-                // Should be able to target any unit
-                expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.cartelSpacer, context.wampa, context.imperialInterceptor]);
-                
                 context.player1.clickCard(context.cartelSpacer);
-                
-                // Verify the upgrade is attached to non-unique unit
-                expect(context.mastery).toBeAttachedTo(context.cartelSpacer);
+
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['mastery']);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -50,14 +45,10 @@ describe('Mastery', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.mastery);
-                
-                // Should be able to target any unit (including enemy)
-                expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.cartelSpacer, context.wampa, context.imperialInterceptor]);
-                
-                context.player1.clickCard(context.wampa);
-                
-                // Verify the upgrade is attached to enemy unique unit
-                expect(context.mastery).toBeAttachedTo(context.wampa);
+                context.player1.clickCard(context.gungi);
+
+                expect(context.gungi).toHaveExactUpgradeNames(['mastery']);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
         });
