@@ -461,6 +461,15 @@ export class Lobby {
             socket.disconnect();
             return;
         }
+
+        // Remove any existing lobby listeners if spectator already existed and reconnected
+        if (socket.eventContainsListener('lobby')) {
+            socket.removeEventsListeners(['lobby']);
+        }
+
+        // Limited lobby message handling for spectators
+        socket.registerEvent('lobby', (socket, command, ...args) => this.onSpectatorLobbyMessage(socket, command, ...args));
+
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
@@ -1357,6 +1366,20 @@ export class Lobby {
         this.server.handleIntentionalDisconnect(userId, false, this);
 
         logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
+    }
+
+    private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
+
+    private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
+        try {
+            if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
+                return;
+            }
+
+            await this[command](socket, ...args);
+        } catch (error) {
+            logger.error('Lobby: error processing spectator lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
