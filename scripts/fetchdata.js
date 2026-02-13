@@ -358,7 +358,8 @@ function buildCardLists(cards) {
         ['LOF', 5],
         ['IBH', 5.9],
         ['SEC', 6],
-        ['LAW', 7]
+        ['LAW', 7],
+        ['TS26', 7.5]
     ]);
 
     for (const card of cards) {
