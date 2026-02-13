@@ -25,10 +25,7 @@ export default class DarthSidiousUndeerACloakOfDarkness extends NonLeaderUnitCar
             when: {
                 onCardDefeated: (event) => EnumHelpers.isNonTokenUnit(event.lastKnownInformation.type),
             },
-            targetResolver: {
-                controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
-            }
+            immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });
     }
 }

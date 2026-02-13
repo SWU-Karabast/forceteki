@@ -5,30 +5,52 @@ describe('Darth Sidious, Under a Cloak of Darkness', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['darth-sidious#under-a-cloak-of-darkness', 'battle-droid'],
+                        groundArena: ['darth-sidious#under-a-cloak-of-darkness', 'clone-trooper', 'super-battle-droid'],
                         spaceArena: ['awing'],
-                        base: { card: 'echo-base', damage: 5 }
                     },
                     player2: {
-                        groundArena: ['death-star-stormtrooper', 'warrior-drone'],
-                        base: { card: 'echo-base', damage: 5 }
+                        groundArena: ['death-star-stormtrooper', 'warrior-drone', 'atst'],
                     }
                 });
             });
 
-            it('should give friendly Separatist units +1/+0 and create a Battle Droid token when a non token is defeated', function() {
+            it('should not create a Battle Droid token when a token is defeated', function() {
                 const { context } = contextRef;
-                context.player1.clickCard(context.battleDroid);
-                context.player1.clickCard(context.warriorDrone);
+                context.player1.clickCard(context.cloneTrooper);
+                context.player1.clickCard(context.atst);
 
                 const battleDroids = context.player1.findCardsByName('battle-droid');
                 expect(battleDroids.length).toBe(0);
-                expect(context.warriorDrone.damage).toBe(2);
-                expect(context.warriorDrone.getPower()).toBe(1);
+            });
 
-                context.player2.clickCard(context.deathStarStormtrooper);
-                context.player2.clickCard(context.darthSidious);
-                expect(context.player1.findCardsByName('battle-droid').length).toBe(1);
+            it('should create a Battle Droid token when a non-token is defeated', function() {
+                const { context } = contextRef;
+                context.player1.clickCard(context.superBattleDroid);
+                context.player1.clickCard(context.warriorDrone);
+
+                const battleDroids = context.player1.findCardsByName('battle-droid');
+                expect(battleDroids.length).toBe(1);
+            });
+
+            it('should work off of Sidious dying', function() {
+                const { context } = contextRef;
+                context.player1.clickCard(context.darthSidious);
+                context.player1.clickCard(context.atst);
+
+                const battleDroids = context.player1.findCardsByName('battle-droid');
+                expect(battleDroids.length).toBe(1);
+            });
+
+            it('should be giving other friendly Separatists +1/+0', function() {
+                const { context } = contextRef;
+
+                expect(context.darthSidious.getPower()).toBe(4);
+                expect(context.superBattleDroid.getPower()).toBe(5);
+                expect(context.awing.getPower()).toBe(1);
+                expect(context.cloneTrooper.getPower()).toBe(2);
+                expect(context.warriorDrone.getPower()).toBe(1);
+                expect(context.atst.getPower()).toBe(6);
+                expect(context.deathStarStormtrooper.getPower()).toBe(3);
             });
         });
     });
