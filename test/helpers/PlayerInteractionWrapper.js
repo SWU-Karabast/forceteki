@@ -123,7 +123,9 @@ class PlayerInteractionWrapper {
 
             // mark the deploy epic action as used
             const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.getTitle().includes('Deploy'));
-            deployAbility.limit.increment(this.player);
+            if (deployAbility?.limit) {
+                deployAbility.limit.increment(this.player);
+            }
 
             leaderCard.damage = leaderOptions.damage || 0;
             leaderCard.exhausted = leaderOptions.exhausted || false;
@@ -1063,7 +1065,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     played(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Played, card, this.player).initialize();
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Played, card, this.player);
     }
 
     /**
@@ -1072,7 +1074,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     drew(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Drawn, card, this.player).initialize();
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Drawn, card, this.player);
     }
 
     /**
@@ -1081,7 +1083,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     discarded(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Discarded, card, this.player).initialize();
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Discarded, card, this.player);
     }
 
     /**
@@ -1090,7 +1092,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     resourced(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Resourced, card, this.player).initialize();
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Resourced, card, this.player);
     }
 
 
@@ -1100,7 +1102,7 @@ class PlayerInteractionWrapper {
      * @returns {TrackedGameCardMetric}
      */
     activated(card) {
-        return new TrackedGameCardMetric(this.game, GameCardMetric.Activated, card, this.player).initialize();
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Activated, card, this.player);
     }
 }
 

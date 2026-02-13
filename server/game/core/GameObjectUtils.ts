@@ -405,8 +405,26 @@ function CreateUndoArrayInternal<T extends GameObjectBase, TValue extends GameOb
     } else {
         undoArr = new UndoArray();
     }
-    undoArr.go = go;
-    undoArr.prop = prop;
+    // Keep internal UndoArray bookkeeping properties off enumerable object shape so test equality checks on
+    // arrays only see card entries, not proxy internals.
+    Object.defineProperty(undoArr, 'go', {
+        value: go,
+        writable: true,
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(undoArr, 'prop', {
+        value: prop,
+        writable: true,
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(undoArr, 'accessing', {
+        value: false,
+        writable: true,
+        enumerable: false,
+        configurable: true
+    });
 
     const proxiedArray = new Proxy(undoArr, {
         set(target, prop, newValue, receiver): boolean {

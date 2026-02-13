@@ -28,6 +28,10 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
 
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
+    }
+
+    protected override onInitialize(): void {
+        super.onInitialize();
 
         this.setupLeaderBackSide = true;
         this.setupLeaderBackSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
