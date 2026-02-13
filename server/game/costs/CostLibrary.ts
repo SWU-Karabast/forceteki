@@ -62,7 +62,14 @@ export function exhaustFriendlyUnit<TContext extends AbilityContext = AbilityCon
  * Cost that will ready an exhausted enemy unit
  */
 export function readyEnemyUnit<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
-    return getSelectCost(new ReadySystem<TContext>({ isCost: true }), { controller: RelativePlayer.Opponent, cardTypeFilter: WildcardCardType.Unit }, 'Choose an exhausted enemy unit to ready');
+    return getSelectCost(
+        new ReadySystem<TContext>({ isCost: true }),
+        {
+            controller: RelativePlayer.Opponent,
+            cardTypeFilter: WildcardCardType.Unit
+        },
+        'Choose an exhausted enemy unit to ready'
+    );
 }
 
 // /**

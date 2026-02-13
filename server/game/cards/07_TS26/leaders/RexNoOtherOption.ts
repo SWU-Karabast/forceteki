@@ -32,8 +32,10 @@ export default class RexNoOtherOption extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addOnAttackAbility({
-            title: 'Ready an exhausted enemy unit',
+            title: 'Ready an exhausted enemy unit to discount the next event you play this phase',
+            optional: true,
             targetResolver: {
+                activePromptTitle: 'Ready an exhausted enemy unit',
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.isUnit() && card.exhausted,
