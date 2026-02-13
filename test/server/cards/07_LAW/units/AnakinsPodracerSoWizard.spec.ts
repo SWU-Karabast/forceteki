@@ -157,6 +157,23 @@ describe('Anakin\'s Podracer, So Wizard', function() {
                 expect(context.cloneTrooper).toBeInZone('outsideTheGame');
                 expect(context.getChatLogs(3)).toContain('player1 attacks Clone Trooper with Anakin\'s Podracer');
             });
+
+            it('should not deal damage first if it is the defending unit', function () {
+                const { context } = contextRef;
+
+                // P1 plays the Podracer without Ambush
+                context.player1.clickCard(context.anakinsPodracer);
+                context.player1.clickPrompt('Pass');
+
+                // P2 attacks the Podracer with Battlefield Marine
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.anakinsPodracer);
+
+                // Both units are defeated because damage was dealt simultaneously
+                expect(context.anakinsPodracer).toBeInZone('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.getChatLogs(3)).toContain('player2 attacks Anakin\'s Podracer with Battlefield Marine');
+            });
         });
     });
 });
