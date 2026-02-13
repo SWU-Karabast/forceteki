@@ -8,6 +8,8 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
 
+import { registerState } from '../../../core/GameObjectUtils';
+
 export default class Bamboozle extends EventCard {
     protected override getImplementationId() {
         return {
@@ -26,7 +28,7 @@ export default class Bamboozle extends EventCard {
 
         const bamboozleAction = playType === PlayType.Smuggle || playType === PlayType.Piloting
             ? []
-            : [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper).initialize())];
+            : [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper))];
 
         return playActions.concat(bamboozleAction);
     }
@@ -48,6 +50,7 @@ export default class Bamboozle extends EventCard {
     }
 }
 
+@registerState()
 class PlayBamboozleAction extends PlayEventAction {
     private abilityHelper: IAbilityHelper;
 
@@ -75,6 +78,6 @@ class PlayBamboozleAction extends PlayEventAction {
                     ...this.createdWithProperties,
                     ...overrideProperties
                 }, this.abilityHelper)
-            , this.abilityHelper).initialize();
+            , this.abilityHelper);
     }
 }

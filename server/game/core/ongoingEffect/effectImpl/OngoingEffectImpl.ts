@@ -22,7 +22,6 @@ export abstract class OngoingEffectImpl<TValue> extends GameObjectBase {
         return undefined;
     }
 
-
     // TODO: add type union in constants.ts for ability targets (player or card, anything else?)
     public abstract get valueWrapper(): OngoingEffectValueWrapper<TValue>;
     public abstract getValue(target?): TValue;

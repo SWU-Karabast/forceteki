@@ -21,6 +21,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ConstantAbility } from '../ability/ConstantAbility';
+import { registerState } from '../GameObjectUtils';
 
 // STATE TODO: This needs the eventAbility to be converted to state.
 const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>)));
@@ -33,6 +34,7 @@ export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeCon
     getEventAbility(): EventAbility;
 }
 
+@registerState()
 export class EventCard extends EventCardParent implements IEventCard {
     private get eventAbility(): EventAbility {
         return this.game.getFromRef(this.state.eventAbility);
@@ -59,7 +61,7 @@ export class EventCard extends EventCardParent implements IEventCard {
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayEventAction(this.game, this, properties).initialize());
+        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayEventAction(this.game, this, properties));
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
@@ -88,14 +90,14 @@ export class EventCard extends EventCardParent implements IEventCard {
                 effect: 'do nothing due to an ongoing effect of {1}',
                 effectArgs: [blankSource],
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
-            }).initialize();
+            });
         } else if (!this.hasImplementationFile) {
             return new EventAbility(this.game, this, {
                 title: 'Unimplemented event card ability',
                 printedAbility: false,
                 effect: 'do nothing because the card is not implemented yet',
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
-            }).initialize();
+            });
         }
 
         return this.eventAbility;
@@ -141,7 +143,7 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
-        this.state.eventAbility = new EventAbility(this.game, this, properties).initialize()
+        this.state.eventAbility = new EventAbility(this.game, this, properties)
             .getRef();
     }
 

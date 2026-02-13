@@ -15,6 +15,7 @@ interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
+@registerState()
 class CustomDurationEvent extends GameObjectBase<ICustomDurationEventState> {
     public readonly name: string;
     public readonly handler: (...args: any[]) => void;
@@ -286,7 +287,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
 
         const newEvents: CustomDurationEvent[] = [];
         for (const eventName of Object.keys(effect.until)) {
-            const newEvent = new CustomDurationEvent(this.game, eventName, handler, effect).initialize();
+            const newEvent = new CustomDurationEvent(this.game, eventName, handler, effect);
             newEvent.registerEvent();
             newEvents.push(newEvent);
         }

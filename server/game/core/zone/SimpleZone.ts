@@ -47,7 +47,6 @@ export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract
     public addCard(card: TCard) {
         Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
 
-
         this._cards = [...this._cards, card];
     }
 

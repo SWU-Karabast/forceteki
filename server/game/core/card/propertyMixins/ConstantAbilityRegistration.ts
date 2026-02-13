@@ -6,7 +6,6 @@ import * as Contract from '../../utils/Contract';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import { registerState } from '../../GameObjectUtils';
 
-
 export interface IConstantAbilityRegistrar<T extends Card> {
     addConstantAbility(properties: IConstantAbilityProps<T>): IConstantAbility;
     addGainedConstantAbility(properties: IConstantAbilityProps<T>): string;

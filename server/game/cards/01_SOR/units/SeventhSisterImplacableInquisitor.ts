@@ -3,7 +3,6 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DamageType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
-
 export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {

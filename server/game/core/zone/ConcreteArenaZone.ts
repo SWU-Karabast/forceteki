@@ -6,7 +6,6 @@ import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
 import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';
 import type { IAddRemoveZone } from './ZoneAbstract';
 
-
 /**
  * Base class for the "concrete" arena zones - ground and space - which are not the meta-zone AllArenasZone
  */

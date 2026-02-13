@@ -456,7 +456,6 @@ export function returnToHand<TContext extends AbilityContext = AbilityContext>(p
     );
 }
 
-
 export function disclose<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscloseAspectsProperties, TContext>) {
     return new DiscloseAspectsSystem<TContext>(propertyFactory);
 }

@@ -9,6 +9,9 @@ import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolve
 import type { EventAbility } from '../core/ability/EventAbility';
 import type { Player } from '../core/Player';
 
+import { registerState } from '../core/GameObjectUtils';
+
+@registerState()
 export class PlayEventAction extends PlayCardAction {
     private earlyTargetResults?: ITargetResult;
 
@@ -38,7 +41,7 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayEventAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties }).initialize();
+        return new PlayEventAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

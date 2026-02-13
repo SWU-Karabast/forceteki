@@ -8,6 +8,8 @@ import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
 import type { IDefeatSource } from '../IDamageOrDefeatSource';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export interface DefeatedUnitEntry {
     unit: GameObjectRef<IUnitCard>;
     inPlayId: number;
@@ -21,6 +23,7 @@ interface InPlayUnit {
     inPlayId: number;
 }
 
+@registerState()
 export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry> {
     public constructor(
         game: Game,

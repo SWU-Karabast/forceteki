@@ -16,10 +16,13 @@ import type { FormatMessage, MsgArg } from '../chat/GameChat.js';
 import * as ChatHelpers from '../chat/ChatHelpers';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 
+import { registerState } from '../GameObjectUtils';
+
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
+@registerState()
 export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends PlayerOrCardAbility<T> {
     private handler: (context: AbilityContext) => void;
 

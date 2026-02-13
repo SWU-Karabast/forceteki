@@ -89,7 +89,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     private setEpicActionAbility(properties: IEpicActionProps<this>): void {
         Contract.assertIsNullLike(this._epicActionAbility, 'Epic action ability already set');
 
-        this._epicActionAbility = new EpicActionAbility(this.game, this, properties).initialize();
+        this._epicActionAbility = new EpicActionAbility(this.game, this, properties);
     }
 
     private epicActionSpentInternal(): boolean {
@@ -119,6 +119,6 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 
     private initializeCaptureZone() {
-        this._captureZone = new CaptureZone(this.game, this.owner, this).initialize();
+        this._captureZone = new CaptureZone(this.game, this.owner, this);
     }
 }

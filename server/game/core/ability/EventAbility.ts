@@ -6,6 +6,9 @@ import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class EventAbility extends CardAbility {
     protected anyPlayer: boolean;
     protected phase: string;

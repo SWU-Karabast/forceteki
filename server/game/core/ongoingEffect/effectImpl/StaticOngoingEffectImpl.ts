@@ -24,7 +24,7 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         if (value instanceof OngoingEffectValueWrapper) {
             this._valueWrapper = value;
         } else {
-            this._valueWrapper = new OngoingEffectValueWrapper(game, value).initialize();
+            this._valueWrapper = new OngoingEffectValueWrapper(game, value);
         }
     }
 

@@ -10,7 +10,9 @@ import * as Contract from '../utils/Contract';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { isFunction } from 'underscore';
+import { registerState } from '../GameObjectUtils';
 
+@registerState()
 export default class ReplacementAbilityBase extends TriggeredAbility {
     public constructor(game: Game, card: Card, replacementBaseProps: IReplacementEffectAbilityProps | IDamageModificationAbilityProps,
         replacementSystem: GameSystem<TriggeredAbilityContext>, whenTrigger: WhenTypeOrStandard) {

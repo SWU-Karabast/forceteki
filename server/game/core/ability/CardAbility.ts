@@ -9,10 +9,13 @@ import type { AbilityContext } from './AbilityContext';
 import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
 
+import { registerState } from '../GameObjectUtils';
+
 export interface ICardAbilityState extends IPlayerOrCardAbilityState {
     placeholder?: false;
 }
 
+@registerState()
 export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityState> extends CardAbilityStep<T> {
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
@@ -22,7 +25,7 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
-        this.limit = properties.limit || new UnlimitedAbilityLimit(this.game).initialize();
+        this.limit = properties.limit || new UnlimitedAbilityLimit(this.game);
         this.limit.registerEvents();
         this.limit.ability = this;
 

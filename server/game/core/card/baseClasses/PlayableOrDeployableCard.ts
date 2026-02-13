@@ -277,7 +277,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         return keywordValueTotal > 0 ? keywordValueTotal : null;
     }
 
-
     /**
      * The passed player takes control of this card. If `moveTo` is provided, the card will be moved to that zone under the
      * player's control. If not, it will move to the same zone type it currently occupies but under the new controller.
@@ -345,7 +344,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 
-
     /** Create constant ability props on the card that decreases its cost under the given condition */
     protected generateIgnoreAllAspectPenaltiesAbilityProps(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
@@ -359,7 +357,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         const effect = OngoingEffectLibrary.ignoreAllAspectPenalties(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
-
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
     protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps {
@@ -377,7 +374,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     }
 
     protected createPreEnterPlayAbility<TSource extends Card = this>(properties: IAbilityPropsWithSystems<AbilityContext<TSource>>): PreEnterPlayAbility {
-        return new PreEnterPlayAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties)).initialize();
+        return new PreEnterPlayAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties));
     }
 
     private buildCostAdjusterGenericProperties() {

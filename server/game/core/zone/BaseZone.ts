@@ -62,9 +62,14 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
 
         this.base = base;
         this._leader = leader;
+    }
 
-        base.initializeZone(this);
-        leader.initializeZone(this);
+    protected override onInitialize(): void {
+        super.onInitialize();
+
+        Contract.assertNotNullLike(this._leader, `Attempting to initialize ${this} with null leader`);
+        this.base.initializeZone(this);
+        this._leader.initializeZone(this);
     }
 
     public setLeader(leader: ILeaderCard) {

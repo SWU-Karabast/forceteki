@@ -82,7 +82,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         }));
 
         this.deployBox = cardData.deployBox;
-        this._deployEpicActionLimit = new EpicActionLimit(this.game).initialize();
+        this._deployEpicActionLimit = new EpicActionLimit(this.game);
     }
 
     protected override onInitialize(): void {

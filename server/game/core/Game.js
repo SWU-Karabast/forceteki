@@ -241,7 +241,7 @@ class Game extends EventEmitter {
         /** @private @readonly @type {Lobby} */
         this._router = options.router;
 
-        this.ongoingEffectEngine = new OngoingEffectEngine(this).initialize();
+        this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
         /** @type {import('../AbilityHelper.js').IAbilityHelper} */
         this.abilityHelper = getAbilityHelper(this);
@@ -308,13 +308,13 @@ class Game extends EventEmitter {
         };
 
         this.tokenFactories = null;
-        this.stateWatcherRegistrar = new StateWatcherRegistrar(this).initialize();
+        this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
         this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
 
         /** @public @readonly @type {import('../../gameStatistics/GameStatisticsTracker.js').IGameStatisticsTracker} */
-        this.statsTracker = new GameStatisticsLogger(this).initialize();
+        this.statsTracker = new GameStatisticsLogger(this);
 
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
@@ -334,20 +334,19 @@ class Game extends EventEmitter {
                 player,
                 this,
                 details.useActionTimer ?? false
-            ).initialize();
+            );
         });
 
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
         });
 
-        this.spaceArena = new SpaceArenaZone(this).initialize();
-        this.groundArena = new GroundArenaZone(this).initialize();
-        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena).initialize();
+        this.spaceArena = new SpaceArenaZone(this);
+        this.groundArena = new GroundArenaZone(this);
+        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
     }
-
 
     /**
      * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
@@ -587,7 +586,6 @@ class Game extends EventEmitter {
 
         return otherPlayer;
     }
-
 
     registerGlobalRulesListeners() {
         UnitPropertiesCard.registerRulesListeners(this);
@@ -1626,7 +1624,7 @@ class Game extends EventEmitter {
             return false;
         }
 
-        this.playersAndSpectators[user.username] = new Player(socketId, user, this).initialize();
+        this.playersAndSpectators[user.username] = new Player(socketId, user, this);
 
         return true;
     }
@@ -1802,7 +1800,6 @@ class Game extends EventEmitter {
     generateToken(player, tokenName, additionalProperties = null) {
         /** @type {import('./card/propertyMixins/Token.js').ITokenCard} */
         const token = this.tokenFactories[tokenName](player, additionalProperties);
-        token.initialize();
 
         // TODO: Rework allCards to be GO Refs
         this.state.allCards.push(token.getRef());

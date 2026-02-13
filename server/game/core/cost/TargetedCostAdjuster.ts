@@ -15,6 +15,8 @@ import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { CostAdjustStage, IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 
+import { registerState } from '../GameObjectUtils';
+
 export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjusterProperties & {
     targetCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
     doNotUseAdjusterButtonText: string;
@@ -52,6 +54,7 @@ interface IOpportunityCostTarget {
  * building the target resolver and evaluating which selection are legal based on downstream adjusters,
  * and evaluating whether there is sufficient available adjustment to pay.
  */
+@registerState()
 export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
     protected readonly adjustAmountPerTarget: number;
     protected readonly costPropertyName: string;

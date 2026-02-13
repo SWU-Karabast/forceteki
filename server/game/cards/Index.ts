@@ -1,5 +1,6 @@
 import { lstatSync, readdirSync } from 'fs';
 import { join, sep } from 'path';
+import { registerStateClassMarker } from '../core/GameObjectUtils';
 
 function allJsFiles(path: string): string[] {
     const files = [];
@@ -18,6 +19,29 @@ function allJsFiles(path: string): string[] {
         }
     }
     return files;
+}
+
+function buildAutoInitializingCardClass(targetCardClass: any): any {
+    const wrappedClass: any = {
+        [targetCardClass.name]: class extends targetCardClass {
+            public constructor(...args: any[]) {
+                super(...args);
+
+                if (!this.initialized) {
+                    this.initialize();
+                }
+            }
+        }
+    }[targetCardClass.name];
+
+    Object.defineProperty(wrappedClass, registerStateClassMarker, {
+        value: true,
+        writable: false,
+        enumerable: false,
+        configurable: false
+    });
+
+    return wrappedClass;
 }
 
 // card.name
@@ -46,11 +70,12 @@ for (const filepath of allJsFiles(__dirname)) {
         throw Error(`Import card class with duplicate class name: ${card.name}`);
     }
 
-    cardsMap.set(cardId.id, card);
+    const wrappedCardClass = buildAutoInitializingCardClass(card);
+    cardsMap.set(cardId.id, wrappedCardClass);
     cardClassNames.add(card.name);
 
     if (card.prototype.overrideNotImplemented) {
-        overrideNotImplementedCardsMap.set(cardId.id, card);
+        overrideNotImplementedCardsMap.set(cardId.id, wrappedCardClass);
     }
 }
 

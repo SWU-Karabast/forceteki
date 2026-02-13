@@ -4,7 +4,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
-
 export default class LothalInsurgent extends NonLeaderUnitCard {
     private cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
 

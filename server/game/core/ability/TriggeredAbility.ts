@@ -12,6 +12,7 @@ import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
+import { registerState } from '../GameObjectUtils';
 
 export interface ITriggeredAbillityState extends ICardAbilityState {
     isRegistered: boolean;
@@ -44,6 +45,7 @@ export interface ITriggeredAbillityState extends ICardAbilityState {
  *            be in order to activate the reaction. Defaults to 'play area'.
  */
 
+@registerState()
 export default class TriggeredAbility extends CardAbility<ITriggeredAbillityState> {
     public readonly when?: WhenType;
     public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
@@ -256,7 +258,6 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
 
         return listener && listener(event, context);
     }
-
 
     protected override buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContext: AbilityContext) {
         const context = super.buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy, parentContext);

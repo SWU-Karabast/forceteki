@@ -6,6 +6,8 @@ import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
 
+import { registerState } from '../GameObjectUtils';
+
 export interface IAbilityLimit {
     get ability(): CardAbility | null;
     set ability(value: CardAbility);
@@ -23,6 +25,7 @@ export interface IAbilityLimitState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
+@registerState()
 export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityLimitState> extends GameObjectBase<TState> implements IAbilityLimit {
     public ability: CardAbility | null = null;
 
@@ -80,6 +83,7 @@ interface IPerGameAbilityLimitState extends IAbilityLimitState {
     useCount: 0;
 }
 
+@registerState()
 export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitState> {
     protected override setupDefaultState(): void {
         super.setupDefaultState();
@@ -88,7 +92,7 @@ export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitSt
     }
 
     public clone() {
-        return new UnlimitedAbilityLimit(this.game).initialize();
+        return new UnlimitedAbilityLimit(this.game);
     }
 
     public isRepeatable(): boolean {
@@ -117,6 +121,7 @@ export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitSt
     }
 }
 
+@registerState()
 export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState> {
     public currentUser: null | string = null;
     public readonly max: number;
@@ -133,7 +138,7 @@ export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState>
     }
 
     public clone() {
-        return new PerGameAbilityLimit(this.game, this.max).initialize();
+        return new PerGameAbilityLimit(this.game, this.max);
     }
 
     public isRepeatable(): boolean {
@@ -157,6 +162,7 @@ export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState>
     }
 }
 
+@registerState()
 export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitState> {
     public readonly max: number;
 
@@ -172,7 +178,7 @@ export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbility
     }
 
     public clone() {
-        return new PerPlayerPerGameAbilityLimit(this.game, this.max).initialize();
+        return new PerPlayerPerGameAbilityLimit(this.game, this.max);
     }
 
     public isRepeatable(): boolean {
@@ -206,6 +212,7 @@ export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbility
     }
 }
 
+@registerState()
 export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     private readonly eventName: Set<EventName>;
     private eventRegistrations?: IEventRegistration[];
@@ -220,7 +227,7 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     }
 
     public override clone() {
-        return new RepeatableAbilityLimit(this.game, this.max, this.eventName).initialize();
+        return new RepeatableAbilityLimit(this.game, this.max, this.eventName);
     }
 
     public override isRepeatable(): boolean {
@@ -258,13 +265,14 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     }
 }
 
+@registerState()
 export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
     public constructor(game: Game) {
         super(game, 1);
     }
 
     public override clone() {
-        return new EpicActionLimit(this.game).initialize();
+        return new EpicActionLimit(this.game);
     }
 
     public override isEpicActionLimit(): this is EpicActionLimit {
@@ -283,15 +291,15 @@ export class AbilityLimitInstance {
     }
 
     public repeatable(max: number, eventName: EventName) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([eventName])).initialize();
+        return new RepeatableAbilityLimit(this.game, max, new Set([eventName]));
     }
 
     public perPhase(max: number) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnPhaseEnded])).initialize();
+        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnPhaseEnded]));
     }
 
     public perRound(max: number) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnRoundEnded])).initialize();
+        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnRoundEnded]));
     }
 
     /**
@@ -303,18 +311,18 @@ export class AbilityLimitInstance {
      * @param max The maximum number of times this ability can be used in a game.
      */
     public perGame(max: number) {
-        return new PerGameAbilityLimit(this.game, max).initialize();
+        return new PerGameAbilityLimit(this.game, max);
     }
 
     public perPlayerPerGame(max: number) {
-        return new PerPlayerPerGameAbilityLimit(this.game, max).initialize();
+        return new PerPlayerPerGameAbilityLimit(this.game, max);
     }
 
     public epicAction() {
-        return new EpicActionLimit(this.game).initialize();
+        return new EpicActionLimit(this.game);
     }
 
     public unlimited() {
-        return new UnlimitedAbilityLimit(this.game).initialize();
+        return new UnlimitedAbilityLimit(this.game);
     }
 }

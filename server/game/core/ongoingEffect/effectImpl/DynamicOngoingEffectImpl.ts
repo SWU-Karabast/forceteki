@@ -9,7 +9,6 @@ import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext, game: Game) => TValue;
 export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: AbilityContext, game: Game) => TValue | OngoingEffectValueWrapper<TValue>;
 
-
 // TODO: eventually this will subclass OngoingEffectImpl directly
 @registerState()
 export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
@@ -62,7 +61,7 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
             return value;
         }
 
-        return new OngoingEffectValueWrapper(this.game, value).initialize();
+        return new OngoingEffectValueWrapper(this.game, value);
     }
 
     private compareValues(oldValue: TValue, newValue: TValue) {

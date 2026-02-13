@@ -62,7 +62,6 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
         return this.impl.type;
     }
 
-
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps<TTarget>, effectImpl: OngoingEffectImpl<any>) {
         Contract.assertFalse(
             properties.duration === Duration.WhileSourceInPlay && !source.canBeInPlay(),

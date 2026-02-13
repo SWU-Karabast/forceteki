@@ -20,7 +20,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
 
         this.choosingPlayer = choosingPlayer;
         if (typeof properties.source === 'string') {
-            properties.source = new OngoingEffectSource(game, properties.source).initialize();
+            properties.source = new OngoingEffectSource(game, properties.source);
         }
 
         if (!properties.waitingPromptTitle) {

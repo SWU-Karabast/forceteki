@@ -5,11 +5,14 @@ import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export interface ActionEntry {
     actionNumber: number;
     player: GameObjectRef<Player>;
 }
 
+@registerState()
 export class ActionsThisPhaseWatcher extends StateWatcher<ActionEntry> {
     public constructor(
         game: Game,

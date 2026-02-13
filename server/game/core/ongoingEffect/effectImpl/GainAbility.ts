@@ -8,6 +8,8 @@ import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
+import { registerState } from '../../GameObjectUtils';
+
 export interface IGainAbilityState extends IGameObjectBaseState {
     abilityIdentifier: string;
     abilityUuidByTargetCard: Map<string, string>;
@@ -15,6 +17,7 @@ export interface IGainAbilityState extends IGameObjectBaseState {
     source: GameObjectRef<Card>;
 }
 
+@registerState()
 export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType, IGainAbilityState> {
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;

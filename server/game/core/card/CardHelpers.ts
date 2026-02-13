@@ -10,7 +10,6 @@ import { UpgradeCard } from './UpgradeCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
-
 /**
  * Create a default implementation for a card from cardData by calling the appropriate
  * derived class constructor based on the card type
@@ -21,21 +20,21 @@ export function createUnimplementedCard(owner: Player, cardData: ICardDataJson):
 
     switch (cardType) {
         case CardType.Event:
-            return new EventCard(owner, cardData).initialize();
+            return new EventCard(owner, cardData);
         case CardType.Base:
-            return new BaseCard(owner, cardData).initialize();
+            return new BaseCard(owner, cardData);
         case CardType.BasicUpgrade:
-            return new UpgradeCard(owner, cardData).initialize();
+            return new UpgradeCard(owner, cardData);
         case CardType.Leader:
-            return new LeaderUnitCard(owner, cardData).initialize();
+            return new LeaderUnitCard(owner, cardData);
         case CardType.BasicUnit:
-            return new NonLeaderUnitCard(owner, cardData).initialize();
+            return new NonLeaderUnitCard(owner, cardData);
         case CardType.TokenUnit:
-            return new TokenUnitCard(owner, cardData).initialize();
+            return new TokenUnitCard(owner, cardData);
         case CardType.TokenUpgrade:
-            return new TokenUpgradeCard(owner, cardData).initialize();
+            return new TokenUpgradeCard(owner, cardData);
         case CardType.TokenCard:
-            return new TokenCard(owner, cardData).initialize();
+            return new TokenCard(owner, cardData);
         default:
             throw new Error(`Unexpected card type: ${cardType}`);
     }

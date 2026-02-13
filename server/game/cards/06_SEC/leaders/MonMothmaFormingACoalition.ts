@@ -14,7 +14,6 @@ export default class MonMothmaFormingACoalition extends LeaderUnitCard {
         };
     }
 
-
     private buildMonMothmaAbilityProperties(abilityHelper: IAbilityHelper) {
         return {
             title: 'Ignore the aspect penalty on non-Villainy Official units you play',

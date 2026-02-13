@@ -54,6 +54,8 @@ import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
+import { registerState } from './GameObjectUtils';
+
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
     resourceZone: GameObjectRef<ResourceZone>;
@@ -69,6 +71,7 @@ export interface IPlayerState extends IGameObjectState {
     costAdjusters: GameObjectRef<CostAdjuster>[];
 }
 
+@registerState()
 export class Player extends GameObject<IPlayerState> implements IGameStatisticsTrackable {
     public user: IUser;
     private _lobbyUser?: User;
@@ -223,17 +226,17 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         }
 
         this.canTakeActionsThisPhase = null;
-        this.state.handZone = new HandZone(game, this).initialize()
+        this.state.handZone = new HandZone(game, this)
             .getRef();
-        this.state.resourceZone = new ResourceZone(game, this).initialize()
+        this.state.resourceZone = new ResourceZone(game, this)
             .getRef();
-        this.state.discardZone = new DiscardZone(game, this).initialize()
+        this.state.discardZone = new DiscardZone(game, this)
             .getRef();
         // mainly used for staging tokens when they are created / removed
-        this.state.outsideTheGameZone = new OutsideTheGameZone(game, this).initialize()
+        this.state.outsideTheGameZone = new OutsideTheGameZone(game, this)
             .getRef();
         this.state.baseZone = null;
-        this.state.deckZone = new DeckZone(game, this).initialize()
+        this.state.deckZone = new DeckZone(game, this)
             .getRef();
 
         /** @type {Deck} */
@@ -623,7 +626,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return null;
     }
 
-
     /**
      * Returns ths top cards of the player's deck
      * @param {number} numCard
@@ -762,7 +764,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this.state.baseZone = new BaseZone(this.game, this, this.base, this.leader).initialize()
+        this.state.baseZone = new BaseZone(this.game, this, this.base, this.leader)
             .getRef();
 
         this.state.decklist = preparedDecklist;
@@ -807,7 +809,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         if (this.creditTokenCount === 0 && creditTokenAdjusters.length > 0) {
             this.removeCostAdjuster(creditTokenAdjusters[0]);
         } else if (this.creditTokenCount > 0 && creditTokenAdjusters.length === 0) {
-            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this).initialize();
+            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
             this.addCostAdjuster(newAdjuster);
         }
     }

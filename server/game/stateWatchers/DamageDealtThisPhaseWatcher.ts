@@ -10,6 +10,8 @@ import type { Card } from '../core/card/Card';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export interface DamageDealtEntry {
     damageType: DamageType;
     damageSourceCard: GameObjectRef<IPlayableCard>;
@@ -26,6 +28,7 @@ export interface DamageDealtEntry {
 
 export type IDamageDealtThisPhase = DamageDealtEntry[];
 
+@registerState()
 export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> {
     public constructor(
         game: Game,

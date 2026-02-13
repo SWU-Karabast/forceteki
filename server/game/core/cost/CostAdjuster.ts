@@ -132,7 +132,6 @@ export interface ITriggerStageTargetSelection {
     stage: CostAdjustStage;
 }
 
-
 export enum CostAdjustResolutionMode {
     Evaluate = 'evaluate',
     Trigger = 'trigger'

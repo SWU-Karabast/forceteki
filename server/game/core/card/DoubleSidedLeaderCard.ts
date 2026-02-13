@@ -17,7 +17,6 @@ import { registerState } from '../GameObjectUtils';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
-
 export interface IDoubleSidedLeaderCard extends ILeaderCard {
     get onStartingSide(): boolean;
     flipLeader(): void;

@@ -19,6 +19,6 @@ export function cardCannot(properties: ICardCannotProperties) {
                 typeof properties === 'string'
                     ? { type: properties }
                     : Object.assign({ type: properties.cannot }, properties)
-            ).initialize()
+            )
     );
 }

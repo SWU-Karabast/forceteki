@@ -1,5 +1,5 @@
 import type Game from './Game';
-import { CopyMode, copyState, registerState } from './GameObjectUtils';
+import { CopyMode, copyState, registerState, registerStateClassMarker } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -59,7 +59,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     private _cannotHaveRefs = false;
     private _hasRef = false;
-    private _initalized = false;
+    private _initialized = false;
 
     public get cannotHaveRefs() {
         return this._cannotHaveRefs;
@@ -70,7 +70,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     }
 
     public get initialized() {
-        return this._initalized;
+        return this._initialized;
     }
 
     /** Subclasses can override this to force the state manager to keep track of this object, even if refs aren't created for it */
@@ -91,18 +91,23 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     public constructor(game: Game) {
         this.game = game;
+
+        const ctor = this.constructor as { [registerStateClassMarker]?: boolean; name: string };
+        Contract.assertTrue(
+            Object.prototype.hasOwnProperty.call(ctor, registerStateClassMarker) && ctor[registerStateClassMarker] === true,
+            `Class "${ctor.name}" extends GameObjectBase but is missing @registerState()`
+        );
+
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.
         this.setupDefaultState();
         this.game.gameObjectManager.register(this);
     }
 
     /** This function will be called after the class has initialized. Do not override this method, instead override onInitialize. */
-    public initialize() {
-        // if (this._initalized) {
-        //     throw new Error(`Attempting to initialize an already initialized GameObject: ${this.getGameObjectName()} (UUID: ${this.state.uuid})`);
-        // }
+    public initialize(): this {
+        Contract.assertFalse(this._initialized, `Attempting to initialize an already initialized GameObject: ${this.getGameObjectName()} (UUID: ${this.state.uuid})`);
 
-        this._initalized = true;
+        this._initialized = true;
         this.onInitialize();
         return this;
     }
@@ -162,8 +167,14 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public cleanupOnRemove(oldState: T) { }
 
+    private assertInitialized(operation: string) {
+        Contract.assertTrue(this._initialized, `Attempting to ${operation} on uninitialized GameObject: ${this.getGameObjectName()} (UUID: ${this.state.uuid})`);
+    }
+
+
     /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
+        this.assertInitialized('create a ref');
         Contract.assertFalse(this.cannotHaveRefs, `Attempting to create a ref for ${this.getGameObjectName()} (UUID: ${this.state.uuid}) but it cannot have refs (cannotHaveRefs: true)`);
 
         this._hasRef = true;

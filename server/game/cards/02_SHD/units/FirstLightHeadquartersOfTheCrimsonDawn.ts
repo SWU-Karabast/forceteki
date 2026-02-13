@@ -6,6 +6,8 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, PlayType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
+import { registerState } from '../../../core/GameObjectUtils';
+
 export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
@@ -16,7 +18,7 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
 
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
         const firstLightSmuggleAction = playType === PlayType.Smuggle
-            ? [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new FirstLightSmuggleAction(this.game.abilityHelper, this).initialize())]
+            ? [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new FirstLightSmuggleAction(this.game.abilityHelper, this))]
             : [];
 
         return super.buildPlayCardActions(playType, propertyOverrides).concat(firstLightSmuggleAction);
@@ -33,6 +35,7 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
     }
 }
 
+@registerState()
 class FirstLightSmuggleAction extends PlayUnitAction {
     private abilityHelper: IAbilityHelper;
 
@@ -66,6 +69,6 @@ class FirstLightSmuggleAction extends PlayUnitAction {
                 ...this.createdWithProperties,
                 ...overrideProperties
             })
-        ).initialize();
+        );
     }
 }

@@ -452,7 +452,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.getActionAbilities();
     }
 
-
     // **************************************** INITIALIZATION HELPERS ****************************************
     public static buildTypeFromPrinted(printedTypes: string[]): CardType {
         Contract.assertNonEmpty(printedTypes, 'No card types provided');
@@ -540,15 +539,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // ******************************************* ABILITY HELPERS *******************************************
     public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
-        return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties)).initialize();
+        return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
     }
 
     public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
-        return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties)).initialize();
+        return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties));
     }
 
     protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
-        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties)).initialize();
+        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
     protected getAbilityRegistrar() {
@@ -700,7 +699,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return false;
     }
 
-
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
     protected getKeywords() {
@@ -751,7 +749,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.hasEvery(keywords, this.keywords.map((keyword) => keyword.name));
     }
 
-
     // ******************************************* TRAIT HELPERS *******************************************
     protected getPrintedTraits(): Set<Trait> {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
@@ -794,7 +791,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public hasEveryAspect(aspects: Set<Aspect> | Aspect[]): boolean {
         return this.hasEvery(aspects, this.aspects);
     }
-
 
     // *************************************** EFFECT HELPERS ***************************************
 
@@ -905,7 +901,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return !this.facedown && !this.hasRestriction(AbilityRestriction.InitiateKeywords, context);
     }
 
-
     // ******************************************* ZONE MANAGEMENT *******************************************
     /**
      * Moves a card to a new zone, optionally resetting the card's controller back to its owner.
@@ -987,7 +982,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.initializeForStartZone();
         this.initializeForCurrentZone(null);
     }
-
 
     protected initializeForStartZone(): void {
         this.controller = this.owner;
@@ -1149,7 +1143,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     /** Register / un-register the effects for any abilities from keywords */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) { }
-
 
     /**
      * Deals with the engine effects of entering a new zone, making sure all statuses are set with legal values.
@@ -1333,7 +1326,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     //     clone.uuid = this.uuid;
     //     return clone;
     // }
-
 
     // TODO: Clean this up and review rules for visibility. We can probably reduce this down to arity 1
     /*

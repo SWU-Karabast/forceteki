@@ -59,7 +59,6 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
         this.addEffectToEngine(Object.assign({ duration: Duration.WhileSourceInPlay, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
-
     /**
      * Applies a 'lasting effect' (SWU 7.7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */

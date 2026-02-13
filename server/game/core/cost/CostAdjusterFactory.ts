@@ -13,16 +13,16 @@ import { SimpleCostAdjuster } from './SimpleCostAdjuster';
 export function create(game: Game, source: Card, properties: ICostAdjusterProperties): CostAdjuster {
     switch (properties.costAdjustType) {
         case CostAdjustType.Increase:
-            return new IncreaseCostAdjuster(game, source, properties).initialize();
+            return new IncreaseCostAdjuster(game, source, properties);
         case CostAdjustType.ModifyPayStage:
-            return new ModifyPayStageCostAdjuster(game, source, properties).initialize();
+            return new ModifyPayStageCostAdjuster(game, source, properties);
         case CostAdjustType.IgnoreAllAspects:
         case CostAdjustType.IgnoreSpecificAspects:
-            return new IgnoreAspectCostAdjuster(game, source, properties).initialize();
+            return new IgnoreAspectCostAdjuster(game, source, properties);
         case CostAdjustType.Free:
-            return new FreeCostAdjuster(game, source, properties).initialize();
+            return new FreeCostAdjuster(game, source, properties);
         case CostAdjustType.Decrease:
-            return new SimpleCostAdjuster(game, source, properties).initialize();
+            return new SimpleCostAdjuster(game, source, properties);
         default:
             Contract.fail(`Unknown cost adjust type: ${(properties as any).costAdjustType}`);
     }

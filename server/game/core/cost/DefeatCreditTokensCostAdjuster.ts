@@ -14,6 +14,9 @@ import type { ICostResult } from './ICost';
 import * as Contract from '../utils/Contract';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
     public constructor(
         game: Game,

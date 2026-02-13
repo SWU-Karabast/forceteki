@@ -7,6 +7,9 @@ import type { ICardWithStandardAbilitySetup } from '../../card/propertyMixins/St
 import type { IUnitAbilityRegistrar, IUnitCard } from '../../card/propertyMixins/UnitProperties';
 import type Game from '../../Game';
 
+import { registerState } from '../../GameObjectUtils';
+
+@registerState()
 export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandardAbilitySetup<Card>> {
     private printedActionAbilitiesUuidByTargetCard?: Set<string>;
     private printedTriggeredAbilitiesUuidByTargetCard?: Set<string>;

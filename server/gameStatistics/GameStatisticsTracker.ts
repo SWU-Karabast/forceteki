@@ -36,6 +36,7 @@ export interface IGameStatisticsTracker {
     ): void;
 }
 
+@registerState()
 export class TrackedGameCardMetric extends GameObjectBase {
     public readonly metric: GameCardMetric;
     public readonly card: string;
@@ -88,7 +89,7 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
         card: Card,
         player: Player
     ): void {
-        this.cardMetrics = [...this.cardMetrics, new TrackedGameCardMetric(this.game, metric, card, player).initialize()];
+        this.cardMetrics = [...this.cardMetrics, new TrackedGameCardMetric(this.game, metric, card, player)];
     }
 
     /**

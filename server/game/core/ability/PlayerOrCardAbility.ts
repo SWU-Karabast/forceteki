@@ -27,6 +27,8 @@ import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
 import type { MsgArg } from '../chat/GameChat.js';
 
+import { registerState } from '../GameObjectUtils';
+
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
 };
@@ -44,6 +46,7 @@ export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
  * `player` that is executing the action, and the `source` card object that the
  * ability is generated from.
  */
+@registerState()
 export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends GameObjectBase<T> {
     private _title: string;
     private _contextTitle?: (context: AbilityContext) => string;
@@ -255,7 +258,6 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
         const contextCopy = context.copy({ stage: Stage.Cost });
         return this.getCosts(context).every((cost) => cost.canPay(contextCopy));
     }
-
 
     public getCosts(context: AbilityContext) {
         let costs = typeof this.cost === 'function' ? Helpers.asArray(this.cost(context)) : this.cost;

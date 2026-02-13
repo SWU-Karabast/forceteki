@@ -52,7 +52,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     public override checkIsAttachable(): void { }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties).initialize());
+        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties));
     }
 
     public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
@@ -118,7 +118,6 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.ReplacementEffect, ...gainedAbilityProperties })
         }, registrar);
     }
-
 
     private addDamageModificationAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;

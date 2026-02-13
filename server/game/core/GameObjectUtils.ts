@@ -14,6 +14,8 @@ const bulkCopyMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
+export const registerStateClassMarker = Symbol('registerStateClassMarker');
+
 export enum CopyMode {
 
     /** Copies from the state using only the Metadata fields. */
@@ -54,7 +56,47 @@ export function registerState<T extends GameObjectBase>(copyMode = CopyMode.UseM
             throw new Error(`class "${parentClass.name}" is missing @registerState`);
         }
 
-        return targetClass;
+        Object.defineProperty(targetClass, registerStateClassMarker, {
+            value: true,
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+
+        // Wrap the decorated class so framework initialization is guaranteed after the full constructor chain finishes.
+        // The computed-property trick preserves the original class name for diagnostics and metadata lookups.
+        const wrappedClass: any = {
+            [targetClass.name]: class extends targetClass {
+                public constructor(...args: any[]) {
+                    super(...args);
+
+                    // Only initialize at the most-derived wrapper boundary.
+                    // Parent wrapped constructors run with a different `new.target` and must not initialize early.
+                    if (new.target === wrappedClass) {
+                        this.initialize();
+                    }
+                }
+            }
+        }[targetClass.name];
+
+        // Mark the wrapper too; runtime enforcement checks the constructed class, not just the original targetClass.
+        Object.defineProperty(wrappedClass, registerStateClassMarker, {
+            value: true,
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+
+        // copyState walks Symbol.metadata on constructors in the prototype chain.
+        // Re-expose the original metadata on the wrapper so state copy behavior is unchanged.
+        Object.defineProperty(wrappedClass, Symbol.metadata, {
+            value: targetClass[Symbol.metadata],
+            writable: false,
+            enumerable: false,
+            configurable: true
+        });
+
+        return wrappedClass;
     };
 }
 
@@ -336,7 +378,6 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
 
     return proxiedArray as TValue[];
 }
-
 
 /** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
 export function UndoArrayInternal<T extends GameObjectBase, TValue extends GameObjectBase>(arr: UndoArray<TValue>) {

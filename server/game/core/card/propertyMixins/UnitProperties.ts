@@ -303,12 +303,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
 
-            this.defaultAttackAction = new InitiateAttackAction(this.game, this).initialize();
+            this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
 
         protected override onInitialize(): void {
             super.onInitialize();
-
 
             if (this.hasSomeKeyword(KeywordName.Piloting)) {
                 Contract.assertNotNullLike(this.cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
@@ -344,7 +343,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
             // STATE TODO: Is this a leak? It's a GO but it can be thrown out.
-            const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this).initialize() : null;
+            const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this) : null;
             this._captureZone = zone;
         }
 
@@ -831,7 +830,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             for (const bountyKeyword of bountyKeywords) {
                 const abilityProps = bountyKeyword.abilityProps;
 
-                const bountyAbility = new BountyAbility(this.game, this, { ...this.buildGeneralAbilityProps('triggered'), ...abilityProps }).initialize();
+                const bountyAbility = new BountyAbility(this.game, this, { ...this.buildGeneralAbilityProps('triggered'), ...abilityProps });
 
                 bountyAbility.registerEvents();
                 registeredAbilities.push(bountyAbility);
@@ -1003,7 +1002,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             return wrappedStatsModifiers;
         }
-
 
         public override checkIsAttachable(): void {
             throw new Error('Should not call this - call overriding methods');

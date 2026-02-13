@@ -8,6 +8,9 @@ import * as Contract from '../../core/utils/Contract';
 import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
+import { registerState } from '../../core/GameObjectUtils';
+
+@registerState()
 export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
     public readonly keyword: KeywordName = KeywordName.Saboteur;
 

@@ -75,7 +75,7 @@ export class SelectCardPrompt extends UiPrompt {
 
         this.choosingPlayer = choosingPlayer;
         if (typeof properties.source === 'string') {
-            properties.source = new OngoingEffectSource(game, properties.source).initialize();
+            properties.source = new OngoingEffectSource(game, properties.source);
         } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
         }

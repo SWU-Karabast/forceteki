@@ -3,7 +3,6 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 
-
 export default class TalaDurithICanGetYouInside extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
@@ -11,7 +10,6 @@ export default class TalaDurithICanGetYouInside extends NonLeaderUnitCard {
             internalName: 'tala-durith#i-can-get-you-inside'
         };
     }
-
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({

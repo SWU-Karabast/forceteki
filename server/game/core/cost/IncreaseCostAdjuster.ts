@@ -6,6 +6,9 @@ import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 import type { ICostAdjustmentResolutionProperties } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class IncreaseCostAdjuster extends CostAdjuster {
     public constructor(
         game: Game,

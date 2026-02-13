@@ -4,7 +4,9 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import ReplacementAbilityBase from './ReplacementAbilityBase';
+import { registerState } from '../GameObjectUtils';
 
+@registerState()
 export default class DamageModificationAbility extends ReplacementAbilityBase {
     public constructor(game: Game, card: Card, properties: IDamageModificationAbilityProps) {
         const { onlyIfYouDoEffect, ...otherProps } = properties;

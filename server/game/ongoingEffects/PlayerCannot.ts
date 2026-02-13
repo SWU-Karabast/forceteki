@@ -23,6 +23,6 @@ export function playerCannot(properties: IPlayerCannotProperties) {
                 typeof properties === 'string'
                     ? { type: properties }
                     : Object.assign({ type: properties.cannot }, properties)
-            ).initialize()
+            )
     );
 }

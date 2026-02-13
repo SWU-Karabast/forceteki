@@ -10,6 +10,7 @@ import type { IOngoingCardEffectProps } from '../../Interfaces';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Player } from '../Player';
+import { registerState } from '../GameObjectUtils';
 
 export enum AllCardsTargetMode {
     OnlyOwned = 'onlyOwned',
@@ -21,6 +22,7 @@ export interface IOngoingAllCardsForPlayerEffectProps extends Omit<IOngoingCardE
     cardTargetMode: AllCardsTargetMode;
 }
 
+@registerState()
 export class OngoingAllCardsForPlayerEffect extends OngoingEffect<Card> {
     public readonly cardTargetMode: AllCardsTargetMode;
     public readonly player: Player;

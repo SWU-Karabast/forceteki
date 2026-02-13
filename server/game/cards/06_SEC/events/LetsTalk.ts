@@ -91,7 +91,6 @@ export default class LetsTalk extends EventCard {
         return selectedCards.filter((selectedCard) => selectedCard.zoneName === zoneName).length;
     }
 
-
     private capturedCardsFromContext(context: AbilityContext): Set<Card> {
         return new Set(context.events.filter((event) => event.name === EventName.OnCardCaptured).map((event) => event.card));
     }

@@ -4,6 +4,9 @@ import type Game from '../Game.js';
 import type { Card } from '../card/Card.js';
 import type { AbilityContext } from './AbilityContext.js';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export abstract class PlayerAction extends PlayerOrCardAbility {
     public cannotBeCancelled: boolean;
 
