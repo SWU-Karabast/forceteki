@@ -46,6 +46,7 @@ import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfac
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
 import { registerState, undoArray, undoObject, undoState } from '../../GameObjectUtils';
+import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -177,6 +178,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         @undoArray(false)
         private accessor _pilotingConstantAbilities: ConstantAbility[] = [];
 
+        private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
         private _leadersDeployedThisPhaseWatcher: LeadersDeployedThisPhaseWatcher;
 
@@ -297,6 +299,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             //     this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
             // }
 
+            this._tokensCreatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.tokensCreatedThisPhase();
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
 
@@ -683,7 +686,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             if (this.hasSomeKeyword(KeywordName.Hidden)) {
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
                     title: 'Hidden',
-                    condition: (context) => context.source.isInPlay() && this.wasPlayedThisPhase(context.source),
+                    condition: (context) =>
+                        context.source.isInPlay() &&
+                        this.wasPlayedDeployedOrCreatedThisPhase(context.source),
                     ongoingEffect: this.game.abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
                 };
 
@@ -694,10 +699,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
         }
 
-        private wasPlayedThisPhase(card: this = this): boolean {
+        private wasPlayedDeployedOrCreatedThisPhase(card: this = this): boolean {
             try {
                 return this._cardsPlayedThisWatcher.someCardPlayed((entry) => entry.card === card && entry.inPlayId === card.inPlayId) ||
-                  this._leadersDeployedThisPhaseWatcher.someLeaderDeployed((entry) => entry.card === card);
+                  this._leadersDeployedThisPhaseWatcher.someLeaderDeployed((entry) => entry.card === card) ||
+                  this._tokensCreatedThisPhaseWatcher.someTokenCreated((entry) => entry.token === card && entry.token.isTokenUnit());
             } catch (err) {
                 return false;
             }

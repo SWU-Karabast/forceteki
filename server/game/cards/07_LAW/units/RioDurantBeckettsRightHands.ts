@@ -8,7 +8,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class RioDurantBeckettsRightHands extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rio-durant#becketts-right-hands-id',
+            id: '2962077114',
             internalName: 'rio-durant#becketts-right-hands',
         };
     }

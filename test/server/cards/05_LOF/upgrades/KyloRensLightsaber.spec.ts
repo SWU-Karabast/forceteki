@@ -42,6 +42,9 @@ describe('Kylo Ren\'s Lightsaber', () => {
                 context.player2.clickCard(context.kyloRen);
 
                 expect(context.kyloRen.exhausted).toBeFalse();
+                expect(context.getChatLog()).toEqual(
+                    'player1 uses Kylo Ren\'s gained ability from Kylo Ren\'s Lightsaber to cancel the effects of No Good to Me Dead'
+                );
 
                 // Player 1 attacks with Kylo Ren
                 context.player1.clickCard(context.kyloRen);

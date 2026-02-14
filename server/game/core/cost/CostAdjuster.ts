@@ -28,6 +28,7 @@ export enum CostAdjustType {
     Free = 'free',
     IgnoreAllAspects = 'ignoreAllAspects',
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
+    IgnoreWildcardAspects = 'ignoreWildcardAspects',
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
     ExhaustUnits = 'exhaustUnits',
@@ -51,6 +52,9 @@ export interface ICostAdjusterPropertiesBase {
 
     /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
     matchAbilityCosts?: boolean;
+
+    /** Whether the cost adjuster should adjust card effect resource payments (e.g. Blue Leader). Defaults to false. */
+    matchCardEffectResourcePayments?: boolean;
 
     /** If the cost adjustment is related to a specific PlayType, this will ensure it only applies to that playType */
     playType?: PlayType;
@@ -91,6 +95,16 @@ export interface IIgnoreSpecificAspectsCostAdjusterProperties extends ICostAdjus
     ignoredAspect: Aspect;
 }
 
+export interface IIgnoreWildcardAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.IgnoreWildcardAspects;
+
+    /** The aspects to ignore the cost of */
+    wildcardAspects: Set<Aspect>;
+
+    /** How many aspects can be ignored from the wildcards */
+    ignoreCount: number;
+}
+
 export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.ModifyPayStage;
 
@@ -107,6 +121,7 @@ export type ICostAdjusterProperties =
   | IIncreaseOrDecreaseCostAdjusterProperties
   | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties
+  | IIgnoreWildcardAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
@@ -150,6 +165,7 @@ export abstract class CostAdjuster extends GameObjectBase {
     private readonly playType?: PlayType;
     private readonly attachTargetCondition?: (attachTarget: Card, context: AbilityContext<any>, adjusterSource?: Card,) => boolean;
     private readonly matchAbilityCosts: boolean;
+    private readonly matchCardEffectResourcePayments: boolean;
 
     @undoObject()
     protected accessor sourceCard: Card | null;
@@ -197,6 +213,7 @@ export abstract class CostAdjuster extends GameObjectBase {
         }
 
         this.matchAbilityCosts = !!properties.matchAbilityCosts;
+        this.matchCardEffectResourcePayments = !!properties.matchCardEffectResourcePayments;
     }
 
     protected abstract applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]): void;
@@ -223,6 +240,10 @@ export abstract class CostAdjuster extends GameObjectBase {
         }
 
         if (evaluationResult.resourceCostType === ResourceCostType.Ability && !this.matchAbilityCosts) {
+            return false;
+        }
+
+        if (evaluationResult.resourceCostType === ResourceCostType.CardEffectPayment && !this.matchCardEffectResourcePayments) {
             return false;
         }
 

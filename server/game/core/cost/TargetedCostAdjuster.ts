@@ -164,7 +164,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             sortedTargetsWithOpportunityCost.map((t) => t.unit),
             context,
             costAdjustTriggerResult,
-            context.player.readyResourceCount,
+            this.sourcePlayer.readyResourceCount,
         )?.targetSet;
 
         Contract.assertNotNullLike(minimumTargetsSet, 'No valid target set found to pay cost with targeted cost adjuster at pay time');
@@ -208,7 +208,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             handlers.unshift(() => undefined);
         }
 
-        context.game.promptWithHandlerMenu(context.player, {
+        context.game.promptWithHandlerMenu(this.sourcePlayer, {
             activePromptTitle: `Choose pay mode for ${context.source.title}`,
             choices,
             handlers
@@ -482,7 +482,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             this.getSortedTargetsFromContext(context).map((t) => t.unit),
             context,
             costAdjustTriggerResult,
-            context.player.readyResourceCount,
+            this.sourcePlayer.readyResourceCount,
             Helpers.asArray(selected)
         );
 
@@ -511,7 +511,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             return false;
         }
 
-        const availableResources = context.player.readyResourceCount;
+        const availableResources = this.sourcePlayer.readyResourceCount;
         const minimumTargetSetToPay = this.findMinimumTargetSetToPay(
             selectableCardsSorted,
             context,

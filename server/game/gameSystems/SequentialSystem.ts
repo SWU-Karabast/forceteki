@@ -25,13 +25,20 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         const { gameSystems } = super.generatePropertiesFromContext(context);
         const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context));
         const message = ChatHelpers.formatWithLength(legalSystems.length, 'then to ');
-        return [message, legalSystems.map((system) => {
+        const legalSystemsMessages = legalSystems.map((system) => {
             const [format, args] = system.getEffectMessage(context);
             return {
                 format: format,
-                args: args,
+                args: args
             };
-        })];
+        });
+
+        // Don't show anything if there are no legal systems or none of them have messages
+        if (legalSystemsMessages.length === 0 || legalSystemsMessages.every((msg) => msg.format === '')) {
+            return super.getEffectMessage(context);
+        }
+
+        return [message, legalSystemsMessages];
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISequentialSystemProperties<TContext>> = {}): void {

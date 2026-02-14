@@ -160,6 +160,12 @@ import type { IWinGameProperties } from './WinGameSystem';
 import { WinGameSystem } from './WinGameSystem';
 import type { ICreateCreditTokenProperties } from './CreateCreditTokenSystem';
 import { CreateCreditTokenSystem } from './CreateCreditTokenSystem';
+import type { ICardEffectResourcePaymentProperties } from './CardEffectResourcePaymentSystem';
+import { CardEffectResourcePaymentSystem } from './CardEffectResourcePaymentSystem';
+import type { IUseOnAttackProperties } from './UseOnAttackSystem';
+import { UseOnAttackSystem } from './UseOnAttackSystem';
+import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditTokenSystem';
+import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -397,7 +403,31 @@ export function exhaustResources<TContext extends AbilityContext = AbilityContex
     return new ExhaustResourcesSystem<TContext>(propertyFactory);
 }
 
-export function payResourceCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustResourcesProperties, TContext>) {
+/**
+ * Pays resources, levering all the benefits of resource cost logic, including cost adjustment.
+ *
+ * Most abilities that say "pay X resources" should use this function because it allows the player
+ * to use Credit tokens while paying resources.
+ */
+export function payResources<TContext extends AbilityContext = AbilityContext>(
+    propertyFactory: PropsFactory<ICardEffectResourcePaymentProperties, TContext>
+) {
+    return new CardEffectResourcePaymentSystem<TContext>(propertyFactory);
+}
+
+/**
+ * Pays resources without tapping into cost adjustment logic.
+ *
+ * Only use this function for cases that have a "for each resource paid this way" clause.
+ * Credit tokens provide no benefit to the player in those cases because they don't count
+ * as a resource paid.
+ */
+export function payResourcesWithoutAdjustment<TContext extends AbilityContext = AbilityContext>(
+    propertyFactory: PropsFactory<Omit<IExhaustResourcesProperties, 'isCost'>, TContext>
+) {
+    // This is an awkward workaround for the fact that some card effects provide no benefit to the player if they pay
+    // for the effect with credits. For example, Emergency Powers cannot grant experience tokens if the player pays with
+    // credits, only with resources. So we want to avoid getting the cost adjuster logic involved at all for those cases.
     return new ExhaustResourcesSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IExhaustResourcesProperties, 'isCost'>(
             propertyFactory,
@@ -632,6 +662,10 @@ export function takeControlOfResource<TContext extends AbilityContext = AbilityC
     return new TakeControlOfResourceSystem(propertyFactory);
 }
 
+export function takeControlOfCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfCreditTokenProperties, TContext>) {
+    return new TakeControlOfCreditTokenSystem(propertyFactory);
+}
+
 // //////////////
 // // GENERIC
 // //////////////
@@ -708,4 +742,7 @@ export function useWhenDefeatedAbility<TContext extends AbilityContext = Ability
 }
 export function useWhenPlayedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenPlayedProperties, TContext> = {}) {
     return new UseWhenPlayedSystem<TContext>(propertyFactory);
+}
+export function useOnAttackAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseOnAttackProperties, TContext> = {}) {
+    return new UseOnAttackSystem<TContext>(propertyFactory);
 }

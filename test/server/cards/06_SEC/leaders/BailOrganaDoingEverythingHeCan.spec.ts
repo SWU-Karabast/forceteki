@@ -182,7 +182,7 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bailOrgana);
-                expect(context.player1).toHaveExactPromptButtons([bailLeaderPromptTitle, 'Deploy Bail Organa', 'Cancel']);
+                expect(context.player1).toHaveExactPromptButtons([`(No effect) ${bailLeaderPromptTitle}`, 'Deploy Bail Organa', 'Cancel']);
                 context.player1.clickPrompt('Deploy Bail Organa');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.moistureFarmer]);
                 context.player1.clickCard(context.wampa);
@@ -208,7 +208,7 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bailOrgana);
-                expect(context.player1).toHaveExactPromptButtons([bailLeaderPromptTitle, 'Deploy Bail Organa', 'Cancel']);
+                expect(context.player1).toHaveExactPromptButtons([`(No effect) ${bailLeaderPromptTitle}`, 'Deploy Bail Organa', 'Cancel']);
                 context.player1.clickPrompt('Deploy Bail Organa');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.moistureFarmer]);
                 context.player1.clickCard(context.wampa);
@@ -226,7 +226,7 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 context.moveToNextActionPhase();
 
                 context.player1.clickCard(context.bailOrgana);
-                expect(context.player1).toHaveExactPromptButtons([bailLeaderPromptTitle, 'Deploy Bail Organa', 'Cancel']);
+                expect(context.player1).toHaveExactPromptButtons([`(No effect) ${bailLeaderPromptTitle}`, 'Deploy Bail Organa', 'Cancel']);
                 context.player1.clickPrompt('Deploy Bail Organa');
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.powerOfTheDarkSide]);
                 context.player1.clickCard(context.pykeSentinel);
@@ -254,7 +254,7 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bailOrgana);
-                expect(context.player1).toHaveExactPromptButtons([bailLeaderPromptTitle, 'Deploy Bail Organa', 'Cancel']);
+                expect(context.player1).toHaveExactPromptButtons([`(No effect) ${bailLeaderPromptTitle}`, 'Deploy Bail Organa', 'Cancel']);
                 context.player1.clickPrompt('Deploy Bail Organa');
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.moistureFarmer]);
                 context.player1.clickCard(context.pykeSentinel);
@@ -284,7 +284,7 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bailOrgana);
-                expect(context.player1).toHaveExactPromptButtons([bailLeaderPromptTitle, 'Deploy Bail Organa', 'Cancel']);
+                expect(context.player1).toHaveExactPromptButtons([`(No effect) ${bailLeaderPromptTitle}`, 'Deploy Bail Organa', 'Cancel']);
                 context.player1.clickPrompt('Deploy Bail Organa');
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.moistureFarmer]);
                 context.player1.clickCard(context.pykeSentinel);

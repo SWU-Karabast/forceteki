@@ -23,7 +23,7 @@ export class SimpleCostAdjuster extends CostAdjuster {
     }
 
     protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustmentResolutionProperties) {
-        const thisAdjustAmount = this.getAmount(card, context.player, context);
+        const thisAdjustAmount = this.getAmount(card, this.sourcePlayer, context);
         result.adjustedCost.applyStaticDecrease(thisAdjustAmount);
     }
 }

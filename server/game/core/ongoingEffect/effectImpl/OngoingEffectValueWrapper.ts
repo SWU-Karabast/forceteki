@@ -3,6 +3,7 @@ import type { FormatMessage } from '../../chat/GameChat';
 import type Game from '../../Game';
 import { GameObjectBase } from '../../GameObjectBase';
 import { registerState } from '../../GameObjectUtils';
+import type { AdditionalPhaseEffect } from './AdditionalPhaseEffect';
 import type { GainAbility } from './GainAbility';
 
 @registerState()
@@ -41,6 +42,10 @@ export class OngoingEffectValueWrapper<TValue> extends GameObjectBase {
     }
 
     public isGainAbility(): this is GainAbility {
+        return false;
+    }
+
+    public isAdditionalPhase(): this is AdditionalPhaseEffect {
         return false;
     }
 }

@@ -23,7 +23,7 @@ export default class LookTheOtherWay extends EventCard {
                     mode: TargetMode.SelectUnless,
                     dependsOn: 'targetUnit',
                     unlessEffect: {
-                        effect: (context) => AbilityHelper.immediateEffects.payResourceCost({
+                        effect: (context) => AbilityHelper.immediateEffects.payResources({
                             target: context.targets.targetUnit.controller,
                             amount: 2
                         }),

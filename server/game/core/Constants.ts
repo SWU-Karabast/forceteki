@@ -76,6 +76,7 @@ export enum DamageType {
 export enum EffectName {
     AbilityRestrictions = 'abilityRestrictions',
     AdditionalAction = 'additionalActions',
+    AdditionalPhase = 'additionalPhase',
     AdditionalActionAfterWindowCompleted = 'additionalActionsAfterWindowCompleted',
     AdditionalPlayCost = 'additionalPlaycost',
     AdditionalTriggerCost = 'additionalTriggercost',
@@ -96,7 +97,7 @@ export enum EffectName {
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
-    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
+    DealsCombatDamageFirst = 'dealsCombatDamageFirst',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
@@ -308,10 +309,11 @@ export enum EventName {
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnTakeControl = 'onTakeControl',
-    OnTokensCreated = 'OnTokensCreated',
+    OnTokensCreated = 'onTokensCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
     OnUpgradeUnattached = 'onUpgradeUnattached',
+    OnUseOnAttack = 'onUseOnAttack',
     OnUseWhenDefeated = 'onUseWhenDefeated',
     OnUseWhenPlayed = 'onUseWhenPlayed',
 }
@@ -412,6 +414,7 @@ export enum Trait {
     Lightsaber = 'lightsaber',
     Mandalorian = 'mandalorian',
     Modification = 'modification',
+    Musician = 'musician',
     Naboo = 'naboo',
     NewRepublic = 'new republic',
     Night = 'night',
@@ -483,6 +486,7 @@ export enum AbilityRestriction {
     BeCaptured = 'beCaptured',
     BeDefeated = 'beDefeated',
     ReturnToHand = 'returnToHand',
+    DealCombatDamage = 'dealCombatDamage',
 }
 
 export enum DamageModificationType {
@@ -503,6 +507,7 @@ export enum StateWatcherName {
     DamageDealtThisPhase = 'damageDealtThisPhase',
     ForceUsedThisPhase = 'forceUsedThisPhase',
     LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
+    TokensCreatedThisPhase = 'tokensCreatedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
 

@@ -196,7 +196,7 @@ export class EventWindow extends BaseStepWithPipeline {
         // we emit triggered abilities here to ensure that they get triggered in case e.g. an ability is blanked during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
             this._triggeredAbilityWindow.addTriggeringEvents(this._events);
-            this._triggeredAbilityWindow.emitEvents();
+            this._triggeredAbilityWindow.emitEvents(this._events);
         }
 
         for (const event of eventsToResolve) {

@@ -37,8 +37,8 @@ describe('Morgan Elsbeth, Following the Call', function() {
                 context.player1.clickCard(context.morganElsbeth);
 
                 // Select her Action ability
-                expect(context.player1).toHaveEnabledPromptButton(prompt);
-                context.player1.clickPrompt(prompt);
+                expect(context.player1).toHaveEnabledPromptButton(`(No effect) ${prompt}`);
+                context.player1.clickPrompt(`(No effect) ${prompt}`);
                 context.player1.clickPrompt('Use it anyway');
 
                 // It was used to no effect
@@ -56,8 +56,8 @@ describe('Morgan Elsbeth, Following the Call', function() {
 
                 // Use Morgan Elsbeth's ability
                 context.player1.clickCard(context.morganElsbeth);
-                expect(context.player1).toHaveEnabledPromptButton(prompt);
-                context.player1.clickPrompt(prompt);
+                expect(context.player1).toHaveEnabledPromptButton(`(No effect) ${prompt}`);
+                context.player1.clickPrompt(`(No effect) ${prompt}`);
 
                 // It cannot fully resolve, so the user is prompted to confirm using it anyway
                 expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);
@@ -110,8 +110,8 @@ describe('Morgan Elsbeth, Following the Call', function() {
 
                 // Use Morgan Elsbeth's ability
                 context.player1.clickCard(context.morganElsbeth);
-                expect(context.player1).toHaveEnabledPromptButton(prompt);
-                context.player1.clickPrompt(prompt);
+                expect(context.player1).toHaveEnabledPromptButton(`(No effect) ${prompt}`);
+                context.player1.clickPrompt(`(No effect) ${prompt}`);
 
                 // It cannot fully resolve because there are no units with Smuggle in hand (only an event)
                 expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);
@@ -401,8 +401,8 @@ describe('Morgan Elsbeth, Following the Call', function() {
 
                 // Use Morgan Elsbeth's ability
                 context.player1.clickCard(context.morganElsbeth);
-                expect(context.player1).toHaveEnabledPromptButton(prompt);
-                context.player1.clickPrompt(prompt);
+                expect(context.player1).toHaveEnabledPromptButton(`(No effect) ${prompt}`);
+                context.player1.clickPrompt(`(No effect) ${prompt}`);
                 context.player1.clickPrompt('Use it anyway');
 
                 // It was used to no effect

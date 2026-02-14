@@ -32,7 +32,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         source: ICardWithCostProperty,
         properties: IExhaustUnitsCostAdjusterProperties
     ) {
-        super(game, source, CostAdjustStage.ExhaustUnits_3,
+        super(game, source, CostAdjustStage.ExhaustUnits_4,
             {
                 ...properties,
                 costAdjustType: CostAdjustType.ExhaustUnits,
@@ -63,7 +63,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
 
         // if the source (Vuutun Palaa) was removed via Exploit, no adjustment available
         if (previousTargetSelections?.some(
-            (selection) => selection.stage === CostAdjustStage.Exploit_1 && selection.card === this.sourceCard
+            (selection) => selection.stage === CostAdjustStage.Exploit_2 && selection.card === this.sourceCard
         )) {
             return;
         }
@@ -77,7 +77,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         for (const selection of previousTargetSelections) {
             if (
                 this.isTargetableForExhaust(selection.card, context) &&
-                selection.stage === CostAdjustStage.Exploit_1
+                selection.stage === CostAdjustStage.Exploit_2
             ) {
                 numRemoved++;
             }
@@ -103,7 +103,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
 
         Contract.assertNotNullLike(adjustSourceEntry, `Source card ${this.sourceCard.internalName} of ExhaustUnitsCostAdjuster not found in costAdjusterTargets`);
 
-        const maxTargetableUnits = context.player.getArenaUnits()
+        const maxTargetableUnits = this.sourcePlayer.getArenaUnits()
             .filter((unit) => this.isTargetableForExhaust(unit, context))
             .length;
 
@@ -116,7 +116,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         this.setOrAddOpportunityCost(
             adjustSourceEntry,
             opportunityCost,
-            CostAdjustStage.Exploit_1,
+            CostAdjustStage.Exploit_2,
         );
 
         for (const targetEntry of evaluationResult.costAdjusterTargets) {
@@ -124,7 +124,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
                 this.setOrAddOpportunityCost(
                     targetEntry,
                     { max: 1 },
-                    CostAdjustStage.Exploit_1,
+                    CostAdjustStage.Exploit_2,
                 );
             }
         }
