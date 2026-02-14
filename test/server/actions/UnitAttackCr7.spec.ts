@@ -317,7 +317,7 @@ describe('Basic attack (CR7 update)', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('""When combat damage is dealt" abilities should resolve in the same window as "when defeated" abilities"', async function() {
+        it('"When combat damage is dealt" abilities should resolve in the same window as "when defeated" abilities"', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 attackRulesVersion: 'cr7',
@@ -349,6 +349,95 @@ describe('Basic attack (CR7 update)', function() {
 
             expect(context.phaseiiiDarkTrooper).toHaveExactUpgradeNames(['experience']);
             expect(context.phaseiiiDarkTrooper.damage).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        describe('Gained "when combat damage is dealt" abilities', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['heroic-sacrifice', 'general-krell#heartless-tactician'],
+                        groundArena: ['atst', 'rukh#thrawns-assassin'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'nightsister-warrior'],
+                    }
+                });
+            });
+
+            it('should resolve correctly', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heroicSacrifice);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.atst).toBeInZone('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should resolve in the same window as "when defeated" abilities', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heroicSacrifice);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.nightsisterWarrior);
+
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('You');
+
+                // abilities resolve automatically
+
+                expect(context.atst).toBeInZone('discard');
+                expect(context.nightsisterWarrior).toBeInZone('discard');
+                expect(context.player2.handSize).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        it('Gained "when combat damage is dealt" abilities should resolve in the same window as "when defeated" abilities and correctly nest triggers', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['heroic-sacrifice'],
+                    groundArena: ['rukh#thrawns-assassin', { card: 'general-krell#heartless-tactician', upgrades: ['academy-training'] }],
+                },
+                player2: {
+                    groundArena: ['tarfful#kashyyyk-chieftain', 'gentle-giant'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.heroicSacrifice);
+            context.player1.clickCard(context.rukh);
+            context.player1.clickCard(context.gentleGiant);
+
+            expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+            context.player1.clickPrompt('You');
+
+            expect(context.player1).toHaveExactPromptButtons([
+                'Defeat unit being attacked',
+                'When this unit deals combat damage: Defeat it.'
+            ]);
+
+            // resolve Heroic Sacrifice trigger first. Rukh is defeated, and the Krell trigger happens in a nested way.
+            // therefore, it has to happen before the Rukh trigger
+            context.player1.clickPrompt('When this unit deals combat damage: Defeat it.');
+
+            // trigger card draw from Krell, confirm that Rukh trigger hasn't happened yet
+            expect(context.gentleGiant).toBeInZone('groundArena');
+            context.player1.clickPrompt('Trigger');
+
+            // Rukh trigger resolves automatically, move to Tarfful trigger
+            context.player2.clickCard(context.generalKrell);
+
+            expect(context.rukh).toBeInZone('discard');
+            expect(context.gentleGiant).toBeInZone('discard');
+            expect(context.player1.handSize).toBe(2);       // draw from Krell and Heroic Sacrifice
+            expect(context.generalKrell.damage).toBe(5);
             expect(context.player2).toBeActivePlayer();
         });
     });
