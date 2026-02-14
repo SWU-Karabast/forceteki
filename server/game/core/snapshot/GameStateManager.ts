@@ -12,6 +12,9 @@ export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
     get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null;
 
+    /** Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
+    getUnsafe<T extends GameObjectBase>(uuid: string): T;
+
     /**
      * Creates a {@link GameObjectBase} object that is not allowed to have references.
      * This is useful for reducing GC overhead if it is known in advance that a GameObject is transient and will not be saved.
@@ -48,6 +51,20 @@ export class GameStateManager implements IGameObjectRegistrar {
 
         const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
         const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
+        try {
+            Contract.assertNotNullLike(ref, errorMessage);
+        } catch (error) {
+            this.game.reportError(error, GameErrorSeverity.SevereHaltGame);
+
+            throw error;
+        }
+        return ref as T;
+    }
+
+    /** Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
+    public getUnsafe<T extends GameObjectBase>(uuid: string): T {
+        const ref = this.gameObjectMapping.get(uuid);
+        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {

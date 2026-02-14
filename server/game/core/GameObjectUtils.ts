@@ -258,19 +258,19 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
         const name = context.name;
 
         // Use the backing fields as the cache, and write refs to the state.
-        // State stores a Map<string, GameObjectRef> keyed by UUID so that delete can look up by key.
+        // State stores a Set<string> keyed by UUID so that delete can look up by key.
         return {
             get(this) {
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
                 // The below UndoSet instantiation will also load the state map with all of its values.
-                this.state[name] = newValue ? new Map(Array.from(newValue, (value) => [value.getRef().uuid, value.getRef()])) : newValue;
+                this.state[name] = newValue ? new Set(Array.from(newValue, (value) => value.getRef().uuid)) : newValue;
                 target.set.call(this, newValue ? new UndoSet(this, name, newValue.values()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoSet cannot be init with entries');
-                this.state[name] = value ? new Map() : value;
+                this.state[name] = value ? new Set() : value;
                 // If this is not-null, create an equivalent set in the state. Otherwise, leave it as-is.
                 return value ? new UndoSet(this, name) : value;
             },
@@ -577,7 +577,7 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
                 const metaSets = metaState[stateSetMetadata] as string[];
                 for (const field of metaSets) {
                     // State stores a Map<string, GameObjectRef> keyed by UUID
-                    const mappedValues: GameObjectBase[] = Array.from((newState[field] as Map<string, GameObjectRef>).values(), (ref) => instance.game.getFromRef(ref));
+                    const mappedValues: GameObjectBase[] = Array.from((newState[field] as Set<string>).values(), (uuid) => instance.game.getFromUuidUnsafe(uuid));
                     instance[field] = new Set(mappedValues);
                 }
             }
@@ -624,20 +624,23 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
         // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
             // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).set(key, value?.getRef());
+            const stateValue = this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>;
+            stateValue.set(key, value?.getRef());
         }
         return super.set(key, value);
     }
 
     public override delete(key: string): boolean {
         // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).delete(key);
+        const stateValue = this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>;
+        stateValue.delete(key);
         return super.delete(key);
     }
 
     public override clear(): void {
         // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).clear(key);
+        const stateValue = this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>;
+        stateValue.clear();
         super.clear();
     }
 }
@@ -658,22 +661,25 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
     public override add(value: TValue): this {
         // Add is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
-            const ref = value?.getRef();
+            const ref = value.getRef();
             // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).set(ref.uuid, ref);
+            const stateValue = this.go.state[this.prop] as Set<string>;
+            stateValue.add(ref.uuid);
         }
         return super.add(value);
     }
 
     public override delete(value: TValue): boolean {
         // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).delete(value?.getRef().uuid);
+        const stateValue = this.go.state[this.prop] as Set<string>;
+        stateValue.delete(value?.getRef().uuid);
         return super.delete(value);
     }
 
     public override clear(): void {
         // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).clear();
+        const stateValue = this.go.state[this.prop] as Set<string>;
+        stateValue.clear();
         super.clear();
     }
 }
@@ -690,7 +696,7 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     public override push(...items: TValue[]): number {
         this.accessing = true;
         try {
-        // @ts-expect-error Overriding state accessibility
+            // @ts-expect-error Overriding state accessibility
             (this.go.state[this.prop] as GameObjectRef<TValue>[]).push(...items.map((x) => x.getRef()));
             return super.push(...items);
         } finally {
