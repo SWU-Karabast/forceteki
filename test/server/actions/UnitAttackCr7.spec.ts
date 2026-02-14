@@ -355,6 +355,7 @@ describe('Basic attack (CR7 update)', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
+                    attackRulesVersion: 'cr7',
                     player1: {
                         hand: ['heroic-sacrifice', 'general-krell#heartless-tactician'],
                         groundArena: ['atst', 'rukh#thrawns-assassin'],
@@ -399,6 +400,7 @@ describe('Basic attack (CR7 update)', function() {
         it('Gained "when combat damage is dealt" abilities should resolve in the same window as "when defeated" abilities and correctly nest triggers', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
+                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['heroic-sacrifice'],
                     groundArena: ['rukh#thrawns-assassin', { card: 'general-krell#heartless-tactician', upgrades: ['academy-training'] }],
@@ -445,6 +447,7 @@ describe('Basic attack (CR7 update)', function() {
         it('Gained "while this unit is attacking" abilities should work', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
+                attackRulesVersion: 'cr7',
                 player1: {
                     hand: [
                         'condemn',
@@ -494,6 +497,7 @@ describe('Basic attack (CR7 update)', function() {
         it('Condemn correctly makes the attached unit lose When Defeated & Bounty abilities if it is defeated during the attack', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
+                attackRulesVersion: 'cr7',
                 player1: {
                     groundArena: [
                         'consular-security-force',
@@ -525,6 +529,7 @@ describe('Basic attack (CR7 update)', function() {
         it('Condemn blanks post-attack triggers', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
+                attackRulesVersion: 'cr7',
                 player1: {
                     deck: ['resupply'],
                     groundArena: [{
