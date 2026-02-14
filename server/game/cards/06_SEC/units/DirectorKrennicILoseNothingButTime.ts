@@ -11,11 +11,8 @@ export default class DirectorKrennicILoseNothingButTime extends NonLeaderUnitCar
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnDefenseAbility({
             title: 'Discard a card from your deck. If it\'s a unit, you may return it to your hand',
-            when: {
-                onAttackDeclared: (event, context) => event.attack.getAllTargets().some((x) => x === context.source),
-            },
             immediateEffect: abilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
                 target: context.player
