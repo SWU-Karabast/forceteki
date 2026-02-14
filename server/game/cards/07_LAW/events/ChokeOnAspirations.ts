@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { Trait } from '../../../core/Constants';
 
 export default class ChokeOnAspirations extends EventCard {
     protected override getImplementationId() {
@@ -20,6 +21,7 @@ export default class ChokeOnAspirations extends EventCard {
                 controller: RelativePlayer.Self,
                 canChooseNoTargets: true,
                 cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle),
                 maxTargets: 1,
             }),
             then: (thenContext) => ({

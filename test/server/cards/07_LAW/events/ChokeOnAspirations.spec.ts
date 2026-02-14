@@ -7,6 +7,7 @@ describe('Choke On Aspirations', function () {
                     player1: {
                         hand: ['choke-on-aspirations'],
                         spaceArena: ['jade-squadron-patrol'],
+                        groundArena: ['darth-vader#twilight-of-the-apprentice'],
                         base: { card: 'chopper-base', damage: 5 }
                     },
                     player2: {
@@ -20,16 +21,17 @@ describe('Choke On Aspirations', function () {
                 expect(context.p1Base.damage).toBe(5);
                 context.player1.clickCard(context.chokeOnAspirations);
 
-                // Distribute 5 damage to Jade Squadron Patrol
+                // Distribute 5 damage to Darth Vader
+                expect(context.player1).toBeAbleToSelectExactly([context.darthVader]);
                 context.player1.setDistributeDamagePromptState(new Map([
-                    [context.jadeSquadronPatrol, 5],
+                    [context.darthVader, 5],
                 ]));
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.jadeSquadronPatrol).toBeInZone('spaceArena');
-                // Jade Squadron Patrol should take 5 damage and then player1's base should heal 5 damage
+                expect(context.darthVader).toBeInZone('groundArena');
+                // Darth Vader should take 5 damage and then player1's base should heal 5 damage
                 expect(context.p1Base.damage).toBe(0); // Base starts with 5 damage and heals 5, it should be at 0
-                expect(context.jadeSquadronPatrol.damage).toBe(5);
+                expect(context.darthVader.damage).toBe(5);
             });
 
             it('should deal up to 5 damage to a friendly unit and not heal damage from your base if the unit is defeated', async function () {
@@ -96,7 +98,7 @@ describe('Choke On Aspirations', function () {
                     phase: 'action',
                     player1: {
                         hand: ['choke-on-aspirations'],
-                        spaceArena: ['jade-squadron-patrol'],
+                        groundArena: ['darth-vader#twilight-of-the-apprentice'],
                         base: { card: 'chopper-base', damage: 5 }
                     },
                     player2: {
@@ -110,14 +112,14 @@ describe('Choke On Aspirations', function () {
                 expect(context.p1Base.damage).toBe(5);
                 context.player1.clickCard(context.chokeOnAspirations);
 
-                // Distribute 5 damage to Jade Squadron Patrol
+                // Distribute 5 damage to Darth Vader
                 context.player1.setDistributeDamagePromptState(new Map([
-                    [context.jadeSquadronPatrol, 3],
+                    [context.darthVader, 3],
                 ]));
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.jadeSquadronPatrol).toBeInZone('spaceArena'); // Jade Squadron Patrol should be in the space arena and not take any damage
-                expect(context.jadeSquadronPatrol.damage).toBe(3);
+                expect(context.darthVader).toBeInZone('groundArena'); // Darth Vader should be in the ground arena and not take any damage
+                expect(context.darthVader.damage).toBe(3);
                 expect(context.p1Base.damage).toBe(2); // Base starts with 5 damage and should heal 3 damage because the unit survived
             });
 
@@ -126,7 +128,7 @@ describe('Choke On Aspirations', function () {
                     phase: 'action',
                     player1: {
                         hand: ['choke-on-aspirations'],
-                        spaceArena: [{ card: 'jade-squadron-patrol', upgrades: ['shield'] }],
+                        groundArena: [{ card: 'darth-vader#twilight-of-the-apprentice', upgrades: ['shield'] }],
                         base: { card: 'chopper-base', damage: 5 }
                     },
                     player2: {
@@ -138,17 +140,17 @@ describe('Choke On Aspirations', function () {
 
 
                 expect(context.p1Base.damage).toBe(5);
-                expect(context.jadeSquadronPatrol).toHaveExactUpgradeNames(['shield']);
+                expect(context.darthVader).toHaveExactUpgradeNames(['shield']);
                 context.player1.clickCard(context.chokeOnAspirations);
 
-                // Distribute 5 damage to Jade Squadron Patrol
+                // Distribute 5 damage to Darth Vader
                 context.player1.setDistributeDamagePromptState(new Map([
-                    [context.jadeSquadronPatrol, 5],
+                    [context.darthVader, 5],
                 ]));
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.jadeSquadronPatrol).toBeInZone('spaceArena'); // Jade Squadron Patrol should be in the space arena and not take any damage
-                expect(context.jadeSquadronPatrol.damage).toBe(0);
+                expect(context.darthVader).toBeInZone('groundArena'); // Darth Vader should be in the ground arena and not take any damage
+                expect(context.darthVader.damage).toBe(0);
                 expect(context.p1Base.damage).toBe(5); // Base starts with 5 damage and should not heal because no damage was dealt to the unit
             });
         });
