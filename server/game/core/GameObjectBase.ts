@@ -54,7 +54,9 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     public readonly game: Game;
 
     // the cast "as unknown as T" is a work-around to let us instantiate it as an empty object initially.
-    protected state: T = {} as unknown as T;
+    // @ts-expect-error while we need to declare the state here, unless manual usage is required, it should never be directly accessed.
+    // If direct access is required, use "declare state: <SomeInterface>;" in the specific class that needs manual access.
+    protected state: IGameObjectBaseState = {};
 
     private _cannotHaveRefs = false;
     private _hasRef = false;
@@ -79,7 +81,15 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     }
 
     /** ID given by the game engine. */
-    @undoState() public accessor uuid: string;
+    @undoState() private accessor _uuid: string;
+    public get uuid() {
+        return this._uuid;
+    }
+
+    public set uuid(value: string) {
+        Contract.assertFalse(!!this._uuid, `Attempting to set uuid on ${this.getGameObjectName()} (UUID: ${this._uuid}) but it already has a uuid.`);
+        this._uuid = value;
+    }
 
     public constructor(game: Game) {
         this.game = game;
@@ -119,7 +129,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     }
 
     /** Sets the state.  */
-    public setState(state: T) {
+    public setState(state: IGameObjectBaseState) {
         const oldState = this.state;
         this.state = state;
         copyState(this, this.state);
@@ -144,11 +154,11 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public afterSetAllState(oldState: T) { }
+    public afterSetAllState(oldState: IGameObjectBaseState) { }
 
     /** A function for game to call after the state for this object has been rolled back. Intended to be used when a class has state changes that have internal changes, such as caching state. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected afterSetState(oldState: T) { }
+    protected afterSetState(oldState: IGameObjectBaseState) { }
 
     /**
      * A function for game to call on all objects if they are being removed from the GameObject list (typically after a rollback to before the object was created).
@@ -157,7 +167,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
      * The most common example is removing event handlers that have been registered on Game.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public cleanupOnRemove(oldState: T) { }
+    public cleanupOnRemove(oldState: IGameObjectBaseState) { }
 
     private assertInitialized(operation: string) {
         Contract.assertTrue(this._initialized, `Attempting to ${operation} on uninitialized GameObject: ${this.getGameObjectName()} (UUID: ${this.uuid})`);

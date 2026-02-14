@@ -37,6 +37,8 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
     public readonly name: StateWatcherName;
     private eventNameMapping = new Map<string, (...args: any[]) => void>();
 
+    protected declare state: IStateWatcherState<TState>; // Narrow the type of state for easier access to entries
+
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {
         when: {
