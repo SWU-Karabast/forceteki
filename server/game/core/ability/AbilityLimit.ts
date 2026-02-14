@@ -25,7 +25,7 @@ export interface IAbilityLimitState extends IGameObjectBaseState {
 }
 
 @registerState()
-export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityLimitState> extends GameObjectBase<TState> implements IAbilityLimit {
+export abstract class AbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability: CardAbility | null = null;
 
     @undoState() private accessor isRegistered: boolean = false;
@@ -35,7 +35,7 @@ export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityL
         return true;
     }
 
-    protected override afterSetState(oldState: TState): void {
+    protected override afterSetState(oldState: IAbilityLimitState): void {
         if (this.isRegistered !== oldState.isRegistered) {
             if (this.isRegistered) {
                 this.registerEvents();
@@ -45,7 +45,7 @@ export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityL
         }
     }
 
-    public override cleanupOnRemove(oldState: TState): void {
+    public override cleanupOnRemove(oldState: IAbilityLimitState): void {
         if (oldState.isRegistered) {
             this.unregisterEvents();
         }
@@ -79,7 +79,7 @@ interface IPerGameAbilityLimitState extends IAbilityLimitState {
 }
 
 @registerState()
-export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitState> {
+export class UnlimitedAbilityLimit extends AbilityLimit {
     @undoPlainMap() private accessor useCount: Map<string, number> = new Map();
 
     public clone() {
@@ -113,7 +113,7 @@ export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitSt
 }
 
 @registerState()
-export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState> {
+export class PerGameAbilityLimit extends AbilityLimit {
     public currentUser: null | string = null;
     public readonly max: number;
 
@@ -150,7 +150,7 @@ export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState>
 }
 
 @registerState()
-export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitState> {
+export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
     public readonly max: number;
 
     @undoPlainMap() private accessor useCount: Map<string, number> = new Map();

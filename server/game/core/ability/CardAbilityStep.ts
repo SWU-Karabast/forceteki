@@ -1,4 +1,3 @@
-import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility.js';
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
 import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, PlayType } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
@@ -23,7 +22,7 @@ import { registerState } from '../GameObjectUtils';
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
 @registerState()
-export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends PlayerOrCardAbility<T> {
+export class CardAbilityStep extends PlayerOrCardAbility {
     private handler: (context: AbilityContext) => void;
 
     /** @param card The card this ability is attached to. */

@@ -72,7 +72,7 @@ export interface IPlayerState extends IGameObjectState {
 }
 
 @registerState()
-export class Player extends GameObject<IPlayerState> implements IGameStatisticsTrackable {
+export class Player extends GameObject implements IGameStatisticsTrackable {
     public user: IUser;
     private _lobbyUser?: User;
     public printedType: string;

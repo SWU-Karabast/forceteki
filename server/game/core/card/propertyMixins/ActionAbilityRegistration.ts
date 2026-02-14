@@ -1,6 +1,6 @@
 import type { IActionAbilityProps } from '../../../Interfaces';
 import type { ActionAbility } from '../../ability/ActionAbility';
-import type { Card, CardConstructor, ICardState } from '../Card';
+import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 import { registerState } from '../../GameObjectUtils';
 
@@ -16,7 +16,7 @@ export interface ICardWithActionAbilities<T extends Card> {
 }
 
 /** Mixin function that adds the ability to register action abilities to a base card class. */
-export function WithActionAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
+export function WithActionAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     @registerState()
     class WithActionAbilities extends BaseClass {
         private addActionAbility(properties: IActionAbilityProps<this>): ActionAbility {

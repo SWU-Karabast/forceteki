@@ -23,7 +23,7 @@ import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistr
 import type { ConstantAbility } from '../ability/ConstantAbility';
 import { registerState, undoObject } from '../GameObjectUtils';
 
-const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>)));
+const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard)));
 
 export interface IEventCardState extends IPlayableOrDeployableCardState {
     eventAbility: GameObjectRef<EventAbility>;

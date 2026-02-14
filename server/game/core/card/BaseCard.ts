@@ -20,7 +20,7 @@ import type { ICardWithCaptureZone } from '../zone/CaptureZone';
 import { CaptureZone } from '../zone/CaptureZone';
 import { registerState } from '../GameObjectUtils';
 
-const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card<IBaseCardState>)))));
+const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
 // STATE TODO: Obsolete, to be removed.
 export type IBaseCardState = ICardState;

@@ -105,12 +105,12 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TState>, TState extends IInPlayCardState>(BaseClass: TBaseClass) {
+export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
     // create a "base" class that has the damage, hp, and power properties from other mixins
     const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
     @registerState()
-    class AsUnit extends (StatsAndDamageClass as typeof StatsAndDamageClass & InPlayCardConstructor<TState & IUnitPropertiesCardState>) implements IUnitCard {
+    class AsUnit extends StatsAndDamageClass implements IUnitCard {
         public static registerRulesListeners(game: Game) {
             // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
             game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {

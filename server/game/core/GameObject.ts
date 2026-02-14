@@ -19,7 +19,7 @@ export interface IGameObjectState extends IGameObjectBaseState {
 
 // TODO: Rename to TargetableGameObject? Or something to imply this is a object with effects (as opposed to an Ability).
 @registerState()
-export abstract class GameObject<T extends IGameObjectState = IGameObjectState> extends GameObjectBase<T> {
+export abstract class GameObject extends GameObjectBase {
     @undoArray(false)
     private accessor _ongoingEffects: OngoingCardEffect[] = [];
 
@@ -168,3 +168,4 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return false;
     }
 }
+

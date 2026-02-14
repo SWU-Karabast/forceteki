@@ -55,7 +55,7 @@ import { registerState, undoArray, undoObject, undoState } from '../GameObjectUt
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
 
 // required for mixins to be based on this class
-export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
+export type CardConstructor = new (...args: any[]) => Card;
 
 // STATE TODO: Obsolete, to be removed.
 export type ICardState = IOngoingEffectSourceState;
@@ -74,7 +74,7 @@ export enum InitializeCardStateOption {
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
 @registerState()
-export class Card<T extends ICardState = ICardState> extends OngoingEffectSource<T> implements IGameStatisticsTrackable {
+export class Card extends OngoingEffectSource implements IGameStatisticsTrackable {
     public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
         if (cardData.types.includes('leader')) {
             return true;

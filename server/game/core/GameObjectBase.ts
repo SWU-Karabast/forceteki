@@ -7,8 +7,8 @@ export interface IGameObjectBaseState {
     uuid: string;
 }
 
-export interface IGameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> {
-    getRef<TRef extends GameObjectBase<T>>(): GameObjectRef<TRef>;
+export interface IGameObjectBase {
+    getRef<TRef extends GameObjectBase>(): GameObjectRef<TRef>;
 }
 
 /**
@@ -50,7 +50,7 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
 @registerState()
-export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
+export abstract class GameObjectBase implements IGameObjectBase {
     public readonly game: Game;
 
     // the cast "as unknown as T" is a work-around to let us instantiate it as an empty object initially.
@@ -205,3 +205,4 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return 'GameObject';
     }
 }
+

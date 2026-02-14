@@ -24,7 +24,7 @@ import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
-export type PlayableOrDeployableCardConstructor<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> = new (...args: any[]) => PlayableOrDeployableCard<T>;
+export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
 
 export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
@@ -67,7 +67,7 @@ export type IPlayableOrDeployableCardState = ICardState;
  * as well as exhausted status.
  */
 @registerState()
-export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> implements IPlayableOrDeployableCard {
+export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
 
     @undoState()

@@ -24,7 +24,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
 import { registerState, undoObject } from '../GameObjectUtils';
 
-const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard<ILeaderUnitCardState>));
+const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
 /** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}

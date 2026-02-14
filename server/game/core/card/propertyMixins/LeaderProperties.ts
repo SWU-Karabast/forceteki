@@ -24,9 +24,9 @@ export type ILeaderPropertiesCardState = IPlayableOrDeployableCardState;
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithLeaderProperties<TState extends IPlayableOrDeployableCardState, TBaseClass extends PlayableOrDeployableCardConstructor = PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
+export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCardConstructor = PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
     @registerState()
-    class AsLeader extends (BaseClass as typeof BaseClass & PlayableOrDeployableCardConstructor<TState & ILeaderPropertiesCardState>) implements ILeaderCard {
+    class AsLeader extends (BaseClass as TBaseClass) implements ILeaderCard {
         // STATE TODO: I am uncertain if this needs to be undefined or false to start. LeaderUnitCard sets the default, which is odd.
         // NAMING NOTE: Normally only TS private fields would start with underscore, but there's a unusual split of logic and accessors between here and LeaderUnitCard, so this is a exception to the rule.
         @undoState()

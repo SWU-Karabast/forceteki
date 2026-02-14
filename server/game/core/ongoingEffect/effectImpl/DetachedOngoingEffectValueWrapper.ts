@@ -9,7 +9,7 @@ export interface IDetachedOngoingEffectValueWrapperState extends IGameObjectBase
 }
 
 @registerState()
-export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue, IDetachedOngoingEffectValueWrapperState> {
+export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue> {
     public readonly applyFunc: any;
     public readonly unapplyFunc: any;
 

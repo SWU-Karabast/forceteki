@@ -1,7 +1,7 @@
 import type { IConstantAbilityProps } from '../../../Interfaces';
 import { WildcardZoneName } from '../../Constants';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
-import type { Card, CardConstructor, ICardState } from '../Card';
+import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import { registerState } from '../../GameObjectUtils';
@@ -18,7 +18,7 @@ export interface ICardWithConstantAbilities<T extends Card> {
 }
 
 /** Mixin function that adds the ability to register constant abilities to a base card class. */
-export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
+export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     @registerState()
     class WithConstantAbilities extends BaseClass {
         private addConstantAbility(properties: IConstantAbilityProps<this>): ConstantAbility {

@@ -31,7 +31,7 @@ export interface IStateWatcherState<TState> extends IGameObjectBaseState {
  * - a set of event triggers which will update the stored state to keep the history
  */
 @registerState(CopyMode.UseBulkCopy)
-export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWatcherState<TState>> {
+export abstract class StateWatcher<TState = any> extends GameObjectBase {
     private stateUpdaters: IStateListenerProperties<TState[]>[] = [];
     private readonly allUpdaters;
     public readonly name: StateWatcherName;
@@ -152,3 +152,4 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
         this.unregisterListeners();
     }
 }
+

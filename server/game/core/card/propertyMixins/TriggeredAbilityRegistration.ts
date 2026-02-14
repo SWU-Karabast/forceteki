@@ -1,7 +1,7 @@
 import type { IDamageModificationAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
-import type { Card, CardConstructor, ICardState } from '../Card';
+import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 import DamageModificationAbility from '../../ability/DamageModificationAbility';
 import { registerState } from '../../GameObjectUtils';
@@ -27,7 +27,7 @@ export interface ICardWithTriggeredAbilities<T extends Card> {
 }
 
 /** Mixin function that adds the ability to register triggered abilities to a base card class. */
-export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
+export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     @registerState()
     class WithTriggeredAbilities extends BaseClass {
         /**

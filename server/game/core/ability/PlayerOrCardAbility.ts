@@ -46,7 +46,7 @@ export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
  * ability is generated from.
  */
 @registerState()
-export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends GameObjectBase<T> {
+export abstract class PlayerOrCardAbility extends GameObjectBase {
     private _title: string;
     private _contextTitle?: (context: AbilityContext) => string;
     public limit?: AbilityLimit;
@@ -446,3 +446,4 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
         return false;
     }
 }
+

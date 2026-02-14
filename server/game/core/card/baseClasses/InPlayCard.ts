@@ -30,7 +30,7 @@ import { registerState, undoObject, undoState } from '../../GameObjectUtils';
 const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
-export type InPlayCardConstructor<T extends IInPlayCardState = IInPlayCardState> = new (...args: any[]) => InPlayCard<T>;
+export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 
 // STATE TODO: Obselete, to be removed.
 export type IInPlayCardState = IPlayableOrDeployableCardState;
@@ -64,7 +64,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 3. Uniqueness management
  */
 @registerState()
-export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends InPlayCardParent<T> implements IInPlayCard {
+export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private readonly _printedUpgradeHp: number;
     private readonly _printedUpgradePower: number;
 

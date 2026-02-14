@@ -17,7 +17,7 @@ export interface IGainAbilityState extends IGameObjectBaseState {
 }
 
 @registerState()
-export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType, IGainAbilityState> {
+export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType> {
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;
 

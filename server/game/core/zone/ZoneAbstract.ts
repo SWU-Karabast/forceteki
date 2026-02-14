@@ -35,7 +35,7 @@ export interface IAddRemoveZone {
  * Base class for all Zone types. Defines some common properties and methods.
  */
 @registerState()
-export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
+export abstract class ZoneAbstract<TCard extends Card = Card> extends GameObjectBase {
     public readonly owner: Player | Game;
 
     /** Set of players that this zone is hidden for. If `null`, not hidden for any player. */
@@ -105,3 +105,4 @@ export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGa
         return ('game' in this.owner ? `${this.owner.name}:` : '') + this.name;
     }
 }
+

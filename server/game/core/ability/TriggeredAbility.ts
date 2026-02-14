@@ -46,7 +46,7 @@ export interface ITriggeredAbillityState extends ICardAbilityState {
  */
 
 @registerState()
-export default class TriggeredAbility extends CardAbility<ITriggeredAbillityState> {
+export default class TriggeredAbility extends CardAbility {
     public readonly when?: WhenType;
     public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
     public readonly anyPlayer: boolean;

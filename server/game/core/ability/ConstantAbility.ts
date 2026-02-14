@@ -2,7 +2,7 @@ import type { AbilityContext } from './AbilityContext.js';
 import type { CardTypeFilter, RelativePlayerFilter, ZoneFilter } from '../Constants.js';
 import { Duration, WildcardZoneName } from '../Constants.js';
 import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../Interfaces.js';
-import type { Card, ICardState } from '../card/Card.js';
+import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase.js';
@@ -37,7 +37,7 @@ export interface IConstantAbilityState extends IGameObjectBaseState {
  *                   the card is clicked.
  */
 @registerState()
-export class ConstantAbility extends GameObjectBase<IConstantAbilityState> implements IConstantAbility {
+export class ConstantAbility extends GameObjectBase implements IConstantAbility {
     public readonly title: string;
     public readonly contextTitle?: (context: AbilityContext) => string;
     public readonly abilityIdentifier?: string;
@@ -47,7 +47,7 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
     public readonly sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
     public readonly condition?: (context?: AbilityContext) => boolean;
-    public readonly matchTarget?: (card: Card, context?: AbilityContext<Card<ICardState>>) => boolean;
+    public readonly matchTarget?: (card: Card, context?: AbilityContext<Card>) => boolean;
     public readonly targetController?: RelativePlayerFilter;
     public readonly targetZoneFilter?: ZoneFilter;
     public readonly targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
@@ -100,3 +100,4 @@ export class ConstantAbility extends GameObjectBase<IConstantAbilityState> imple
         return this.title;
     }
 }
+

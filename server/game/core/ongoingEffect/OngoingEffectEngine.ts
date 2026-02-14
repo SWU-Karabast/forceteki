@@ -16,7 +16,7 @@ interface ICustomDurationEventState extends IGameObjectBaseState {
 }
 
 @registerState()
-class CustomDurationEvent extends GameObjectBase<ICustomDurationEventState> {
+class CustomDurationEvent extends GameObjectBase {
     public readonly name: string;
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;
@@ -62,7 +62,7 @@ export interface IOngoingEffectState extends IGameObjectBaseState {
 }
 
 @registerState()
-export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
+export class OngoingEffectEngine extends GameObjectBase {
     public events: EventRegistrar;
     public effectsChangedSinceLastCheck = false;
 
@@ -328,3 +328,4 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         this.resolveEffects(true);
     }
 }
+

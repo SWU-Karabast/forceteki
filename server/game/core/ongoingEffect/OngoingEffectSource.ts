@@ -14,7 +14,7 @@ import { registerState } from '../GameObjectUtils';
 export interface IOngoingEffectSourceState extends IGameObjectState { }
 
 @registerState()
-export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingEffectSourceState> extends GameObject<T> {
+export class OngoingEffectSource extends GameObject {
     public constructor(game: Game, name = 'Framework effect') {
         super(game, name);
     }
@@ -89,3 +89,4 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
         this.game.ongoingEffectEngine.removeLastingEffects(this);
     }
 }
+

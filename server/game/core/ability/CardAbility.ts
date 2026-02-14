@@ -15,7 +15,7 @@ export interface ICardAbilityState extends IPlayerOrCardAbilityState {
 }
 
 @registerState()
-export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityState> extends CardAbilityStep<T> {
+export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];

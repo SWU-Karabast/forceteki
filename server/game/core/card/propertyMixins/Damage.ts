@@ -29,11 +29,11 @@ export interface IWithDamageState extends ICardState {
  * Mixin function that adds the `damage` property and corresponding methods to a base class.
  * This is effectively a subclass of the mixin {@link WithPrintedHp}.
  */
-export function WithDamage<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
+export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     const HpClass = WithPrintedHp(BaseClass);
 
     @registerState()
-    class WithDamage extends (HpClass as typeof HpClass & CardConstructor<TState & IWithDamageState>) implements ICardWithDamageProperty {
+    class WithDamage extends HpClass implements ICardWithDamageProperty {
         // This is transitive state and needs to be cleared during any rollback.
         private _activeAttack?: Attack = null;
         @undoState()

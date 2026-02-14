@@ -138,7 +138,7 @@ export enum CostAdjustResolutionMode {
 }
 
 @registerState()
-export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
+export abstract class CostAdjuster extends GameObjectBase {
     public readonly costAdjustStage: CostAdjustStage;
     public readonly costAdjustType: CostAdjustType;
 
@@ -374,3 +374,4 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return false;
     }
 }
+
