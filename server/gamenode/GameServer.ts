@@ -150,6 +150,7 @@ export class GameServer {
     private readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
+    private readonly dailyActiveUserIds = new Set<string>();
     public swuStatsTokenMapping = new Map<string, ISwuStatsToken>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
@@ -211,6 +212,11 @@ export class GameServer {
             const start = process.hrtime.bigint();
 
             res.on('finish', () => {
+                // track daily active user (req.user is set by auth middleware before finish fires)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 const end = process.hrtime.bigint();
                 const durationMs = Number(end - start) / 1e6;
 
@@ -317,6 +323,11 @@ export class GameServer {
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
         this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
             try {
+                // track daily active user from socket connection
+                if (socket.data.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(socket.data.user.getId());
+                }
+
                 await this.onConnectionAsync(socket);
                 socket.on('manualDisconnect', () => {
                     try {
@@ -361,6 +372,11 @@ export class GameServer {
                 this.logPlayerStats();
                 this.logGCStats();
             }, 30000);
+
+            // emit daily active user count and reset every 24 hours
+            setInterval(() => {
+                this.logAndResetDailyActiveUsers();
+            }, 86_400_000); // 24 hours
         }
     }
 
@@ -2102,6 +2118,12 @@ export class GameServer {
         } catch (error) {
             logger.error(`Error logging player stats: ${error}`);
         }
+    }
+
+    private logAndResetDailyActiveUsers(): void {
+        const count = this.dailyActiveUserIds.size;
+        logger.info(`[DAU] ${count} unique users in the last 24 hours`, { dailyActiveUserCount: count });
+        this.dailyActiveUserIds.clear();
     }
 
     /**
