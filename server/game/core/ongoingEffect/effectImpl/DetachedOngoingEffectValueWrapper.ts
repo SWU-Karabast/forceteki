@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type Game from '../../Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
-import { registerState, undoMap } from '../../GameObjectUtils';
+import { registerState, stateRefMap } from '../../GameObjectUtils';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
 export interface IDetachedOngoingEffectValueWrapperState extends IGameObjectBaseState {
@@ -13,7 +13,7 @@ export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEf
     public readonly applyFunc: any;
     public readonly unapplyFunc: any;
 
-    @undoMap()
+    @stateRefMap()
     private accessor _targetStates: Map<string, GameObjectBase> = new Map();
 
     public get targetStates(): ReadonlyMap<string, GameObjectBase> {

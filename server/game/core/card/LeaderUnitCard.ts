@@ -21,7 +21,7 @@ import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState, undoObject } from '../GameObjectUtils';
+import { registerState, stateRef } from '../GameObjectUtils';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
@@ -39,7 +39,7 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
 export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
 
-    @undoObject()
+    @stateRef()
     private accessor _deployEpicActionLimit: EpicActionLimit = null;
 
     private readonly deployBox: string;
@@ -299,3 +299,4 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 export class LeaderUnitCard extends LeaderUnitCardInternal {
     public declare state: never;
 }
+

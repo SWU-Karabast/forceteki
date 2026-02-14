@@ -7,7 +7,7 @@ import type Game from '../Game.js';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerState, stateRefArray } from '../GameObjectUtils';
 
 /**
  * Represents an action ability provided by card text.
@@ -50,7 +50,7 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
     public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     public readonly sourceCard: Card;
 
-    @undoArray(false)
+    @stateRefArray(false)
     public accessor registeredEffects: OngoingEffect[] = [];
 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
@@ -95,4 +95,5 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
         return this.title;
     }
 }
+
 

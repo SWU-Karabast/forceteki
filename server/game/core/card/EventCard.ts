@@ -20,7 +20,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState, undoObject } from '../GameObjectUtils';
+import { registerState, stateRef } from '../GameObjectUtils';
 
 const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard)));
 
@@ -30,7 +30,7 @@ export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeCon
 
 @registerState()
 export class EventCard extends EventCardParent implements IEventCard {
-    @undoObject() private accessor eventAbility: EventAbility | null = null;
+    @stateRef() private accessor eventAbility: EventAbility | null = null;
 
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
@@ -157,3 +157,4 @@ export class EventCard extends EventCardParent implements IEventCard {
         this.constantAbilities.push(ability);
     }
 }
+

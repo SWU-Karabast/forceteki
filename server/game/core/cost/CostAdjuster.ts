@@ -10,7 +10,7 @@ import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/Exploi
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, undoObject, undoState } from '../GameObjectUtils';
+import { registerState, stateRef, statePrimitive } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { CostAdjustStage } from './CostInterfaces';
@@ -167,13 +167,13 @@ export abstract class CostAdjuster extends GameObjectBase {
     private readonly matchAbilityCosts: boolean;
     private readonly matchCardEffectResourcePayments: boolean;
 
-    @undoObject()
+    @stateRef()
     protected accessor sourceCard: Card | null;
 
-    @undoObject()
+    @stateRef()
     protected accessor sourcePlayer: Player;
 
-    @undoState()
+    @statePrimitive()
     protected accessor isCancelled: boolean;
 
     public constructor(
@@ -395,4 +395,5 @@ export abstract class CostAdjuster extends GameObjectBase {
         return false;
     }
 }
+
 

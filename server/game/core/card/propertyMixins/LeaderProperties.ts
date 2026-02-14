@@ -6,7 +6,7 @@ import type { PlayableOrDeployableCardConstructor } from '../baseClasses/Playabl
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { registerState, undoState } from '../../GameObjectUtils';
+import { registerState, statePrimitive } from '../../GameObjectUtils';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
 
@@ -26,10 +26,10 @@ export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCard
     class AsLeader extends (BaseClass as TBaseClass) implements ILeaderCard {
         // STATE TODO: I am uncertain if this needs to be undefined or false to start. LeaderUnitCard sets the default, which is odd.
         // NAMING NOTE: Normally only TS private fields would start with underscore, but there's a unusual split of logic and accessors between here and LeaderUnitCard, so this is a exception to the rule.
-        @undoState()
+        @statePrimitive()
         protected accessor _deployed: boolean = false;
 
-        @undoState()
+        @statePrimitive()
         protected accessor _onStartingSide: boolean = true;
 
         // see Card constructor for list of expected args
@@ -71,3 +71,4 @@ export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCard
 
     return AsLeader;
 }
+

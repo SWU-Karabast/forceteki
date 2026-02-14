@@ -9,7 +9,7 @@ import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, undoArray, undoState } from '../GameObjectUtils';
+import { registerState, stateRefArray, statePrimitive } from '../GameObjectUtils';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
@@ -21,7 +21,7 @@ class CustomDurationEvent extends GameObjectBase {
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;
 
-    @undoState() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered: boolean = false;
 
     public constructor(game: Game, name: string, handler: (...args: any[]) => void, effect: OngoingEffect<any>) {
         super(game);
@@ -71,10 +71,10 @@ export class OngoingEffectEngine extends GameObjectBase {
         return true;
     }
 
-    @undoArray()
+    @stateRefArray()
     public accessor effects: readonly OngoingEffect[] = [];
 
-    @undoArray()
+    @stateRefArray()
     public accessor customDurationEvents: readonly CustomDurationEvent[] = [];
 
     public constructor(game: Game) {
@@ -328,4 +328,5 @@ export class OngoingEffectEngine extends GameObjectBase {
         this.resolveEffects(true);
     }
 }
+
 

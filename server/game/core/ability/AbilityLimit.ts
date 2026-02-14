@@ -5,7 +5,7 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
-import { registerState, undoPlainMap, undoState } from '../GameObjectUtils';
+import { registerState, stateValue, statePrimitive } from '../GameObjectUtils';
 
 export interface IAbilityLimit {
     get ability(): CardAbility | null;
@@ -28,7 +28,7 @@ export interface IAbilityLimitState extends IGameObjectBaseState {
 export abstract class AbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability: CardAbility | null = null;
 
-    @undoState() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered: boolean = false;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
@@ -80,7 +80,7 @@ interface IPerGameAbilityLimitState extends IAbilityLimitState {
 
 @registerState()
 export class UnlimitedAbilityLimit extends AbilityLimit {
-    @undoPlainMap() private accessor useCount: Map<string, number> = new Map();
+    @stateValue() private accessor useCount: Map<string, number> = new Map();
 
     public clone() {
         return new UnlimitedAbilityLimit(this.game);
@@ -117,7 +117,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
     public currentUser: null | string = null;
     public readonly max: number;
 
-    @undoState() private accessor useCount: number = 0;
+    @statePrimitive() private accessor useCount: number = 0;
 
     public constructor(game: Game, max: number) {
         super(game);
@@ -153,7 +153,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
 export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
     public readonly max: number;
 
-    @undoPlainMap() private accessor useCount: Map<string, number> = new Map();
+    @stateValue() private accessor useCount: Map<string, number> = new Map();
 
     public constructor(game: Game, max: number) {
         super(game);

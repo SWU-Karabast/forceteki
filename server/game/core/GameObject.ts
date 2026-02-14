@@ -8,7 +8,7 @@ import type { IGameObjectBaseState } from './GameObjectBase';
 import { GameObjectBase } from './GameObjectBase';
 import type { Restriction } from './ongoingEffect/effectImpl/Restriction';
 import type { OngoingCardEffect } from './ongoingEffect/OngoingCardEffect';
-import { registerState, undoArray, undoState } from './GameObjectUtils';
+import { registerState, stateRefArray, statePrimitive } from './GameObjectUtils';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IGameObjectState extends IGameObjectBaseState {
@@ -26,17 +26,17 @@ export interface IOngoingEffectFilters {
 // TODO: Rename to TargetableGameObject? Or something to imply this is a object with effects (as opposed to an Ability).
 @registerState()
 export abstract class GameObject extends GameObjectBase {
-    @undoArray(false)
+    @stateRefArray(false)
     private accessor _ongoingEffects: OngoingCardEffect[] = [];
 
-    @undoState()
+    @statePrimitive()
     private accessor _name: string;
 
     public get name() {
         return this._name;
     }
 
-    @undoState()
+    @statePrimitive()
     public accessor id: string;
 
     public constructor(
@@ -182,4 +182,5 @@ export abstract class GameObject extends GameObjectBase {
         return false;
     }
 }
+
 

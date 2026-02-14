@@ -2,7 +2,7 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
 import type Game from '../../Game';
 import { GameObject } from '../../GameObject';
-import { registerState, undoMap } from '../../GameObjectUtils';
+import { registerState, stateRefMap } from '../../GameObjectUtils';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 
@@ -14,7 +14,7 @@ export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: 
 export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
     private readonly calculate: CalculateOngoingEffectValueWrapper<TValue>;
 
-    @undoMap()
+    @stateRefMap()
     private accessor values: Map<string, OngoingEffectValueWrapper<TValue>> = new Map();
 
     public constructor(game: Game,
@@ -93,3 +93,4 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
 }
 
 module.exports = DynamicOngoingEffectImpl;
+

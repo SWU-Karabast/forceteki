@@ -54,7 +54,7 @@ import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
-import { registerState, undoArray, undoObject, undoPlainState } from './GameObjectUtils';
+import { registerState, stateRefArray, stateRef, stateValue } from './GameObjectUtils';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -104,54 +104,54 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return true;
     }
 
-    @undoObject() private accessor _handZone: HandZone | null = null;
+    @stateRef() private accessor _handZone: HandZone | null = null;
     public get handZone(): HandZone {
         return this._handZone;
     }
 
-    @undoObject() private accessor _resourceZone: ResourceZone | null = null;
+    @stateRef() private accessor _resourceZone: ResourceZone | null = null;
     public get resourceZone(): ResourceZone {
         return this._resourceZone;
     }
 
-    @undoObject() private accessor _discardZone: DiscardZone | null = null;
+    @stateRef() private accessor _discardZone: DiscardZone | null = null;
     public get discardZone(): DiscardZone {
         return this._discardZone;
     }
 
-    @undoObject() private accessor _outsideTheGameZone: OutsideTheGameZone | null = null;
+    @stateRef() private accessor _outsideTheGameZone: OutsideTheGameZone | null = null;
     public get outsideTheGameZone(): OutsideTheGameZone {
         return this._outsideTheGameZone;
     }
 
-    @undoObject() private accessor _baseZone: BaseZone | null = null;
+    @stateRef() private accessor _baseZone: BaseZone | null = null;
     public get baseZone(): BaseZone | null {
         return this._baseZone;
     }
 
-    @undoObject() private accessor _deckZone: DeckZone | null = null;
+    @stateRef() private accessor _deckZone: DeckZone | null = null;
     public get deckZone(): DeckZone {
         return this._deckZone;
     }
 
-    @undoObject() private accessor _leader: ILeaderCard | null = null;
+    @stateRef() private accessor _leader: ILeaderCard | null = null;
     public get leader(): ILeaderCard {
         return this._leader;
     }
 
-    @undoObject() private accessor _base: IBaseCard | null = null;
+    @stateRef() private accessor _base: IBaseCard | null = null;
     public get base(): IBaseCard {
         return this._base;
     }
 
-    @undoArray(false) private accessor _costAdjusters: CostAdjuster[] = [];
+    @stateRefArray(false) private accessor _costAdjusters: CostAdjuster[] = [];
     private get costAdjusters(): readonly CostAdjuster[] {
         return this._costAdjusters;
     }
 
-    @undoPlainState() public accessor passedActionPhase: boolean | null = null;
+    @stateValue() public accessor passedActionPhase: boolean | null = null;
 
-    @undoPlainState() private accessor _decklist: IDeckListForLoading | null = null;
+    @stateValue() private accessor _decklist: IDeckListForLoading | null = null;
     public get decklist(): IDeckListForLoading {
         return this._decklist;
     }
@@ -1367,3 +1367,4 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.name;
     }
 }
+

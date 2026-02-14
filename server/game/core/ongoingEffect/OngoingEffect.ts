@@ -9,7 +9,7 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerState, stateRefArray } from '../GameObjectUtils';
 
 export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
     targets: GameObjectRef<TTarget>[];
@@ -55,7 +55,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
     public readonly ongoingEffect: IOngoingEffectProps<TTarget>;
     public context: AbilityContext;
 
-    @undoArray()
+    @stateRefArray()
     public accessor targets: readonly TTarget[] = [];
 
     public get type() {
@@ -203,4 +203,5 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         this.refreshContext();
     }
 }
+
 

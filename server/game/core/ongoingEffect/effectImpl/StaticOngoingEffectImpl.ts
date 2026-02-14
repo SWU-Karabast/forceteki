@@ -3,11 +3,11 @@ import type { EffectName } from '../../Constants';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 import type Game from '../../Game';
-import { registerState, undoObject } from '../../GameObjectUtils';
+import { registerState, stateRef } from '../../GameObjectUtils';
 
 @registerState()
 export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
-    @undoObject()
+    @stateRef()
     private accessor _valueWrapper: OngoingEffectValueWrapper<TValue>;
 
     public override get valueWrapper() {
@@ -55,4 +55,5 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         return Object.assign(super.getDebugInfo(), { value: this._valueWrapper });
     }
 }
+
 

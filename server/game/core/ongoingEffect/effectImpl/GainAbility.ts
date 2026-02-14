@@ -7,7 +7,7 @@ import type Game from '../../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
-import { registerState, undoObject, undoPlainMap, undoState } from '../../GameObjectUtils';
+import { registerState, stateRef, stateValue, statePrimitive } from '../../GameObjectUtils';
 
 export interface IGainAbilityState extends IGameObjectBaseState {
     abilityIdentifier: string;
@@ -21,10 +21,10 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;
 
-    @undoObject() private accessor _gainAbilitySource: Card | null = null;
-    @undoObject() private accessor _source: Card | null = null;
-    @undoState() private accessor _abilityIdentifier: string = '';
-    @undoPlainMap() private accessor _abilityUuidByTargetCard: Map<string, string> = new Map();
+    @stateRef() private accessor _gainAbilitySource: Card | null = null;
+    @stateRef() private accessor _source: Card | null = null;
+    @statePrimitive() private accessor _abilityIdentifier: string = '';
+    @stateValue() private accessor _abilityUuidByTargetCard: Map<string, string> = new Map();
 
     public get gainAbilitySource() {
         return this._gainAbilitySource;

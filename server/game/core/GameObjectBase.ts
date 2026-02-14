@@ -1,5 +1,5 @@
 import type Game from './Game';
-import { copyState, registerState, registerStateClassMarker, undoState } from './GameObjectUtils';
+import { copyState, registerState, registerStateClassMarker, statePrimitive } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -81,7 +81,7 @@ export abstract class GameObjectBase implements IGameObjectBase {
     }
 
     /** ID given by the game engine. */
-    @undoState() private accessor _uuid: string;
+    @statePrimitive() private accessor _uuid: string;
     public get uuid() {
         return this._uuid;
     }
@@ -205,4 +205,5 @@ export abstract class GameObjectBase implements IGameObjectBase {
         return 'GameObject';
     }
 }
+
 

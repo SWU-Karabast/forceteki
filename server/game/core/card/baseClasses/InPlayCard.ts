@@ -25,7 +25,7 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
-import { registerState, undoObject, undoState } from '../../GameObjectUtils';
+import { registerState, stateRef, statePrimitive } from '../../GameObjectUtils';
 
 const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
@@ -67,7 +67,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
     protected attachCondition: (context: IAttachCardContext<this>) => boolean;
 
-    @undoState()
+    @statePrimitive()
     private accessor _disableOngoingEffectsForDefeat: boolean = null;
 
     /**
@@ -81,7 +81,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return this._disableOngoingEffectsForDefeat;
     }
 
-    @undoState()
+    @statePrimitive()
     private accessor _mostRecentInPlayId: number = -1
 
     /**
@@ -121,11 +121,11 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts
-    @undoState()
+    @statePrimitive()
     protected accessor _pendingDefeat: boolean = null;
 
     // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts
-    @undoObject()
+    @stateRef()
     protected accessor _parentCard: IUnitCard | null = null;
 
     /**
@@ -497,3 +497,4 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return true;
     }
 }
+

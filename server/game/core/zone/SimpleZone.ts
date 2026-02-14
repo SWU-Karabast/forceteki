@@ -2,7 +2,7 @@ import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import type { Aspect, CardTypeFilter, KeywordName, MoveZoneDestination, Trait } from '../Constants';
 import { ZoneAbstract } from './ZoneAbstract';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerState, stateRefArray } from '../GameObjectUtils';
 
 /**
  * Collection of filters for searching cards in a zone.
@@ -37,7 +37,7 @@ export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract
         return this._cards.length;
     }
 
-    @undoArray(true)
+    @stateRefArray(true)
     protected accessor _cards: readonly TCard[] = [];
 
     public override get cards(): TCard[] {
@@ -85,3 +85,4 @@ export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract
         return ('game' in this.owner ? `${this.owner.name}:` : '') + this.name;
     }
 }
+

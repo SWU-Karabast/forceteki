@@ -11,7 +11,7 @@ import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
-import { registerState, undoState } from '../GameObjectUtils';
+import { registerState, statePrimitive } from '../GameObjectUtils';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 
 // STATE: Interface needed for onAfterSetState and cleanupOnRemove.
@@ -58,7 +58,7 @@ export default class TriggeredAbility extends CardAbility {
 
     private readonly mustChangeGameState: GameStateChangeRequired;
 
-    @undoState() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered: boolean = false;
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
@@ -298,3 +298,4 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 }
+

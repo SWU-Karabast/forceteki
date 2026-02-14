@@ -50,7 +50,7 @@ import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPl
 import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
-import { registerState, undoArray, undoObject, undoState } from '../GameObjectUtils';
+import { registerState, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
 
 // required for mixins to be based on this class
@@ -125,28 +125,28 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
 
-    @undoState()
+    @statePrimitive()
     private accessor _facedown = true;
 
     public get facedown(): boolean {
         return this._facedown;
     }
 
-    @undoState()
+    @statePrimitive()
     private accessor _hiddenForController = false;
 
     protected get hiddenForController() {
         return this._hiddenForController;
     }
 
-    @undoState()
+    @statePrimitive()
     private accessor _hiddenForOpponent = false;
 
     protected get hiddenForOpponent() {
         return this._hiddenForOpponent;
     }
 
-    @undoState()
+    @statePrimitive()
     protected accessor movedFromZone: ZoneName | null = null;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -154,13 +154,13 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return false;
     }
 
-    @undoArray(false)
+    @stateRefArray(false)
     protected accessor actionAbilities: ActionAbility[] = [];
 
-    @undoArray(false)
+    @stateRefArray(false)
     protected accessor constantAbilities: ConstantAbility[] = [];
 
-    @undoArray(false)
+    @stateRefArray(false)
     protected accessor triggeredAbilities: TriggeredAbility[] = [];
 
     protected get printedType(): CardType {
@@ -201,7 +201,7 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return this._backSideTitle;
     }
 
-    @undoObject()
+    @stateRef()
     private accessor _controller: Player;
 
     public get controller(): Player {
@@ -212,7 +212,7 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         this._controller = value;
     }
 
-    @undoObject()
+    @stateRef()
     private accessor _owner: Player;
 
     public get owner(): Player {
@@ -299,7 +299,7 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return this.printedType;
     }
 
-    @undoObject()
+    @stateRef()
     private accessor _zone: ZoneAbstract | null = null;
 
     public get zone(): Zone | null {
@@ -314,7 +314,7 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return this.zone?.name;
     }
 
-    @undoState()
+    @statePrimitive()
     private accessor nextAbilityIdx: number = 0;
 
     public get isImplemented(): boolean {
@@ -1466,3 +1466,4 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return this.internalName;
     }
 }
+

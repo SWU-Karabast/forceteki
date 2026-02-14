@@ -45,7 +45,7 @@ import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/Pri
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
-import { registerState, undoArray, undoObject, undoState } from '../../GameObjectUtils';
+import { registerState, stateRefArray, stateRef, statePrimitive } from '../../GameObjectUtils';
 import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
@@ -146,7 +146,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private readonly _defaultArena: Arena;
         private readonly defaultAttackAction: InitiateAttackAction;
 
-        @undoObject()
+        @stateRef()
         private accessor _lastPlayerToModifyHp: Player | null = null;
 
         public get lastPlayerToModifyHp(): Player {
@@ -154,28 +154,28 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._lastPlayerToModifyHp;
         }
 
-        @undoArray(false)
+        @stateRefArray(false)
         private accessor _attackKeywordAbilities: ((TriggeredAbility | ConstantAbility)[] | null) = null;
 
-        @undoArray()
+        @stateRefArray()
         private accessor _whenCapturedKeywordAbilities: readonly TriggeredAbility[] | null = null;
 
-        @undoArray()
+        @stateRefArray()
         private accessor _whenDefeatedKeywordAbilities: (readonly TriggeredAbility[]) | null = null;
 
-        @undoArray(false)
+        @stateRefArray(false)
         private accessor _whenPlayedKeywordAbilities: (TriggeredAbility[]) | null = null;
 
-        @undoArray(false)
+        @stateRefArray(false)
         private accessor _whileInPlayKeywordAbilities: (ConstantAbility[]) | null = null;
 
-        @undoArray(false)
+        @stateRefArray(false)
         protected accessor pilotingActionAbilities: ActionAbility[] = [];
 
-        @undoArray(false)
+        @stateRefArray(false)
         protected accessor pilotingTriggeredAbilities: TriggeredAbility[] = [];
 
-        @undoArray(false)
+        @stateRefArray(false)
         private accessor _pilotingConstantAbilities: ConstantAbility[] = [];
 
         private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
@@ -187,7 +187,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this.captureZone.cards;
         }
 
-        @undoObject()
+        @stateRef()
         private accessor _captureZone: CaptureZone | null = null;
 
         public get captureZone() {
@@ -195,10 +195,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._captureZone;
         }
 
-        @undoArray(false)
+        @stateRefArray(false)
         private accessor _upgrades: IUpgradeCard[] = null;
 
-        @undoState()
+        @statePrimitive()
         private accessor _expiredLastingEffectChangedRemainingHp: boolean = false;
 
         public get upgrades(): IUpgradeCard[] {
@@ -1163,3 +1163,4 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
     return AsUnit;
 }
+

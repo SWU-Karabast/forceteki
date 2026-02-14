@@ -4,19 +4,19 @@ import type Game from '../../Game';
 import * as Helpers from '../../utils/Helpers';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
-import { registerState, undoObject, undoPlainState } from '../../GameObjectUtils';
+import { registerState, stateRef, stateValue } from '../../GameObjectUtils';
 
 @registerState()
 export class AdditionalPhaseEffect extends OngoingEffectValueWrapper<AdditionalPhaseEffect> {
     public readonly phase: PhaseName;
 
-    @undoPlainState()
+    @stateValue()
     private accessor _phaseStartedForRounds: Set<number> = new Set<number>();
 
-    @undoPlainState()
+    @stateValue()
     private accessor _phaseEndedForRounds: Set<number> = new Set<number>();
 
-    @undoObject()
+    @stateRef()
     private accessor _source: Card | null = null;
 
     public get source(): Card {
@@ -63,3 +63,4 @@ export class AdditionalPhaseEffect extends OngoingEffectValueWrapper<AdditionalP
         return true;
     }
 }
+

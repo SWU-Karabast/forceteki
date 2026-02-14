@@ -27,8 +27,8 @@ export enum CopyMode {
 }
 
 /**
- * Decorator to capture the names of any accessors flagged as &#64;undoState, &#64;undoObject, or &#64;undoArray for copyState, and then clear the array for the next derived class to use.
- * @param copyMode If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the undo decorators.
+ * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
+ * @param copyMode If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the state decorators.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
 export function registerState<T extends GameObjectBase>(copyMode = CopyMode.UseMetaDataOnly) {
@@ -101,7 +101,7 @@ export function registerState<T extends GameObjectBase>(copyMode = CopyMode.UseM
     };
 }
 
-export function undoState<T extends GameObjectBase, TValue extends string | number | boolean>() {
+export function statePrimitive<T extends GameObjectBase, TValue extends string | number | boolean>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
@@ -142,7 +142,7 @@ type ConstantBoolean<T extends boolean> = boolean extends T ? never : T;
 /**
  * @param readonly If false, returns the array wrapped in a Proxy object, which allows the safe use of push, pop, unshift, and splice. If true, returns the array as-is and requires it be marked as readonly.
  */
-export function undoArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
+export function stateRefArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
     return function (
         target: ClassAccessorDecoratorTarget<T, typeof readonly extends true ? readonly TValue[] : TValue[]>,
         context: ClassAccessorDecoratorContext<T, typeof readonly extends true ? readonly TValue[] : TValue[]>
@@ -200,7 +200,7 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
 }
 
 /** Creates a undo safe Map object that can be mutated in-place. */
-export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>() {
+export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
         context: ClassAccessorDecoratorContext<T, Map<string, TValue>>
@@ -239,7 +239,7 @@ export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>
 }
 
 /** Creates an undo safe Set object that can be mutated in-place. */
-export function undoSet<T extends GameObjectBase, TValue extends GameObjectBase>() {
+export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Set<TValue>>,
         context: ClassAccessorDecoratorContext<T, Set<TValue>>
@@ -278,8 +278,8 @@ export function undoSet<T extends GameObjectBase, TValue extends GameObjectBase>
     };
 }
 
-/** A simpler alternative to Map. Unless there is a specific reason, prefer undoMap over this. */
-export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
+/** A simpler alternative to Map. Unless there is a specific reason, prefer stateRefMap over this. */
+export function stateRefRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Record<string, TValue>>,
         context: ClassAccessorDecoratorContext<T, Record<string, TValue>>
@@ -315,7 +315,7 @@ export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBa
 }
 
 /** Creates a undo safe GameObject reference. */
-export function undoObject<T extends IGameObjectBase, TValue extends IGameObjectBase>() {
+export function stateRef<T extends IGameObjectBase, TValue extends IGameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
@@ -352,52 +352,6 @@ export function undoObject<T extends IGameObjectBase, TValue extends IGameObject
 }
 
 /**
- * For {@link Map}<string, TValue> where TValue is a serializable value that is **not** a {@link GameObjectBase}.
- * The Map is stored directly in state without any ref conversion, so in-place mutations (set, delete, clear)
- * automatically affect state. No proxy wrapper is needed.
- *
- * Use this instead of {@link undoMap} when map values are plain data (strings, numbers, booleans, etc.)
- * rather than GameObjectBase references.
- *
- * @example
- * ⁣@undoPlainMap() accessor useCount: Map<string, number> = new Map();
- */
-export function undoPlainMap<T extends GameObjectBase, TValue>() {
-    return function (
-        target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
-        context: ClassAccessorDecoratorContext<T, Map<string, TValue>>
-    ): ClassAccessorDecoratorResult<T, Map<string, TValue>> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-
-        // Get or create the state related metadata object.
-        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
-        metaState[stateSimpleMetadata] ??= [];
-        (metaState[stateSimpleMetadata] as string[]).push(context.name);
-        const name = context.name;
-
-        // No need to use the backing fields, read and write directly to state.
-        return {
-            get(this: T) {
-                return this.state[name];
-            },
-            set(this: T, newValue: Map<string, TValue>) {
-                this.state[name] = newValue;
-            },
-            init(this: T, value: Map<string, TValue>) {
-                this.state[name] = value;
-                // We don't use the internal field and only use the data within state.
-                return undefined;
-            }
-        };
-    };
-}
-
-/**
  * For any {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm structuredClone}-compatible
  * value that is **not** a primitive and **not** a {@link GameObjectBase}.
  * The value is stored directly in state without any conversion.
@@ -406,17 +360,17 @@ export function undoPlainMap<T extends GameObjectBase, TValue>() {
  * GameObjectBase ref resolution but do need to participate in the undo system.
  *
  * Prefer more specific decorators when applicable:
- * - {@link undoState} for primitives (string, number, boolean)
- * - {@link undoObject} for single GameObjectBase references
- * - {@link undoArray} for arrays of GameObjectBase references
- * - {@link undoMap} for Map<string, GameObjectBase>
- * - {@link undoSet} for Set<GameObjectBase>
- * - {@link undoPlainMap} for Map<string, non-GameObjectBase>
+ * - {@link statePrimitive} for primitives (string, number, boolean)
+ * - {@link stateRef} for single GameObjectBase references
+ * - {@link stateRefArray} for arrays of GameObjectBase references
+ * - {@link stateRefMap} for Map<string, GameObjectBase>
+ * - {@link stateRefSet} for Set<GameObjectBase>
+ * - Map<string, non-GameObjectBase>, including in-place Map mutations
  *
  * @example
- * ⁣@undoPlainState() accessor decklist: IDeckListForLoading;
+ * ⁣@stateValue() accessor decklist: IDeckListForLoading;
  */
-export function undoPlainState<T extends GameObjectBase, TValue>() {
+export function stateValue<T extends GameObjectBase, TValue>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
