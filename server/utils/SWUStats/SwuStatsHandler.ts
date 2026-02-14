@@ -79,6 +79,27 @@ interface OAuthTokenResponse {
     scope?: string;
 }
 
+// SWU Stats deck interface from their API
+interface ISwuStatsDeck {
+    id: number;
+    name: string;
+    description: string;
+    visibility: number;
+    created_at: string;
+    updated_at: string;
+    is_favorite: boolean;
+}
+
+export interface ISwuStatsDecksResponse {
+    decks: ISwuStatsDeck[];
+    pagination: {
+        total: number;
+        limit: number;
+        offset: number;
+        has_more: boolean;
+    };
+}
+
 export class SwuStatsHandler {
     private readonly apiUrl: string;
     private readonly apiKey: string;
@@ -435,6 +456,71 @@ export class SwuStatsHandler {
         } catch (error) {
             logger.error('SWUStatsHandler: Failed to refresh access token', {
                 error: { message: error.message, stack: error.stack },
+            });
+            return null;
+        }
+    }
+
+    /**
+     * Fetch user's decks from SWU Stats
+     * @param userId The user's ID
+     * @param serverObject The GameServer instance for token management
+     * @param options Optional parameters for pagination and filtering
+     * @returns Promise that resolves to the decks data or null if failed
+     */
+    public async fetchUserDecksAsync(
+        userId: string,
+        serverObject: GameServer,
+        options?: {
+            favoritesOnly?: boolean;
+            limit?: number;
+            offset?: number;
+        }
+    ): Promise<ISwuStatsDecksResponse | null> {
+        try {
+            const accessToken = await this.getAccessTokenAsync(userId, serverObject);
+            if (!accessToken) {
+                logger.info(`SWUStatsHandler: No access token available for user ${userId}, cannot fetch decks`);
+                return null;
+            }
+
+            const params = new URLSearchParams({
+                limit: String(options?.limit || 100),
+                offset: String(options?.offset || 0),
+                sort: 'name',
+                order: 'asc',
+            });
+
+            if (options?.favoritesOnly) {
+                params.set('favorites', 'true');
+            }
+
+            const decksUrl = 'https://swustats.net/TCGEngine/APIs/UserAPIs/GetUserDecks.php';
+            const response = await fetch(`${decksUrl}?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    logger.warn(`SWUStatsHandler: Access token expired for user ${userId} when fetching decks`);
+                    return null;
+                }
+                const errorText = await response.text();
+                logger.error(`SWUStatsHandler: Failed to fetch decks: ${response.status} - ${errorText}`);
+                return null;
+            }
+
+            const decksData = await response.json() as ISwuStatsDecksResponse;
+            logger.info(`SWUStatsHandler: Successfully fetched ${decksData.decks.length} decks for user ${userId}`);
+            return decksData;
+        } catch (error) {
+            logger.error('SWUStatsHandler: Failed to fetch user decks', {
+                error: { message: error.message, stack: error.stack },
+                userId
             });
             return null;
         }

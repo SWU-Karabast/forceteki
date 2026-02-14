@@ -467,6 +467,68 @@ export class GameServer {
             }
         });
 
+        app.get('/api/user/:userId/swustats/decks', this.buildAuthMiddleware('swustatsDecks'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsDecks): Anonymous user ${user.getId()} is attempting to retrieve swustats decks`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustats decks'
+                    });
+                }
+
+                // Get query parameters
+                const favoritesOnly = req.query.favorites === 'true';
+                const limit = parseInt(req.query.limit as string) || 100;
+                const offset = parseInt(req.query.offset as string) || 0;
+
+                const decksData = await this.swuStatsHandler.fetchUserDecksAsync(user.getId(), this, {
+                    favoritesOnly,
+                    limit,
+                    offset
+                });
+
+                if (!decksData) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'SWU Stats account not linked or token expired'
+                    });
+                }
+
+                // Transform SWU Stats decks to our format
+                const transformedDecks = decksData.decks.map((deck) => ({
+                    id: deck.id,
+                    name: deck.name || 'Untitled Deck',
+                    description: deck.description || '',
+                    isFavorite: deck.is_favorite,
+                    createdAt: deck.created_at,
+                    updatedAt: deck.updated_at,
+                    deckLink: `https://swustats.net/TCGEngine/Decks/Deck.php?gameName=${deck.id}`,
+                }));
+
+                // Sort favorites to the top, then by name
+                transformedDecks.sort((a, b) => {
+                    if (a.isFavorite && !b.isFavorite) {
+                        return -1;
+                    }
+                    if (!a.isFavorite && b.isFavorite) {
+                        return 1;
+                    }
+                    return (a.name || '').localeCompare(b.name || '');
+                });
+
+                return res.status(200).json({
+                    success: true,
+                    decks: transformedDecks,
+                    pagination: decksData.pagination,
+                });
+            } catch (err) {
+                logger.error('GameServer (swustatsDecks) Server Error: ', err);
+                next(err);
+            }
+        });
+
         app.post('/api/toggle-welcome-message', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;

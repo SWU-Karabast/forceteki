@@ -83,3 +83,9 @@ For testing on mobile devices connected to your local network:
 2. Restart the development server for the Back-End
 3. Update the Front-End with its instructions to allow mobile local connections
 4. Connect to your-local-ip:3000 on the web browser of your mobile device
+
+### FAQ
+Q. I ran into this error: Importing card class with repeated id!: <card id>
+A. Delete your build folder and try to build again, you might have some old card data.
+Q. I ran into this error: Missing required environment variables: <name of environment variable>
+A. There are a lot of environment variables that are needed for production, but not for local testing. Define the environment variables in your .env folder with any values you want. The value doesn't matter as long as it exists.
