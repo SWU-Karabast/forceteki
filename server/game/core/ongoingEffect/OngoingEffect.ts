@@ -44,7 +44,7 @@ export interface IOngoingEffectState<TTarget extends GameObject> extends IGameOb
  */
 @registerState()
 export abstract class OngoingEffect<TTarget extends GameObject = GameObject> extends GameObjectBase {
-    public source: Card;
+    public readonly source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
     public readonly matchTarget: TTarget | ((target: TTarget, context: AbilityContext) => boolean);
     public readonly duration?: Duration;
@@ -199,7 +199,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         };
     }
 
-    public override afterSetAllState(oldState: IOngoingEffectState<TTarget>) {
+    public override afterSetAllState(oldState) {
         this.refreshContext();
     }
 }

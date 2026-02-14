@@ -8,6 +8,7 @@ const stateMetadata = Symbol();
 const stateSimpleMetadata = Symbol();
 const stateArrayMetadata = Symbol();
 const stateMapMetadata = Symbol();
+const stateSetMetadata = Symbol();
 const stateRecordMetadata = Symbol();
 const stateObjectMetadata = Symbol();
 const bulkCopyMetadata = Symbol();
@@ -237,6 +238,46 @@ export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>
     };
 }
 
+/** Creates an undo safe Set object that can be mutated in-place. */
+export function undoSet<T extends GameObjectBase, TValue extends GameObjectBase>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, Set<TValue>>,
+        context: ClassAccessorDecoratorContext<T, Set<TValue>>
+    ): ClassAccessorDecoratorResult<T, Set<TValue>> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        // Get or create the state related metadata object.
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateSetMetadata] ??= [];
+        (metaState[stateSetMetadata] as string[]).push(context.name);
+        const name = context.name;
+
+        // Use the backing fields as the cache, and write refs to the state.
+        // State stores a Map<string, GameObjectRef> keyed by UUID so that delete can look up by key.
+        return {
+            get(this) {
+                return target.get.call(this);
+            },
+            set(this: GameObjectBase, newValue) {
+                // The below UndoSet instantiation will also load the state map with all of its values.
+                this.state[name] = newValue ? new Map(Array.from(newValue, (value) => [value.getRef().uuid, value.getRef()])) : newValue;
+                target.set.call(this, newValue ? new UndoSet(this, name, newValue.values()) : newValue);
+            },
+            init(this: GameObjectBase, value) {
+                Contract.assertTrue(value.size === 0, 'UndoSet cannot be init with entries');
+                this.state[name] = value ? new Map() : value;
+                // If this is not-null, create an equivalent set in the state. Otherwise, leave it as-is.
+                return value ? new UndoSet(this, name) : value;
+            },
+        };
+    };
+}
+
 /** A simpler alternative to Map. Unless there is a specific reason, prefer undoMap over this. */
 export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
@@ -369,6 +410,7 @@ export function undoPlainMap<T extends GameObjectBase, TValue>() {
  * - {@link undoObject} for single GameObjectBase references
  * - {@link undoArray} for arrays of GameObjectBase references
  * - {@link undoMap} for Map<string, GameObjectBase>
+ * - {@link undoSet} for Set<GameObjectBase>
  * - {@link undoPlainMap} for Map<string, non-GameObjectBase>
  *
  * @example
@@ -577,6 +619,14 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
                     instance[field] = new Map(mappedEntries);
                 }
             }
+            if (metaState[stateSetMetadata]) {
+                const metaSets = metaState[stateSetMetadata] as string[];
+                for (const field of metaSets) {
+                    // State stores a Map<string, GameObjectRef> keyed by UUID
+                    const mappedValues: GameObjectBase[] = Array.from((newState[field] as Map<string, GameObjectRef>).values(), (ref) => instance.game.getFromRef(ref));
+                    instance[field] = new Set(mappedValues);
+                }
+            }
             if (metaState[stateRecordMetadata]) {
                 const metaRecords = metaState[stateRecordMetadata] as string[];
                 for (const field of metaRecords) {
@@ -634,6 +684,42 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     public override clear(): void {
         // @ts-expect-error Overriding state accessibility
         (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).clear(key);
+        super.clear();
+    }
+}
+
+// A custom class to pass through any values to the underlying state Set.
+class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
+    private go: GameObjectBase;
+    private prop: string;
+    private init = false;
+    public constructor(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
+        super(values);
+        Contract.assertNotNullLike(go, 'Game Object cannot be null');
+        this.go = go;
+        this.prop = prop;
+        this.init = true;
+    }
+
+    public override add(value: TValue): this {
+        // Add is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
+        if (this.init) {
+            const ref = value?.getRef();
+            // @ts-expect-error Overriding state accessibility
+            (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).set(ref.uuid, ref);
+        }
+        return super.add(value);
+    }
+
+    public override delete(value: TValue): boolean {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).delete(value?.getRef().uuid);
+        return super.delete(value);
+    }
+
+    public override clear(): void {
+        // @ts-expect-error Overriding state accessibility
+        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).clear();
         super.clear();
     }
 }
