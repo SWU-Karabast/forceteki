@@ -3,7 +3,6 @@ describe('Basic attack (CR7 update)', function() {
         describe('When a unit attacks', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
-                    // TODO: helper function for automatically selecting a leader and / or base that match the aspects of the card under test
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa'],
@@ -438,6 +437,110 @@ describe('Basic attack (CR7 update)', function() {
             expect(context.gentleGiant).toBeInZone('discard');
             expect(context.player1.handSize).toBe(2);       // draw from Krell and Heroic Sacrifice
             expect(context.generalKrell.damage).toBe(5);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        const disclosePrompt = (attackerTitle) => `Disclose Vigilance, Villainy to give ${attackerTitle} -6/-0 for this attack`;
+
+        it('Gained "while this unit is attacking" abilities should work', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: [
+                        'condemn',
+                        'superlaser-blast'
+                    ],
+                    groundArena: ['awakened-specters']
+                },
+                player2: {
+                    groundArena: ['ravenous-rathtar']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Condemn on Ravenous Rathtar
+            context.player1.clickCard(context.condemn);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.awakenedSpecters,
+                context.ravenousRathtar
+            ]);
+            context.player1.clickCard(context.ravenousRathtar);
+
+            // P2 attacks Awakened Specters with Ravenous Rathtar
+            context.player2.clickCard(context.ravenousRathtar);
+            context.player2.clickCard(context.awakenedSpecters);
+
+            // P1 is prompted to disclose Vigilance/Villainy
+            expect(context.player1).toHavePrompt(disclosePrompt(context.ravenousRathtar.title));
+            expect(context.player1).toHaveChooseNothingButton();
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.superlaserBlast
+            ]);
+
+            // P1 discloses Superlaser Blast
+            context.player1.clickCard(context.superlaserBlast);
+
+            // Cards are revealed to the opponent
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.superlaserBlast]);
+            expect(context.player2).toHaveEnabledPromptButton('Done');
+            context.player2.clickDone();
+
+            // Attack resolves
+            expect(context.awakenedSpecters.damage).toBe(2); // Ravenous Rathtar deals 2 damage due to -6 power
+            expect(context.ravenousRathtar.damage).toBe(4);
+        });
+
+        it('Condemn correctly makes the attached unit lose When Defeated & Bounty abilities if it is defeated during the attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [
+                        'consular-security-force',
+                        {
+                            card: 'val#loyal-to-the-end',
+                            upgrades: ['condemn']
+                        }
+                    ]
+                },
+                player2: {
+                    groundArena: ['reinforcement-walker']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks Reinforcement Walker with Val
+            context.player1.clickCard(context.val);
+            context.player1.clickCard(context.reinforcementWalker);
+
+            // Val is defeated and does not trigger her When Defeated or Bounty abilities
+            expect(context.val).toBeInZone('discard', context.player1);
+            expect(context.consularSecurityForce.upgrades.length).toBe(0); // No Experience given from When Defeated
+            expect(context.consularSecurityForce.damage).toBe(0); // No damage from Bounty
+            expect(context.reinforcementWalker.damage).toBe(2); // From combat
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('Condemn blanks post-attack triggers', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    deck: ['resupply'],
+                    groundArena: [{
+                        card: 'ezra-bridger#resourceful-troublemaker',
+                        upgrades: ['condemn']
+                    }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks base with Ezra Bridger
+            context.player1.clickCard(context.ezraBridger);
+            context.player1.clickCard(context.p2Base);
+
+            // No post-attack trigger, it is now P2's turn
             expect(context.player2).toBeActivePlayer();
         });
     });
