@@ -33,7 +33,7 @@ export default class CikatroVizagoBusinessIsWhatMatters extends NonLeaderUnitCar
                         mode: TargetMode.Select,
                         choosingPlayer: RelativePlayer.Opponent,
                         choices: {
-                            ['Pay 1 resource']: AbilityHelper.immediateEffects.payResourceCost({
+                            ['Pay 1 resource']: AbilityHelper.immediateEffects.payResources({
                                 target: thenContext.player.opponent,
                                 amount: 1
                             }),

@@ -1219,144 +1219,270 @@ describe('Galen Erso - You\'ll Never Win', function() {
             });
         });
 
-        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, if Shield is named,', function() {
-            it('enemy shields already in play should have no effect', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['galen-erso#youll-never-win'],
-                        groundArena: ['wampa']
-                    },
-                    player2: {
-                        groundArena: [{ card: 'atst', upgrades: ['shield', 'shield'] }]
-                    }
+        describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named tokens', function() {
+            describe('Shield', function() {
+                it('enemy shields already in play should have no effect', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['galen-erso#youll-never-win'],
+                            groundArena: ['wampa']
+                        },
+                        player2: {
+                            groundArena: [{ card: 'atst', upgrades: ['shield', 'shield'] }]
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Shield');
+
+                    context.player2.clickCard(context.atst);
+                    context.player2.clickCard(context.wampa);
+                    expect(context.atst.damage).toBe(4);
+                    expect(context.atst).toHaveExactUpgradeNames(['shield', 'shield']);
                 });
 
-                const { context } = contextRef;
+                it('enemy shields created afterwards should have no effect', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['galen-erso#youll-never-win'],
+                            groundArena: ['wampa']
+                        },
+                        player2: {
+                            hand: ['moment-of-peace'],
+                            groundArena: ['atst']
+                        }
+                    });
 
-                context.player1.clickCard(context.galenErso);
-                context.player1.chooseListOption('Shield');
+                    const { context } = contextRef;
 
-                context.player2.clickCard(context.atst);
-                context.player2.clickCard(context.wampa);
-                expect(context.atst.damage).toBe(4);
-                expect(context.atst).toHaveExactUpgradeNames(['shield', 'shield']);
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Shield');
+
+                    context.player2.clickCard(context.momentOfPeace);
+                    context.player2.clickCard(context.atst);
+
+                    context.player1.clickCard(context.wampa);
+                    context.player1.clickCard(context.atst);
+                    expect(context.atst.damage).toBe(4);
+                    expect(context.atst).toHaveExactUpgradeNames(['shield']);
+                });
+
+                it('friendly shields already in play should work as normal', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['galen-erso#youll-never-win'],
+                            groundArena: [{ card: 'wampa', upgrades: ['shield', 'shield'] }]
+                        },
+                        player2: {
+                            groundArena: ['atst']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Shield');
+
+                    context.player2.clickCard(context.atst);
+                    context.player2.clickCard(context.wampa);
+                    expect(context.wampa.damage).toBe(0);
+                    expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+                });
+
+                it('friendly shields created afterwards should have work as normal', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['galen-erso#youll-never-win', 'moment-of-peace'],
+                            groundArena: ['wampa']
+                        },
+                        player2: {
+                            groundArena: ['atst']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Shield');
+
+                    context.player2.passAction();
+
+                    context.player1.clickCard(context.momentOfPeace);
+                    context.player1.clickCard(context.wampa);
+
+                    context.player2.clickCard(context.atst);
+                    context.player2.clickCard(context.wampa);
+                    expect(context.wampa.damage).toBe(0);
+                    expect(context.wampa.isUpgraded()).toBeFalse();
+                });
+
+                it('stolen shield by opponent should be blanked (CR6 token upgrade ownership update)', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['galen-erso#youll-never-win'],
+                            groundArena: [{ card: 'wampa', upgrades: ['shield'] }]
+                        },
+                        player2: {
+                            hand: ['shuttle-st149#under-krennics-authority'],
+                            groundArena: ['echo-base-defender'],
+                            hasInitiative: true,
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    const wampaShield = context.shield;
+
+                    context.player2.clickCard(context.shuttleSt149);
+                    context.player2.clickPrompt('Shielded');
+                    context.player2.clickCard(wampaShield);
+                    context.player2.clickCard(context.echoBaseDefender);
+
+                    expect(context.wampa).toHaveExactUpgradeNames([]);
+                    expect(context.echoBaseDefender).toHaveExactUpgradeNames(['shield']);
+
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Shield');
+
+                    context.player2.passAction();
+
+                    context.player1.clickCard(context.wampa);
+                    context.player1.clickCard(context.echoBaseDefender);
+
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.echoBaseDefender).toBeInZone('discard', context.player2);
+                });
             });
 
-            it('enemy shields created afterwards should have no effect', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['galen-erso#youll-never-win'],
-                        groundArena: ['wampa']
-                    },
-                    player2: {
-                        hand: ['moment-of-peace'],
-                        groundArena: ['atst']
-                    }
+            describe('Credit', function() {
+                it('enemy credit tokens already in play cannot be used to reduce resource payments', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['galen-erso#youll-never-win']
+                        },
+                        player2: {
+                            credits: 3,
+                            hand: ['resupply']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // P1 plays Galen
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Credit');
+
+                    // P2 plays Resupply
+                    context.player2.clickCard(context.resupply);
+
+                    // No prompt to use credit tokens for payment, it is now P1's turn
+                    expect(context.player1).toBeActivePlayer();
+                    expect(context.player2.credits).toBe(3); // Credit tokens were not used
                 });
 
-                const { context } = contextRef;
+                it('enemy credit tokens created afterwards cannot be used to reduce resource payments', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['galen-erso#youll-never-win']
+                        },
+                        player2: {
+                            hand: ['unmarked-credits', 'resupply']
+                        }
+                    });
 
-                context.player1.clickCard(context.galenErso);
-                context.player1.chooseListOption('Shield');
+                    const { context } = contextRef;
 
-                context.player2.clickCard(context.momentOfPeace);
-                context.player2.clickCard(context.atst);
+                    // P1 plays Galen and names Credit
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Credit');
 
-                context.player1.clickCard(context.wampa);
-                context.player1.clickCard(context.atst);
-                expect(context.atst.damage).toBe(4);
-                expect(context.atst).toHaveExactUpgradeNames(['shield']);
-            });
+                    // P2 plays Unmarked Credits to create a credit token
+                    context.player2.clickCard(context.unmarkedCredits);
+                    expect(context.player2.credits).toBe(1);
 
-            it('friendly shields already in play should work as normal', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['galen-erso#youll-never-win'],
-                        groundArena: [{ card: 'wampa', upgrades: ['shield', 'shield'] }]
-                    },
-                    player2: {
-                        groundArena: ['atst']
-                    }
+                    context.player1.passAction();
+
+                    // P2 plays Resupply
+                    context.player2.clickCard(context.resupply);
+
+                    // No prompt to use credit tokens for payment, it is now P1's turn
+                    expect(context.player1).toBeActivePlayer();
+                    expect(context.player2.credits).toBe(1); // Credit token was not used
                 });
 
-                const { context } = contextRef;
+                it('friendly credit tokens already in play can be used to reduce resource payments', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'luke-skywalker#faithful-friend',
+                            base: 'echo-base',
+                            credits: 3,
+                            resources: 4,
+                            hand: ['galen-erso#youll-never-win', 'resupply']
+                        }
+                    });
 
-                context.player1.clickCard(context.galenErso);
-                context.player1.chooseListOption('Shield');
+                    const { context } = contextRef;
 
-                context.player2.clickCard(context.atst);
-                context.player2.clickCard(context.wampa);
-                expect(context.wampa.damage).toBe(0);
-                expect(context.wampa).toHaveExactUpgradeNames(['shield']);
-            });
+                    // P1 plays Galen and names Credit
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.clickPrompt('Pay costs without Credit tokens');
+                    context.player1.chooseListOption('Credit');
+                    expect(context.player1.readyResourceCount).toBe(0);
 
-            it('friendly shields created afterwards should have work as normal', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['galen-erso#youll-never-win', 'moment-of-peace'],
-                        groundArena: ['wampa']
-                    },
-                    player2: {
-                        groundArena: ['atst']
-                    }
+                    context.player2.passAction();
+
+                    // P1 plays Resupply, paying for it with Credit tokens
+                    context.player1.clickCard(context.resupply);
+                    context.player1.clickPrompt('Use 3 Credits');
+
+                    // Credits were spent to reduce the cost
+                    expect(context.player1.credits).toBe(0);
                 });
 
-                const { context } = contextRef;
+                it('friendly credit tokens created afterwards can be used to reduce resource payments', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'luke-skywalker#faithful-friend',
+                            base: 'chopper-base',
+                            resources: 5,
+                            hand: ['galen-erso#youll-never-win', 'unmarked-credits', 'jawa-scavenger']
+                        }
+                    });
 
-                context.player1.clickCard(context.galenErso);
-                context.player1.chooseListOption('Shield');
+                    const { context } = contextRef;
 
-                context.player2.passAction();
+                    // P1 plays Galen and names Credit
+                    context.player1.clickCard(context.galenErso);
+                    context.player1.chooseListOption('Credit');
 
-                context.player1.clickCard(context.momentOfPeace);
-                context.player1.clickCard(context.wampa);
+                    context.player2.passAction();
 
-                context.player2.clickCard(context.atst);
-                context.player2.clickCard(context.wampa);
-                expect(context.wampa.damage).toBe(0);
-                expect(context.wampa.isUpgraded()).toBeFalse();
-            });
+                    // P1 plays Unmarked Credits to create a credit token
+                    context.player1.clickCard(context.unmarkedCredits);
+                    expect(context.player1.credits).toBe(1);
+                    expect(context.player1.readyResourceCount).toBe(0);
 
-            it('stolen shield by opponent should be blanked (CR6 token upgrade ownership update)', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['galen-erso#youll-never-win'],
-                        groundArena: [{ card: 'wampa', upgrades: ['shield'] }]
-                    },
-                    player2: {
-                        hand: ['shuttle-st149#under-krennics-authority'],
-                        groundArena: ['echo-base-defender'],
-                        hasInitiative: true,
-                    }
+                    context.player2.passAction();
+
+                    // P1 plays Jawa Scavenger, paying for it with Credit token
+                    context.player1.clickCard(context.jawaScavenger);
+                    context.player1.clickPrompt('Use 1 Credit');
+
+                    // Credit token was spent to reduce the cost
+                    expect(context.player1.credits).toBe(0);
+                    expect(context.jawaScavenger).toBeInZone('groundArena');
                 });
-
-                const { context } = contextRef;
-
-                const wampaShield = context.shield;
-
-                context.player2.clickCard(context.shuttleSt149);
-                context.player2.clickPrompt('Shielded');
-                context.player2.clickCard(wampaShield);
-                context.player2.clickCard(context.echoBaseDefender);
-
-                expect(context.wampa).toHaveExactUpgradeNames([]);
-                expect(context.echoBaseDefender).toHaveExactUpgradeNames(['shield']);
-
-                context.player1.clickCard(context.galenErso);
-                context.player1.chooseListOption('Shield');
-
-                context.player2.passAction();
-
-                context.player1.clickCard(context.wampa);
-                context.player1.clickCard(context.echoBaseDefender);
-
-                expect(context.player2).toBeActivePlayer();
-                expect(context.echoBaseDefender).toBeInZone('discard', context.player2);
             });
         });
     });

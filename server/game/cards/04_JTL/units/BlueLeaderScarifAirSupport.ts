@@ -14,7 +14,7 @@ export default class BlueLeaderScarifAirSupport extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 2,
                 target: context.player
             })),

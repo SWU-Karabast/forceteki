@@ -109,6 +109,43 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 // Falcon comes back into play ready
                 expect(context.millenniumFalcon.exhausted).toBeFalse();
             });
+
+            it('tax can be paid with credit tokens', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['millennium-falcon#piece-of-junk'],
+                        credits: 1
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.requireResolvedRegroupPhasePrompts = true;
+
+                // Move to next regroup phase
+                context.moveToRegroupPhase();
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+
+                // Millennium Falcon tax prompt
+                expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
+                context.player1.clickPrompt('Pay 1 resource');
+
+                // Should be able to pay with Credit token
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Millennium Falcon\'s effect');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Use 1 Credit',
+                    'Pay costs without Credit tokens',
+                    // No cancel button since this is not optional
+                ]);
+                context.player1.clickPrompt('Use 1 Credit');
+
+                // Falcon still in play
+                expect(context.millenniumFalcon).toBeInZone('spaceArena');
+                expect(context.player1.credits).toBe(0);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+            });
         });
     });
 });

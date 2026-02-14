@@ -47,6 +47,28 @@ describe('Third Sister, Seething With Ambition', function () {
                 context.player2.clickCard(context.idenVersio);
                 expect(context.idenVersio).toHaveExactUpgradeNames([]);
             });
+
+            it('should not be able to select a unit if the player cannot pay the costs to play it', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'third-sister#seething-with-ambition',
+                        hand: ['krayt-dragon', 'infused-brawler'],
+                        resources: 5,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.thirdSister);
+                context.player1.clickPrompt('Play a unit from your hand. It gains Hidden for this phase');
+                expect(context.player1).not.toBeAbleToSelect(context.kraytDragon);
+                expect(context.player1).toBeAbleToSelectExactly([context.infusedBrawler]);
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.thirdSister.exhausted).toBeTrue();
+            });
         });
 
         describe('Third Sister\'s deployed on attack ability', function () {
@@ -68,7 +90,7 @@ describe('Third Sister, Seething With Ambition', function () {
 
                 context.player1.clickCard(context.thirdSister);
                 context.player1.clickCard(context.p2Base);
-                expect(context.getChatLogs(1)).toEqual(['player1 uses Third Sister to give Hidden to the next unit they will play this phase']);
+                expect(context.getChatLogs(1)).toEqual(['player1 uses Third Sister to give Hidden to the next unit they play this phase']);
 
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa.hasSomeKeyword('hidden')).toBeFalse();
