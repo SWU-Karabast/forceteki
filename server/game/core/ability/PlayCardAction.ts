@@ -16,7 +16,6 @@ import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCost
 import type Game from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
-
 import { registerState } from '../GameObjectUtils';
 
 export interface IPlayCardActionPropertiesBase {

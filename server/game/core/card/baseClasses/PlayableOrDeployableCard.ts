@@ -16,7 +16,6 @@ import { registerState, undoState } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
-import type { ICardState } from '../Card';
 import { Card } from '../Card';
 import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
@@ -57,9 +56,6 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
     getPlayCardWithPlotAction(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction;
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
-
-// STATE TODO: Obsolete, to be removed.
-export type IPlayableOrDeployableCardState = ICardState;
 
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.

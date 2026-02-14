@@ -13,7 +13,6 @@ import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 import type { ActionAbility } from '../ability/ActionAbility';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
-import type { IInPlayCardState } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from './AbilityRegistrationInterfaces';
@@ -28,9 +27,6 @@ const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard)
 
 /** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}
-
-// STATE TODO: Obsolete, to be removed.
-export type ILeaderUnitCardState = IInPlayCardState;
 
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderUnitCard {

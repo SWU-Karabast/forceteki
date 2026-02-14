@@ -5,14 +5,9 @@ import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../Inter
 import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
 import { registerState, undoArray } from '../GameObjectUtils';
-
-export interface IConstantAbilityState extends IGameObjectBaseState {
-    registeredEffects?: GameObjectRef<OngoingEffect>[];
-}
 
 /**
  * Represents an action ability provided by card text.

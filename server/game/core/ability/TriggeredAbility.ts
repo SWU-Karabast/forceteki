@@ -1,4 +1,3 @@
-import type { ICardAbilityState } from './CardAbility';
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { EventName, PlayType, StandardTriggeredAbilityType } from '../Constants';
@@ -13,8 +12,10 @@ import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/Triggere
 import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
 import { registerState, undoState } from '../GameObjectUtils';
+import type { IGameObjectBaseState } from '../GameObjectBase';
 
-export interface ITriggeredAbillityState extends ICardAbilityState {
+// STATE: Interface needed for onAfterSetState and cleanupOnRemove.
+export interface ITriggeredAbilityState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
@@ -284,7 +285,7 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    protected override afterSetState(oldState: ITriggeredAbillityState): void {
+    protected override afterSetState(oldState: ITriggeredAbilityState): void {
         if (this.isRegistered !== oldState.isRegistered) {
             if (this.isRegistered) {
                 this.registerEvents();
@@ -294,7 +295,7 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    public override cleanupOnRemove(oldState: ITriggeredAbillityState): void {
+    public override cleanupOnRemove(oldState: ITriggeredAbilityState): void {
         if (oldState.isRegistered) {
             this.unregisterEvents();
         }

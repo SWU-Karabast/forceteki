@@ -1,6 +1,6 @@
 import type { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
-import type { Card, CardConstructor, ICardState } from '../Card';
+import type { Card, CardConstructor } from '../Card';
 import type { Player } from '../../Player';
 import type { ICardWithPrintedHpProperty } from './PrintedHp';
 import { WithPrintedHp } from './PrintedHp';
@@ -17,12 +17,6 @@ export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
     get remainingHp(): number;
     addDamage(amount: number, source: IDamageSource): number;
     removeDamage(amount: number): number;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IWithDamageState extends ICardState {
-    // attackEnabled: boolean;
-    // damage?: number;
 }
 
 /**

@@ -5,7 +5,6 @@ import type { IEventAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-
 import { registerState } from '../GameObjectUtils';
 
 @registerState()

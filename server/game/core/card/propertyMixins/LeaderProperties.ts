@@ -2,7 +2,7 @@ import type { ZoneName } from '../../Constants';
 import { CardType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import type { Player } from '../../Player';
-import type { IPlayableOrDeployableCardState, PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
+import type { PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
@@ -12,9 +12,6 @@ export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCar
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ILeaderCard extends ICardWithExhaustProperty {}
-
-// STATE TODO: Obsolete, to be removed.
-export type ILeaderPropertiesCardState = IPlayableOrDeployableCardState;
 
 /**
  * Mixin function that adds the standard properties for a unit (leader or non-leader) to a base class.

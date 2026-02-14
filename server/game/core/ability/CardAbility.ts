@@ -6,13 +6,8 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
-import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
 import { registerState } from '../GameObjectUtils';
-
-export interface ICardAbilityState extends IPlayerOrCardAbilityState {
-    placeholder?: false;
-}
 
 @registerState()
 export abstract class CardAbility extends CardAbilityStep {

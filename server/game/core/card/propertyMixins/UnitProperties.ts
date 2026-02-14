@@ -3,7 +3,7 @@ import type { Arena, MoveZoneDestination } from '../../Constants';
 import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StandardTriggeredAbilityType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import * as Contract from '../../utils/Contract';
-import type { IInPlayCard, IInPlayCardState, InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { InPlayCard } from '../baseClasses/InPlayCard';
 import type { ICardWithDamageProperty } from './Damage';
 import { WithDamage } from './Damage';
@@ -48,9 +48,6 @@ import type Clone from '../../../cards/03_TWI/units/Clone';
 import { registerState, undoArray, undoObject, undoState } from '../../GameObjectUtils';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
-
-// STATE TODO: Obsolete, to be removed.
-export type IUnitPropertiesCardState = IInPlayCardState;
 
 type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
 

@@ -14,7 +14,6 @@ import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker.js
 import type { FormatMessage, MsgArg } from '../chat/GameChat.js';
 import * as ChatHelpers from '../chat/ChatHelpers';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-
 import { registerState } from '../GameObjectUtils';
 
 /**

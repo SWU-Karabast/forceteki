@@ -22,7 +22,7 @@ import { WithCost } from '../propertyMixins/Cost';
 import type { ICardWithPreEnterPlayAbilities } from '../propertyMixins/PreEnterPlayAbilityRegistration';
 import type { ICardWithTriggeredAbilities, ITriggeredAbilityRegistrar } from '../propertyMixins/TriggeredAbilityRegistration';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import { registerState, undoObject, undoState } from '../../GameObjectUtils';
@@ -31,9 +31,6 @@ const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard))
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
-
-// STATE TODO: Obselete, to be removed.
-export type IInPlayCardState = IPlayableOrDeployableCardState;
 
 export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities<IInPlayCard>, ICardWithConstantAbilities<IInPlayCard>, ICardWithTriggeredAbilities<IInPlayCard>, ICardWithPreEnterPlayAbilities {
     get printedUpgradeHp(): number;

@@ -9,7 +9,6 @@ import type {
 } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
-import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
@@ -56,9 +55,6 @@ import type { ZoneAbstract } from '../zone/ZoneAbstract';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
-
-// STATE TODO: Obsolete, to be removed.
-export type ICardState = IOngoingEffectSourceState;
 
 export enum InitializeCardStateOption {
     Initialize = 'initialize',

@@ -1,5 +1,4 @@
 import type { Player } from '../Player';
-import type { ICardState } from './Card';
 import { Card } from './Card';
 import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
@@ -21,9 +20,6 @@ import { CaptureZone } from '../zone/CaptureZone';
 import { registerState } from '../GameObjectUtils';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
-
-// STATE TODO: Obsolete, to be removed.
-export type IBaseCardState = ICardState;
 
 export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard>, ICardWithCaptureZone {
     get epicActionSpent(): boolean;
