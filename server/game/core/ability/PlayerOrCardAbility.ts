@@ -26,7 +26,6 @@ import type { CardAbility } from './CardAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
 import type { MsgArg } from '../chat/GameChat.js';
-
 import { registerState } from '../GameObjectUtils';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {

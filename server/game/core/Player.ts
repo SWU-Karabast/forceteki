@@ -134,13 +134,14 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return this._deckZone;
     }
 
-    // STATE TODO: Convert leader/base to use @undoObject when ILeaderCard/IBaseCard interface types extend IGameObjectBase
+    @undoObject() private accessor _leader: ILeaderCard | null = null;
     public get leader(): ILeaderCard {
-        return this.game.gameObjectManager.get(this.state.leader);
+        return this._leader;
     }
 
+    @undoObject() private accessor _base: IBaseCard | null = null;
     public get base(): IBaseCard {
-        return this.game.gameObjectManager.get(this.state.base);
+        return this._base;
     }
 
     @undoArray(false) private accessor _costAdjusters: CostAdjuster[] = [];
@@ -736,8 +737,8 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     public async prepareDecksAsync() {
         const preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
-        this.state.base = preparedDecklist.base;
-        this.state.leader = preparedDecklist.leader;
+        this._base = this.game.getFromRef(preparedDecklist.base);
+        this._leader = this.game.getFromRef(preparedDecklist.leader);
 
         this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromRef(x)));
 

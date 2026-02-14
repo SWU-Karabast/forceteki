@@ -4,7 +4,6 @@ import { ActionAbility } from '../core/ability/ActionAbility';
 import type { Card } from '../core/card/Card';
 import type Game from '../core/Game';
 import type { IEpicActionProps } from '../Interfaces';
-
 import { registerState } from '../core/GameObjectUtils';
 
 @registerState()

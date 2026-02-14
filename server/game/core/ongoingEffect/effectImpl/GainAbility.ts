@@ -7,7 +7,6 @@ import type Game from '../../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
-
 import { registerState, undoObject, undoPlainMap, undoState } from '../../GameObjectUtils';
 
 export interface IGainAbilityState extends IGameObjectBaseState {

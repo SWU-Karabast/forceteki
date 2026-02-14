@@ -8,7 +8,6 @@ import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
 import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
-
 import { registerState } from '../GameObjectUtils';
 
 export interface ICardAbilityState extends IPlayerOrCardAbilityState {

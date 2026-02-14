@@ -5,7 +5,6 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
-
 import { registerState, undoPlainMap, undoState } from '../GameObjectUtils';
 
 export interface IAbilityLimit {
