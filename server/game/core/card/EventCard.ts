@@ -21,9 +21,8 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState } from '../GameObjectUtils';
+import { registerState, undoObject } from '../GameObjectUtils';
 
-// STATE TODO: This needs the eventAbility to be converted to state.
 const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>)));
 
 export interface IEventCardState extends IPlayableOrDeployableCardState {
@@ -36,9 +35,7 @@ export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeCon
 
 @registerState()
 export class EventCard extends EventCardParent implements IEventCard {
-    private get eventAbility(): EventAbility {
-        return this.game.getFromRef(this.state.eventAbility);
-    }
+    @undoObject() private accessor eventAbility: EventAbility | null = null;
 
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
@@ -48,7 +45,7 @@ export class EventCard extends EventCardParent implements IEventCard {
     protected override onInitialize(): void {
         super.onInitialize();
 
-        Contract.assertFalse(this.hasImplementationFile && !this.state.eventAbility, 'Event card\'s ability was not initialized');
+        Contract.assertFalse(this.hasImplementationFile && !this.eventAbility, 'Event card\'s ability was not initialized');
 
         // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of zone
         for (const constantAbility of this.constantAbilities) {
@@ -143,8 +140,7 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
-        this.state.eventAbility = new EventAbility(this.game, this, properties)
-            .getRef();
+        this.eventAbility = new EventAbility(this.game, this, properties);
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */

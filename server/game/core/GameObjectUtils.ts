@@ -310,6 +310,105 @@ export function undoObject<T extends IGameObjectBase, TValue extends IGameObject
     };
 }
 
+/**
+ * For {@link Map}<string, TValue> where TValue is a serializable value that is **not** a {@link GameObjectBase}.
+ * The Map is stored directly in state without any ref conversion, so in-place mutations (set, delete, clear)
+ * automatically affect state. No proxy wrapper is needed.
+ *
+ * Use this instead of {@link undoMap} when map values are plain data (strings, numbers, booleans, etc.)
+ * rather than GameObjectBase references.
+ *
+ * @example
+ * ⁣@undoPlainMap() accessor useCount: Map<string, number> = new Map();
+ */
+export function undoPlainMap<T extends GameObjectBase, TValue>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
+        context: ClassAccessorDecoratorContext<T, Map<string, TValue>>
+    ): ClassAccessorDecoratorResult<T, Map<string, TValue>> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        // Get or create the state related metadata object.
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateSimpleMetadata] ??= [];
+        (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        const name = context.name;
+
+        // No need to use the backing fields, read and write directly to state.
+        return {
+            get(this: T) {
+                return this.state[name];
+            },
+            set(this: T, newValue: Map<string, TValue>) {
+                this.state[name] = newValue;
+            },
+            init(this: T, value: Map<string, TValue>) {
+                this.state[name] = value;
+                // We don't use the internal field and only use the data within state.
+                return undefined;
+            }
+        };
+    };
+}
+
+/**
+ * For any {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm structuredClone}-compatible
+ * value that is **not** a primitive and **not** a {@link GameObjectBase}.
+ * The value is stored directly in state without any conversion.
+ *
+ * Use this for complex state values (objects, arrays of plain data, etc.) that don't need
+ * GameObjectBase ref resolution but do need to participate in the undo system.
+ *
+ * Prefer more specific decorators when applicable:
+ * - {@link undoState} for primitives (string, number, boolean)
+ * - {@link undoObject} for single GameObjectBase references
+ * - {@link undoArray} for arrays of GameObjectBase references
+ * - {@link undoMap} for Map<string, GameObjectBase>
+ * - {@link undoPlainMap} for Map<string, non-GameObjectBase>
+ *
+ * @example
+ * ⁣@undoPlainState() accessor decklist: IDeckListForLoading;
+ */
+export function undoPlainState<T extends GameObjectBase, TValue>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, TValue>,
+        context: ClassAccessorDecoratorContext<T, TValue>
+    ): ClassAccessorDecoratorResult<T, TValue> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        // Get or create the state related metadata object.
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateSimpleMetadata] ??= [];
+        (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        const name = context.name;
+
+        // No need to use the backing fields, read and write directly to state.
+        return {
+            get(this: T) {
+                return this.state[name];
+            },
+            set(this: T, newValue: TValue) {
+                this.state[name] = newValue;
+            },
+            init(this: T, value: TValue) {
+                this.state[name] = value;
+                // We don't use the internal field and only use the data within state.
+                return undefined;
+            }
+        };
+    };
+}
+
 /** Experimental: Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
 function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, record: Record<string, TValue>, name: string) {
     // @ts-expect-error these functions can bypass the accessibility safeties.

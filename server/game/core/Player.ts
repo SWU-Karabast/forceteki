@@ -54,7 +54,7 @@ import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
-import { registerState } from './GameObjectUtils';
+import { registerState, undoArray, undoObject, undoPlainState } from './GameObjectUtils';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -104,31 +104,37 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return true;
     }
 
-    // TODO: Convert all Zones to Refs and let the GameStateManager keep them there alone?
+    @undoObject() private accessor _handZone: HandZone | null = null;
     public get handZone(): HandZone {
-        return this.game.gameObjectManager.get(this.state.handZone);
+        return this._handZone;
     }
 
+    @undoObject() private accessor _resourceZone: ResourceZone | null = null;
     public get resourceZone(): ResourceZone {
-        return this.game.gameObjectManager.get(this.state.resourceZone);
+        return this._resourceZone;
     }
 
+    @undoObject() private accessor _discardZone: DiscardZone | null = null;
     public get discardZone(): DiscardZone {
-        return this.game.gameObjectManager.get(this.state.discardZone);
+        return this._discardZone;
     }
 
+    @undoObject() private accessor _outsideTheGameZone: OutsideTheGameZone | null = null;
     public get outsideTheGameZone(): OutsideTheGameZone {
-        return this.game.gameObjectManager.get(this.state.outsideTheGameZone);
+        return this._outsideTheGameZone;
     }
 
+    @undoObject() private accessor _baseZone: BaseZone | null = null;
     public get baseZone(): BaseZone | null {
-        return this.game.gameObjectManager.get(this.state.baseZone);
+        return this._baseZone;
     }
 
+    @undoObject() private accessor _deckZone: DeckZone | null = null;
     public get deckZone(): DeckZone {
-        return this.game.gameObjectManager.get(this.state.deckZone);
+        return this._deckZone;
     }
 
+    // STATE TODO: Convert leader/base to use @undoObject when ILeaderCard/IBaseCard interface types extend IGameObjectBase
     public get leader(): ILeaderCard {
         return this.game.gameObjectManager.get(this.state.leader);
     }
@@ -137,28 +143,24 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         return this.game.gameObjectManager.get(this.state.base);
     }
 
+    @undoArray(false) private accessor _costAdjusters: CostAdjuster[] = [];
     private get costAdjusters(): readonly CostAdjuster[] {
-        return this.state.costAdjusters.map((x) => this.game.getFromRef(x));
+        return this._costAdjusters;
     }
 
-    public get passedActionPhase() {
-        return this.state.passedActionPhase;
-    }
+    @undoPlainState() public accessor passedActionPhase: boolean | null = null;
 
-    public set passedActionPhase(value: boolean | null) {
-        this.state.passedActionPhase = value;
-    }
-
+    @undoPlainState() private accessor _decklist: IDeckListForLoading | null = null;
     public get decklist(): IDeckListForLoading {
-        return this.state.decklist;
+        return this._decklist;
     }
 
     public get allCards() {
-        return this.state.decklist.allCards.map((x) => this.game.getFromRef(x));
+        return this._decklist.allCards.map((x) => this.game.getFromRef(x));
     }
 
     public get tokens() {
-        return this.state.decklist.tokens.map((x) => this.game.getFromRef(x));
+        return this._decklist.tokens.map((x) => this.game.getFromRef(x));
     }
 
     public get autoSingleTarget() {
@@ -226,18 +228,13 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         }
 
         this.canTakeActionsThisPhase = null;
-        this.state.handZone = new HandZone(game, this)
-            .getRef();
-        this.state.resourceZone = new ResourceZone(game, this)
-            .getRef();
-        this.state.discardZone = new DiscardZone(game, this)
-            .getRef();
+        this._handZone = new HandZone(game, this);
+        this._resourceZone = new ResourceZone(game, this);
+        this._discardZone = new DiscardZone(game, this);
         // mainly used for staging tokens when they are created / removed
-        this.state.outsideTheGameZone = new OutsideTheGameZone(game, this)
-            .getRef();
-        this.state.baseZone = null;
-        this.state.deckZone = new DeckZone(game, this)
-            .getRef();
+        this._outsideTheGameZone = new OutsideTheGameZone(game, this);
+        // baseZone is already null from accessor init
+        this._deckZone = new DeckZone(game, this);
 
         /** @type {Deck} */
         this.decklistNames = null;
@@ -250,12 +247,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         this.optionSettings = user.settings.optionSettings;
 
         this._promptState = new PlayerPromptState(this);
-    }
-
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-
-        this.state.costAdjusters = [];
     }
 
     /**
@@ -764,10 +755,9 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this.state.baseZone = new BaseZone(this.game, this, this.base, this.leader)
-            .getRef();
+        this._baseZone = new BaseZone(this.game, this, this.base, this.leader);
 
-        this.state.decklist = preparedDecklist;
+        this._decklist = preparedDecklist;
     }
 
     /**
@@ -785,7 +775,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * @param {CostAdjuster} costAdjuster
      */
     public addCostAdjuster(costAdjuster: CostAdjuster) {
-        this.state.costAdjusters.push(costAdjuster.getRef());
+        this._costAdjusters.push(costAdjuster);
     }
 
     /**
@@ -795,7 +785,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     public removeCostAdjuster(adjuster: CostAdjuster) {
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.cancel();
-            this.state.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster).map((x) => x.getRef());
+            this._costAdjusters = this.costAdjusters.filter((r) => r !== adjuster);
         }
     }
 
