@@ -323,6 +323,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'hunter-for-hire',
     }),
+    buildMockCard({
+        title: 'Zuckuss',
+        subtitle: 'Dangerous',
+        power: 3,
+        hp: 5,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Command', 'Cunning', 'Villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'bounty hunter'],
+        setId: {
+            set: 'LAW',
+            number: 64,
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'zuckuss#dangerous',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
