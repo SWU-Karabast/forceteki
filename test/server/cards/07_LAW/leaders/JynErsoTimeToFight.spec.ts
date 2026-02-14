@@ -91,7 +91,7 @@ describe('Jyn Erso, Time to Fight', () => {
 
                 // P1 uses Jyn's ability
                 context.player1.clickCard(context.jynErso);
-                context.player1.clickPrompt('Search the top 3 cards of your deck for a card and draw it');
+                context.player1.clickPrompt('(No effect) Search the top 3 cards of your deck for a card and draw it');
                 expect(context.player1).toHaveNoEffectAbilityPrompt('Search the top 3 cards of your deck for a card and draw it');
                 expect(context.player1).toHaveExactPromptButtons(['Use it anyway', 'Cancel']);
                 context.player1.clickPrompt('Use it anyway');

@@ -43,7 +43,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player2.clickCard(context.p1Base);
 
                 context.player1.clickCard(context.lukeSkywalker);
-                context.player1.clickPrompt('If you attacked with a Fighter unit this phase, deal 1 damage to a unit');
+                context.player1.clickPrompt('(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit');
                 context.player1.clickPrompt('Use it anyway');
 
                 expect(context.lukeSkywalker.exhausted).toBe(true);
@@ -73,7 +73,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker');
 
                 expect(context.lukeSkywalker.deployed).toBe(true);
@@ -85,7 +85,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Deploy Luke Skywalker as a Pilot
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
@@ -118,7 +118,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Deploy Luke Skywalker as a Pilot
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.munificentFrigate);
@@ -143,7 +143,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Deploy Luke Skywalker as a Pilot
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
@@ -171,7 +171,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Deploy Luke Skywalker as a Pilot
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
@@ -195,7 +195,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Deploy Luke Skywalker as a Pilot
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
@@ -221,7 +221,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Deploy Luke Skywalker as a Pilot
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
@@ -257,7 +257,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Deploy Luke Skywalker as a Pilot
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
@@ -286,7 +286,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Deploy Luke Skywalker as a Pilot
                 context.player1.clickCard(context.lukeSkywalker);
-                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', '(No effect) If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);

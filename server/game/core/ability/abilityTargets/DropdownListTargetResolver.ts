@@ -18,7 +18,11 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
 
     public override hasLegalTarget(context: AbilityContext): boolean {
         const gameSystems = Helpers.asArray(this.getGameSystems(context));
-        return gameSystems.length === 0 || gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
+        // If there's no selection yet, we consider there to be a legal target
+        // since the game system usually depends on the selection
+        return !context.select ||
+          gameSystems.length === 0 ||
+          gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
     protected override resolveInternal(player: Player, context: AbilityContext) {

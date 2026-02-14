@@ -2,6 +2,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -18,18 +19,21 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.attack({
-                        attackerLastingEffects: [
-                            { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) },
-                            { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm) },
-                        ]
-                    }),
-                    AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => context.target.zoneName === ZoneName.GroundArena || context.target.zoneName === ZoneName.SpaceArena,
-                        onTrue: AbilityHelper.immediateEffects.defeat()
-                    })
-                ]),
+                immediateEffect: AbilityHelper.immediateEffects.sequential({
+                    gameSystems: [
+                        AbilityHelper.immediateEffects.attack({
+                            attackerLastingEffects: [
+                                { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) },
+                                { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm) },
+                            ]
+                        }),
+                        AbilityHelper.immediateEffects.conditional({
+                            condition: (context) => context.target.zoneName === ZoneName.GroundArena || context.target.zoneName === ZoneName.SpaceArena,
+                            onTrue: AbilityHelper.immediateEffects.defeat()
+                        })
+                    ],
+                    resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,
+                }),
             },
         });
     }
@@ -42,19 +46,21 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => card !== context.source,
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.attack({
-                        allowExhaustedAttacker: false,
-                        attackerLastingEffects: [
-                            { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) },
-                            { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm) },
-                        ],
-                    }),
-                    AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => context.target.zoneName === ZoneName.GroundArena || context.target.zoneName === ZoneName.SpaceArena,
-                        onTrue: AbilityHelper.immediateEffects.defeat()
-                    })
-                ]),
+                immediateEffect: AbilityHelper.immediateEffects.sequential({
+                    gameSystems: [
+                        AbilityHelper.immediateEffects.attack({
+                            attackerLastingEffects: [
+                                { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) },
+                                { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm) },
+                            ]
+                        }),
+                        AbilityHelper.immediateEffects.conditional({
+                            condition: (context) => context.target.zoneName === ZoneName.GroundArena || context.target.zoneName === ZoneName.SpaceArena,
+                            onTrue: AbilityHelper.immediateEffects.defeat()
+                        })
+                    ],
+                    resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,
+                }),
             },
         });
     }
