@@ -1,0 +1,122 @@
+{
+    "metadata": {
+        "name": "Post Rotation Luke DV",
+        "author": "Thorrk"
+    },
+    "leader": {
+        "id": "JTL_012",
+        "count": 1
+    },
+    "base": {
+        "id": "JTL_024",
+        "count": 1
+    },
+    "deck": [
+        {
+            "id": "SEC_176",
+            "count": 3
+        },
+        {
+            "id": "JTL_094",
+            "count": 3
+        },
+        {
+            "id": "LOF_144",
+            "count": 3
+        },
+        {
+            "id": "JTL_102",
+            "count": 3
+        },
+        {
+            "id": "SEC_172",
+            "count": 3
+        },
+        {
+            "id": "JTL_095",
+            "count": 3
+        },
+        {
+            "id": "JTL_177",
+            "count": 2
+        },
+        {
+            "id": "JTL_096",
+            "count": 3
+        },
+        {
+            "id": "JTL_100",
+            "count": 2
+        },
+        {
+            "id": "JTL_245",
+            "count": 3
+        },
+        {
+            "id": "JTL_125",
+            "count": 3
+        },
+        {
+            "id": "JTL_149",
+            "count": 3
+        },
+        {
+            "id": "JTL_250",
+            "count": 3
+        },
+        {
+            "id": "JTL_174",
+            "count": 3
+        },
+        {
+            "id": "JTL_261",
+            "count": 2
+        },
+        {
+            "id": "JTL_147",
+            "count": 3
+        },
+        {
+            "id": "JTL_103",
+            "count": 3
+        },
+        {
+            "id": "JTL_151",
+            "count": 3
+        },
+        {
+            "id": "JTL_145",
+            "count": 2
+        },
+        {
+            "id": "JTL_249",
+            "count": 3
+        },
+        {
+            "id": "JTL_247",
+            "count": 3
+        },
+        {
+            "id": "JTL_172",
+            "count": 1
+        }
+    ],
+    "sideboard": [
+        {
+            "id": "SEC_180",
+            "count": 3
+        },
+        {
+            "id": "JTL_176",
+            "count": 2
+        },
+        {
+            "id": "LOF_147",
+            "count": 2
+        },
+        {
+            "id": "JTL_112",
+            "count": 3
+        }
+    ]
+}

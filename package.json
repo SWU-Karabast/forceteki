@@ -18,7 +18,8 @@
     "lint-fix": "eslint --quiet --fix",
     "lint-verbose": "eslint",
     "get-cards": "node ./scripts/fetchdata.js",
-    "validate-cards": "ts-node scripts/validateCards.ts"
+    "validate-cards": "ts-node scripts/validateCards.ts",
+    "validate-deck": "node ./scripts/validate-deck.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.758.0",
