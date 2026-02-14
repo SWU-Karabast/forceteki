@@ -4,7 +4,6 @@ import type { Aspect, CardTypeFilter, KeywordName, ZoneName, MoveZoneDestination
 import type { Player } from '../Player';
 import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState } from '../GameObjectUtils';
 
