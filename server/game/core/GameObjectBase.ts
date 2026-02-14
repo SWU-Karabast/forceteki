@@ -1,5 +1,5 @@
 import type Game from './Game';
-import { CopyMode, copyState, registerState, registerStateClassMarker } from './GameObjectUtils';
+import { copyState, registerState, registerStateClassMarker, undoState } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -48,9 +48,8 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
     (T extends (infer R)[] ? (R extends GameObjectRef<infer U> ? U[] : R[]) :
         T);
 
-// NOTE: We are *temporarily* marking registerState as CopyMode.UseBulkCopy, but in the future this should be removed and moved into the deriving classes as need.
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
-@registerState(CopyMode.UseBulkCopy)
+@registerState()
 export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     public readonly game: Game;
 
@@ -80,14 +79,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     }
 
     /** ID given by the game engine. */
-    public get uuid() {
-        return this.state.uuid;
-    }
-
-    public set uuid(value) {
-        Contract.assertIsNullLike(this.state.uuid, `Tried to set the engine ID of a object that already contains an ID: ${this.state.uuid}`);
-        this.state.uuid = value;
-    }
+    @undoState() public accessor uuid: string;
 
     public constructor(game: Game) {
         this.game = game;
@@ -105,7 +97,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** This function will be called after the class has initialized. Do not override this method, instead override onInitialize. */
     public initialize(): this {
-        Contract.assertFalse(this._initialized, `Attempting to initialize an already initialized GameObject: ${this.getGameObjectName()} (UUID: ${this.state.uuid})`);
+        Contract.assertFalse(this._initialized, `Attempting to initialize an already initialized GameObject: ${this.getGameObjectName()} (UUID: ${this.uuid})`);
 
         this._initialized = true;
         this.onInitialize();
@@ -121,7 +113,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     protected setupDefaultState() { }
 
     public setCannotHaveRefs() {
-        Contract.assertFalse(this._hasRef, `Attempting to set cannotHaveRefs=true on ${this.getGameObjectName()} (UUID: ${this.state.uuid}) but it already has refs (hasRef: true)`);
+        Contract.assertFalse(this._hasRef, `Attempting to set cannotHaveRefs=true on ${this.getGameObjectName()} (UUID: ${this.uuid}) but it already has refs (hasRef: true)`);
 
         this._cannotHaveRefs = true;
     }
@@ -168,18 +160,18 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     public cleanupOnRemove(oldState: T) { }
 
     private assertInitialized(operation: string) {
-        Contract.assertTrue(this._initialized, `Attempting to ${operation} on uninitialized GameObject: ${this.getGameObjectName()} (UUID: ${this.state.uuid})`);
+        Contract.assertTrue(this._initialized, `Attempting to ${operation} on uninitialized GameObject: ${this.getGameObjectName()} (UUID: ${this.uuid})`);
     }
 
 
     /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
         this.assertInitialized('create a ref');
-        Contract.assertFalse(this.cannotHaveRefs, `Attempting to create a ref for ${this.getGameObjectName()} (UUID: ${this.state.uuid}) but it cannot have refs (cannotHaveRefs: true)`);
+        Contract.assertFalse(this.cannotHaveRefs, `Attempting to create a ref for ${this.getGameObjectName()} (UUID: ${this.uuid}) but it cannot have refs (cannotHaveRefs: true)`);
 
         this._hasRef = true;
 
-        const ref = { isRef: true, uuid: this.state.uuid };
+        const ref = { isRef: true, uuid: this.uuid };
 
         if (Helpers.isDevelopment()) {
             // This property is for debugging purposes only and should never be referenced within the code. It will be wiped in a rollback, but for non-Undo debugging this works.
