@@ -323,6 +323,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'hunter-for-hire',
     }),
+    buildMockCard({
+        title: 'Targeted For Removal',
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['upgrade'],
+        traits: ['condition'],
+        setId: {
+            set: 'LAW',
+            number: 141,
+        },
+        unique: false,
+        internalName: 'targeted-for-removal',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
