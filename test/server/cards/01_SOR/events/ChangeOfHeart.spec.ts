@@ -23,6 +23,7 @@ describe('Change of Heart', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.battlefieldMarine, context.wampa, context.pykeSentinel]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('groundArena', context.player1);
+                expect(context.getChatLog()).toEqual('player1 plays Change of Heart to take control of Wampa and to apply an effect that will give control to its owner at the start of the regroup phase');
 
                 // Check that Wampa returns to player 2
                 context.moveToRegroupPhase();

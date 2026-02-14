@@ -106,7 +106,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
                     attack.attackingPlayer,
                     this.getTargetMessage(attack.getAllTargets(), event.context),
                     attack.attacker,
-                    attack.attackerDealsDamageBeforeDefender() ? ' (dealing damage before the defender)' : ''
+                    attack.attackerDealsCombatDamageFirst() ? ' (dealing damage before the defender)' : ''
                 ]
             },
         ];
