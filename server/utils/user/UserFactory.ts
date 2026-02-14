@@ -73,7 +73,7 @@ export class UserFactory {
      * @returns An AnonymousUser instance
      */
     public createAnonymousUser(id?: string, name?: string): AnonymousUser {
-        return new AnonymousUser(id || uuid(), name || 'Anonymous');
+        return new AnonymousUser(id || uuid(), name || 'Anonymous', !!id);
     }
 
     public createAnonymousUserFromQuery(query?: ParsedUrlQuery): AnonymousUser {
@@ -89,10 +89,10 @@ export class UserFactory {
                 if (queryUser.username && !queryUser.username.toLowerCase().startsWith('anonymous')) {
                     logger.info(`Auth Anon-creation: creating user with id ${queryUser.id} with non-anonymous name ${queryUser.username}`, { userId: queryUser.id });
                 }
-                return new AnonymousUser(queryUser.id, queryUser.username);
+                return new AnonymousUser(queryUser.id, queryUser.username, true);
             }
         }
-        return new AnonymousUser(uuid(), 'AnonymousPlayer');
+        return new AnonymousUser(uuid(), 'AnonymousPlayer', false);
     }
 
     public async setWelcomeMessageStatus(userId: string): Promise<boolean> {
