@@ -340,6 +340,8 @@ const mockCards = [
         },
         unique: false,
         internalName: 'targeted-for-removal',
+    }),
+    buildMockCard({
         title: 'Liberty',
         subtitle: 'Draw Their Fire!',
         power: 9,
