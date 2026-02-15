@@ -3,7 +3,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType } from '../../../core/Constants';
 
-
 export default class EzraBridger extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {

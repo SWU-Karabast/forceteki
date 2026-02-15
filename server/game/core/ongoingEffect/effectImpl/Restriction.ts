@@ -8,11 +8,14 @@ import type Game from '../../Game';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 
+import { registerState } from '../../GameObjectUtils';
+
 export interface RestrictionProperties {
     type: AbilityRestriction | EffectName;
     restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
 }
 
+@registerState()
 export class Restriction extends OngoingEffectValueWrapper<Restriction> {
     public readonly type: AbilityRestriction | EffectName;
     public restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;

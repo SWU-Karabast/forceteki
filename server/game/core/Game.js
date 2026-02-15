@@ -352,7 +352,6 @@ class Game extends EventEmitter {
         this.setMaxListeners(0);
     }
 
-
     /**
      * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
      * @param {Error} error
@@ -596,7 +595,6 @@ class Game extends EventEmitter {
 
         return otherPlayer;
     }
-
 
     registerGlobalRulesListeners() {
         UnitPropertiesCard.registerRulesListeners(this);
@@ -1999,6 +1997,16 @@ class Game extends EventEmitter {
      */
     getFromRef(gameRef) {
         return this.gameObjectManager.get(gameRef);
+    }
+
+    /**
+     * Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly.
+     * @template {GameObjectBase} T
+     * @param {string} uuid
+     * @returns {T | null}
+     */
+    getFromUuidUnsafe(uuid) {
+        return this.gameObjectManager.getUnsafe(uuid);
     }
 
     getNextGameEventId() {

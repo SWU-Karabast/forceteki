@@ -86,7 +86,7 @@ export abstract class Phase extends BaseStepWithPipeline {
             if (this.name !== PhaseName.Setup) {
                 const additionalArg = this.isAdditionalPhase() ? 'Additional ' : '';
                 const effect = this.isAdditionalPhase() ? this.additionalPhaseEffect : null;
-                const effectSource = this.isAdditionalPhase() ? this.game.getFromRef(effect.getState().source) : null;
+                const effectSource = this.isAdditionalPhase() ? effect.source : null;
                 const additionalSourceArg: FormatMessage | string = this.isAdditionalPhase() ? { format: ' (granted by {0})', args: [effectSource] } : '';
                 this.game.addAlert(AlertType.Notification, 'Round: {0} - {1}{2} Phase{3}', this.game.roundNumber, additionalArg, Helpers.upperCaseFirstLetter(this.name), additionalSourceArg);
             }

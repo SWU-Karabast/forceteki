@@ -8,6 +8,7 @@ import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
 import type { IDefeatSource } from '../IDamageOrDefeatSource';
+import { registerState } from '../core/GameObjectUtils';
 
 
 /**
@@ -32,6 +33,7 @@ interface InPlayUnit {
     inPlayId: number;
 }
 
+@registerState()
 export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry> {
     public constructor(
         game: Game,

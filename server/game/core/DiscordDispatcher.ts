@@ -635,7 +635,6 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     }
 }
 
-
 // Helper function to sanitize strings for JSON
 function sanitizeForJson(str: string): string {
     if (!str) {

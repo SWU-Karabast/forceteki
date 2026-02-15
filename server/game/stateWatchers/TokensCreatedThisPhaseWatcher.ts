@@ -2,6 +2,7 @@ import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import { StateWatcherName } from '../core/Constants';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import { registerState } from '../core/GameObjectUtils';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
@@ -11,6 +12,7 @@ export interface CreatedTokenEntry {
     createdBy: GameObjectRef<Player>;
 }
 
+@registerState()
 export class TokensCreatedThisPhaseWatcher extends StateWatcher<CreatedTokenEntry> {
     public constructor(
         game: Game,

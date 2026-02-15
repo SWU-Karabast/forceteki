@@ -6,7 +6,6 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import * as Contract from '../../../core/utils/Contract';
 
-
 export default class GuardianOfTheWhills extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
 

@@ -1,4 +1,4 @@
-import type { GameObjectBase, GameObjectRef } from './GameObjectBase';
+import type { GameObjectBase, GameObjectRef, IGameObjectBase } from './GameObjectBase';
 import { to } from './utils/TypeHelpers';
 import * as Contract from './utils/Contract';
 
@@ -8,24 +8,27 @@ const stateMetadata = Symbol();
 const stateSimpleMetadata = Symbol();
 const stateArrayMetadata = Symbol();
 const stateMapMetadata = Symbol();
+const stateSetMetadata = Symbol();
 const stateRecordMetadata = Symbol();
 const stateObjectMetadata = Symbol();
 const bulkCopyMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
+export const registerStateClassMarker = Symbol('registerStateClassMarker');
+
 export enum CopyMode {
 
     /** Copies from the state using only the Metadata fields. */
     UseMetaDataOnly = 0,
 
-    /** Copies from the state using a bulk copy method, and then re-applies any of the map/array/record Metadata fields to recreate the cached values. */
+    /** Copies from the state using a bulk copy method, and then re-applies any of the map/array/record Metadata fields to recreate the cached values. Inefficient, but safe. */
     UseBulkCopy = 1
 }
 
 /**
- * Decorator to capture the names of any accessors flagged as &#64;undoState, &#64;undoObject, or &#64;undoArray for copyState, and then clear the array for the next derived class to use.
- * @param copyMode If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the undo decorators.
+ * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
+ * @param copyMode If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the state decorators.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
 export function registerState<T extends GameObjectBase>(copyMode = CopyMode.UseMetaDataOnly) {
@@ -54,11 +57,51 @@ export function registerState<T extends GameObjectBase>(copyMode = CopyMode.UseM
             throw new Error(`class "${parentClass.name}" is missing @registerState`);
         }
 
-        return targetClass;
+        Object.defineProperty(targetClass, registerStateClassMarker, {
+            value: true,
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+
+        // Wrap the decorated class so framework initialization is guaranteed after the full constructor chain finishes.
+        // The computed-property trick preserves the original class name for diagnostics and metadata lookups.
+        const wrappedClass: any = {
+            [targetClass.name]: class extends targetClass {
+                public constructor(...args: any[]) {
+                    super(...args);
+
+                    // Only initialize at the most-derived wrapper boundary.
+                    // Parent wrapped constructors run with a different `new.target` and must not initialize early.
+                    if (new.target === wrappedClass) {
+                        this.initialize();
+                    }
+                }
+            }
+        }[targetClass.name];
+
+        // Mark the wrapper too; runtime enforcement checks the constructed class, not just the original targetClass.
+        Object.defineProperty(wrappedClass, registerStateClassMarker, {
+            value: true,
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+
+        // copyState walks Symbol.metadata on constructors in the prototype chain.
+        // Re-expose the original metadata on the wrapper so state copy behavior is unchanged.
+        Object.defineProperty(wrappedClass, Symbol.metadata, {
+            value: targetClass[Symbol.metadata],
+            writable: false,
+            enumerable: false,
+            configurable: true
+        });
+
+        return wrappedClass;
     };
 }
 
-export function undoState<T extends GameObjectBase, TValue extends string | number | boolean>() {
+export function statePrimitive<T extends GameObjectBase, TValue extends string | number | boolean>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
@@ -74,17 +117,21 @@ export function undoState<T extends GameObjectBase, TValue extends string | numb
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateSimpleMetadata] ??= [];
         (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        const name = context.name;
 
         // No need to use the backing fields, read and write directly to state.
         return {
-            get(this) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                return this.state[context.name as string];
+            get(this: T) {
+                return this.state[name];
             },
-            set(this, newValue) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[context.name as string] = newValue;
+            set(this: T, newValue: TValue) {
+                this.state[name] = newValue;
             },
+            init(this: T, value: TValue) {
+                this.state[name] = value;
+                // We don't use the internal field and only use the data within state.
+                return undefined;
+            }
         };
     };
 }
@@ -95,7 +142,7 @@ type ConstantBoolean<T extends boolean> = boolean extends T ? never : T;
 /**
  * @param readonly If false, returns the array wrapped in a Proxy object, which allows the safe use of push, pop, unshift, and splice. If true, returns the array as-is and requires it be marked as readonly.
  */
-export function undoArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
+export function stateRefArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
     return function (
         target: ClassAccessorDecoratorTarget<T, typeof readonly extends true ? readonly TValue[] : TValue[]>,
         context: ClassAccessorDecoratorContext<T, typeof readonly extends true ? readonly TValue[] : TValue[]>
@@ -124,7 +171,7 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
                     target.set.call(this, newValue);
                 },
                 init(this: T, value: TValue[]) {
-                    this.state[name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
+                    this.state[name] = value?.map((x) => x.getRef());
                     return value;
                 }
             };
@@ -132,14 +179,20 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
 
         return {
             get(this: T) {
-                return target.get.call(this);
+                try {
+                    return target.get.call(this);
+                } catch (error) {
+                    // @ts-ignore
+                    console.error('This: ' + this.constructor.name, this.title ?? this.name ?? this.id);
+                    throw error;
+                }
             },
             set(this: T, newValue: TValue[]) {
                 this.state[name] = newValue?.map((x) => x.getRef());
                 target.set.call(this, newValue ? CreateUndoArrayInternal(this, name, newValue) : newValue);
             },
             init(this: T, value: TValue[]) {
-                this.state[name] = (value && value.length > 0) ? value.map((x) => x.getRef()) : [];
+                this.state[name] = value?.map((x) => x.getRef());
                 return value ? CreateUndoArrayInternal(this, name) : value;
             }
         };
@@ -147,7 +200,7 @@ export function undoArray<T extends GameObjectBase, TValue extends GameObjectBas
 }
 
 /** Creates a undo safe Map object that can be mutated in-place. */
-export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>() {
+export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
         context: ClassAccessorDecoratorContext<T, Map<string, TValue>>
@@ -185,8 +238,48 @@ export function undoMap<T extends GameObjectBase, TValue extends GameObjectBase>
     };
 }
 
-/** A simpler alternative to Map. Unless there is a specific reason, prefer undoMap over this. */
-export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
+/** Creates an undo safe Set object that can be mutated in-place. */
+export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectBase>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, Set<TValue>>,
+        context: ClassAccessorDecoratorContext<T, Set<TValue>>
+    ): ClassAccessorDecoratorResult<T, Set<TValue>> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        // Get or create the state related metadata object.
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateSetMetadata] ??= [];
+        (metaState[stateSetMetadata] as string[]).push(context.name);
+        const name = context.name;
+
+        // Use the backing fields as the cache, and write refs to the state.
+        // State stores a Set<string> keyed by UUID so that delete can look up by key.
+        return {
+            get(this) {
+                return target.get.call(this);
+            },
+            set(this: GameObjectBase, newValue) {
+                // The below UndoSet instantiation will also load the state map with all of its values.
+                this.state[name] = newValue ? new Set(Array.from(newValue, (value) => value.getRef().uuid)) : newValue;
+                target.set.call(this, newValue ? new UndoSet(this, name, newValue.values()) : newValue);
+            },
+            init(this: GameObjectBase, value) {
+                Contract.assertTrue(value.size === 0, 'UndoSet cannot be init with entries');
+                this.state[name] = value ? new Set() : value;
+                // If this is not-null, create an equivalent set in the state. Otherwise, leave it as-is.
+                return value ? new UndoSet(this, name) : value;
+            },
+        };
+    };
+}
+
+/** A simpler alternative to Map. Unless there is a specific reason, prefer stateRefMap over this. */
+export function stateRefRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Record<string, TValue>>,
         context: ClassAccessorDecoratorContext<T, Record<string, TValue>>
@@ -221,7 +314,8 @@ export function undoRecord<T extends GameObjectBase, TValue extends GameObjectBa
     };
 }
 
-export function undoObject<T extends GameObjectBase, TValue extends GameObjectBase>() {
+/** Creates a undo safe GameObject reference. */
+export function stateRef<T extends IGameObjectBase, TValue extends IGameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
@@ -250,8 +344,62 @@ export function undoObject<T extends GameObjectBase, TValue extends GameObjectBa
             },
             init(value) {
                 // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[context.name] = value != null ? value.getRef() : value;
+                this.state[context.name] = value?.getRef();
                 return value;
+            }
+        };
+    };
+}
+
+/**
+ * For any {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm structuredClone}-compatible
+ * value that is **not** a primitive and **not** a {@link GameObjectBase}.
+ * The value is stored directly in state without any conversion.
+ *
+ * Use this for complex state values (objects, arrays of plain data, etc.) that don't need
+ * GameObjectBase ref resolution but do need to participate in the undo system.
+ *
+ * Prefer more specific decorators when applicable:
+ * - {@link statePrimitive} for primitives (string, number, boolean)
+ * - {@link stateRef} for single GameObjectBase references
+ * - {@link stateRefArray} for arrays of GameObjectBase references
+ * - {@link stateRefMap} for Map<string, GameObjectBase>
+ * - {@link stateRefSet} for Set<GameObjectBase>
+ * - Map<string, non-GameObjectBase>, including in-place Map mutations
+ *
+ * @example
+ * ⁣@stateValue() accessor decklist: IDeckListForLoading;
+ */
+export function stateValue<T extends GameObjectBase, TValue>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, TValue>,
+        context: ClassAccessorDecoratorContext<T, TValue>
+    ): ClassAccessorDecoratorResult<T, TValue> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        // Get or create the state related metadata object.
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateSimpleMetadata] ??= [];
+        (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        const name = context.name;
+
+        // No need to use the backing fields, read and write directly to state.
+        return {
+            get(this: T) {
+                return this.state[name];
+            },
+            set(this: T, newValue: TValue) {
+                this.state[name] = newValue;
+            },
+            init(this: T, value: TValue) {
+                this.state[name] = value;
+                // We don't use the internal field and only use the data within state.
+                return undefined;
             }
         };
     };
@@ -326,7 +474,6 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
     return proxiedArray as TValue[];
 }
 
-
 /** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
 export function UndoArrayInternal<T extends GameObjectBase, TValue extends GameObjectBase>(arr: UndoArray<TValue>) {
     const proxiedArray = new Proxy(arr, {
@@ -353,8 +500,26 @@ function CreateUndoArrayInternal<T extends GameObjectBase, TValue extends GameOb
     } else {
         undoArr = new UndoArray();
     }
-    undoArr.go = go;
-    undoArr.prop = prop;
+    // Keep internal UndoArray bookkeeping properties off enumerable object shape so test equality checks on
+    // arrays only see card entries, not proxy internals.
+    Object.defineProperty(undoArr, 'go', {
+        value: go,
+        writable: true,
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(undoArr, 'prop', {
+        value: prop,
+        writable: true,
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(undoArr, 'accessing', {
+        value: false,
+        writable: true,
+        enumerable: false,
+        configurable: true
+    });
 
     const proxiedArray = new Proxy(undoArr, {
         set(target, prop, newValue, receiver): boolean {
@@ -408,6 +573,14 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
                     instance[field] = new Map(mappedEntries);
                 }
             }
+            if (metaState[stateSetMetadata]) {
+                const metaSets = metaState[stateSetMetadata] as string[];
+                for (const field of metaSets) {
+                    // State stores a Map<string, GameObjectRef> keyed by UUID
+                    const mappedValues: GameObjectBase[] = Array.from((newState[field] as Set<string>).values(), (uuid) => instance.game.getFromUuidUnsafe(uuid));
+                    instance[field] = new Set(mappedValues);
+                }
+            }
             if (metaState[stateRecordMetadata]) {
                 const metaRecords = metaState[stateRecordMetadata] as string[];
                 for (const field of metaRecords) {
@@ -451,20 +624,62 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
         // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
             // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).set(key, value?.getRef());
+            const stateValue = this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>;
+            stateValue.set(key, value?.getRef());
         }
         return super.set(key, value);
     }
 
     public override delete(key: string): boolean {
         // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).delete(key);
+        const stateValue = this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>;
+        stateValue.delete(key);
         return super.delete(key);
     }
 
     public override clear(): void {
         // @ts-expect-error Overriding state accessibility
-        (this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>).clear(key);
+        const stateValue = this.go.state[this.prop] as Map<string, GameObjectRef<TValue>>;
+        stateValue.clear();
+        super.clear();
+    }
+}
+
+// A custom class to pass through any values to the underlying state Set.
+class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
+    private go: GameObjectBase;
+    private prop: string;
+    private init = false;
+    public constructor(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
+        super(values);
+        Contract.assertNotNullLike(go, 'Game Object cannot be null');
+        this.go = go;
+        this.prop = prop;
+        this.init = true;
+    }
+
+    public override add(value: TValue): this {
+        // Add is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
+        if (this.init) {
+            const ref = value.getRef();
+            // @ts-expect-error Overriding state accessibility
+            const stateValue = this.go.state[this.prop] as Set<string>;
+            stateValue.add(ref.uuid);
+        }
+        return super.add(value);
+    }
+
+    public override delete(value: TValue): boolean {
+        // @ts-expect-error Overriding state accessibility
+        const stateValue = this.go.state[this.prop] as Set<string>;
+        stateValue.delete(value?.getRef().uuid);
+        return super.delete(value);
+    }
+
+    public override clear(): void {
+        // @ts-expect-error Overriding state accessibility
+        const stateValue = this.go.state[this.prop] as Set<string>;
+        stateValue.clear();
         super.clear();
     }
 }
@@ -481,7 +696,7 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     public override push(...items: TValue[]): number {
         this.accessing = true;
         try {
-        // @ts-expect-error Overriding state accessibility
+            // @ts-expect-error Overriding state accessibility
             (this.go.state[this.prop] as GameObjectRef<TValue>[]).push(...items.map((x) => x.getRef()));
             return super.push(...items);
         } finally {

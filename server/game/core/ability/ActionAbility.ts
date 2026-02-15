@@ -7,6 +7,8 @@ import type Game from '../Game.js';
 import type { ITargetResult } from './abilityTargets/TargetResolver.js';
 import * as Contract from '../utils/Contract';
 
+import { registerState } from '../GameObjectUtils';
+
 /**
  * Represents an action ability provided by card text.
  *
@@ -29,6 +31,7 @@ import * as Contract from '../utils/Contract';
  * clickToActivate - boolean that indicates the action should be activated when
  *                   the card is clicked.
  */
+@registerState()
 export class ActionAbility extends CardAbility {
     protected readonly anyPlayer: boolean;
     protected readonly doesNotTarget: boolean;

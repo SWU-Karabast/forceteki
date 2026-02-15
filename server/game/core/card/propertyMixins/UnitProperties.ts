@@ -3,7 +3,7 @@ import type { Arena, MoveZoneDestination } from '../../Constants';
 import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StandardTriggeredAbilityType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import * as Contract from '../../utils/Contract';
-import type { IInPlayCard, IInPlayCardState, InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { InPlayCard } from '../baseClasses/InPlayCard';
 import type { ICardWithDamageProperty } from './Damage';
 import { WithDamage } from './Damage';
@@ -37,7 +37,6 @@ import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
-import type { GameObjectRef } from '../../GameObjectBase';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
@@ -46,28 +45,10 @@ import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/Pri
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
+import { registerState, stateRefArray, stateRef, statePrimitive } from '../../GameObjectUtils';
 import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
-export interface IUnitPropertiesCardState extends IInPlayCardState {
-    defaultArenaInternal: Arena;
-    captureZone: GameObjectRef<CaptureZone> | null;
-    lastPlayerToModifyHp?: GameObjectRef<Player>;
-    upgrades: GameObjectRef<IUpgradeCard>[] | null;
-    expiredLastingEffectChangedRemainingHp: boolean;
-
-    whenCapturedKeywordAbilities?: GameObjectRef<TriggeredAbility>[];
-    whenDefeatedKeywordAbilities?: GameObjectRef<TriggeredAbility>[];
-    whenPlayedKeywordAbilities?: GameObjectRef<TriggeredAbility>[];
-    whileInPlayKeywordAbilities?: GameObjectRef<ConstantAbility>[];
-    attackKeywordAbilities?: GameObjectRef<(TriggeredAbility | ConstantAbility)>[];
-    // protected
-    pilotingActionAbilities: GameObjectRef<ActionAbility>[];
-    // protected
-    pilotingTriggeredAbilities: GameObjectRef<TriggeredAbility>[];
-    // protected
-    pilotingConstantAbilities: GameObjectRef<ConstantAbility>[];
-}
 
 type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
 
@@ -123,11 +104,12 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TState>, TState extends IInPlayCardState>(BaseClass: TBaseClass) {
+export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
     // create a "base" class that has the damage, hp, and power properties from other mixins
     const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
-    return class AsUnit extends (StatsAndDamageClass as typeof StatsAndDamageClass & InPlayCardConstructor<TState & IUnitPropertiesCardState>) implements IUnitCard {
+    @registerState()
+    class AsUnit extends StatsAndDamageClass implements IUnitCard {
         public static registerRulesListeners(game: Game) {
             // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
             game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {
@@ -165,64 +147,64 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         private readonly _defaultArena: Arena;
         private readonly defaultAttackAction: InitiateAttackAction;
 
+        @stateRef()
+        private accessor _lastPlayerToModifyHp: Player | null = null;
+
         public get lastPlayerToModifyHp(): Player {
             Contract.assertTrue(this.isInPlay());
-            return this.game.gameObjectManager.get(this.state.lastPlayerToModifyHp);
+            return this._lastPlayerToModifyHp;
         }
 
-        private set lastPlayerToModifyHp(value: Player) {
-            this.state.lastPlayerToModifyHp = value?.getRef();
-        }
+        @stateRefArray(false)
+        private accessor _attackKeywordAbilities: ((TriggeredAbility | ConstantAbility)[] | null) = null;
 
-        private get attackKeywordAbilities(): (readonly (TriggeredAbility | ConstantAbility)[] | null) {
-            return this.state.attackKeywordAbilities?.map((x) => this.game.getFromRef(x));
-        }
+        @stateRefArray()
+        private accessor _whenCapturedKeywordAbilities: readonly TriggeredAbility[] | null = null;
 
-        private get whenCapturedKeywordAbilities(): (readonly TriggeredAbility[]) | null {
-            return this.state.whenCapturedKeywordAbilities?.map((x) => this.game.getFromRef(x));
-        }
+        @stateRefArray()
+        private accessor _whenDefeatedKeywordAbilities: (readonly TriggeredAbility[]) | null = null;
 
-        private get whenDefeatedKeywordAbilities(): (readonly TriggeredAbility[]) | null {
-            return this.state.whenDefeatedKeywordAbilities?.map((x) => this.game.getFromRef(x));
-        }
+        @stateRefArray(false)
+        private accessor _whenPlayedKeywordAbilities: (TriggeredAbility[]) | null = null;
 
-        private get whenPlayedKeywordAbilities(): (readonly TriggeredAbility[]) | null {
-            return this.state.whenPlayedKeywordAbilities?.map((x) => this.game.getFromRef(x));
-        }
+        @stateRefArray(false)
+        private accessor _whileInPlayKeywordAbilities: (ConstantAbility[]) | null = null;
 
-        private get whileInPlayKeywordAbilities(): (readonly ConstantAbility[]) | null {
-            return this.state.whileInPlayKeywordAbilities?.map((x) => this.game.getFromRef(x));
-        }
+        @stateRefArray(false)
+        protected accessor pilotingActionAbilities: ActionAbility[] = [];
 
-        protected get pilotingActionAbilities(): readonly ActionAbility[] {
-            return this.state.pilotingActionAbilities.map((x) => this.game.getFromRef(x));
-        }
+        @stateRefArray(false)
+        protected accessor pilotingTriggeredAbilities: TriggeredAbility[] = [];
 
-        protected get pilotingTriggeredAbilities(): readonly TriggeredAbility[] {
-            return this.state.pilotingTriggeredAbilities.map((x) => this.game.getFromRef(x));
-        }
-
-        private get pilotingConstantAbilities(): readonly ConstantAbility[] {
-            return this.state.pilotingConstantAbilities.map((x) => this.game.getFromRef(x));
-        }
+        @stateRefArray(false)
+        private accessor _pilotingConstantAbilities: ConstantAbility[] = [];
 
         private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
         private _leadersDeployedThisPhaseWatcher: LeadersDeployedThisPhaseWatcher;
 
         public get capturedUnits() {
-            this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
+            this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
             return this.captureZone.cards;
         }
 
+        @stateRef()
+        private accessor _captureZone: CaptureZone | null = null;
+
         public get captureZone() {
-            this.assertPropertyEnabledForZone(this.state.captureZone, 'captureZone');
-            return this.game.gameObjectManager.get(this.state.captureZone);
+            this.assertPropertyEnabledForZone(this._captureZone, 'captureZone');
+            return this._captureZone;
         }
 
+        @stateRefArray(false)
+        private accessor _upgrades: IUpgradeCard[] = null;
+
+        @statePrimitive()
+        private accessor _expiredLastingEffectChangedRemainingHp: boolean = false;
+
         public get upgrades(): IUpgradeCard[] {
-            this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
-            return this.state.upgrades.map((x) => this.game.gameObjectManager.get(x));
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
+            return this._upgrades;
         }
 
         public get defaultArena(): Arena {
@@ -260,7 +242,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public isUpgraded(): boolean {
-            return this.state.upgrades.length > 0;
+            return this._upgrades.length > 0;
         }
 
         public hasExperience(): boolean {
@@ -288,7 +270,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override isUpgrade(): this is IUpgradeCard {
-            return this.state.parentCard != null;
+            return this._parentCard != null;
         }
 
         // ****************************************** CONSTRUCTOR ******************************************
@@ -311,12 +293,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                Contract.assertNotNullLike(cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
-                Contract.assertNotNullLike(cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
+            // if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            //     Contract.assertNotNullLike(cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
+            //     Contract.assertNotNullLike(cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
 
-                this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
-            }
+            //     this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
+            // }
 
             this._tokensCreatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.tokensCreatedThisPhase();
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
@@ -325,15 +307,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
 
-        protected override setupDefaultState() {
-            super.setupDefaultState();
-            this.state.upgrades = null;
-            this.state.whenCapturedKeywordAbilities = null;
-            this.state.whenDefeatedKeywordAbilities = null;
-            this.state.whenPlayedKeywordAbilities = null;
-            this.state.pilotingActionAbilities = [];
-            this.state.pilotingConstantAbilities = [];
-            this.state.pilotingTriggeredAbilities = [];
+        protected override onInitialize(): void {
+            super.onInitialize();
+
+            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                Contract.assertNotNullLike(this.cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
+                Contract.assertNotNullLike(this.cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
+
+                this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], this.cardData.pilotText);
+            }
         }
 
         protected override initializeStateForAbilitySetup() {
@@ -350,7 +332,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override isUnit(): this is IUnitCard {
-            return this.state.parentCard == null;
+            return this._parentCard == null;
         }
 
         protected override getType(): CardType {
@@ -361,8 +343,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
+            // STATE TODO: Is this a leak? It's a GO but it can be thrown out.
             const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this) : null;
-            this.state.captureZone = zone?.getRef();
+            this._captureZone = zone;
         }
 
         protected override setDamageEnabled(enabledStatus: boolean): void {
@@ -370,7 +353,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         protected setUpgradesEnabled(enabledStatus: boolean) {
-            this.state.upgrades = enabledStatus ? [] : null;
+            this._upgrades = enabledStatus ? [] : null;
         }
 
         // ***************************************** MISC HELPERS *****************************************
@@ -520,16 +503,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             switch (properties.type) {
                 case AbilityType.Action:
-                    this.state.pilotingActionAbilities.push(this.createActionAbility(properties).getRef());
+                    this.pilotingActionAbilities.push(this.createActionAbility(properties));
                     break;
                 case AbilityType.Constant:
-                    this.state.pilotingConstantAbilities.push(this.createConstantAbility(properties).getRef());
+                    this._pilotingConstantAbilities.push(this.createConstantAbility(properties));
                     break;
                 case AbilityType.Triggered:
-                    this.state.pilotingTriggeredAbilities.push(this.createTriggeredAbility(properties).getRef());
+                    this.pilotingTriggeredAbilities.push(this.createTriggeredAbility(properties));
                     break;
                 case AbilityType.ReplacementEffect:
-                    this.state.pilotingTriggeredAbilities.push(this.createReplacementEffectAbility(properties).getRef());
+                    this.pilotingTriggeredAbilities.push(this.createReplacementEffectAbility(properties));
                     break;
                 default:
                     Contract.fail(`Unsupported ability type ${(properties as any).type}`);
@@ -602,17 +585,17 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             // add any temporarily registered attack abilities from keywords
-            if (this.state.attackKeywordAbilities != null) {
-                triggeredAbilities = triggeredAbilities.concat(this.attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
+            if (this._attackKeywordAbilities != null) {
+                triggeredAbilities = triggeredAbilities.concat(this._attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
             }
-            if (this.state.whenCapturedKeywordAbilities != null) {
-                triggeredAbilities = triggeredAbilities.concat(this.whenCapturedKeywordAbilities);
+            if (this._whenCapturedKeywordAbilities != null) {
+                triggeredAbilities = triggeredAbilities.concat(this._whenCapturedKeywordAbilities);
             }
-            if (this.state.whenDefeatedKeywordAbilities != null) {
-                triggeredAbilities = triggeredAbilities.concat(this.whenDefeatedKeywordAbilities);
+            if (this._whenDefeatedKeywordAbilities != null) {
+                triggeredAbilities = triggeredAbilities.concat(this._whenDefeatedKeywordAbilities);
             }
-            if (this.state.whenPlayedKeywordAbilities != null) {
-                triggeredAbilities = triggeredAbilities.concat(this.whenPlayedKeywordAbilities);
+            if (this._whenPlayedKeywordAbilities != null) {
+                triggeredAbilities = triggeredAbilities.concat(this._whenPlayedKeywordAbilities);
             }
 
             return triggeredAbilities as TriggeredAbility[];
@@ -624,22 +607,22 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             if (EnumHelpers.isUnitUpgrade(this.getType())) {
-                return this.pilotingConstantAbilities as ConstantAbility[];
+                return this._pilotingConstantAbilities as ConstantAbility[];
             }
 
-            let constantAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : super.getConstantAbilities();
+            let constantAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this._pilotingConstantAbilities : super.getConstantAbilities();
 
             // add any temporarily registered attack abilities from keywords
-            if (this.state.attackKeywordAbilities != null) {
+            if (this._attackKeywordAbilities != null) {
                 constantAbilities = constantAbilities.concat(
-                    this.attackKeywordAbilities.filter((ability) => !(ability instanceof TriggeredAbility))
+                    this._attackKeywordAbilities.filter((ability) => !(ability instanceof TriggeredAbility))
                         .map((ability) => ability as ConstantAbility)
                 );
             }
 
             // add any registered abilities from keywords effective while in play
-            if (this.state.whileInPlayKeywordAbilities != null) {
-                constantAbilities = constantAbilities.concat(this.whileInPlayKeywordAbilities);
+            if (this._whileInPlayKeywordAbilities != null) {
+                constantAbilities = constantAbilities.concat(this._whileInPlayKeywordAbilities);
             }
 
             return constantAbilities as ConstantAbility[];
@@ -650,7 +633,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         protected override updateConstantAbilityEffects(from: ZoneName, to: ZoneName): void {
-            super.updateConstantAbilityEffectsInternal(this.pilotingConstantAbilities.concat(this.constantAbilities as ConstantAbility[]), from, to, true);
+            super.updateConstantAbilityEffectsInternal(this._pilotingConstantAbilities.concat(this.constantAbilities), from, to, true);
         }
 
         /** Register / un-register the effects for any abilities from keywords */
@@ -674,23 +657,23 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         private unregisterWhileInPlayKeywordAbilityEffects() {
-            Contract.assertTrue(Array.isArray(this.state.whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
+            Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
 
-            for (const keywordAbility of this.whileInPlayKeywordAbilities) {
+            for (const keywordAbility of this._whileInPlayKeywordAbilities) {
                 this.removeEffectFromEngine(keywordAbility.registeredEffects);
                 keywordAbility.registeredEffects = [];
             }
 
-            this.state.whileInPlayKeywordAbilities = null;
+            this._whileInPlayKeywordAbilities = null;
         }
 
         private registerWhileInPlayKeywordAbilityEffects() {
             Contract.assertIsNullLike(
-                this.state.whileInPlayKeywordAbilities,
-                () => `Failed to unregister when played abilities from previous play: ${this.whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+                this._whileInPlayKeywordAbilities,
+                () => `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
             );
 
-            this.state.whileInPlayKeywordAbilities = [];
+            this._whileInPlayKeywordAbilities = [];
 
             for (const keywordInstance of this.getCoordinateAbilities()) {
                 const gainedAbilityProps = keywordInstance.abilityProps;
@@ -704,7 +687,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
                 coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
 
-                this.state.whileInPlayKeywordAbilities.push(coordinateKeywordAbility.getRef());
+                this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
             }
 
             if (this.hasSomeKeyword(KeywordName.Hidden)) {
@@ -719,7 +702,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 const hiddenKeywordAbility = this.createConstantAbility(hiddenKeywordAbilityProps);
                 hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility);
 
-                this.state.whileInPlayKeywordAbilities.push(hiddenKeywordAbility.getRef());
+                this._whileInPlayKeywordAbilities.push(hiddenKeywordAbility);
             }
         }
 
@@ -747,24 +730,24 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             Contract.assertIsNullLike(
-                this.whenPlayedKeywordAbilities,
-                `Failed to unregister when played abilities from previous play: ${this.whenPlayedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
+                this._whenPlayedKeywordAbilities,
+                `Failed to unregister when played abilities from previous play: ${this._whenPlayedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
             );
 
-            this.state.whenPlayedKeywordAbilities = [];
+            this._whenPlayedKeywordAbilities = [];
 
             if (hasAmbush) {
                 const ambushProps = Object.assign(this.buildGeneralAbilityProps('keyword_ambush'), AmbushAbility.buildAmbushAbilityProperties());
                 const ambushAbility = this.createTriggeredAbility(ambushProps);
                 ambushAbility.registerEvents();
-                this.state.whenPlayedKeywordAbilities.push(ambushAbility.getRef());
+                this._whenPlayedKeywordAbilities.push(ambushAbility);
             }
 
             if (hasShielded) {
                 const shieldedProps = Object.assign(this.buildGeneralAbilityProps('keyword_shielded'), ShieldedAbility.buildShieldedAbilityProperties());
                 const shieldedAbility = this.createTriggeredAbility(shieldedProps);
                 shieldedAbility.registerEvents();
-                this.state.whenPlayedKeywordAbilities.push(shieldedAbility.getRef());
+                this._whenPlayedKeywordAbilities.push(shieldedAbility);
             }
 
             event.addCleanupHandler(() => this.unregisterWhenPlayedKeywords());
@@ -787,25 +770,25 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             Contract.assertIsNullLike(
-                this.state.attackKeywordAbilities,
-                () => `Failed to unregister on attack abilities from previous attack: ${this.attackKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
+                this._attackKeywordAbilities,
+                () => `Failed to unregister on attack abilities from previous attack: ${this._attackKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
             );
 
-            this.state.attackKeywordAbilities = [];
+            this._attackKeywordAbilities = [];
 
             if (hasRestore) {
                 const restoreAmount = this.getNumericKeywordTotal(KeywordName.Restore);
                 const restoreProps = Object.assign(this.buildGeneralAbilityProps('keyword_restore'), RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
                 const restoreAbility = this.createTriggeredAbility(restoreProps);
                 restoreAbility.registerEvents();
-                this.state.attackKeywordAbilities.push(restoreAbility.getRef());
+                this._attackKeywordAbilities.push(restoreAbility);
             }
 
             if (hasSaboteur) {
                 const saboteurProps = Object.assign(this.buildGeneralAbilityProps('keyword_saboteur'), SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties());
                 const saboteurAbility = this.createTriggeredAbility(saboteurProps);
                 saboteurAbility.registerEvents();
-                this.state.attackKeywordAbilities.push(saboteurAbility.getRef());
+                this._attackKeywordAbilities.push(saboteurAbility);
             }
 
             event.addCleanupHandler(() => this.unregisterAttackKeywords());
@@ -822,11 +805,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             Contract.assertIsNullLike(
-                this.state.whenDefeatedKeywordAbilities,
-                `Failed to unregister when defeated abilities from previous defeat: ${this.whenDefeatedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
+                this._whenDefeatedKeywordAbilities,
+                `Failed to unregister when defeated abilities from previous defeat: ${this._whenDefeatedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
             );
 
-            this.state.whenDefeatedKeywordAbilities = this.registerBountyKeywords(bountyKeywords).map((x) => x.getRef());
+            this._whenDefeatedKeywordAbilities = this.registerBountyKeywords(bountyKeywords);
 
             event.addCleanupHandler(() => this.unregisterWhenDefeatedKeywords());
         }
@@ -842,11 +825,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             Contract.assertIsNullLike(
-                this.state.whenCapturedKeywordAbilities,
-                () => `Failed to unregister when captured abilities from previous capture: ${this.whenCapturedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
+                this._whenCapturedKeywordAbilities,
+                () => `Failed to unregister when captured abilities from previous capture: ${this._whenCapturedKeywordAbilities?.map((ability) => ability.getTitle()).join(', ')}`
             );
 
-            this.state.whenCapturedKeywordAbilities = this.registerBountyKeywords(bountyKeywords).map((x) => x.getRef());
+            this._whenCapturedKeywordAbilities = this.registerBountyKeywords(bountyKeywords);
 
             event.addCleanupHandler(() => this.unregisterWhenCapturedKeywords());
         }
@@ -879,15 +862,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public unregisterWhenPlayedKeywords() {
-            Contract.assertTrue(Array.isArray(this.state.whenPlayedKeywordAbilities), 'Keyword ability when played registration was skipped');
+            Contract.assertTrue(Array.isArray(this._whenPlayedKeywordAbilities), 'Keyword ability when played registration was skipped');
 
-            for (const ability of this.whenPlayedKeywordAbilities) {
+            for (const ability of this._whenPlayedKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
                     ability.unregisterEvents();
                 }
             }
 
-            this.state.whenPlayedKeywordAbilities = null;
+            this._whenPlayedKeywordAbilities = null;
         }
 
         /**
@@ -895,9 +878,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
          * These should be unregistered after the end of the attack.
          */
         public unregisterAttackKeywords() {
-            Contract.assertTrue(Array.isArray(this.state.attackKeywordAbilities), 'Keyword ability attack registration was skipped');
+            Contract.assertTrue(Array.isArray(this._attackKeywordAbilities), 'Keyword ability attack registration was skipped');
 
-            for (const ability of this.attackKeywordAbilities) {
+            for (const ability of this._attackKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
                     ability.unregisterEvents();
                 } else {
@@ -905,31 +888,31 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 }
             }
 
-            this.state.attackKeywordAbilities = null;
+            this._attackKeywordAbilities = null;
         }
 
         public unregisterWhenDefeatedKeywords() {
-            Contract.assertTrue(Array.isArray(this.state.whenDefeatedKeywordAbilities), 'Keyword ability when defeated registration was skipped');
+            Contract.assertTrue(Array.isArray(this._whenDefeatedKeywordAbilities), 'Keyword ability when defeated registration was skipped');
 
-            for (const ability of this.whenDefeatedKeywordAbilities) {
+            for (const ability of this._whenDefeatedKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
                     ability.unregisterEvents();
                 }
             }
 
-            this.state.whenDefeatedKeywordAbilities = null;
+            this._whenDefeatedKeywordAbilities = null;
         }
 
         public unregisterWhenCapturedKeywords() {
-            Contract.assertTrue(Array.isArray(this.state.whenCapturedKeywordAbilities), 'Keyword ability when captured registration was skipped');
+            Contract.assertTrue(Array.isArray(this._whenCapturedKeywordAbilities), 'Keyword ability when captured registration was skipped');
 
-            for (const ability of this.whenCapturedKeywordAbilities) {
+            for (const ability of this._whenCapturedKeywordAbilities) {
                 if (ability instanceof TriggeredAbility) {
                     ability.unregisterEvents();
                 }
             }
 
-            this.state.whenCapturedKeywordAbilities = null;
+            this._whenCapturedKeywordAbilities = null;
         }
 
         // ***************************************** STAT HELPERS *****************************************
@@ -937,7 +920,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             const damageAdded = super.addDamage(amount, source);
 
             if (damageAdded > 0) {
-                this.state.expiredLastingEffectChangedRemainingHp = false;
+                this._expiredLastingEffectChangedRemainingHp = false;
             }
 
             this.checkDefeated(source);
@@ -960,11 +943,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 return;
             }
 
-            if (this.damage >= this.getHp() && !this.state.pendingDefeat) {
+            if (this.damage >= this.getHp() && !this.pendingDefeat) {
                 const defeatEvent = new FrameworkDefeatCardSystem({
                     target: this,
                     defeatSource: source,
-                    defeatedByExpiringLastingEffect: this.state.expiredLastingEffectChangedRemainingHp,
+                    defeatedByExpiringLastingEffect: this._expiredLastingEffectChangedRemainingHp,
                 }).generateEvent(
                     this.game.getFrameworkContext(typeof source === 'object' ? source.player : null)
                 );
@@ -982,11 +965,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 }, `Log defeat message for ${this.internalName}`);
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
-                this.state.pendingDefeat = true;
+                this._pendingDefeat = true;
             }
 
             // Reset the flag becuase at this point we already know if the unit was defeated or not
-            this.state.expiredLastingEffectChangedRemainingHp = false;
+            this._expiredLastingEffectChangedRemainingHp = false;
         }
 
         private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers: string[] = []) {
@@ -1029,7 +1012,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
             return wrappedStatsModifiers;
         }
-
 
         public override checkIsAttachable(): void {
             throw new Error('Should not call this - call overriding methods');
@@ -1088,10 +1070,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
          * @param upgrade
          */
         public unattachUpgrade(upgrade: IUpgradeCard, event = null) {
-            this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
-            this.state.upgrades = this.state.upgrades.filter((card) => card.uuid !== upgrade.uuid);
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
+            this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
             if (upgrade.getPrintedHp() !== 0) {
-                this.lastPlayerToModifyHp = event?.context?.ability ? event.context.ability.controller : upgrade.owner;
+                this._lastPlayerToModifyHp = event?.context?.ability ? event.context.ability.controller : upgrade.owner;
             }
         }
 
@@ -1099,14 +1081,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
          * Add the passed card to this card's upgrade list. Upgrade must already be moved to the correct arena.
          */
         public attachUpgrade(upgrade: IUpgradeCard) {
-            this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             Contract.assertEqual(upgrade.zoneName, this.zoneName);
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
-            this.state.upgrades.push(upgrade.getRef());
+            this._upgrades.push(upgrade);
 
             if (upgrade.getPrintedHp() !== 0) {
-                this.lastPlayerToModifyHp = upgrade.controller;
+                this._lastPlayerToModifyHp = upgrade.controller;
             }
         }
 
@@ -1168,8 +1150,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public override addOngoingEffect(ongoingEffect: OngoingCardEffect): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
-                this.lastPlayerToModifyHp = ongoingEffect.context.source.controller;
-                this.state.expiredLastingEffectChangedRemainingHp = false;
+                this._lastPlayerToModifyHp = ongoingEffect.context.source.controller;
+                this._expiredLastingEffectChangedRemainingHp = false;
             }
             super.addOngoingEffect(ongoingEffect);
         }
@@ -1177,27 +1159,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public override removeOngoingEffect(ongoingEffect: OngoingCardEffect): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
                 if (this.game.currentAbilityResolver?.context?.player) {
-                    this.lastPlayerToModifyHp = this.game.currentAbilityResolver.context.player;
+                    this._lastPlayerToModifyHp = this.game.currentAbilityResolver.context.player;
                 }
 
-                this.state.expiredLastingEffectChangedRemainingHp = ongoingEffect.context.ongoingEffect?.isLastingEffect ?? false;
+                this._expiredLastingEffectChangedRemainingHp = ongoingEffect.context.ongoingEffect?.isLastingEffect ?? false;
             }
             super.removeOngoingEffect(ongoingEffect);
         }
+    }
 
-        // STATE TODO: We need to really dig into what is being updated by resolveAbilitiesForNewZone. We desperately want to remove this onAfter method.
-        //              Good rollback code shouldn't need to use this method. Instead all game actions should result in Game State changes, so that when we rollback we never
-        //              need to redo the action that causes this; it should all be captured within State.
-        public override afterSetAllState(oldState) {
-            super.afterSetAllState(oldState);
-
-            // STATE TODO: I don't wholly trust this covers all cases, but it's a good start at least.
-            // if (oldState.zone?.uuid !== this.state.zone.uuid) {
-            //     const oldZone = this.game.gameObjectManager.get<Zone>(oldState.zone);
-            //     this.movedFromZone = oldZone?.name;
-            //     // This is a bad work around, if it does change zones, it always resets limits on abilities. We want to reset to the exact state, not call functions to mutate state.
-            //     this.resolveAbilitiesForNewZone();
-            // }
-        }
-    };
+    return AsUnit;
 }
+
