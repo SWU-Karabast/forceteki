@@ -126,6 +126,16 @@ export const isUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.U
     }
 };
 
+export const isNonTokenUnit = (cardType: CardTypeFilter): cardType is CardType.BasicUnit | CardType.LeaderUnit => {
+    switch (cardType) {
+        case CardType.BasicUnit:
+        case CardType.LeaderUnit:
+            return true;
+        default:
+            return false;
+    }
+};
+
 export const isNonLeaderUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.NonLeaderUnit | CardType.BasicUnit | CardType.TokenUnit => {
     switch (cardType) {
         case WildcardCardType.NonLeaderUnit:
