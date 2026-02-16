@@ -1,6 +1,6 @@
 describe('Hound\'s Tooth, Hunter\'s Approach', function () {
     integration(function (contextRef) {
-        describe('Hound\'s Tooth\'s ability', function () {
+        describe('Hound\'s Tooth\'s when attacks ends ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -16,7 +16,7 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
                 });
             });
 
-            it('should defeat a friendly Credit and deal 1 damage to Arvel when played', function () {
+            it('should defeat a unit with less power than him (target base)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.houndsTooth);
                 context.player1.clickCard(context.p2Base);
@@ -28,7 +28,7 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
                 expect(context.awing).toBeInZone('discard', context.player2);
             });
 
-            it('should defeat a friendly Credit and deal 1 damage to Arvel when played', function () {
+            it('should defeat a unit with less power than him (target unit)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.houndsTooth);
                 context.player1.clickCard(context.awing);
@@ -40,7 +40,7 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
                 expect(context.greenSquadronAwing).toBeInZone('discard', context.player1);
             });
 
-            it('should defeat a friendly Credit and deal 1 damage to Arvel when played', function () {
+            it('should not defeat a unit if he is killed while attacking', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.houndsTooth);
@@ -50,7 +50,7 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
                 expect(context.houndsTooth).toBeInZone('discard', context.player1);
             });
 
-            it('should defeat a friendly Credit and deal 1 damage to Arvel when played', function () {
+            it('should not defeat a unit if he is killed while attacking (even if he killed someone)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.houndsTooth);
                 context.player1.clickCard(context.chimaera);
@@ -61,7 +61,7 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
             });
         });
 
-        describe('Hound\'s Tooth\'s ability', function () {
+        describe('Hound\'s Tooth\'s ability (simultaneous triggers)', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -76,7 +76,7 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
                 });
             });
 
-            it('should defeat a friendly Credit and deal 1 damage to Arvel when played', function () {
+            it('should defeat a unit if he survives (trigger first)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.houndsTooth);
                 context.player1.clickCard(context.raddus);
@@ -92,7 +92,7 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
                 expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
             });
 
-            it('should defeat a friendly Credit and deal 1 damage to Arvel when played', function () {
+            it('should not defeat a unit if he is killed by another When Defeated ability (trigger second)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.houndsTooth);
                 context.player1.clickCard(context.raddus);
@@ -107,7 +107,7 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
             });
         });
 
-        it('', async function() {
+        it('Hound\'s Tooth\'s ability should not trigger if he is defeated while attacking and replayed instantly', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 attackRulesVersion: 'cr7',
@@ -135,6 +135,56 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
             expect(context.houndsTooth).toBeInZone('spaceArena', context.player2);
+        });
+
+        it('Hound\'s Tooth\'s should defeat a unit with less power than him (power modified by upgrades)', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    spaceArena: [{ card: 'hounds-tooth#hunters-approach', upgrades: ['twice-the-pride', 'twice-the-pride'] }]
+                },
+                player2: {
+                    spaceArena: ['avenger#hunting-star-destroyer', 'awing'],
+                }
+            });
+            const { context } = contextRef;
+            context.player1.clickCard(context.houndsTooth);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.awing, context.avenger]);
+            context.player1.clickCard(context.avenger);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.avenger).toBeInZone('discard', context.player2);
+        });
+
+        it('Hound\'s Tooth\'s should defeat a unit with less power than him (power modified by ability only for this attack)', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    spaceArena: [{ card: 'hounds-tooth#hunters-approach' }],
+                    leader: 'anakin-skywalker#what-it-takes-to-win',
+                    resources: 1
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    spaceArena: ['the-ghost#spectre-home-base', 'awing'],
+                }
+            });
+            const { context } = contextRef;
+            context.player1.clickCard(context.anakinSkywalker);
+            context.player1.clickCard(context.houndsTooth);
+            context.player1.clickCard(context.awing);
+
+            expect(context.houndsTooth.getPower()).toBe(4);
+            // the ghost (5 power) not selectable
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
         });
     });
 });
