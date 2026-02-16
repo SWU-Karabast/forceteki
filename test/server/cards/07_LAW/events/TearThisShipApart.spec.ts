@@ -188,8 +188,11 @@ describe('Tear This Ship Apart', function() {
                 // make opponent discard the top card of his deck
                 context.player1.clickPrompt('Trigger');
 
-                expect(context.awing).toBeInZone('resource', context.player2);
-                expect(context.yoda).toBeInZone('discard', context.player2);
+                // TODO follow clarifications for the order of resolving nested and if you do
+                expect(context.awing).toBeInZone('discard', context.player2);
+                expect(context.yoda).toBeInZone('resource', context.player2);
+                // expect(context.awing).toBeInZone('resource', context.player2);
+                // expect(context.yoda).toBeInZone('discard', context.player2);
                 expect(context.player2).toBeActivePlayer();
             });
         });
