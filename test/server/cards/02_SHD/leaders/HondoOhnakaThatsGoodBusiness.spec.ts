@@ -123,5 +123,41 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
                 expect(context.pirateBattleTank).toHaveExactUpgradeNames(['experience']);
             });
         });
+
+        it('should give the Hondo Experience after ambush from timely resolves', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['corvus#inferno-squadron-raider', 'cartel-spacer'],
+                    hand: ['clone-pilot'],
+                    leader: 'hondo-ohnaka#thats-good-business',
+                    resources: ['timely-intervention', 'daring-raid', 'wampa', 'wampa', 'wampa']
+
+                },
+                player2: {
+                    spaceArena: [{ card: 'awing', upgrades: ['legal-authority'] }, 'survivors-gauntlet'],
+                    groundArena: ['battlefield-marine'],
+                    hand: ['traitorous']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.timelyIntervention);
+            context.player1.clickCard(context.clonePilot);
+
+            // Ambush resolves first as a nested trigger
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.battlefieldMarine);
+
+            // After Ambush completes, Hondo's Smuggle trigger fires
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.corvus);
+
+            expect(context.corvus).toHaveExactUpgradeNames(['experience']);
+            expect(context.battlefieldMarine.damage).toBe(2);
+            expect(context.clonePilot).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

@@ -1050,6 +1050,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
                     return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
                 } else if (this.hasSomeTrait(Trait.Pilot)) {
+                    // Units with the Piloting keyword have an implicit "attach to a friendly vehicle" restriction
+                    if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                        return targetCard.canAttachPilot(this) && targetCard.controller === this.controller;
+                    }
                     return targetCard.canAttachPilot(this);
                 }
             }

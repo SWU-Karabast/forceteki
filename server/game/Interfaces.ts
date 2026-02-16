@@ -103,7 +103,7 @@ export interface IOngoingPlayerEffectProps extends IOngoingEffectProps<Player> {
 }
 
 export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
-    targetController?: RelativePlayer;
+    targetController?: RelativePlayerFilter;
 }
 
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
