@@ -26,6 +26,7 @@ export default class ChewbaccaHeroOfKessel extends LeaderUnitCard {
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Deal 2 damage to a unit and create a Credit token',
+            // need to disable cost reordering because we do not want to lose 1 ready resource
             disableCostReordering: true,
             cost: [
                 abilityHelper.costs.abilityActivationResourceCost(1),
