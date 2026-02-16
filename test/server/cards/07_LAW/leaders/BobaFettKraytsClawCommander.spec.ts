@@ -7,12 +7,18 @@ describe('Boba Fett, Krayt\'s Claw Commander', function() {
                     attackRulesVersion: 'cr7',
                     player1: {
                         leader: 'boba-fett#krayts-claw-commander',
-                        groundArena: ['hunter-for-hire', 'wampa']
+                        hand: ['change-of-heart'],
+                        groundArena: ['hunter-for-hire', 'wampa', 'clone-trooper']
                     },
                     player2: {
+                        hand: ['change-of-heart'],
                         groundArena: ['4lom#devious', 'atst', 'escort-skiff', 'battlefield-marine'],
                     }
                 });
+
+                const { context } = contextRef;
+                context.p1ChangeOfHeart = context.player1.findCardByName('change-of-heart');
+                context.p2ChangeOfHeart = context.player2.findCardByName('change-of-heart');
             });
 
             const promptText = 'You may exhaust Boba Fett. If you do, create a Credit token.';
@@ -92,6 +98,43 @@ describe('Boba Fett, Krayt\'s Claw Commander', function() {
                 expect(context.bobaFett.exhausted).toBeFalse();
                 expect(context.player1).toBeActivePlayer();
             });
+
+            it('will trigger for a stolen Bounty Hunter that is now friendly', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.p1ChangeOfHeart);
+                context.player1.clickCard(context._4lom);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context._4lom);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toHavePassAbilityPrompt(promptText);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1.credits).toBe(1);
+                expect(context.bobaFett.exhausted).toBeTrue();
+            });
+
+            it('will not trigger for a stolen Bounty Hunter that is now an enemy', function() {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.p2ChangeOfHeart);
+                context.player2.clickCard(context.hunterForHire);
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.hunterForHire);
+                context.player2.clickCard(context.cloneTrooper);
+
+                expect(context.player1).not.toHavePassAbilityPrompt(promptText);
+                expect(context.player1.credits).toBe(0);
+                expect(context.bobaFett.exhausted).toBeFalse();
+                expect(context.player1).toBeActivePlayer();
+            });
         });
 
         describe('Boba Fett\'s leader deployed ability', function() {
@@ -101,12 +144,18 @@ describe('Boba Fett, Krayt\'s Claw Commander', function() {
                     attackRulesVersion: 'cr7',
                     player1: {
                         leader: { card: 'boba-fett#krayts-claw-commander', deployed: true },
-                        groundArena: ['hunter-for-hire', 'wampa']
+                        hand: ['change-of-heart'],
+                        groundArena: ['hunter-for-hire', 'wampa', 'clone-trooper']
                     },
                     player2: {
+                        hand: ['change-of-heart'],
                         groundArena: ['4lom#devious', 'atst', 'escort-skiff', 'battlefield-marine', 'trandoshan-hunters'],
                     }
                 });
+
+                const { context } = contextRef;
+                context.p1ChangeOfHeart = context.player1.findCardByName('change-of-heart');
+                context.p2ChangeOfHeart = context.player2.findCardByName('change-of-heart');
             });
 
             it('can create a credit token when a friendly Bounter Hunter unit defeats a unit on attack', function() {
@@ -171,13 +220,34 @@ describe('Boba Fett, Krayt\'s Claw Commander', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('works when Boba himself defeats a unit', function() {
+            it('will trigger for a stolen Bounty Hunter that is now friendly', function() {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.p1ChangeOfHeart);
+                context.player1.clickCard(context._4lom);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context._4lom);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.player1.credits).toBe(1);
+            });
+
+            it('will not trigger for a stolen Bounty Hunter that is now an enemy', function() {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.p2ChangeOfHeart);
+                context.player2.clickCard(context.hunterForHire);
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.hunterForHire);
+                context.player2.clickCard(context.cloneTrooper);
+
+                expect(context.player1.credits).toBe(0);
             });
 
             it('works when Boba himself defeats a unit', function() {
@@ -196,6 +266,20 @@ describe('Boba Fett, Krayt\'s Claw Commander', function() {
                 context.player1.clickCard(context.trandoshanHunters);
 
                 expect(context.player1.credits).toBe(1);
+            });
+
+            it('works for multiple attacks in the same phase', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hunterForHire);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.credits).toBe(1);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.trandoshanHunters);
+                expect(context.player1.credits).toBe(2);
             });
         });
     });
