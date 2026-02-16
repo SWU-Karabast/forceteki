@@ -144,6 +144,9 @@ export default class TriggeredAbility extends CardAbility {
                     case StandardTriggeredAbilityType.OnAttack:
                         updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.attacker === context.source;
                         break;
+                    case StandardTriggeredAbilityType.OnDefense:
+                        updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.getAllTargets().includes(context.source);
+                        break;
                     case StandardTriggeredAbilityType.WhenPlayed:
                         updatedWhen[EventName.OnCardPlayed] = (event, context) => event.card === context.source;
                         break;

@@ -36,6 +36,7 @@ import { ModerationType } from '../services/DynamoDBInterfaces';
 import type { MessageText } from '../game/Interfaces';
 import { ReportType } from '../game/Interfaces';
 import { PlayerReportType } from '../game/Interfaces';
+import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -461,6 +462,15 @@ export class Lobby {
             socket.disconnect();
             return;
         }
+
+        // Remove any existing lobby listeners if spectator already existed and reconnected
+        if (socket.eventContainsListener('lobby')) {
+            socket.removeEventsListeners(['lobby']);
+        }
+
+        // Limited lobby message handling for spectators
+        socket.registerEvent('lobby', (socket, command, ...args) => this.onSpectatorLobbyMessage(socket, command, ...args));
+
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
@@ -1205,6 +1215,7 @@ export class Lobby {
             this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
+
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
             game.started = true;
@@ -1333,6 +1344,7 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
+            attackRulesVersion: this.format === SwuGameFormat.Premier ? AttackRulesVersion.CR6 : AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
@@ -1358,6 +1370,20 @@ export class Lobby {
         this.server.handleIntentionalDisconnect(userId, false, this);
 
         logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
+    }
+
+    private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
+
+    private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
+        try {
+            if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
+                return;
+            }
+
+            await this[command](socket, ...args);
+        } catch (error) {
+            logger.error('Lobby: error processing spectator lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
@@ -2077,11 +2103,39 @@ export class Lobby {
                 user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
-        for (const user of this.spectators) {
-            if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+        for (const spectator of this.spectators) {
+            if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
+                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
             }
         }
+    }
+
+    /**
+     * Handle client request for message retransmit when gaps are detected.
+     * Client calls this with (startIndex, endIndex) to get messages in that range.
+     */
+    private retransmitGameMessages(socket: Socket, startIndex: number, endIndex: number): void {
+        if (!this.game) {
+            return;
+        }
+
+        const allMessages = this.game.messages;
+        const totalCount = allMessages.length;
+
+        // Clamp indices to valid range
+        const safeStart = Math.max(0, Math.min(startIndex, totalCount));
+        const safeEnd = Math.max(safeStart, Math.min(endIndex, totalCount));
+
+        const requestedMessages = allMessages.slice(safeStart, safeEnd);
+
+        const userId = socket.user.getId();
+        logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: this.game.getChatMessageOffset(userId) });
+
+        socket.send('retransmitResponse', {
+            messages: requestedMessages,
+            startIndex: safeStart,
+            totalCount: totalCount
+        });
     }
 
     private safeSetUserConnected(userId: string): void {

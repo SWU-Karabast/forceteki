@@ -11,11 +11,8 @@ export default class ChirrutImweBlindButNotDeaf extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnDefenseAbility({
             title: 'Use the Force to give -2/-0 to the attacker for this attack',
-            when: {
-                onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
-            },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: (ifYouDoContext) => ({

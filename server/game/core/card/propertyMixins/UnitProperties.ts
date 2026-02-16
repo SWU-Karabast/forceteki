@@ -54,6 +54,7 @@ type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extend
 
 export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardAbilityRegistrar<T> {
     addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
+    addOnDefenseAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
     addOnAttackCompletedAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
     addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<T>, 'canBeTriggeredBy'>): void;
     addCoordinateAbility(properties: IAbilityPropsWithType<T>): void;
@@ -409,6 +410,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return {
                 ...registrar,
                 addOnAttackAbility: (properties) => this.addOnAttackAbility(properties, registrar),
+                addOnDefenseAbility: (properties) => this.addOnDefenseAbility(properties, registrar),
                 addOnAttackCompletedAbility: (properties) => this.addOnAttackCompletedAbility(properties, registrar),
                 addBountyAbility: (properties) => this.addBountyAbility(properties),
                 addCoordinateAbility: (properties) => this.addCoordinateAbility(properties),
@@ -438,6 +440,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
             const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.OnAttack]: true };
+            registar.addTriggeredAbility({ ...properties, when });
+        }
+
+        private addOnDefenseAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
+            const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.OnDefense]: true };
             registar.addTriggeredAbility({ ...properties, when });
         }
 
