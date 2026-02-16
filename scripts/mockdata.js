@@ -577,6 +577,7 @@ const mockCards = [
         cost: 8,
         hasNonKeywordAbility: true,
         aspects: ['Aggression', 'Cunning'],
+        keywords: ['ambush', 'overwhelm'],
         types: ['unit'],
         traits: ['underworld', 'wookiee', 'bounty hunter'],
         setId: {
