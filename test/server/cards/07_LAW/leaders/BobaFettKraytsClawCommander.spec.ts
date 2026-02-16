@@ -21,7 +21,7 @@ describe('Boba Fett, Krayt\'s Claw Commander', function() {
                 context.p2ChangeOfHeart = context.player2.findCardByName('change-of-heart');
             });
 
-            const promptText = 'You may exhaust Boba Fett. If you do, create a Credit token.';
+            const promptText = 'Exhaust Boba Fett to create a Credit token';
 
             it('can create a credit token when a friendly Bounter Hunter unit defeats a unit on attack', function() {
                 const { context } = contextRef;

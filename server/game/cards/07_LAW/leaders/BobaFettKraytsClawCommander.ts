@@ -22,7 +22,7 @@ export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'You may exhaust Boba Fett. If you do, create a Credit token.',
+            title: 'Exhaust Boba Fett to create a Credit token',
             when: {
                 onAttackCompleted: (event, context) =>
                     event.attack.attacker.controller === context.player &&
