@@ -50,12 +50,8 @@ export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.unitsDefeatedThisPhaseWatcher),
-                onTrue: AbilityHelper.immediateEffects.exhaust(),
-            }),
-            ifYouDo: {
-                title: 'Create a Credit token',
-                immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
-            }
+                onTrue: AbilityHelper.immediateEffects.createCreditToken()
+            })
         });
     }
 }
