@@ -21,13 +21,13 @@ export default class ChokeOnAspirations extends EventCard {
                 controller: RelativePlayer.Self,
                 canChooseNoTargets: true,
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle),
+                cardCondition: (card) => !card.hasSomeTrait(Trait.Vehicle),
                 maxTargets: 1,
             }),
-            then: (thenContext) => ({
+            ifYouDo: (ifYouDoContext) => ({
                 title: 'If it survives, heal damage from your base equal to the damage dealt this way',
-                thenCondition: () => thenContext.events[0].totalDistributed > 0 && !thenContext.events[1].willDefeat,
-                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: thenContext.events[0].totalDistributed, target: thenContext.player.base })
+                ifYouDoCondition: () => ifYouDoContext.events[0].totalDistributed > 0 && !ifYouDoContext.events[1].willDefeat,
+                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: ifYouDoContext.events[0].totalDistributed, target: ifYouDoContext.player.base })
             })
         });
     }
