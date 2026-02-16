@@ -42,7 +42,7 @@ export class AttackFlow extends BaseStepWithPipeline {
                 break;
             case AttackRulesVersion.CR7:
                 attackResolutionSteps = [
-                    new SimpleStep(this.game, () => this.dealDamageAndCompleteAttack(), 'dealDamageAndCompleteAttack'),
+                    new SimpleStep(this.game, () => this.openDealDamageWindow(true), 'dealDamageAndCompleteAttack'),
                 ];
                 break;
             default:
@@ -70,17 +70,29 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
     }
 
-    private openDealDamageWindow(): void {
+    private openDealDamageWindow(includeAttackCompleteEvent = false): void {
+        let attackCompleteEvent: GameEvent = null;
+        if (includeAttackCompleteEvent) {
+            attackCompleteEvent = new GameEvent(
+                EventName.OnAttackCompleted,
+                this.context,
+                { attack: this.attack }
+            );
+
+            // ensure that this resolves after the damage events
+            attackCompleteEvent.order = 1;
+        }
+
         this.context.game.createEventAndOpenWindow(
             EventName.OnAttackDamageResolved,
             this.context,
             { attack: this.attack },
             TriggerHandlingMode.ResolvesTriggers,
-            () => this.dealDamage()
+            () => this.dealDamage(attackCompleteEvent)
         );
     }
 
-    private dealDamage(): void {
+    private dealDamage(additionalEvent?: GameEvent): void {
         if (!this.attack.isAttackerLegal()) {
             this.context.game.addMessage('The attack does not resolve because the attacker is no longer valid');
             return;
@@ -107,7 +119,7 @@ export class AttackFlow extends BaseStepWithPipeline {
             }
         }
 
-        const damageEvents = [];
+        const damageEvents: GameEvent[] = [];
 
         // TSTODO: This will need to be updated to account for attacking units owned by different opponents
         const targetControllerBase = this.attack.getDefendingPlayer().base;
@@ -137,22 +149,22 @@ export class AttackFlow extends BaseStepWithPipeline {
                 this.context.game.openEventWindow(damageEvents);
                 this.context.game.queueSimpleStep(() => {
                     if (inPlayTargets.some((target) => !target.isBase() && target.isInPlay())) {
-                        const defenderDamageEvent = this.createDefenderDamageEvent();
-                        if (defenderDamageEvent !== null) {
-                            this.context.game.openEventWindow(defenderDamageEvent);
+                        const defenderDamageEvents = this.createDefenderDamageEvents(false, additionalEvent);
+                        if (defenderDamageEvents.length > 0) {
+                            this.context.game.openEventWindow(defenderDamageEvents);
                         }
                     }
                 }, 'defender damage after attacker');
             } else if (anyDefenderDealsDamageFirst) {
                 // Some/all defenders deal damage first
-                const earlyDefenderDamageEvent = this.createDefenderDamageEvent(true);
-                if (earlyDefenderDamageEvent !== null) {
-                    damageEvents.push(earlyDefenderDamageEvent);
+                const earlyDefenderDamageEvents = this.createDefenderDamageEvents(true);
+                if (earlyDefenderDamageEvents.length > 0) {
+                    damageEvents.push(...earlyDefenderDamageEvents);
                 }
 
                 this.context.game.openEventWindow(damageEvents);
                 this.context.game.queueSimpleStep(() => {
-                    const normalDamageEvents = [];
+                    const normalDamageEvents = additionalEvent ? [additionalEvent] : [];
 
                     // Attacker damages all targets if still alive
                     if (this.attack.isAttackerLegal()) {
@@ -165,9 +177,9 @@ export class AttackFlow extends BaseStepWithPipeline {
 
                     // Normal defenders deal damage if any are still alive
                     if (inPlayTargets.some((target) => !target.isBase() && target.isInPlay() && !this.attack.targetDealsCombatDamageFirst(target))) {
-                        const normalDefenderDamageEvent = this.createDefenderDamageEvent();
-                        if (normalDefenderDamageEvent !== null) {
-                            normalDamageEvents.push(normalDefenderDamageEvent);
+                        const normalDefenderDamageEvents = this.createDefenderDamageEvents();
+                        if (normalDefenderDamageEvents !== null) {
+                            normalDamageEvents.push(...normalDefenderDamageEvents);
                         }
                     }
 
@@ -182,15 +194,23 @@ export class AttackFlow extends BaseStepWithPipeline {
                     .filter((event) => event !== null);
                 damageEvents.push(...attackerDamageEvents);
 
+                if (additionalEvent) {
+                    damageEvents.push(additionalEvent);
+                }
+
                 if (inPlayTargets.some((target) => !target.isBase())) {
-                    const defenderDamageEvent = this.createDefenderDamageEvent();
-                    if (defenderDamageEvent !== null) {
-                        damageEvents.push(defenderDamageEvent);
+                    const defenderDamageEvents = this.createDefenderDamageEvents();
+                    if (defenderDamageEvents.length > 0) {
+                        damageEvents.push(...defenderDamageEvents);
                     }
                 }
                 this.context.game.openEventWindow(damageEvents);
             }
         } else if (directOverwhelmDamage > 0) {
+            if (additionalEvent) {
+                damageEvents.push(additionalEvent);
+            }
+
             this.context.game.openEventWindow(damageEvents);
         }
     }
@@ -235,42 +255,27 @@ export class AttackFlow extends BaseStepWithPipeline {
      * Create a damage event for defenders dealing damage to the attacker.
      * @param earlyCombatDamageOnly - `true`: only include damage for defenders that deal damage first, `false`: only include damage for defenders that don't deal damage first
      */
-    private createDefenderDamageEvent(earlyCombatDamageOnly: boolean = false): GameEvent | null {
+    private createDefenderDamageEvents(earlyCombatDamageOnly: boolean = false, additionalEvent?: GameEvent): GameEvent[] {
         const combatDamage = this.attack.getTargetCombatDamage(this.context, earlyCombatDamageOnly);
 
-        if (combatDamage === null || combatDamage === 0) {
-            return null;
+        const damageEvents = additionalEvent ? [additionalEvent] : [];
+
+        if (combatDamage != null && combatDamage !== 0) {
+            damageEvents.push(new DamageSystem({
+                type: DamageType.Combat,
+                amount: combatDamage,
+                sourceAttack: this.attack,
+                target: this.attack.attacker
+            }).generateEvent(this.context));
         }
 
-        return new DamageSystem({
-            type: DamageType.Combat,
-            amount: combatDamage,
-            sourceAttack: this.attack,
-            target: this.attack.attacker
-        }).generateEvent(this.context);
+        return damageEvents;
     }
 
     private completeAttack() {
         this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, this.context, {
             attack: this.attack,
         }, TriggerHandlingMode.ResolvesTriggers);
-    }
-
-    private dealDamageAndCompleteAttack() {
-        const resolveDamageEvent = new GameEvent(
-            EventName.OnAttackDamageResolved,
-            this.context,
-            { attack: this.attack },
-            () => this.dealDamage()
-        );
-
-        const completeAttackEvent = new GameEvent(
-            EventName.OnAttackCompleted,
-            this.context,
-            { attack: this.attack }
-        );
-
-        this.context.game.openEventWindow([resolveDamageEvent, completeAttackEvent], TriggerHandlingMode.ResolvesTriggers);
     }
 
     private cleanUpAttack() {
