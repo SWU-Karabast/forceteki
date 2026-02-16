@@ -3,6 +3,7 @@ describe('Anakin Skywalker, Prescient Podracer', function() {
         describe('Anakin Skywalker\'s triggered ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
+                    attackRulesVersion: 'cr7',
                     phase: 'action',
                     player1: {
                         base: { card: 'chopper-base', damage: 5 },

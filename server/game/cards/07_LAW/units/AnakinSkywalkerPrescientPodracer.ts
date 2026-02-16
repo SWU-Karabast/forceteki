@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
@@ -28,13 +29,16 @@ export default class AnakinSkywalkerPrescientPodracer extends NonLeaderUnitCard 
             optional: true,
             when: {
                 onAttackCompleted: (event, context) =>
-                    this.friendlyUnitSurvivedAttack(event) &&
-                    this.noOtherUnitsHaveAttackedThisPhase(event) &&
-                    event.attack.attacker.controller === context.source.controller
+                    event.attack.attacker.controller === context.player
             },
-            immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => ({
-                target: context.event.attack.attacker
-            })),
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) =>
+                    AttackHelpers.attackerSurvived(context.event.attack, this.unitsDefeatedThisPhaseWatcher) &&
+                    this.noOtherUnitsHaveAttackedThisPhase(context.event),
+                onTrue: AbilityHelper.immediateEffects.returnToHand((context) => ({
+                    target: context.event.attack.attacker
+                })),
+            }),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Heal 2 damage from your base',
                 immediateEffect: AbilityHelper.immediateEffects.heal({
@@ -50,10 +54,6 @@ export default class AnakinSkywalkerPrescientPodracer extends NonLeaderUnitCard 
             attackEvent.attacker !== event.attack.attacker ||
             attackEvent.attackerInPlayId !== event.attack.attackerInPlayId
         ).length === 0;
-    }
-
-    private friendlyUnitSurvivedAttack(event): boolean {
-        return !this.unitsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(event.attack.attacker, event.attack.attackerInPlayId);
     }
 
     private buildContextTitle(context): string {
