@@ -496,6 +496,24 @@ const mockCards = [
         unique: false,
         internalName: 'tear-this-ship-apart',
     }),
+    buildMockCard({
+        title: 'Hound\'s Tooth',
+        subtitle: 'Hunter\'s Approach',
+        power: 4,
+        hp: 8,
+        cost: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Command', 'Villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'LAW',
+            number: 33,
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'hounds-tooth#hunters-approach',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
