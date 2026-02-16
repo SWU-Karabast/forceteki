@@ -542,7 +542,7 @@ const mockCards = [
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'heroism'],
         types: ['leader'],
-        traits: ['underworld', 'wookie'],
+        traits: ['underworld', 'wookiee'],
         setId: {
             set: 'LAW',
             number: 13,
@@ -578,7 +578,7 @@ const mockCards = [
         hasNonKeywordAbility: true,
         aspects: ['Aggression', 'Cunning'],
         types: ['unit'],
-        traits: ['underworld', 'wookie', 'bounty hunter'],
+        traits: ['underworld', 'wookiee', 'bounty hunter'],
         setId: {
             set: 'LAW',
             number: 84,
