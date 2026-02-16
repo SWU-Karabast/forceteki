@@ -86,7 +86,7 @@ describe('Liberty, Draw Their Fire!', function () {
             });
         });
 
-        it('should exhaust an enemy unit and return every upgrade on it which costs 4 or less to hand (leader upgrade which cost 4 or less)', async function () {
+        it('Liberty\'s ability should exhaust an enemy unit and return every upgrade on it which costs 4 or less to hand (leader upgrade which cost 4 or less)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -112,6 +112,33 @@ describe('Liberty, Draw Their Fire!', function () {
             expect(context.awing).toHaveExactUpgradeNames([]);
             expect(context.awing.exhausted).toBeTrue();
             expect(context.majorVonreg).toBeInZone('base', context.player2);
+        });
+
+        it('Liberty\'s ability should exhaust an enemy unit and return every upgrade on it which costs 4 or less to hand (leader upgrade which cost 4 or less)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['liberty#draw-their-fire', 'top-target'],
+                },
+                player2: {
+                    spaceArena: ['awing'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.topTarget);
+            context.player1.clickCard(context.awing);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.liberty);
+            context.player1.clickCard(context.awing);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.awing).toHaveExactUpgradeNames([]);
+            expect(context.awing.exhausted).toBeTrue();
+            expect(context.topTarget).toBeInZone('hand', context.player1);
         });
     });
 });

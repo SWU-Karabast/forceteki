@@ -24,11 +24,9 @@ export default class LibertyDrawTheirFire extends NonLeaderUnitCard {
                 controller: RelativePlayer.Opponent,
                 immediateEffect: abilityHelper.immediateEffects.simultaneous([
                     abilityHelper.immediateEffects.exhaust(),
-                    abilityHelper.immediateEffects.returnToHand((context) => {
-                        return ({
-                            target: context.target.upgrades?.filter((x) => x.cost <= 4)
-                        });
-                    })
+                    abilityHelper.immediateEffects.returnToHand((context) => ({
+                        target: context.target.upgrades?.filter((x) => x.cost <= 4)
+                    }))
                 ])
             }
         });
