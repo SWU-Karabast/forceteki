@@ -496,6 +496,25 @@ const mockCards = [
         unique: false,
         internalName: 'tear-this-ship-apart',
     }),
+    buildMockCard({
+        title: 'Boba Fett',
+        subtitle: 'Krayt\'s Claw Commander',
+        power: 3,
+        hp: 6,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['leader'],
+        keywords: ['raid 1'],
+        traits: ['underworld', 'bounty hunter'],
+        setId: {
+            set: 'LAW',
+            number: 7,
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'boba-fett#krayts-claw-commander',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
