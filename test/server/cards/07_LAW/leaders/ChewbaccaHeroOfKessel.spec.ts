@@ -36,6 +36,26 @@ describe('Chewbacca, Hero Of Kessel', function() {
             expect(context.yoda.damage).toBe(2);
         });
 
+        it('Chewbacca\'s undeployed ability cannot be activated where resource is empty', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'chewbacca#hero-of-kessel',
+                    groundArena: ['battlefield-marine'],
+                    resources: [],
+                    credits: 1
+                },
+                player2: {
+                    groundArena: ['yoda#old-master'],
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+
+            const { context } = contextRef;
+
+            expect(context.chewbacca).not.toHaveAvailableActionWhenClickedBy(context.player1);
+        });
+
         describe('Chewbacca\'s epic action ability', function() {
             it('should costs 4 resources to deploy', async function () {
                 await contextRef.setupTestAsync({
@@ -206,6 +226,28 @@ describe('Chewbacca, Hero Of Kessel', function() {
             expect(context.battlefieldMarine.damage).toBe(2);
             expect(context.player1.credits).toBe(1);
             expect(context.awing).toBeInZone('discard', context.player2);
+        });
+
+        it('Chewbacca\'s deployed ability cannot be activated where resource is empty', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'chewbacca#hero-of-kessel', deployed: true },
+                    groundArena: ['battlefield-marine'],
+                    resources: [],
+                },
+                player2: {
+                    groundArena: ['yoda#old-master'],
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.chewbacca);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
