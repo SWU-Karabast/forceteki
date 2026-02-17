@@ -123,6 +123,11 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     optional?: boolean;
 
     /**
+     * If true, disables automatic cost reordering in AbilityResolver
+     */
+    disableCostReordering?: boolean;
+
+    /**
      * If optional is true, indicates which player will make the choice to resolve the optional ability (defaults to RelativePlayer.Self)
      */
     playerChoosingOptional?: RelativePlayer;
