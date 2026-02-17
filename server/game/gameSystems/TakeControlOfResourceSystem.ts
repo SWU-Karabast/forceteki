@@ -62,7 +62,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         event.newController = player;
 
-        player.opponent.resourceZone.rearrangeResourceExhaustState(context, (card) => card.hasSomeKeyword(KeywordName.Smuggle));
+        player.opponent.resourceZone.rearrangeResourceExhaustState(context, (card) => card.hasKeyword(KeywordName.Smuggle));
         const opponentReadyResources = player.opponent.resources.filter((resource) => !resource.exhausted);
 
         if (opponentReadyResources.length === 1) {

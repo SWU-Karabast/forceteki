@@ -17,7 +17,7 @@ export default class RefugeeOfThePath extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => card.hasSomeKeyword(KeywordName.Sentinel),
+                cardCondition: (card) => card.hasKeyword(KeywordName.Sentinel),
                 immediateEffect: AbilityHelper.immediateEffects.giveShield(),
             }
         });
