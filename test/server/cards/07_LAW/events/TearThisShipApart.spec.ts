@@ -36,7 +36,7 @@ describe('Tear This Ship Apart', function() {
                 expect(context.awing).toBeInZone('resource', context.player2);
             });
 
-            it('should look at opponent\'s resources and allow playing one for free', async function () {
+            it('should look at opponent\'s resources and can choose nothing to play', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -91,7 +91,7 @@ describe('Tear This Ship Apart', function() {
                 expect(context.player2.resources.length).toBe(0);
             });
 
-            it('should look at opponent\'s resources and allow playing one for free', async function () {
+            it('should look at opponent\'s resources and allow playing one for free (event with conditions)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -121,7 +121,7 @@ describe('Tear This Ship Apart', function() {
                 expect(context.awing).toBeInZone('resource', context.player2);
             });
 
-            it('should look at opponent\'s resources and allow playing one for free', async function () {
+            it('should look at opponent\'s resources and allow playing one for free (Piloting unit)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -148,7 +148,7 @@ describe('Tear This Ship Apart', function() {
                 expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['han-solo#has-his-moments']);
             });
 
-            it('should look at opponent\'s resources and allow playing one for free', async function () {
+            it('should look at opponent\'s resources, allow playing one for free and opponent resource the top card of his deck (nested action discard the top card of opponent deck)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
