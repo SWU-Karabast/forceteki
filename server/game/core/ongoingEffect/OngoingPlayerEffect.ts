@@ -5,7 +5,9 @@ import type { Card } from '../card/Card';
 import type { IOngoingPlayerEffectProps } from '../../Interfaces';
 import type { Player } from '../Player';
 import { RelativePlayer, WildcardRelativePlayer } from '../Constants';
+import { registerState } from '../GameObjectUtils';
 
+@registerState()
 export class OngoingPlayerEffect extends OngoingEffect<Player> {
     public constructor(game: Game, source: Card, properties: IOngoingPlayerEffectProps, effect: OngoingEffectImpl<any>) {
         super(

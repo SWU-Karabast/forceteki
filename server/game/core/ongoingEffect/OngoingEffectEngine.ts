@@ -9,17 +9,20 @@ import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerState, stateRefArray, statePrimitive } from '../GameObjectUtils';
 import { AttackRulesVersion } from '../attack/AttackFlow';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
-class CustomDurationEvent extends GameObjectBase<ICustomDurationEventState> {
+@registerState()
+class CustomDurationEvent extends GameObjectBase {
     public readonly name: string;
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;
+
+    @statePrimitive() private accessor isRegistered: boolean = false;
 
     public constructor(game: Game, name: string, handler: (...args: any[]) => void, effect: OngoingEffect<any>) {
         super(game);
@@ -28,23 +31,19 @@ class CustomDurationEvent extends GameObjectBase<ICustomDurationEventState> {
         this.effect = effect;
     }
 
-    protected override setupDefaultState(): void {
-        this.state.isRegistered = false;
-    }
-
     public registerEvent(): void {
-        this.state.isRegistered = true;
+        this.isRegistered = true;
         this.game.on(this.name, this.handler);
     }
 
     public unregisterEvent(): void {
-        this.state.isRegistered = false;
+        this.isRegistered = false;
         this.game.removeListener(this.name, this.handler);
     }
 
     protected override afterSetState(oldState: ICustomDurationEventState): void {
-        if (this.state.isRegistered !== oldState.isRegistered) {
-            if (this.state.isRegistered) {
+        if (this.isRegistered !== oldState.isRegistered) {
+            if (this.isRegistered) {
                 this.registerEvent();
             } else {
                 this.unregisterEvent();
@@ -64,7 +63,7 @@ export interface IOngoingEffectState extends IGameObjectBaseState {
 }
 
 @registerState()
-export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
+export class OngoingEffectEngine extends GameObjectBase {
     public events: EventRegistrar;
     public effectsChangedSinceLastCheck = false;
 
@@ -73,10 +72,10 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         return true;
     }
 
-    @undoArray()
+    @stateRefArray()
     public accessor effects: readonly OngoingEffect[] = [];
 
-    @undoArray()
+    @stateRefArray()
     public accessor customDurationEvents: readonly CustomDurationEvent[] = [];
 
     public constructor(game: Game) {
@@ -336,3 +335,5 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         this.resolveEffects(true);
     }
 }
+
+

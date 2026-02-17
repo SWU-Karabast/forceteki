@@ -4,9 +4,8 @@ import type { Aspect, CardTypeFilter, KeywordName, ZoneName, MoveZoneDestination
 import type { Player } from '../Player';
 import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { CopyMode, registerState } from '../GameObjectUtils';
+import { registerState } from '../GameObjectUtils';
 
 /**
  * Collection of filters for searching cards in a zone.
@@ -34,8 +33,8 @@ export interface IAddRemoveZone {
 /**
  * Base class for all Zone types. Defines some common properties and methods.
  */
-@registerState(CopyMode.UseBulkCopy)
-export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGameObjectBaseState = IGameObjectBaseState> extends GameObjectBase<TState> {
+@registerState()
+export abstract class ZoneAbstract<TCard extends Card = Card> extends GameObjectBase {
     public readonly owner: Player | Game;
 
     /** Set of players that this zone is hidden for. If `null`, not hidden for any player. */
@@ -105,3 +104,4 @@ export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGa
         return ('game' in this.owner ? `${this.owner.name}:` : '') + this.name;
     }
 }
+

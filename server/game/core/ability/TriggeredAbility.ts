@@ -1,4 +1,3 @@
-import type { ICardAbilityState } from './CardAbility';
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { EventName, PlayType, StandardTriggeredAbilityType } from '../Constants';
@@ -12,8 +11,11 @@ import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
+import { registerState, statePrimitive } from '../GameObjectUtils';
+import type { IGameObjectBaseState } from '../GameObjectBase';
 
-export interface ITriggeredAbillityState extends ICardAbilityState {
+// STATE: Interface needed for onAfterSetState and cleanupOnRemove.
+export interface ITriggeredAbilityState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
@@ -44,7 +46,8 @@ export interface ITriggeredAbillityState extends ICardAbilityState {
  *            be in order to activate the reaction. Defaults to 'play area'.
  */
 
-export default class TriggeredAbility extends CardAbility<ITriggeredAbillityState> {
+@registerState()
+export default class TriggeredAbility extends CardAbility {
     public readonly when?: WhenType;
     public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
     public readonly anyPlayer: boolean;
@@ -54,6 +57,8 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
 
     private readonly mustChangeGameState: GameStateChangeRequired;
+
+    @statePrimitive() private accessor isRegistered: boolean = false;
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
@@ -97,11 +102,6 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
             : GameStateChangeRequired.MustFullyOrPartiallyResolve;
-    }
-
-    protected override setupDefaultState(): void {
-        super.setupDefaultState();
-        this.state.isRegistered = false;
     }
 
     public eventHandler(event, window) {
@@ -217,7 +217,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         this.eventRegistrations.forEach((event) => {
             this.game.on(event.name, event.handler);
         });
-        this.state.isRegistered = true;
+        this.isRegistered = true;
     }
 
     public unregisterEvents() {
@@ -230,7 +230,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
             this.game.removeListener(event.name, event.handler);
         });
         this.eventRegistrations = null;
-        this.state.isRegistered = false;
+        this.isRegistered = false;
     }
 
     private buildWhenEvents(): IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[] {
@@ -256,7 +256,6 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
 
         return listener && listener(event, context);
     }
-
 
     protected override buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContext: AbilityContext) {
         const context = super.buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy, parentContext);
@@ -286,9 +285,9 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         }
     }
 
-    protected override afterSetState(oldState: ITriggeredAbillityState): void {
-        if (this.state.isRegistered !== oldState.isRegistered) {
-            if (this.state.isRegistered) {
+    protected override afterSetState(oldState: ITriggeredAbilityState): void {
+        if (this.isRegistered !== oldState.isRegistered) {
+            if (this.isRegistered) {
                 this.registerEvents();
             } else {
                 this.unregisterEvents();
@@ -296,9 +295,10 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         }
     }
 
-    public override cleanupOnRemove(oldState: ITriggeredAbillityState): void {
+    public override cleanupOnRemove(oldState: ITriggeredAbilityState): void {
         if (oldState.isRegistered) {
             this.unregisterEvents();
         }
     }
 }
+

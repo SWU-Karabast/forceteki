@@ -17,9 +17,11 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar, IUpgradeAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import { registerState } from '../GameObjectUtils';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
+@registerState()
 export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPlayableCard {
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
@@ -60,7 +62,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination) {
-        Contract.assertTrue(!this.state.parentCard || targetZoneName === this.parentCard.zoneName, `Attempting to move upgrade ${this.internalName} while it is still attached to ${this.state.parentCard ? this.parentCard.internalName : ''}`);
+        Contract.assertTrue(!this._parentCard || targetZoneName === this.parentCard.zoneName, `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard ? this.parentCard.internalName : ''}`);
 
         super.moveTo(targetZoneName);
     }
@@ -116,7 +118,6 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.ReplacementEffect, ...gainedAbilityProperties })
         }, registrar);
     }
-
 
     private addDamageModificationAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;

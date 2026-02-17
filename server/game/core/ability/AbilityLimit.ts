@@ -5,6 +5,7 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type Game from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
+import { registerState, stateValue, statePrimitive } from '../GameObjectUtils';
 
 export interface IAbilityLimit {
     get ability(): CardAbility | null;
@@ -23,23 +24,20 @@ export interface IAbilityLimitState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
-export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityLimitState> extends GameObjectBase<TState> implements IAbilityLimit {
+@registerState()
+export abstract class AbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability: CardAbility | null = null;
+
+    @statePrimitive() private accessor isRegistered: boolean = false;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
         return true;
     }
 
-    protected override setupDefaultState(): void {
-        super.setupDefaultState();
-
-        this.state.isRegistered = false;
-    }
-
-    protected override afterSetState(oldState: TState): void {
-        if (this.state.isRegistered !== oldState.isRegistered) {
-            if (this.state.isRegistered) {
+    protected override afterSetState(oldState: IAbilityLimitState): void {
+        if (this.isRegistered !== oldState.isRegistered) {
+            if (this.isRegistered) {
                 this.registerEvents();
             } else {
                 this.unregisterEvents();
@@ -47,18 +45,18 @@ export abstract class AbilityLimit<TState extends IAbilityLimitState = IAbilityL
         }
     }
 
-    public override cleanupOnRemove(oldState: TState): void {
+    public override cleanupOnRemove(oldState: IAbilityLimitState): void {
         if (oldState.isRegistered) {
             this.unregisterEvents();
         }
     }
 
     public registerEvents(): void {
-        this.state.isRegistered = true;
+        this.isRegistered = true;
     }
 
     public unregisterEvents(): void {
-        this.state.isRegistered = false;
+        this.isRegistered = false;
     }
 
     public isEpicActionLimit(): this is EpicActionLimit {
@@ -80,12 +78,9 @@ interface IPerGameAbilityLimitState extends IAbilityLimitState {
     useCount: 0;
 }
 
-export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitState> {
-    protected override setupDefaultState(): void {
-        super.setupDefaultState();
-
-        this.state.useCount = new Map();
-    }
+@registerState()
+export class UnlimitedAbilityLimit extends AbilityLimit {
+    @stateValue() private accessor useCount: Map<string, number> = new Map();
 
     public clone() {
         return new UnlimitedAbilityLimit(this.game);
@@ -101,15 +96,15 @@ export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitSt
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.state.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.state.useCount.clear();
+        this.useCount.clear();
     }
 
     public currentForPlayer(player: Player) {
-        return this.state.useCount.get(this.getKey(player.name)) ?? 0;
+        return this.useCount.get(this.getKey(player.name)) ?? 0;
     }
 
     private getKey(player: string): string {
@@ -117,19 +112,16 @@ export class UnlimitedAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitSt
     }
 }
 
-export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState> {
+@registerState()
+export class PerGameAbilityLimit extends AbilityLimit {
     public currentUser: null | string = null;
     public readonly max: number;
+
+    @statePrimitive() private accessor useCount: number = 0;
 
     public constructor(game: Game, max: number) {
         super(game);
         this.max = max;
-    }
-
-    protected override setupDefaultState(): void {
-        super.setupDefaultState();
-
-        this.state.useCount = 0;
     }
 
     public clone() {
@@ -141,34 +133,31 @@ export class PerGameAbilityLimit extends AbilityLimit<IPerGameAbilityLimitState>
     }
 
     public isAtMax(player: Player): boolean {
-        return this.state.useCount >= this.max;
+        return this.useCount >= this.max;
     }
 
     public increment(player: Player): void {
-        this.state.useCount++;
+        this.useCount++;
     }
 
     public reset(): void {
-        this.state.useCount = 0;
+        this.useCount = 0;
     }
 
     public currentForPlayer(): number {
-        return this.state.useCount;
+        return this.useCount;
     }
 }
 
-export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbilityLimitState> {
+@registerState()
+export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
     public readonly max: number;
+
+    @stateValue() private accessor useCount: Map<string, number> = new Map();
 
     public constructor(game: Game, max: number) {
         super(game);
         this.max = max;
-    }
-
-    protected override setupDefaultState(): void {
-        super.setupDefaultState();
-
-        this.state.useCount = new Map();
     }
 
     public clone() {
@@ -185,15 +174,15 @@ export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbility
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.state.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.state.useCount.clear();
+        this.useCount.clear();
     }
 
     public currentForPlayer(player: Player) {
-        return this.state.useCount.get(this.getKey(player.name)) ?? 0;
+        return this.useCount.get(this.getKey(player.name)) ?? 0;
     }
 
     private getKey(player: string): string {
@@ -206,6 +195,7 @@ export class PerPlayerPerGameAbilityLimit extends AbilityLimit<IPerPlayerAbility
     }
 }
 
+@registerState()
 export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     private readonly eventName: Set<EventName>;
     private eventRegistrations?: IEventRegistration[];
@@ -258,6 +248,7 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     }
 }
 
+@registerState()
 export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
     public constructor(game: Game) {
         super(game, 1);

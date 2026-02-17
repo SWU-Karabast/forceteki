@@ -1,8 +1,9 @@
 import type { IActionAbilityProps } from '../../../Interfaces';
 import type PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
-import { type IPlayableOrDeployableCardState, type PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
+import { type PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../Card';
 import * as Contract from '../../utils/Contract';
+import { registerState } from '../../GameObjectUtils';
 
 export interface IPreEnterPlayAbilityRegistrar<T extends Card> {
     addPreEnterPlayAbility(properties: IActionAbilityProps<T>): PreEnterPlayAbility;
@@ -15,8 +16,9 @@ export interface ICardWithPreEnterPlayAbilities {
 }
 
 /** Mixin function that adds the ability to register pre-enter play abilities to a base card class. */
-export function WithPreEnterPlayAbilities<TBaseClass extends PlayableOrDeployableCardConstructor<TState>, TState extends IPlayableOrDeployableCardState>(BaseClass: TBaseClass) {
-    return class WithPreEnterPlayAbilities extends BaseClass {
+export function WithPreEnterPlayAbilities<TBaseClass extends PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
+    @registerState()
+    class WithPreEnterPlayAbilities extends BaseClass {
         public getPreEnterPlayAbilities(): PreEnterPlayAbility[] {
             return this.preEnterPlayAbilities;
         }
@@ -56,5 +58,7 @@ export function WithPreEnterPlayAbilities<TBaseClass extends PlayableOrDeployabl
 
             this.preEnterPlayAbilities = updatedAbilityList;
         }
-    };
+    }
+
+    return WithPreEnterPlayAbilities;
 }

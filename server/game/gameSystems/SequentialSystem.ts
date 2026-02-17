@@ -10,7 +10,6 @@ import { ResolutionMode, SimultaneousOrSequentialSystem } from './SimultaneousOr
 
 export type ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> = ISimultaneousOrSequentialSystemProperties<TContext>;
 
-
 // TODO: add a variant of this (or a configuration option) for repeating the same action a variable number of times
 /**
  * Meta-system used for executing a set of other systems in a sequence. Each sub-system will be executed in order,

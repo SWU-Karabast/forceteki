@@ -5,10 +5,13 @@ import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployabl
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export interface DeployedLeaderEntry {
     card: GameObjectRef<IPlayableCard>;
 }
 
+@registerState()
 export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeaderEntry> {
     public constructor(
         game: Game,

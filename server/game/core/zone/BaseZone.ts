@@ -3,7 +3,7 @@ import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../card/propertyMixins/Token';
 import { ZoneName } from '../Constants';
 import type Game from '../Game';
-import { registerState, undoArray, undoObject } from '../GameObjectUtils';
+import { registerState, stateRefArray, stateRef } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import { ZoneAbstract } from './ZoneAbstract';
@@ -20,13 +20,13 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
     public declare readonly owner: Player;
     public override readonly name: ZoneName.Base;
 
-    @undoObject()
+    @stateRef()
     private accessor _leader: ILeaderCard | null = null;
 
-    @undoObject()
+    @stateRef()
     private accessor _forceToken: ITokenCard | null = null;
 
-    @undoArray()
+    @stateRefArray()
     private accessor _credits: readonly ITokenCard[] = [];
 
     public override get cards(): (IBaseZoneCard)[] {
@@ -62,9 +62,14 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
 
         this.base = base;
         this._leader = leader;
+    }
 
-        base.initializeZone(this);
-        leader.initializeZone(this);
+    protected override onInitialize(): void {
+        super.onInitialize();
+
+        Contract.assertNotNullLike(this._leader, `Attempting to initialize ${this} with null leader`);
+        this.base.initializeZone(this);
+        this._leader.initializeZone(this);
     }
 
     public setLeader(leader: ILeaderCard) {
@@ -113,3 +118,4 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         }
     }
 }
+

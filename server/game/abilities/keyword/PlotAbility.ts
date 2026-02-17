@@ -7,6 +7,9 @@ import { PlayCardSystem } from '../../gameSystems/PlayCardSystem';
 import { ResourceCardSystem } from '../../gameSystems/ResourceCardSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
+import { registerState } from '../../core/GameObjectUtils';
+
+@registerState()
 export class PlotAbility extends TriggeredAbility {
     public readonly keyword: KeywordName = KeywordName.Plot;
 

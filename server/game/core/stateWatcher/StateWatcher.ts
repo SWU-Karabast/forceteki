@@ -9,6 +9,8 @@ import { isDevelopment } from '../utils/Helpers';
 import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
+import { CopyMode, registerState } from '../GameObjectUtils';
+
 export interface IStateWatcherState<TState> extends IGameObjectBaseState {
     entries: TState[];
 }
@@ -28,11 +30,14 @@ export interface IStateWatcherState<TState> extends IGameObjectBaseState {
  * - a state reset method that provides an initial state to reset to
  * - a set of event triggers which will update the stored state to keep the history
  */
-export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWatcherState<TState>> {
+@registerState(CopyMode.UseBulkCopy)
+export abstract class StateWatcher<TState = any> extends GameObjectBase {
     private stateUpdaters: IStateListenerProperties<TState[]>[] = [];
     private readonly allUpdaters;
     public readonly name: StateWatcherName;
     private eventNameMapping = new Map<string, (...args: any[]) => void>();
+
+    protected declare state: IStateWatcherState<TState>; // Narrow the type of state for easier access to entries
 
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {
@@ -66,6 +71,10 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     protected override get alwaysTrackState(): boolean {
         return true;
+    }
+
+    public override getGameObjectName(): string {
+        return `StateWatcher_${this.name}`;
     }
 
     // Child classes override this method to perform their addUpdater() calls
@@ -143,3 +152,4 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
         this.unregisterListeners();
     }
 }
+

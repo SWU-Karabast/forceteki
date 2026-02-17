@@ -15,7 +15,6 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import { ActionsThisPhaseWatcher } from './ActionsThisPhaseWatcher';
 import { TokensCreatedThisPhaseWatcher } from './TokensCreatedThisPhaseWatcher';
 
-
 export class StateWatcherLibrary {
     private readonly game: Game;
 

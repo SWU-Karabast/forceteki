@@ -3,7 +3,6 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode } from '../../../core/Constants';
 
-
 export default class C3POProtocolDroid extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {

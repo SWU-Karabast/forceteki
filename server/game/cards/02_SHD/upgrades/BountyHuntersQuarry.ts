@@ -4,7 +4,6 @@ import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistr
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
-
 export default class BountyHuntersQuarry extends UpgradeCard {
     protected override getImplementationId() {
         return {

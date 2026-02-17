@@ -8,6 +8,8 @@ import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import type { ITriggeredAbilityBaseProps } from '../../Interfaces';
 
+import { registerState } from '../../core/GameObjectUtils';
+
 export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'> & {
     bountySource?: IUnitCard;
 };
@@ -17,6 +19,7 @@ export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeT
  * `onBountyCollected` event with the properties for the bounty ability (used for Bossk leader ability).
  * This event is emitted regardless of whether the bounty's actual effects will change game state.
  */
+@registerState()
 export class BountyAbility extends TriggeredAbility {
     public readonly keyword: KeywordName = KeywordName.Bounty;
 

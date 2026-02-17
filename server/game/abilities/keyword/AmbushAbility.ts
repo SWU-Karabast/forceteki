@@ -9,6 +9,9 @@ import { InitiateAttackSystem } from '../../gameSystems/InitiateAttackSystem';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
+import { registerState } from '../../core/GameObjectUtils';
+
+@registerState()
 export class AmbushAbility extends TriggeredAbility {
     public readonly keyword: KeywordName = KeywordName.Ambush;
 

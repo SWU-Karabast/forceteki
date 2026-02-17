@@ -9,6 +9,9 @@ import type { ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvalu
 import { CostAdjustStage } from './CostInterfaces';
 import { DynamicOpportunityCost } from './evaluation/DynamicOpportunityCost';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class ModifyPayStageCostAdjuster extends CostAdjuster {
     private readonly payStageAmountAfterDiscount: (currentAmount: number) => number;
 

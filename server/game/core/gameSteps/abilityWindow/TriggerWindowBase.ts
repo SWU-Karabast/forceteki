@@ -237,7 +237,6 @@ export abstract class TriggerWindowBase extends BaseStep {
         return repeatedAbilities;
     }
 
-
     private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
 

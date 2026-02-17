@@ -9,6 +9,9 @@ import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolve
 import type { EventAbility } from '../core/ability/EventAbility';
 import type { Player } from '../core/Player';
 
+import { registerState } from '../core/GameObjectUtils';
+
+@registerState()
 export class PlayEventAction extends PlayCardAction {
     private earlyTargetResults?: ITargetResult;
 

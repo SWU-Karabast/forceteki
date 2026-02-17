@@ -10,7 +10,7 @@ import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type Game from '../Game';
 import type { IRandomness } from '../Randomness';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerState, stateRefArray } from '../GameObjectUtils';
 
 @registerState()
 export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZone {
@@ -18,10 +18,10 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
     public declare owner: Player;
     public override readonly name: ZoneName.Deck;
 
-    @undoArray(false)
+    @stateRefArray(false)
     private accessor _deck: IPlayableCard[] = [];
 
-    @undoArray(false)
+    @stateRefArray(false)
     private accessor _searchingCards: IPlayableCard[] = [];
 
     public override get cards(): IPlayableCard[] {
@@ -47,7 +47,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
         this.name = ZoneName.Deck;
     }
 
-    public initialize(cards: IPlayableCard[]) {
+    public initializeDeck(cards: IPlayableCard[]) {
         this._deck = cards;
 
         cards.forEach((card) => card.initializeZone(this));
@@ -177,3 +177,4 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
         );
     }
 }
+

@@ -16,6 +16,9 @@ import * as ChatHelpers from '../chat/ChatHelpers';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
 import type { FormatMessage } from '../chat/GameChat';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
     private readonly costName = 'creditTokens';
 

@@ -8,6 +8,8 @@ import * as Contract from '../core/utils/Contract';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export interface DiscardedCardEntry {
     card: GameObjectRef<Card>;
     discardedFromPlayer: GameObjectRef<Player>;
@@ -15,6 +17,7 @@ export interface DiscardedCardEntry {
     discardedPlayId: number;
 }
 
+@registerState()
 export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEntry> {
     public constructor(
         game: Game,

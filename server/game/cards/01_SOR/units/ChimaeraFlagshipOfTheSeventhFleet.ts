@@ -3,7 +3,6 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { TargetMode } from '../../../core/Constants';
 
-
 export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {

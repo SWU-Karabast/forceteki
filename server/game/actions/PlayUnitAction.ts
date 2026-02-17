@@ -9,10 +9,13 @@ import type { FormatMessage } from '../core/chat/GameChat.js';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
 };
 
+@registerState()
 export class PlayUnitAction extends PlayCardAction {
     private entersReady: boolean;
 

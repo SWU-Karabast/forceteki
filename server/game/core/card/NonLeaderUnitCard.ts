@@ -13,11 +13,13 @@ import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { INonLeaderUnitAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import { type IAbilityHelper } from '../../AbilityHelper';
+import { registerState } from '../GameObjectUtils';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
 export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
 
+@registerState()
 export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
@@ -85,7 +87,9 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
     }
 }
 
+// STATE TODO: Once we've fully converted to decorators, this can be removed and NonLeaderUnitCardInternal can be renamed to NonLeaderUnitCard
 /** used for derived implementations classes. */
+@registerState()
 export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
     public declare state: never;
 

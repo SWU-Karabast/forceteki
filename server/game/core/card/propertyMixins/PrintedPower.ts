@@ -1,7 +1,8 @@
 import { EffectName } from '../../Constants';
+import { registerState } from '../../GameObjectUtils';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import * as Contract from '../../utils/Contract';
-import type { Card, CardConstructor, ICardState } from '../Card';
+import type { Card, CardConstructor } from '../Card';
 
 export interface ICardWithPrintedPowerProperty extends Card {
     getPrintedPower(): number;
@@ -9,8 +10,9 @@ export interface ICardWithPrintedPowerProperty extends Card {
 }
 
 /** Mixin function that adds the `printedPower` property to a base class. */
-export function WithPrintedPower<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
-    return class WithPrintedPower extends (BaseClass as TBaseClass & CardConstructor<TState>) {
+export function WithPrintedPower<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+    @registerState()
+    class WithPrintedPower extends (BaseClass as TBaseClass) {
         public readonly printedPower: number;
 
         // see Card constructor for list of expected args
@@ -35,5 +37,7 @@ export function WithPrintedPower<TBaseClass extends CardConstructor<TState>, TSt
             }
             return this.printedPower;
         }
-    };
+    }
+
+    return WithPrintedPower;
 }

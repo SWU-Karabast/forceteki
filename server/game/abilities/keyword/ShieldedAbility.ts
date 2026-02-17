@@ -6,6 +6,9 @@ import * as Contract from '../../core/utils/Contract';
 import { GiveShieldSystem } from '../../gameSystems/GiveShieldSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
+import { registerState } from '../../core/GameObjectUtils';
+
+@registerState()
 export class ShieldedAbility extends TriggeredAbility {
     public readonly keyword: KeywordName = KeywordName.Shielded;
 
