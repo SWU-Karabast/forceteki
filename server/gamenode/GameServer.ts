@@ -212,11 +212,6 @@ export class GameServer {
             const start = process.hrtime.bigint();
 
             res.on('finish', () => {
-                // track daily active user (req.user is set by auth middleware before finish fires)
-                if (req.user?.hasClientProvidedId()) {
-                    this.dailyActiveUserIds.add(req.user.getId());
-                }
-
                 const end = process.hrtime.bigint();
                 const durationMs = Number(end - start) / 1e6;
 
@@ -323,11 +318,6 @@ export class GameServer {
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
         this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
             try {
-                // track daily active user from socket connection
-                if (socket.data.user?.hasClientProvidedId()) {
-                    this.dailyActiveUserIds.add(socket.data.user.getId());
-                }
-
                 await this.onConnectionAsync(socket);
                 socket.on('manualDisconnect', () => {
                     try {
@@ -395,6 +385,12 @@ export class GameServer {
                 const { gameId } = req.body;
                 const user = req.user as User;
                 const lobby = this.lobbies.get(gameId);
+
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 if (user.isAnonymousUser()) {
                     logger.error(`GameServer (spectate-game): Anonymous user ${user.getId()} is attempting to spectate a game.`);
                     return res.status(401).json({
@@ -1001,6 +997,11 @@ export class GameServer {
                 const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
                 const user = req.user;
 
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
@@ -1062,6 +1063,11 @@ export class GameServer {
                 const { lobbyId } = req.body;
                 const user = req.user;
 
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a different lobby while already being in a lobby`);
                     return res.status(403).json({
@@ -1120,6 +1126,12 @@ export class GameServer {
             try {
                 const { format, gamesToWinMode, deck } = req.body;
                 const user = req.user;
+
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 // check if user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
