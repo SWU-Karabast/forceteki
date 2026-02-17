@@ -30,6 +30,7 @@ export default class VermillionQirasAuctionHouse extends NonLeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Reveal the top card of a deck',
                 mode: TargetMode.Select,
+                showUnresolvable: true,
                 condition: (context) => AttackHelpers.attackerSurvived(
                     context.event.attack,
                     this.unitsDefeatedThisPhaseWatcher
@@ -45,7 +46,7 @@ export default class VermillionQirasAuctionHouse extends NonLeaderUnitCard {
                     })
                 })
             },
-            then: (outerContext) => ({
+            ifYouDo: (outerContext) => ({
                 title: 'Choose a player',
                 targetResolver: {
                     activePromptTitle: (_) => `Choose a player. That player may play ${this.getRevealedCard(outerContext).title} for free. If they do, the other player creates ${this.getRevealedCard(outerContext).cost} Credit tokens.`,
@@ -65,6 +66,7 @@ export default class VermillionQirasAuctionHouse extends NonLeaderUnitCard {
                         title: `Create ${this.getRevealedCard(outerContext).cost} Credit tokens`,
                         canBeTriggeredBy: EnumHelpers.asRelativePlayer(innerContext.target.opponent, outerContext.player),
                         immediateEffect: AbilityHelper.immediateEffects.createCreditToken({
+                            target: innerContext.target.opponent,
                             amount: this.getRevealedCard(outerContext).cost,
                         })
                     }
