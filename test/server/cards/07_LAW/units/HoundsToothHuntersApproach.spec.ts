@@ -28,6 +28,19 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
                 expect(context.awing).toBeInZone('discard', context.player2);
             });
 
+            it('can be skip', function () {
+                const { context } = contextRef;
+                context.player1.clickCard(context.houndsTooth);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.awing, context.yoda]);
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.discard.length).toBe(0);
+            });
+
             it('should defeat a unit with less power than him (target unit)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.houndsTooth);
