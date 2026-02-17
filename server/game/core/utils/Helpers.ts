@@ -91,6 +91,7 @@ export function defaultLegalZonesForCardType(cardType: CardType) {
             return [ZoneName.SpaceArena, ZoneName.GroundArena];
         case CardType.Base:
         case CardType.Leader:
+        case CardType.TokenCard:
             return [ZoneName.Base];
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
