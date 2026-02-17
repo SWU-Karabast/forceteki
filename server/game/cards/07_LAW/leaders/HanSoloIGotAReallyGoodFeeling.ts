@@ -40,13 +40,12 @@ export default class HanSoloIGotAReallyGoodFeeling extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             },
-            then: (thenContext) => ({
-                title: `Deal ${thenContext.target?.length ?? 0} damage to a unit`,
-                thenCondition: (_) => thenContext.target && thenContext.target.length > 0,
+            ifYouDo: (ifYouDoContext) => ({
+                title: `Deal ${ifYouDoContext.target.length} damage to a unit`,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.damage({
-                        amount: thenContext.target?.length ?? 0,
+                        amount: ifYouDoContext.target.length
                     })
                 }
             })
