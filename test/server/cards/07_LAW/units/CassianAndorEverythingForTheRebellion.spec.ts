@@ -103,6 +103,17 @@ describe('Cassian Andor, Everything for the Rebellion', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.battlefieldMarine).toBeInZone('discard');
             });
+
+            it('should do nothing when friendly unit attack ends to base', function () {
+                const { context } = contextRef;
+
+                // Wampa attacks Battlefield Marine and defeats it
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // No ability prompt
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
