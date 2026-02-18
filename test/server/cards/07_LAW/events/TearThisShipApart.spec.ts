@@ -195,6 +195,42 @@ describe('Tear This Ship Apart', function() {
                 // expect(context.yoda).toBeInZone('discard', context.player2);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should play upgrades that have friendly unit restrictions on friendly units', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jabba-the-hutt#crime-boss',
+                        base: 'echo-base',
+                        hand: ['tear-this-ship-apart'],
+                        groundArena: ['consular-security-force']
+                    },
+                    player2: {
+                        deck: ['awing', 'confiscate'],
+                        groundArena: ['battlefield-marine'],
+                        resources: ['craving-power']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Tear This Ship Apart and select Craving Power
+                context.player1.clickCard(context.tearThisShipApart);
+                context.player1.clickCardInDisplayCardPrompt(context.cravingPower);
+
+                // Craving Power can only be played on friendly units
+                expect(context.player1).toHavePrompt('Attach Craving Power to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.consularSecurityForce).toHaveExactUpgradeNames(['craving-power']);
+
+                // Resolve its When Played ability to deal damage to Battlefield Marine
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+                expect(context.awing).toBeInZone('resource', context.player2);
+                expect(context.confiscate).toBeInZone('deck', context.player2);
+            });
         });
     });
 });
