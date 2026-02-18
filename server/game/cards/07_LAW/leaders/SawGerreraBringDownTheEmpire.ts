@@ -5,6 +5,7 @@ import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../.
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 
 export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
@@ -50,8 +51,10 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
         registrar.addOnAttackCompletedAbility({
             title: 'Attack with another unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, defeat it.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) =>
-                    !this.unitsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(context.event.attack.attacker, context.event.attack.attackerInPlayId),
+                condition: (context) => AttackHelpers.attackerSurvived(
+                    context.event.attack,
+                    this.unitsDefeatedThisPhaseWatcher
+                ),
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
