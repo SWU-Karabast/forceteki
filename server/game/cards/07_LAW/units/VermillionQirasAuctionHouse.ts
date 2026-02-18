@@ -48,12 +48,13 @@ export default class VermillionQirasAuctionHouse extends NonLeaderUnitCard {
             },
             ifYouDo: (outerContext) => ({
                 title: 'Choose a player',
+                ifYouDoCondition: (context) => this.cardCanBePlayedBySomePlayer(this.getRevealedCard(outerContext), context, AbilityHelper),
                 targetResolver: {
                     activePromptTitle: (_) => `Choose a player. That player may play ${this.getRevealedCard(outerContext).title} for free. If they do, the other player creates ${this.getRevealedCard(outerContext).cost} Credit tokens.`,
                     mode: TargetMode.Player
                 },
                 then: (innerContext) => ({
-                    title: `Play ${this.getRevealedCard(outerContext).title} for free`,
+                    title: `Play ${this.getRevealedCard(outerContext).title} for free. If you do, your opponent creates ${this.getRevealedCard(outerContext).cost} Credit tokens.`,
                     optional: true,
                     canBeTriggeredBy: EnumHelpers.asRelativePlayer(innerContext.target, outerContext.player),
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
@@ -77,5 +78,19 @@ export default class VermillionQirasAuctionHouse extends NonLeaderUnitCard {
 
     private getRevealedCard(context: AbilityContext): IPlayableCard {
         return context.events[0].card[0];
+    }
+
+    private cardCanBePlayedBySomePlayer(card: IPlayableCard, context: AbilityContext, AbilityHelper: IAbilityHelper): boolean {
+        const playFromOutOfPlaySystem = AbilityHelper.immediateEffects.playCardFromOutOfPlay({
+            target: card,
+            playAsType: WildcardCardType.Any,
+            adjustCost: { costAdjustType: CostAdjustType.Free },
+            canPlayFromAnyZone: true,
+        });
+
+        return this.game.getPlayers().some((player) => {
+            const playContext = context.createCopy({ player });
+            return playFromOutOfPlaySystem.hasLegalTarget(playContext);
+        });
     }
 }

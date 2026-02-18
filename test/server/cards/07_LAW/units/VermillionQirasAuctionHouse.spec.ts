@@ -26,6 +26,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
             });
 
             const choosePlayerPrompt = (title: string, cost: number) => `Choose a player. That player may play ${title} for free. If they do, the other player creates ${cost} Credit tokens.`;
+            const playRevealedCardPrompt = (title: string, cost: number) => `Play ${title} for free. If you do, your opponent creates ${cost} Credit tokens.`;
 
             describe('Standard Cases', function() {
                 beforeEach(async function() {
@@ -64,7 +65,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose to play the card for free
-                    expect(context.player1).toHavePassAbilityPrompt(`Play ${context.battlefieldMarine.title} for free`);
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.battlefieldMarine.title, 2));
                     context.player1.clickPrompt('Trigger');
 
                     // Card is played for free, opponent gets tokens
@@ -93,7 +94,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose not to play the card
-                    expect(context.player1).toHavePassAbilityPrompt(`Play ${context.battlefieldMarine.title} for free`);
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.battlefieldMarine.title, 2));
                     context.player1.clickPrompt('Pass');
 
                     // Card stays in deck, opponent doesn't get credits
@@ -121,7 +122,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('Opponent');
 
                     // Opponent chooses to play the card for free
-                    expect(context.player2).toHavePassAbilityPrompt(`Play ${context.battlefieldMarine.title} for free`);
+                    expect(context.player2).toHavePassAbilityPrompt(playRevealedCardPrompt(context.battlefieldMarine.title, 2));
                     context.player2.clickPrompt('Trigger');
 
                     // Card is played for free under opponent's control, you get credits
@@ -150,7 +151,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('Opponent');
 
                     // Opponent chooses not to play the card
-                    expect(context.player2).toHavePassAbilityPrompt(`Play ${context.battlefieldMarine.title} for free`);
+                    expect(context.player2).toHavePassAbilityPrompt(playRevealedCardPrompt(context.battlefieldMarine.title, 2));
                     context.player2.clickPrompt('Pass');
 
                     // Card stays in deck, you don't get credits
@@ -178,7 +179,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose to play the card for free
-                    expect(context.player1).toHavePassAbilityPrompt(`Play ${context.desperadoFreighter.title} for free`);
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.desperadoFreighter.title, 5));
                     context.player1.clickPrompt('Trigger');
 
                     // Card is played for free under your control, opponent gets tokens
@@ -207,7 +208,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose not to play the card
-                    expect(context.player1).toHavePassAbilityPrompt(`Play ${context.desperadoFreighter.title} for free`);
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.desperadoFreighter.title, 5));
                     context.player1.clickPrompt('Pass');
 
                     // Card stays in opponent's deck, opponent doesn't get credits
@@ -235,7 +236,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('Opponent');
 
                     // Opponent chooses to play the card for free
-                    expect(context.player2).toHavePassAbilityPrompt(`Play ${context.desperadoFreighter.title} for free`);
+                    expect(context.player2).toHavePassAbilityPrompt(playRevealedCardPrompt(context.desperadoFreighter.title, 5));
                     context.player2.clickPrompt('Trigger');
 
                     // Card is played for free under opponent's control, you get credits
@@ -264,7 +265,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('Opponent');
 
                     // Opponent chooses not to play the card
-                    expect(context.player2).toHavePassAbilityPrompt(`Play ${context.desperadoFreighter.title} for free`);
+                    expect(context.player2).toHavePassAbilityPrompt(playRevealedCardPrompt(context.desperadoFreighter.title, 5));
                     context.player2.clickPrompt('Pass');
 
                     // Card stays in opponent's deck, you don't get credits
@@ -335,7 +336,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose to play the card for free
-                    expect(context.player1).toHavePassAbilityPrompt(`Play ${context.battlefieldMarine.title} for free`);
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.battlefieldMarine.title, 2));
                     context.player1.clickPrompt('Trigger');
 
                     // Card is played for free
@@ -405,7 +406,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose to play the card for free
-                    expect(context.player1).toHavePassAbilityPrompt(`Play ${context.battlefieldMarine.title} for free`);
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.battlefieldMarine.title, 2));
                     context.player1.clickPrompt('Trigger');
 
                     // Card is played for free
@@ -466,7 +467,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose to play Porg for free
-                    expect(context.player1).toHavePassAbilityPrompt('Play Porg for free');
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.porg.title, 0));
                     context.player1.clickPrompt('Trigger');
 
                     // Porg is played, opponent gets 0 credits (no credits created)
@@ -507,7 +508,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose to play Sneak Attack for free
-                    expect(context.player1).toHavePassAbilityPrompt('Play Sneak Attack for free');
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.sneakAttack.title, 2));
                     context.player1.clickPrompt('Trigger');
 
                     // Sneak Attack prompts to play a unit from hand with cost reduction
@@ -564,7 +565,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     expect(context.player2).toBeActivePlayer();
                 });
 
-                it('revealed upgrade cannot be played because there are no valid targets in play', async function() {
+                it('revealed upgrade cannot be played by either player because there are no valid targets in play', async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -593,10 +594,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     expect(context.player1).toHaveExactViewableDisplayPromptCards([context.theDarksaber]);
                     context.player1.clickDone();
 
-                    // Choose yourself to play the card
-                    context.player1.clickPrompt('You');
-
-                    // No valid targets for the upgrade, ability skips the play step
+                    // No valid targets for the upgrade, so ability skips the "Choose Player" step
                     // Card was not played, stays in deck, no credits created, it is P2's turn
                     expect(context.theDarksaber).toBeInZone('deck', context.player1);
                     expect(context.player2.credits).toBe(0);
@@ -612,7 +610,6 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                             deck: ['porg']
                         },
                         player2: {
-                            groundArena: ['wampa'],
                             deck: ['darth-mauls-lightsaber'] // 3 Cost upgrade with "friendly unit" restriction
                         }
                     });
@@ -635,7 +632,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose to play the upgrade for free
-                    expect(context.player1).toHavePassAbilityPrompt('Play Darth Maul\'s Lightsaber for free');
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.darthMaulsLightsaber.title, 3));
                     context.player1.clickPrompt('Trigger');
 
                     // Only P1's unit should be a valid target ("friendly" is relative to P1, who is playing the card)
@@ -678,7 +675,7 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     context.player1.clickPrompt('You');
 
                     // Choose to play the card for free
-                    expect(context.player1).toHavePassAbilityPrompt('Play Chewbacca for free');
+                    expect(context.player1).toHavePassAbilityPrompt(playRevealedCardPrompt(context.chewbacca.title, 5));
                     context.player1.clickPrompt('Trigger');
 
                     // Should see both unit and piloting play options
