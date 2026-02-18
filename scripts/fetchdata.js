@@ -314,7 +314,9 @@ function filterValues(card) {
             .replace(/\s/g, '-');
 
         // Ensure all card titles with quotes use the same type of quote character (e.g., 'Benthic "Two Tubes"' instead of 'Benthic “Two Tubes”')
-        filteredObj.title = filteredObj.title.replace(/“|”/g, '"');
+        filteredObj.title = filteredObj.title
+            .replace(/“|”/g, '"')
+            .replace(/‘|’/g, '\'');
 
         // keep original card for debug logging, will be removed before card is written to file
         delete card.attributes.variants;
