@@ -3,7 +3,6 @@ import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { ResourcePrompt } from './ResourcePrompt';
-import { PhaseName } from '../../Constants';
 import { PromptType, SelectCardMode } from '../PromptInterfaces';
 
 export class VariableResourcePrompt extends ResourcePrompt {
@@ -41,7 +40,7 @@ export class VariableResourcePrompt extends ResourcePrompt {
         const initiativePlayer = this.game.initiativePlayer;
         const initiativeDone = initiativePlayer ? this.completionCondition(initiativePlayer) : true;
 
-        if ( initiativePlayer && initiativePlayer !== player && !initiativeDone) {
+        if (initiativePlayer && initiativePlayer !== player && !initiativeDone) {
             return `${basePrompt}. The initiative player is choosing whether to resource; you may choose now or wait until they've finished.`;
         }
 
