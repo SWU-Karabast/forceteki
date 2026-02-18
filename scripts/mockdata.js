@@ -695,7 +695,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Val',
-        subtitle: 'It\'s Beed a Ride, Babe',
+        subtitle: 'It\'s Been a Ride, Babe',
         power: 2,
         hp: 4,
         cost: 2,
