@@ -23,17 +23,19 @@ export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard 
         registrar.addActionAbility({
             title: 'Give a Shield token to a friendly unit that entered play this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
-            condition: (context) =>
-                this.cardsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay(
-                    (entry) => entry.playedBy === context.player
-                ).length >= 2,
             targetResolver: {
                 activePromptTitle: 'Give a Shield token to a unit that entered play this phase',
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => this.cardsEnteredPlayThisPhaseWatcher
                     .someCardEnteredPlay((entry) => entry.card === card),
-                immediateEffect: AbilityHelper.immediateEffects.giveShield()
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: (context) =>
+                        this.cardsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay(
+                            (entry) => entry.playedBy === context.player
+                        ).length >= 2,
+                    onTrue: AbilityHelper.immediateEffects.giveShield()
+                })
             }
         });
     }
