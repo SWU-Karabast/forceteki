@@ -436,15 +436,266 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                     expect(context.player2).toBeActivePlayer();
                 });
 
-                xit('the revealed card has cost 0 (Porg)', async function() {});
+                it('the revealed card has cost 0 (Porg), no credits are created', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            spaceArena: ['vermillion#qiras-auction-house'],
+                            deck: ['porg'] // 0 Cost
+                        },
+                        player2: {
+                            deck: ['battlefield-marine']
+                        }
+                    });
 
-                xit('nested play a card action (Sneak Attack -> Bossk)', async function() {});
+                    const { context } = contextRef;
 
-                xit('revealed card cannot be played by chosen player due to play restrictions (Regional Governor)', async function() {});
+                    // Attack with Vermillion
+                    context.player1.clickCard(context.vermillion);
+                    context.player1.clickCard(context.p2Base);
 
-                xit('revealed upgrade cannot be played because there are no valid targets in play', async function() {});
+                    // Ability triggers, choose your deck
+                    expect(context.player1).toHavePrompt('Reveal the top card of a deck');
+                    context.player1.clickPrompt('Your deck');
 
-                xit('revealed upgrade with friendly unit restrictions can be played on the chosen player\'s units', async function() {});
+                    // Porg is revealed
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([context.porg]);
+                    context.player1.clickDone();
+
+                    // Choose yourself to play the card
+                    context.player1.clickPrompt('You');
+
+                    // Choose to play Porg for free
+                    expect(context.player1).toHavePassAbilityPrompt('Play Porg for free');
+                    context.player1.clickPrompt('Trigger');
+
+                    // Porg is played, opponent gets 0 credits (no credits created)
+                    expect(context.porg).toBeInZone('groundArena', context.player1);
+                    expect(context.player1.exhaustedResourceCount).toBe(0);
+                    expect(context.player2.credits).toBe(0);
+                });
+
+                it('nested play a card action (Sneak Attack -> Bossk)', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'the-client#please-lower-your-blaster', // So Bossk is in aspect
+                            spaceArena: ['vermillion#qiras-auction-house'],
+                            hand: ['bossk#deadly-stalker'], // Costs 2 with Sneak Attack discount
+                            resources: 5
+                        },
+                        player2: {
+                            deck: ['sneak-attack'], // 2 Cost event
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // Attack with Vermillion
+                    context.player1.clickCard(context.vermillion);
+                    context.player1.clickCard(context.p2Base);
+
+                    // Ability triggers, choose opponent's deck
+                    expect(context.player1).toHavePrompt('Reveal the top card of a deck');
+                    context.player1.clickPrompt('Opponent\'s deck');
+
+                    // Sneak Attack is revealed
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([context.sneakAttack]);
+                    context.player1.clickDone();
+
+                    // Choose yourself to play the card
+                    context.player1.clickPrompt('You');
+
+                    // Choose to play Sneak Attack for free
+                    expect(context.player1).toHavePassAbilityPrompt('Play Sneak Attack for free');
+                    context.player1.clickPrompt('Trigger');
+
+                    // Sneak Attack prompts to play a unit from hand with cost reduction
+                    expect(context.player1).toBeAbleToSelectExactly([context.bossk]);
+                    context.player1.clickCard(context.bossk);
+
+                    // Sneak Attack was free, Bossk cost 2 resources, opponent gets 2 credits
+                    expect(context.sneakAttack).toBeInZone('discard', context.player2);
+                    expect(context.bossk).toBeInZone('groundArena', context.player1);
+                    expect(context.player1.exhaustedResourceCount).toBe(2);
+                    expect(context.player2.credits).toBe(2);
+                });
+
+                it('revealed card cannot be played by chosen player due to play restrictions (Regional Governor)', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            spaceArena: ['vermillion#qiras-auction-house'],
+                            deck: ['battlefield-marine']
+                        },
+                        player2: {
+                            hand: ['regional-governor'],
+                            deck: ['desperado-freighter']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // P2 plays Regional Governor and names "Battlefield Marine"
+                    context.player1.passAction();
+                    context.player2.clickCard(context.regionalGovernor);
+                    context.player2.chooseListOption('Battlefield Marine');
+
+                    // P1 attacks with Vermillion
+                    context.player1.clickCard(context.vermillion);
+                    context.player1.clickCard(context.p2Base);
+
+                    // Ability triggers, choose your deck
+                    expect(context.player1).toHavePrompt('Reveal the top card of a deck');
+                    context.player1.clickPrompt('Your deck');
+
+                    // Battlefield Marine is revealed
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([context.battlefieldMarine]);
+                    context.player1.clickDone();
+
+                    // Choose yourself to play the card
+                    context.player1.clickPrompt('You');
+
+                    // P1 cannot play Battlefield Marine due to Regional Governor's restriction
+                    // The ability automatically skips the play step since it cannot be triggered
+                    // Card was not played, stays in deck, no credits created, it is P2's turn
+                    expect(context.battlefieldMarine).toBeInZone('deck', context.player1);
+                    expect(context.player2.credits).toBe(0);
+                    expect(context.player2).toBeActivePlayer();
+                });
+
+                it('revealed upgrade cannot be played because there are no valid targets in play', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            deck: ['the-darksaber'],
+                            // No non-vehicle units in play
+                            spaceArena: ['vermillion#qiras-auction-house'],
+                        },
+                        player2: {
+                            deck: ['battlefield-marine'],
+                            // No non-vehicle units in play
+                            spaceArena: ['desperado-freighter']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // Attack with Vermillion
+                    context.player1.clickCard(context.vermillion);
+                    context.player1.clickCard(context.p2Base);
+
+                    // Ability triggers, choose your deck
+                    expect(context.player1).toHavePrompt('Reveal the top card of a deck');
+                    context.player1.clickPrompt('Your deck');
+
+                    // The Darksaber is revealed
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([context.theDarksaber]);
+                    context.player1.clickDone();
+
+                    // Choose yourself to play the card
+                    context.player1.clickPrompt('You');
+
+                    // No valid targets for the upgrade, ability skips the play step
+                    // Card was not played, stays in deck, no credits created, it is P2's turn
+                    expect(context.theDarksaber).toBeInZone('deck', context.player1);
+                    expect(context.player2.credits).toBe(0);
+                    expect(context.player2).toBeActivePlayer();
+                });
+
+                it('revealed upgrade with friendly unit restrictions can be played on the chosen player\'s units', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            spaceArena: ['vermillion#qiras-auction-house'],
+                            groundArena: ['battlefield-marine'],
+                            deck: ['porg']
+                        },
+                        player2: {
+                            groundArena: ['wampa'],
+                            deck: ['darth-mauls-lightsaber'] // 3 Cost upgrade with "friendly unit" restriction
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // Attack with Vermillion
+                    context.player1.clickCard(context.vermillion);
+                    context.player1.clickCard(context.p2Base);
+
+                    // Ability triggers, choose opponent's deck
+                    expect(context.player1).toHavePrompt('Reveal the top card of a deck');
+                    context.player1.clickPrompt('Opponent\'s deck');
+
+                    // Darth Maul's Lightsaber is revealed
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([context.darthMaulsLightsaber]);
+                    context.player1.clickDone();
+
+                    // Choose yourself to play the card (P1 plays the upgrade from P2's deck)
+                    context.player1.clickPrompt('You');
+
+                    // Choose to play the upgrade for free
+                    expect(context.player1).toHavePassAbilityPrompt('Play Darth Maul\'s Lightsaber for free');
+                    context.player1.clickPrompt('Trigger');
+
+                    // Only P1's unit should be a valid target ("friendly" is relative to P1, who is playing the card)
+                    expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                    context.player1.clickCard(context.battlefieldMarine);
+
+                    // Upgrade is attached to P1's unit, P2 gets credits for the upgrade's cost
+                    expect(context.battlefieldMarine).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
+                    expect(context.player1.exhaustedResourceCount).toBe(0);
+                    expect(context.player2.credits).toBe(3); // Darth Maul's Lightsaber costs 3
+                });
+
+                it('revealed unit with piloting can be played as a unit or an upgrade when there are valid targets in play', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            spaceArena: ['vermillion#qiras-auction-house'],
+                            deck: ['porg']
+                        },
+                        player2: {
+                            deck: ['chewbacca#faithful-first-mate'] // 5 Cost unit with Piloting
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // Attack with Vermillion
+                    context.player1.clickCard(context.vermillion);
+                    context.player1.clickCard(context.p2Base);
+
+                    // Ability triggers, choose opponent's deck
+                    expect(context.player1).toHavePrompt('Reveal the top card of a deck');
+                    context.player1.clickPrompt('Opponent\'s deck');
+
+                    // Chewbacca is revealed
+                    expect(context.player1).toHaveExactViewableDisplayPromptCards([context.chewbacca]);
+                    context.player1.clickDone();
+
+                    // Choose yourself to play the card
+                    context.player1.clickPrompt('You');
+
+                    // Choose to play the card for free
+                    expect(context.player1).toHavePassAbilityPrompt('Play Chewbacca for free');
+                    context.player1.clickPrompt('Trigger');
+
+                    // Should see both unit and piloting play options
+                    expect(context.player1).toHaveExactPromptButtons(['Play Chewbacca', 'Play Chewbacca with Piloting']);
+
+                    // Play as a pilot upgrade
+                    context.player1.clickPrompt('Play Chewbacca with Piloting');
+
+                    // Vermillion is the only valid vehicle target
+                    expect(context.player1).toBeAbleToSelectExactly([context.vermillion]);
+                    context.player1.clickCard(context.vermillion);
+
+                    // Chewbacca is attached to Vermillion as a pilot, P2 gets credits
+                    expect(context.chewbacca).toBeAttachedTo(context.vermillion);
+                    expect(context.player1.exhaustedResourceCount).toBe(0);
+                    expect(context.player2.credits).toBe(5); // Chewbacca costs 5
+                });
             });
         });
     });
