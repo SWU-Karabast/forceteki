@@ -135,6 +135,10 @@ function populateMissingData(attributes, id) {
             break;
         case '6658095148': // Zeb Orrelios - Spectre Four
             attributes.title = 'Zeb Orrelios'; // Fix spelling
+            break;
+        case '3026579497': // Benthic Two Tubes - The War Has Just Begun
+            attributes.title = 'Benthic "Two Tubes"'; // Fix quotation characters
+            break;
     }
 
     // Plot cards from Secrets of Power
