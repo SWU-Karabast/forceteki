@@ -1,5 +1,5 @@
 import { OngoingEffect } from './OngoingEffect';
-import type { CardTypeFilter, ZoneFilter } from '../Constants';
+import type { CardTypeFilter, RelativePlayerFilter, ZoneFilter } from '../Constants';
 import { RelativePlayer, WildcardZoneName, WildcardCardType, EffectName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Contract from '../utils/Contract';
@@ -14,7 +14,7 @@ export class OngoingCardEffect extends OngoingEffect<Card> {
     public readonly targetsSourceOnly: boolean;
     public readonly targetZoneFilter: ZoneFilter;
     public readonly targetCardTypeFilter: CardTypeFilter[];
-    public readonly targetController: RelativePlayer;
+    public readonly targetController: RelativePlayerFilter;
     public declare matchTarget: Card | ((target: Card, context: AbilityContext) => boolean);
 
     public constructor(game: Game, source: Card, properties: IOngoingCardEffectProps, effect: OngoingEffectImpl<any>) {
