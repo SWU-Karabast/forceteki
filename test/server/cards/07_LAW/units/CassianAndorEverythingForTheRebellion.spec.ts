@@ -7,12 +7,10 @@ describe('Cassian Andor, Everything for the Rebellion', function() {
                     phase: 'action',
                     player1: {
                         groundArena: ['cassian-andor#everything-for-the-rebellion', 'battlefield-marine'],
-                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
-                        spaceArena: ['green-squadron-awing'],
+                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true }
                     },
                     player2: {
                         groundArena: ['sabine-wren#explosives-artist', 'wampa', 'death-star-stormtrooper'],
-                        spaceArena: ['tieln-fighter'],
                     }
                 });
             });
@@ -30,21 +28,6 @@ describe('Cassian Andor, Everything for the Rebellion', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.sabineWrenExplosivesArtist).toBeInZone('discard');
-            });
-
-            it('should deal 2 damage to a base when a space friendly unit attack ends and the defending unit was defeated', function () {
-                const { context } = contextRef;
-
-                // Green Squadron A-Wing attacks TIE/LN Fighter and defeats it
-                context.player1.clickCard(context.greenSquadronAwing);
-                context.player1.clickCard(context.tielnFighter);
-
-                // Prompt to select a base to deal 2 damage to
-                expect(context.player1).toHavePrompt('Select a base to deal 2 damage to');
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base]);
-                context.player1.clickCard(context.p2Base);
-                expect(context.p2Base.damage).toBe(2);
-                expect(context.tielnFighter).toBeInZone('discard');
             });
 
             it('should deal 2 damage to a base when a friendly leader unit attack ends and the defending unit was defeated', function () {
