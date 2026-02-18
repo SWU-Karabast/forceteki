@@ -14,7 +14,6 @@ export interface EnteredCardEntry {
     playedBy: GameObjectRef<Player>;
 }
 
-// there is a known issue where CardsEnteredPlayThisPhaseWatcher currently doesn't work with leaders
 @registerState()
 export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEntry> {
     public constructor(
