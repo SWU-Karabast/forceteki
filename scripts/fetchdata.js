@@ -136,9 +136,6 @@ function populateMissingData(attributes, id) {
         case '6658095148': // Zeb Orrelios - Spectre Four
             attributes.title = 'Zeb Orrelios'; // Fix spelling
             break;
-        case '3026579497': // Benthic Two Tubes - The War Has Just Begun
-            attributes.title = 'Benthic "Two Tubes"'; // Fix quotation characters
-            break;
     }
 
     // Plot cards from Secrets of Power
@@ -315,6 +312,11 @@ function filterValues(card) {
         internalName = internalName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '')
             .replace(/\s/g, '-');
+
+        // Ensure all card titles with quotes use the same type of quote character (e.g., 'Benthic "Two Tubes"' instead of 'Benthic “Two Tubes”')
+        filteredObj.title = filteredObj.title
+            .replace(/“|”/g, '"')
+            .replace(/‘|’/g, '\'');
 
         // keep original card for debug logging, will be removed before card is written to file
         delete card.attributes.variants;
