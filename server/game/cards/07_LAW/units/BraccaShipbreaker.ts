@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class BraccaShipbreaker extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bracca-shipbreaker-id',
+            id: '3984861140',
             internalName: 'bracca-shipbreaker'
         };
     }

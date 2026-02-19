@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class SwoopBikeMarauder extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'swoop-bike-marauder-id',
+            id: '3151374593',
             internalName: 'swoop-bike-marauder'
         };
     }

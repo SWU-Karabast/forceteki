@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class CavernAngelsXWing extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cavern-angels-xwing-id',
+            id: '5606781252',
             internalName: 'cavern-angels-xwing'
         };
     }

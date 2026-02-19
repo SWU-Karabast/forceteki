@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class GetawayFreighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '3545978399',
+            id: 'getaway-freighter-id',
             internalName: 'getaway-freighter'
         };
     }

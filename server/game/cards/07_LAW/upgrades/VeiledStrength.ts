@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class VeiledStrength extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: '7057086144',
+            id: 'veiled-strength-id',
             internalName: 'veiled-strength',
         };
     }
