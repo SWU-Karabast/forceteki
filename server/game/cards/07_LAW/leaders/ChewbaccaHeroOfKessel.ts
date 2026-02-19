@@ -11,7 +11,7 @@ import type { ICost } from '../../../core/cost/ICost';
 export default class ChewbaccaHeroOfKessel extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'chewbacca#hero-of-kessel-id',
+            id: '9839386296',
             internalName: 'chewbacca#hero-of-kessel',
         };
     }

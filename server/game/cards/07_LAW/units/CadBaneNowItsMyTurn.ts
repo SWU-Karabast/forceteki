@@ -7,7 +7,7 @@ import { TargetMode } from '../../../core/Constants';
 export default class CadBaneNowItsMyTurn extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cad-bane#now-its-my-turn-id',
+            id: '6583665254',
             internalName: 'cad-bane#now-its-my-turn',
         };
     }

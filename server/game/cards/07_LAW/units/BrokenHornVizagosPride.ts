@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class BrokenHornVizagosPride extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'broken-horn#vizagos-pride-id',
+            id: '9574762282',
             internalName: 'broken-horn#vizagos-pride'
         };
     }

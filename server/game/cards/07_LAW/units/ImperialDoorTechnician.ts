@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ImperialDoorTechnician extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'imperial-door-technician-id',
+            id: '6948319712',
             internalName: 'imperial-door-technician',
         };
     }

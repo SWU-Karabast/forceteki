@@ -6,7 +6,7 @@ import { CardType, RelativePlayer, WildcardRelativePlayer } from '../../../core/
 export default class HunterForHire extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'hunter-for-hire-id',
+            id: '8170738715',
             internalName: 'hunter-for-hire',
         };
     }

@@ -6,7 +6,7 @@ import { TargetMode } from '../../../core/Constants';
 export default class TheStrangerNoSurvivors extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-stranger#no-survivors-id',
+            id: '4725429312',
             internalName: 'the-stranger#no-survivors',
         };
     }
