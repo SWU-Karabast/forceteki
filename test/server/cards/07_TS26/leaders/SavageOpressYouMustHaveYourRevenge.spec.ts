@@ -9,7 +9,7 @@ describe('Savage Opress, You Must Have Your Revenge', function() {
                         groundArena: ['battlefield-marine', 'echo-base-defender'],
                     },
                     player2: {
-                        groundArena: ['reinforcement-walker']
+                        groundArena: ['reinforcement-walker', 'crafty-smuggler']
                     }
                 });
                 const { context } = contextRef;
@@ -17,8 +17,40 @@ describe('Savage Opress, You Must Have Your Revenge', function() {
                 expect(context.echoBaseDefender.hasSomeKeyword('overwhelm')).toBeTrue();
                 expect(context.battlefieldMarine.hasSomeKeyword('overwhelm')).toBeFalse();
                 expect(context.reinforcementWalker.hasSomeKeyword('overwhelm')).toBeFalse();
+                expect(context.craftySmuggler.hasSomeKeyword('overwhelm')).toBeFalse();
 
-                expect(context.player1).toBeActivePlayer();
+                context.player1.clickCard(context.echoBaseDefender);
+                context.player1.clickCard(context.craftySmuggler);
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should give the friendly unit with the most power temporarily from Surprise Strike Overwhelm', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['surprise-strike'],
+                        leader: 'savage-opress#you-must-have-your-revenge',
+                        groundArena: ['battlefield-marine', 'echo-base-defender'],
+                    },
+                    player2: {
+                        groundArena: ['reinforcement-walker', 'crafty-smuggler']
+                    }
+                });
+                const { context } = contextRef;
+
+                expect(context.echoBaseDefender.hasSomeKeyword('overwhelm')).toBeTrue();
+                expect(context.battlefieldMarine.hasSomeKeyword('overwhelm')).toBeFalse();
+                expect(context.reinforcementWalker.hasSomeKeyword('overwhelm')).toBeFalse();
+                expect(context.craftySmuggler.hasSomeKeyword('overwhelm')).toBeFalse();
+
+                context.player1.clickCard(context.surpriseStrike);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.craftySmuggler);
+                expect(context.p2Base.damage).toBe(4);
+
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should give more than one friendly unit Overwhelm', async function() {
@@ -44,7 +76,7 @@ describe('Savage Opress, You Must Have Your Revenge', function() {
         });
 
         describe('Savage\'s deployed ability', function() {
-            it('should give more than one friendly unit Overwhelm', async function() {
+            it('should give each friendly unit Overwhelm', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -53,7 +85,7 @@ describe('Savage Opress, You Must Have Your Revenge', function() {
                         spaceArena: ['cartel-spacer']
                     },
                     player2: {
-                        groundArena: ['reinforcement-walker']
+                        groundArena: ['reinforcement-walker', 'crafty-smuggler', 'secretive-sage']
                     }
                 });
                 const { context } = contextRef;
@@ -63,8 +95,19 @@ describe('Savage Opress, You Must Have Your Revenge', function() {
                 expect(context.battlefieldMarine.hasSomeKeyword('overwhelm')).toBeTrue();
                 expect(context.cartelSpacer.hasSomeKeyword('overwhelm')).toBeTrue();
                 expect(context.reinforcementWalker.hasSomeKeyword('overwhelm')).toBeFalse();
+                expect(context.craftySmuggler.hasSomeKeyword('overwhelm')).toBeFalse();
+                expect(context.secretiveSage.hasSomeKeyword('overwhelm')).toBeFalse();
 
-                expect(context.player1).toBeActivePlayer();
+                context.player1.clickCard(context.escortSkiff);
+                context.player1.clickCard(context.secretiveSage);
+                expect(context.p2Base.damage).toBe(2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.craftySmuggler);
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

@@ -15,20 +15,9 @@ export default class Brothers extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Attack with a unique unit. Prevent all combat damage that would be dealt to it for this attack',
-            initiateAttack: {
-                attackerCondition: (card) => card.unique,
-                attackerLastingEffects: {
-                    effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
-                        title: 'Prevent all combat damage that would be dealt to this unit',
-                        type: AbilityType.DamageModification,
-                        modificationType: DamageModificationType.PreventAll,
-                        damageOfType: DamageSourceType.Attack
-                    }),
-                }
-            },
-            then: {
-                title: 'Attack with another unique unit. Prevent all combat damage that would be dealt to it for this attack',
-                initiateAttack: {
+            optional: true,
+            targetResolver: {
+                immediateEffect: AbilityHelper.immediateEffects.attack({
                     attackerCondition: (card) => card.unique,
                     attackerLastingEffects: {
                         effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
@@ -38,8 +27,23 @@ export default class Brothers extends EventCard {
                             damageOfType: DamageSourceType.Attack
                         }),
                     }
+                })
+            },
+            then: (thenContext) => ({
+                title: 'Attack with another unique unit. Prevent all combat damage that would be dealt to it for this attack',
+                optional: true,
+                initiateAttack: {
+                    attackerCondition: (card) => card.unique && thenContext.target !== card,
+                    attackerLastingEffects: {
+                        effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
+                            title: 'Prevent all combat damage that would be dealt to this unit',
+                            type: AbilityType.DamageModification,
+                            modificationType: DamageModificationType.PreventAll,
+                            damageOfType: DamageSourceType.Attack
+                        }),
+                    }
                 }
-            }
+            })
         });
     }
 }
