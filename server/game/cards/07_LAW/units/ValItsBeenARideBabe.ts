@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class ValItsBeenARideBabe extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'val#its-been-a-ride-babe-id',
+            id: '3075365866',
             internalName: 'val#its-been-a-ride-babe',
         };
     }

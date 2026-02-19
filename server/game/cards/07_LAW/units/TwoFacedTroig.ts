@@ -5,7 +5,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 export default class TwoFacedTroig extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'twofaced-troig-id',
+            id: '6703132790',
             internalName: 'twofaced-troig',
         };
     }
