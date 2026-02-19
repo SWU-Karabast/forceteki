@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class Incapacitate extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'incapacitate-id',
+            id: '3925532730',
             internalName: 'incapacitate',
         };
     }

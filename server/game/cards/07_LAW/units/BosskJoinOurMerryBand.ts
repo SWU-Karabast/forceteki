@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class BosskJoinOurMerryBand extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bossk#join-our-merry-band-id',
+            id: '3310848830',
             internalName: 'bossk#join-our-merry-band'
         };
     }
