@@ -12,6 +12,7 @@ import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
+import * as AttackHelpers from '../attack/AttackHelpers';
 
 export interface ITriggeredAbillityState extends ICardAbilityState {
     isRegistered: boolean;
@@ -54,6 +55,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
 
     private readonly mustChangeGameState: GameStateChangeRequired;
+    private readonly effectCondition?: (context: TriggeredAbilityContext) => boolean;
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
@@ -97,6 +99,12 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
             : GameStateChangeRequired.MustFullyOrPartiallyResolve;
+
+        if ('attackerMustSurvive' in properties) {
+            const unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+            this.effectCondition = (context: TriggeredAbilityContext) =>
+                AttackHelpers.attackerSurvived(context.event.attack, unitsDefeatedThisPhaseWatcher);
+        }
     }
 
     protected override setupDefaultState(): void {
@@ -197,7 +205,19 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     }
 
     public override checkGameActionsForPotential(context) {
+        if (this.effectCondition && !this.effectCondition(context)) {
+            return false;
+        }
+
         return this.immediateEffect.hasLegalTarget(context, {}, this.mustChangeGameState);
+    }
+
+    public override canResolveSomeTarget(context: TriggeredAbilityContext): boolean {
+        if (this.effectCondition && !this.effectCondition(context)) {
+            return false;
+        }
+
+        return super.canResolveSomeTarget(context);
     }
 
     protected override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {

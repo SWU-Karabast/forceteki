@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena, MoveZoneDestination } from '../../Constants';
-import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StandardTriggeredAbilityType, StatType, TargetMode, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
+import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StandardTriggeredAbilityType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import * as Contract from '../../utils/Contract';
 import type { IInPlayCard, IInPlayCardState, InPlayCardConstructor } from '../baseClasses/InPlayCard';
@@ -48,9 +48,6 @@ import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration'
 import type Clone from '../../../cards/03_TWI/units/Clone';
 import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
-import { ConditionalSystem } from '../../../gameSystems/ConditionalSystem';
-import * as AttackHelpers from '../../../core/attack/AttackHelpers';
-import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -473,95 +470,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         private addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
             const when: WhenTypeOrStandard = { [EventName.OnAttackEnd]: (event, context) => event.attack.attacker === context.source };
-
-            if (properties.attackerMustSurvive) {
-                this.addAttackerMustSurviveCondition(properties);
-            }
-
             registar.addTriggeredAbility({ ...properties, when });
-        }
-
-        private addAttackerMustSurviveCondition(properties: Omit<IWhenAttackEndsAbilityProps<this>, 'when' | 'aggregateWhen'>) {
-            Contract.assertIsNullLike(properties.targetResolvers, 'attackerMustSurvive is not currently supported for abilities with multiple target resolvers, you must manually add the condition to the relevant resolver(s)');
-
-
-            if (properties.immediateEffect) {
-                this.addAttackerMustSurviveConditionToImmediateEffect(properties);
-                return;
-            }
-            if (properties.targetResolver) {
-                this.addAttackerMustSurviveConditionToTargetResolver(properties);
-                return;
-            }
-
-            Contract.fail('attackerMustSurvive condition could not be applied to ability');
-        }
-
-        private buildAttackerMustSurviveCondition() {
-            return (context: TriggeredAbilityContext<this>) =>
-                AttackHelpers.attackerSurvived(
-                    context.event.attack,
-                    this._unitsDefeatedThisPhaseWatcher
-                );
-        }
-
-        private addAttackerMustSurviveConditionToImmediateEffect(properties: Omit<IWhenAttackEndsAbilityProps<this>, 'when' | 'aggregateWhen'>) {
-            Contract.assertNotNullLike(properties.immediateEffect, `Ability ${properties.title} is missing an immediate effect to apply the attackerMustSurvive condition to`);
-
-            const attackerMustSurviveCondition = this.buildAttackerMustSurviveCondition();
-            properties.immediateEffect = new ConditionalSystem<TriggeredAbilityContext<this>>({
-                condition: (context) => attackerMustSurviveCondition(context),
-                onTrue: properties.immediateEffect
-            });
-        }
-
-        private addAttackerMustSurviveConditionToTargetResolver(properties: Omit<IWhenAttackEndsAbilityProps<this>, 'when' | 'aggregateWhen'>) {
-            Contract.assertNotNullLike(properties.targetResolver, `Ability ${properties.title} is missing a target resolver to apply the attackerMustSurvive condition to`);
-
-            const attackerMustSurviveCondition = this.buildAttackerMustSurviveCondition();
-
-            switch (properties.targetResolver.mode) {
-                case TargetMode.DropdownList:
-                case TargetMode.Select:
-                case TargetMode.SelectUnless:
-                    if ('condition' in properties.targetResolver) {
-                        const originalCondition = properties.targetResolver.condition;
-                        properties.targetResolver.condition = (context) =>
-                            attackerMustSurviveCondition(context) && originalCondition(context);
-                    } else {
-                        properties.targetResolver.condition = (context) =>
-                            attackerMustSurviveCondition(context);
-                    }
-                    return;
-
-                case TargetMode.MultiplePlayers:
-                case TargetMode.Player:
-                    // TODO THIS PR: implement this
-                    Contract.fail('attackerMustSurvive condition is not currently supported for player-targeting resolvers, you must manually add the condition to the relevant resolver(s)');
-
-                case TargetMode.BetweenVariable:
-                case TargetMode.Exactly:
-                case TargetMode.ExactlyVariable:
-                case TargetMode.MaxStat:
-                case TargetMode.Single:
-                case TargetMode.Unlimited:
-                case TargetMode.UpTo:
-                case TargetMode.UpToVariable:
-                case null:
-                case undefined:
-                    if ('cardCondition' in properties.targetResolver) {
-                        const originalCondition = properties.targetResolver.cardCondition;
-                        properties.targetResolver.cardCondition = (card, context) =>
-                            attackerMustSurviveCondition(context) && originalCondition(card, context);
-                    } else {
-                        properties.targetResolver.cardCondition = (_card, context) =>
-                            attackerMustSurviveCondition(context);
-                    }
-                    return;
-
-                default:
-                    Contract.fail(`Unsupported target mode '${(properties.targetResolver as any).mode}' for attackerMustSurvive condition`);
-            }
         }
 
         private addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'canBeTriggeredBy'>): void {

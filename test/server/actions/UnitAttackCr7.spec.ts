@@ -549,7 +549,7 @@ describe('Basic attack (CR7 update)', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated', async function () {
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (Qui-Gon leader)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 attackRulesVersion: 'cr7',
@@ -567,6 +567,28 @@ describe('Basic attack (CR7 update)', function() {
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.quigonJinn.exhausted).toBe(true);
             expect(context.quigonJinn).toBeInZone('base');
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (SOR Leia leader)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    leader: { card: 'leia-organa#alliance-general', deployed: true, damage: 5 },
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.leiaOrgana);
+            context.player1.clickCard(context.wampa);
+            expect(context.leiaOrgana.exhausted).toBe(true);
+            expect(context.leiaOrgana).toBeInZone('base');
             expect(context.player2).toBeActivePlayer();
         });
     });
