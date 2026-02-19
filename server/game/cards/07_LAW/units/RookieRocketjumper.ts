@@ -12,11 +12,11 @@ export default class RookieRocketjumper extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Pay 1 resource to deal 2 damage to a ground unit',
+            title: 'Pay 1 resource to give a Shield token to this unit',
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.payResources((context) => ({ amount: 1, target: context.player })),
             ifYouDo: {
-                title: 'Deal 2 damage to a ground unit',
+                title: 'Give a Shield token to this unit',
                 immediateEffect: abilityHelper.immediateEffects.giveShield((context) => ({
                     target: context.source
                 })),
