@@ -6,7 +6,7 @@ import { Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class ZuckussDangerous extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'zuckuss#dangerous-id',
+            id: '8193186349',
             internalName: 'zuckuss#dangerous',
         };
     }

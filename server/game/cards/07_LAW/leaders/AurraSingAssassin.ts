@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class AurraSingAssassin extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'aurra-sing#assassin-id',
+            id: '6840600155',
             internalName: 'aurra-sing#assassin',
         };
     }
