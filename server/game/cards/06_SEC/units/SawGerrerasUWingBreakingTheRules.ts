@@ -11,7 +11,7 @@ export default class SawGerrerasUWingBreakingTheRules extends NonLeaderUnitCard 
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Attack with another Aggression unit',
             optional: true,
             initiateAttack: {

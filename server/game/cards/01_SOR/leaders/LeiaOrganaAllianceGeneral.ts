@@ -29,7 +29,7 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Attack with another Rebel unit',
             optional: true,
             initiateAttack: {

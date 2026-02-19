@@ -40,7 +40,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Ready 2 resources',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {

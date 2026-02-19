@@ -43,7 +43,7 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Play an upgrade from your discard pile on a friendly non-Vehicle unit. It costs 1 resource less.',
             optional: true,
             targetResolver: {

@@ -20,7 +20,7 @@ export default class FettsFiresprayInPursuit extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'If the defending unit was defeated, create a Credit token',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.unitsDefeatedThisPhaseWatcher),

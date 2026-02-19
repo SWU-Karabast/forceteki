@@ -28,7 +28,7 @@ export default class ColonelYularenThisIsWhyWePlan extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Attack with another unit that costs 4 or less',
             optional: true,
             initiateAttack: {

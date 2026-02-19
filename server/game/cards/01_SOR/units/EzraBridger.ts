@@ -13,7 +13,7 @@ export default class EzraBridger extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Look at the top card of your deck.',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => {
                 const topCardOfDeck = context.player.getTopCardOfDeck();

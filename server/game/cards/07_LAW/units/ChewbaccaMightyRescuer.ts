@@ -20,7 +20,7 @@ export default class ChewbaccaMightyRescuer extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'If the defending unit was defeated, give an Experience token to Chewbacca and heal 3 damage from him',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.unitsDefeatedThisPhaseWatcher),

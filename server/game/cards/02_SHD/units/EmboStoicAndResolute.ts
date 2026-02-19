@@ -21,7 +21,7 @@ export default class EmboStoicAndResolute extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackEndAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'If the defender was defeated, heal up to 2 damage from a unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.unitsDefeatedThisPhaseWatcher),

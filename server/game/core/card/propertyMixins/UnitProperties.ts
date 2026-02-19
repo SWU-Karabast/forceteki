@@ -74,7 +74,6 @@ type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extend
 export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardAbilityRegistrar<T> {
     addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
     addOnDefenseAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
-    addOnAttackEndAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
     addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<T>, 'canBeTriggeredBy'>): void;
     addCoordinateAbility(properties: IAbilityPropsWithType<T>): void;
     addPilotingAbility(properties: IAbilityPropsWithType<T>): void;
@@ -82,6 +81,7 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addPilotingGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<T>): void;
     addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithGainCondition<T, IUnitCard>): void;
     addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<T, IUnitCard>): void;
+    addWhenAttackEndsAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
 }
 
 export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
@@ -428,7 +428,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 ...registrar,
                 addOnAttackAbility: (properties) => this.addOnAttackAbility(properties, registrar),
                 addOnDefenseAbility: (properties) => this.addOnDefenseAbility(properties, registrar),
-                addOnAttackEndAbility: (properties) => this.addOnAttackEndAbility(properties, registrar),
+                addWhenAttackEndsAbility: (properties) => this.addWhenAttackEndsAbility(properties, registrar),
                 addBountyAbility: (properties) => this.addBountyAbility(properties),
                 addCoordinateAbility: (properties) => this.addCoordinateAbility(properties),
                 addPilotingAbility: (properties) => this.addPilotingAbility(properties),
@@ -465,7 +465,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             registar.addTriggeredAbility({ ...properties, when });
         }
 
-        private addOnAttackEndAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
+        private addWhenAttackEndsAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
             const when: WhenTypeOrStandard = { [EventName.OnAttackEnd]: (event, context) => event.attack.attacker === context.source };
             registar.addTriggeredAbility({ ...properties, when });
         }
