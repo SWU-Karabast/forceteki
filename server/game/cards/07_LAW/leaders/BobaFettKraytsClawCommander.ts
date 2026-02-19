@@ -11,7 +11,7 @@ export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'boba-fett#krayts-claw-commander-id',
+            id: '4781649615',
             internalName: 'boba-fett#krayts-claw-commander',
         };
     }

@@ -10,7 +10,7 @@ export default class HoundsToothHuntersApproach extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'hounds-tooth#hunters-approach-id',
+            id: '8331101999',
             internalName: 'hounds-tooth#hunters-approach',
         };
     }
