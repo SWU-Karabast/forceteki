@@ -12,11 +12,12 @@ describe('Watchful', function() {
                     },
                     player2: {
                         groundArena: ['imperial-dark-trooper'],
+                        deck: ['daring-raid', 'open-fire', 'overwhelming-barrage', 'takedown', 'superlaser-blast']
                     }
                 });
             });
 
-            it('Attacking lets you look at the top card of the deck and decide whether to put it on the bottom or top of deck.', function () {
+            it('Attacking lets you look at the top card of the deck and decide whether to put it on the bottom or top of deck, choosing bottom', function () {
                 const { context } = contextRef;
                 const preSwapDeck = context.player1.deck.concat();
 
@@ -27,6 +28,8 @@ describe('Watchful', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('You');
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'bottom');
@@ -37,7 +40,7 @@ describe('Watchful', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('Attacking lets you look at the top card of the deck and decide whether to put it on the bottom or top of deck.', function () {
+            it('Attacking lets you look at the top card of the deck and decide whether to put it on the bottom or top of deck choosing top', function () {
                 const { context } = contextRef;
                 const preSwapDeck = context.player1.deck.concat();
 
@@ -48,12 +51,59 @@ describe('Watchful', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('You');
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'top');
 
                 expect(context.player1.deck.length).toBe(5);
                 expect(context.player1.deck).toEqualArray(preSwapDeck);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('Attacking lets you look at the top card of the opponents deck and decide whether to put it on the bottom or top of deck, choosing top', function () {
+                const { context } = contextRef;
+                const preSwapDeck = context.player2.deck.concat();
+
+                context.player1.clickCard(context.watchful);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.cartelInterceptor, context.imperialDarkTrooper]);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('Opponent');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daringRaid]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+                context.player1.clickDisplayCardPromptButton(context.daringRaid.uuid, 'top');
+
+                expect(context.player2.deck.length).toBe(5);
+                expect(context.player2.deck).toEqualArray(preSwapDeck);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('Attacking lets you look at the top card of the opponent deck and decide whether to put it on the bottom or top of deck, choosing bottom', function () {
+                const { context } = contextRef;
+                const preSwapDeck = context.player2.deck.concat();
+
+                context.player1.clickCard(context.watchful);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.cartelInterceptor, context.imperialDarkTrooper]);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('Opponent');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daringRaid]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+                context.player1.clickDisplayCardPromptButton(context.daringRaid.uuid, 'bottom');
+
+                expect(context.player2.deck.length).toBe(5);
+                expect(context.player2.deck[0]).toBe(preSwapDeck[1]);
+                expect(context.player2.deck[4]).toBe(preSwapDeck[0]);
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -69,6 +119,7 @@ describe('Watchful', function() {
                     },
                     player2: {
                         groundArena: ['battlefield-marine'],
+                        deck: [],
                     }
                 });
             });
@@ -82,6 +133,7 @@ describe('Watchful', function() {
 
                 context.player1.clickCard(context.imperialDarkTrooper);
                 context.player1.clickCard(context.p2Base);
+                context.player1.clickPrompt('You');
 
                 expect(context.player1.deck.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();
