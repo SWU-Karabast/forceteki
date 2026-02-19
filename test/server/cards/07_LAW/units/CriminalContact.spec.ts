@@ -16,7 +16,7 @@ describe('Criminal Contact', function () {
                 context.player1.clickCard(context.criminalContact);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resource to create a Credit token');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to create a Credit token');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
@@ -30,7 +30,7 @@ describe('Criminal Contact', function () {
                 context.player1.clickCard(context.criminalContact);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resource to create a Credit token');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to create a Credit token');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
@@ -53,7 +53,7 @@ describe('Criminal Contact', function () {
 
             context.player1.clickCard(context.criminalContact);
             context.player1.clickCard(context.p2Base);
-            expect(context.player1).toHavePassAbilityPrompt('Pay 2 resource to create a Credit token');
+            expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to create a Credit token');
             context.player1.clickPrompt('Trigger');
             expect(context.player1).toHavePrompt('Use Credit tokens to pay for Criminal Contact\'s effect');
             context.player1.clickPrompt('Use 1 Credit');

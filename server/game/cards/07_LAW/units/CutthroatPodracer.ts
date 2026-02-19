@@ -6,7 +6,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class CutthroatPodracer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cutthroat-podracer-id',
+            id: '7742850323',
             internalName: 'cutthroat-podracer'
         };
     }

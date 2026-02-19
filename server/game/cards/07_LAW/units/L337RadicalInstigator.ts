@@ -8,7 +8,7 @@ import { Trait } from '../../../core/Constants';
 export default class L337RadicalInstigator extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'l337#radical-instigator-id',
+            id: '7958059435',
             internalName: 'l337#radical-instigator',
         };
     }
