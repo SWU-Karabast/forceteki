@@ -19,7 +19,7 @@ describe('Tobias Beckett, People are Predictable', function() {
 
                 context.player1.clickCard(context.tobiasBeckett);
 
-                expect(context.player1).toHavePrompt('Give control of a friendly unit to create a Credit token');
+                expect(context.player1).toHavePrompt('Choose a friendly unit. Opponent takes control of it. If they do, create a Credit token.');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.yoda, context.awing]);
                 context.player1.clickCard(context.yoda);
 

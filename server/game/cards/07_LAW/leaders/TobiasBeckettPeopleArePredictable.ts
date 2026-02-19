@@ -20,6 +20,7 @@ export default class TobiasBeckettPeopleArePredictable extends LeaderUnitCard {
             title: 'Give control of a friendly unit to create a Credit token',
             cost: [abilityHelper.costs.exhaustSelf()],
             targetResolver: {
+                activePromptTitle: 'Choose a friendly unit. Opponent takes control of it. If they do, create a Credit token.',
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.takeControlOfUnit((context) => ({
