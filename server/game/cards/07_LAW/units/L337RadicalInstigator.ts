@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { Card } from '../../../core/card/Card';
 import * as Contract from '../../../core/utils/Contract';
-import { Trait } from '../../../core/Constants';
+import { Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class L337RadicalInstigator extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -21,6 +21,7 @@ export default class L337RadicalInstigator extends NonLeaderUnitCard {
                 searchCount: 10,
                 selectCount: 10,
                 canChooseFewer: true,
+                playAsType: WildcardCardType.Unit,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Droid),
                 multiSelectCondition: (card, currentlySelectedCards) => this.costSum(currentlySelectedCards.concat(card)) <= 5
             })
