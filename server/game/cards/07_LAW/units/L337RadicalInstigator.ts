@@ -15,7 +15,7 @@ export default class L337RadicalInstigator extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 10 cards of your deck for any number of Droids units with combined cost 5 or less and play each of them for free',
+            title: 'Search the top 10 cards of your deck for any number of Droid units with combined cost 5 or less and play each of them for free',
             immediateEffect: abilityHelper.immediateEffects.playMultipleCardsFromDeck({
                 activePromptTitle: 'Choose any Droid units with combined cost 5 or less to play for free',
                 searchCount: 10,
