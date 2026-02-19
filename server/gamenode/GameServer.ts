@@ -150,6 +150,7 @@ export class GameServer {
     private readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
+    private readonly dailyActiveUserIds = new Set<string>();
     public swuStatsTokenMapping = new Map<string, ISwuStatsToken>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
@@ -361,6 +362,11 @@ export class GameServer {
                 this.logPlayerStats();
                 this.logGCStats();
             }, 30000);
+
+            // emit daily active user count and reset every 24 hours
+            setInterval(() => {
+                this.logAndResetDailyActiveUsers();
+            }, 86_400_000); // 24 hours
         }
     }
 
@@ -374,20 +380,35 @@ export class GameServer {
             }
         });
 
-        app.post('/api/spectate-game', (req, res, next) => {
+        app.post('/api/spectate-game', this.buildAuthMiddleware('spectate-game'), (req, res, next) => {
             try {
-                const { gameId, user } = req.body;
+                const { gameId } = req.body;
+                const user = req.user as User;
                 const lobby = this.lobbies.get(gameId);
+
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (spectate-game): Anonymous user ${user.getId()} is attempting to spectate a game.`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to spectate game.'
+                    });
+                }
+
                 // if they are in a game already we give them 403 forbidden
-                if (!this.canUserJoinNewLobby(user.id)) {
-                    logger.error(`GameServer (spectate-game): User ${user.id} attempted to spectate a game while playing a game`);
+                if (!this.canUserJoinNewLobby(user.getId())) {
+                    logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game while playing a game`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a game'
                     });
                 }
                 if (!lobby || !lobby.hasOngoingGame() || lobby.isPrivate) {
-                    logger.error(`GameServer (spectate-game): User ${user.id} attempted to spectate a game that does not exist or is set to private`);
+                    logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game that does not exist or is set to private`);
                     return res.status(404).json({
                         success: false,
                         message: 'Game not found or does not allow spectators'
@@ -395,7 +416,7 @@ export class GameServer {
                 }
 
                 // Register this user as a spectator for the game
-                this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Spectator });
+                this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Spectator });
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer (spectate-game) Server error: ', err);
@@ -976,6 +997,11 @@ export class GameServer {
                 const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
                 const user = req.user;
 
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
@@ -1037,6 +1063,11 @@ export class GameServer {
                 const { lobbyId } = req.body;
                 const user = req.user;
 
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a different lobby while already being in a lobby`);
                     return res.status(403).json({
@@ -1095,6 +1126,12 @@ export class GameServer {
             try {
                 const { format, gamesToWinMode, deck } = req.body;
                 const user = req.user;
+
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 // check if user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
@@ -1573,6 +1610,11 @@ export class GameServer {
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
         // 0. If user is spectator
         if (isSpectator) {
+            if (user.isAnonymousUser()) {
+                logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect as spectator to a lobby, disconnecting`);
+                ioSocket.disconnect();
+                return Promise.resolve();
+            }
             // Check if user is registered as a spectator
             if (!lobbyUserEntry || lobbyUserEntry.role !== UserRole.Spectator) {
                 logger.warn(`GameServer: User ${user.getId()} attempted to connect as spectator but is not registered in any lobby, disconnecting`);
@@ -2088,6 +2130,12 @@ export class GameServer {
         } catch (error) {
             logger.error(`Error logging player stats: ${error}`);
         }
+    }
+
+    private logAndResetDailyActiveUsers(): void {
+        const count = this.dailyActiveUserIds.size;
+        logger.info(`[DAU] ${count} unique users in the last 24 hours`, { dailyActiveUserCount: count });
+        this.dailyActiveUserIds.clear();
     }
 
     /**

@@ -10,6 +10,7 @@ import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, undoArray } from '../GameObjectUtils';
+import { AttackRulesVersion } from '../attack/AttackFlow';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
@@ -265,8 +266,14 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         return anyEffectRemoved;
     }
 
-    private onAttackCompleted() {
+    public unregisterOnAttackEffects() {
         this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfAttack);
+    }
+
+    private onAttackCompleted() {
+        if (this.game.attackRulesVersion === AttackRulesVersion.CR6) {
+            this.unregisterOnAttackEffects();
+        }
     }
 
     private onPhaseEnded() {
