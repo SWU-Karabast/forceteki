@@ -25,7 +25,7 @@ export default class VermillionQirasAuctionHouse extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         // TSTODO: This wacky ability will be even wackier in Twin Suns
-        registrar.addOnAttackCompletedAbility({
+        registrar.addOnAttackEndAbility({
             title: 'Reveal the top card of a deck',
             targetResolver: {
                 activePromptTitle: 'Reveal the top card of a deck',

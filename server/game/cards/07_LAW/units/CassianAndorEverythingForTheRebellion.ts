@@ -24,7 +24,7 @@ export default class CassianAndorEverythingForTheRebellion extends NonLeaderUnit
         registrar.addTriggeredAbility({
             title: 'If the defending unit was defeated, deal 2 damage to a base',
             when: {
-                onAttackCompleted: (event, context) =>
+                onAttackEnd: (event, context) =>
                     event.attack.attacker.controller === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional(() => ({

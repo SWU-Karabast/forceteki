@@ -17,7 +17,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
             title: 'Search the top 8 cards of your deck for a Droid unit, reveal it, and draw it. If it costs 2 or less, you may play it for free.',
             when: {
                 whenPlayed: true,
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source
+                onAttackEnd: (event, context) => event.attack.attacker === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,

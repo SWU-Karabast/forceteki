@@ -16,7 +16,7 @@ export default class CaptainRexIntoTheFirefight extends NonLeaderUnitCard {
             title: 'Give this unit and an enemy unit Sentinel for this phase',
             when: {
                 whenPlayed: true,
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source,
+                onAttackEnd: (event, context) => event.attack.attacker === context.source,
             },
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.forThisPhaseCardEffect({

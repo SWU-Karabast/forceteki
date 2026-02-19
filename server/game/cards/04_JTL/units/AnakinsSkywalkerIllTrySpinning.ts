@@ -16,7 +16,7 @@ export default class AnakinsSkywalkerIllTrySpinning extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Return this upgrade to its owner\'s hand',
             when: {
-                onAttackCompleted: (event, context) => event.attack.attacker === context.source.parentCard,
+                onAttackEnd: (event, context) => event.attack.attacker === context.source.parentCard,
             },
             targetResolver: {
                 mode: TargetMode.Select,

@@ -48,7 +48,7 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackCompletedAbility({
+        registrar.addOnAttackEndAbility({
             title: 'Attack with another unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, defeat it.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => AttackHelpers.attackerSurvived(
