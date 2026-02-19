@@ -412,7 +412,7 @@ export class Lobby {
             : `https://karabast.net/lobby?lobbyId=${this._id}`;
     }
 
-    private updateUserLastActivity(id: string): void {
+    private updateUserLastActivity(id: string, resetTimer = true): void {
         // if we received a message we know the user is connected
         this.getUser(id).state = 'connected';
 
@@ -420,7 +420,7 @@ export class Lobby {
         this.userLastActivity.set(id, now);
 
         if (this.game) {
-            this.game.onPlayerAction(id);
+            this.game.onPlayerAction(id, resetTimer);
         }
     }
 
@@ -551,7 +551,7 @@ export class Lobby {
             this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
         }
 
-        this.updateUserLastActivity(user.getId());
+        this.updateUserLastActivity(user.getId(), false);
 
         // if the game is already going, send lobby and game state and stop here
         if (this.game) {
@@ -1424,7 +1424,7 @@ export class Lobby {
                 return;
             }
 
-            this.updateUserLastActivity(socket.user.getId());
+            this.updateUserLastActivity(socket.user.getId(), false);
 
             // this command is a no-op since we reset the timer just above
             if (command === 'resetActionTimer') {

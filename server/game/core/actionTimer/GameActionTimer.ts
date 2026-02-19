@@ -47,10 +47,29 @@ export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
         }
 
         this.start(this.timerOverrideValueSeconds);
-        this.lastPlayerActionId = this.player.lastActionId;
     }
 
-    protected override onStart(): void {
+    public override start(overrideTimeLimitSeconds?: number): void {
+        super.start(overrideTimeLimitSeconds);
+        this.updateActionTrackingInfo();
+    }
+
+    public override resume(): void {
+        super.resume();
+        this.updateActionTrackingInfo();
+    }
+
+    public override stop(): void {
+        super.stop();
+        this.resetActionTrackingInfo();
+    }
+
+    public override pause(): void {
+        super.pause();
+        this.resetActionTrackingInfo();
+    }
+
+    private updateActionTrackingInfo(): void {
         this.activeUiPromptId = this.game.getCurrentOpenPrompt()?.uuid;
 
         // Just log an error to avoid breaking the game
@@ -61,7 +80,7 @@ export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
         this.lastPlayerActionId = this.player.lastActionId;
     }
 
-    protected override onStop(): void {
+    private resetActionTrackingInfo(): void {
         this.lastPlayerActionId = null;
         this.activeUiPromptId = null;
     }
