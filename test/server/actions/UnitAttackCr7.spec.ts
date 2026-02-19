@@ -548,5 +548,26 @@ describe('Basic attack (CR7 update)', function() {
             // No post-attack trigger, it is now P2's turn
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    leader: { card: 'quigon-jinn#student-of-the-living-force', deployed: true, damage: 6 }
+                },
+                player2: {
+                    groundArena: ['battlefield-marine', 'consular-security-force'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.quigonJinn);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.quigonJinn.exhausted).toBe(true);
+            expect(context.quigonJinn).toBeInZone('base');
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
