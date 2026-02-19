@@ -18,6 +18,8 @@ describe('Tobias Beckett, People are Predictable', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.tobiasBeckett);
+
+                expect(context.player1).toHavePrompt('Give control of a friendly unit to create a Credit token');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.yoda, context.awing]);
                 context.player1.clickCard(context.yoda);
 
@@ -73,7 +75,7 @@ describe('Tobias Beckett, People are Predictable', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.tobiasBeckett);
-                context.player1.clickPrompt('Choose a friendly unit. An opponent takes control of it. If they do, create a Credit token.');
+                context.player1.clickPrompt('Give control of a friendly unit to create a Credit token');
                 context.player1.clickCard(context.wampa);
 
                 context.player2.clickCard(context.chooseSides);
@@ -102,7 +104,6 @@ describe('Tobias Beckett, People are Predictable', function() {
                 expect(context.player1).toHavePrompt('Defeat any number of units you own but don\'t control. For each unit defeated this way, create a Credit token and draw a card.');
                 // cannot select rey & awing (own & control) or battlefield marine (control but do not own)
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.gungi, context.atst]);
-                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);
@@ -143,7 +144,7 @@ describe('Tobias Beckett, People are Predictable', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.tobiasBeckett);
-                context.player1.clickPrompt('Choose a friendly unit. An opponent takes control of it. If they do, create a Credit token.');
+                context.player1.clickPrompt('Give control of a friendly unit to create a Credit token');
                 context.player1.clickCard(context.wampa);
 
                 context.player2.clickCard(context.chooseSides);
@@ -172,7 +173,6 @@ describe('Tobias Beckett, People are Predictable', function() {
                 expect(context.player1).toHavePrompt('Defeat any number of units you own but don\'t control. For each unit defeated this way, create a Credit token and draw a card.');
                 // cannot select rey & awing (own & control) or battlefield marine (control but do not own)
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.gungi, context.atst]);
-                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);
@@ -210,7 +210,7 @@ describe('Tobias Beckett, People are Predictable', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.tobiasBeckett);
-                context.player1.clickPrompt('Choose a friendly unit. An opponent takes control of it. If they do, create a Credit token.');
+                context.player1.clickPrompt('Give control of a friendly unit to create a Credit token');
                 context.player1.clickCard(context.wampa);
 
                 context.player2.clickCard(context.chooseSides);
@@ -239,7 +239,6 @@ describe('Tobias Beckett, People are Predictable', function() {
                 expect(context.player1).toHavePrompt('Defeat any number of units you own but don\'t control. For each unit defeated this way, create a Credit token and draw a card.');
                 // cannot select rey & awing (own & control) or battlefield marine (control but do not own)
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.gungi, context.atst]);
-                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.wampa);
@@ -320,9 +319,6 @@ describe('Tobias Beckett, People are Predictable', function() {
                 context.player1.clickCard(context.tobiasBeckett);
                 context.player1.clickPrompt('Deploy Tobias Beckett');
 
-                expect(context.player1).toHavePassAbilityPrompt('Defeat any number of units you own but don\'t control. For each unit defeated this way, create a Credit token and draw a card.');
-                context.player1.clickPrompt('Trigger');
-
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.credits).toBe(0);
                 expect(context.superlaserTechnician).toBeInZone('deck', context.player1);
@@ -343,8 +339,25 @@ describe('Tobias Beckett, People are Predictable', function() {
                 context.player1.clickCard(context.tobiasBeckett);
                 context.player1.clickPrompt('Deploy Tobias Beckett');
 
-                expect(context.player1).toHavePassAbilityPrompt('Defeat any number of units you own but don\'t control. For each unit defeated this way, create a Credit token and draw a card.');
-                context.player1.clickPrompt('Trigger');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.credits).toBe(0);
+            });
+
+            it('should defeat any number of unit you own but do not control. For each of defeated unit, create Credit token and draw a card (no friendly unit)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'tobias-beckett#people-are-predictable',
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tobiasBeckett);
+                context.player1.clickPrompt('Deploy Tobias Beckett');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.credits).toBe(0);
