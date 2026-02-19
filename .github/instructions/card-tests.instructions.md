@@ -257,12 +257,100 @@ expect(context.player1.exhaustedResourceCount).toBe(0);
 
 ### Testing when an ability has no effect (fizzles)
 
-When an ability fizzles (i.e., does not trigger, does not resolve, or resolves with no effect), the game proceeds without prompts:
+When an ability fizzles (i.e., does not trigger, does not resolve, or resolves with no effect), the behavior depends on the ability type:
+
+**On-attack abilities** that fizzle are skipped silently with no prompt:
 
 ```typescript
+// Attack triggers on-attack ability, but it fizzles - no prompt shown
+context.player1.clickCard(context.attacker);
+context.player1.clickCard(context.p2Base);
+
 // No further prompts, immediately opponent's turn
 expect(context.player2).toBeActivePlayer();
 ```
+
+**Action abilities** that fizzle show a "no effect" confirmation prompt:
+
+```typescript
+// Use ability that will have no effect
+context.player1.clickCard(context.leaderWithActionAbility);
+expect(context.player1).toHaveNoEffectAbilityPrompt('Ability description text');
+context.player1.clickPrompt('Use it anyway');  // Or 'Cancel' to abort
+
+// Cost is paid but ability has no effect
+expect(context.leaderWithActionAbility.exhausted).toBeTrue();
+```
+
+### Leader Testing Patterns
+
+#### Deployed vs Undeployed Setup
+
+```typescript
+// Start with leader undeployed (default)
+leader: 'anakin-skywalker#protect-her-at-all-costs'
+
+// Start with leader already deployed
+leader: { card: 'anakin-skywalker#protect-her-at-all-costs', deployed: true }
+```
+
+#### Manually Deploying a Leader
+
+When testing a leader's deployed abilities, you may want to manually deploy within the test to verify the leader counts as "entered play this phase":
+
+```typescript
+// With 5+ resources, clicking the leader shows deploy option
+context.player1.clickCard(context.anakinSkywalker);
+context.player1.clickPrompt('Deploy Anakin Skywalker');
+```
+
+To avoid the deploy prompt when testing leader-side action abilities, use fewer resources than the deploy cost:
+
+```typescript
+player1: {
+    leader: 'anakin-skywalker#protect-her-at-all-costs',  // 5-cost leader
+    resources: 4,  // Can't afford to deploy, so action ability is used directly
+}
+```
+
+### Token Units
+
+Token units (e.g., X-Wings, Clone Troopers) are created by card abilities and count as regular units for most purposes.
+
+#### Finding Token Units
+
+```typescript
+// Find a token unit created during the test
+const xwing = context.player1.findCardByName('xwing');
+expect(context.player1).toBeAbleToSelectExactly([context.veteranFleetOfficer, xwing]);
+```
+
+#### Tokens and "Entered Play" Conditions
+
+Token units count toward "entered play this phase" conditions. For example, playing Veteran Fleet Officer creates an X-Wing token - both count as having entered play.
+
+### Control Changes and "Friendly" Evaluation
+
+When abilities reference "friendly units," this is evaluated at resolution time based on current control, not based on who originally played the unit:
+
+- A unit you played but gave to your opponent (e.g., via Galen Erso's ability) does NOT count as friendly
+- A unit your opponent played but gave to you DOES count as friendly
+
+```typescript
+// P1 plays Galen Erso and gives control to P2
+context.player1.clickCard(context.galenErso);
+context.player1.clickPrompt('Trigger');  // Give opponent control
+
+// Later, P1's ability targeting "friendly units" cannot target Galen
+```
+
+### "Entered Play This Phase" Conditions
+
+Abilities that check if units "entered play this phase" typically require the unit to still be in play:
+
+- Units that entered play but were defeated no longer count
+- Current control matters, not who played the unit
+- Token units count equally with regular units
 
 ## Edge Cases to Consider (in no particular order)
 
@@ -271,8 +359,10 @@ expect(context.player2).toBeActivePlayer();
 3. **Nested play effects**: Events that play other cards (e.g., Sneak Attack/Home One/Kelleran Beq -> another Unit)
 4. **Cross-player card plays**: Player A playing from Player B's deck/discard pile/resource zone
 5. **Upgrade targeting**: Friendly restrictions, vehicle restrictions, valid targets
-6. **Stolen units**: Abilities that change control of units (e.g., Change of Heart, Emperor Palpatine's deploy ability), and how they interact with their controller and/or owner
+6. **Control changes**: Units that change control mid-phase (e.g., Galen Erso, Change of Heart) - "friendly" is evaluated at ability resolution, not when the unit entered play
 7. **Optional abilities**: Triggering vs passing on "may" abilities, and ensuring correct prompts and game state changes in both cases
+8. **Defeated units**: Units that entered play but were defeated before an ability resolves may not count for "entered play this phase" conditions
+9. **Token units**: Ensure token units are handled correctly for targeting, counting, and zone checks
 
 ## Using xdescribe and xit to temporarily skip tests
 
