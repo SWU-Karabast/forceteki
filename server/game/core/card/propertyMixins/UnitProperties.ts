@@ -12,7 +12,7 @@ import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
 import { InitializeCardStateOption } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, IWhenAttackEndsAbilityProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -47,6 +47,10 @@ import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfac
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
 import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
+import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import { ConditionalSystem } from '../../../gameSystems/ConditionalSystem';
+import * as AttackHelpers from '../../../core/attack/AttackHelpers';
+import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -81,7 +85,7 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addPilotingGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<T>): void;
     addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithGainCondition<T, IUnitCard>): void;
     addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<T, IUnitCard>): void;
-    addWhenAttackEndsAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
+    addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
 }
 
 export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
@@ -209,6 +213,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
         private _leadersDeployedThisPhaseWatcher: LeadersDeployedThisPhaseWatcher;
+        private _unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
@@ -321,6 +326,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this._tokensCreatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.tokensCreatedThisPhase();
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
+            this._unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
 
             this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
@@ -465,9 +471,52 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             registar.addTriggeredAbility({ ...properties, when });
         }
 
-        private addWhenAttackEndsAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
+        private addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
             const when: WhenTypeOrStandard = { [EventName.OnAttackEnd]: (event, context) => event.attack.attacker === context.source };
+
+            if (properties.attackerMustSurvive) {
+                this.addAttackerMustSurviveCondition(properties);
+            }
+
             registar.addTriggeredAbility({ ...properties, when });
+        }
+
+        private addAttackerMustSurviveCondition(properties: Omit<IWhenAttackEndsAbilityProps<this>, 'when' | 'aggregateWhen'>) {
+            Contract.assertIsNullLike(properties.targetResolvers, 'attackerMustSurvive is not currently supported for abilities with multiple target resolvers, you must manually add the condition to the relevant resolver(s)');
+            Contract.assertTrue(properties.immediateEffect != null || properties.targetResolver?.immediateEffect != null, 'attackerMustSurvive can only be used for abilities that have an immediateEffect. If you need the condition, you must add it manually.');
+
+            const attackerMustSurviveCondition = (context: TriggeredAbilityContext<this>) => AttackHelpers.attackerSurvived(
+                context.event.attack,
+                this._unitsDefeatedThisPhaseWatcher
+            );
+
+            if (properties.immediateEffect) {
+                properties.immediateEffect = new ConditionalSystem<TriggeredAbilityContext<this>>({
+                    condition: (context) => attackerMustSurviveCondition(context),
+                    onTrue: properties.immediateEffect
+                });
+
+                return;
+            }
+
+            if (properties.targetResolver.immediateEffect) {
+                if ('cardCondition' in properties.targetResolver) {
+                    const originalCardCondition = properties.targetResolver.cardCondition;
+                    properties.targetResolver.cardCondition = (card, context) =>
+                        attackerMustSurviveCondition(context) && originalCardCondition(card, context);
+
+                    return;
+                }
+
+                properties.targetResolver.immediateEffect = new ConditionalSystem<TriggeredAbilityContext<this>>({
+                    condition: (context) => attackerMustSurviveCondition(context),
+                    onTrue: properties.targetResolver.immediateEffect
+                });
+
+                return;
+            }
+
+            Contract.fail('attackerMustSurvive condition could not be applied to ability, no immediate effect found');
         }
 
         private addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'canBeTriggeredBy'>): void {
