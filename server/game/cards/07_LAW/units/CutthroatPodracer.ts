@@ -1,24 +1,25 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 
-export default class K2SOLockingTheVault extends NonLeaderUnitCard {
+export default class CutthroatPodracer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '6386443776',
-            internalName: 'k2so#locking-the-vault',
+            id: '7742850323',
+            internalName: 'cutthroat-podracer'
         };
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
-        registrar.addOnAttackAbility({
-            title: 'Deal 3 damage to a damaged ground unit',
+        registrar.addWhenPlayedAbility({
+            title: 'Deal 2 damage to an exhausted ground unit',
             optional: true,
             targetResolver: {
-                cardCondition: (card) => card.isUnit() && card.damage > 0,
                 zoneFilter: ZoneName.GroundArena,
-                immediateEffect: abilityHelper.immediateEffects.damage({ amount: 3 })
+                cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card) => card.canBeExhausted() && card.exhausted,
+                immediateEffect: abilityHelper.immediateEffects.damage({ amount: 2 })
             }
         });
     }

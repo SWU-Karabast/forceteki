@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class LibertyDrawTheirFire extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'liberty#draw-their-fire-id',
+            id: '9963012140',
             internalName: 'liberty#draw-their-fire'
         };
     }

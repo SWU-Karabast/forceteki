@@ -5,7 +5,7 @@ import { EventCard } from '../../../core/card/EventCard';
 export default class Windfall extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'windfall-id',
+            id: '3232608976',
             internalName: 'windfall',
         };
     }

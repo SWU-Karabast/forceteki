@@ -5,7 +5,7 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 export default class Mastery extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'mastery-id',
+            id: '5102721039',
             internalName: 'mastery'
         };
     }
