@@ -1,59 +1,72 @@
 describe('Salvaged Materials', function() {
     integration(function(contextRef) {
-        it('should play an Item upgrade from discard for 3 less resources', async function () {
+        it('Salvaged Materials\'s ability should play an Item upgrade from discard for 3 less resources. At the start of the next regroup phase, defeat it', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['salvaged-materials'],
-                    discard: ['thermal-detonator'],
+                    discard: ['thermal-detonator', 'protector', 'the-darksaber'],
                     groundArena: ['wampa'],
-                    resources: 5,
+                    leader: 'captain-rex#fighting-for-his-brothers',
+                    base: 'jabbas-palace'
                 },
-                player2: {}
+                player2: {
+                    discard: ['electrostaff']
+                }
             });
 
             const { context } = contextRef;
 
             // Play Salvaged Materials
             context.player1.clickCard(context.salvagedMaterials);
-            
-            // Should be able to target Thermal Detonator (Item upgrade) in discard
-            expect(context.player1).toBeAbleToSelectExactly([context.thermalDetonator]);
-            
-            context.player1.clickCard(context.thermalDetonator);
-            
-            // Need a unit to attach the upgrade to
+
+            expect(context.player1).toBeAbleToSelectExactly([context.thermalDetonator, context.theDarksaber]);
+
+            context.player1.clickCard(context.theDarksaber);
             context.player1.clickCard(context.wampa);
-            
-            // Thermal Detonator should be played and attached to Wampa
-            expect(context.thermalDetonator).toBeInZone('groundArena', context.player1);
-            expect(context.wampa.upgrades.length).toBe(1);
-            expect(context.wampa.upgrades[0]).toBe(context.thermalDetonator);
-            expect(context.player1.resources.length).toBe(5); // No resources spent due to cost reduction
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.wampa).toHaveExactUpgradeNames(['the-darksaber']);
+
+            context.moveToRegroupPhase();
+
+            expect(context.wampa).toHaveExactUpgradeNames([]);
+            expect(context.theDarksaber).toBeInZone('discard', context.player1);
         });
 
-        it('should only target Item upgrades in discard', async function () {
+        it('Salvaged Materials\'s ability should not defeat the played upgrade at the start of regroup phase if it is not the same copy of played upgrade', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['salvaged-materials'],
-                    discard: ['thermal-detonator', 'veiled-strength'], // veiled-strength is not an Item
-                    resources: 5,
+                    discard: ['the-darksaber'],
+                    groundArena: ['wampa'],
                 },
-                player2: {}
+                player2: {
+                    hand: ['bamboozle']
+                }
             });
 
             const { context } = contextRef;
 
-            // Play Salvaged Materials
             context.player1.clickCard(context.salvagedMaterials);
-            
-            // Should only be able to target Thermal Detonator (Item upgrade), not Veiled Strength
-            expect(context.player1).toBeAbleToSelectExactly([context.thermalDetonator]);
-            expect(context.player1).not.toBeAbleToSelect(context.veiledStrength);
-            
-            // Cancel the action to end test cleanly
-            context.player1.clickPrompt('Cancel');
+            // play the darksaber on wampa with salvaged materials
+            context.player1.clickCard(context.theDarksaber);
+            context.player1.clickCard(context.wampa);
+
+            // bouce back the darksaber
+            context.player2.clickCard(context.bamboozle);
+            context.player2.clickCard(context.wampa);
+
+            // play again the darksaber
+            context.player1.clickCard(context.theDarksaber);
+            context.player1.clickCard(context.wampa);
+
+            context.moveToRegroupPhase();
+
+            // the darksaber should not be defeated
+            expect(context.wampa).toHaveExactUpgradeNames(['the-darksaber']);
         });
     });
 });
