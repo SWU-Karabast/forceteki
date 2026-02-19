@@ -11,6 +11,7 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { ViewCardInteractMode } from './ViewCardSystem';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSystemProperties {
     amount: number;
@@ -24,11 +25,12 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
     public override eventHandler(event): void { }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext): void {
-        const player = context.player;
-        const { amount } = this.generatePropertiesFromContext(context);
+        const { amount, target } = this.generatePropertiesFromContext(context);
+        const player = this.getSingleTarget(target);
         const deckLength = player.drawDeck.length;
 
-        if (deckLength > 0 && player === context.player) {
+        if (deckLength > 0) {
+            // context.player is looking at target's deck, which is always hidden information
             context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
         }
 
@@ -43,7 +45,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             const actualAmount = Math.min(amount, deckLength);
             const cards = player.drawDeck.slice(0, actualAmount);
 
-            context.game.promptDisplayCardsWithButtons(player, {
+            context.game.promptDisplayCardsWithButtons(context.player, {
                 activePromptTitle: 'Select card to move to the top or bottom of the deck',
                 source: context.source,
                 displayCards: cards,
@@ -64,25 +66,23 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
     }
 
     public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<ILookMoveDeckCardsTopOrBottomProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
-        let nonAraTarget: Player;
-
-        if (Array.isArray(target)) {
-            if (target.length > 1) {
-                throw new Error('Support for multiple players in LookMoveDeckCardsTopOrBottomSystem not implemented yet');
-            }
-
-            Contract.assertTrue(target.length === 1);
-
-            nonAraTarget = target[0];
-        } else {
-            nonAraTarget = target;
-        }
+        const nonAraTarget = this.getSingleTarget(target);
 
         if (mustChangeGameState !== GameStateChangeRequired.None && nonAraTarget.drawDeck.length === 0) {
             return false;
         }
 
         return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
+    }
+
+    private getSingleTarget(target: Player | Player[]): Player {
+        if (Array.isArray(target)) {
+            Contract.assertTrue(target.length === 1, 'Support for multiple players in LookMoveDeckCardsTopOrBottomSystem not implemented yet');
+
+            return target[0];
+        }
+
+        return target;
     }
 
     // Helper method for pushing the move card event into the events array.
@@ -114,13 +114,19 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
+        const player = this.getSingleTarget(properties.target);
 
         if (properties.amount === 0) {
             return ['', []];
         }
 
-        return ['look at the top {0} of their deck and they {1}', [
+        const possessiveArg: FormatMessage | string = player === context.player
+            ? 'their'
+            : { format: '{0}\'s', args: [player] };
+
+        return ['look at the top {0} of {1} deck and they {2}', [
             ChatHelpers.pluralize(properties.amount, 'card', 'cards'),
+            possessiveArg,
             properties.amount === 1 ? 'may put it on the bottom of their deck' : 'put any number of them on the bottom of their deck and the rest on top in any order',
         ]];
     }
