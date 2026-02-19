@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../cor
 export default class GovernorsShuttle extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'governors-shuttle-id',
+            id: '2268751344',
             internalName: 'governors-shuttle',
         };
     }

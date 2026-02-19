@@ -11,7 +11,7 @@ export default class MazKanataWheresMyBoyfriend extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'maz-kanata#wheres-my-boyfriend-id',
+            id: '4889454015',
             internalName: 'maz-kanata#wheres-my-boyfriend',
         };
     }

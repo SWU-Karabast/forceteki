@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class LostAndForgotten extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'lost-and-forgotten-id',
+            id: '4922949566',
             internalName: 'lost-and-forgotten',
         };
     }

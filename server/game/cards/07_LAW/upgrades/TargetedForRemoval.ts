@@ -5,7 +5,7 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 export default class TargetedForRemoval extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'targeted-for-removal-id',
+            id: '6727831575',
             internalName: 'targeted-for-removal',
         };
     }

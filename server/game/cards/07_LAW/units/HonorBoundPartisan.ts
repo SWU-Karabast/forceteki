@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class HonorBoundPartisan extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'honorbound-partisan-id',
+            id: '6722304652',
             internalName: 'honorbound-partisan',
         };
     }
