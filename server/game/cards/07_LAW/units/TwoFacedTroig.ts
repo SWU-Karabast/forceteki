@@ -12,7 +12,7 @@ export default class TwoFacedTroig extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'An opponent take control of this unit. If you do, create 2 Credit tokens',
+            title: 'Give control of Two-Faced Troig to the opponent and create 2 Credit tokens',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
                 newController: context.player.opponent,
