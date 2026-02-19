@@ -22,7 +22,7 @@ describe('Phoenix Squadron Fighters', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(8);
             });
 
-            it('should have no cost reduction when there are no damaged units', async function() {
+            it('should cost 1 resource less to play for each friendly damaged unit (1 friendly damaged unit)', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -41,7 +41,7 @@ describe('Phoenix Squadron Fighters', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
             });
 
-            it('should have no cost reduction when there are no damaged units', async function() {
+            it('should cost 1 resource less to play for each friendly damaged unit (multiple damaged unit, including leader, enemy and space units)', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

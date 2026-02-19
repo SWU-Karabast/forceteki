@@ -13,7 +13,6 @@ export default class PhoenixSquadronFighters extends NonLeaderUnitCard {
         registrar.addDecreaseCostAbility({
             title: 'This unit costs 1 resource less to play for each friendly damaged unit',
             amount: (_card, player) => player.getArenaUnits({ condition: (c) => c.isUnit() && c.damage > 0 }).length,
-
         });
     }
 }
