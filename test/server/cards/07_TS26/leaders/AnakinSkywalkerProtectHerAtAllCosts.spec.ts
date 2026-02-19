@@ -229,8 +229,187 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
             });
         });
 
-        // describe('Deployed unit-side On Attack ability', function() {
-        //     // On Attack: Give a Shield token to another friendly unit that entered play this phase.
-        // });
+        describe('Deployed unit-side On Attack ability', function() {
+            it('gives a Shield token to another friendly unit that entered play this phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'anakin-skywalker#protect-her-at-all-costs',
+                        resources: 5,
+                        hand: ['lothwolf'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play a unit
+                context.player1.clickCard(context.lothwolf);
+                context.player2.passAction();
+
+                // Deploy Anakin
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickPrompt('Deploy Anakin Skywalker');
+                context.player2.passAction();
+
+                // Attack with Anakin
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickCard(context.p2Base);
+
+                // Can only target Lothwolf (not Battlefield Marine, not Anakin himself)
+                expect(context.player1).toBeAbleToSelectExactly([context.lothwolf]);
+                context.player1.clickCard(context.lothwolf);
+
+                expect(context.lothwolf).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('gives a Shield token when a token unit entered play this phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'anakin-skywalker#protect-her-at-all-costs', deployed: true },
+                        base: 'echo-base',
+                        hand: ['veteran-fleet-officer'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Veteran Fleet Officer, which creates an X-Wing token
+                context.player1.clickCard(context.veteranFleetOfficer);
+                context.player2.passAction();
+
+                // Attack with Anakin
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickCard(context.p2Base);
+
+                // Can target Veteran Fleet Officer or the X-Wing token
+                const xwing = context.player1.findCardByName('xwing');
+                expect(context.player1).toBeAbleToSelectExactly([context.veteranFleetOfficer, xwing]);
+                context.player1.clickCard(xwing);
+
+                expect(xwing).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('is skipped when no other friendly units have entered play this phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'anakin-skywalker#protect-her-at-all-costs', deployed: true },
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Attack with Anakin - ability fizzles (no prompt, just continues)
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickCard(context.p2Base);
+
+                // No prompt, ability just skipped
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('is skipped when the only unit that entered play was defeated', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'anakin-skywalker#protect-her-at-all-costs', deployed: true },
+                        hand: ['lothwolf'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        hand: ['vanquish']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play a unit
+                context.player1.clickCard(context.lothwolf);
+
+                // Opponent defeats Lothwolf
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.lothwolf);
+
+                // Attack with Anakin - ability fizzles (no prompt, just continues)
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickCard(context.p2Base);
+
+                // No prompt, ability just skipped
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('does not count a unit that entered play under friendly control but is now under enemy control', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'anakin-skywalker#protect-her-at-all-costs', deployed: true },
+                        base: 'chopper-base',
+                        hand: ['galen-erso#destroying-his-creation'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Galen Erso and give control to opponent
+                context.player1.clickCard(context.galenErso);
+                context.player1.clickPrompt('Trigger');
+                context.player2.passAction();
+
+                // Attack with Anakin - ability fizzles (no prompt, just continues)
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickCard(context.p2Base);
+
+                // No prompt, ability just skipped
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('counts a unit that entered play under enemy control but is now under friendly control', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'anakin-skywalker#protect-her-at-all-costs', deployed: true },
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        base: 'chopper-base',
+                        hand: ['galen-erso#destroying-his-creation']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                // Opponent plays Galen Erso and gives control to P1
+                context.player2.clickCard(context.galenErso);
+                context.player2.clickPrompt('Trigger');
+
+                // Attack with Anakin
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickCard(context.p2Base);
+
+                // Can target Galen Erso (now under P1's control)
+                expect(context.player1).toBeAbleToSelectExactly([context.galenErso]);
+                context.player1.clickCard(context.galenErso);
+
+                expect(context.galenErso).toHaveExactUpgradeNames(['shield']);
+            });
+        });
     });
 });
