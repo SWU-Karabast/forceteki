@@ -1,12 +1,14 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { IInPlayCard } from '../../../core/card/baseClasses/InPlayCard';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsEnteredPlayThisPhaseWatcher } from '../../../stateWatchers/CardsEnteredPlayThisPhaseWatcher';
 
 export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard {
-    private cardsEnteredPlayThisPhaseWatcher: CardsEnteredPlayThisPhaseWatcher;
+    private unitsEnteredPlayThisPhaseWatcher: CardsEnteredPlayThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -16,7 +18,7 @@ export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard 
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsEnteredPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsEnteredPlayThisPhase();
+        this.unitsEnteredPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsEnteredPlayThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
@@ -27,13 +29,11 @@ export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard 
                 activePromptTitle: 'Give a Shield token to a unit that entered play this phase',
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => this.cardsEnteredPlayThisPhaseWatcher
-                    .someCardEnteredPlay((entry) => entry.card === card),
+                cardCondition: (card, context) =>
+                    card.canBeInPlay() &&
+                    this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) =>
-                        this.cardsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay(
-                            (entry) => entry.playedBy === context.player
-                        ).length >= 2,
+                    condition: (context) => this.friendlyUnitsThatEnteredPlayThisPhase(context).length >= 2,
                     onTrue: AbilityHelper.immediateEffects.giveShield()
                 })
             }
@@ -49,9 +49,17 @@ export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard 
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) =>
                     card !== context.source &&
-                    this.cardsEnteredPlayThisPhaseWatcher.someCardEnteredPlay((entry) => entry.card === card),
+                    card.canBeInPlay() &&
+                    this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()
             }
         });
+    }
+
+    private friendlyUnitsThatEnteredPlayThisPhase(context: AbilityContext): IInPlayCard[] {
+        return this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
+            entry.card.controller === context.player &&
+            entry.card.isInPlay()
+        );
     }
 }
