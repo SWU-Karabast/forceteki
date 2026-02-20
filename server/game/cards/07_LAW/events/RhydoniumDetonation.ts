@@ -16,15 +16,15 @@ export default class RhydoniumDetonation extends EventCard {
             title: 'Each player may return a non-leader unit to its owner\'s hand',
             targetResolvers: {
                 selfChoice: {
-                    choosingPlayer: RelativePlayer.Self,
                     optional: true,
+                    choosingPlayer: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     immediateEffect: AbilityHelper.immediateEffects.returnToHand()
                 },
                 opponentChoice: {
-                    choosingPlayer: RelativePlayer.Opponent,
                     optional: true,
+                    choosingPlayer: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     immediateEffect: AbilityHelper.immediateEffects.returnToHand()
