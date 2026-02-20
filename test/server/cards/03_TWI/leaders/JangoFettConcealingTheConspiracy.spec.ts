@@ -125,7 +125,6 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 context.player1.clickCard(context.isbAgent);
                 context.player1.clickCard(context.volunteerSoldier);
-                context.player1.clickPrompt('Trigger');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 2],
                     [context.fleetLieutenant, 1],
@@ -474,7 +473,6 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // Attack and distribute damage with Vambrace Flamethrower
                 context.player1.clickCard(context.isbAgent);
                 context.player1.clickCard(context.volunteerSoldier);
-                context.player1.clickPrompt('Trigger');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 2],
                     [context.fleetLieutenant, 1],

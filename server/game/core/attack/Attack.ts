@@ -12,6 +12,7 @@ export class Attack {
     public readonly attacker: IUnitCard;
     public readonly attackingPlayer: Player;
     public readonly attackerInPlayId: number;
+    public readonly id: number;
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
 
@@ -33,6 +34,8 @@ export class Attack {
 
         const notInPlayTargets = targets.filter((target) => !target.isBase() && !target.isInPlay());
         Contract.assertTrue(notInPlayTargets.length === 0, `Attempting to construct an Attack but the following targets are not in play: ${notInPlayTargets.map((target) => target.internalName).join(', ')}`);
+
+        this.id = game.getNextAttackId();
 
         this.game = game;
         this.attacker = attacker;

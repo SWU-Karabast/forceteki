@@ -279,6 +279,9 @@ class Game extends EventEmitter {
         /** @private @type {boolean} */
         this._serializationFailure = false;
 
+        /** @private */
+        this._lastAttackId = -1;
+
         this.playerHasBeenPrompted = new Map();
 
         this.playerHasBeenPrompted = new Map();
@@ -630,6 +633,11 @@ class Game extends EventEmitter {
 
     setRandomSeed(seed) {
         this._randomGenerator.reseed(seed);
+    }
+
+    getNextAttackId() {
+        this._lastAttackId++;
+        return this._lastAttackId;
     }
 
     /**
