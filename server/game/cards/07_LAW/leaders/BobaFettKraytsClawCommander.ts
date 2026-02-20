@@ -24,7 +24,7 @@ export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
         registrar.addTriggeredAbility({
             title: 'Exhaust Boba Fett to create a Credit token',
             when: {
-                onAttackCompleted: (event, context) =>
+                onAttackEnd: (event, context) =>
                     event.attack.attacker.controller === context.player &&
                     event.attack.attacker.hasSomeTrait(Trait.BountyHunter)
             },
@@ -44,7 +44,7 @@ export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
         registrar.addTriggeredAbility({
             title: 'Create a Credit token',
             when: {
-                onAttackCompleted: (event, context) =>
+                onAttackEnd: (event, context) =>
                     event.attack.attacker.controller === context.player &&
                     event.attack.attacker.hasSomeTrait(Trait.BountyHunter)
             },

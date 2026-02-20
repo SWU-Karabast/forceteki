@@ -250,69 +250,40 @@ describe('Basic attack (CR7 update)', function() {
             expect(context.p2Base.damage).toBe(5);
         });
 
-        it('"When this unit completes an attack" abilities should resolve even if the attacker was defeated by combat damage during the attack', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                attackRulesVersion: 'cr7',
-                player1: {
-                    groundArena: ['zeb-orrelios#headstrong-warrior']
-                },
-                player2: {
-                    groundArena: ['rampaging-wampa', 'atst'],
-                }
-            });
-
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.zebOrrelios);
-            context.player1.clickCard(context.rampagingWampa);
-
-            // Zeb Orrelios should deal 4 damage to another ground unit when he completes an attack and defeats the defender,
-            // even if he was defeated in the process
-            expect(context.rampagingWampa).toBeInZone('discard');
-            expect(context.zebOrrelios).toBeInZone('discard');
-
-            expect(context.player1).toBeAbleToSelectExactly([context.atst]);
-            context.player1.clickCard(context.atst);
-
-            expect(context.atst.damage).toBe(4);
-            expect(context.player2).toBeActivePlayer();
-        });
-
         it('"When this unit completes an attack" abilities should resolve in the same window as "when defeated" abilities', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 attackRulesVersion: 'cr7',
                 player1: {
-                    groundArena: ['zeb-orrelios#headstrong-warrior', 'general-krell#heartless-tactician']
+                    groundArena: ['cassian-andor#everything-for-the-rebellion', 'general-krell#heartless-tactician']
                 },
                 player2: {
-                    groundArena: ['rampaging-wampa', 'atst'],
+                    groundArena: ['escort-skiff'],
                 }
             });
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.zebOrrelios);
-            context.player1.clickCard(context.rampagingWampa);
+            context.player1.clickCard(context.cassianAndor);
+            context.player1.clickCard(context.escortSkiff);
 
-            // Zeb and Wampa trade, both of his abilities should trigger
-            expect(context.rampagingWampa).toBeInZone('discard');
-            expect(context.zebOrrelios).toBeInZone('discard');
+            // Cassian and Escort Skiff trade, both of his abilities should trigger
+            expect(context.escortSkiff).toBeInZone('discard');
+            expect(context.cassianAndor).toBeInZone('discard');
             expect(context.player1).toHaveExactPromptButtons([
                 'Draw a card',
-                'If the defender was defeated, you may deal 4 damage to a ground unit'
+                'If the defending unit was defeated, deal 2 damage to a base'
             ]);
 
             context.player1.clickPrompt('Draw a card');
             context.player1.clickPrompt('Trigger');
             expect(context.player1.handSize).toBe(1);
 
-            // Zeb ability resolves
-            expect(context.player1).toBeAbleToSelectExactly([context.atst, context.generalKrell]);
-            context.player1.clickCard(context.atst);
+            // Cassian ability resolves
+            expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+            context.player1.clickCard(context.p2Base);
 
-            expect(context.atst.damage).toBe(4);
+            expect(context.p2Base.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
 
@@ -546,6 +517,94 @@ describe('Basic attack (CR7 update)', function() {
             context.player1.clickCard(context.p2Base);
 
             // No post-attack trigger, it is now P2's turn
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (Qui-Gon leader)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    leader: { card: 'quigon-jinn#student-of-the-living-force', deployed: true, damage: 6 }
+                },
+                player2: {
+                    groundArena: ['battlefield-marine', 'consular-security-force'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.quigonJinn);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.quigonJinn.exhausted).toBe(true);
+            expect(context.quigonJinn).toBeInZone('base');
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (SOR Leia leader)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    leader: { card: 'leia-organa#alliance-general', deployed: true, damage: 5 },
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.leiaOrgana);
+            context.player1.clickCard(context.wampa);
+            expect(context.leiaOrgana.exhausted).toBe(true);
+            expect(context.leiaOrgana).toBeInZone('base');
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (JTL Invisible Hand)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    spaceArena: ['the-invisible-hand#crawling-with-vultures'],
+                    deck: ['wampa', 'pyke-sentinel', 'viper-probe-droid',
+                        'repair', 'calculating-magnaguard', 'battlefield-marine',
+                        'concord-dawn-interceptors', 'drop-in', '21b-surgical-droid'],
+                },
+                player2: {
+                    spaceArena: ['avenger#hunting-star-destroyer']
+                }
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.theInvisibleHand);
+            context.player1.clickCard(context.avenger);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (SEC Captain Rex)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    groundArena: ['consular-security-force', 'captain-rex#into-the-firefight']
+                },
+                player2: {
+                    groundArena: ['wampa', 'atat-suppressor'],
+                    spaceArena: ['strikeship'],
+                    leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.captainRexIntoTheFirefight);
+            context.player1.clickCard(context.atatSuppressor);
+
+            expect(context.captainRexIntoTheFirefight).toBeInZone('discard');
+
             expect(context.player2).toBeActivePlayer();
         });
     });
