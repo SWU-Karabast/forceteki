@@ -28,8 +28,8 @@ describe('Watchful', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
-                context.player1.clickPrompt('You');
+                expect(context.player1).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
+                context.player1.clickPrompt('Your deck');
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'bottom');
@@ -51,8 +51,8 @@ describe('Watchful', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
-                context.player1.clickPrompt('You');
+                expect(context.player1).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
+                context.player1.clickPrompt('Your deck');
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'top');
@@ -73,8 +73,8 @@ describe('Watchful', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
-                context.player1.clickPrompt('Opponent');
+                expect(context.player1).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
+                context.player1.clickPrompt('Opponent\'s deck');
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daringRaid]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.daringRaid.uuid, 'top');
@@ -95,8 +95,8 @@ describe('Watchful', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
-                context.player1.clickPrompt('Opponent');
+                expect(context.player1).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
+                context.player1.clickPrompt('Opponent\'s deck');
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daringRaid]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.daringRaid.uuid, 'bottom');
@@ -133,7 +133,7 @@ describe('Watchful', function() {
 
                 context.player1.clickCard(context.imperialDarkTrooper);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Your deck');
 
                 expect(context.player1.deck.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();
