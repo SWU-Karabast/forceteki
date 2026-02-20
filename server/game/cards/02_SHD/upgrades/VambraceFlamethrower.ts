@@ -16,10 +16,10 @@ export default class VambraceFlamethrower extends UpgradeCard {
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 3 damage divided as you choose among enemy ground units',
-            optional: true,
             immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong({
                 amountToDistribute: 3,
-                canChooseNoTargets: false,
+                canChooseNoTargets: true,
+                canDistributeLess: false,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.GroundArena,

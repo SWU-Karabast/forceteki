@@ -95,9 +95,6 @@ describe('Heroic Sacrifice', function() {
                 expect(context.player1).toHaveExactPromptButtons([lomPykePrompt, flamethrowerPrompt]);
                 context.player1.clickPrompt(flamethrowerPrompt);
 
-                expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
-                context.player1.clickPrompt('Trigger');
-
                 expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.atst, context.craftySmuggler]);
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.atst, 1],

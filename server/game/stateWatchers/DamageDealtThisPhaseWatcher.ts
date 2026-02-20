@@ -55,13 +55,14 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
     }
 
     public unitHasDealtDamage(card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
-        return this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.damageSourceCardType))
-            .filter((entry) => {
-                return entry.damageSourceCard === card &&
-                  card.canBeInPlay() &&
-                  entry.damageSourceInPlayId === this.getCardId(card) &&
-                  filter(entry);
-            }).length > 0;
+        return this.getCurrentValue()
+            .filter((entry) =>
+                EnumHelpers.isUnit(entry.damageSourceCardType) &&
+                entry.damageSourceCard === card &&
+                card.canBeInPlay() &&
+                entry.damageSourceInPlayId === this.getCardId(card) &&
+                filter(entry)
+            ).length > 0;
     }
 
     protected override setupWatcher() {
