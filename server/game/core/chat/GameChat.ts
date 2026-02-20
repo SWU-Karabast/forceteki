@@ -15,6 +15,8 @@ export class GameChat {
         message: MessageText | { alert: { type: string; message: string | string[] } };
     }[] = [];
 
+    public typingState: Record<string, boolean> = {};
+
     private readonly pushUpdate: () => void;
 
     public constructor(pushUpdate: () => void) {
@@ -40,6 +42,10 @@ export class GameChat {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: { alert: { type: type, message: formattedMessage } } });
         this.pushUpdate();
+    }
+
+    public setTypingState(userId: string, isTyping: boolean): void {
+        this.typingState[userId] = isTyping;
     }
 
     private formatMessage(format: string, args: MsgArg[]): string | string[] {
