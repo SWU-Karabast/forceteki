@@ -165,7 +165,9 @@ export class Attack {
     }
 
     public isAttackerLegal(): boolean {
-        return this.attacker.isInPlay() && !this.unitControllersChanged.has(this.attacker);
+        return this.attacker.isInPlay() &&
+          !this.attacker.pendingDefeat &&
+          !this.unitControllersChanged.has(this.attacker);
     }
 
     public isTargetStillInPlay(target: IAttackableCard): boolean {
