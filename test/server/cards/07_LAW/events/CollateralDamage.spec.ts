@@ -103,5 +103,52 @@ describe('Collateral Damage', function() {
                 expect(context.lurkingTiePhantom.damage).toBe(0);
             });
         });
+
+        it('should be able to deal 2 damage to a base even if there is not unit in play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['collateral-damage'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.collateralDamage);
+            expect(context.player1).toHavePrompt('Deal 2 damage to a base');
+            expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.p1Base.damage).toBe(0);
+        });
+
+        it('should be able to deal 2 damage to a base if the last unit was defeated by first part of ability', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['collateral-damage'],
+                },
+                player2: {
+                    spaceArena: ['awing']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.collateralDamage);
+            expect(context.player1).toBeAbleToSelectExactly([context.awing]);
+            context.player1.clickCard(context.awing);
+
+            expect(context.player1).toHavePrompt('Deal 2 damage to a base or a space unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.awing).toBeInZone('discard', context.player2);
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.p1Base.damage).toBe(0);
+        });
     });
 });

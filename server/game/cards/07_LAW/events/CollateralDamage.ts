@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
-import { CardType, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class CollateralDamage extends EventCard {
     protected override getImplementationId() {
@@ -23,11 +23,17 @@ export default class CollateralDamage extends EventCard {
             then: (thenContext) => ({
                 title: 'Deal 2 damage to a base or another unit in the same arena',
                 targetResolver: {
-                    activePromptTitle: () => `Deal 2 damage to a base or a ${thenContext.target.zoneName === ZoneName.GroundArena ? 'ground' : 'space'} unit`,
-                    cardTypeFilter: [WildcardCardType.Unit, CardType.Base],
+                    activePromptTitle: () => {
+                        const lki = thenContext.events[0]?.lastKnownInformation;
+                        const arena = lki ? lki.arena : thenContext.target?.zoneName;
+                        if (arena) {
+                            return `Deal 2 damage to a base or a ${arena === ZoneName.GroundArena ? 'ground' : 'space'} unit`;
+                        }
+                        return 'Deal 2 damage to a base';
+                    },
                     cardCondition: (card) => {
-                        const lki = thenContext.events[0].lastKnownInformation;
-                        const arena = lki ? lki.arena : thenContext.target.zoneName;
+                        const lki = thenContext.events[0]?.lastKnownInformation;
+                        const arena = lki ? lki.arena : thenContext.target?.zoneName;
                         const lkiCard = lki ? lki.card : thenContext.target;
 
                         return card !== lkiCard && (card.isBase() || (card.isUnit() && card.zoneName === arena));

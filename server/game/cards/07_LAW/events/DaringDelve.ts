@@ -18,8 +18,8 @@ export default class DaringDelve extends EventCard {
                 amount: 2,
                 target: context.player
             })),
-            then: (thenContext) => {
-                const discardedAggressionCards = thenContext.events
+            ifYouDo: (ifYouDo) => {
+                const discardedAggressionCards = ifYouDo.events
                     .filter((event) => event.name === EventName.OnCardDiscarded)
                     .map((event) => event.card)
                     .filter((card) => card.hasSomeAspect(Aspect.Aggression));
