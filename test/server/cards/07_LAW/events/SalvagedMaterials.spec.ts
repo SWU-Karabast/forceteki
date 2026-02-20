@@ -5,7 +5,7 @@ describe('Salvaged Materials', function() {
                 phase: 'action',
                 player1: {
                     hand: ['salvaged-materials'],
-                    discard: ['thermal-detonator', 'protector', 'the-darksaber'],
+                    discard: ['thermal-detonator', 'protector', 'the-darksaber', 'resupply'],
                     groundArena: ['wampa'],
                     leader: 'captain-rex#fighting-for-his-brothers',
                     base: 'jabbas-palace'

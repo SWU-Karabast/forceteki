@@ -18,8 +18,7 @@ export default class SalvagedMaterials extends EventCard {
             targetResolver: {
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
-                cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card) => card.isUpgrade() && card.hasSomeTrait(Trait.Item),
+                cardCondition: (card) => card.hasSomeTrait(Trait.Item),
                 immediateEffect: abilityHelper.immediateEffects.sequential([
                     abilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
