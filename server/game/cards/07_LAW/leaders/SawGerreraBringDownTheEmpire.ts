@@ -39,8 +39,9 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackCompletedAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Attack with another unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, defeat it.',
+            attackerMustSurvive: true,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -55,13 +56,13 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
                             ]
                         }),
                         AbilityHelper.immediateEffects.conditional({
-                            condition: (context) => context.target.zoneName === ZoneName.GroundArena || context.target.zoneName === ZoneName.SpaceArena,
+                            condition: (context) => context.target?.zoneName === ZoneName.GroundArena || context.target?.zoneName === ZoneName.SpaceArena,
                             onTrue: AbilityHelper.immediateEffects.defeat()
                         })
                     ],
                     resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,
-                }),
-            },
+                })
+            }
         });
     }
 }

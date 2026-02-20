@@ -163,6 +163,7 @@ export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum StandardTriggeredAbilityType {
     OnAttack = 'onAttack',
+    OnDefense = 'onDefense',
     WhenDefeated = 'whenDefeated',
     WhenPlayed = 'whenPlayed',
     WhenPlayedUsingSmuggle = 'whenPlayedUsingSmuggle',
@@ -257,9 +258,9 @@ export enum EventName {
     OnActionTaken = 'onActionTaken',
     OnAddTokenToCard = 'onAddTokenToCard',
     OnAspectsDisclosed = 'onAspectsDisclosed',
-    OnAttackCompleted = 'onAttackCompleted',
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
+    OnAttackEnd = 'onAttackEnd',
     OnBeginRound = 'onBeginRound',
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',

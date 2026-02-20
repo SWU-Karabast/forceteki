@@ -60,6 +60,7 @@ const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.j
 const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
 const UndoConfirmationPrompt = require('./gameSteps/prompts/UndoConfirmationPrompt.js');
 const { AdditionalPhaseEffect } = require('./ongoingEffect/effectImpl/AdditionalPhaseEffect.js');
+const { AttackRulesVersion } = require('./attack/AttackFlow.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -233,6 +234,9 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
+        /** @public @readonly @type {import('./attack/AttackFlow.js').AttackRulesVersion} */
+        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR6;
+
         /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
 
@@ -249,6 +253,9 @@ class Game extends EventEmitter {
 
         /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
+
+        /** @type {Map<string, number>} Tracks the last message offset sent to each user/spectator */
+        this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
         this.pipeline = new GamePipeline();
         this.id = details.id;
@@ -423,6 +430,11 @@ class Game extends EventEmitter {
 
     get messages() {
         return this.gameChat.messages;
+    }
+
+    /** @param {string} participantId */
+    getChatMessageOffset(participantId) {
+        return this.chatMessageOffsets.get(participantId) ?? 0;
     }
 
     /**
@@ -1998,16 +2010,21 @@ class Game extends EventEmitter {
         return this.state.lastGameEventId;
     }
 
-    // /*
-    //  * This information is sent to the client
-    //  */
+    /**
+     * Returns the serialized game state for a specific player/spectator.
+     * Tracks message offsets internally per player/spectator for incremental message sync.
+     * @param {string} notInactivePlayerId - The player/spectator ID to get state for
+     */
     getState(notInactivePlayerId) {
+        const lastMessageOffset = this.chatMessageOffsets.get(notInactivePlayerId) ?? 0;
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
 
             if (this._serializationFailure) {
                 return {
-                    messages: [`A severe server error has occurred and made this game unplayable. This incident has been reported to the dev team. Please feel free to reach out in the Karabast discord to provide additional details so we can resolve this faster (game id ${this.id}).`],
+                    newMessages: [`A severe server error has occurred and made this game unplayable. This incident has been reported to the dev team. Please feel free to reach out in the Karabast discord to provide additional details so we can resolve this faster (game id ${this.id}).`],
+                    messageOffset: lastMessageOffset,
+                    totalMessages: lastMessageOffset + 1,
                     playerUpdate: activePlayer.name,
                     id: this.id,
                     owner: this.owner,
@@ -2026,6 +2043,10 @@ class Game extends EventEmitter {
                     playerState[player.id] = player.getStateSummary(activePlayer);
                 }
 
+                const allMessages = this.gameChat.messages;
+                const totalMessages = allMessages.length;
+                const newMessages = allMessages.slice(lastMessageOffset);
+
                 const gameState = {
                     playerUpdate: activePlayer.name,
                     id: this.id,
@@ -2033,7 +2054,9 @@ class Game extends EventEmitter {
                     owner: this.owner,
                     players: playerState,
                     phase: this.currentPhase,
-                    messages: this.gameChat.messages,
+                    newMessages: newMessages,
+                    messageOffset: lastMessageOffset,
+                    totalMessages: totalMessages,
                     initiativeClaimed: this.isInitiativeClaimed,
                     clientUIProperties: this.clientUIProperties,
                     spectators: this.getSpectators().map((spectator) => {
@@ -2047,6 +2070,9 @@ class Game extends EventEmitter {
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                 };
+
+                // Advance the offset for this participant
+                this.chatMessageOffsets.set(notInactivePlayerId, totalMessages);
 
                 // Convert nulls to undefined so JSON.stringify strips them (reduces payload size)
                 Helpers.convertNullToUndefinedRecursiveInPlace(gameState);
@@ -2385,6 +2411,7 @@ class Game extends EventEmitter {
 
         return {
             phase: this.currentPhase,
+            attackRulesVersion: this.attackRulesVersion,
             player1: Helpers.safeSerialize(this, () => player1.capturePlayerState('player1'), null),
             player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
         };

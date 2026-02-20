@@ -114,6 +114,7 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
+                    attackRulesVersion: 'cr7',
                     player1: {
                         leader: { card: 'saw-gerrera#bring-down-the-empire', deployed: true },
                         groundArena: ['battlefield-marine'],
@@ -131,7 +132,7 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-                expect(context.player1).not.toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.secretiveSage);
 
@@ -179,7 +180,7 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
                 context.player1.clickCard(context.sawGerrera);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toBeAbleToSelectExactly([context.expendableMercenary]);
-                expect(context.player1).not.toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.expendableMercenary);
                 context.player1.clickCard(context.deathStarStormtrooper);
                 context.player1.clickPrompt('Trigger');
