@@ -1005,6 +1005,11 @@ export class Lobby {
         this.updateUserLastActivity(user.id);
     }
 
+    private typingstate(socket: Socket, isTyping: boolean) {
+        const userId = socket.user.getId();
+        this.gameChat.setTypingState(userId, isTyping);
+    }
+
     private getUser(id: string) {
         const user = this.users.find((u) => u.id === id);
         Contract.assertNotNullLike(user, `Unable to find user with id ${id} in lobby ${this.id}`);
