@@ -156,8 +156,13 @@ describe('Rhydonium Detonation\'s ability', function() {
 
                 context.player1.clickCard(context.rhydoniumDetonation);
 
-                // Event resolves, goes to discard
-                expect(context.rhydoniumDetonation).toBeInZone('discard');
+                // Player is warned that the event will have no effect
+                expect(context.player1).toHavePrompt('Playing Rhydonium Detonation will have no effect. Are you sure you want to play it?');
+                expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+
+                // Play it anyway
+                context.player1.clickPrompt('Play anyway');
+                expect(context.rhydoniumDetonation).toBeInZone('discard', context.player1);
 
                 // Leader untouched
                 expect(context.bobaFett).toBeInZone('groundArena', context.player2);
