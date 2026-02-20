@@ -74,7 +74,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         let attackCompleteEvent: GameEvent = null;
         if (includeAttackCompleteEvent) {
             attackCompleteEvent = new GameEvent(
-                EventName.OnAttackCompleted,
+                EventName.OnAttackEnd,
                 this.context,
                 { attack: this.attack }
             );
@@ -277,7 +277,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private completeAttack() {
-        this.game.createEventAndOpenWindow(EventName.OnAttackCompleted, this.context, {
+        this.game.createEventAndOpenWindow(EventName.OnAttackEnd, this.context, {
             attack: this.attack,
         }, TriggerHandlingMode.ResolvesTriggers);
     }
