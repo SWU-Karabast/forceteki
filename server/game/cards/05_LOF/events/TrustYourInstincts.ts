@@ -18,10 +18,12 @@ export default class TrustYourInstincts extends EventCard {
                 title: 'Attack with a unit. It gets +2/+0 and deals combat damage before defender',
                 initiateAttack: {
                     attackerCondition: (card, context) => card.controller === context.player,
-                    attackerLastingEffects: [
-                        { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) },
-                        { effect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender() },
-                    ]
+                    attackerLastingEffects: {
+                        effect: [
+                            AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
+                            AbilityHelper.ongoingEffects.dealsCombatDamageFirst()
+                        ]
+                    }
                 }
             }
         });

@@ -94,7 +94,7 @@ export = {
     //     OngoingEffectBuilder.card.static(EffectName.CannotParticipat  eAsDefender, type),
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     cannotAttack: () => OngoingEffectBuilder.card.static(EffectName.CannotAttack),
-    dealsDamageBeforeDefender: () => OngoingEffectBuilder.card.static(EffectName.DealsDamageBeforeDefender),
+    dealsCombatDamageFirst: () => OngoingEffectBuilder.card.static(EffectName.DealsCombatDamageFirst),
     cardCannot,
     playerCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
