@@ -42,6 +42,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenAttackEndsAbility({
             title: 'Ready 2 resources',
+            attackerMustSurvive: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
                     const opponentHasUnitsThatLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player.opponent });

@@ -16,6 +16,7 @@ export default class AhsokaTanoILearnedItFromYou extends NonLeaderUnitCard {
         const aspects = [Aspect.Command, Aspect.Heroism];
         registrar.addWhenAttackEndsAbility({
             title: `Disclose ${EnumHelpers.aspectString(aspects)} to attack with another unit`,
+            attackerMustSurvive: true,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Attack with another unit',

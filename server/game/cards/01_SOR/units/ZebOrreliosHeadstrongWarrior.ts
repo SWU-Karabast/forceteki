@@ -24,6 +24,7 @@ export default class ZebOrreliosHeadstrongWarrior extends NonLeaderUnitCard {
         registrar.addWhenAttackEndsAbility({
             title: 'If the defender was defeated, you may deal 4 damage to a ground unit',
             optional: true,
+            attackerMustSurvive: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.GroundArena,
