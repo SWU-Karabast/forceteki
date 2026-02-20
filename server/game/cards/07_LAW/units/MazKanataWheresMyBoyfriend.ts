@@ -28,7 +28,7 @@ export default class MazKanataWheresMyBoyfriend extends NonLeaderUnitCard {
                     abilityHelper.immediateEffects.delayedCardEffect({
                         title: 'Put that unit on the bottom of your deck',
                         when: {
-                            onPhaseEnded: (context) => context.phase === PhaseName.Regroup
+                            onPhaseEnded: (context) => context.phase === PhaseName.Action
                         },
                         immediateEffect: abilityHelper.immediateEffects.moveToBottomOfDeck()
                     })
