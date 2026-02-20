@@ -33,7 +33,7 @@ describe('Watchful', function() {
                 context.player1.clickCard(context.p2Base);
 
                 // Ability Prompt
-                expect(context.player1).toHavePrompt('Look at the top card of a deck');
+                expect(context.player1).toHavePrompt('Choose a deck and look at the top card');
                 expect(context.player1).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
                 context.player1.clickPrompt('Your deck');
 
@@ -135,7 +135,7 @@ describe('Watchful', function() {
                 context.player1.clickPrompt('Your deck');
 
                 // No card prompts should be shown since there are no cards in either deck
-                expect(context.player1).not.toHavePrompt('Look at the top card of a deck');
+                expect(context.player1).not.toHavePrompt('Choose a deck and look at the top card');
                 expect(context.player2).toBeActivePlayer();
             });
         });
