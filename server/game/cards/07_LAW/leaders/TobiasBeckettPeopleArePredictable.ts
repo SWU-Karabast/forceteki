@@ -43,6 +43,7 @@ export default class TobiasBeckettPeopleArePredictable extends LeaderUnitCard {
             },
             targetResolver: {
                 mode: TargetMode.Unlimited,
+                canChooseNoCards: true,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
                 cardCondition: (card, context) => card.isUnit() && card.owner === context.player,

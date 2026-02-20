@@ -105,6 +105,7 @@ describe('Tobias Beckett, People are Predictable', function() {
                 // cannot select rey & awing (own & control) or battlefield marine (control but do not own)
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.gungi, context.atst]);
                 expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -174,6 +175,7 @@ describe('Tobias Beckett, People are Predictable', function() {
                 // cannot select rey & awing (own & control) or battlefield marine (control but do not own)
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.gungi, context.atst]);
                 expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.gungi);
@@ -240,6 +242,7 @@ describe('Tobias Beckett, People are Predictable', function() {
                 // cannot select rey & awing (own & control) or battlefield marine (control but do not own)
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.gungi, context.atst]);
                 expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toHaveEnabledPromptButton('Done');
