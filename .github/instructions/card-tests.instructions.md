@@ -183,6 +183,35 @@ context.player1.clickPrompt('Trigger');  // To trigger
 context.player1.clickPrompt('Pass');     // To decline
 ```
 
+### Optional Target Selection
+
+When a target resolver has `optional: true`, the player can decline to select a target. The button text is "Choose nothing":
+
+```typescript
+// Player can select a target or choose nothing
+expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
+context.player1.clickPrompt('Choose nothing');  // Decline to select
+```
+
+### Multi-Player Target Selection ("Each player chooses...")
+
+When an ability uses multiple `targetResolvers` with different `choosingPlayer` values (e.g., `selfChoice` and `opponentChoice`), all targets are evaluated together before any are resolved. This means:
+
+- Both players see the same pool of valid targets
+- P2 can select a target that P1 also selected
+- The order of resolution follows the order defined in `targetResolvers`
+
+```typescript
+// Both players choose from the same pool
+context.player1.clickCard(context.wampa);  // P1 selects wampa
+
+// P2 still sees wampa as selectable (targets evaluated together)
+expect(context.player2).toBeAbleToSelectExactly([
+    context.wampa, context.atst, context.battlefieldMarine
+]);
+context.player2.clickCard(context.atst);
+```
+
 ### Attacking
 
 ```typescript
@@ -329,6 +358,18 @@ expect(context.player1).toBeAbleToSelectExactly([context.veteranFleetOfficer, xw
 
 Token units count toward "entered play this phase" conditions. For example, playing Veteran Fleet Officer creates an X-Wing token - both count as having entered play.
 
+#### Token Units and Zones
+
+When token units are defeated, they go to `outsideTheGame`, not `discard`:
+
+```typescript
+// Token unit defeated
+expect(context.spy).toBeInZone('outsideTheGame');
+
+// Regular unit defeated
+expect(context.wampa).toBeInZone('discard', context.player1);
+```
+
 ### Control Changes and "Friendly" Evaluation
 
 When abilities reference "friendly units," this is evaluated at resolution time based on current control, not based on who originally played the unit:
@@ -362,7 +403,8 @@ Abilities that check if units "entered play this phase" typically require the un
 6. **Control changes**: Units that change control mid-phase (e.g., Galen Erso, Change of Heart) - "friendly" is evaluated at ability resolution, not when the unit entered play
 7. **Optional abilities**: Triggering vs passing on "may" abilities, and ensuring correct prompts and game state changes in both cases
 8. **Defeated units**: Units that entered play but were defeated before an ability resolves may not count for "entered play this phase" conditions
-9. **Token units**: Ensure token units are handled correctly for targeting, counting, and zone checks
+9. **Token units**: Ensure token units are handled correctly for targeting, counting, and zone checks (defeated tokens go to `outsideTheGame`)
+10. **Multi-player choices**: When both players choose targets (e.g., "Each player may..."), verify both passing, one passing, and both selecting
 
 ## Using xdescribe and xit to temporarily skip tests
 
