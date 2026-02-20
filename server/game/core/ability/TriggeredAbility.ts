@@ -12,6 +12,7 @@ import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
+import * as AttackHelpers from '../attack/AttackHelpers';
 
 export interface ITriggeredAbillityState extends ICardAbilityState {
     isRegistered: boolean;
@@ -52,9 +53,9 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
 
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
-    protected eventsTriggeredFor: GameEvent[] = [];
 
     private readonly mustChangeGameState: GameStateChangeRequired;
+    private readonly effectCondition?: (context: TriggeredAbilityContext) => boolean;
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
@@ -98,6 +99,12 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
             : GameStateChangeRequired.MustFullyOrPartiallyResolve;
+
+        if ('attackerMustSurvive' in properties && properties.attackerMustSurvive) {
+            const unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+            this.effectCondition = (context: TriggeredAbilityContext) =>
+                AttackHelpers.attackerSurvived(context.event.attack, unitsDefeatedThisPhaseWatcher);
+        }
     }
 
     protected override setupDefaultState(): void {
@@ -115,10 +122,8 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
             if (
                 this.card.getTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
-                this.meetsRequirements(context) === '' &&
-                !this.eventsTriggeredFor.includes(event)
+                this.meetsRequirements(context) === ''
             ) {
-                this.eventsTriggeredFor.push(event);
                 window.addTriggeredAbilityToWindow(context);
             }
         }
@@ -146,6 +151,9 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
                         break;
                     case StandardTriggeredAbilityType.OnAttack:
                         updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.attacker === context.source;
+                        break;
+                    case StandardTriggeredAbilityType.OnDefense:
+                        updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.getAllTargets().includes(context.source);
                         break;
                     case StandardTriggeredAbilityType.WhenPlayed:
                         updatedWhen[EventName.OnCardPlayed] = (event, context) => event.card === context.source;
@@ -197,7 +205,19 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     }
 
     public override checkGameActionsForPotential(context) {
+        if (this.effectCondition && !this.effectCondition(context)) {
+            return false;
+        }
+
         return this.immediateEffect.hasLegalTarget(context, {}, this.mustChangeGameState);
+    }
+
+    public override canResolveSomeTarget(context: TriggeredAbilityContext): boolean {
+        if (this.effectCondition && !this.effectCondition(context)) {
+            return false;
+        }
+
+        return super.canResolveSomeTarget(context);
     }
 
     protected override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {
@@ -261,11 +281,11 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     protected override buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContext: AbilityContext) {
         const context = super.buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy, parentContext);
 
-        Contract.assertNotNullLike(this.eventsTriggeredFor);
-        if (this.eventsTriggeredFor.length > 0) {
+        // If the parent context is a triggered ability context, use its event
+        if (parentContext.isTriggered()) {
             return new TriggeredAbilityContext({
                 ...context.getProps(),
-                event: this.eventsTriggeredFor[0]
+                event: parentContext.event
             });
         }
         return context;

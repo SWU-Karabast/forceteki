@@ -135,6 +135,7 @@ function populateMissingData(attributes, id) {
             break;
         case '6658095148': // Zeb Orrelios - Spectre Four
             attributes.title = 'Zeb Orrelios'; // Fix spelling
+            break;
     }
 
     // Plot cards from Secrets of Power
@@ -312,6 +313,11 @@ function filterValues(card) {
         filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '')
             .replace(/\s/g, '-');
 
+        // Ensure all card titles with quotes use the same type of quote character (e.g., 'Benthic "Two Tubes"' instead of 'Benthic “Two Tubes”')
+        filteredObj.title = filteredObj.title
+            .replace(/“|”/g, '"')
+            .replace(/‘|’/g, '\'');
+
         // keep original card for debug logging, will be removed before card is written to file
         delete card.attributes.variants;
         filteredObj.debugObject = card;
@@ -358,7 +364,8 @@ function buildCardLists(cards) {
         ['LOF', 5],
         ['IBH', 5.9],
         ['SEC', 6],
-        ['LAW', 7]
+        ['LAW', 7],
+        ['TS26', 7.5]
     ]);
 
     for (const card of cards) {

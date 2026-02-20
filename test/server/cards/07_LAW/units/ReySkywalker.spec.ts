@@ -120,6 +120,9 @@ describe('Rey, Skywalker', function () {
 
                 context.player1.clickCard(context.rey);
                 expect(context.rey).toBeInZone('groundArena', context.player2);
+                expect(context.getChatLog()).toEqual(
+                    'player1 uses Rey to cancel the effects of Change of Heart'
+                );
             });
 
             it('cannot be given control of to an opponent', async function () {

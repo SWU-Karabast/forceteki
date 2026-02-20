@@ -15,11 +15,8 @@ export default class CaptainTyphoAllNecessaryPrecautions extends NonLeaderUnitCa
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Heroism];
 
-        registrar.addTriggeredAbility({
+        registrar.addOnDefenseAbility({
             title: `Disclose ${EnumHelpers.aspectString(aspects)} to heal 1 damage from your base`,
-            when: {
-                onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
-            },
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Heal 1 damage from your base',

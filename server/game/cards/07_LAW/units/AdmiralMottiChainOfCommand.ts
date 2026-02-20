@@ -6,7 +6,7 @@ import { CardType, RelativePlayer } from '../../../core/Constants';
 export default class AdmiralMottiChainOfCommand extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'admiral-motti#chain-of-command-id',
+            id: '0007562874',
             internalName: 'admiral-motti#chain-of-command',
         };
     }

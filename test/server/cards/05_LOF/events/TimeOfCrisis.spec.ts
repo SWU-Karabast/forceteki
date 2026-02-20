@@ -147,7 +147,14 @@ describe('Time of Crisis', function() {
 
                 context.player1.clickCard(context.timeOfCrisis);
 
+                // Player is warned that the event will have no effect
+                expect(context.player1).toHavePrompt('Playing Time of Crisis will have no effect. Are you sure you want to play it?');
+                expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+
+                // Play it anyway
+                context.player1.clickPrompt('Play anyway');
                 expect(context.timeOfCrisis).toBeInZone('discard');
+
                 expect(context.player2).toBeActivePlayer();
             });
         });

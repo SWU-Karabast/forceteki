@@ -1,7 +1,7 @@
 import type Game from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
-import { EffectName, KeywordName } from '../Constants';
+import { AbilityRestriction, EffectName, KeywordName } from '../Constants';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Player } from '../Player';
@@ -12,6 +12,7 @@ export class Attack {
     public readonly attacker: IUnitCard;
     public readonly attackingPlayer: Player;
     public readonly attackerInPlayId: number;
+    public readonly id: number;
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
 
@@ -34,6 +35,8 @@ export class Attack {
         const notInPlayTargets = targets.filter((target) => !target.isBase() && !target.isInPlay());
         Contract.assertTrue(notInPlayTargets.length === 0, `Attempting to construct an Attack but the following targets are not in play: ${notInPlayTargets.map((target) => target.internalName).join(', ')}`);
 
+        this.id = game.getNextAttackId();
+
         this.game = game;
         this.attacker = attacker;
         this.attackingPlayer = attacker.controller;
@@ -50,6 +53,10 @@ export class Attack {
     }
 
     public getAttackerCombatDamage(context: AbilityContext): number | null {
+        if (this.attacker.hasRestriction(AbilityRestriction.DealCombatDamage)) {
+            return null;
+        }
+
         const attackDamage = this.attackerCombatDamageOverride
             ? this.attackerCombatDamageOverride(this, context)
             : this.getUnitPower(this.attacker);
@@ -101,20 +108,51 @@ export class Attack {
         return matchingUnits.length > 0;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public getTargetCombatDamage(_context: AbilityContext): number | null {
+
+    /**
+     * Get total combat damage from targets.
+     * @param earlyCombatDamageOnly - `true`: only include damage for targets that deal damage first, `false`: only include damage for targets that don't deal damage first
+     */
+    public getTargetCombatDamage(
+        _context: AbilityContext,
+        earlyCombatDamageOnly: boolean = false
+    ): number | null {
+        if (this.targets.every((t) => t.hasRestriction(AbilityRestriction.DealCombatDamage))) {
+            return null;
+        }
+
         // If we ever need to override the combat damage for the defender, we can follow the same pattern as attackerCombatDamageOverride
-        return this.targets.reduce(
-            (total, target) => total + (target.isBase() ? 0 : this.getUnitPower(target)), 0
-        );
+        const reducer = (totalDamage: number, target: IAttackableCard): number => {
+            if (target.isBase() || target.hasRestriction(AbilityRestriction.DealCombatDamage)) {
+                return totalDamage;
+            }
+            return totalDamage + this.getUnitPower(target);
+        };
+
+        return this.targets
+            .filter((t) => {
+                const dealsFirst = this.targetDealsCombatDamageFirst(t);
+                return earlyCombatDamageOnly ? dealsFirst : !dealsFirst;
+            })
+            .reduce(reducer, 0);
     }
 
     public hasOverwhelm(): boolean {
         return this.attacker.hasSomeKeyword(KeywordName.Overwhelm);
     }
 
-    public attackerDealsDamageBeforeDefender(): boolean {
-        return this.attacker.hasOngoingEffect(EffectName.DealsDamageBeforeDefender);
+    public attackerDealsCombatDamageFirst(): boolean {
+        return this.attacker.hasOngoingEffect(EffectName.DealsCombatDamageFirst);
+    }
+
+    public targetDealsCombatDamageFirst(attackTarget: IAttackableCard): boolean {
+        return this.targets.includes(attackTarget) &&
+          !attackTarget.isBase() &&
+          attackTarget.hasOngoingEffect(EffectName.DealsCombatDamageFirst);
+    }
+
+    public anyTargetDealsCombatDamageFirst(): boolean {
+        return this.targets.some((t) => this.targetDealsCombatDamageFirst(t));
     }
 
     public getLegalTargets(): IAttackableCard[] {

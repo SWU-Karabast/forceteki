@@ -162,6 +162,10 @@ import type { ICreateCreditTokenProperties } from './CreateCreditTokenSystem';
 import { CreateCreditTokenSystem } from './CreateCreditTokenSystem';
 import type { ICardEffectResourcePaymentProperties } from './CardEffectResourcePaymentSystem';
 import { CardEffectResourcePaymentSystem } from './CardEffectResourcePaymentSystem';
+import type { IUseOnAttackProperties } from './UseOnAttackSystem';
+import { UseOnAttackSystem } from './UseOnAttackSystem';
+import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditTokenSystem';
+import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -659,6 +663,10 @@ export function takeControlOfResource<TContext extends AbilityContext = AbilityC
     return new TakeControlOfResourceSystem(propertyFactory);
 }
 
+export function takeControlOfCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfCreditTokenProperties, TContext>) {
+    return new TakeControlOfCreditTokenSystem(propertyFactory);
+}
+
 // //////////////
 // // GENERIC
 // //////////////
@@ -735,4 +743,7 @@ export function useWhenDefeatedAbility<TContext extends AbilityContext = Ability
 }
 export function useWhenPlayedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenPlayedProperties, TContext> = {}) {
     return new UseWhenPlayedSystem<TContext>(propertyFactory);
+}
+export function useOnAttackAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseOnAttackProperties, TContext> = {}) {
+    return new UseOnAttackSystem<TContext>(propertyFactory);
 }

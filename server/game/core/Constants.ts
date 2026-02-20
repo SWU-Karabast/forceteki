@@ -76,6 +76,7 @@ export enum DamageType {
 export enum EffectName {
     AbilityRestrictions = 'abilityRestrictions',
     AdditionalAction = 'additionalActions',
+    AdditionalPhase = 'additionalPhase',
     AdditionalActionAfterWindowCompleted = 'additionalActionsAfterWindowCompleted',
     AdditionalPlayCost = 'additionalPlaycost',
     AdditionalTriggerCost = 'additionalTriggercost',
@@ -96,7 +97,7 @@ export enum EffectName {
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
-    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
+    DealsCombatDamageFirst = 'dealsCombatDamageFirst',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
@@ -162,6 +163,7 @@ export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum StandardTriggeredAbilityType {
     OnAttack = 'onAttack',
+    OnDefense = 'onDefense',
     WhenDefeated = 'whenDefeated',
     WhenPlayed = 'whenPlayed',
     WhenPlayedUsingSmuggle = 'whenPlayedUsingSmuggle',
@@ -256,9 +258,9 @@ export enum EventName {
     OnActionTaken = 'onActionTaken',
     OnAddTokenToCard = 'onAddTokenToCard',
     OnAspectsDisclosed = 'onAspectsDisclosed',
-    OnAttackCompleted = 'onAttackCompleted',
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
+    OnAttackEnd = 'onAttackEnd',
     OnBeginRound = 'onBeginRound',
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
@@ -312,6 +314,7 @@ export enum EventName {
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
     OnUpgradeUnattached = 'onUpgradeUnattached',
+    OnUseOnAttack = 'onUseOnAttack',
     OnUseWhenDefeated = 'onUseWhenDefeated',
     OnUseWhenPlayed = 'onUseWhenPlayed',
 }
@@ -412,6 +415,7 @@ export enum Trait {
     Lightsaber = 'lightsaber',
     Mandalorian = 'mandalorian',
     Modification = 'modification',
+    Musician = 'musician',
     Naboo = 'naboo',
     NewRepublic = 'new republic',
     Night = 'night',
@@ -483,6 +487,7 @@ export enum AbilityRestriction {
     BeCaptured = 'beCaptured',
     BeDefeated = 'beDefeated',
     ReturnToHand = 'returnToHand',
+    DealCombatDamage = 'dealCombatDamage',
 }
 
 export enum DamageModificationType {

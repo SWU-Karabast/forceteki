@@ -20,6 +20,8 @@ describe('Champion\'s KT9 Podracer', function () {
             expect(context.player1.credits).toBe(1);
             expect(context.player2.credits).toBe(0);
 
+            expect(context.getChatLog()).toEqual('player1 uses Champion\'s KT9 Podracer to create a Credit token');
+
             expect(context.championsKt9Podracer).toBeInZone('groundArena');
             expect(context.player2).toBeActivePlayer();
         });

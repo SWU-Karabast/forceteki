@@ -3,7 +3,7 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
-import { EventName, DeckZoneDestination, TargetMode, ZoneName } from '../core/Constants.js';
+import { DeckZoneDestination, EventName, TargetMode, ZoneName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { GameSystem } from '../core/gameSystem/GameSystem.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -309,7 +309,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         if (properties.revealSelected) {
-            return context.game.addMessage('{0} takes {1}', choosingPlayer, this.getTargetMessage(Array.from(selectedCards), context));
+            const isDiscard = properties.selectedCardsImmediateEffect.eventName === EventName.OnCardDiscarded;
+            return context.game.addMessage(`{0} ${isDiscard ? 'discards' : 'takes'} {1}`, choosingPlayer, this.getTargetMessage(Array.from(selectedCards), context));
         }
 
         context.game.addMessage(
@@ -322,7 +323,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     private chooseNothingHandler(properties: ISearchDeckProperties, context: TContext, event: any) {
         const choosingPlayer = properties.choosingPlayer || event.player;
-        context.game.addMessage('{0} takes nothing', choosingPlayer);
+        const isDiscard = properties.selectedCardsImmediateEffect.eventName === EventName.OnCardDiscarded;
+        context.game.addMessage(`{0} ${isDiscard ? 'discards' : 'takes'} nothing`, choosingPlayer);
+
         if (properties.chooseNothingImmediateEffect) {
             context.game.queueSimpleStep(() => {
                 if (properties.chooseNothingImmediateEffect.hasLegalTarget(context)) {

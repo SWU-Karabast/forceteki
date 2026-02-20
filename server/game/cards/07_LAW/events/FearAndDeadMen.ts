@@ -9,7 +9,7 @@ export default class FearAndDeadMen extends EventCard {
 
     protected override getImplementationId () {
         return {
-            id: 'fear-and-dead-men-id',
+            id: '1416777483',
             internalName: 'fear-and-dead-men',
         };
     }

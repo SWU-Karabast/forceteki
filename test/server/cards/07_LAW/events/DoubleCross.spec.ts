@@ -85,6 +85,10 @@ describe('Double-Cross', function() {
                     // AT costs 6, Marine costs 2
                     expect(context.player1.credits).toBe(0);
                     expect(context.player2.credits).toBe(4);
+                    expect(context.getChatLogs(2)).toEqual([
+                        'player1 plays Double-Cross to give control of Battlefield Marine to player2 and to take control of AT-ST',
+                        'player1 uses Double-Cross to make player2 create 4 Credit tokens',
+                    ]);
                 });
 
                 it('allows units from different arenas to be selected and exchanges control and gives credits to player when enemy unit costs less', function() {
@@ -101,6 +105,10 @@ describe('Double-Cross', function() {
                     // Wampa cost 4, Spacer cost 2
                     expect(context.player1.credits).toBe(2);
                     expect(context.player2.credits).toBe(0);
+                    expect(context.getChatLogs(2)).toEqual([
+                        'player1 plays Double-Cross to give control of Wampa to player2 and to take control of Cartel Spacer',
+                        'player1 uses Double-Cross to create 2 Credit tokens',
+                    ]);
                 });
 
                 it('exchanges control and gives no credits when units have equal cost', function() {
@@ -117,10 +125,13 @@ describe('Double-Cross', function() {
                     // Both cost 4
                     expect(context.player1.credits).toBe(0);
                     expect(context.player2.credits).toBe(0);
+                    expect(context.getChatLog()).toEqual(
+                        'player1 plays Double-Cross to give control of Wampa to player2 and to take control of Loan Shark'
+                    );
                 });
             });
 
-            it('exchanges control of only one unit when Rey is the other one', async function() {
+            it('exchanges control of only one unit when Rey is the other one, selecting higher cost card', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -146,6 +157,40 @@ describe('Double-Cross', function() {
                 expect(context.rey.controller).toBe(context.player1Object);
                 expect(context.devastator.controller).toBe(context.player1Object);
                 expect(context.player1.credits).toBe(2);
+                expect(context.player2.credits).toBe(0);
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 plays Double-Cross to give control of Rey to player2 and to take control of Devastator',
+                    'player2 uses Rey to cancel the effects of Double-Cross',
+                    'player1 uses Double-Cross to create 2 Credit tokens',
+                ]);
+            });
+
+            it('exchanges control of only one unit when Rey is the other one, selecting lower cost card', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['doublecross'],
+                        groundArena: ['battlefield-marine', 'wampa', 'rey#skywalker'], // cost 2, cost 4, cost 8
+                        spaceArena: [],
+                        leader: { card: 'boba-fett#daimyo', deployed: true },
+                    },
+                    player2: {
+                        groundArena: ['atst', 'loan-shark'], // cost 6, cost 4
+                        spaceArena: ['cartel-spacer', 'devastator#inescapable'], // cost 2, cost 10
+                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.doublecross);
+                context.player1.clickCard(context.rey);
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.rey.controller).toBe(context.player1Object);
+                expect(context.cartelSpacer.controller).toBe(context.player1Object);
+                expect(context.player1.credits).toBe(6);
                 expect(context.player2.credits).toBe(0);
             });
         });

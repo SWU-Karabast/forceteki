@@ -6,7 +6,7 @@ import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Con
 export default class GalenErsoDestroyingHisCreation extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'galen-erso#destroying-his-creation-id',
+            id: '5574828561',
             internalName: 'galen-erso#destroying-his-creation',
         };
     }

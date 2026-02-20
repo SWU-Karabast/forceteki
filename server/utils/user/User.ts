@@ -60,6 +60,14 @@ export abstract class User {
      * Gets the user's moderation status
      */
     public abstract getModeration(): IModerationAction | null;
+
+    /**
+     * Whether this user has a client-provided ID (as opposed to a server-generated UUID).
+     * Used for DAU tracking to avoid counting manufactured anonymous IDs.
+     */
+    public hasClientProvidedId(): boolean {
+        return true;
+    }
 }
 
 /**
@@ -135,11 +143,17 @@ export class AuthenticatedUser extends User {
 export class AnonymousUser extends User {
     public id: string;
     public username: string;
+    private readonly _hasClientProvidedId: boolean;
 
-    public constructor(id: string, username: string = 'Anonymous') {
+    public constructor(id: string, username: string = 'Anonymous', hasClientProvidedId: boolean = false) {
         super();
         this.id = id;
         this.username = username;
+        this._hasClientProvidedId = hasClientProvidedId;
+    }
+
+    public override hasClientProvidedId(): boolean {
+        return this._hasClientProvidedId;
     }
 
     public isAuthenticatedUser(): boolean {

@@ -4,6 +4,7 @@ import type Game from '../../Game';
 import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { GameObjectBase } from '../../GameObjectBase';
 import { registerState } from '../../GameObjectUtils';
+import type { AdditionalPhaseEffect } from './AdditionalPhaseEffect';
 import type { GainAbility } from './GainAbility';
 
 @registerState()
@@ -42,6 +43,10 @@ export class OngoingEffectValueWrapper<TValue, TState extends IGameObjectBaseSta
     }
 
     public isGainAbility(): this is GainAbility {
+        return false;
+    }
+
+    public isAdditionalPhase(): this is AdditionalPhaseEffect {
         return false;
     }
 }

@@ -73,8 +73,6 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 context.player1.clickCard(context.zebOrrelios);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                context.player1.clickPrompt('Trigger');
-
                 // kill battlefield marine with flamethrower, zeb should deal 4 damage to another unit
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 3],
