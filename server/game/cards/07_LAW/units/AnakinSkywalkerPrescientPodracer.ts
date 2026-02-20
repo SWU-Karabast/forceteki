@@ -28,7 +28,7 @@ export default class AnakinSkywalkerPrescientPodracer extends NonLeaderUnitCard 
             contextTitle: (context) => this.buildContextTitle(context),
             optional: true,
             when: {
-                onAttackCompleted: (event, context) =>
+                onAttackEnd: (event, context) =>
                     event.attack.attacker.controller === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({

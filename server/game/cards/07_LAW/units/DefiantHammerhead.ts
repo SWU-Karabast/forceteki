@@ -28,7 +28,7 @@ export default class DefiantHammerhead extends NonLeaderUnitCard {
                         type: AbilityType.Triggered,
                         title: 'Defeat Defiant Hammerhead',
                         when: {
-                            onAttackCompleted: () => true,
+                            onAttackEnd: () => true,
                         },
                         immediateEffect: AbilityHelper.immediateEffects.defeat(),
                     })
