@@ -19,7 +19,7 @@ export default class PartisanUwing extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Create a Spy token',
+            title: 'Create a Credit token',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
                 onTrue: AbilityHelper.immediateEffects.createCreditToken()

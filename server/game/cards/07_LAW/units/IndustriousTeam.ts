@@ -13,7 +13,7 @@ export default class IndustriousTeam extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Defeat a non-leader unit with 4 or less HP.',
+            title: 'Defeat a non-leader unit with 4 or less remaining HP.',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
