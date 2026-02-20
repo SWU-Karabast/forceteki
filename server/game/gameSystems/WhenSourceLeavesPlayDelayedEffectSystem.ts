@@ -6,7 +6,7 @@ import * as Contract from '../core/utils/Contract';
 import type { IDelayedEffectProperties } from './DelayedEffectSystem';
 import { DelayedEffectSystem } from './DelayedEffectSystem';
 
-export type IWhenSourceLeavesPlayDelayedEffectProperties = Omit<IDelayedEffectProperties, 'duration' | 'when' | 'target'>;
+export type IWhenSourceLeavesPlayDelayedEffectProperties = Omit<IDelayedEffectProperties, 'duration' | 'when'>;
 
 /**
  * Subclass of the {@link DelayedEffectSystem} specifically for creating delayed effects that happen when the source leaves play
