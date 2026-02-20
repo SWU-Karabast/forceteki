@@ -1,4 +1,3 @@
-
 describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
     integration(function(contextRef) {
         describe('Sabine\'s Masterpiece\'s on attack ability', function() {
@@ -94,6 +93,7 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
 
                 context.player1.clickPrompt('Exhaust a resource');
 
+                expect(context.player1).toHavePrompt('Choose a player to exhaust a resource');
                 expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
 
                 const opponentExhaustedResourceCount = context.player2.exhaustedResourceCount;
@@ -123,6 +123,7 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
 
                 context.player1.clickPrompt('Ready a resource');
 
+                expect(context.player1).toHavePrompt('Choose a player to ready a resource');
                 expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
 
                 const readyResourceCount = context.player1.readyResourceCount;
@@ -175,6 +176,7 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
 
                 context.player1.clickPrompt('Exhaust a resource');
 
+                expect(context.player1).toHavePrompt('Choose a player to exhaust a resource');
                 expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
 
                 const opponentExhaustedResourceCount = context.player2.exhaustedResourceCount;
