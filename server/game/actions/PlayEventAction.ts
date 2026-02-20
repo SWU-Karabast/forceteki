@@ -79,9 +79,8 @@ export class PlayEventAction extends PlayCardAction {
 
         const eventAbility = context.source.getEventAbility();
 
-        // if the opponent will be making any selections or the ability is optional, then we need to do play in the correct order (i.e. move to discard first, then select)
+        // if the ability is optional, then we need to do play in the correct order (i.e. move to discard first, then select)
         if (
-            eventAbility.hasTargetsChosenByPlayer(context, context.player.opponent) ||
             eventAbility.playerChoosingOptional === RelativePlayer.Opponent ||
             eventAbility.optional ||
             this.usesExploit(context as unknown as AbilityContext<IEventCard>) ||
