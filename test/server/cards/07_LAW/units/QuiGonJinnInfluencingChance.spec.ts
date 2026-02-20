@@ -41,6 +41,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 expect(context.underworldThug).toBeInZone('deck');
 
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(3)).toContain('player1 discards Porg');
             });
 
             it('should allow the user to not discard a card, but still make them put all 3 on top of the deck in any order', function () {
@@ -65,6 +66,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 expect(context.underworldThug).toBeInZone('deck');
 
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(4)).toContain('player1 discards nothing');
             });
         });
 
