@@ -100,7 +100,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
             ? GameStateChangeRequired.MustFullyResolve
             : GameStateChangeRequired.MustFullyOrPartiallyResolve;
 
-        if ('attackerMustSurvive' in properties) {
+        if ('attackerMustSurvive' in properties && properties.attackerMustSurvive) {
             const unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
             this.effectCondition = (context: TriggeredAbilityContext) =>
                 AttackHelpers.attackerSurvived(context.event.attack, unitsDefeatedThisPhaseWatcher);
