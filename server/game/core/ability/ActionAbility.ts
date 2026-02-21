@@ -39,6 +39,7 @@ export class ActionAbility extends CardAbility {
 
     public readonly condition?: (context?: AbilityContext) => boolean;
     public readonly requiresConfirmation: boolean;
+    public readonly disableCostReordering: boolean;
     private earlyTargetResults?: ITargetResult;
 
     public override get isEpicAction(): boolean {
@@ -51,6 +52,7 @@ export class ActionAbility extends CardAbility {
         this.phase = properties.phase ?? PhaseName.Action;
         this.condition = properties.condition;
         this.requiresConfirmation = properties.requiresConfirmation ?? false;
+        this.disableCostReordering = properties.disableCostReordering ?? false;
 
         Contract.assertTrue(card.canRegisterActionAbilities(), `Card '${card.internalName}' cannot have action abilities`);
     }

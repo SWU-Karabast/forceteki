@@ -148,18 +148,24 @@ export class AttackFlow extends BaseStepWithPipeline {
 
                 this.context.game.openEventWindow(damageEvents);
                 this.context.game.queueSimpleStep(() => {
+                    const events = additionalEvent ? [additionalEvent] : [];
+
                     if (inPlayTargets.some((target) => !target.isBase() && target.isInPlay())) {
-                        const defenderDamageEvents = this.createDefenderDamageEvents(false, additionalEvent);
-                        if (defenderDamageEvents.length > 0) {
-                            this.context.game.openEventWindow(defenderDamageEvents);
+                        const defenderDamageEvent = this.createDefenderDamageEvent(false);
+                        if (defenderDamageEvent !== null) {
+                            events.push(defenderDamageEvent);
                         }
+                    }
+
+                    if (events.length > 0) {
+                        this.context.game.openEventWindow(events);
                     }
                 }, 'defender damage after attacker');
             } else if (anyDefenderDealsDamageFirst) {
                 // Some/all defenders deal damage first
-                const earlyDefenderDamageEvents = this.createDefenderDamageEvents(true);
-                if (earlyDefenderDamageEvents.length > 0) {
-                    damageEvents.push(...earlyDefenderDamageEvents);
+                const earlyDefenderDamageEvent = this.createDefenderDamageEvent(true);
+                if (earlyDefenderDamageEvent !== null) {
+                    damageEvents.push(earlyDefenderDamageEvent);
                 }
 
                 this.context.game.openEventWindow(damageEvents);
@@ -177,9 +183,9 @@ export class AttackFlow extends BaseStepWithPipeline {
 
                     // Normal defenders deal damage if any are still alive
                     if (inPlayTargets.some((target) => !target.isBase() && target.isInPlay() && !this.attack.targetDealsCombatDamageFirst(target))) {
-                        const normalDefenderDamageEvents = this.createDefenderDamageEvents();
-                        if (normalDefenderDamageEvents !== null) {
-                            normalDamageEvents.push(...normalDefenderDamageEvents);
+                        const normalDefenderDamageEvent = this.createDefenderDamageEvent();
+                        if (normalDefenderDamageEvent !== null) {
+                            normalDamageEvents.push(normalDefenderDamageEvent);
                         }
                     }
 
@@ -199,9 +205,9 @@ export class AttackFlow extends BaseStepWithPipeline {
                 }
 
                 if (inPlayTargets.some((target) => !target.isBase())) {
-                    const defenderDamageEvents = this.createDefenderDamageEvents();
-                    if (defenderDamageEvents.length > 0) {
-                        damageEvents.push(...defenderDamageEvents);
+                    const defenderDamageEvent = this.createDefenderDamageEvent();
+                    if (defenderDamageEvent !== null) {
+                        damageEvents.push(defenderDamageEvent);
                     }
                 }
                 this.context.game.openEventWindow(damageEvents);
@@ -255,21 +261,19 @@ export class AttackFlow extends BaseStepWithPipeline {
      * Create a damage event for defenders dealing damage to the attacker.
      * @param earlyCombatDamageOnly - `true`: only include damage for defenders that deal damage first, `false`: only include damage for defenders that don't deal damage first
      */
-    private createDefenderDamageEvents(earlyCombatDamageOnly: boolean = false, additionalEvent?: GameEvent): GameEvent[] {
+    private createDefenderDamageEvent(earlyCombatDamageOnly: boolean = false): GameEvent | null {
         const combatDamage = this.attack.getTargetCombatDamage(this.context, earlyCombatDamageOnly);
 
-        const damageEvents = additionalEvent ? [additionalEvent] : [];
-
-        if (combatDamage != null && combatDamage !== 0) {
-            damageEvents.push(new DamageSystem({
-                type: DamageType.Combat,
-                amount: combatDamage,
-                sourceAttack: this.attack,
-                target: this.attack.attacker
-            }).generateEvent(this.context));
+        if (combatDamage === null || combatDamage === 0) {
+            return null;
         }
 
-        return damageEvents;
+        return new DamageSystem({
+            type: DamageType.Combat,
+            amount: combatDamage,
+            sourceAttack: this.attack,
+            target: this.attack.attacker
+        }).generateEvent(this.context);
     }
 
     private completeAttack() {

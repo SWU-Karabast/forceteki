@@ -1186,6 +1186,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
                 spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer),
                 discard: this.getSummaryForZone(ZoneName.Discard, activePlayer),
+                credits: this.getCreditsSummary(activePlayer),
                 // we don't get the deck summary here, as it is not needed in the UI
             },
             disconnected: this.disconnected,
@@ -1206,7 +1207,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             clock: undefined,
             aspects: this.getAspects(),
             forceToken: this.getForceTokenSummary(),
-            credits: this.getCreditsSummary(activePlayer),
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
@@ -1230,18 +1230,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     private getCreditsSummary(activePlayer: Player) {
-        // TODO: If there is ever an effect that can selectively blank Credit tokens,
-        // this class will need to account for which Credits can actually be used to
-        // adjust costs. For now, it's all or nothing (Galen Erso's effect).
-        const creditsAreBlanked = this.baseZone.credits.length > 0 && this.baseZone.credits[0].isBlank();
-        const uuids = this.baseZone.credits.map((credit) => credit.uuid);
-
-        return {
-            count: this.creditTokenCount,
-            uuids: uuids, // UUID is needed for selection on the client
-            isBlanked: creditsAreBlanked ? true : undefined, // Don't include in summary if false
-            selectionState: this.baseZone.credits.length > 0 ? activePlayer.getCardSelectionState(this.baseZone.credits[0]) : undefined
-        };
+        return this.baseZone.credits.map((credit) => credit.getSummary(activePlayer));
     }
 
     private buildAvailableSnapshotsState(isActionPhaseActivePlayer = false) {
