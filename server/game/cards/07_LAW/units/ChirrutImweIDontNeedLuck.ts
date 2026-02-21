@@ -27,7 +27,7 @@ export default class ChirrutImweIDontNeedLuck extends NonLeaderUnitCard {
                     this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
                         context.source,
                         (entry) =>
-                            entry.combatDamageAttackId === context.event.attack.id &&
+                            entry.activeAttackId === context.event.attack.id &&
                             ((entry.damageType === DamageType.Combat && entry.targets.some((target) => target.isBase())) || entry.damageType === DamageType.Overwhelm)
                     ),
                 onTrue: AbilityHelper.immediateEffects.selectCard({

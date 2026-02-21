@@ -28,7 +28,7 @@ export class Attack {
         attacker: IUnitCard,
         targets: IAttackableCard[],
         isAmbush: boolean = false,
-        attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number
+        attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number,
     ) {
         Contract.assertTrue(attacker.isInPlay(), `Attempting to construct an Attack but designated attacker ${attacker.internalName} is not in play`);
 
