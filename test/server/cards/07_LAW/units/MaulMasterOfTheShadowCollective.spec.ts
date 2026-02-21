@@ -174,5 +174,44 @@ describe('Maul, Master of the Shadow Collective', function() {
             context.player1.clickCard(context.wampa);
             expect(context.wampa.controller).toBe(context.player1Object);
         });
+
+        it('Maul\'s on attack ability should defeat the stolen unit instead of returning it if it has become a leader unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    leader: 'asajj-ventress#i-work-alone',
+                    groundArena: ['maul#master-of-the-shadow-collective'],
+                },
+                player2: {
+                    spaceArena: ['mc30-assault-frigate'],
+                    groundArena: ['atat-suppressor'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // steal MC-30 Assault Frigate with Maul's ability
+            context.player1.clickCard(context.maul);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.mc30AssaultFrigate);
+            expect(context.mc30AssaultFrigate.controller).toBe(context.player1Object);
+
+            context.player2.passAction();
+
+            // deploy Asajj Ventress onto it to make it a leader
+            context.player1.clickCard(context.asajjVentress);
+            context.player1.clickPrompt('Deploy Asajj Ventress as a Pilot');
+            context.player1.clickCard(context.mc30AssaultFrigate);
+
+            // move to next action phase to ready Maul
+            context.moveToNextActionPhase();
+
+            // attack with Maul and confirm that the MC-30 is defeated instead of returning to opponent's control
+            context.player1.clickCard(context.maul);
+            context.player1.clickCard(context.atatSuppressor);
+            expect(context.mc30AssaultFrigate).toBeInZone('discard', context.player2);
+            expect(context.asajjVentress).toBeInZone('base');
+        });
     });
 });

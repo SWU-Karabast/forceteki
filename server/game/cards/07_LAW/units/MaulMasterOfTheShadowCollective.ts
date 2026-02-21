@@ -44,10 +44,11 @@ export default class MaulMasterOfTheShadowCollective extends NonLeaderUnitCard {
                         AbilityHelper.immediateEffects.whenSourceLeavesPlayDelayedCardEffect((context) => ({
                             title: 'Return the stolen unit to its owner',
                             target: context.target,
-                            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
                                 newController: selectCardContext.target.owner,
-                                target: selectCardContext.target
-                            })),
+                                excludeLeaderUnit: false,
+                                target: selectCardContext.target,
+                            }),
                         }))
                     ])
                 }))
