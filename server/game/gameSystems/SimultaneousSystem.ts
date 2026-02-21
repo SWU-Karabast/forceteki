@@ -15,7 +15,7 @@ export class SimultaneousSystem<TContext extends AbilityContext = AbilityContext
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { gameSystems } = this.generatePropertiesFromContext(context);
-        const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context) && system.name !== 'collect bounty'); /* collecting a bounty always gets its own message */
+        const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context) && system.getEffectMessage(context)[0] !== '');
         const message = ChatHelpers.formatWithLength(legalSystems.length, 'to ');
         const legalSystemsMessages = legalSystems.map((system) => {
             const [format, args] = system.getEffectMessage(context);
