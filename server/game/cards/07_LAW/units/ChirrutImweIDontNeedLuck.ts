@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { DamageType, WildcardCardType } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
 
@@ -24,12 +24,7 @@ export default class ChirrutImweIDontNeedLuck extends NonLeaderUnitCard {
             title: 'If Chirrut Imwe dealt combat damage to a base, you may heal 4 damage from another unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
-                        context.source,
-                        (entry) =>
-                            entry.activeAttackId === context.event.attack.id &&
-                            ((entry.damageType === DamageType.Combat && entry.targets.some((target) => target.isBase())) || entry.damageType === DamageType.Overwhelm)
-                    ),
+                    this.damageDealtThisPhaseWatcher.unitHasDealtCombatDamageToBaseThisAttack(context.source, context),
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Select a unit to heal 4 damage from',
                     cardTypeFilter: WildcardCardType.Unit,

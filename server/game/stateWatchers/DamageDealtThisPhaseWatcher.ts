@@ -10,6 +10,7 @@ import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployabl
 import type { Card } from '../core/card/Card';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
 export interface DamageDealtEntry {
     damageType: DamageType;
@@ -63,6 +64,15 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                 entry.damageSourceInPlayId === this.getCardId(card) &&
                 filter(entry)
             ).length > 0;
+    }
+
+    public unitHasDealtCombatDamageToBaseThisAttack(card: Card, context: TriggeredAbilityContext): boolean {
+        return this.unitHasDealtDamage(
+            card,
+            (entry) =>
+                entry.activeAttackId === context.event.attack.id &&
+                ((entry.damageType === DamageType.Combat && entry.targets.some((target) => target.isBase())) || entry.damageType === DamageType.Overwhelm)
+        );
     }
 
     protected override setupWatcher() {
