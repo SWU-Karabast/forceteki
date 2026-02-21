@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { DamageType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
 
@@ -25,12 +25,7 @@ export default class MaulMasterOfTheShadowCollective extends NonLeaderUnitCard {
             attackerMustSurvive: true,  // this is an optimization we can do for now since there isn't any effect that cares about momentarily taking control
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
-                        context.source,
-                        (entry) =>
-                            entry.combatDamageAttackId === context.event.attack.id &&
-                            ((entry.damageType === DamageType.Combat && entry.targets.some((target) => target.isBase())) || entry.damageType === DamageType.Overwhelm)
-                    ),
+                    this.damageDealtThisPhaseWatcher.unitHasDealtCombatDamageToBaseThisAttack(context.source, context),
                 onTrue: AbilityHelper.immediateEffects.selectCard((selectCardContext) => ({
                     activePromptTitle: 'Select a unit to take control of until Maul leaves the arena',
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
