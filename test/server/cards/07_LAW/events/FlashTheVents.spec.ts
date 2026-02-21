@@ -134,7 +134,7 @@ describe('Flash the Vents', function () {
 
             expect(context.p1Base.damage).toBe(1);
             expect(context.p2Base.damage).toBe(0);
-            expect(context.jediStarfighter).toBeInZone('discard');
+            expect(context.rebellionYwing).toBeInZone('discard');
             expect(context.jediStarfighter).toBeInZone('discard');
         });
 
@@ -169,6 +169,37 @@ describe('Flash the Vents', function () {
             expect(context.p2Base.damage).toBe(3);
             expect(context.colonelYularen).toBeInZone('groundArena');
             expect(context.battlefieldMarine).toBeInZone('groundArena');
+        });
+
+        it('Flash the Vents\'s ability should initiate an attack and defeat the unit if it dealt ability damage to a base when the attack ends', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    hand: ['flash-the-vents'],
+                    groundArena: ['cassian-andor#everything-for-the-rebellion'],
+                },
+                player2: {
+                    groundArena: ['major-partagaz#healthcare-provider'],
+                    spaceArena: ['jedi-starfighter']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.flashTheVents);
+            context.player1.clickCard(context.cassianAndor);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.majorPartagaz]);
+            context.player1.clickCard(context.majorPartagaz);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p1Base.damage).toBe(0);
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.majorPartagaz).toBeInZone('discard');
+            expect(context.cassianAndor).toBeInZone('discard');
         });
     });
 });
