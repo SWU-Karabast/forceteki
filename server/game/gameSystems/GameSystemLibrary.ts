@@ -117,7 +117,7 @@ import type { ITakeControlOfResourceProperties } from './TakeControlOfResourceSy
 import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
 import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
 import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
-import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhileSourceInPlayDelayedEffectSystem';
+import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhenSourceLeavesPlayDelayedEffectSystem';
 import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
