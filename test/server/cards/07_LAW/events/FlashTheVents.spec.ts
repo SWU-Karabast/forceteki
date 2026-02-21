@@ -201,5 +201,28 @@ describe('Flash the Vents', function () {
             expect(context.majorPartagaz).toBeInZone('discard');
             expect(context.cassianAndor).toBeInZone('discard');
         });
+
+        it('does nothing when played with no units that can attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    hand: ['flash-the-vents'],
+                    groundArena: [{ card: 'cassian-andor#everything-for-the-rebellion', exhausted: true }],
+                },
+                player2: {
+                    groundArena: ['major-partagaz#healthcare-provider'],
+                    spaceArena: ['jedi-starfighter']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.flashTheVents);
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.cassianAndor).toBeInZone('groundArena');
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
