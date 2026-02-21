@@ -35,7 +35,7 @@ export default class FlashTheVents extends EventCard {
                 title: `Defeat ${thenContext.target.title}`,
                 thenCondition: () => this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
                     thenContext.target,
-                    (entry) => entry.activeAttackId === thenContext.game.getLastAttackId() &&
+                    (entry) => entry.activeAttackId === thenContext.activeAttackId &&
                       (entry.targets.some((target) => target.isBase()) || entry.damageType === DamageType.Overwhelm)
                 ),
                 immediateEffect: AbilityHelper.immediateEffects.defeat({ target: thenContext.target })

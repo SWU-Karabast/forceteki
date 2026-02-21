@@ -635,10 +635,6 @@ class Game extends EventEmitter {
         this._randomGenerator.reseed(seed);
     }
 
-    getLastAttackId() {
-        return this._lastAttackId;
-    }
-
     getNextAttackId() {
         this._lastAttackId++;
         return this._lastAttackId;

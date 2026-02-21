@@ -272,6 +272,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             properties.isAmbush,
             properties.attackerCombatDamageOverride
         );
+        context.activeAttackId = event.attack.id;
 
         event.attackerLastingEffects = properties.attackerLastingEffects;
         event.defenderLastingEffects = properties.defenderLastingEffects;
@@ -378,7 +379,6 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             [attackTarget],
             properties.isAmbush,
             properties.attackerCombatDamageOverride,
-            context.game.getLastAttackId() // reuse the last attack id instead of generating a new one
         );
 
         const effectSystem = this.buildCardLastingEffectSystem(attackerLastingEffects, context, attack, attackTarget);

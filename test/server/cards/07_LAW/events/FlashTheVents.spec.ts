@@ -137,5 +137,38 @@ describe('Flash the Vents', function () {
             expect(context.jediStarfighter).toBeInZone('discard');
             expect(context.jediStarfighter).toBeInZone('discard');
         });
+
+        it('Flash the Vents\'s ability should initiate an attack and should not defeat the unit if another unit damaged a base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                attackRulesVersion: 'cr7',
+                player1: {
+                    hand: ['flash-the-vents'],
+                    groundArena: ['battlefield-marine'],
+                    leader: { card: 'colonel-yularen#this-is-why-we-plan', deployed: true }
+                },
+                player2: {
+                    groundArena: ['major-partagaz#healthcare-provider'],
+                    spaceArena: ['cartel-spacer']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.flashTheVents);
+            context.player1.clickCard(context.colonelYularen);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.majorPartagaz]);
+            context.player1.clickCard(context.majorPartagaz);
+            expect(context.majorPartagaz).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(0);
+
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p2Base.damage).toBe(3);
+            expect(context.colonelYularen).toBeInZone('groundArena');
+            expect(context.battlefieldMarine).toBeInZone('groundArena');
+        });
     });
 });
