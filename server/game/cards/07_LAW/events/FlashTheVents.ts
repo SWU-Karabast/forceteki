@@ -32,7 +32,7 @@ export default class FlashTheVents extends EventCard {
             },
             // TODO: Use after instead of then when it's implemented
             then: (thenContext) => ({
-                title: `Defeat ${thenContext.target.title}`,
+                title: `Defeat ${thenContext.target?.title}`,
                 thenCondition: () => this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
                     thenContext.target,
                     (entry) => entry.activeAttackId === thenContext.activeAttackId &&
