@@ -1,0 +1,50 @@
+name: Create Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'The name of the tag'
+        type: string
+        required: true
+      ref:
+        description: 'The ref to create the tag from (default: the commit that triggered the workflow)'
+        type: string
+        required: false
+  workflow_call:
+    inputs:
+      tag_name:
+        description: 'The name of the tag'
+        type: string
+        required: true
+      ref:
+        description: 'The ref to create the tag from (default: the commit that triggered the workflow)'
+        type: string
+        required: false
+
+jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create tag
+        uses: actions/github-script@v7
+        env:
+          TAG_NAME: ${{ inputs.tag_name }}
+          REF: ${{ inputs.ref }}
+        with:
+          script: |
+            const ref = process.env.REF || context.sha;
+            const tag_object = await github.rest.git.createTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: process.env.TAG_NAME
+                object: ref,
+                type: 'commit'
+            });
+
+            await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${tag_object.data.tag}`,
+                sha: tag_object.data.sha
+            });
