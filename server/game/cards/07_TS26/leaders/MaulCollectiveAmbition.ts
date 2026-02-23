@@ -4,6 +4,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 import { WildcardCardType } from '../../../core/Constants';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class MaulCollectiveAmbition extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -26,7 +27,7 @@ export default class MaulCollectiveAmbition extends LeaderUnitCard {
                         AbilityHelper.immediateEffects.giveExperience(),
                         AbilityHelper.immediateEffects.damage({ amount: 1 })
                     ]),
-                    onFalse: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
+                    // onFalse: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                 })
             }
         });
@@ -42,13 +43,17 @@ export default class MaulCollectiveAmbition extends LeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Choose a unit. If it has more Keywords than Experience tokens, give it an Experience token and deal 1 damage to it',
                 cardTypeFilter: WildcardCardType.Unit,
+                hideIfNoLegalTargets: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.targetHasMoreKeywordsThanExperienceTokens(context),
-                    onTrue: AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.giveExperience(),
-                        AbilityHelper.immediateEffects.damage({ amount: 1 })
-                    ]),
-                    onFalse: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
+                    onTrue: AbilityHelper.immediateEffects.simultaneous({
+                        resolutionMode: ResolutionMode.AlwaysResolve,
+                        gameSystems: [
+                            AbilityHelper.immediateEffects.giveExperience(),
+                            AbilityHelper.immediateEffects.damage({ amount: 1 })
+                        ]
+                    }),
+                    // onFalse: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                 })
             }
         });
