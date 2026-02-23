@@ -388,7 +388,7 @@ export class GameServer {
 
                 // track daily active user (req.user is set by auth middleware)
                 if (req.user?.hasClientProvidedId()) {
-                    logger.verbose(`GameServer (spectate-game): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
+                    logger.info(`GameServer (spectate-game): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
@@ -1000,7 +1000,7 @@ export class GameServer {
 
                 // track daily active user (req.user is set by auth middleware)
                 if (req.user?.hasClientProvidedId()) {
-                    logger.verbose(`GameServer (create-lobby): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
+                    logger.info(`GameServer (create-lobby): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
@@ -1067,7 +1067,7 @@ export class GameServer {
 
                 // track daily active user (req.user is set by auth middleware)
                 if (req.user?.hasClientProvidedId()) {
-                    logger.verbose(`GameServer (join-lobby): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
+                    logger.info(`GameServer (join-lobby): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
@@ -1132,7 +1132,7 @@ export class GameServer {
 
                 // track daily active user (req.user is set by auth middleware)
                 if (req.user?.hasClientProvidedId()) {
-                    logger.verbose(`GameServer (enter-queue): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
+                    logger.info(`GameServer (enter-queue): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
