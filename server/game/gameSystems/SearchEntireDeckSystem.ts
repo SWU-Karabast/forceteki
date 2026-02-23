@@ -22,7 +22,12 @@ export class SearchEntireDeckSystem<TContext extends AbilityContext = AbilityCon
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
     public constructor(propertiesOrPropertyFactory: ISearchEntireDeckProperties<TContext> | ((context?: AbilityContext) => ISearchEntireDeckProperties<TContext>)) {
         const propertyWithSearchCount = GameSystem.appendToPropertiesOrPropertyFactory<ISearchDeckProperties<TContext>, 'searchCount'>(propertiesOrPropertyFactory, { searchCount: -1 });
-        super(propertyWithSearchCount);
+        const propertiesWithSearchCountAndRemainingCardsHandler = GameSystem.appendToPropertiesOrPropertyFactory<ISearchDeckProperties<TContext>, 'remainingCardsHandler'>(propertyWithSearchCount, {
+            remainingCardsHandler: () => {
+                // No op since we always shuffle after an entire deck search
+            }
+        });
+        super(propertiesWithSearchCountAndRemainingCardsHandler);
     }
 
     protected override buildPromptProperties(

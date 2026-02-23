@@ -29,7 +29,7 @@ describe('Padme Amidala, Serving the Republic', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.headhunterSquadron);
-                expect(context.getChatLogs(2)).toContain('player1 takes Headhunter Squadron');
+                expect(context.getChatLog()).toContain('player1 uses Padmé Amidala to reveal Headhunter Squadron, to draw a card, and to move 2 cards to the bottom of their deck');
                 expect(context.headhunterSquadron).toBeInZone('hand');
 
                 expect([
@@ -137,7 +137,7 @@ describe('Padme Amidala, Serving the Republic', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.heroesOnBothSides);
-                expect(context.getChatLogs(2)).toContain('player1 takes Heroes on Both Sides');
+                expect(context.getChatLog()).toEqual('player1 uses Padmé Amidala to reveal Heroes on Both Sides, to draw a card, and to move 2 cards to the bottom of their deck');
                 expect(context.heroesOnBothSides).toBeInZone('hand');
 
                 expect([

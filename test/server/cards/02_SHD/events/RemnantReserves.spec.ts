@@ -47,7 +47,7 @@ describe('Remnant Reserves', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing, Restored ARC-170, and Inferno Four');
+                expect(context.getChatLog()).toEqual('player1 uses Remnant Reserves to reveal Green Squadron A-Wing, Restored ARC-170, and Inferno Four, to draw 3 cards, and to move 2 cards to the bottom of their deck');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
                 expect(context.restoredArc170).toBeInZone('hand');
                 expect(context.infernoFour).toBeInZone('hand');
@@ -76,7 +76,7 @@ describe('Remnant Reserves', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing');
+                expect(context.getChatLog()).toContain('player1 uses Remnant Reserves to reveal Green Squadron A-Wing');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
 
                 expect(context.recruit).toBeInBottomOfDeck(context.player1, 4);

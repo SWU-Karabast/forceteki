@@ -48,7 +48,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 context.player1.clickDone();
 
-                expect(context.getChatLogs(2)).toContain('player1 takes Cell Block Guard and Scout Bike Pursuer');
+                expect(context.getChatLog()).toContain('player1 uses Grand Moff Tarkin to reveal Cell Block Guard and Scout Bike Pursuer');
 
                 // Check cards in hand
                 expect(context.cellBlockGuard).toBeInZone('hand');

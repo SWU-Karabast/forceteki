@@ -63,7 +63,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
             // TODO: use ShuffleDeckSystem instead
             if (event.destination === ZoneName.Deck && event.shuffle) {
-                card.owner.shuffleDeck();
+                card.owner.shuffleDeck(event.context);
             }
         }
     }

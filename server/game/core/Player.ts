@@ -727,8 +727,11 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
      * Shuffles the deck, displaying a message in chat
      * @param {AbilityContext} context
      */
-    public shuffleDeck(context: AbilityContext = null) {
-        this.game.addMessage('{0} is shuffling their deck', this);
+    public shuffleDeck(context: AbilityContext = null, emitMessage = false) {
+        if (emitMessage) {
+            this.game.addMessage('{0} is shuffling their deck', this);
+        }
+
         this.deckZone.shuffle(this.game.randomGenerator);
     }
 
