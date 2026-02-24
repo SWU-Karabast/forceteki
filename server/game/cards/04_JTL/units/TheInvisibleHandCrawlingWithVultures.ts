@@ -36,7 +36,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
                     searchCount: 8,
                     cardCondition: (card, _context) => card.isUnit() && card.hasSomeTrait(Trait.Droid),
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
-                        AbilityHelper.immediateEffects.drawSpecificCard(),
+                        AbilityHelper.immediateEffects.revealAndDraw(),
                         AbilityHelper.immediateEffects.conditional({
                             condition: (context) => context.selectedPromptCards[0].hasCost() && context.selectedPromptCards[0].cost <= 2,
                             onTrue: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => {

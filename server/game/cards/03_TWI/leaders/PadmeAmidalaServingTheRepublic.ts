@@ -37,7 +37,7 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
         return AbilityHelper.immediateEffects.deckSearch({
             searchCount: 3,
             cardCondition: (card) => card.hasSomeTrait(Trait.Republic),
-            selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+            selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
         });
     }
 }

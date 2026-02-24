@@ -54,8 +54,7 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                         targetMode: TargetMode.Unlimited,
                         activePromptTitle: `Select which cards named ${this.getTargetTitle(ifYouDoContext)} to discard from the opponent's deck`,
                         target: ifYouDoContext.player.opponent,
-                        choosingPlayer: ifYouDoContext.player,
-                        revealSelected: false
+                        choosingPlayer: ifYouDoContext.player
                     })
                 ])
             })

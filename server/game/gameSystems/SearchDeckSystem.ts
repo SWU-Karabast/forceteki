@@ -15,8 +15,6 @@ import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import type { DeckZone } from '../core/zone/DeckZone.js';
 import type { FormatMessage } from '../core/chat/GameChat.js';
-import { RevealSystem } from './RevealSystem.js';
-import { ViewCardInteractMode } from './ViewCardSystem.js';
 import { MoveCardSystem } from './MoveCardSystem.js';
 
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
@@ -35,7 +33,6 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
 
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
     selectCount?: number | ((context: TContext) => number);
-    revealSelected?: boolean;
     shuffleWhenDone?: boolean | ((context: TContext) => boolean);
     title?: string;
 
@@ -70,7 +67,6 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         selectedCardsHandler: null,
         chooseNothingImmediateEffect: null,
         shuffleWhenDone: false,
-        revealSelected: true,
         cardCondition: () => true,
         multiSelectCondition: () => true,
         remainingCardsHandler: null,
@@ -176,11 +172,10 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
         let title = properties.activePromptTitle;
         if (!properties.activePromptTitle) {
-            title = 'Select a card' + (properties.revealSelected ? ' to reveal' : '');
+            title = 'Select a card';
             if (selectAmount < 0 || selectAmount > 1) {
                 title =
-                    `Select ${selectAmount < 0 ? 'all' : 'up to ' + selectAmount} cards` +
-                    (properties.revealSelected ? ' to reveal' : '');
+                    `Select ${selectAmount < 0 ? 'all' : 'up to ' + selectAmount} cards`;
             }
         }
 
@@ -343,10 +338,6 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         if (selectedCards.size === 0) {
             return this.chooseNothingHandler(properties, context, event, effectMessages);
         }
-
-        if (properties.revealSelected) {
-            return this.handleRevealCardSelection(properties, context, event, selectedCards, effectMessages);
-        }
     }
 
     private chooseNothingHandler(properties: ISearchDeckProperties, context: TContext, event: any, effectMessages: FormatMessage[]) {
@@ -378,22 +369,6 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         context.game.queueSimpleStep(() => {
             context.game.openEventWindow(moveEvents);
         }, 'resolve move for remaining cards');
-    }
-
-    private handleRevealCardSelection(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>, effectMessages: FormatMessage[]) {
-        const revealSystem = new RevealSystem({
-            target: Array.from(selectedCards),
-            interactMode: ViewCardInteractMode.ViewOnly
-        });
-
-        const [revealMessage, revealArgs] = revealSystem.getEffectMessage(context);
-        effectMessages.push({ format: revealMessage, args: revealArgs });
-
-        const revealEvents = [];
-        revealSystem.queueGenerateEventGameSteps(revealEvents, context);
-        context.game.queueSimpleStep(() => {
-            context.game.openEventWindow(revealEvents);
-        }, 'resolve reveal for selected cards');
     }
 
     private handleDeckShuffle(properties: ISearchDeckProperties, context: TContext, effectMessages: FormatMessage[]) {

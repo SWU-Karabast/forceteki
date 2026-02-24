@@ -20,7 +20,7 @@ export default class PillioStarCompass extends UpgradeCard {
                 selectCount: 1,
                 searchCount: 3,
                 cardCondition: (card) => card.isUnit(),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             }),
         });
     }

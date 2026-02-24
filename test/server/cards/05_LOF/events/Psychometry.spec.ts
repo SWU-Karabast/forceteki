@@ -57,7 +57,7 @@ describe('Psychometry', function() {
                 context.player1.clickCardInDisplayCardPrompt(context.jediLightCruiser);
 
                 expect(context.getChatLog()).toEqual(
-                    'player1 uses Psychometry to reveal Jedi Light Cruiser, to draw a card, and to move 4 cards to the bottom of their deck'
+                    'player1 uses Psychometry to reveal and draw Jedi Light Cruiser and to move 4 cards to the bottom of their deck'
                 );
 
                 expect(context.player2).toBeActivePlayer();

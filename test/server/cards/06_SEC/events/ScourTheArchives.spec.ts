@@ -15,7 +15,7 @@ describe('Scour The Archives', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.scourTheArchives);
-                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHavePrompt('Select a card');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.supercommandoSquad],
                     selectable: [context.protector, context.devotion]
@@ -24,7 +24,7 @@ describe('Scour The Archives', function () {
 
                 context.player1.clickCardInDisplayCardPrompt(context.devotion);
 
-                expect(context.getChatLog()).toContain('player1 uses Scour the Archives to reveal Devotion');
+                expect(context.getChatLog()).toContain('player1 uses Scour the Archives to reveal and draw Devotion');
                 expect(context.devotion).toBeInZone('hand');
 
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 7);

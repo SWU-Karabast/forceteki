@@ -179,7 +179,7 @@ describe('Malakili, Keeper of the Menagerie\'s constant ability', function () {
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.kraytDragon);
 
-                expect(context.getChatLog()).toContain('player1 uses Psychometry to reveal Krayt Dragon');
+                expect(context.getChatLog()).toContain('player1 uses Psychometry to reveal and draw Krayt Dragon');
                 expect(context.kraytDragon).toBeInZone('hand', context.player1);
             });
         });

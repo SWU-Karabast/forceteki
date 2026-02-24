@@ -26,7 +26,7 @@ export default class OrnFreeTaaPoliticalPowerBroker extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 10,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Law),
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

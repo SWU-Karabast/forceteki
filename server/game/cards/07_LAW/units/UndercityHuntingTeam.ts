@@ -17,7 +17,7 @@ export default class UndercityHuntingTeam extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.BountyHunter),
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

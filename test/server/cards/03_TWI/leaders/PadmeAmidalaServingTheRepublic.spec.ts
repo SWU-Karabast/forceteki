@@ -21,7 +21,7 @@ describe('Padme Amidala, Serving the Republic', function () {
 
                 // Player 1 uses Padme's ability to search for a Republic card
                 context.player1.clickCard(context.padmeAmidala);
-                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHavePrompt('Select a card');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.confiscate],
                     selectable: [context.headhunterSquadron, context.heroesOnBothSides]
@@ -29,7 +29,7 @@ describe('Padme Amidala, Serving the Republic', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.headhunterSquadron);
-                expect(context.getChatLog()).toContain('player1 uses Padmé Amidala to reveal Headhunter Squadron, to draw a card, and to move 2 cards to the bottom of their deck');
+                expect(context.getChatLog()).toContain('player1 uses Padmé Amidala to reveal and draw Headhunter Squadron and to move 2 cards to the bottom of their deck');
                 expect(context.headhunterSquadron).toBeInZone('hand');
 
                 expect([
@@ -69,7 +69,7 @@ describe('Padme Amidala, Serving the Republic', function () {
 
                 // Player 1 uses Padme's ability to search for a Republic card
                 context.player1.clickCard(context.padmeAmidala);
-                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHavePrompt('Select a card');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.confiscate],
                     selectable: [context.headhunterSquadron, context.heroesOnBothSides]
@@ -129,7 +129,7 @@ describe('Padme Amidala, Serving the Republic', function () {
                 context.player1.clickCard(context.padmeAmidala);
                 context.player1.clickCard(context.p2Base);
                 context.player1.clickPrompt('Search the top 3 cards of your deck for a Republic card, reveal it, and draw it');
-                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHavePrompt('Select a card');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.confiscate, context.viperProbeDroid],
                     selectable: [context.heroesOnBothSides]
@@ -137,7 +137,7 @@ describe('Padme Amidala, Serving the Republic', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.heroesOnBothSides);
-                expect(context.getChatLog()).toEqual('player1 uses Padmé Amidala to reveal Heroes on Both Sides, to draw a card, and to move 2 cards to the bottom of their deck');
+                expect(context.getChatLog()).toEqual('player1 uses Padmé Amidala to reveal and draw Heroes on Both Sides and to move 2 cards to the bottom of their deck');
                 expect(context.heroesOnBothSides).toBeInZone('hand');
 
                 expect([

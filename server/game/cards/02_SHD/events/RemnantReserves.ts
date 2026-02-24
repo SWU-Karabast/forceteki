@@ -19,7 +19,7 @@ export default class RemnantReserves extends EventCard {
                 selectCount: 3,
                 searchCount: 5,
                 cardCondition: (card) => card.isUnit(),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }
