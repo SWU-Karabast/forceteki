@@ -235,7 +235,7 @@ class Game extends EventEmitter {
         validateGameOptions(options);
 
         /** @public @readonly @type {import('./attack/AttackFlow.js').AttackRulesVersion} */
-        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR6;
+        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR7;
 
         /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
