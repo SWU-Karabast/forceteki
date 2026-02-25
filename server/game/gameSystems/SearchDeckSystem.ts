@@ -256,7 +256,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
         // Shuffle if needed
         if (this.shouldShuffle(properties.shuffleWhenDone, context)) {
-            this.shuffleHandler(properties, context, remainingCardMessages);
+            this.handleDeckShuffle(properties, context, remainingCardMessages);
         }
 
         const effectMessages = [...selectedCardMessages, ...remainingCardMessages];
@@ -275,9 +275,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         context.game.addMessage(message.format, ...message.args);
     }
 
-    private remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[], effectMessages: FormatMessage[]) {
+    protected remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[], effectMessages: FormatMessage[]) {
         if (cardsToMove.length > 0) {
-            this.moveToBottomOfDeckHandler(context, event, cardsToMove, effectMessages);
+            this.handleMoveToBottomOfDeck(context, event, cardsToMove, effectMessages);
         }
     }
 
@@ -345,7 +345,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         if (properties.revealSelected) {
-            return this.revealHandler(properties, context, event, selectedCards, effectMessages);
+            return this.handleRevealCardSelection(properties, context, event, selectedCards, effectMessages);
         }
     }
 
@@ -363,7 +363,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
     }
 
-    private moveToBottomOfDeckHandler(context: TContext, event: any, cards: Card[], effectMessages: FormatMessage[]) {
+    private handleMoveToBottomOfDeck(context: TContext, event: any, cards: Card[], effectMessages: FormatMessage[]) {
         const moveSystem = new MoveCardSystem({
             target: cards,
             destination: DeckZoneDestination.DeckBottom,
@@ -380,7 +380,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }, 'resolve move for remaining cards');
     }
 
-    private revealHandler(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>, effectMessages: FormatMessage[]) {
+    private handleRevealCardSelection(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>, effectMessages: FormatMessage[]) {
         const revealSystem = new RevealSystem({
             target: Array.from(selectedCards),
             interactMode: ViewCardInteractMode.ViewOnly
@@ -396,7 +396,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }, 'resolve reveal for selected cards');
     }
 
-    private shuffleHandler(properties: ISearchDeckProperties, context: TContext, effectMessages: FormatMessage[]) {
+    private handleDeckShuffle(properties: ISearchDeckProperties, context: TContext, effectMessages: FormatMessage[]) {
         const shuffleSystem = new ShuffleDeckSystem({ target: this.getSingleTarget(properties.target) });
         const [shuffleMessage, shuffleArgs] = shuffleSystem.getEffectMessage(context);
         effectMessages.push({ format: shuffleMessage, args: shuffleArgs });

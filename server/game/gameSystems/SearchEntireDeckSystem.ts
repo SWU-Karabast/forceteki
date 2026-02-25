@@ -3,6 +3,7 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
+import type { FormatMessage } from '../core/chat/GameChat.js';
 import type { TargetMode } from '../core/Constants.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import { GameSystem } from '../core/gameSystem/GameSystem.js';
@@ -22,12 +23,7 @@ export class SearchEntireDeckSystem<TContext extends AbilityContext = AbilityCon
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
     public constructor(propertiesOrPropertyFactory: ISearchEntireDeckProperties<TContext> | ((context?: AbilityContext) => ISearchEntireDeckProperties<TContext>)) {
         const propertyWithSearchCount = GameSystem.appendToPropertiesOrPropertyFactory<ISearchDeckProperties<TContext>, 'searchCount'>(propertiesOrPropertyFactory, { searchCount: -1 });
-        const propertiesWithSearchCountAndRemainingCardsHandler = GameSystem.appendToPropertiesOrPropertyFactory<ISearchDeckProperties<TContext>, 'remainingCardsHandler'>(propertyWithSearchCount, {
-            remainingCardsHandler: () => {
-                // No op since we always shuffle after an entire deck search
-            }
-        });
-        super(propertiesWithSearchCountAndRemainingCardsHandler);
+        super(propertyWithSearchCount);
     }
 
     protected override buildPromptProperties(
@@ -57,5 +53,9 @@ export class SearchEntireDeckSystem<TContext extends AbilityContext = AbilityCon
             selectedCardsHandler: (selectedCards: Card[]) =>
                 this.onSearchComplete(properties, context, event, selectedCards, cards)
         };
+    }
+
+    protected override remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[], effectMessages: FormatMessage[]): void {
+        // For entire deck search, the remaining cards will be shuffled, so do nothing here
     }
 }
