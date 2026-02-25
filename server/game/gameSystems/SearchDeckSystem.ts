@@ -194,6 +194,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 choosingPlayer,
                 promptProperties
             );
+        } else {
+            this.onSearchComplete(properties, context, event, [], cards);
         }
     }
 
@@ -250,7 +252,11 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         // Shuffle if needed
-        if (this.shouldShuffle(properties.shuffleWhenDone, context)) {
+        if (
+            // Whole deck search always requires a shuffle
+            this.computeSearchCount(properties.searchCount, context) === -1 ||
+            this.shouldShuffle(properties.shuffleWhenDone, context)
+        ) {
             this.handleDeckShuffle(properties, context, remainingCardMessages);
         }
 
