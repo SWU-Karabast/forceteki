@@ -24,7 +24,7 @@ describe('Recruit', function () {
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                     context.player1.clickCardInDisplayCardPrompt(context.viperProbeDroid);
-                    expect(context.getChatLogs(2)).toContain('player1 takes Viper Probe Droid');
+                    expect(context.getChatLog()).toContain('player1 uses Recruit to reveal Viper Probe Droid');
                     expect(context.viperProbeDroid).toBeInZone('hand');
 
                     expect(context.confiscate).toBeInBottomOfDeck(context.player1, 4);
@@ -135,7 +135,7 @@ describe('Recruit', function () {
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                     context.player1.clickCardInDisplayCardPrompt(context.cellBlockGuard);
-                    expect(context.getChatLogs(2)).toContain('player1 takes Cell Block Guard');
+                    expect(context.getChatLog()).toContain('player1 uses Recruit to reveal Cell Block Guard');
                     expect(context.cellBlockGuard).toBeInZone('hand');
 
                     expect(context.viperProbeDroid).toBeInBottomOfDeck(context.player1, 4);

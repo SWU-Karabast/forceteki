@@ -24,7 +24,7 @@ describe('Scour The Archives', function () {
 
                 context.player1.clickCardInDisplayCardPrompt(context.devotion);
 
-                expect(context.getChatLogs(2)).toContain('player1 takes Devotion');
+                expect(context.getChatLog()).toContain('player1 uses Scour the Archives to reveal Devotion');
                 expect(context.devotion).toBeInZone('hand');
 
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 7);

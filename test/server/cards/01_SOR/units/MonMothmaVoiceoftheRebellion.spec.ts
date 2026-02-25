@@ -24,7 +24,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 // Choose Battlefield Marine
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
-                expect(context.getChatLogs(2)).toContain('player1 takes Battlefield Marine');
+                expect(context.getChatLog()).toContain('player1 uses Mon Mothma to reveal Battlefield Marine');
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
                 // Ensure that cards have moved to bottom of deck

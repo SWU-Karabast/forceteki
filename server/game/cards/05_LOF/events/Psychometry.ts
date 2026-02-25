@@ -20,6 +20,7 @@ export default class Psychometry extends EventCard {
                 zoneFilter: ZoneName.Discard,
                 cardCondition: (card, context) => card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.deckSearch((context) => ({
+                    target: context.player,
                     searchCount: 5,
                     cardCondition: (card) => card.hasSomeTrait(context.target.traits),
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()

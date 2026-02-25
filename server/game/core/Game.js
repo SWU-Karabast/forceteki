@@ -1050,12 +1050,11 @@ class Game extends EventEmitter {
      * Called when a player clicks Shuffle Deck on the conflict deck menu in
      * the client
      * @param {String} playerId
-     * @param {AbilityContext} context
      */
-    shuffleDeck(playerId, context = null) {
+    shuffleDeck(playerId) {
         let player = this.getPlayerById(playerId);
         if (player) {
-            player.shuffleDeck(context);
+            player.shuffleDeck();
         }
     }
 

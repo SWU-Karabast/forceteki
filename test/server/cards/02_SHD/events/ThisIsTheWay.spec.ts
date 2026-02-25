@@ -39,7 +39,7 @@ describe('This is the Way', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Sabine Wren');
+                expect(context.getChatLog()).toEqual('player1 uses This Is The Way to reveal Devotion and Sabine Wren, to draw 2 cards, and to move 6 cards to the bottom of their deck');
                 expect(context.sabineWren).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
 
@@ -71,7 +71,7 @@ describe('This is the Way', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(2)).toContain('player1 takes Devotion');
+                expect(context.getChatLog()).toContain('player1 uses This Is The Way to reveal Devotion');
                 expect(context.devotion).toBeInZone('hand');
 
                 expect(context.sabineWren).toBeInBottomOfDeck(context.player1, 7);

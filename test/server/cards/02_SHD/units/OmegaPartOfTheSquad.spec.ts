@@ -30,7 +30,7 @@ describe('Omega, Part of the Squad', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.crosshair);
                 expect(context.crosshair).toBeInZone('hand');
-                expect(context.getChatLogs(2)).toContain('player1 takes Crosshair');
+                expect(context.getChatLog()).toContain('player1 uses Omega to reveal Crosshair');
 
                 // Omega should cost 4 since it cannot discount itself
                 expect(context.player1.exhaustedResourceCount).toBe(4);
