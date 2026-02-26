@@ -42,8 +42,10 @@ describe('Prepare for Takeoff', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.infernoFour, true);
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(3)).toContain('player1 plays Prepare for Takeoff to look at the top 8 cards of their deck');
-                expect(context.getChatLogs(3)).toContain('player1 takes Green Squadron A-Wing and Restored ARC-170');
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Prepare for Takeoff to search the top 8 cards of their deck',
+                    'player1 uses Prepare for Takeoff to reveal Green Squadron A-Wing and Restored ARC-170, to draw 2 cards, and to move 6 cards to the bottom of their deck'
+                ]);
                 expect(context.greenSquadronAwing).toBeInZone('hand');
                 expect(context.restoredArc170).toBeInZone('hand');
 
@@ -76,7 +78,7 @@ describe('Prepare for Takeoff', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing');
+                expect(context.getChatLog()).toContain('player1 uses Prepare for Takeoff to reveal Green Squadron A-Wing');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
 
                 expect(context.restoredArc170).toBeInBottomOfDeck(context.player1, 7);

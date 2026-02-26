@@ -4,7 +4,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType } from '../../../core/Constants';
 
 
-export default class EzraBridger extends NonLeaderUnitCard {
+export default class EzraBridgerResourcefulTroublemaker extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '9560139036',
@@ -13,8 +13,9 @@ export default class EzraBridger extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackCompletedAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Look at the top card of your deck.',
+            attackerMustSurvive: true,
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => {
                 const topCardOfDeck = context.player.getTopCardOfDeck();
                 return {

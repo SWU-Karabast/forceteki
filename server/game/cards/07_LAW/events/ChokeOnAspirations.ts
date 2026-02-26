@@ -7,7 +7,7 @@ import { Trait } from '../../../core/Constants';
 export default class ChokeOnAspirations extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'choke-on-aspirations-id',
+            id: '2845024854',
             internalName: 'choke-on-aspirations',
         };
     }

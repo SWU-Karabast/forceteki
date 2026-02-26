@@ -25,7 +25,7 @@ describe('Greef Karga, Affable Commissioner', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.foundling);
                 expect(context.foundling).toBeInZone('hand');
-                expect(context.getChatLogs(2)).toContain('player1 takes Foundling');
+                expect(context.getChatLog()).toContain('player1 uses Greef Karga to reveal Foundling');
             });
         });
     });

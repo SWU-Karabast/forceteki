@@ -1,4 +1,4 @@
-describe('Ezra Bridger', function() {
+describe('Ezra Bridger, Resourceful Troublemaker', function() {
     integration(function(contextRef) {
         describe('Ezra Bridger\'s ability', function() {
             it('should trigger when he completes an attack', async function () {

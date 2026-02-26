@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class HoldForQuestioning extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'hold-for-questioning-id',
+            id: '8906788860',
             internalName: 'hold-for-questioning',
         };
     }

@@ -24,7 +24,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
-                expect(context.getChatLogs(2)).toContain('player1 takes Dogmatic Shock Squad');
+                expect(context.getChatLog()).toContain('player1 uses Chancellor Palpatine to reveal Dogmatic Shock Squad');
                 expect(context.dogmaticShockSquad).toBeInZone('hand');
             });
         });

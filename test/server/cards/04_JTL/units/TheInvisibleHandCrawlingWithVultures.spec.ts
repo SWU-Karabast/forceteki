@@ -25,7 +25,7 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
 
             context.player1.clickCardInDisplayCardPrompt(context.calculatingMagnaguard);
             expect(context.calculatingMagnaguard).toBeInZone('hand');
-            expect(context.getChatLogs(2)).toContain('player1 takes Calculating MagnaGuard');
+            expect(context.getChatLog()).toContain('player1 uses The Invisible Hand to reveal Calculating MagnaGuard');
 
             expect(context.player2).toBeActivePlayer();
         });
@@ -55,7 +55,7 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
 
             context.player1.clickCardInDisplayCardPrompt(context.viperProbeDroid);
             expect(context.viperProbeDroid).toBeInZone('hand');
-            expect(context.getChatLogs(2)).toContain('player1 takes Viper Probe Droid');
+            expect(context.getChatLog()).toContain('player1 uses The Invisible Hand to reveal Viper Probe Droid');
 
             const readyResources = context.player1.readyResourceCount;
 
@@ -94,7 +94,7 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
 
             context.player1.clickCardInDisplayCardPrompt(context.calculatingMagnaguard);
             expect(context.calculatingMagnaguard).toBeInZone('hand');
-            expect(context.getChatLogs(2)).toContain('player1 takes Calculating MagnaGuard');
+            expect(context.getChatLog()).toContain('player1 uses The Invisible Hand to reveal Calculating MagnaGuard');
 
             expect(context.player2).toBeActivePlayer();
         });

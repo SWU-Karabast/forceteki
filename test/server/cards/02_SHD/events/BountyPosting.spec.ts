@@ -29,11 +29,9 @@ describe('Bounty Posting', function() {
                 expect(context.topTarget).toBeInZone('hand', context.player1);
                 expect(context.player1).toHavePassAbilityPrompt('Play that upgrade (paying its cost)');
 
-                expect(context.getChatLogs(4)).toEqual([
+                expect(context.getChatLogs(2)).toEqual([
                     'player1 plays Bounty Posting to search their deck',
-                    'player1 puts 5 cards on the bottom of their deck',
-                    'player1 takes Top Target',
-                    'player1 is shuffling their deck'
+                    'player1 uses Bounty Posting to reveal Top Target, to draw a card, and to shuffle their deck'
                 ]);
 
                 context.player1.clickPrompt('Trigger');

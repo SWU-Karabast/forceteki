@@ -132,7 +132,7 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.secretiveSage);
 
@@ -156,7 +156,7 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
 
                 context.player1.clickCard(context.sawGerrera);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Choose nothing');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -180,7 +180,7 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
                 context.player1.clickCard(context.sawGerrera);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toBeAbleToSelectExactly([context.expendableMercenary]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.expendableMercenary);
                 context.player1.clickCard(context.deathStarStormtrooper);
                 context.player1.clickPrompt('Trigger');

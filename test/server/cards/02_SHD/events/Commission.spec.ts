@@ -24,7 +24,7 @@ describe('Commission', function () {
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                     context.player1.clickCardInDisplayCardPrompt(context.electrostaff);
-                    expect(context.getChatLogs(2)).toContain('player1 takes Electrostaff');
+                    expect(context.getChatLog()).toContain('player1 uses Commission to reveal Electrostaff');
                     expect(context.electrostaff).toBeInZone('hand');
 
                     expect(context.viperProbeDroid).toBeInBottomOfDeck(context.player1, 9);

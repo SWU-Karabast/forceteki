@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class CantoBightSecurity extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'canto-bight-security-id',
+            id: '8705682181',
             internalName: 'canto-bight-security',
         };
     }

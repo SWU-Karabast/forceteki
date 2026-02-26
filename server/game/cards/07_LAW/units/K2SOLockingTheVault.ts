@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class K2SOLockingTheVault extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'k2so#locking-the-vault-id',
+            id: '6386443776',
             internalName: 'k2so#locking-the-vault',
         };
     }

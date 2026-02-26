@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class KrrsantanHitAndRun extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'krrsantan#hit-and-run-id',
+            id: '0301860476',
             internalName: 'krrsantan#hit-and-run',
         };
     }

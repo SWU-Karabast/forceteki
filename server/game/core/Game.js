@@ -279,6 +279,9 @@ class Game extends EventEmitter {
         /** @private @type {boolean} */
         this._serializationFailure = false;
 
+        /** @private */
+        this._lastAttackId = -1;
+
         this.playerHasBeenPrompted = new Map();
 
         this.playerHasBeenPrompted = new Map();
@@ -630,6 +633,11 @@ class Game extends EventEmitter {
 
     setRandomSeed(seed) {
         this._randomGenerator.reseed(seed);
+    }
+
+    getNextAttackId() {
+        this._lastAttackId++;
+        return this._lastAttackId;
     }
 
     /**
@@ -1055,12 +1063,11 @@ class Game extends EventEmitter {
      * Called when a player clicks Shuffle Deck on the conflict deck menu in
      * the client
      * @param {String} playerId
-     * @param {AbilityContext} context
      */
-    shuffleDeck(playerId, context = null) {
+    shuffleDeck(playerId) {
         let player = this.getPlayerById(playerId);
         if (player) {
-            player.shuffleDeck(context);
+            player.shuffleDeck();
         }
     }
 
