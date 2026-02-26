@@ -182,6 +182,34 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
                 expect(context.tielnFighter.hasSomeKeyword('grit')).toBeTrue();
                 expect(context.clone).toBeCloneOf(context.admiralYularen);
             });
+
+            it('JTL Yularen should only affect the units of his owner, not controller', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['corvus#inferno-squadron-raider', 'cartel-spacer'],
+                        hand: ['admiral-yularen#fleet-coordinator']
+                    },
+                    player2: {
+                        spaceArena: ['awing'],
+                        hand: ['traitorous']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.admiralYularen);
+                context.player1.clickPrompt('Sentinel');
+                expect(context.corvus.hasSomeKeyword('sentinel')).toBe(true);
+                expect(context.cartelSpacer.hasSomeKeyword('sentinel')).toBe(true);
+                expect(context.awing.hasSomeKeyword('sentinel')).toBe(false);
+
+                context.player2.clickCard(context.traitorous);
+                context.player2.clickCard(context.admiralYularen);
+                expect(context.corvus.hasSomeKeyword('sentinel')).toBe(true);
+                expect(context.cartelSpacer.hasSomeKeyword('sentinel')).toBe(true);
+                expect(context.awing.hasSomeKeyword('sentinel')).toBe(false);
+            });
         });
     });
 });
