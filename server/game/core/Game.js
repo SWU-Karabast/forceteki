@@ -815,9 +815,14 @@ class Game extends EventEmitter {
     /** @param {Player} player */
     onGameTimerExpired(player) {
         player.opponent.actionTimer.stop();
-
-        this.endGame(player.opponent, GameEndReason.Timeout);
         this.addAlert(AlertType.Notification, 'Game ended due to player timeout.');
+
+        if (player.opponent.actionTimer.timeRemainingSeconds < 3) {
+            this.endGame([player, player.opponent], GameEndReason.Timeout);
+        } else {
+            this.endGame(player.opponent, GameEndReason.Timeout);
+        }
+
         return null;
     }
 
