@@ -31,7 +31,7 @@ describe('Bounty Posting', function() {
 
                 expect(context.getChatLogs(2)).toEqual([
                     'player1 plays Bounty Posting to search their deck',
-                    'player1 uses Bounty Posting to reveal Top Target, to draw a card, and to shuffle their deck'
+                    'player1 uses Bounty Posting to reveal and draw Top Target and to shuffle their deck'
                 ]);
 
                 context.player1.clickPrompt('Trigger');

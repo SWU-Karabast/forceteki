@@ -16,7 +16,7 @@ describe('Recruit', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.recruit);
-                    expect(context.player1).toHavePrompt('Select a card to reveal');
+                    expect(context.player1).toHavePrompt('Select a card');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         selectable: [context.viperProbeDroid],
                         invalid: [context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]
@@ -24,7 +24,12 @@ describe('Recruit', function () {
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                     context.player1.clickCardInDisplayCardPrompt(context.viperProbeDroid);
-                    expect(context.getChatLog()).toContain('player1 uses Recruit to reveal Viper Probe Droid');
+
+                    // P2 is prompted to see the revealed cards
+                    expect(context.player2).toHaveExactViewableDisplayPromptCards([context.viperProbeDroid]);
+                    context.player2.clickDone();
+
+                    expect(context.getChatLog()).toEqual('player1 uses Recruit to reveal and draw Viper Probe Droid and to move 4 cards to the bottom of their deck');
                     expect(context.viperProbeDroid).toBeInZone('hand');
 
                     expect(context.confiscate).toBeInBottomOfDeck(context.player1, 4);
@@ -55,6 +60,11 @@ describe('Recruit', function () {
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                     context.player1.clickCardInDisplayCardPrompt(context.viperProbeDroid);
+
+                    // P2 is prompted to see the revealed cards
+                    expect(context.player2).toHaveExactViewableDisplayPromptCards([context.viperProbeDroid]);
+                    context.player2.clickDone();
+
                     expect(context.player1.deck.length).toBe(2);
                     expect([context.confiscate, context.iAmYourFather]).toAllBeInBottomOfDeck(context.player1, 2);
                 });
@@ -100,7 +110,7 @@ describe('Recruit', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.recruit);
-                    expect(context.player1).toHavePrompt('Select a card to reveal');
+                    expect(context.player1).toHavePrompt('Select a card');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         invalid: [context.disarm, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]
                     });
@@ -127,7 +137,7 @@ describe('Recruit', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.recruit);
-                    expect(context.player1).toHavePrompt('Select a card to reveal');
+                    expect(context.player1).toHavePrompt('Select a card');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         selectable: [context.viperProbeDroid, context.cellBlockGuard],
                         invalid: [context.confiscate, context.iAmYourFather, context.surpriseStrike]
@@ -135,7 +145,12 @@ describe('Recruit', function () {
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                     context.player1.clickCardInDisplayCardPrompt(context.cellBlockGuard);
-                    expect(context.getChatLog()).toContain('player1 uses Recruit to reveal Cell Block Guard');
+
+                    // P2 is prompted to see the revealed cards
+                    expect(context.player2).toHaveExactViewableDisplayPromptCards([context.cellBlockGuard]);
+                    context.player2.clickDone();
+
+                    expect(context.getChatLog()).toEqual('player1 uses Recruit to reveal and draw Cell Block Guard and to move 4 cards to the bottom of their deck');
                     expect(context.cellBlockGuard).toBeInZone('hand');
 
                     expect(context.viperProbeDroid).toBeInBottomOfDeck(context.player1, 4);

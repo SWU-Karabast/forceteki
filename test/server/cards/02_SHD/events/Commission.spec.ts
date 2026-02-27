@@ -16,7 +16,7 @@ describe('Commission', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.commission);
-                    expect(context.player1).toHavePrompt('Select a card to reveal');
+                    expect(context.player1).toHavePrompt('Select a card');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         invalid: [context.viperProbeDroid, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.cellBlockGuard, context.tieAdvanced],
                         selectable: [context.frontlineShuttle, context.electrostaff, context.greedo, context.mandalorianArmor]
@@ -24,7 +24,7 @@ describe('Commission', function () {
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                     context.player1.clickCardInDisplayCardPrompt(context.electrostaff);
-                    expect(context.getChatLog()).toContain('player1 uses Commission to reveal Electrostaff');
+                    expect(context.getChatLog()).toContain('player1 uses Commission to reveal and draw Electrostaff');
                     expect(context.electrostaff).toBeInZone('hand');
 
                     expect(context.viperProbeDroid).toBeInBottomOfDeck(context.player1, 9);
@@ -115,7 +115,7 @@ describe('Commission', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.commission);
-                    expect(context.player1).toHavePrompt('Select a card to reveal');
+                    expect(context.player1).toHavePrompt('Select a card');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         invalid: [
                             context.disarm,

@@ -23,7 +23,7 @@ describe('Putting a Team Together', function () {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa).toBeInZone('hand', context.player1);
-            expect(context.getChatLog()).toContain('player1 uses Putting a Team Together to reveal Wampa');
+            expect(context.getChatLog()).toContain('player1 uses Putting a Team Together to reveal and draw Wampa');
 
             expect(context.isbAgent).toBeInBottomOfDeck(context.player1, 7);
             expect(context.yoda).toBeInBottomOfDeck(context.player1, 7);

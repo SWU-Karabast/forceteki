@@ -32,7 +32,7 @@ describe('Snap Wexley, Resistance Recon Flier', function() {
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.fireball).toBeInZone('hand');
-                expect(context.getChatLog()).toContain('player1 uses Snap Wexley to reveal Fireball');
+                expect(context.getChatLog()).toContain('player1 uses Snap Wexley to reveal and draw Fireball');
                 expect([context.atst, context.wampa, context.protector, context.determinedRecruit]).toAllBeInBottomOfDeck(context.player1, 4);
             });
 

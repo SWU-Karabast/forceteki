@@ -28,7 +28,7 @@ export default class SteelaGerreraBelovedTactician extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                     searchCount: 8,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Tactic),
-                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
                 })
             }
         });

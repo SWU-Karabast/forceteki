@@ -19,7 +19,7 @@ export default class ThisIsTheWay extends EventCard {
                 selectCount: 2,
                 searchCount: 8,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Mandalorian) || card.isUpgrade(),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

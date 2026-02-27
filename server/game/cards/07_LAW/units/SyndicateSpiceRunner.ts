@@ -17,7 +17,7 @@ export default class SyndicateSpiceRunner extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 3,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Underworld),
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }
