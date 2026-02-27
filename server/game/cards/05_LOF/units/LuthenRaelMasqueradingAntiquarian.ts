@@ -1,7 +1,7 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { Trait } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class LuthenRaelMasqueradingAntiquarian extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,10 @@ export default class LuthenRaelMasqueradingAntiquarian extends NonLeaderUnitCard
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.isUpgrade() && card.hasSomeTrait(Trait.Item),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

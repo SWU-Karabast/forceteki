@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, PlayType } from '../../../core/Constants';
+import { KeywordName, PlayType, RelativePlayer } from '../../../core/Constants';
 
 export default class ChancellorPalpatineHowLibertyDies extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -18,7 +18,10 @@ export default class ChancellorPalpatineHowLibertyDies extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.hasSomeKeyword(KeywordName.Plot),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

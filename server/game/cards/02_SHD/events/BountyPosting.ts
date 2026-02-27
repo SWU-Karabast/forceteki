@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { ICardWithCostProperty } from '../../../core/card/propertyMixins/Cost';
-import { Trait, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class BountyPosting extends EventCard {
     protected override getImplementationId() {
@@ -17,7 +17,10 @@ export default class BountyPosting extends EventCard {
             title: 'Search your deck for a Bounty upgrade, reveal it, and draw it (shuffle your deck)',
             immediateEffect: AbilityHelper.immediateEffects.entireDeckSearch({
                 cardCondition: (card) => card.isUpgrade() && card.hasSomeTrait(Trait.Bounty),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             }),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Play that upgrade (paying its cost)',

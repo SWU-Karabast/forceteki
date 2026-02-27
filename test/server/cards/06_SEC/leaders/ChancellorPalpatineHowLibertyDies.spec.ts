@@ -24,6 +24,11 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.dogmaticShockSquad]);
+                context.player2.clickDone();
+
                 expect(context.getChatLog()).toContain('player1 uses Chancellor Palpatine to reveal and draw Dogmatic Shock Squad');
                 expect(context.dogmaticShockSquad).toBeInZone('hand');
             });

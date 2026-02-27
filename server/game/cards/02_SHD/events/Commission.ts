@@ -1,7 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { Trait } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class Commission extends EventCard {
     protected override getImplementationId() {
@@ -17,7 +17,10 @@ export default class Commission extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 10,
                 cardCondition: (card) => card.hasSomeTrait([Trait.BountyHunter, Trait.Item, Trait.Transport]),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

@@ -1,6 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { RelativePlayer } from '../../../core/Constants';
 
 export default class ScourTheArchives extends EventCard {
     protected override getImplementationId() {
@@ -16,7 +17,10 @@ export default class ScourTheArchives extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isUpgrade(),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }
