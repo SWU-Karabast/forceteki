@@ -2192,7 +2192,7 @@ export class Lobby {
                 Contract.assertTrue(this.isPrivate, 'The allowSpectators setting can only be changed in private lobbies');
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.allowSpectators = settingValue;
-                this.gameChat.addAlert(AlertType.Notification, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} spectation`);
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} spectation`);
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);
