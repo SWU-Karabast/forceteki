@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { GameStateChangeRequired } from '../core/Constants';
-import { EventName } from '../core/Constants';
+import { MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { DrawSpecificCardSystem } from './DrawSpecificCardSystem';
@@ -18,7 +18,7 @@ export type IRevealAndDrawProperties = IRevealProperties & {
 
 export class RevealAndDrawSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IRevealAndDrawProperties> {
     public override readonly name = 'revealAndDraw';
-    public override readonly eventName = EventName.OnCardRevealedAndDrawn;
+    public override readonly eventName = MetaEventName.RevealAndDrawCard;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }
