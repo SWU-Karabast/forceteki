@@ -14,7 +14,7 @@ import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import type { DeckZone } from '../core/zone/DeckZone.js';
-import type { FormatMessage } from '../core/chat/GameChat.js';
+import type { FormatMessage, MsgArg } from '../core/chat/GameChat.js';
 import { MoveCardSystem } from './MoveCardSystem.js';
 
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
@@ -194,6 +194,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 choosingPlayer,
                 promptProperties
             );
+        } else {
+            this.onSearchComplete(properties, context, event, [], cards);
         }
     }
 
@@ -250,24 +252,15 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         // Shuffle if needed
-        if (this.shouldShuffle(properties.shuffleWhenDone, context)) {
+        if (
+            // Whole deck search always requires a shuffle
+            this.computeSearchCount(properties.searchCount, context) === -1 ||
+            this.shouldShuffle(properties.shuffleWhenDone, context)
+        ) {
             this.handleDeckShuffle(properties, context, remainingCardMessages);
         }
 
-        const effectMessages = [...selectedCardMessages, ...remainingCardMessages];
-
-        const message: FormatMessage = {
-            format: '{0} uses {1} to {2}',
-            args: [
-                context.player,
-                context.source,
-                {
-                    format: ChatHelpers.formatWithLength(effectMessages.length, 'to '),
-                    args: effectMessages
-                }
-            ]
-        };
-        context.game.addMessage(message.format, ...message.args);
+        this.buildAndEmitGameMessage(context, [...selectedCardMessages, ...remainingCardMessages]);
     }
 
     protected remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[], effectMessages: FormatMessage[]) {
@@ -389,5 +382,31 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         return target;
+    }
+
+    private buildAndEmitGameMessage(context: TContext, effectMessages: FormatMessage[]) {
+        if (effectMessages.length === 0) {
+            return;
+        }
+
+        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source];
+        const gainAbilitySource = context.ability && context.ability.isCardAbility() && context.ability.gainAbilitySource;
+
+        if (gainAbilitySource && gainAbilitySource !== context.source) {
+            messageArgs.push('\'s gained ability from ', gainAbilitySource);
+        }
+
+        messageArgs.push(' to ');
+        messageArgs.push({
+            format: ChatHelpers.formatWithLength(effectMessages.length, 'to '),
+            args: effectMessages
+        });
+
+        const message: FormatMessage = {
+            format: `{${[...Array(messageArgs.length).keys()].join('}{')}}`,
+            args: messageArgs
+        };
+
+        context.game.addMessage(message.format, ...message.args);
     }
 }
