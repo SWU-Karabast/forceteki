@@ -15,7 +15,7 @@ describe('This is the Way', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.thisIsTheWay);
-                expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 2 cards');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
                     selectable: [context.sabineWren, context.supercommandoSquad, context.protector, context.devotion]
@@ -39,7 +39,7 @@ describe('This is the Way', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLog()).toEqual('player1 uses This Is The Way to reveal Devotion and Sabine Wren, to draw 2 cards, and to move 6 cards to the bottom of their deck');
+                expect(context.getChatLog()).toEqual('player1 uses This Is The Way to reveal and draw Devotion and Sabine Wren and to move 6 cards to the bottom of their deck');
                 expect(context.sabineWren).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
 
@@ -55,7 +55,7 @@ describe('This is the Way', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.thisIsTheWay);
-                expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 2 cards');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
                     selectable: [context.sabineWren, context.supercommandoSquad, context.protector, context.devotion]
@@ -71,7 +71,7 @@ describe('This is the Way', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLog()).toContain('player1 uses This Is The Way to reveal Devotion');
+                expect(context.getChatLog()).toContain('player1 uses This Is The Way to reveal and draw Devotion');
                 expect(context.devotion).toBeInZone('hand');
 
                 expect(context.sabineWren).toBeInBottomOfDeck(context.player1, 7);

@@ -25,7 +25,7 @@ describe('Convene the Senate', function () {
             context.player1.clickCard(context.conveneTheSenate);
 
             // Deck search prompt for up to 2 cards
-            expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+            expect(context.player1).toHavePrompt('Select up to 2 cards');
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [context.wartimeTradeOfficial, context.highCommandCouncilor],
                 invalid: [

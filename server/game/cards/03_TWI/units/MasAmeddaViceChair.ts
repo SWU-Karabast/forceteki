@@ -28,7 +28,7 @@ export default class MasAmeddaViceChair extends NonLeaderUnitCard {
                     selectCount: 1,
                     searchCount: 4,
                     cardCondition: (card) => card.isUnit(),
-                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
                 })
             }
         });

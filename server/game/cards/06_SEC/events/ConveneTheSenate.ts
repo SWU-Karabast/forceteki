@@ -21,7 +21,7 @@ export default class ConveneTheSenate extends EventCard {
                     selectCount: 2,
                     searchCount: 8,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Official),
-                    selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
+                    selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw()
                 })
             ])
         });

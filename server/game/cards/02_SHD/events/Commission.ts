@@ -17,7 +17,7 @@ export default class Commission extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 10,
                 cardCondition: (card) => card.hasSomeTrait([Trait.BountyHunter, Trait.Item, Trait.Transport]),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

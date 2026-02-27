@@ -34,7 +34,7 @@ export default class TheMasterCodebreakerHighStakes extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Gambit),
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

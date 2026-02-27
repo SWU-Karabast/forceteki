@@ -18,7 +18,7 @@ export default class PuttingATeamTogether extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect([Aspect.Vigilance, Aspect.Aggression, Aspect.Cunning]),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

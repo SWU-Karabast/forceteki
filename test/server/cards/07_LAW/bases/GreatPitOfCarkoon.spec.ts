@@ -91,10 +91,25 @@ describe('GreatPitOfCarkoon', function() {
 
                 const { context } = contextRef;
 
+                context.game.setRandomSeed(1111);
+
                 context.player1.clickCard(context.greatPitOfCarkoon);
                 context.player1.clickCard(context.wampa);
 
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Great Pit of Carkoon, discarding Wampa to search their deck',
+                    'player1 uses Great Pit of Carkoon to take no cards and to shuffle their deck'
+                ]);
+
                 expect(context.wampa).toBeInZone('discard', context.player1);
+                expect(context.player1.deck.map((card) => card.internalName)).toEqual([
+                    // Deck was shuffled after search, even with no valid targets
+                    'superlaser-technician',
+                    'atst',
+                    'superlaser-blast',
+                    'takedown',
+                    'blizzard-assault-atat',
+                ]);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -113,6 +128,9 @@ describe('GreatPitOfCarkoon', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.greatPitOfCarkoon);
+                expect(context.player1).toHaveNoEffectAbilityPrompt('Search your deck for a card named The Sarlacc of Carkoon, reveal it, and draw it');
+                context.player1.clickPrompt('Use it anyway');
+
                 context.player1.clickCard(context.wampa);
 
                 expect(context.wampa).toBeInZone('discard', context.player1);
@@ -134,6 +152,7 @@ describe('GreatPitOfCarkoon', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.greatPitOfCarkoon);
+                expect(context.player1).toHaveNoEffectAbilityPrompt('Search your deck for a card named The Sarlacc of Carkoon, reveal it, and draw it');
                 context.player1.clickPrompt('Cancel');
 
                 expect(context.player1).toBeActivePlayer();

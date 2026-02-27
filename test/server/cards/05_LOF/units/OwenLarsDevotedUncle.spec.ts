@@ -25,7 +25,7 @@ describe('Owen Lars, Devoted Uncle', function() {
 
             context.player2.clickCardInDisplayCardPrompt(context.grogu);
             expect(context.grogu).toBeInZone('hand');
-            expect(context.getChatLog()).toEqual('player2 uses Owen Lars to reveal Grogu, to draw a card, and to move 4 cards to the bottom of their deck');
+            expect(context.getChatLog()).toEqual('player2 uses Owen Lars to reveal and draw Grogu and to move 4 cards to the bottom of their deck');
         });
 
         describe('Owen Lars\' when defeated ability with No Glory Only Results', () => {
@@ -60,7 +60,7 @@ describe('Owen Lars, Devoted Uncle', function() {
                 context.player1.clickCardInDisplayCardPrompt(context.grogu);
                 expect(context.grogu).toBeInZone('hand');
                 expect(context.player1.hand).toContain(context.grogu);
-                expect(context.getChatLog()).toContain('player1 uses Owen Lars to reveal Grogu');
+                expect(context.getChatLog()).toContain('player1 uses Owen Lars to reveal and draw Grogu');
             });
         });
     });

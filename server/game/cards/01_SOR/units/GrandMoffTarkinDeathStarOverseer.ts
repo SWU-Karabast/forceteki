@@ -18,7 +18,7 @@ export default class GrandMoffTarkinDeathStarOverseer extends NonLeaderUnitCard 
                 selectCount: 2,
                 searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }
