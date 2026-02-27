@@ -392,7 +392,7 @@ export class GameServer {
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
-                if (user.isAnonymousUser()) {
+                if (process.env.ENVIRONMENT !== 'development' && user.isAnonymousUser()) {
                     logger.error(`GameServer (spectate-game): Anonymous user ${user.getId()} is attempting to spectate a game.`);
                     return res.status(401).json({
                         success: false,
@@ -408,8 +408,8 @@ export class GameServer {
                         message: 'User is already in a game'
                     });
                 }
-                if (!lobby || !lobby.hasOngoingGame() || lobby.isPrivate) {
-                    logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game that does not exist or is set to private`);
+                if (!lobby || !lobby.hasOngoingGame() || !lobby.spectationAllowed) {
+                    logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game that does not exist or does not allow spectators`);
                     return res.status(404).json({
                         success: false,
                         message: 'Game not found or does not allow spectators'
@@ -1614,7 +1614,7 @@ export class GameServer {
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
         // 0. If user is spectator
         if (isSpectator) {
-            if (user.isAnonymousUser()) {
+            if (process.env.ENVIRONMENT !== 'development' && user.isAnonymousUser()) {
                 logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect as spectator to a lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -1634,6 +1634,14 @@ export class GameServer {
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
+
+            if (!lobby.spectationAllowed) {
+                logger.warn(`GameServer: Spectation not allowed for lobby ${lobby.id}, disconnecting spectator ${user.getId()}`);
+                this.userLobbyMap.delete(user.getId());
+                ioSocket.disconnect();
+                return Promise.resolve();
+            }
+
             const socket = new Socket(ioSocket);
             this.registerDisconnect(socket, user.getId());
             lobby.addSpectator(user, socket);
