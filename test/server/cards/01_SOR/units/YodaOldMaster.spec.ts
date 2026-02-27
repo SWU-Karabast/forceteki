@@ -30,6 +30,7 @@ describe('Yoda, Old Master', function() {
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.player2.hand.length).toBe(0);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(3)).toContain('player1 uses Yoda to draw a card');
             });
 
             it('should draw a card for each selected player', function () {
@@ -45,6 +46,7 @@ describe('Yoda, Old Master', function() {
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(3)).toContain('player1 uses Yoda to make player2 draw a card');
             });
 
             it('should draw a card for each selected player', function () {
@@ -61,6 +63,7 @@ describe('Yoda, Old Master', function() {
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(3)).toContain('player1 uses Yoda to draw a card and to make player2 draw a card');
             });
 
             it('should draw a card for each selected player', function () {
