@@ -90,7 +90,9 @@ export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
      * and hasn't issued any new game messages. This prevents accidentally booting
      * a player because their turn timer didn't get cleared for some reason.
      */
+    // TODO: Evaluate if we still need this or not. It's causing issues for the timer on the select initiative prompt in the setup phase, which is currently being skipped because of this check.
     protected override shouldFireHandler(): boolean {
-        return this.checkLiveStatus(this.activeUiPromptId, this.lastPlayerActionId);
+        // return this.checkLiveStatus(this.activeUiPromptId, this.lastPlayerActionId);
+        return true;
     }
 }
