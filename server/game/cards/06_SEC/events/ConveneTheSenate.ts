@@ -22,9 +22,9 @@ export default class ConveneTheSenate extends EventCard {
                     searchCount: 8,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Official),
                     selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw({
-                    useDisplayPrompt: true,
-                    promptedPlayer: RelativePlayer.Opponent
-                })
+                        useDisplayPrompt: true,
+                        promptedPlayer: RelativePlayer.Opponent
+                    })
                 })
             ])
         });
