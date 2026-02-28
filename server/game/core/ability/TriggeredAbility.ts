@@ -13,7 +13,6 @@ import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
 import { registerState, statePrimitive } from '../GameObjectUtils';
 import type { IGameObjectBaseState } from '../GameObjectBase';
-import * as AttackHelpers from '../attack/AttackHelpers';
 
 // STATE: Interface needed for onAfterSetState and cleanupOnRemove.
 export interface ITriggeredAbilityState extends IGameObjectBaseState {
