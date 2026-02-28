@@ -12,6 +12,7 @@ export class Attack {
     public readonly attacker: IUnitCard;
     public readonly attackingPlayer: Player;
     public readonly attackerInPlayId: number;
+    public readonly id: number;
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
 
@@ -27,12 +28,14 @@ export class Attack {
         attacker: IUnitCard,
         targets: IAttackableCard[],
         isAmbush: boolean = false,
-        attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number
+        attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number,
     ) {
         Contract.assertTrue(attacker.isInPlay(), `Attempting to construct an Attack but designated attacker ${attacker.internalName} is not in play`);
 
         const notInPlayTargets = targets.filter((target) => !target.isBase() && !target.isInPlay());
         Contract.assertTrue(notInPlayTargets.length === 0, `Attempting to construct an Attack but the following targets are not in play: ${notInPlayTargets.map((target) => target.internalName).join(', ')}`);
+
+        this.id = game.getNextAttackId();
 
         this.game = game;
         this.attacker = attacker;
@@ -105,8 +108,15 @@ export class Attack {
         return matchingUnits.length > 0;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public getTargetCombatDamage(_context: AbilityContext): number | null {
+
+    /**
+     * Get total combat damage from targets.
+     * @param earlyCombatDamageOnly - `true`: only include damage for targets that deal damage first, `false`: only include damage for targets that don't deal damage first
+     */
+    public getTargetCombatDamage(
+        _context: AbilityContext,
+        earlyCombatDamageOnly: boolean = false
+    ): number | null {
         if (this.targets.every((t) => t.hasRestriction(AbilityRestriction.DealCombatDamage))) {
             return null;
         }
@@ -119,15 +129,30 @@ export class Attack {
             return totalDamage + this.getUnitPower(target);
         };
 
-        return this.targets.reduce(reducer, 0);
+        return this.targets
+            .filter((t) => {
+                const dealsFirst = this.targetDealsCombatDamageFirst(t);
+                return earlyCombatDamageOnly ? dealsFirst : !dealsFirst;
+            })
+            .reduce(reducer, 0);
     }
 
     public hasOverwhelm(): boolean {
         return this.attacker.hasSomeKeyword(KeywordName.Overwhelm);
     }
 
-    public attackerDealsDamageBeforeDefender(): boolean {
-        return this.attacker.hasOngoingEffect(EffectName.DealsDamageBeforeDefender);
+    public attackerDealsCombatDamageFirst(): boolean {
+        return this.attacker.hasOngoingEffect(EffectName.DealsCombatDamageFirst);
+    }
+
+    public targetDealsCombatDamageFirst(attackTarget: IAttackableCard): boolean {
+        return this.targets.includes(attackTarget) &&
+          !attackTarget.isBase() &&
+          attackTarget.hasOngoingEffect(EffectName.DealsCombatDamageFirst);
+    }
+
+    public anyTargetDealsCombatDamageFirst(): boolean {
+        return this.targets.some((t) => this.targetDealsCombatDamageFirst(t));
     }
 
     public getLegalTargets(): IAttackableCard[] {

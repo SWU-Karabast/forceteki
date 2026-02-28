@@ -17,19 +17,22 @@ enum SwuSet {
     LOF = 'lof',
     IBH = 'ibh',
     SEC = 'sec',
-    LAW = 'law'
+    LAW = 'law',
+    TS26 = 'ts26'
 }
 
 enum SwuRotationBlock {
     Block0,
     BlockA,
-    BlockB
+    BlockB,
+    BlockTS
 }
 
 const rotationBlocks = new Map<SwuRotationBlock, Set<SwuSet>>([
     [SwuRotationBlock.Block0, new Set([SwuSet.SOR, SwuSet.SHD, SwuSet.TWI])],
     [SwuRotationBlock.BlockA, new Set([SwuSet.JTL, SwuSet.LOF, SwuSet.IBH, SwuSet.SEC])],
-    [SwuRotationBlock.BlockB, new Set([SwuSet.LAW])]
+    [SwuRotationBlock.BlockB, new Set([SwuSet.LAW])],
+    [SwuRotationBlock.BlockTS, new Set([SwuSet.TS26])]
 ]);
 
 const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
@@ -164,6 +167,9 @@ export class DeckValidator {
         const startingDeckSizeValue = allow30CardsInMainBoard ? 30 : 50;
 
         const baseData = this.getCardCheckData(baseId);
+        if (!baseData) {
+            return startingDeckSizeValue;
+        }
         return startingDeckSizeValue + (baseData.minDeckSizeModifier ?? 0);
     }
 
@@ -185,20 +191,20 @@ export class DeckValidator {
 
         // check leader
         const leaderData = this.getCardCheckData(deck.leader.id);
-        if (!leaderData.implemented) {
+        if (leaderData && !leaderData.implemented) {
             unimplemented.push({ id: deck.leader.id, name: leaderData.titleAndSubtitle });
         }
 
         // check base
         const baseData = this.getCardCheckData(deck.base.id);
-        if (!baseData.implemented) {
+        if (baseData && !baseData.implemented) {
             unimplemented.push({ id: deck.base.id, name: baseData.titleAndSubtitle });
         }
 
         // check other cards
         for (const card of deckCards) {
             const cardData = this.getCardCheckData(card.id);
-            if (!cardData.implemented) {
+            if (cardData && !cardData.implemented) {
                 unimplemented.push({ id: card.id, name: cardData.titleAndSubtitle });
             }
         }
@@ -266,12 +272,20 @@ export class DeckValidator {
 
             // Validate leader.
             const leaderData = this.getCardCheckData(deck.leader.id);
-            this.checkCardLocation(deck.leader, leaderData, DecklistLocation.Leader, failures);
-            this.checkFormatLegality(leaderData, format, failures);
+            if (!leaderData) {
+                failures[DeckValidationFailureReason.UnknownCardId].push({ id: deck.leader.id });
+            } else {
+                this.checkCardLocation(deck.leader, leaderData, DecklistLocation.Leader, failures);
+                this.checkFormatLegality(leaderData, format, failures);
+            }
 
             // Validate base.
-            this.checkCardLocation(deck.base, baseData, DecklistLocation.Base, failures);
-            this.checkFormatLegality(baseData, format, failures);
+            if (!baseData) {
+                failures[DeckValidationFailureReason.UnknownCardId].push({ id: deck.base.id });
+            } else {
+                this.checkCardLocation(deck.base, baseData, DecklistLocation.Base, failures);
+                this.checkFormatLegality(baseData, format, failures);
+            }
 
             // Validate each card in the deck (and sideboard).
             for (const card of deckCards) {

@@ -450,6 +450,10 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.dilapidatedSkiSpeeder);
 
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.dilapidatedSkiSpeeder]);
+                context.player2.clickDone();
+
                 expect(context.dilapidatedSkiSpeeder).toBeInZone('hand');
 
                 // Aethersprite's ability is triggered
@@ -463,6 +467,10 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                     invalid: context.player1.findCardsByName('underworld-thug', 'deck').slice(0, 3)
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.resistanceBlueSquadron);
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.resistanceBlueSquadron]);
+                context.player2.clickDone();
 
                 expect(context.resistanceBlueSquadron).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
