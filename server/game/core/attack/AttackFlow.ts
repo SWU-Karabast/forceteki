@@ -42,18 +42,20 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private declareAttack() {
-        const event = this.game.createEventAndOpenWindow(
+        const declareAttackEvent = new GameEvent(
             EventName.OnAttackDeclared,
             this.context,
-            { attack: this.attack },
-            TriggerHandlingMode.ResolvesTriggers,
-            () => this.setCurrentAttack()
+            { attack: this.attack }
         );
+
+        declareAttackEvent.setPreResolutionEffect((_event) => this.setCurrentAttack());
+
+        this.context.game.openEventWindow([declareAttackEvent], TriggerHandlingMode.ResolvesTriggers);
 
         // Capture the attacker and defender's LKI on the event itself, before any "On Attack" / "On Defense"
         // abilities can mutate or defeat the attacker. Read by triggers that resolve during the
         // OnAttackDeclared window (e.g. Kragan Gorr's target resolver).
-        addAttackLastKnownInformationToEvent(event, this.attack);
+        addAttackLastKnownInformationToEvent(declareAttackEvent, this.attack);
     }
 
     private dealDamageAndCompleteAttack(): void {
