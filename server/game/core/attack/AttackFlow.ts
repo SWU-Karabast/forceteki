@@ -58,13 +58,15 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private declareAttack() {
-        this.game.createEventAndOpenWindow(
+        const declareAttackEvent = new GameEvent(
             EventName.OnAttackDeclared,
             this.context,
-            { attack: this.attack },
-            TriggerHandlingMode.ResolvesTriggers,
-            () => this.setCurrentAttack()
+            { attack: this.attack }
         );
+
+        declareAttackEvent.setPreResolutionEffect((_event) => this.setCurrentAttack());
+
+        this.context.game.openEventWindow([declareAttackEvent], TriggerHandlingMode.ResolvesTriggers);
     }
 
     private setCurrentAttack() {
