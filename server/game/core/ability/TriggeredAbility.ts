@@ -13,6 +13,7 @@ import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
 import { registerState, statePrimitive } from '../GameObjectUtils';
 import type { IGameObjectBaseState } from '../GameObjectBase';
+import * as AttackHelpers from '../attack/AttackHelpers';
 
 // STATE: Interface needed for onAfterSetState and cleanupOnRemove.
 export interface ITriggeredAbilityState extends IGameObjectBaseState {
@@ -58,8 +59,9 @@ export default class TriggeredAbility extends CardAbility {
 
     private readonly mustChangeGameState: GameStateChangeRequired;
 
-    @statePrimitive() private accessor isRegistered: boolean = false;
     private readonly effectCondition?: (context: TriggeredAbilityContext) => boolean;
+
+    @statePrimitive() private accessor isRegistered: boolean = false;
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
@@ -103,6 +105,12 @@ export default class TriggeredAbility extends CardAbility {
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
             : GameStateChangeRequired.MustFullyOrPartiallyResolve;
+
+        if ('attackerMustSurvive' in properties && properties.attackerMustSurvive) {
+            const unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+            this.effectCondition = (context: TriggeredAbilityContext) =>
+                AttackHelpers.attackerSurvived(context.event.attack, unitsDefeatedThisPhaseWatcher);
+        }
     }
 
     public eventHandler(event, window) {
