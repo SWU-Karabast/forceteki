@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class DagoyanMaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -26,7 +26,10 @@ export default class DagoyanMaster extends NonLeaderUnitCard {
                     selectCount: 1,
                     searchCount: 5,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Force) && card.isUnit(),
-                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                        useDisplayPrompt: true,
+                        promptedPlayer: RelativePlayer.Opponent
+                    })
                 })
             }
         });

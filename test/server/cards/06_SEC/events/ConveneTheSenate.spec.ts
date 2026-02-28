@@ -44,6 +44,10 @@ describe('Convene the Senate', function () {
             context.player1.clickCardInDisplayCardPrompt(context.highCommandCouncilor);
             context.player1.clickDone();
 
+            // P2 is prompted to see the revealed cards
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.wartimeTradeOfficial, context.highCommandCouncilor]);
+            context.player2.clickDone();
+
             // Both chosen cards are drawn
             expect(context.wartimeTradeOfficial).toBeInZone('hand');
             expect(context.highCommandCouncilor).toBeInZone('hand');

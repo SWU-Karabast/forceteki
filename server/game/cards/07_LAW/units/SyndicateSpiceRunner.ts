@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class SyndicateSpiceRunner extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,10 @@ export default class SyndicateSpiceRunner extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 3,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Underworld),
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

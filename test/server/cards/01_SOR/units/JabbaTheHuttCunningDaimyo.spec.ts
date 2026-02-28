@@ -32,6 +32,11 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.waylay);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.waylay]);
+                context.player2.clickDone();
+
                 expect(context.waylay).toBeInZone('hand');
 
                 context.player2.passAction();

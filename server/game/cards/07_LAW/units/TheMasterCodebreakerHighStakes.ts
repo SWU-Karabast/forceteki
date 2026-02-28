@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { Player } from '../../../core/Player';
@@ -34,7 +34,10 @@ export default class TheMasterCodebreakerHighStakes extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Gambit),
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

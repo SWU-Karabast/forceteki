@@ -28,6 +28,10 @@ describe('GreatPitOfCarkoon', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.theSarlaccOfCarkoonHorrorOfTheDuneSea);
 
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.theSarlaccOfCarkoonHorrorOfTheDuneSea]);
+                context.player2.clickDone();
+
                 expect(context.theSarlaccOfCarkoonHorrorOfTheDuneSea).toBeInZone('hand', context.player1);
                 expect(context.wampa).toBeInZone('discard', context.player1);
                 expect(context.player2).toBeActivePlayer();

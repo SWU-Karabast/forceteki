@@ -30,6 +30,10 @@ describe('Snap Wexley, Resistance Recon Flier', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.fireball);
 
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.fireball]);
+                context.player2.clickDone();
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.fireball).toBeInZone('hand');
                 expect(context.getChatLog()).toContain('player1 uses Snap Wexley to reveal and draw Fireball');

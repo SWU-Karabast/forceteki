@@ -23,7 +23,10 @@ export default class Psychometry extends EventCard {
                     target: context.player,
                     searchCount: 5,
                     cardCondition: (card) => card.hasSomeTrait(context.target.traits),
-                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                        useDisplayPrompt: true,
+                        promptedPlayer: RelativePlayer.Opponent
+                    })
                 }))
             }
         });
