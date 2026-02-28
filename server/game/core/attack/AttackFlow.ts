@@ -26,7 +26,6 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.attack = attack;
 
         this.pipeline.initialise([
-            new SimpleStep(this.game, () => this.setCurrentAttack(), 'setCurrentAttack'),
             new SimpleStep(this.game, () => this.declareAttack(), 'declareAttack'),
             new SimpleStep(this.game, () => this.dealDamageAndCompleteAttack(), 'dealDamageAndCompleteAttack'),
             new SimpleStep(this.game, () => this.cleanUpAttack(), 'cleanUpAttack'),
@@ -43,7 +42,13 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private declareAttack() {
-        const event = this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
+        const event = this.game.createEventAndOpenWindow(
+            EventName.OnAttackDeclared,
+            this.context,
+            { attack: this.attack },
+            TriggerHandlingMode.ResolvesTriggers,
+            () => this.setCurrentAttack()
+        );
 
         // Capture the attacker and defender's LKI on the event itself, before any "On Attack" / "On Defense"
         // abilities can mutate or defeat the attacker. Read by triggers that resolve during the
