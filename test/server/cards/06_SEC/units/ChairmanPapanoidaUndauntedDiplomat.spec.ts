@@ -1,13 +1,13 @@
 describe('Chairman Papanoida, Undaunted Diplomat', function () {
     integration(function (contextRef) {
-        const disclosePrompt = 'Disclose Aggression, Aggression. If you do, create a Spy token';
+        const disclosePrompt = 'Disclose Aggression, Aggression to create a Spy token';
         describe('Chairman Papanoida, Undaunted Diplomat\'s ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['no-bargain', 'aggression'],
-                        groundArena: ['chairman-papanoida#undaunted-diplomat', 'battlefield-marine'],
+                        groundArena: ['chairman-papanoida#undaunted-diplomat', 'battlefield-marine', 'chio-fain#fourarmed-slicer'],
                     },
                     player2: {
                         hand: ['strategic-analysis', 'this-is-the-way', 'pillage', 'change-of-heart'],
@@ -71,6 +71,10 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
                 context.player2.clickCardInDisplayCardPrompt(context.supercommandoSquad);
                 context.player2.clickPrompt('Done');
 
+                // P1 is prompted to see the revealed cards
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.sabineWren, context.supercommandoSquad]);
+                context.player1.clickDone();
+
                 expect(context.player1).toHavePrompt(disclosePrompt);
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player1).toBeAbleToSelectExactly([
@@ -85,6 +89,58 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
                 expect(spy[0].exhausted).toBeTrue();
 
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should trigger for each players if both players draw cards during action phase simultaneously', function () {
+                const { context } = contextRef;
+
+                // Attack with Chio Fain to make each player draw a card
+                context.player1.clickCard(context.chioFain);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePassAbilityPrompt('Both players draw a card');
+                context.player1.clickPrompt('Trigger');
+
+                // One trigger per player, choose which one to resolve first
+                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    disclosePrompt,
+                    disclosePrompt
+                ]);
+
+                // Resolve one of the triggers first
+                context.player1.clickPrompt(disclosePrompt);
+                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.aggression
+                ]);
+                context.player1.clickCard(context.aggression);
+                context.player2.clickPrompt('Done');
+
+                // Verify a Spy token was created for player 1
+                let spy = context.player1.findCardsByName('spy');
+                expect(spy.length).toBe(1);
+
+                // Resolve the other trigger
+                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.aggression
+                ]);
+                context.player1.clickCard(context.aggression);
+                context.player2.clickPrompt('Done');
+
+                // Verify another Spy token was created for player 1
+                spy = context.player1.findCardsByName('spy');
+                expect(spy.length).toBe(2);
+
+                for (const spyToken of spy) {
+                    expect(spyToken).toBeInZone('groundArena');
+                    expect(spyToken.exhausted).toBeTrue();
+                }
+
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should not trigger during regroup phase', function () {
@@ -106,6 +162,11 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
                 context.player2.clickCardInDisplayCardPrompt(context.supercommandoSquad);
                 context.player2.clickPrompt('Done');
 
+                // P1 is prompted to see the revealed cards
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.sabineWren, context.supercommandoSquad]);
+                context.player1.clickDone();
+
+                expect(context.player1).toHavePrompt(disclosePrompt);
                 context.player1.clickPrompt('Choose nothing');
 
                 const spy = context.player1.findCardsByName('spy');

@@ -117,7 +117,7 @@ import type { ITakeControlOfResourceProperties } from './TakeControlOfResourceSy
 import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
 import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
 import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
-import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhileSourceInPlayDelayedEffectSystem';
+import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhenSourceLeavesPlayDelayedEffectSystem';
 import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
@@ -166,6 +166,8 @@ import type { IUseOnAttackProperties } from './UseOnAttackSystem';
 import { UseOnAttackSystem } from './UseOnAttackSystem';
 import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditTokenSystem';
 import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
+import type { IRevealAndDrawProperties } from './RevealAndDrawSystem';
+import { RevealAndDrawSystem } from './RevealAndDrawSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -512,6 +514,14 @@ export function revealAndSelectCard<TContext extends AbilityContext = AbilityCon
         GameSystem.appendToPropertiesOrPropertyFactory<IViewAndSelectCardsProperties, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.SelectCards }
+        )
+    );
+}
+export function revealAndDraw<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealAndDrawProperties, 'interactMode'>, TContext> = {}) {
+    return new RevealAndDrawSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IRevealAndDrawProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.ViewOnly }
         )
     );
 }

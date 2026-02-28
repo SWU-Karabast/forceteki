@@ -28,6 +28,10 @@ describe('R2-D2, Part of the Plan', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.chopper);
 
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.chopper]);
+                context.player2.clickDone();
+
                 expect(context.chopper).toBeInZone('hand', context.player1);
                 expect(context.player2).toBeActivePlayer();
             });

@@ -24,6 +24,11 @@ describe('Foresight', function () {
             // top card is millennium falcon, can reveal and draw
             expect(context.player1).toHavePassAbilityPrompt('Reveal and draw the top card of deck');
             context.player1.clickPrompt('Trigger');
+
+            // P2 is prompted to see the revealed card
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.millenniumFalcon]);
+            context.player2.clickDone();
+
             expect(context.player1.hand.length).toBe(3);
 
             // move to action phase
