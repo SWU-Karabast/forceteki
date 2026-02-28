@@ -5,7 +5,7 @@ describe('Tala Durith, I Can Get You Inside', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['battlefield-marine'],
+                        hand: ['batch-brothers'],
                         groundArena: ['tala-durith#i-can-get-you-inside'],
                         leader: { card: 'iden-versio#inferno-squad-commander', deployed: false },
                     },
@@ -20,9 +20,13 @@ describe('Tala Durith, I Can Get You Inside', function() {
                 const { context } = contextRef;
                 const { player1, player2 } = context;
 
-                player1.clickCard(context.battlefieldMarine);
+                player1.clickCard(context.batchBrothers);
 
-                expect(context.battlefieldMarine.hasSomeKeyword('hidden')).toBeTrue();
+                // Batch Brothers create a Clone Trooper token, it should be hidden too
+                const cloneTrooper = context.player1.findCardByName('clone-trooper');
+
+                expect(context.batchBrothers.hasSomeKeyword('hidden')).toBeTrue();
+                expect(cloneTrooper.hasSomeKeyword('hidden')).toBeTrue();
                 expect(context.talaDurithICanGetYouInside.hasSomeKeyword('hidden')).toBeFalse();
                 expect(context.rebelPathfinder.hasSomeKeyword('hidden')).toBeFalse();
 
@@ -51,7 +55,7 @@ describe('Tala Durith, I Can Get You Inside', function() {
 
                 context.player1.clickPrompt('Pass');
                 context.player2.clickCard(context.rebelPathfinder);
-                expect(player2).toBeAbleToSelectExactly([context.talaDurithICanGetYouInside, context.battlefieldMarine, context.idenVersioInfernoSquadCommander, context.p1Base]);
+                expect(player2).toBeAbleToSelectExactly([context.talaDurithICanGetYouInside, context.batchBrothers, cloneTrooper, context.idenVersioInfernoSquadCommander, context.p1Base]);
                 context.player2.clickCard(context.p1Base);
             });
         });

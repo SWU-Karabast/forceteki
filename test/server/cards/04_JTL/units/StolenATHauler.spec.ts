@@ -41,6 +41,7 @@ describe('Stolen AT-Hauler', () => {
                 expect(context.player2).toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).toHaveAvailableActionWhenClickedBy(context.player2);
                 expect(context.stolenAthauler).toBeInZone('spaceArena', context.player2);
+                expect(context.getChatLog()).toEqual('player2 plays Stolen AT-Hauler from player1\'s discard pile');
 
                 // Resource count didn't change
                 expect(context.player2.readyResourceCount).toBe(p2ReadyResources);

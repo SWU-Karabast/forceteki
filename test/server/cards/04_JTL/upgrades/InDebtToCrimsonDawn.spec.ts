@@ -38,8 +38,8 @@ describe('In Debt To Crimson Dawn', function() {
                 context.player1.clickDone();
                 context.player2.clickDone();
 
-                expect(context.player2).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
-                context.player2.clickPrompt('Exhaust Frontier AT-RT');
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+                context.player2.clickPrompt('Exhaust');
 
                 expect(context.frontierAtrt.exhausted).toBeTrue();
             });
@@ -59,8 +59,8 @@ describe('In Debt To Crimson Dawn', function() {
                 context.player1.clickDone();
                 context.player2.clickDone();
 
-                expect(context.player2).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
-                context.player2.clickPrompt('Pay 2 resources');
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+                context.player2.clickPrompt('Pay');
 
                 expect(context.frontierAtrt.exhausted).toBeFalse();
                 expect(context.player2.readyResourceCount).toBe(2);
@@ -79,8 +79,8 @@ describe('In Debt To Crimson Dawn', function() {
                 context.player2.clickCard(context.bravado);
                 context.player2.clickCard(context.frontierAtrt);
 
-                expect(context.player2).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
-                context.player2.clickPrompt('Pay 2 resources');
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+                context.player2.clickPrompt('Pay');
 
                 expect(context.frontierAtrt.exhausted).toBeFalse();
                 expect(context.player2.readyResourceCount).toBe(0);
@@ -111,8 +111,8 @@ describe('In Debt To Crimson Dawn', function() {
                 context.player2.clickDone();
 
                 // Player 1 should be prompted for In Debt To Crimson Dawn's ability
-                expect(context.player1).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
-                context.player1.clickPrompt('Pay 2 resources');
+                expect(context.player1).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+                context.player1.clickPrompt('Pay');
 
                 // Player 1 should be the one paying the resources
                 expect(context.frontierAtrt.exhausted).toBeFalse();
@@ -149,8 +149,8 @@ describe('In Debt To Crimson Dawn', function() {
             context.player2.clickDone();
             context.player1.clickDone();
 
-            expect(context.player1).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Green Squadron A-Wing']);
-            context.player1.clickPrompt('Exhaust Green Squadron A-Wing');
+            expect(context.player1).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+            context.player1.clickPrompt('Exhaust');
 
             expect(context.greenSquadronAwing.exhausted).toBeTrue();
         });

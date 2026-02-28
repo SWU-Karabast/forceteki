@@ -27,6 +27,7 @@ describe('Kelleran Beq, The Sabered Hand', function () {
             expect(context.obiwanKenobi).toBeInZone('groundArena', context.player1);
             expect(context.player1.exhaustedResourceCount).toBe(10);// 7+(6-3)
             expect([context.wampa, context.porg, context.yoda, context.protector, context.theForceIsWithMe, context.forceThrow]).toAllBeInBottomOfDeck(context.player1, 6);
+            expect(context.getChatLog()).toEqual('player1 plays Obi-Wan Kenobi from their deck');
         });
 
         it('Kelleran Beq\'s ability should search the top 7 of the deck for a unit and play it for 3 resources less (no prompt for pilote)', async function () {

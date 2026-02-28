@@ -1,11 +1,12 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { BaseCard } from '../../../core/card/BaseCard';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { RelativePlayer } from '../../../core/Constants';
 
 export default class GreatPitOfCarkoon extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'great-pit-of-carkoon-id',
+            id: '7897278827',
             internalName: 'great-pit-of-carkoon',
         };
     }
@@ -16,16 +17,13 @@ export default class GreatPitOfCarkoon extends BaseCard {
             cost: AbilityHelper.costs.discardCardFromOwnHand({
                 cardCondition: (card) => card.isUnit(),
             }),
-            // TODO:  Modify DeckSearch system to always shuffle after search even if no card is found (https://github.com/SWU-Karabast/forceteki/issues/1993)
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.entireDeckSearch({
-                    cardCondition: (card) => card.name === 'The Sarlacc of Carkoon',
-                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard(),
-                    revealSelected: true,
-                    shuffleWhenDone: false,
+            immediateEffect: AbilityHelper.immediateEffects.entireDeckSearch({
+                cardCondition: (card) => card.title === 'The Sarlacc of Carkoon',
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
                 }),
-                AbilityHelper.immediateEffects.shuffleDeck()
-            ]),
+            })
         });
     }
 }

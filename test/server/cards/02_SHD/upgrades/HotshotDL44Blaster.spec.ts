@@ -50,7 +50,7 @@ describe('Hotshot DL-44 Blaster', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
                 expect(context.battlefieldMarine.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(5);
-                expect(context.getChatLogs(3)).toContain('player1 plays Hotshot DL-44 Blaster using Smuggle, attaching it to Battlefield Marine');
+                expect(context.getChatLogs(3)).toContain('player1 plays Hotshot DL-44 Blaster from their resource row using Smuggle, attaching it to Battlefield Marine');
             });
         });
     });

@@ -94,6 +94,16 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
         }
     }
 
+    /**
+     * Clears all cards from the deck in a single operation.
+     * More efficient than removing cards one by one.
+     */
+    public clearDeck(): IPlayableCard[] {
+        const removed = [...this._deck];
+        this._deck = [];
+        return removed;
+    }
+
     public removeTopCard(): IPlayableCard | null {
         return this._deck.pop();
     }

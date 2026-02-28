@@ -14,7 +14,7 @@ export default class DetentionBlockRescue extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Deal 2 damage to a unit or base',
+            title: 'Deal 3 damage to a unit. If that unit is guarding any captured cards, deal 6 damage instead.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({

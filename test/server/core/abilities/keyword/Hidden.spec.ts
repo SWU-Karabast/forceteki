@@ -164,6 +164,71 @@ describe('Hidden keyword', function() {
             });
         });
 
+        describe('Token units that gain the Hidden keyword', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hasInitiative: true,
+                        hand: [
+                            'subjugating-starfighter',  // Battle Droid
+                            'batch-brothers',           // Clone Trooper
+                            'veteran-fleet-officer',    // X-Wing
+                            'kijimi-patrollers',        // TIE Fighter
+                            'beloved-orator'            // Spy
+                        ],
+                        groundArena: ['tala-durith#i-can-get-you-inside'],
+                    }
+                });
+            });
+
+            it('Battle Droid', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.subjugatingStarfighter);
+                context.player1.clickPrompt('Create a Battle Droid token');
+
+                const battleDroid = context.player1.findCardByName('battle-droid');
+                expect(battleDroid.hasSomeKeyword('hidden')).toBeTrue();
+            });
+
+            it('Clone Trooper', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.batchBrothers);
+
+                const cloneTrooper = context.player1.findCardByName('clone-trooper');
+                expect(cloneTrooper.hasSomeKeyword('hidden')).toBeTrue();
+            });
+
+            it('X-Wing', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.veteranFleetOfficer);
+
+                const xWing = context.player1.findCardByName('xwing');
+                expect(xWing.hasSomeKeyword('hidden')).toBeTrue();
+            });
+
+            it('TIE Fighter', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kijimiPatrollers);
+
+                const tieFighter = context.player1.findCardByName('tie-fighter');
+                expect(tieFighter.hasSomeKeyword('hidden')).toBeTrue();
+            });
+
+            it('Spy', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.belovedOrator);
+
+                const spy = context.player1.findCardByName('spy');
+                expect(spy.hasSomeKeyword('hidden')).toBeTrue();
+            });
+        });
+
         describe('When a unit with the Hidden keyword gains Sentinel', function() {
             it('can be attacked', async function () {
                 await contextRef.setupTestAsync({

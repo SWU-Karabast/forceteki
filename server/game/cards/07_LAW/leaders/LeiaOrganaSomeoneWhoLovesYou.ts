@@ -10,7 +10,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class LeiaOrganaSomeoneWhoLovesYou extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'leia-organa#someone-who-loves-you-id',
+            id: '3859010573',
             internalName: 'leia-organa#someone-who-loves-you',
         };
     }

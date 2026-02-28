@@ -41,6 +41,14 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 expect(context.underworldThug).toBeInZone('deck');
 
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(4)).toEqual([
+                    // TODO: We can probably update SearchDeckSystem to improve this message ("search" => "look at")
+                    'player1 uses Qui-Gon Jinn to search the top 3 cards of their deck',
+                    // TODO: We can probably update ViewCardSystem to improve this message ("look at" => "choose option for")
+                    'player1 uses Qui-Gon Jinn to discard Porg and to look at 2 cards',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck'
+                ]);
             });
 
             it('should allow the user to not discard a card, but still make them put all 3 on top of the deck in any order', function () {
@@ -55,7 +63,6 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
 
                 context.player1.clickPrompt('Take nothing');
 
-
                 context.player1.clickDisplayCardPromptButton(context.maKlounkee.uuid, 'top');
                 context.player1.clickDisplayCardPromptButton(context.underworldThug.uuid, 'top');
                 context.player1.clickDisplayCardPromptButton(context.porg.uuid, 'top');
@@ -65,6 +72,12 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 expect(context.underworldThug).toBeInZone('deck');
 
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(4)).toEqual([
+                    'player1 uses Qui-Gon Jinn to discard no cards and to look at 3 cards',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck'
+                ]);
             });
         });
 

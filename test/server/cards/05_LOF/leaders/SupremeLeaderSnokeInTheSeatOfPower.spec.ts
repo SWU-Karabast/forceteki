@@ -71,7 +71,7 @@ describe('Supreme Leader Snoke, In The Seat Of Power', function() {
 
                 // Use Supreme Leader Snoke's ability
                 context.player1.clickCard(context.supremeLeaderSnoke);
-                context.player1.clickPrompt('Give an Experience token to the unit with the most power among Villainy units');
+                context.player1.clickPrompt('(No effect) Give an Experience token to the unit with the most power among Villainy units');
                 context.player1.clickPrompt('Use it anyway');
 
                 // Check that the costs were paid

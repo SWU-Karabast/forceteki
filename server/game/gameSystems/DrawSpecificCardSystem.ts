@@ -2,6 +2,8 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EffectName, EventName, WildcardCardType, ZoneName } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
+import * as Helpers from '../core/utils/Helpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem';
 
@@ -17,7 +19,6 @@ export interface IDrawSpecificCardProperties extends ICardTargetSystemProperties
 export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDrawSpecificCardProperties> {
     public override readonly name = 'drawSpecific';
     public override readonly eventName = EventName.OnCardsDrawn;
-    public override readonly effectDescription = 'draw a card';
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
     protected override defaultProperties: IDrawSpecificCardProperties = {
@@ -26,6 +27,16 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         shuffle: false,
         changePlayer: false,
     };
+
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IDrawSpecificCardProperties>): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const targetsArray = Helpers.asArray(properties.target);
+
+        return [
+            'draw {0}',
+            [ChatHelpers.pluralize(targetsArray.length, 'a card', 'cards')]
+        ];
+    }
 
     public eventHandler(event: any, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): void {
         const context = event.context;

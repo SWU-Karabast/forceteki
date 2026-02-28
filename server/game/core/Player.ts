@@ -609,7 +609,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card, or null if the deck is empty
      */
     public getTopCardOfDeck(): IPlayableCard | null {
         if (this.drawDeck.length > 0) {
@@ -622,7 +622,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     /**
      * Returns ths top cards of the player's deck
      * @param {number} numCard
-     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card, or null if the deck is empty
      */
     public getTopCardsOfDeck(numCard: number): IPlayableCard[] {
         Contract.assertPositiveNonZero(numCard);
@@ -724,11 +724,14 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
     // }
 
     /**
-     * Shuffles the deck, displaying a message in chat
-     * @param {AbilityContext} context
+     * Shuffles the deck, optionally displaying a message in chat
+     * @param {boolean} emitMessage - Whether to display a message in chat
      */
-    public shuffleDeck(context: AbilityContext = null) {
-        this.game.addMessage('{0} is shuffling their deck', this);
+    public shuffleDeck(emitMessage = false) {
+        if (emitMessage) {
+            this.game.addMessage('{0} is shuffling their deck', this);
+        }
+
         this.deckZone.shuffle(this.game.randomGenerator);
     }
 
@@ -1156,21 +1159,6 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
         );
     }
 
-    // eventsCannotBeCancelled() {
-    //     return this.hasOngoingEffect(EffectName.EventsCannotBeCancelled);
-    // }
-
-    // // TODO STATE SAVE: what stats are we interested in?
-    // getStats() {
-    //     return {
-    //         fate: this.fate,
-    //         honor: this.getTotalHonor(),
-    //         conflictsRemaining: this.getConflictOpportunities(),
-    //         militaryRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Military),
-    //         politicalRemaining: this.getRemainingConflictOpportunitiesForType(ConflictTypes.Political)
-    //     };
-    // }
-
     public override getShortSummary() {
         return {
             ...super.getShortSummary(),
@@ -1202,6 +1190,7 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
                 spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer),
                 discard: this.getSummaryForZone(ZoneName.Discard, activePlayer),
+                credits: this.getCreditsSummary(activePlayer),
                 // we don't get the deck summary here, as it is not needed in the UI
             },
             disconnected: this.disconnected,
@@ -1221,23 +1210,31 @@ export class Player extends GameObject<IPlayerState> implements IGameStatisticsT
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),
-            hasForceToken: this.hasTheForce,
-            credits: this.creditTokenCount,
+            forceToken: this.getForceTokenSummary(),
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
+            topCardOfDeck: undefined
         };
 
-        // if (this.showDeck) {
-        //     state.showDeck = true;
-        //     state.cardPiles.deck = this.getSummaryForZone(this.deck, activePlayer);
-        // }
-
-        // if (this.role) {
-        //     state.role = this.role.getSummary(activePlayer);
-        // }
+        if (this.isTopCardShown(activePlayer)) {
+            const topCard = activePlayer.getTopCardOfDeck();
+            summary.topCardOfDeck = topCard.getSummary(activePlayer, true);
+        }
 
         return summary;
+    }
+
+    private getForceTokenSummary() {
+        return {
+            active: this.hasTheForce,
+            uuid: this.hasTheForce ? this.baseZone.forceToken.uuid : undefined, // UUID is needed for selection on the client
+            selectionState: this.hasTheForce ? this.getCardSelectionState(this.baseZone.forceToken) : undefined,
+        };
+    }
+
+    private getCreditsSummary(activePlayer: Player) {
+        return this.baseZone.credits.map((credit) => credit.getSummary(activePlayer));
     }
 
     private buildAvailableSnapshotsState(isActionPhaseActivePlayer = false) {

@@ -35,10 +35,11 @@ export class DropdownListPrompt extends UiPrompt {
         }
 
         const menuTitle = 'Choose an option from the list';
+        const activePromptTitle = typeof properties.activePromptTitle === 'string' ? properties.activePromptTitle : null;
 
         this._activePrompt = {
             menuTitle,
-            promptTitle: this.properties.promptTitle || (this.properties.source ? this.properties.source.name : undefined),
+            promptTitle: this.properties.promptTitle || activePromptTitle || (this.properties.source ? this.properties.source.name : undefined),
             dropdownListOptions: this.properties.options,
             promptUuid: this.uuid
         };

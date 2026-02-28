@@ -49,7 +49,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         });
     }
 
-    public override activePromptInternal(): IPlayerPromptStateProperties {
+    public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         let promptText = null;
         if (this.nCardsToResource !== 1) {
             promptText = `Select ${this.nCardsToResource} cards to resource`;
@@ -57,10 +57,12 @@ export class ResourcePrompt extends AllPlayerPrompt {
             promptText = 'Select 1 card to resource';
         }
 
+        const hasEnoughSelected = this.hasEnoughSelected(player);
+
         return {
             selectCardMode: this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
             menuTitle: promptText,
-            buttons: [{ text: 'Done', arg: 'done' }],
+            buttons: [{ text: 'Done', arg: 'done', disabled: !hasEnoughSelected }],
             promptTitle: 'Resource Step',
             promptUuid: this.uuid,
             promptType: PromptType.Resource
@@ -103,7 +105,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
             if (this.completionCondition(player)) {
                 return false;
             }
-            if (this.selectedCards[player.name].length < this.nCardsToResource) {
+            if (!this.hasEnoughSelected(player)) {
                 return false;
             }
             this.playersDone[player.name] = true;
@@ -111,6 +113,10 @@ export class ResourcePrompt extends AllPlayerPrompt {
         }
         // in the case the command comes as an invalid one
         Contract.fail(`Unexpected menu command: '${arg}'`);
+    }
+
+    protected hasEnoughSelected(player: Player): boolean {
+        return this.selectedCards[player.name].length === this.nCardsToResource;
     }
 
     protected resourceSelectedCards(player: Player) {

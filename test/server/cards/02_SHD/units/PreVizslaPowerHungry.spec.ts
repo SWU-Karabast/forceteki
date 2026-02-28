@@ -169,5 +169,48 @@ describe('Pre Vizsla, Power Hungry', function() {
                 expect(context.namelessValor).toBeInZone('discard');
             });
         });
+
+        describe('Interaction with cost adjustments', function() {
+            it('Credit tokens can be used to pay for the upgrade cost', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        credits: 4,
+                        resources: 7,
+                        hand: ['pre-vizsla#power-hungry'],
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'sabine-wren#explosives-artist', upgrades: ['the-darksaber'] },
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Pre Vizsla (without using Credit tokens)
+                context.player1.clickCard(context.preVizsla);
+                context.player1.clickPrompt('Pay costs without Credit tokens');
+                expect(context.preVizsla).toBeInZone('groundArena');
+                expect(context.player1.readyResourceCount).toBe(0);
+
+                // Resolve When Played ability
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.theDarksaber]);
+                context.player1.clickCard(context.theDarksaber);
+
+                // Resolve payment using Credit tokens
+                expect(context.player1).toHavePrompt('Use Credit tokens to pay for Pre Vizsla\'s effect');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Use 4 Credits'
+                ]);
+                context.player1.clickPrompt('Use 4 Credits');
+
+                // The Darksaber is now attached to Pre Vizsla
+                expect(context.preVizsla).toHaveExactUpgradeNames(['the-darksaber']);
+                expect(context.sabineWren).toHaveExactUpgradeNames([]);
+                expect(context.player1.credits).toBe(0);
+            });
+        });
     });
 });

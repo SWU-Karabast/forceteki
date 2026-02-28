@@ -36,6 +36,7 @@ describe('Wrecker, Boom!', function() {
                 expect(context.devotion).toBeInZone('discard');
                 expect(context.atst.damage).toBe(5);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(2)).toContain('player1 uses Wrecker to defeat an exhausted Devotion from their resource row');
             });
 
             it('should not deal 5 damage to a ground unit if we do not defeat a resource', function () {

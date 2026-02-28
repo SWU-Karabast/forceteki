@@ -6,7 +6,7 @@ import { RelativePlayer, Trait } from '../../../core/Constants';
 export default class LeiasDisguise extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'leias-disguise-id',
+            id: '5334583399',
             internalName: 'leias-disguise',
         };
     }

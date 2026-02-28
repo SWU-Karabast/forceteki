@@ -24,7 +24,7 @@ describe('Planetary Bombardment', function() {
             // Player 1 plays Planetary Bombardment and deals 12 indirect damage
             context.player1.clickCard(context.planetaryBombardment);
             expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 8 indirect damage to a player. If you control a Capital Ship unit, deal 12 indirect damage instead\'');
-            expect(context.player1).toHaveExactPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent']);
+            expect(context.player1).toHaveExactPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent', 'Cancel']);
 
             context.player1.clickPrompt('Deal indirect damage to opponent');
             expect(context.player2).toHavePrompt('Distribute 12 indirect damage among targets');
@@ -63,7 +63,7 @@ describe('Planetary Bombardment', function() {
             // Player 1 plays Planetary Bombardment and deals 8 indirect damage
             context.player1.clickCard(context.planetaryBombardment);
             expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 8 indirect damage to a player. If you control a Capital Ship unit, deal 12 indirect damage instead\'');
-            expect(context.player1).toHaveExactPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent']);
+            expect(context.player1).toHaveExactPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent', 'Cancel']);
             expect(context.p1Base.damage).toBe(0);
 
             context.player1.clickPrompt('Deal indirect damage to yourself');

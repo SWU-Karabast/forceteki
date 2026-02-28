@@ -38,6 +38,9 @@ describe('Shadowed Intentions', function() {
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toBeInZone('groundArena');
             expect(context.relentlessPursuit).toBeInZone('discard');
+            expect(context.getChatLog()).toEqual(
+                'player2 uses Battlefield Marine\'s gained ability from Shadowed Intentions to cancel the effects of Relentless Pursuit'
+            );
             context.player2.passAction();
 
             // try to damage upgraded battlefield marine and succeed

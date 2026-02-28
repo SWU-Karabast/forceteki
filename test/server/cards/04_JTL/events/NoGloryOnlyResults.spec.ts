@@ -143,5 +143,33 @@ describe('No Glory, Only Results', function() {
             expect(context.player1).toBeActivePlayer();
             expect(context.noGloryOnlyResults).toBeInZone('hand');
         });
+
+
+        it('should not trigger an ability on the enemy unit that would have been triggered before being stolen', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'anakin-skywalker#tempted-by-the-dark-side',
+                    base: 'kestro-city',
+                    hand: ['no-glory-only-results'],
+                    hasForceToken: true,
+                    resources: 5
+                },
+                player2: {
+                    groundArena: ['yoda#my-ally-is-the-force', 'wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.anakinSkywalker);
+            context.player1.clickPrompt('Play a Villainy non-unit card from your hand, ignoring its aspect penalties.');
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.yoda);
+            expect(context.player1.hasTheForce).toBe(false);
+            expect(context.yoda).toBeInZone('discard');
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

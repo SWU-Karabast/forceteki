@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { EventName, EffectName, SnapshotType } from '../Constants.js';
+import { EventName, EffectName, SnapshotType, SubStepCheck } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
@@ -74,7 +74,11 @@ export class ActionWindow extends UiPrompt {
             choices: legalActions
                 .map((action) => {
                     const context = action.createContext(player);
-                    return action.getTitle(context);
+                    let title = action.getTitle(context);
+                    if (!action.hasAnyLegalEffects(context, SubStepCheck.All)) {
+                        title = `(No effect) ${title}`;
+                    }
+                    return title;
                 })
                 .concat('Cancel'),
             handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)

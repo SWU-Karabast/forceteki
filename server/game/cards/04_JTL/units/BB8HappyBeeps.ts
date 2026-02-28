@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, Trait } from '../../../core/Constants';
+import { AbilityType, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class BB8HappyBeeps extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -19,7 +19,7 @@ export default class BB8HappyBeeps extends NonLeaderUnitCard {
             },
             title: 'Pay 2 resources to ready a Resistance unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 2,
                 target: context.player
             })),
@@ -27,6 +27,7 @@ export default class BB8HappyBeeps extends NonLeaderUnitCard {
                 title: 'Ready a Resistance unit',
                 targetResolver: {
                     activePromptTitle: 'Choose a Resistance unit to ready',
+                    cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Resistance),
                     immediateEffect: AbilityHelper.immediateEffects.ready()
                 }

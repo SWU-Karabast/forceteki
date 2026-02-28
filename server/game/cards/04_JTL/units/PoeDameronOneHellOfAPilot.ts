@@ -13,13 +13,14 @@ export default class PoeDameronOneHellOfAPilot extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Create a X-Wing token',
+            title: 'Create an X-Wing token',
             immediateEffect: AbilityHelper.immediateEffects.createXWing({
                 amount: 1
             }),
             then: (thenContext) => ({
                 title: 'Attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it',
                 optional: true,
+                thenCondition: (context) => context.source.isInPlay(),
                 targetResolver: {
                     controller: RelativePlayer.Self,
                     cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && !card.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),

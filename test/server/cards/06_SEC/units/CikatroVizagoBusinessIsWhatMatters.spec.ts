@@ -32,6 +32,52 @@ describe('Cikatro Vizago, Business is What Matters', function() {
                 expect(context.cantinaBouncer).toBeInZone('deck', context.player1); // Card remains on top of deck
             });
 
+            it('opponent can use a Credit token to pay for the resource payment.', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['cikatro-vizago#business-is-what-matters'],
+                        deck: ['cantina-bouncer', 'awing', 'tie-bomber']
+                    },
+                    player2: {
+                        credits: 1
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const initialHandSize = context.player1.hand.length;
+
+                // P1 attacks the base with Cikatro
+                context.player1.clickCard(context.cikatroVizago);
+                context.player1.clickCard(context.p2Base);
+
+                // Top card (cantina-bouncer) should be revealed in display prompt
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.cantinaBouncer]);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickDone();
+
+                // Opponent should be prompted to choose
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay 1 resource', 'Opponent draws Cantina Bouncer']);
+                context.player2.clickPrompt('Pay 1 resource');
+
+                // Credit payment prompt should appear
+                expect(context.player2).toHavePrompt('Use Credit tokens to pay for Cikatro Vizago\'s effect');
+                expect(context.player2).toHaveExactPromptButtons([
+                    'Use 1 Credit',
+                    'Pay costs without Credit tokens'
+                ]);
+
+                // Use Credit token to pay
+                context.player2.clickPrompt('Use 1 Credit');
+
+                // Verify opponent used Credit and we didn't draw the card
+                expect(context.player2.credits).toBe(0);
+                expect(context.player2.exhaustedResourceCount).toBe(0);
+                expect(context.player1.hand.length).toBe(initialHandSize);
+                expect(context.cantinaBouncer).toBeInZone('deck', context.player1); // Card remains on top of deck
+            });
+
             it('reveals a card from the top of the deck. Opponent chooses to let us draw it.', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

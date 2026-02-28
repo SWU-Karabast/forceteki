@@ -13,6 +13,7 @@ import type Game from '../core/Game';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import { ActionsThisPhaseWatcher } from './ActionsThisPhaseWatcher';
+import { TokensCreatedThisPhaseWatcher } from './TokensCreatedThisPhaseWatcher';
 
 
 export class StateWatcherLibrary {
@@ -96,6 +97,13 @@ export class StateWatcherLibrary {
         return this.game.stateWatcherRegistrar.registerWatcher(
             StateWatcherName.LeadersDeployedThisPhase,
             (registrar: StateWatcherRegistrar) => new LeadersDeployedThisPhaseWatcher(this.game, registrar)
+        );
+    }
+
+    public tokensCreatedThisPhase() {
+        return this.game.stateWatcherRegistrar.registerWatcher(
+            StateWatcherName.TokensCreatedThisPhase,
+            (registrar: StateWatcherRegistrar) => new TokensCreatedThisPhaseWatcher(this.game, registrar)
         );
     }
 

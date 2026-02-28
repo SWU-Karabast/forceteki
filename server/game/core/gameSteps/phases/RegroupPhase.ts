@@ -11,9 +11,15 @@ import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOr
 import * as Contract from '../../utils/Contract';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
+import type { AdditionalPhaseEffect } from '../../ongoingEffect/effectImpl/AdditionalPhaseEffect';
 
 export class RegroupPhase extends Phase {
-    public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
+    public constructor(
+        game: Game,
+        snapshotManager: SnapshotManager,
+        initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal,
+        additionalPhaseEffect: AdditionalPhaseEffect = null
+    ) {
         Contract.assertFalse(initializeMode === PhaseInitializeMode.RollbackToEndOfPhase, 'RegroupPhase does not support rolling back to the end of the phase');
 
         const resourceSteps = [];
@@ -25,7 +31,7 @@ export class RegroupPhase extends Phase {
             resourceSteps.push(new SimpleStep(game, () => this.resourcePrompt(), 'resourcePrompt'));
         }
 
-        super(game, PhaseName.Regroup, snapshotManager);
+        super(game, PhaseName.Regroup, snapshotManager, additionalPhaseEffect);
         this.initialise(
             [
                 ...resourceSteps,
@@ -42,14 +48,19 @@ export class RegroupPhase extends Phase {
             this.takeActionSnapshotsForPromptedPlayers();
         }
 
-        for (const player of this.game.getPlayers()) {
-            // create a single event for drawing cards step
-            new DrawSystem({ amount: 2 }).resolve(
-                player,
-                this.game.getFrameworkContext(player),
-                TriggerHandlingMode.ResolvesTriggers
+        // Let's put both draws in the same event window, which should cause any resulting draw damage to be applied simultaneously
+        const players = this.game.getPlayers();
+        const drawEvents: GameEvent[] = [];
+
+        for (const player of players) {
+            const drawSystem = new DrawSystem({ amount: 2 });
+            drawSystem.queueGenerateEventGameSteps(
+                drawEvents,
+                this.game.getFrameworkContext(player)
             );
         }
+
+        this.game.openEventWindow(drawEvents, TriggerHandlingMode.ResolvesTriggers);
     }
 
     private resourcePrompt() {

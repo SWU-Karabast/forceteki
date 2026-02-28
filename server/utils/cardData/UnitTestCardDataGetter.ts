@@ -8,6 +8,9 @@ import type { ISynchronousCardDataGetter } from './ISynchronousCardDataGetter';
 
 /** Extends {@link CardDataGetter} with synchronous get methods */
 export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements ISynchronousCardDataGetter {
+    // Cache for card data to avoid repeated file I/O during tests
+    private readonly cardDataCache = new Map<string, ICardDataJson>();
+
     private static readFileSync(folderRoot: string, relativePath: string): unknown {
         const filePath = path.join(folderRoot, relativePath);
         Contract.assertTrue(fs.existsSync(filePath), `Data file ${filePath} does not exist`);
@@ -55,7 +58,27 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
 
 
     protected getCardInternalSync(relativePath: string): ICardDataJson {
-        return this.readFileSync(relativePath) as ICardDataJson;
+        // Check cache first to avoid repeated file I/O
+        const cached = this.cardDataCache.get(relativePath);
+        if (cached) {
+            return cached;
+        }
+
+        const cardData = this.readFileSync(relativePath) as ICardDataJson;
+        this.cardDataCache.set(relativePath, cardData);
+        return cardData;
+    }
+
+    protected override getCardInternalAsync(relativePath: string): Promise<ICardDataJson> {
+        // Check cache first to avoid repeated file I/O
+        const cached = this.cardDataCache.get(relativePath);
+        if (cached) {
+            return Promise.resolve(cached);
+        }
+
+        const cardData = this.readFileSync(relativePath) as ICardDataJson;
+        this.cardDataCache.set(relativePath, cardData);
+        return Promise.resolve(cardData);
     }
 
     public getSetCodeMapSync(): Map<string, string> {

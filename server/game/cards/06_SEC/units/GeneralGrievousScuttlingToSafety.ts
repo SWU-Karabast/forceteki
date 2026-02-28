@@ -12,11 +12,8 @@ export default class GeneralGrievousScuttlingToSafety extends NonLeaderUnitCard 
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnDefenseAbility({
             title: 'Return him to his owner\'s hand',
-            when: {
-                onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
-            },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.zoneName === ZoneName.GroundArena,
                 onTrue: AbilityHelper.immediateEffects.returnToHand(),

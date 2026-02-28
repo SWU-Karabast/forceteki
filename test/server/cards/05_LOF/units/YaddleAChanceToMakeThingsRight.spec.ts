@@ -126,7 +126,7 @@ describe('Yaddle, A Chance to Make Things Right', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.yodaSensingDarkness);
-                expect(context.player1).toHaveEnabledPromptButtons(['Deploy Yoda', 'If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.']);
+                expect(context.player1).toHaveEnabledPromptButtons(['Deploy Yoda', '(No effect) If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.']);
                 context.player1.clickPrompt('Deploy Yoda');
                 context.player1.clickPrompt('Pass');
 

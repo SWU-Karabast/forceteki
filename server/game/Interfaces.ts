@@ -62,6 +62,11 @@ export type IDamageModificationAbilityProps<TSource extends Card = Card> = Omit<
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 };
 
+export type IWhenAttackEndsAbilityProps<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
+    /** Indicates that the attacker must survive the attack for the trigger to happen. Defaults to false. */
+    attackerMustSurvive?: boolean;
+};
+
 /** Interface definition for addActionAbility */
 export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'optional'> & {
     condition?: (context?: AbilityContext<TSource>) => boolean;
@@ -123,6 +128,11 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     optional?: boolean;
 
     /**
+     * If true, disables automatic cost reordering in AbilityResolver
+     */
+    disableCostReordering?: boolean;
+
+    /**
      * If optional is true, indicates which player will make the choice to resolve the optional ability (defaults to RelativePlayer.Self)
      */
     playerChoosingOptional?: RelativePlayer;
@@ -163,7 +173,6 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
      * an {@link AbilityContext}.
      */
     initiateAttack?: IInitiateAttackProperties | ((context: TContext) => IInitiateAttackProperties);
-
 }
 
 /** Interface definition for addConstantAbility */
@@ -401,6 +410,7 @@ export interface IPlayerSerializedState {
 
 export interface ISerializedGameState {
     phase?: string;
+    attackRulesVersion?: string;
     reportingPlayer?: ISafeSerializedType<IPlayerSerializedState>;
     opponent?: ISafeSerializedType<IPlayerSerializedState>;
     player1?: ISafeSerializedType<IPlayerSerializedState>;
@@ -415,19 +425,30 @@ export interface ISerializedMessage {
     message: MessageText | { alert: { type: string; message: string | string[] } };
 }
 
+export enum PlayerReportType {
+    OffensiveUsername = 'offensiveUsername',
+    ChatHarrasment = 'chatHarrasment',
+    AbusingMechanics = 'abusingMechanics',
+    Other = 'other'
+}
+
+export enum ReportType {
+    BugReport = 'bugReport',
+    PlayerReport = 'playerReport'
+}
+
+export interface IReportPlayer {
+    id: string;
+    username: string;
+    playerInGameState: string;
+}
+
 export interface ISerializedReportState {
     description: string;
     gameState: ISerializedGameState;
-    reporter: {
-        id: string;
-        username: string;
-        playerInGameState: string;
-    };
-    opponent: {
-        id: string;
-        username: string;
-        playerInGameState: string;
-    };
+    playerReportType: PlayerReportType;
+    reporter: IReportPlayer;
+    opponent: IReportPlayer;
     lobbyId: string;
     timestamp: string;
     messages: ISerializedMessage[];
