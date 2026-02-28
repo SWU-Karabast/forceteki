@@ -438,7 +438,7 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
     const proxiedArray = new Proxy(arr, {
         get(target, prop, receiver) {
             if (prop === 'pop' || prop === 'splice') {
-                return function(...args) {
+                return function (...args) {
                     Contract.assertTrue(args.length <= 2, 'State Array Splice does not support adding elements to the array.');
                     const result = Reflect.apply(target[prop], target, args);
                     // @ts-expect-error Override accessibility and call the same method on the internal state.
@@ -447,7 +447,7 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
                     return result;
                 };
             } else if (prop === 'push' || prop === 'unshift') {
-                return function(...args) {
+                return function (...args) {
                     const result = Reflect.apply(target[prop], target, args);
                     // @ts-expect-error Override accessibility and call the same method on the internal state.
                     Reflect.apply(go.state[name][prop], go.state[name], args.map((x) => x.getRef()));
@@ -455,7 +455,7 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
                     return result;
                 };
             } else if (prop === 'reverse') {
-                return function(...args) {
+                return function (...args) {
                     const result = Reflect.apply(target[prop], target, args);
                     // @ts-expect-error Override accessibility and call the same method on the internal state.
                     Reflect.apply(go.state[name][prop], go.state[name], args);
@@ -707,7 +707,7 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     public override unshift(...items: TValue[]): number {
         this.accessing = true;
         try {
-        // @ts-expect-error Overriding state accessibility
+            // @ts-expect-error Overriding state accessibility
             (this.go.state[this.prop] as GameObjectRef<TValue>[]).unshift(...items.map((x) => x.getRef()));
             return super.unshift(...items);
         } finally {
@@ -770,3 +770,27 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         throw new Error('Fill is not supported in UndoArray.');
     }
 }
+
+
+/**
+ * Decorator that marks a class field as non-enumerable.
+ * This prevents the property from appearing in `for...in` loops, `Object.keys()`, etc.
+ * Uses `addInitializer` so that the property is redefined after the field is set.
+ *
+ * @example
+ * ⁣@nonenumerable accessor myProp: string = 'value';
+ */
+export function nonenumerable(_target: undefined, context: ClassFieldDecoratorContext) {
+    context.addInitializer(function (this: object) {
+        // eslint-disable-next-line no-invalid-this
+        const descriptor = Object.getOwnPropertyDescriptor(this, context.name);
+        if (descriptor && descriptor.enumerable !== false) {
+            // eslint-disable-next-line no-invalid-this
+            Object.defineProperty(this, context.name, {
+                ...descriptor,
+                enumerable: false,
+            });
+        }
+    });
+}
+

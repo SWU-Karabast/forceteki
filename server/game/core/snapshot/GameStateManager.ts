@@ -25,7 +25,7 @@ export interface IGameObjectRegistrar {
 }
 
 export class GameStateManager implements IGameObjectRegistrar {
-    private readonly game: Game;
+    readonly #game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
 
     private allGameObjects: GameObjectBase[] = [];
@@ -41,7 +41,7 @@ export class GameStateManager implements IGameObjectRegistrar {
     }
 
     public constructor(game: Game) {
-        this.game = game;
+        this.#game = game;
     }
 
     public get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null {
@@ -54,7 +54,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.game.reportError(error, GameErrorSeverity.SevereHaltGame);
+            this.#game.reportError(error, GameErrorSeverity.SevereHaltGame);
 
             throw error;
         }
@@ -68,7 +68,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.game.reportError(error, GameErrorSeverity.SevereHaltGame);
+            this.#game.reportError(error, GameErrorSeverity.SevereHaltGame);
 
             throw error;
         }
@@ -148,7 +148,7 @@ export class GameStateManager implements IGameObjectRegistrar {
 
             let rollbackError: Error | null = null;
             try {
-                this.game.state = v8.deserialize(snapshot.gameState);
+                this.#game.state = v8.deserialize(snapshot.gameState);
 
                 const snapshotStatesByUuid = v8.deserialize(snapshot.states) as Record<string, IGameObjectBaseState>;
 
@@ -174,23 +174,23 @@ export class GameStateManager implements IGameObjectRegistrar {
                 }
             } catch (error) {
                 if (!beforeRollbackSnapshot) {
-                    logger.error('Error during rollback to snapshot and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
-                    this.game.reportSevereRollbackFailure(error);
+                    logger.error('Error during rollback to snapshot and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
                 }
 
                 rollbackError = error;
-                logger.error('Error during rollback to snapshot. Attempting to restore existing state before rollback.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
+                logger.error('Error during rollback to snapshot. Attempting to restore existing state before rollback.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
             }
 
             // if we hit an error during rollback, attempt to restore the original state
             if (rollbackError) {
                 try {
                     this.rollbackToSnapshot(beforeRollbackSnapshot);
-                    this.game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
+                    this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
                     return false;
                 } catch (error) {
-                    logger.error('The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
-                    this.game.reportSevereRollbackFailure(error);
+                    logger.error('The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
                 }
             }
 
