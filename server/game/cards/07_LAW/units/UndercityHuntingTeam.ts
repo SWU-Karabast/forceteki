@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class UndercityHuntingTeam extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'undercity-hunting-team-id',
+            id: '3046952481',
             internalName: 'undercity-hunting-team',
         };
     }
@@ -17,7 +17,7 @@ export default class UndercityHuntingTeam extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.BountyHunter),
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

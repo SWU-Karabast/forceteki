@@ -20,6 +20,7 @@ export interface AttackEntry {
     targetInPlayId?: number;
     defendingPlayer: GameObjectRef<Player>;
     actionNumber: number;
+    attackId: number;
 }
 
 @registerState()
@@ -32,14 +33,11 @@ export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
 
     protected override mapCurrentValue(stateValue: AttackEntry[]): UnwrapRef<AttackEntry>[] {
         return stateValue.map((x) => ({
+            ...x,
             attacker: this.game.getFromRef(x.attacker),
-            attackerInPlayId: x.attackerInPlayId,
-            attackerAttributes: x.attackerAttributes,
             attackingPlayer: this.game.getFromRef(x.attackingPlayer),
             targets: x.targets.map((y) => this.game.getFromRef(y)),
-            targetInPlayId: x.targetInPlayId,
             defendingPlayer: this.game.getFromRef(x.defendingPlayer),
-            actionNumber: x.actionNumber
         }));
     }
 
@@ -100,6 +98,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
                     targetInPlayId: event.attack.targetInPlayId,
                     defendingPlayer: event.attack.getDefendingPlayer().getRef(),
                     actionNumber: event.context.game.actionNumber,
+                    attackId: event.attack.id,
                 })
         });
     }

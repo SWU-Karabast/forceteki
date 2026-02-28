@@ -5,7 +5,7 @@ import { EventCard } from '../../../core/card/EventCard';
 export default class EveryDayMoreLies extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'every-day-more-lies-id',
+            id: '4380072341',
             internalName: 'every-day-more-lies',
         };
     }

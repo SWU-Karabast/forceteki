@@ -16,7 +16,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
 
                 // Use Palpatine to search the top 5 for a Plot card
                 context.player1.clickCard(context.chancellorPalpatine);
-                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHavePrompt('Select a card');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.confiscate, context.wampa, context.whenHasBecomeNow],
                     selectable: [context.dogmaticShockSquad, context.unveiledMight]
@@ -24,7 +24,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
-                expect(context.getChatLogs(2)).toContain('player1 takes Dogmatic Shock Squad');
+                expect(context.getChatLog()).toContain('player1 uses Chancellor Palpatine to reveal and draw Dogmatic Shock Squad');
                 expect(context.dogmaticShockSquad).toBeInZone('hand');
             });
         });

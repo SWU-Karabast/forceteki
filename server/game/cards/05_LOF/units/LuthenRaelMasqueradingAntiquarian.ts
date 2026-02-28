@@ -13,11 +13,11 @@ export default class LuthenRaelMasqueradingAntiquarian extends NonLeaderUnitCard
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Search the top 5 of your deck for an item upgrade',
+            title: 'Search the top 5 of your deck for an item upgrade, reveal it, and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.isUpgrade() && card.hasSomeTrait(Trait.Item),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

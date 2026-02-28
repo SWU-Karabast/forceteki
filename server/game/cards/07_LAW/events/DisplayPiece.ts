@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Consta
 export default class DisplayPiece extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'display-piece-id',
+            id: '8875606707',
             internalName: 'display-piece',
         };
     }

@@ -7,7 +7,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class TearThisShipApart extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'tear-this-ship-apart-id',
+            id: '9248785783',
             internalName: 'tear-this-ship-apart',
         };
     }

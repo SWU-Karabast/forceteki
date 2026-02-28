@@ -17,7 +17,7 @@ export default class R2D2PartOfThePlan extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card, context) => card.isUnit() && context.player.isAspectInPlay([...card.aspects]),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

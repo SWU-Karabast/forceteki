@@ -36,7 +36,7 @@ describe('Dagoyan Master', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.jediKnight);
 
-                expect(context.getChatLogs(2)).toContain('player1 takes Jedi Knight');
+                expect(context.getChatLog()).toContain('player1 uses Dagoyan Master to reveal and draw Jedi Knight');
 
                 // Check cards in hand
                 expect(context.jediKnight).toBeInZone('hand');

@@ -6,7 +6,7 @@ import { Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class AdventurerSniperRifle extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'adventurer-sniper-rifle-id',
+            id: '0201864172',
             internalName: 'adventurer-sniper-rifle',
         };
     }

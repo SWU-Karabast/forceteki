@@ -34,8 +34,8 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.awing, context.yoda]);
-                expect(context.player1).toHaveChooseNothingButton();
-                context.player1.clickPrompt('Choose nothing');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.discard.length).toBe(0);

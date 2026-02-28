@@ -13,6 +13,7 @@ import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
 import { registerState, statePrimitive } from '../GameObjectUtils';
 import type { IGameObjectBaseState } from '../GameObjectBase';
+import * as AttackHelpers from '../attack/AttackHelpers';
 
 // STATE: Interface needed for onAfterSetState and cleanupOnRemove.
 export interface ITriggeredAbilityState extends IGameObjectBaseState {
@@ -59,6 +60,7 @@ export default class TriggeredAbility extends CardAbility {
     private readonly mustChangeGameState: GameStateChangeRequired;
 
     @statePrimitive() private accessor isRegistered: boolean = false;
+    private readonly effectCondition?: (context: TriggeredAbilityContext) => boolean;
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
@@ -197,7 +199,19 @@ export default class TriggeredAbility extends CardAbility {
     }
 
     public override checkGameActionsForPotential(context) {
+        if (this.effectCondition && !this.effectCondition(context)) {
+            return false;
+        }
+
         return this.immediateEffect.hasLegalTarget(context, {}, this.mustChangeGameState);
+    }
+
+    public override canResolveSomeTarget(context: TriggeredAbilityContext): boolean {
+        if (this.effectCondition && !this.effectCondition(context)) {
+            return false;
+        }
+
+        return super.canResolveSomeTarget(context);
     }
 
     protected override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {

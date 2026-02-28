@@ -26,7 +26,7 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isEvent() && card.hasSomeTrait(Trait.Trick),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
             })
         });
     }

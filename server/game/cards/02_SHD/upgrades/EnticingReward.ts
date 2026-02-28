@@ -21,7 +21,7 @@ export default class EnticingReward extends UpgradeCard {
                     selectCount: 2,
                     searchCount: 10,
                     cardCondition: (card) => !card.isUnit(),
-                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
                 }),
                 then: {
                     title: 'If this unit isn’t unique, discard a card from your hand',

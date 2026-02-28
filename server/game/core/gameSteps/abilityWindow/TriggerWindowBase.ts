@@ -170,7 +170,7 @@ export abstract class TriggerWindowBase extends BaseStep {
         }
 
         // Check to if we're dealing with a multi-selection of the 'same' ability
-        const repeatedAbilities = this.getRepeatedAbilityTriggers(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+        const repeatedAbilities = this.getRepeatedAbilityTriggers(abilitiesToResolve);
 
         for (const repeatedAbility of repeatedAbilities) {
             // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
@@ -222,15 +222,32 @@ export abstract class TriggerWindowBase extends BaseStep {
         return `${context.ability.getTitle(context)}: ${context.event.card.title}`;
     }
 
-    private getRepeatedAbilityTriggers(abilitiesToResolve: TriggeredAbilityContext[], resolvedAbilities: TriggeredAbility[]) {
+    private getRepeatedAbilityTriggers(abilitiesToResolve: TriggeredAbilityContext[]) {
         const repeatedAbilities = new Set<TriggeredAbility>();
-        const allAbilities = new Set<TriggeredAbility>(resolvedAbilities);
+        const allAbilitiesByPlayer = new Map<Player, Set<TriggeredAbility>>();
 
-        for (const ability of abilitiesToResolve.map((context) => context.ability)) {
-            if (allAbilities.has(ability)) {
+        function addAbilityForPlayer(player: Player, ability: TriggeredAbility) {
+            if (!allAbilitiesByPlayer.has(player)) {
+                allAbilitiesByPlayer.set(player, new Set([ability]));
+            } else {
+                allAbilitiesByPlayer.get(player).add(ability);
+            }
+        }
+
+        for (const entry of this.resolved) {
+            const player = entry.event['player'] as Player;
+            addAbilityForPlayer(player, entry.ability);
+        }
+
+        for (const abilityContext of abilitiesToResolve) {
+            const ability = abilityContext.ability;
+            const player = abilityContext.event['player'] as Player;
+
+            // Only count abilities as "repeated" if they were triggered by the same player
+            if (allAbilitiesByPlayer.has(player) && allAbilitiesByPlayer.get(player).has(ability)) {
                 repeatedAbilities.add(ability);
             } else {
-                allAbilities.add(ability);
+                addAbilityForPlayer(player, ability);
             }
         }
 

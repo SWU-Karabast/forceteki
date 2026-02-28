@@ -34,7 +34,7 @@ describe('Hunter for Hire', function() {
             expect(p2Credit).toBeInZone('outsideTheGame');
             expect(context.player2.credits).toBe(0);
             expect(context.hunterForHire).toBeInZone('groundArena', context.player2);
-            expect(context.getChatLogs(1)).toContain('player2 uses Hunter for Hire, defeating Credit to take control of Hunter for Hire');
+            expect(context.getChatLogs(1)).toContain('player2 uses Hunter For Hire, defeating Credit to take control of Hunter For Hire');
         });
 
         it('should not be selectable by a player with no credits', async function() {

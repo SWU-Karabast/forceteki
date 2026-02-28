@@ -32,7 +32,6 @@ export default class JynErsoTimeToFight extends LeaderUnitCard {
                 onTrue: AbilityHelper.immediateEffects.deckSearch({
                     searchCount: 3,
                     selectCount: 1,
-                    revealSelected: false,
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
                 })
             })
@@ -47,7 +46,6 @@ export default class JynErsoTimeToFight extends LeaderUnitCard {
                 onTrue: AbilityHelper.immediateEffects.deckSearch({
                     searchCount: 3,
                     selectCount: 1,
-                    revealSelected: false,
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
                 })
             })

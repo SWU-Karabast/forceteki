@@ -82,7 +82,7 @@ export class OngoingEffectEngine extends GameObjectBase {
         super(game);
         this.events = new EventRegistrar(game, this);
         this.events.register([
-            EventName.OnAttackCompleted,
+            EventName.OnAttackEnd,
             EventName.OnPhaseEnded,
             EventName.OnRoundEnded
         ]);
@@ -269,7 +269,7 @@ export class OngoingEffectEngine extends GameObjectBase {
         this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfAttack);
     }
 
-    private onAttackCompleted() {
+    private onAttackEnd() {
         if (this.game.attackRulesVersion === AttackRulesVersion.CR6) {
             this.unregisterOnAttackEffects();
         }

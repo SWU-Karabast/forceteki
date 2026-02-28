@@ -32,7 +32,7 @@ describe('Pillio Star Compass', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.systemPatrolCraft);
 
-                expect(context.getChatLogs(2)).toContain('player1 takes System Patrol Craft');
+                expect(context.getChatLog()).toContain('player1 uses Pillio Star Compass to reveal and draw System Patrol Craft');
 
                 // Check cards in hand
                 expect(context.systemPatrolCraft).toBeInZone('hand');

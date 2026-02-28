@@ -24,7 +24,7 @@ describe('Syndicate Spice Runner', function() {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.weequayPirate).toBeInZone('hand');
-            expect(context.getChatLogs(2)).toContain('player1 takes Weequay Pirate');
+            expect(context.getChatLog()).toContain('player1 uses Syndicate Spice Runner to reveal and draw Weequay Pirate and to move 2 cards to the bottom of their deck');
             expect([context.wampa, context.pykeSentinel]).toAllBeInBottomOfDeck(context.player1, 2);
         });
 
@@ -51,7 +51,7 @@ describe('Syndicate Spice Runner', function() {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.weequayPirate).toBeInZone('hand');
-            expect(context.getChatLogs(2)).toContain('player1 takes Weequay Pirate');
+            expect(context.getChatLog()).toContain('player1 uses Syndicate Spice Runner to reveal and draw Weequay Pirate and to move a card to the bottom of their deck');
             expect(context.wampa).toBeInBottomOfDeck(context.player1, 1);
 
             expect(context.player2).toBeActivePlayer();
