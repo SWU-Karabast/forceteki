@@ -53,10 +53,10 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
 export abstract class GameObjectBase implements IGameObjectBase {
     public readonly game: Game;
 
-    // the cast "as unknown as T" is a work-around to let us instantiate it as an empty object initially.
-    // @ts-expect-error while we need to declare the state here, unless manual usage is required, it should never be directly accessed.
+    // The cast "as unknown as IGameObjectBaseState" is a work-around to let us instantiate it as an empty object initially.
+    // While we need to declare the state here, unless manual usage is required, it should never be directly accessed.
     // If direct access is required, use "declare state: <SomeInterface>;" in the specific class that needs manual access.
-    protected state: IGameObjectBaseState = {};
+    protected state: IGameObjectBaseState = {} as unknown as IGameObjectBaseState;
 
     private _cannotHaveRefs = false;
     private _hasRef = false;

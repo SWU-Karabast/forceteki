@@ -778,9 +778,9 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
  * Uses `addInitializer` so that the property is redefined after the field is set.
  *
  * @example
- * ⁣@nonenumerable accessor myProp: string = 'value';
+ * ⁣@nonEnumerable accessor myProp: string = 'value';
  */
-export function nonenumerable(_target: undefined, context: ClassFieldDecoratorContext) {
+export function nonEnumerable(_target: undefined, context: ClassFieldDecoratorContext) {
     context.addInitializer(function (this: object) {
         // eslint-disable-next-line no-invalid-this
         const descriptor = Object.getOwnPropertyDescriptor(this, context.name);
