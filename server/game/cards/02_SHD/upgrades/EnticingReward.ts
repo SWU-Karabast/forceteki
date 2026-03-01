@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class EnticingReward extends UpgradeCard {
     protected override getImplementationId() {
@@ -21,7 +21,10 @@ export default class EnticingReward extends UpgradeCard {
                     selectCount: 2,
                     searchCount: 10,
                     cardCondition: (card) => !card.isUnit(),
-                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                        useDisplayPrompt: true,
+                        promptedPlayer: RelativePlayer.Opponent
+                    })
                 }),
                 then: {
                     title: 'If this unit isn’t unique, discard a card from your hand',

@@ -29,6 +29,11 @@ describe('Single Reactor Ignition', function() {
 
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(3); // Wampa, Alliance X-Wing, Luke
+
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Single Reactor Ignition to defeat AT-ST, Wampa, Boba Fett, Luke Skywalker, Cartel Spacer, and Alliance X-Wing',
+                    'player1 uses Single Reactor Ignition to deal 3 damage to player2\'s base',
+                ]);
             });
 
             it('should not deal damage for an upgrade', async function () {
@@ -93,6 +98,12 @@ describe('Single Reactor Ignition', function() {
 
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(1); // Wampa
+
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 plays Single Reactor Ignition to defeat Wampa and Lurking TIE Phantom',
+                    'player2 uses Lurking TIE Phantom to cancel the effects of Single Reactor Ignition',
+                    'player1 uses Single Reactor Ignition to deal 1 damage to player2\'s base',
+                ]);
             });
         });
     });

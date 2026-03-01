@@ -85,8 +85,6 @@ describe('Embo, Stoic and Resolute', function () {
                 context.player1.clickCard(context.embo);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                context.player1.clickPrompt('Trigger');
-
                 // kill battlefield marine with flamethrower, embo should heal up to 2 damage
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 3],

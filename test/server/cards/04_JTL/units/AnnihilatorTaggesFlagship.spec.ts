@@ -145,7 +145,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                     },
                     player2: {
                         groundArena: ['boba-fett#disintegrator', 'wampa'],
-                        deck: ['boba-fett#disintegrator', 'boba-fett#feared-bounty-hunter', 'cartel-spacer']
+                        deck: ['boba-fett#disintegrator', 'boba-fett#feared-bounty-hunter', 'cartel-spacer', 'elite-p38-starfighter', 'crafty-smuggler']
                     }
                 });
 
@@ -176,6 +176,10 @@ describe('Annihilator, Tagge\'s Flagship', function() {
 
                 expect(inDeckBoba).toBeInZone('discard');
                 expect(inDeckPilotBoba).toBeInZone('discard');
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Annihilator to search player2\'s deck',
+                    'player1 uses Annihilator to discard Boba Fett and Boba Fett and to shuffle player2\'s deck'
+                ]);
 
                 expect(context.player2).toBeActivePlayer();
             });

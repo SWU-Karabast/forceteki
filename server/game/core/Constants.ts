@@ -342,6 +342,7 @@ export enum MetaEventName {
     PlayCard = 'playCard',
     RandomSelection = 'randomSelection',
     ReplacementEffect = 'replacementEffect',
+    RevealAndDrawCard = 'revealAndDrawCard',
     SelectCard = 'selectCard',
     SelectPlayer = 'selectPlayer',
     Sequential = 'sequential',
