@@ -26,12 +26,17 @@ describe('Bounty Posting', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.topTarget);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.topTarget]);
+                context.player2.clickDone();
+
                 expect(context.topTarget).toBeInZone('hand', context.player1);
                 expect(context.player1).toHavePassAbilityPrompt('Play that upgrade (paying its cost)');
 
                 expect(context.getChatLogs(2)).toEqual([
                     'player1 plays Bounty Posting to search their deck',
-                    'player1 uses Bounty Posting to reveal Top Target, to draw a card, and to shuffle their deck'
+                    'player1 uses Bounty Posting to reveal and draw Top Target and to shuffle their deck'
                 ]);
 
                 context.player1.clickPrompt('Trigger');
@@ -65,6 +70,11 @@ describe('Bounty Posting', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.topTarget);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.topTarget]);
+                context.player2.clickDone();
+
                 expect(context.topTarget).toBeInZone('hand', context.player1);
 
                 expect(context.player2).toBeActivePlayer();

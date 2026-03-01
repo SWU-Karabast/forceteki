@@ -44,6 +44,9 @@ describe('The Mandalorian, Let\'s See the Puck', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.supercommandoSquad);
                 context.player1.clickDone();
 
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.sabineWren, context.supercommandoSquad]);
+                context.player2.clickDone();
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.theMandalorianLetsSeeThePuck).toHaveExactUpgradeNames(['shield']);
                 expect(context.battlefieldMarine.upgrades.length).toBe(0);

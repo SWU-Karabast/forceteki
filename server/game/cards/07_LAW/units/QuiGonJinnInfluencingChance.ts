@@ -23,7 +23,6 @@ export default class QuiGonJinnInfluencingChance extends NonLeaderUnitCard {
                 selectCount: 1,
                 shuffleWhenDone: false,
                 optional: true,
-                revealSelected: false,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
                 remainingCardsImmediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption({
                     activePromptTitle: 'Place cards on top of the deck in any order',

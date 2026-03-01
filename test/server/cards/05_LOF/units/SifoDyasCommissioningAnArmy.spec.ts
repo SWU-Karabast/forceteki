@@ -26,7 +26,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player2.clickCard(context.sifodyas);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Select all cards to reveal');
+                expect(context.player1).toHavePrompt('Select all cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.crosshair, context.batchBrothers, context.coruscantGuard, context.cloneHeavyGunner],
@@ -59,7 +59,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player2.clickCard(context.sifodyas);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Select all cards to reveal');
+                expect(context.player1).toHavePrompt('Select all cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.crosshair, context.batchBrothers, context.coruscantGuard, context.cloneHeavyGunner],
@@ -83,7 +83,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player2.clickCard(context.sifodyas);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Select all cards to reveal');
+                expect(context.player1).toHavePrompt('Select all cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.crosshair, context.batchBrothers, context.coruscantGuard, context.cloneHeavyGunner],
@@ -127,7 +127,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player2.clickCard(context.sifodyas);
 
                 // Check prompt for optional ability
-                expect(context.player2).toHavePrompt('Select all cards to reveal');
+                expect(context.player2).toHavePrompt('Select all cards');
 
                 expect(context.player2).toHaveExactDisplayPromptCards({
                     selectable: [context.clonePilot, context.tech, context.republicTacticalOfficer],
@@ -169,7 +169,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player2.clickCard(context.sifodyas);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Select all cards to reveal');
+                expect(context.player1).toHavePrompt('Select all cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.crosshair, context.batchBrothers, context.coruscantGuard, context.cloneHeavyGunner],
@@ -189,7 +189,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player2.clickCard(context.sifodyas);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Select all cards to reveal');
+                expect(context.player1).toHavePrompt('Select all cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.crosshair, context.batchBrothers, context.coruscantGuard, context.cloneHeavyGunner],
@@ -220,7 +220,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player2.clickCard(context.sifodyas);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Select all cards to reveal');
+                expect(context.player1).toHavePrompt('Select all cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.crosshair, context.batchBrothers, context.coruscantGuard, context.cloneHeavyGunner],

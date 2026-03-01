@@ -50,12 +50,10 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                     AbilityHelper.immediateEffects.entireDeckSearch({
                         cardCondition: (card) => card.title === this.getTargetTitle(ifYouDoContext),
                         selectedCardsImmediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
-                        shuffleWhenDone: true,
                         targetMode: TargetMode.Unlimited,
                         activePromptTitle: `Select which cards named ${this.getTargetTitle(ifYouDoContext)} to discard from the opponent's deck`,
                         target: ifYouDoContext.player.opponent,
-                        choosingPlayer: ifYouDoContext.player,
-                        revealSelected: false
+                        choosingPlayer: ifYouDoContext.player
                     })
                 ])
             })

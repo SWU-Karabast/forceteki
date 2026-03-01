@@ -15,7 +15,7 @@ describe('Remnant Reserves', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.remnantReserves);
-                expect(context.player1).toHavePrompt('Select up to 3 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 3 cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.recruit, context.prepareForTakeoff],
@@ -47,7 +47,12 @@ describe('Remnant Reserves', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLog()).toEqual('player1 uses Remnant Reserves to reveal Green Squadron A-Wing, Restored ARC-170, and Inferno Four, to draw 3 cards, and to move 2 cards to the bottom of their deck');
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.greenSquadronAwing, context.restoredArc170, context.infernoFour]);
+                context.player2.clickDone();
+
+                expect(context.getChatLog()).toEqual('player1 uses Remnant Reserves to reveal and draw Green Squadron A-Wing, Restored ARC-170, and Inferno Four and to move 2 cards to the bottom of their deck');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
                 expect(context.restoredArc170).toBeInZone('hand');
                 expect(context.infernoFour).toBeInZone('hand');
@@ -60,7 +65,7 @@ describe('Remnant Reserves', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.remnantReserves);
-                expect(context.player1).toHavePrompt('Select up to 3 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 3 cards');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.recruit, context.prepareForTakeoff],
                     selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour]
@@ -76,7 +81,12 @@ describe('Remnant Reserves', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLog()).toContain('player1 uses Remnant Reserves to reveal Green Squadron A-Wing');
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.greenSquadronAwing]);
+                context.player2.clickDone();
+
+                expect(context.getChatLog()).toContain('player1 uses Remnant Reserves to reveal and draw Green Squadron A-Wing');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
 
                 expect(context.recruit).toBeInBottomOfDeck(context.player1, 4);

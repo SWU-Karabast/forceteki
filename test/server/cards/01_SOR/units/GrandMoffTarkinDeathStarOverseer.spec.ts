@@ -23,7 +23,7 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.p1Tarkin);
-                expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 2 cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.academyDefenseWalker, context.cellBlockGuard, context.scoutBikePursuer],
@@ -48,7 +48,11 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 context.player1.clickDone();
 
-                expect(context.getChatLog()).toContain('player1 uses Grand Moff Tarkin to reveal Cell Block Guard and Scout Bike Pursuer');
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.cellBlockGuard, context.scoutBikePursuer]);
+                context.player2.clickDone();
+
+                expect(context.getChatLog()).toEqual('player1 uses Grand Moff Tarkin to reveal and draw Cell Block Guard and Scout Bike Pursuer and to move 3 cards to the bottom of their deck');
 
                 // Check cards in hand
                 expect(context.cellBlockGuard).toBeInZone('hand');
@@ -81,6 +85,10 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 // Click Done
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 context.player1.clickDone();
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.cellBlockGuard]);
+                context.player2.clickDone();
 
                 // Check card zone and that player 2 now active
                 expect(context.cellBlockGuard).toBeInZone('hand');

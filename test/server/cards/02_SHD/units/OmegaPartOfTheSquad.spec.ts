@@ -21,7 +21,7 @@ describe('Omega, Part of the Squad', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.firstOmega);
-                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHavePrompt('Select a card');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.crosshair],
                     invalid: [context.atst, context.battlefieldMarine, context.cartelSpacer, context.pykeSentinel]
@@ -29,8 +29,13 @@ describe('Omega, Part of the Squad', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.crosshair);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.crosshair]);
+                context.player2.clickDone();
+
                 expect(context.crosshair).toBeInZone('hand');
-                expect(context.getChatLog()).toContain('player1 uses Omega to reveal Crosshair');
+                expect(context.getChatLog()).toContain('player1 uses Omega to reveal and draw Crosshair');
 
                 // Omega should cost 4 since it cannot discount itself
                 expect(context.player1.exhaustedResourceCount).toBe(4);

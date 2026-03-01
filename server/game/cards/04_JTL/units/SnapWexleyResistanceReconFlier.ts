@@ -1,6 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, Trait, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
@@ -37,7 +37,10 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Resistance),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }
