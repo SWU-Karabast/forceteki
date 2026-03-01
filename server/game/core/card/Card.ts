@@ -752,7 +752,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     /** Optimized check for a single keyword - avoids array allocation from getKeywords() */
-    public hasKeyword(keyword: KeywordName): boolean {
+    private hasSingleKeyword(keyword: KeywordName): boolean {
         // Check printed keywords first (fast path)
         const printedKeywords = this.printedKeywords;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
@@ -792,6 +792,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {
+        // Fast path for single keyword string - avoids array allocation from this.keywords getter
+        if (typeof keywords === 'string') {
+            return this.hasSingleKeyword(keywords);
+        }
         return this.hasSome(keywords, this.keywords.map((keyword) => keyword.name));
     }
 

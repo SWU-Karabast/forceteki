@@ -19,7 +19,7 @@ export default class WhenHasBecomeNow extends EventCard {
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Playable,
-                cardCondition: (card) => card.hasKeyword(KeywordName.Plot),
+                cardCondition: (card) => card.hasSomeKeyword(KeywordName.Plot),
                 immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Any,
                     canPlayFromAnyZone: true,
