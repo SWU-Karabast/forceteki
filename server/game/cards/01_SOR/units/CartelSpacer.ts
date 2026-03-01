@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, RelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class CartelSpacer extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class CartelSpacer extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'If you control another Cunning unit, exhaust an enemy unit that costs 4 or less',
+            title: `If you control another ${TextHelper.aspects(Aspect.Cunning)} unit, exhaust an enemy unit that costs 4 or less`,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
                 controller: RelativePlayer.Opponent,

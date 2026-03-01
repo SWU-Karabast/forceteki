@@ -7,6 +7,7 @@ import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAc
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 import { registerState } from '../../../core/GameObjectUtils';
 
@@ -58,7 +59,7 @@ class PlayBamboozleAction extends PlayEventAction {
         const discardCost = AbilityHelper.costs.discardCardFromOwnHand({ cardCondition: (c) => c !== card && c.hasSomeAspect(Aspect.Cunning) });
 
         return {
-            title: 'Play Bamboozle by discarding a Cunning card',
+            title: `Play Bamboozle by discarding a ${TextHelper.aspects(Aspect.Cunning)} card`,
             costAdjusters: [CostAdjusterFactory.create(card.game, card, { costAdjustType: CostAdjustType.Free })],
             additionalCosts: [discardCost],
             ...properties,

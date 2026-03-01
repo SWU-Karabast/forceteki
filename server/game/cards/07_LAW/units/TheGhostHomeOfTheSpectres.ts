@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, Conjunction, TargetMode, WildcardCardType } from '../../../core/Constants';
-import { aspectString } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class TheGhostHomeOfTheSpectres extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +14,7 @@ export default class TheGhostHomeOfTheSpectres extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `Give an Experience token and a Shield token to a unit. If you control a ${aspectString([Aspect.Vigilance, Aspect.Aggression], Conjunction.Or)} unit, you may give an Experience token and a Shield token to each of up to 2 units instead.`,
+            title: `Give an Experience token and a Shield token to a unit. If you control a ${TextHelper.aspects([Aspect.Vigilance, Aspect.Aggression], Conjunction.Or)} unit, you may give an Experience token and a Shield token to each of up to 2 units instead.`,
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.isAspectInPlay([Aspect.Vigilance, Aspect.Aggression]),

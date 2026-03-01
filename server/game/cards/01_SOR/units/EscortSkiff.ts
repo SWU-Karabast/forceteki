@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class EscortSkiff extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class EscortSkiff extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Gain Ambush while you control another Command unit',
+            title: `Gain Ambush while you control another ${TextHelper.aspects(Aspect.Command)} unit`,
             condition: (context) => context.player.isAspectInPlay(Aspect.Command, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
         });

@@ -4,6 +4,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +16,7 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Give an Experience token to the unit with the most power among Villainy units',
+            title: `Give an Experience token to the unit with the most power among ${TextHelper.aspects(Aspect.Villainy)} units`,
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             immediateEffect: this.buildSnokeAbility(AbilityHelper),
         });
@@ -23,7 +24,7 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Give an Experience token to the unit with the most power among Villainy units',
+            title: `Give an Experience token to the unit with the most power among ${TextHelper.aspects(Aspect.Villainy)} units`,
             immediateEffect: this.buildSnokeAbility(AbilityHelper),
         });
     }
