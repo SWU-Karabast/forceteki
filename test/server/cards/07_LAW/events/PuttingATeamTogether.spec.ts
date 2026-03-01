@@ -21,6 +21,10 @@ describe('Putting a Team Together', function () {
 
             context.player1.clickCardInDisplayCardPrompt(context.wampa);
 
+            // P2 is prompted to see the revealed card
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.wampa]);
+            context.player2.clickDone();
+
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa).toBeInZone('hand', context.player1);
             expect(context.getChatLog()).toContain('player1 uses Putting a Team Together to reveal and draw Wampa');

@@ -21,6 +21,11 @@ describe('Luthen Rael, Masquerading Antiquarian', function() {
             expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
             context.player1.clickCardInDisplayCardPrompt(context.jetpack);
+
+            // P2 is prompted to see the revealed card
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.jetpack]);
+            context.player2.clickDone();
+
             expect(context.jetpack).toBeInZone('hand');
         });
     });

@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType } from '../../../core/Constants';
+import { CardType, RelativePlayer } from '../../../core/Constants';
 
 export default class MasAmeddaViceChair extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -28,7 +28,10 @@ export default class MasAmeddaViceChair extends NonLeaderUnitCard {
                     selectCount: 1,
                     searchCount: 4,
                     cardCondition: (card) => card.isUnit(),
-                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                    selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                        useDisplayPrompt: true,
+                        promptedPlayer: RelativePlayer.Opponent
+                    })
                 })
             }
         });

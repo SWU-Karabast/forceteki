@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
-import { Aspect, Conjunction } from '../../../core/Constants';
+import { Aspect, Conjunction, RelativePlayer } from '../../../core/Constants';
 import { aspectString } from '../../../core/utils/EnumHelpers';
 
 export default class PuttingATeamTogether extends EventCard {
@@ -18,7 +18,10 @@ export default class PuttingATeamTogether extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect([Aspect.Vigilance, Aspect.Aggression, Aspect.Cunning]),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

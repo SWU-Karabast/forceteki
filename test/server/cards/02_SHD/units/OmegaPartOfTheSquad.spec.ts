@@ -29,6 +29,11 @@ describe('Omega, Part of the Squad', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.crosshair);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.crosshair]);
+                context.player2.clickDone();
+
                 expect(context.crosshair).toBeInZone('hand');
                 expect(context.getChatLog()).toContain('player1 uses Omega to reveal and draw Crosshair');
 

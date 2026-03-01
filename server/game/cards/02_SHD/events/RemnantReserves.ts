@@ -1,7 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { TargetMode } from '../../../core/Constants';
+import { RelativePlayer, TargetMode } from '../../../core/Constants';
 
 export default class RemnantReserves extends EventCard {
     protected override getImplementationId() {
@@ -19,7 +19,10 @@ export default class RemnantReserves extends EventCard {
                 selectCount: 3,
                 searchCount: 5,
                 cardCondition: (card) => card.isUnit(),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

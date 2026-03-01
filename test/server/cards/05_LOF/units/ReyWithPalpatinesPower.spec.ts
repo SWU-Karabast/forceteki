@@ -324,6 +324,11 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickCard(context.psychometry);
                 context.player1.clickCard(context.yoda);
                 context.player1.clickCardInDisplayCardPrompt(context.rey);
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.rey]);
+                context.player2.clickDone();
+
                 expect(context.getChatLog()).toContain('player1 uses Psychometry to reveal and draw Rey');
 
                 expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
