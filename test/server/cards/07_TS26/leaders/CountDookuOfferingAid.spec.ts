@@ -1,6 +1,6 @@
 describe('Count Dooku, Offering Aid', function() {
     integration(function(contextRef) {
-        it('Count Dooku\'s undeployed ability should allow attacking with a token unit that gets +1/+0 for the attack', async function() {
+        it('Count Dooku\'s undeployed ability should heal 1 damage from base and create a Battle Droid token for both players', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -27,7 +27,7 @@ describe('Count Dooku, Offering Aid', function() {
             expect(p2Droid.length).toBe(1);
         });
 
-        it('Count Dooku\'s undeployed ability should allow attacking with a token unit that gets +1/+0 for the attack', async function() {
+        it('Count Dooku\'s deployed ability should create 2 Battle Droid tokens', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

@@ -16,7 +16,7 @@ export default class CountDookuOfferingAid extends LeaderUnitCard {
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         // THIS IMPLEMENTATION IS NOT ACCURATE FOR TWIN SUNS
         registrar.addActionAbility({
-            title: 'Both player jeal 1 damage from their base an create a Battle Droid token',
+            title: 'Both player heal 1 damage from their base and create a Battle Droid token',
             cost: [abilityHelper.costs.exhaustSelf()],
             immediateEffect: abilityHelper.immediateEffects.simultaneous([
                 abilityHelper.immediateEffects.heal((context) => ({
@@ -25,12 +25,8 @@ export default class CountDookuOfferingAid extends LeaderUnitCard {
                 })),
                 abilityHelper.immediateEffects.createBattleDroid((context) => ({
                     amount: 1,
-                    target: context.player
+                    target: [context.player, context.player.opponent]
                 })),
-                abilityHelper.immediateEffects.createBattleDroid((context) => ({
-                    amount: 1,
-                    target: context.player.opponent
-                }))
             ])
         });
     }
