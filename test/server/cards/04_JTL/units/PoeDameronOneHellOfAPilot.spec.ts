@@ -5,6 +5,7 @@ describe('Poe Dameron, One Hell of a Pilot', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
+                        base: 'energy-conversion-lab',
                         hand: ['poe-dameron#one-hell-of-a-pilot'],
                         groundArena: ['snowspeeder', 'battlefield-marine'],
                         spaceArena: ['alliance-xwing', { card: 'restored-arc170', upgrades: ['r2d2#artooooooooo'] }],
@@ -82,6 +83,27 @@ describe('Poe Dameron, One Hell of a Pilot', function() {
                 const xwingTokens = context.player1.findCardsByName('xwing');
                 expect(xwingTokens.length).toBe(0);
                 expect(context.restoredArc170).toHaveExactUpgradeNames(['poe-dameron#one-hell-of-a-pilot', 'r2d2#artooooooooo']);
+            });
+
+            it('cannot move to a vehicle unit if Poe is defeated before creating the X-Wing token', function() {
+                const { context } = contextRef;
+
+                // Use ECL to play Poe with Ambush
+                context.player1.clickCard(context.energyConversionLab);
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.poeDameron).toBeInZone('groundArena');
+                expect(context.player1.findCardsByName('xwing').length).toBe(0);
+
+                // Poe attacks the Escort Skiff and is defeated before the X-Wing token is created
+                context.player1.clickCard(context.escortSkiff);
+                expect(context.poeDameron).toBeInZone('discard');
+
+                // X-Wing is created and it is now Player 2's turn
+                expect(context.player1.findCardsByName('xwing').length).toBe(1);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

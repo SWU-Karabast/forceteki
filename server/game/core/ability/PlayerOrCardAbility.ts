@@ -189,6 +189,7 @@ export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = 
         const targetMode = properties.mode;
         switch (targetMode) {
             case TargetMode.Select:
+            case TargetMode.SelectUnless:
                 return new SelectTargetResolver(name, properties, this);
             case TargetMode.DropdownList:
                 return new DropdownListTargetResolver(name, properties, this);

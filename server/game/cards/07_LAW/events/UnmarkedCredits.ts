@@ -3,14 +3,9 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { EventCard } from '../../../core/card/EventCard';
 
 export default class UnmarkedCredits extends EventCard {
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    protected override get overrideNotImplemented(): boolean {
-        return true;
-    }
-
     protected override getImplementationId() {
         return {
-            id: 'unmarked-credits-id',
+            id: '7477598198',
             internalName: 'unmarked-credits',
         };
     }

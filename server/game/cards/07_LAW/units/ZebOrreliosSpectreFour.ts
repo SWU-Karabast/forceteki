@@ -6,7 +6,7 @@ import { Aspect, ZoneName } from '../../../core/Constants';
 export default class ZebOrreliosSpectreFour extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'zeb-orrelios#spectre-four-id',
+            id: '6658095148',
             internalName: 'zeb-orrelios#spectre-four',
         };
     }

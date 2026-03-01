@@ -1,7 +1,7 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { CardType, Trait } from '../../../core/Constants';
+import { CardType, RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -26,7 +26,10 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isEvent() && card.hasSomeTrait(Trait.Trick),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { TokenUnitName } from '../core/Constants';
+import { TokenUnitName } from '../core/Constants';
 import { EffectName, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
@@ -29,7 +29,8 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         const properties = this.generatePropertiesFromContext(context);
 
         const tokenTitle = context.game.cardDataGetter.tokenData[this.getTokenType()]?.title ?? this.getTokenType();
-        return ['create {0}', [ChatHelpers.pluralize(properties.amount, `a ${tokenTitle}`, `${tokenTitle}s`)]];
+        const indefiniteArticle = this.getTokenType() === TokenUnitName.XWing ? 'an' : 'a';
+        return ['create {0}', [ChatHelpers.pluralize(properties.amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`)]];
     }
 
     protected abstract getTokenType(): TokenUnitName;

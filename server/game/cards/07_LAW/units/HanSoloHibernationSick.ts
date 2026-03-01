@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class HanSoloHibernationSick extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'han-solo#hibernation-sick-id',
+            id: '3470070405',
             internalName: 'han-solo#hibernation-sick',
         };
     }

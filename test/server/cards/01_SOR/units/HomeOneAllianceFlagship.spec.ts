@@ -85,6 +85,8 @@ describe('Home One', function () {
                 // should only exhaust resources up to home one's cost
                 expect(context.player1.exhaustedResourceCount).toBe(8);
 
+                expect(context.getChatLogs(3)).toContain('player1 uses Home One to play Echo Base Defender from their discard pile');
+
                 expect(context.player2).toBeActivePlayer();
             });
 

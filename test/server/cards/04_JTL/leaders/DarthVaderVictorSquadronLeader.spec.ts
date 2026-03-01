@@ -32,7 +32,7 @@ describe('Darth Vader Victor Squadron Leader', function() {
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
                 context.player1.clickCard(context.darthVader);
-                context.player1.clickPrompt('Create a TIE Fighter Token');
+                context.player1.clickPrompt('(No effect) Create a TIE Fighter Token');
                 context.player1.clickPrompt('Use it anyway');
                 expect(context.darthVader.exhausted).toBe(true);
                 const tieFightersnew = context.player1.findCardsByName('tie-fighter');

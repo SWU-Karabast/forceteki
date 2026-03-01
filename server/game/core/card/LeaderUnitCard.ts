@@ -280,9 +280,9 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         }
     }
 
-    public override getSummary(activePlayer: Player) {
+    public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
         return {
-            ...super.getSummary(activePlayer),
+            ...super.getSummary(activePlayer, overrideHidden),
             epicDeployActionSpent: this.deployEpicActionLimit.isAtMax(this.owner)
         };
     }

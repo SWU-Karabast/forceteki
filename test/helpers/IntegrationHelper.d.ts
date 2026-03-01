@@ -145,6 +145,7 @@ declare namespace jasmine {
         toHaveConfirmUndoPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, blockButtonEnabled?: boolean): boolean;
         toBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
         toAllBeInBottomOfDeck(player: PlayerInteractionWrapper, numCards: number): boolean;
+        toSeeTopCardOfDeck(targetPlayer?: PlayerInteractionWrapper): boolean;
         toBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
         toAllBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
         toBeCapturedBy(card: any): boolean;

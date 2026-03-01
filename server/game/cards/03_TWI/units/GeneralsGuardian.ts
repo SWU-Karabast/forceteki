@@ -11,11 +11,8 @@ export default class GeneralsGuardian extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnDefenseAbility({
             title: 'Create a Battle Droid token.',
-            when: {
-                onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
-            },
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });
     }

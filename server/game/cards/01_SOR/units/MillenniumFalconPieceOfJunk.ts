@@ -27,7 +27,7 @@ export default class MillenniumFalconPieceOfJunk extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: (context) => ({
-                    ['Pay 1 resource']: AbilityHelper.immediateEffects.payResourceCost({
+                    ['Pay 1 resource']: AbilityHelper.immediateEffects.payResources({
                         target: context.player,
                         amount: 1
                     }),

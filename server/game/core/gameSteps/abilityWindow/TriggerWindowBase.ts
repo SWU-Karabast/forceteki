@@ -18,6 +18,9 @@ export abstract class TriggerWindowBase extends BaseStep {
     /** Already resolved effects / abilities */
     protected resolved: { ability: TriggeredAbility; event: GameEvent }[] = [];
 
+    /** Map tracking which events have triggered which abilities (for duplicate prevention) */
+    protected triggeredAbilityEvents = new Map<TriggeredAbility, GameEvent[]>();
+
     /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
 
@@ -114,6 +117,16 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     public addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
         if ((context.event.canResolve || context.event.isResolved) && context.ability) {
+            // Check if this ability has already been triggered by this event (duplicate prevention)
+            const existingEvents = this.triggeredAbilityEvents.get(context.ability) || [];
+            if (existingEvents.includes(context.event)) {
+                return;
+            }
+
+            // Track that this ability was triggered by this event
+            existingEvents.push(context.event);
+            this.triggeredAbilityEvents.set(context.ability, existingEvents);
+
             if (!this.unresolved.has(context.player)) {
                 this.unresolved.set(context.player, [context]);
             } else {
@@ -134,23 +147,30 @@ export abstract class TriggerWindowBase extends BaseStep {
         let abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
 
         // if none of the player's remaining abilities can resolve, skip to the next player
-        if (!this.canAnyAbilitiesResolve(abilitiesToResolve)) {
+        if (!abilitiesToResolve || !this.canAnyAbilitiesResolve(abilitiesToResolve)) {
             this.unresolved.set(this.currentlyResolvingPlayer, []);
             abilitiesToResolve = [];
         }
 
         if (abilitiesToResolve.length === 0) {
-            // if the last resolving player is out of abilities to resolve, we're done
-            if (this.resolvePlayerOrder.length === 1) {
-                return true;
+            this.resolvePlayerOrder.shift();
+
+            if (this.resolvePlayerOrder.length === 0) {
+                if (this.triggeredAbilities.length === 0) {
+                    // if the last resolving player is out of abilities to resolve, we're done
+                    return true;
+                }
+
+                // If there are still unresolved abilities, reset the player order and continue
+                // (this should only happen if new replacement abilities were added during resolution)
+                this.resolvePlayerOrder = Array.from(this.unresolved.keys());
             }
 
-            this.resolvePlayerOrder.shift();
             abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
         }
 
         // Check to if we're dealing with a multi-selection of the 'same' ability
-        const repeatedAbilities = this.getRepeatedAbilityTriggers(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+        const repeatedAbilities = this.getRepeatedAbilityTriggers(abilitiesToResolve);
 
         for (const repeatedAbility of repeatedAbilities) {
             // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
@@ -202,15 +222,32 @@ export abstract class TriggerWindowBase extends BaseStep {
         return `${context.ability.getTitle(context)}: ${context.event.card.title}`;
     }
 
-    private getRepeatedAbilityTriggers(abilitiesToResolve: TriggeredAbilityContext[], resolvedAbilities: TriggeredAbility[]) {
+    private getRepeatedAbilityTriggers(abilitiesToResolve: TriggeredAbilityContext[]) {
         const repeatedAbilities = new Set<TriggeredAbility>();
-        const allAbilities = new Set<TriggeredAbility>(resolvedAbilities);
+        const allAbilitiesByPlayer = new Map<Player, Set<TriggeredAbility>>();
 
-        for (const ability of abilitiesToResolve.map((context) => context.ability)) {
-            if (allAbilities.has(ability)) {
+        function addAbilityForPlayer(player: Player, ability: TriggeredAbility) {
+            if (!allAbilitiesByPlayer.has(player)) {
+                allAbilitiesByPlayer.set(player, new Set([ability]));
+            } else {
+                allAbilitiesByPlayer.get(player).add(ability);
+            }
+        }
+
+        for (const entry of this.resolved) {
+            const player = entry.event['player'] as Player;
+            addAbilityForPlayer(player, entry.ability);
+        }
+
+        for (const abilityContext of abilitiesToResolve) {
+            const ability = abilityContext.ability;
+            const player = abilityContext.event['player'] as Player;
+
+            // Only count abilities as "repeated" if they were triggered by the same player
+            if (allAbilitiesByPlayer.has(player) && allAbilitiesByPlayer.get(player).has(ability)) {
                 repeatedAbilities.add(ability);
             } else {
-                allAbilities.add(ability);
+                addAbilityForPlayer(player, ability);
             }
         }
 

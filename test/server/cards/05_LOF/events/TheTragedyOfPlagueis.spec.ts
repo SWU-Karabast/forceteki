@@ -13,9 +13,8 @@ describe('The Tragedy of Plagueis', function() {
 
                 context.player1.clickCard(context.theTragedyOfPlagueis);
 
-                // Uncomment these once we update event Cancel logic for opponent selections
-                // expect(context.player1).toHavePrompt('Playing The Tragedy of Plagueis will have no effect. Are you sure you want to play it?');
-                // context.player1.clickPrompt('Play anyway');
+                expect(context.player1).toHavePrompt('Playing The Tragedy of Plagueis will have no effect. Are you sure you want to play it?');
+                context.player1.clickPrompt('Play anyway');
 
                 expect(context.player1.exhaustedResourceCount).toBe(5);
                 expect(context.theTragedyOfPlagueis).toBeInZone('discard');
@@ -35,12 +34,13 @@ describe('The Tragedy of Plagueis', function() {
 
                 context.player1.clickCard(context.theTragedyOfPlagueis);
 
-                expect(context.player1.exhaustedResourceCount).toBe(5);
-                expect(context.theTragedyOfPlagueis).toBeInZone('discard');
-
                 expect(context.player1).toHavePrompt('Choose a friendly unit. For this phase, it can\'t be defeated by having no remaining HP.');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
                 context.player1.clickCard(context.wampa);
+
+                expect(context.player1.exhaustedResourceCount).toBe(5);
+                expect(context.theTragedyOfPlagueis).toBeInZone('discard');
+
                 expect(context.player2).toBeActivePlayer();
             });
 

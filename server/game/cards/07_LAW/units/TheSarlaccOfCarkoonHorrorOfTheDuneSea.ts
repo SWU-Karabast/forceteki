@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Consta
 export default class TheSarlaccOfCarkoonHorrorOfTheDuneSea extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-sarlacc-of-carkoon#horror-of-the-dune-sea-id',
+            id: '6089627415',
             internalName: 'the-sarlacc-of-carkoon#horror-of-the-dune-sea',
         };
     }

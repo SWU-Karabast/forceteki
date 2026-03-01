@@ -154,5 +154,47 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
             expect(context.player2).toBeActivePlayer();
             expect(context.p2Base.damage).toBe(0);
         });
+
+
+        it('a captured HK-47 should not trigger when his captor dies', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['takedown']
+                },
+                player2: {
+                    groundArena: [{ card: 'wampa', capturedUnits: ['hk47#exclamation-die-meatbag'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(0);
+        });
+
+
+        it('a captured HK-47 should not trigger when his captor dies to damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['open-fire']
+                },
+                player2: {
+                    groundArena: [{ card: 'wampa', capturedUnits: ['hk47#exclamation-die-meatbag'], damage: 1 }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.openFire);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(0);
+        });
     });
 });

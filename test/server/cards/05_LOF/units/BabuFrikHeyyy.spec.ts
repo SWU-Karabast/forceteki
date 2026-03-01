@@ -134,8 +134,8 @@ describe('Babu Frik, Heyyy!', function () {
 
                 // Player 1 activates Babu Frik's ability
                 context.player1.clickCard(context.babuFrik);
-                expect(context.player1).toHaveExactPromptButtons([prompt, 'Attack', 'Cancel']);
-                context.player1.clickPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons([`(No effect) ${prompt}`, 'Attack', 'Cancel']);
+                context.player1.clickPrompt(`(No effect) ${prompt}`);
 
                 // Player is warned that the ability has no effect
                 expect(context.player1).toHaveNoEffectAbilityPrompt(prompt);

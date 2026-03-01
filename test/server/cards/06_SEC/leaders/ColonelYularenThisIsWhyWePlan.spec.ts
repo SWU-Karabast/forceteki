@@ -129,7 +129,7 @@ describe('Colonel Yularen, This Is Why We Plan', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.colonelYularenThisIsWhyWePlan);
-                context.player1.clickPrompt('Attack with a unit');
+                context.player1.clickPrompt('(No effect) Attack with a unit');
                 context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
             });

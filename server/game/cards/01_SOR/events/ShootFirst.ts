@@ -17,7 +17,7 @@ export default class ShootFirst extends EventCard {
                 attackerCondition: (card, context) => card.controller === context.player,
                 attackerLastingEffects: [
                     { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }) },
-                    { effect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender() },
+                    { effect: AbilityHelper.ongoingEffects.dealsCombatDamageFirst() },
                 ]
             }
         });

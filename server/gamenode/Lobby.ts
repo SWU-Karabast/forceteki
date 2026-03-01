@@ -14,21 +14,29 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
-import { DeckSource } from '../utils/deck/DeckInterfaces';
-import { ScoreType } from '../utils/deck/DeckInterfaces';
+import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
-import { GamesToWinMode, RematchMode } from '../game/core/Constants';
-import { AlertType, GameEndReason, GameErrorSeverity, SwuGameFormat } from '../game/core/Constants';
+import {
+    AlertType,
+    GameEndReason,
+    GameErrorSeverity,
+    GamesToWinMode,
+    RematchMode,
+    SwuGameFormat
+} from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
-import { formatBugReport } from '../utils/bugreport/BugReportFormatter';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
+import type { MessageText } from '../game/Interfaces';
+import { ReportType } from '../game/Interfaces';
+import { PlayerReportType } from '../game/Interfaces';
+import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -38,8 +46,19 @@ interface LobbySpectatorWrapper {
     user?: User;
 }
 
+interface IChatMessageEntry {
+    date: Date;
+    message: MessageText | {
+        alert: {
+            type: string;
+            message: string | string[];
+        };
+    };
+}
+
 enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
+    AllowSpectators = 'allowSpectators',
 }
 
 enum Bo3SetEndedReason {
@@ -137,6 +156,7 @@ export class Lobby {
     private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
+    private readonly spectateLink?: string;
     private readonly gameChat: GameChat;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -150,6 +170,7 @@ export class Lobby {
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
+    private allowSpectators = false;
 
     private game?: Game;
     public users: LobbyUserWrapper[] = [];
@@ -192,7 +213,9 @@ export class Lobby {
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat(() => this.sendLobbyState());
         this.connectionLink = matchmakingType !== MatchmakingType.Quick ? this.createLobbyLink() : null;
+        this.spectateLink = matchmakingType !== MatchmakingType.Quick ? this.createSpectateLink() : null;
         this.isPrivate = matchmakingType === MatchmakingType.PrivateLobby;
+        this.allowSpectators = matchmakingType !== MatchmakingType.PrivateLobby;
         this.matchmakingType = matchmakingType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
@@ -225,6 +248,10 @@ export class Lobby {
 
     public get format(): SwuGameFormat {
         return this.gameFormat;
+    }
+
+    public get spectationAllowed(): boolean {
+        return this.allowSpectators;
     }
 
     public get gamesToWinMode(): GamesToWinMode {
@@ -329,6 +356,7 @@ export class Lobby {
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
+            spectateLink: this.spectateLink,
             gameType: this.matchmakingType,
             userWhoMutedChat: this.userWhoMutedChat,
             gameFormat: this.gameFormat,
@@ -342,6 +370,7 @@ export class Lobby {
             sideboardTimeoutStatus: this.bo3LobbyReadyTimer?.timeRemainingStatus,
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
+                allowSpectators: this.allowSpectators,
             },
         };
     }
@@ -394,6 +423,12 @@ export class Lobby {
             : `https://karabast.net/lobby?lobbyId=${this._id}`;
     }
 
+    private createSpectateLink(): string {
+        return process.env.ENVIRONMENT === 'development'
+            ? `http://localhost:3000/spectate?lobbyId=${this._id}`
+            : `https://karabast.net/spectate?lobbyId=${this._id}`;
+    }
+
     private updateUserLastActivity(id: string): void {
         // if we received a message we know the user is connected
         this.getUser(id).state = 'connected';
@@ -444,6 +479,15 @@ export class Lobby {
             socket.disconnect();
             return;
         }
+
+        // Remove any existing lobby listeners if spectator already existed and reconnected
+        if (socket.eventContainsListener('lobby')) {
+            socket.removeEventsListeners(['lobby']);
+        }
+
+        // Limited lobby message handling for spectators
+        socket.registerEvent('lobby', (socket, command, ...args) => this.onSpectatorLobbyMessage(socket, command, ...args));
+
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
@@ -1034,6 +1078,8 @@ export class Lobby {
                 player1Base: player1.deck.base,
                 player2Leader: player2.deck.leader,
                 player2Base: player2.deck.base,
+                format: this.gameFormat,
+                gamesToWinMode: this.gamesToWinMode,
             };
         } catch (error) {
             logger.error('Lobby: error retrieving lobby game data',
@@ -1172,6 +1218,13 @@ export class Lobby {
         );
 
         this.game = game;
+
+        for (const player of this.game.getPlayers()) {
+            const userWrapper = this.getUser(player.user.id);
+            userWrapper.deck = player.lobbyDeck;
+
+            logger.info(`Test deck synchronized for user: ${userWrapper.username}`);
+        }
     }
 
     private async startGameAsync() {
@@ -1179,6 +1232,7 @@ export class Lobby {
             this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
+
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
             game.started = true;
@@ -1307,6 +1361,7 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
+            attackRulesVersion: this.format === SwuGameFormat.Premier ? AttackRulesVersion.CR6 : AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
@@ -1334,6 +1389,20 @@ export class Lobby {
         logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
     }
 
+    private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
+
+    private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
+        try {
+            if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
+                return;
+            }
+
+            await this[command](socket, ...args);
+        } catch (error) {
+            logger.error('Lobby: error processing spectator lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
+    }
+
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         const start = process.hrtime.bigint();
         try {
@@ -1354,7 +1423,7 @@ export class Lobby {
                     lobbyId: this.id,
                     durationMs: Number(durationMs.toFixed(2)),
                     timestamp: new Date().toISOString(),
-                    promptType: this.game.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
+                    promptType: this.game?.getPlayerById(socket.user.getId())?.promptState.promptType ?? 'null',
                 });
             }
         } catch (error) {
@@ -1476,7 +1545,6 @@ export class Lobby {
             const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
 
             const gameState = this.game.captureGameState(player1Id);
-
             this.discordDispatcher.formatAndSendServerErrorAsync(
                 discordMessage,
                 error,
@@ -2052,11 +2120,39 @@ export class Lobby {
                 user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
-        for (const user of this.spectators) {
-            if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+        for (const spectator of this.spectators) {
+            if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
+                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
             }
         }
+    }
+
+    /**
+     * Handle client request for message retransmit when gaps are detected.
+     * Client calls this with (startIndex, endIndex) to get messages in that range.
+     */
+    private retransmitGameMessages(socket: Socket, startIndex: number, endIndex: number): void {
+        if (!this.game) {
+            return;
+        }
+
+        const allMessages = this.game.messages;
+        const totalCount = allMessages.length;
+
+        // Clamp indices to valid range
+        const safeStart = Math.max(0, Math.min(startIndex, totalCount));
+        const safeEnd = Math.max(safeStart, Math.min(endIndex, totalCount));
+
+        const requestedMessages = allMessages.slice(safeStart, safeEnd);
+
+        const userId = socket.user.getId();
+        logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: this.game.getChatMessageOffset(userId) });
+
+        socket.send('retransmitResponse', {
+            messages: requestedMessages,
+            startIndex: safeStart,
+            totalCount: totalCount
+        });
     }
 
     private safeSetUserConnected(userId: string): void {
@@ -2092,6 +2188,12 @@ export class Lobby {
                 this.undoMode = settingValue ? UndoMode.Request : UndoMode.Free;
                 this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`);
                 break;
+            case LobbySettingKeys.AllowSpectators:
+                Contract.assertTrue(this.isPrivate, 'The allowSpectators setting can only be changed in private lobbies');
+                this.assertSettingType(settingName, settingValue, 'boolean');
+                this.allowSpectators = settingValue;
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} spectation`);
+                break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);
         }
@@ -2103,40 +2205,57 @@ export class Lobby {
         Contract.assertTrue(typeof settingValue === expectedType, `Invalid setting value for ${settingName}, expected ${expectedType} but received: ` + settingValue);
     }
 
-    // Report bug method; front-end RPC from sendLobbyMessage()
-    private async reportBug(socket: Socket, ...args: any): Promise<void> {
+    private async submitReport(socket: Socket, ...args: any[]): Promise<void> {
+        Contract.assertTrue(
+            args[0] === 'bugReport' || args[0] === 'playerReport',
+            `Invalid report type: expected 'bug' or 'player' but received '${args[0]}'`
+        );
+        const reportType = args[0] as ReportType;
+        const reportMessage = args[1];
+        const playerReportType = Object.values(PlayerReportType).includes(args[2]) ? args[2] as PlayerReportType : null;
+        const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
+        const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
+
         try {
-            // Parse description as JSON if it's in JSON format
-            const bugReportMessage = args[0];
             let parsedDescription = '';
             let screenResolution = null;
             let viewport = null;
-            if (bugReportMessage && typeof bugReportMessage === 'object') {
-                parsedDescription = bugReportMessage.description || '';
-                screenResolution = bugReportMessage.screenResolution || null;
-                viewport = bugReportMessage.viewport || null;
+
+            if (reportMessage && typeof reportMessage === 'object') {
+                parsedDescription = reportMessage.description || '';
+                screenResolution = reportMessage.screenResolution || null;
+                viewport = reportMessage.viewport || null;
             } else {
-                // Take this as a string (backward compatibility)
-                parsedDescription = bugReportMessage;
+                parsedDescription = reportMessage;
             }
 
-            if (!parsedDescription || parsedDescription.trim().length === 0) {
-                throw new Error('description is invalid');
-            }
-
-            // Create game state snapshot
             const gameState = this.game
                 ? this.game.captureGameState(socket.user.getId())
                 : { phase: 'action', player1: {}, player2: {} };
 
-            const gameMessages = this.game.getLogMessages();
-            const opponent = this.users.find((u) => u.id !== socket.user.id);
-            // Create bug report
-            const bugReport = formatBugReport(
+            let gameMessages: IChatMessageEntry[];
+            let opponent: { id: string; username: string };
+            if (this.game) {
+                const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
+                opponent = { id: opponentObject.id, username: opponentObject.user.username };
+                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+            } else {
+                // this is for lobby player reports
+                const opponentObject = this.users.find((u) => u.id !== socket.user.getId());
+                if (opponentObject) {
+                    opponent = { id: opponentObject.id, username: opponentObject.username };
+                } else {
+                    throw new Error(`${reportLabel} failed since opponent wasn't found`);
+                }
+                gameMessages = this.gameChat.messages;
+            }
+
+            const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,
+                playerReportType,
                 socket.user,
-                opponent.socket.user,
+                opponent,
                 gameMessages,
                 this.id,
                 this.gameFormat,
@@ -2147,37 +2266,42 @@ export class Lobby {
                 viewport
             );
 
-            // Send to Discord
-            const success = await this.discordDispatcher.formatAndSendBugReportAsync(bugReport);
+            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
             if (!success) {
-                throw new Error('Bug report failed to send to discord. See logs for details.');
+                throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
+            }
+            const existingUser = this.users.find((u) => u.id === socket.user.getId());
+            if (reportType === ReportType.BugReport) {
+                existingUser.reportedBugs += 1;
             }
 
-            // we find the user
-            const existingUser = this.users.find((u) => u.id === socket.user.getId());
-            existingUser.reportedBugs += success ? 1 : 0;
-
-            // Send success message to client
-            socket.send('bugReportResult', {
+            socket.send(resultEvent, {
                 id: uuid(),
-                success: success,
-                message: 'Successfully sent bug report'
+                success: true,
+                message: `Successfully sent ${reportLabel}`
             });
 
-            this.game.addAlert(AlertType.Notification, '{0} has submitted a bug report', existingUser.username);
+            // we report the alert only if its a bug report
+            if (reportType === ReportType.BugReport) {
+                this.game.addAlert(
+                    AlertType.Notification,
+                    `{0} has submitted a ${reportLabel}`,
+                    existingUser.username
+                );
+            }
 
             this.sendLobbyState();
         } catch (error) {
-            logger.error('Error processing bug report', {
+            logger.error(`Error processing ${reportLabel}`, {
                 error: { message: error.message, stack: error.stack },
                 lobbyId: this.id,
                 userId: socket.user.id
             });
-            // Send error message to client
-            socket.send('bugReportResult', {
+
+            socket.send(resultEvent, {
                 id: uuid(),
                 success: false,
-                message: 'An error occurred while processing your bug report.'
+                message: `An error occurred while processing your ${reportLabel}.`
             });
         }
     }

@@ -140,7 +140,7 @@ describe('Leia Organa, Alliance General', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.leiaOrgana);
-                context.player1.clickPrompt('Attack with a Rebel unit');
+                context.player1.clickPrompt('(No effect) Attack with a Rebel unit');
                 context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
             });

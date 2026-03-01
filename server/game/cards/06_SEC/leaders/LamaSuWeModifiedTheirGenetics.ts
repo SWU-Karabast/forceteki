@@ -43,9 +43,10 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
-        registrar.addOnAttackCompletedAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Play an upgrade from your discard pile on a friendly non-Vehicle unit. It costs 1 resource less.',
             optional: true,
+            attackerMustSurvive: true,
             targetResolver: {
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
