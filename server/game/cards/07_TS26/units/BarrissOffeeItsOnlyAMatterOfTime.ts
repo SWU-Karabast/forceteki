@@ -12,13 +12,15 @@ export default class BarrissOffeeItsOnlyAMatterOfTime extends NonLeaderUnitCard 
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Give an Experience token to Barriss Offee',
+            title: 'Give an Experience token to the attacker',
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker.controller !== context.player,
 
             },
             optional: true,
-            immediateEffect: abilityHelper.immediateEffects.giveExperience((context) => ({ target: context.source }))
+            immediateEffect: abilityHelper.immediateEffects.giveExperience((context) => ({
+                target: context.event.attack.attacker,
+            }))
         });
     }
 }
