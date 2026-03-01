@@ -23,7 +23,12 @@ export default class DarthSidiousUndeerACloakOfDarkness extends NonLeaderUnitCar
         registrar.addTriggeredAbility({
             title: 'Create a Battle Droid token',
             when: {
-                onCardDefeated: (event) => EnumHelpers.isNonTokenUnit(event.lastKnownInformation.type),
+                onCardDefeated: (event) => {
+                    const info = event.lastKnownInformation;
+                    // Check the printed type of the unit to exclude tokens
+                    return EnumHelpers.isUnit(info.type) &&
+                      !EnumHelpers.isToken(info.card.printedType);
+                },
             },
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });
