@@ -450,6 +450,10 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.dilapidatedSkiSpeeder);
 
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.dilapidatedSkiSpeeder]);
+                context.player2.clickDone();
+
                 expect(context.dilapidatedSkiSpeeder).toBeInZone('hand');
 
                 // Aethersprite's ability is triggered
@@ -463,6 +467,10 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                     invalid: context.player1.findCardsByName('underworld-thug', 'deck').slice(0, 3)
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.resistanceBlueSquadron);
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.resistanceBlueSquadron]);
+                context.player2.clickDone();
 
                 expect(context.resistanceBlueSquadron).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
@@ -984,6 +992,63 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
             // Verify that the ability cannot be used again
             expect(context.player1).not.toHavePassAbilityPrompt(prompt);
             expect(context.clone).toHaveExactUpgradeNames(['experience', 'experience']);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('does not double WhenPlayed/OnAttack triggers on attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'quigon-jinn#student-of-the-living-force',
+                    base: 'echo-base',
+                    hand: [
+                        'enfys-nest#champion-of-justice',
+                        'wing-leader',
+                        'undercover-operation'
+                    ],
+                    spaceArena: [
+                        'quigon-jinns-aethersprite#guided-by-the-force'
+                    ],
+                },
+                player2: {
+                    hand: [
+                        'vanquish'
+                    ],
+                    spaceArena: [
+                        'green-squadron-awing',
+                        'phoenix-squadron-awing'
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Enfys Nest to trigger its When Played/On Attack ability
+            context.player1.clickCard(context.enfysNest);
+            context.player1.passAction(); // Skip bouncing
+
+            context.player2.passAction();
+
+            // Attack with the Aethersprite to activate the ability
+            context.player1.clickCard(context.quigonJinnsAethersprite);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.passAction();
+
+            // Ready Enfys
+            context.player1.clickCard(context.undercoverOperation);
+            context.player1.clickCard(context.enfysNest);
+
+            context.player2.passAction();
+
+            // Attack with Enfys
+            context.player1.clickCard(context.enfysNest);
+            context.player1.clickCard(context.p2Base);
+
+            // Target Green Squadron A-Wing with On Attack ability bounce
+            context.player1.clickCard(context.greenSquadronAwing);
+
+            // Verify that the ability does not trigger again
             expect(context.player2).toBeActivePlayer();
         });
     });

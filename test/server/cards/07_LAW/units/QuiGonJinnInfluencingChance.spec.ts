@@ -5,7 +5,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['doctor-aphra#digging-for-answers', 'qui-gon-jinn#influencing-chance'],
+                        groundArena: ['doctor-aphra#digging-for-answers', 'quigon-jinn#influencing-chance'],
                         discard: ['wampa', 'battlefield-marine', 'pirated-starfighter', 'force-throw'],
                         deck: ['ma-klounkee', 'porg', 'underworld-thug', 'moisture-farmer', 'tieln-fighter'],
                         resources: ['resupply']
@@ -19,7 +19,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
             it('on attack, should look at the top 3 cards of your deck, discard 1, put the rest on top in any order', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.quiGonJinnInfluencingChance);
+                context.player1.clickCard(context.quigonJinnInfluencingChance);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePrompt('Select a card to discard');
@@ -41,12 +41,20 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 expect(context.underworldThug).toBeInZone('deck');
 
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(4)).toEqual([
+                    // TODO: We can probably update SearchDeckSystem to improve this message ("search" => "look at")
+                    'player1 uses Qui-Gon Jinn to search the top 3 cards of their deck',
+                    // TODO: We can probably update ViewCardSystem to improve this message ("look at" => "choose option for")
+                    'player1 uses Qui-Gon Jinn to discard Porg and to look at 2 cards',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck'
+                ]);
             });
 
             it('should allow the user to not discard a card, but still make them put all 3 on top of the deck in any order', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.quiGonJinnInfluencingChance);
+                context.player1.clickCard(context.quigonJinnInfluencingChance);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePrompt('Select a card to discard');
@@ -54,7 +62,6 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.maKlounkee, context.porg, context.underworldThug] });
 
                 context.player1.clickPrompt('Take nothing');
-
 
                 context.player1.clickDisplayCardPromptButton(context.maKlounkee.uuid, 'top');
                 context.player1.clickDisplayCardPromptButton(context.underworldThug.uuid, 'top');
@@ -65,6 +72,12 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                 expect(context.underworldThug).toBeInZone('deck');
 
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(4)).toEqual([
+                    'player1 uses Qui-Gon Jinn to discard no cards and to look at 3 cards',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck',
+                    'player1 uses Qui-Gon Jinn to move a card to the top of their deck'
+                ]);
             });
         });
 
@@ -76,7 +89,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
                     discard: ['wampa', 'battlefield-marine', 'pirated-starfighter'],
                     deck: ['ma-klounkee', 'porg', 'force-throw', 'moisture-farmer', 'tieln-fighter'],
                     resources: 10,
-                    hand: ['qui-gon-jinn#influencing-chance']
+                    hand: ['quigon-jinn#influencing-chance']
                 },
                 player2: {
                     groundArena: ['atst', 'consular-security-force'],
@@ -85,7 +98,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.quiGonJinnInfluencingChance);
+            context.player1.clickCard(context.quigonJinnInfluencingChance);
 
             expect(context.player1).toHavePrompt('Select a card to discard');
             expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -112,7 +125,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['doctor-aphra#digging-for-answers', 'qui-gon-jinn#influencing-chance'],
+                    groundArena: ['doctor-aphra#digging-for-answers', 'quigon-jinn#influencing-chance'],
                     discard: ['wampa', 'battlefield-marine', 'pirated-starfighter', 'force-throw'],
                     deck: ['ma-klounkee', 'porg'],
                     resources: ['resupply']
@@ -124,7 +137,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.quiGonJinnInfluencingChance);
+            context.player1.clickCard(context.quigonJinnInfluencingChance);
             context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toHavePrompt('Select a card to discard');
@@ -150,7 +163,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['doctor-aphra#digging-for-answers', 'qui-gon-jinn#influencing-chance'],
+                    groundArena: ['doctor-aphra#digging-for-answers', 'quigon-jinn#influencing-chance'],
                     discard: ['wampa', 'battlefield-marine', 'pirated-starfighter', 'force-throw'],
                     deck: [],
                     resources: ['resupply']
@@ -162,7 +175,7 @@ describe('Qui-Gon Jinn Influencing Chance', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.quiGonJinnInfluencingChance);
+            context.player1.clickCard(context.quigonJinnInfluencingChance);
             context.player1.clickCard(context.p2Base);
 
             expect(context.player2).toBeActivePlayer();

@@ -1,6 +1,6 @@
 describe('BoShek, Charismatic Smuggler', function () {
     integration(function (contextRef) {
-        it('Bunker Defender\'s ability should discard 2 cards of deck and return each of them which have an odd cost', async function () {
+        it('BoShek\'s ability should discard 2 cards of deck and return each of them which have an odd cost', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

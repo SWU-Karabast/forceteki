@@ -189,7 +189,10 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         additionalProperties,
         attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler,
     ): void {
-        Contract.assertTrue(card.isCreditToken() || (card.canBeInPlay() && card.isInPlay()), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
+        Contract.assertTrue(
+            card.isForceToken() || card.isCreditToken() || (card.canBeInPlay() && card.isInPlay()),
+            `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`
+        );
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
@@ -227,7 +230,14 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     protected buildUnitCleanupContingentEvents(card: IUnitCard, context: TContext, event: any, attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler): any[] {
         let contingentEvents = [];
         contingentEvents = contingentEvents.concat(this.generateRemoveUpgradeEvents(card, context, event, attachedUpgradeOverrideHandler));
-        contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
+
+        // rescue events go into a subwindow so rescued units don't trigger from
+        // events that resolved before they re-entered play (e.g. the captor's defeat)
+        const rescueEvents = this.generateRescueEvents(card, context, event);
+        if (rescueEvents.length > 0) {
+            event.window.addSubwindowEvents(rescueEvents);
+        }
+
         return contingentEvents;
     }
 

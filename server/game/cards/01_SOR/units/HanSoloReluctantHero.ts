@@ -13,7 +13,8 @@ export default class HanSoloReluctantHero extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While attacking, this unit deals combat damage before the defender.',
-            ongoingEffect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
+            condition: (context) => context.source.isAttacking(),
+            ongoingEffect: AbilityHelper.ongoingEffects.dealsCombatDamageFirst(),
         });
     }
 }

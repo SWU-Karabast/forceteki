@@ -20,17 +20,21 @@ export default class IAmYourFather extends EventCard {
                     cardTypeFilter: WildcardCardType.Unit
                 },
                 opponentsChoice: {
-                    mode: TargetMode.Select,
+                    mode: TargetMode.SelectUnless,
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
                     activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 7 [Damage] or opponent [Draws] 3 cards`,
-                    choices: (context) => ({
-                        [NamedAction.Damage]: AbilityHelper.immediateEffects.damage({
+                    unlessEffect: {
+                        effect: AbilityHelper.immediateEffects.draw({ amount: 3 }),
+                        promptButtonText: NamedAction.Draw
+                    },
+                    defaultEffect: {
+                        effect: (context) => AbilityHelper.immediateEffects.damage({
                             target: context.targets.targetUnit,
                             amount: 7
                         }),
-                        [NamedAction.Draw]: AbilityHelper.immediateEffects.draw({ amount: 3 })
-                    }),
+                        promptButtonText: NamedAction.Damage
+                    },
                     highlightCards: (context) => context.targets.targetUnit,
                 }
             }

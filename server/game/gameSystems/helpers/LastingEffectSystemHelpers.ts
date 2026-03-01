@@ -23,7 +23,10 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
 
     let description: FormatMessage = { format: 'apply a lasting effect to {0}', args: [targetDescription] };
     if (properties.ongoingEffectDescription) {
-        description.format = `${properties.ongoingEffectDescription} {0}`;
+        description.format = `${properties.ongoingEffectDescription}`;
+        if (!properties.ongoingEffectDescription.includes('{0}')) {
+            description.format += ' {0}';
+        }
     } else if (properties.target && Array.isArray(properties.target)) {
         const { effectFactories, effectProperties } = getEffectFactoriesAndProperties(properties.target, context, additionalProperties);
         const abilityRestrictions: FormatMessage[] = [];

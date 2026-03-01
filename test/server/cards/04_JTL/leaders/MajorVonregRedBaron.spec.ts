@@ -58,7 +58,7 @@ describe('Major Vonreg, Red Baron', function() {
 
                 context.player1.clickCard(context.majorVonregRedBaron);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Major Vonreg',
-                    'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.'
+                    '(No effect) Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.'
                 ]);
                 context.player1.clickPrompt('Deploy Major Vonreg');
                 expect(context.majorVonregRedBaron.deployed).toBe(true);
@@ -91,7 +91,7 @@ describe('Major Vonreg, Red Baron', function() {
 
                 context.player1.clickCard(context.majorVonregRedBaron);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Major Vonreg', 'Deploy Major Vonreg as a Pilot',
-                    'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.'
+                    '(No effect) Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.'
                 ]);
                 context.player1.clickPrompt('Deploy Major Vonreg as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.vonregsTieInterceptorAceOfTheFirstOrder, context.imperialInterceptor]);

@@ -62,6 +62,9 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
                 case WildcardCardType.NonUnit:
                     filters.push(plural ? 'non-units' : 'non-unit');
                     break;
+                case WildcardCardType.Token:
+                    filters.push(plural ? 'tokens' : 'token');
+                    break;
                 case CardType.Base:
                     filters.push(plural ? 'bases' : 'base');
                     break;

@@ -12,7 +12,7 @@ import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
 import { InitializeCardStateOption } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, IWhenAttackEndsAbilityProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -46,6 +46,8 @@ import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/Pri
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
+import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
+import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -72,7 +74,7 @@ type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extend
 
 export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardAbilityRegistrar<T> {
     addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
-    addOnAttackCompletedAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
+    addOnDefenseAbility(properties: Omit<ITriggeredAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
     addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<T>, 'canBeTriggeredBy'>): void;
     addCoordinateAbility(properties: IAbilityPropsWithType<T>): void;
     addPilotingAbility(properties: IAbilityPropsWithType<T>): void;
@@ -80,6 +82,7 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addPilotingGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<T>): void;
     addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithGainCondition<T, IUnitCard>): void;
     addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<T, IUnitCard>): void;
+    addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
 }
 
 export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
@@ -204,8 +207,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return this.state.pilotingConstantAbilities.map((x) => this.game.getFromRef(x));
         }
 
+        private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
         private _leadersDeployedThisPhaseWatcher: LeadersDeployedThisPhaseWatcher;
+        private _unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
@@ -315,8 +320,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
             }
 
+            this._tokensCreatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.tokensCreatedThisPhase();
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
+            this._unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
 
             this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
@@ -423,7 +430,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return {
                 ...registrar,
                 addOnAttackAbility: (properties) => this.addOnAttackAbility(properties, registrar),
-                addOnAttackCompletedAbility: (properties) => this.addOnAttackCompletedAbility(properties, registrar),
+                addOnDefenseAbility: (properties) => this.addOnDefenseAbility(properties, registrar),
+                addWhenAttackEndsAbility: (properties) => this.addWhenAttackEndsAbility(properties, registrar),
                 addBountyAbility: (properties) => this.addBountyAbility(properties),
                 addCoordinateAbility: (properties) => this.addCoordinateAbility(properties),
                 addPilotingAbility: (properties) => this.addPilotingAbility(properties),
@@ -455,8 +463,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             registar.addTriggeredAbility({ ...properties, when });
         }
 
-        private addOnAttackCompletedAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
-            const when: WhenTypeOrStandard = { [EventName.OnAttackCompleted]: (event, context) => event.attack.attacker === context.source };
+        private addOnDefenseAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
+            const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.OnDefense]: true };
+            registar.addTriggeredAbility({ ...properties, when });
+        }
+
+        private addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<this>, 'when' | 'aggregateWhen'>, registar: ITriggeredAbilityRegistrar<this>): void {
+            const when: WhenTypeOrStandard = { [EventName.OnAttackEnd]: (event, context) => event.attack.attacker === context.source };
             registar.addTriggeredAbility({ ...properties, when });
         }
 
@@ -700,7 +713,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             if (this.hasSomeKeyword(KeywordName.Hidden)) {
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
                     title: 'Hidden',
-                    condition: (context) => context.source.isInPlay() && this.wasPlayedThisPhase(context.source),
+                    condition: (context) =>
+                        context.source.isInPlay() &&
+                        this.wasPlayedDeployedOrCreatedThisPhase(context.source),
                     ongoingEffect: this.game.abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
                 };
 
@@ -711,10 +726,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
         }
 
-        private wasPlayedThisPhase(card: this = this): boolean {
+        private wasPlayedDeployedOrCreatedThisPhase(card: this = this): boolean {
             try {
                 return this._cardsPlayedThisWatcher.someCardPlayed((entry) => entry.card === card && entry.inPlayId === card.inPlayId) ||
-                  this._leadersDeployedThisPhaseWatcher.someLeaderDeployed((entry) => entry.card === card);
+                  this._leadersDeployedThisPhaseWatcher.someLeaderDeployed((entry) => entry.card === card) ||
+                  this._tokensCreatedThisPhaseWatcher.someTokenCreated((entry) => entry.token === card && entry.token.isTokenUnit());
             } catch (err) {
                 return false;
             }
@@ -1117,7 +1133,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return attackLimit;
         }
 
-        public override getSummary(activePlayer: Player) {
+        public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
             if (this.isInPlay()) {
                 const hasSentinel = this.hasSomeKeyword(KeywordName.Sentinel);
                 const cannotBeAttacked = (this.hasRestriction(AbilityRestriction.BeAttacked) && !hasSentinel);
@@ -1125,7 +1141,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 const clonedCardTitle = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].title : null;
 
                 return {
-                    ...super.getSummary(activePlayer),
+                    ...super.getSummary(activePlayer, overrideHidden),
                     power: this.getPower(),
                     hp: this.getHp(),
                     sentinel: hasSentinel,
@@ -1138,7 +1154,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             return {
-                ...super.getSummary(activePlayer),
+                ...super.getSummary(activePlayer, overrideHidden),
                 parentCardId: this.getCaptor()?.uuid,
             };
         }

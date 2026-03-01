@@ -39,18 +39,13 @@ export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneou
         if (properties.resolutionMode === ResolutionMode.AlwaysResolve) {
             return true;
         } else if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {
-            for (const candidateTarget of this.targets(context, additionalProperties)) {
-                if (this.canAffect(candidateTarget, context, additionalProperties, mustChangeGameState)) {
-                    return true;
-                }
-            }
-            return false;
+            return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties, mustChangeGameState));
         }
 
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
-    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {

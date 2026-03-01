@@ -87,7 +87,7 @@ export class SetupPhase extends Phase {
     private drawStartingHands() {
         // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
-            player.shuffleDeck();
+            player.shuffleDeck(true);
 
             new DrawSystem({ amount: player.getStartingHandSize() })
                 .resolve(

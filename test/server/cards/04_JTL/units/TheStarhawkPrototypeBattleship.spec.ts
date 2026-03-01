@@ -112,7 +112,7 @@ describe('The Starhawk, Prototype Battleship', function() {
                 const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
 
                 context.player1.clickCard(context.captainRex);
-                context.player1.clickPrompt('If a friendly unit attacked this phase, create a Clone Trooper token.');
+                context.player1.clickPrompt('(No effect) If a friendly unit attacked this phase, create a Clone Trooper token.');
                 context.player1.clickPrompt('Use it anyway');
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
             });
@@ -167,7 +167,7 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player1.passAction();
 
                 context.player2.clickCard(context.fettsFirespray);
-                context.player2.clickPrompt('Exhaust a non-unique unit');
+                context.player2.clickPrompt('(No effect) Exhaust a non-unique unit');
                 context.player2.clickPrompt('Use it anyway');
                 expect(context.player2.exhaustedResourceCount).toBe(2);
             });

@@ -82,5 +82,36 @@ describe('IG-11, I Cannot Be Captured', function() {
             expect(context.idenVersio.damage).toBe(3); // Doesn't set Iden up with a shield
             expect(context.p2Base.damage).toBe(2);
         });
+
+        it('IG-11\'s damage effect should be replaceable by Shield tokens', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['arrest'],
+                    groundArena: [
+                        {
+                            card: 'lom-pyke#dealer-in-truths',
+                            upgrades: ['shield']
+                        }
+                    ]
+                },
+                player2: {
+                    groundArena: ['ig11#i-cannot-be-captured']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Arrest to attempt to capture IG-11
+            context.player1.clickCard(context.arrest);
+            context.player1.clickCard(context.ig11);
+
+            // IG-11 is defeated instead of captured
+            expect(context.ig11).toBeInZone('discard');
+
+            // Damage is prevented by Shield token on Lom Pyke
+            expect(context.lomPyke).toHaveExactUpgradeNames([]);
+            expect(context.lomPyke.damage).toBe(0);
+        });
     });
 });

@@ -1,18 +1,19 @@
-import type { ISelectTargetResolver, IChoicesInterface } from '../../../TargetInterfaces';
+import type { ISelectTargetResolver, ISelectUnlessTargetResolver, IChoicesInterface } from '../../../TargetInterfaces';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import type { AbilityContext } from '../AbilityContext';
 import type { ITargetResult } from './TargetResolver';
 import { TargetResolver } from './TargetResolver';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import { SelectChoice } from './SelectChoice';
-import { Stage } from '../../Constants';
+import { GameStateChangeRequired, Stage, TargetMode } from '../../Constants';
 import type { Player } from '../../Player';
 import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
 import * as Helpers from '../../utils/Helpers';
+import * as Contract from '../../utils/Contract';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
-export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext>> {
-    public constructor(name: string, properties: ISelectTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
+export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext> | ISelectUnlessTargetResolver<AbilityContext>> {
+    public constructor(name: string, properties: ISelectTargetResolver<AbilityContext> | ISelectUnlessTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
         super(name, properties, ability);
     }
 
@@ -22,10 +23,29 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     private getChoices(context: AbilityContext): IChoicesInterface {
-        if (typeof this.properties.choices === 'function') {
-            return this.properties.choices(context);
+        switch (this.properties.mode) {
+            case TargetMode.Select:
+                return typeof this.properties.choices === 'function'
+                    ? this.properties.choices(context)
+                    : this.properties.choices;
+            case TargetMode.SelectUnless:
+                return this.buildSelectUnlessChoices(context);
+            default:
+                Contract.fail(`Unknown TargetMode value '${(this.properties as any).mode}'`);
         }
-        return this.properties.choices;
+    }
+
+    private buildSelectUnlessChoices(context: AbilityContext): IChoicesInterface {
+        const { defaultEffect, unlessEffect } = this.properties as ISelectUnlessTargetResolver<AbilityContext>;
+
+        return {
+            [defaultEffect.promptButtonText]: this.resolveSelectUnlessEffect(defaultEffect.effect, context),
+            [unlessEffect.promptButtonText]: this.resolveSelectUnlessEffect(unlessEffect.effect, context)
+        };
+    }
+
+    private resolveSelectUnlessEffect(effect: GameSystem<AbilityContext> | ((context: AbilityContext) => GameSystem<AbilityContext>), context: AbilityContext): GameSystem<AbilityContext> {
+        return typeof effect === 'function' ? effect(context) : effect;
     }
 
     private isChoiceLegal(key: string, context: AbilityContext) {
@@ -52,6 +72,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         if (!context.selects[this.name]) {
             return [];
         }
+
         const choice = this.getChoices(context)[context.selects[this.name].choice];
         if (typeof choice !== 'function') {
             return choice;
@@ -60,6 +81,19 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult, passPrompt?: IPassAbilityHandler) {
+        // For SelectUnless mode, check if unlessEffect can be resolved
+        // If not, automatically resolve defaultEffect without prompting
+        if (this.properties.mode === TargetMode.SelectUnless) {
+            const { unlessEffect, defaultEffect } = this.properties;
+            const unlessGameSystem = this.resolveSelectUnlessEffect(unlessEffect.effect, context);
+
+            if (!unlessGameSystem.hasLegalTarget(context, null, GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
+                // unlessEffect cannot be resolved, automatically apply defaultEffect
+                this.setTargetResult(context, defaultEffect.promptButtonText);
+                return;
+            }
+        }
+
         const choices = Object.keys(this.getChoices(context));
         let legalChoices = choices.filter((key) => this.isChoiceLegal(key, context));
 
@@ -106,7 +140,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
 
             const promptProperties = Object.assign(baseProperties, {
                 activePromptTitle: activePromptTitleConcrete,
-                choices,
+                choices: legalChoices,
                 handlers,
                 selectedCards,
             });

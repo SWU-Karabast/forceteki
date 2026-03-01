@@ -14,7 +14,6 @@ export default class HiredSlicer extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Reveal the top 2 cards of a deck. If you do, exhaust a unit that shares a trait with one of those cards',
-            optional: true,
             // Player chooses which deck to reveal from
             targetResolver: {
                 mode: TargetMode.Select,

@@ -8,7 +8,6 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                         hand: ['tieln-fighter', 'swoop-racer'],
                         groundArena: ['atst'],
                         leader: 'darth-vader#dark-lord-of-the-sith',
-                        resources: 6 // making vader undeployable makes testing the activated ability's condition smoother
                     },
                     player2: {
                         spaceArena: ['alliance-xwing'],
@@ -21,6 +20,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 // no card played; ability has no effect
                 let exhaustedResourcesBeforeAbilityUsed = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('(No effect) Deal 1 damage to a unit and 1 damage to a base');
                 context.player1.clickPrompt('Use it anyway');
 
                 expect(context.darthVader.exhausted).toBe(true);
@@ -40,6 +40,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 // use ability with effect
                 exhaustedResourcesBeforeAbilityUsed = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('Deal 1 damage to a unit and 1 damage to a base');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.atst, context.lukeSkywalker, context.allianceXwing]);
                 context.player1.clickCard(context.lukeSkywalker);
@@ -70,6 +71,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
 
                 // play a villainy card
                 context.player1.clickCard(context.powerOfTheDarkSide);
+                context.player1.clickPrompt('Play anyway');
                 context.player2.passAction();
 
                 // use ability with effect

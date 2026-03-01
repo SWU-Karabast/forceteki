@@ -59,9 +59,9 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         return PlayUpgradeAction.getPlayRestriction(player, this, context);
     }
 
-    public override getSummary(activePlayer: Player) {
+    public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
         return {
-            ...super.getSummary(activePlayer)
+            ...super.getSummary(activePlayer, overrideHidden)
         };
     }
 

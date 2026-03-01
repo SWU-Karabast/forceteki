@@ -90,7 +90,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
 
             return {
                 format: 'cancel the effects of {0}',
-                args: [this.getTargetMessage(context.event.card, context)]
+                args: [this.getTargetMessage(context.event.context.source, context)]
             };
         };
 

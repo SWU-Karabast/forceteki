@@ -1,5 +1,5 @@
-import { AbilityRestriction, PlayType } from '../core/Constants.js';
 import type { PlayRestriction } from '../core/Constants.js';
+import { AbilityRestriction, PlayType, ZoneName } from '../core/Constants.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -57,7 +57,8 @@ export class PlayUnitAction extends PlayCardAction {
             costDescription = { format: `, ${ChatHelpers.formatWithLength(costMessages.length)}`, args: costMessages };
         }
 
-        context.game.addMessage('{0} plays {1}{2}{3}', context.player, context.source, playTypeDescription, costDescription);
+        const locationDescription = ChatHelpers.getTargetLocationMessage(context.source, context, new Set([ZoneName.Hand]));
+        context.game.addMessage('{0} plays {1}{2}{3}{4}', context.player, context.source, locationDescription, playTypeDescription, costDescription);
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {

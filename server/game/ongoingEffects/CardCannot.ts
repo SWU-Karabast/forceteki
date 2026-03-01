@@ -1,3 +1,4 @@
+import type { AbilityRestriction } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
 import { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
@@ -5,9 +6,9 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 
 type ICardCannotProperties =
-  | string
+  | AbilityRestriction | EffectName
   | {
-      cannot: string;
+      cannot: AbilityRestriction | EffectName;
       restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
   };
 

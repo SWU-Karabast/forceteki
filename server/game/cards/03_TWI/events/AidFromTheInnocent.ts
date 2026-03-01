@@ -19,9 +19,7 @@ export default class AidFromTheInnocent extends EventCard {
                 selectCount: 2,
                 searchCount: 10,
                 cardCondition: (card) => !card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.discardSpecificCard()
-                ])
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
             }),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'For this phase, you may play the discarded cards for 2 less each',

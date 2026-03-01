@@ -283,8 +283,8 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         return null;
     }
 
-    public override getSummary(activePlayer: Player) {
-        return { ...super.getSummary(activePlayer),
+    public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
+        return { ...super.getSummary(activePlayer, overrideHidden),
             exhausted: this.state.exhausted };
     }
 

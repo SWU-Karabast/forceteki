@@ -73,22 +73,6 @@ describe('Hired Slicer', function() {
                 expect(context.imperialInterceptor).toBeInBottomOfDeck(context.player2, 2);
             });
 
-            it('should be optional and do nothing if declined', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.hiredSlicer);
-                context.player1.clickCard(context.p2Base);
-
-                expect(context.player1).toHavePrompt('Select one');
-                expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass');
-
-                // No cards revealed, no exhaust, decks unchanged
-                expect(context.getChatLogs(2)).not.toContain('reveal');
-                expect(context.player1.deck.length).toBe(5);
-                expect(context.player1.deck[0]).toBe(context.battlefieldMarine);
-            });
-
             it('should allow declining to exhaust a unit even if valid targets exist', function () {
                 const { context } = contextRef;
 

@@ -305,6 +305,49 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.clone.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(4);
             });
+
+            it('does not allow damage to go under shields created by opponent abilities (GH Issue #1414)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['maul#shadow-collective-visionary'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        leader: {
+                            card: 'grand-admiral-thrawn#how-unfortunate',
+                            deployed: true
+                        },
+                        groundArena: ['lom-pyke#dealer-in-truths']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P2 attacks with Lom Pyke to give shield to Cartel Spacer
+                context.player2.clickCard(context.lomPyke);
+                context.player2.clickCard(context.p1Base);
+                context.player2.clickCard(context.cartelSpacer);
+                context.player2.clickCard(context.lomPyke);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['shield']);
+                expect(context.lomPyke).toHaveExactUpgradeNames(['shield']);
+
+                // P1 plays Maul to ambush Thrawn
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.grandAdmiralThrawn);
+
+                // P1 selects Cartel Spacer as redirect target
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
+
+                // Verify damage assignment
+                expect(context.grandAdmiralThrawn).toBeInZone('base'); // Thrawn defeated
+                expect(context.cartelSpacer).toBeInZone('spaceArena');
+                expect(context.cartelSpacer.damage).toBe(0); // Shield absorbed all damage
+                expect(context.cartelSpacer).toHaveExactUpgradeNames([]);
+            });
         });
     });
 });

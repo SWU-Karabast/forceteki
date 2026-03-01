@@ -76,6 +76,7 @@ export enum DamageType {
 export enum EffectName {
     AbilityRestrictions = 'abilityRestrictions',
     AdditionalAction = 'additionalActions',
+    AdditionalPhase = 'additionalPhase',
     AdditionalActionAfterWindowCompleted = 'additionalActionsAfterWindowCompleted',
     AdditionalPlayCost = 'additionalPlaycost',
     AdditionalTriggerCost = 'additionalTriggercost',
@@ -96,7 +97,7 @@ export enum EffectName {
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
-    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
+    DealsCombatDamageFirst = 'dealsCombatDamageFirst',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
@@ -162,6 +163,7 @@ export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum StandardTriggeredAbilityType {
     OnAttack = 'onAttack',
+    OnDefense = 'onDefense',
     WhenDefeated = 'whenDefeated',
     WhenPlayed = 'whenPlayed',
     WhenPlayedUsingSmuggle = 'whenPlayedUsingSmuggle',
@@ -178,6 +180,7 @@ export enum TargetMode {
     MultiplePlayers = 'multiplePlayers',
     Player = 'player',
     Select = 'select',
+    SelectUnless = 'selectUnless',
     Single = 'single',
     Unlimited = 'unlimited',
     UpTo = 'upTo',
@@ -255,9 +258,9 @@ export enum EventName {
     OnActionTaken = 'onActionTaken',
     OnAddTokenToCard = 'onAddTokenToCard',
     OnAspectsDisclosed = 'onAspectsDisclosed',
-    OnAttackCompleted = 'onAttackCompleted',
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
+    OnAttackEnd = 'onAttackEnd',
     OnBeginRound = 'onBeginRound',
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
@@ -307,10 +310,11 @@ export enum EventName {
     OnStatusTokenGained = 'onStatusTokenGained',
     OnStatusTokenMoved = 'onStatusTokenMoved',
     OnTakeControl = 'onTakeControl',
-    OnTokensCreated = 'OnTokensCreated',
+    OnTokensCreated = 'onTokensCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
     OnUpgradeUnattached = 'onUpgradeUnattached',
+    OnUseOnAttack = 'onUseOnAttack',
     OnUseWhenDefeated = 'onUseWhenDefeated',
     OnUseWhenPlayed = 'onUseWhenPlayed',
 }
@@ -338,6 +342,7 @@ export enum MetaEventName {
     PlayCard = 'playCard',
     RandomSelection = 'randomSelection',
     ReplacementEffect = 'replacementEffect',
+    RevealAndDrawCard = 'revealAndDrawCard',
     SelectCard = 'selectCard',
     SelectPlayer = 'selectPlayer',
     Sequential = 'sequential',
@@ -411,6 +416,7 @@ export enum Trait {
     Lightsaber = 'lightsaber',
     Mandalorian = 'mandalorian',
     Modification = 'modification',
+    Musician = 'musician',
     Naboo = 'naboo',
     NewRepublic = 'new republic',
     Night = 'night',
@@ -431,7 +437,9 @@ export enum Trait {
     Transport = 'transport',
     Trick = 'trick',
     Trooper = 'trooper',
+    Tusken = 'tusken',
     Twilek = 'twi\'lek',
+    Undead = 'undead',
     Underworld = 'underworld',
     Vehicle = 'vehicle',
     Walker = 'walker',
@@ -480,6 +488,7 @@ export enum AbilityRestriction {
     BeCaptured = 'beCaptured',
     BeDefeated = 'beDefeated',
     ReturnToHand = 'returnToHand',
+    DealCombatDamage = 'dealCombatDamage',
 }
 
 /** Union type of AbilityRestriction values that can block a card from being played */
@@ -509,6 +518,7 @@ export enum StateWatcherName {
     DamageDealtThisPhase = 'damageDealtThisPhase',
     ForceUsedThisPhase = 'forceUsedThisPhase',
     LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
+    TokensCreatedThisPhase = 'tokensCreatedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
 

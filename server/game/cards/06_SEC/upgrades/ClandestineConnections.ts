@@ -15,7 +15,7 @@ export default class ClandestineConnections extends UpgradeCard {
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Pay 2 resources to deal 2 damage to a base',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 target: context.player,
                 amount: 2
             })),

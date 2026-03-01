@@ -1,3 +1,4 @@
+import type { ITargetResult } from './TargetResolver';
 import { TargetResolver } from './TargetResolver';
 import type { IPlayerTargetResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
@@ -61,7 +62,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return context.game.getPlayers().includes(context.targets[this.name]);
     }
 
-    protected override resolveInternal(player: Player, context: AbilityContext) {
+    protected override resolveInternal(player: Player, context: AbilityContext, targetResults: ITargetResult) {
         const promptProperties = this.getDefaultProperties(context);
 
         let effectChoices: IPlayerTargetResolver<AbilityContext>['effectChoices'] = ((relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'You' : 'Opponent'));
@@ -73,6 +74,8 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 effectChoices = (relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'Deal indirect damage to yourself' : 'Deal indirect damage to opponent');
             } else if (immediateEffectName === EventName.OnCardsDiscardedFromHand) {
                 effectChoices = (relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'You discard' : 'Opponent discards');
+            } else if (immediateEffectName === EventName.OnDiscardFromDeck) {
+                effectChoices = (relativePlayer: RelativePlayer) => (relativePlayer === RelativePlayer.Self ? 'Your deck' : 'Opponent\'s deck');
             }
         }
 
@@ -107,6 +110,14 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                     };
                 }
             );
+
+            if (targetResults.canCancel) {
+                choices.push('Cancel');
+                handlers.push(() => {
+                    targetResults.cancelled = true;
+                    return true;
+                });
+            }
 
             Object.assign(promptProperties, { activePromptTitle, choices, handlers });
             // TODO: figure out if we need these buttons

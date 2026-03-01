@@ -3,16 +3,11 @@ import { collapseDuplicatesTransformer, resolveConfusablesTransformer, resolveLe
 import { basicProfanityList } from './termLists/BasicProfanityList';
 
 /**
- * A set of transformers to be used when matching blacklisted patterns with the
- * [[englishDataset | english word dataset]].
+ * Creates a collapseDuplicatesTransformer with standard thresholds for profanity matching.
+ * Custom thresholds allow certain characters to appear twice consecutively without collapsing.
  */
-const englishRecommendedBlacklistMatcherTransformers = [
-    resolveConfusablesTransformer(),
-    resolveLeetSpeakTransformer(),
-    toAsciiLowerCaseTransformer(),
-    // See #23 and #46.
-    // skipNonAlphabeticTransformer(),
-    collapseDuplicatesTransformer({
+function createCollapseDuplicatesTransformer() {
+    return collapseDuplicatesTransformer({
         defaultThreshold: 1,
         customThresholds: new Map([
             ['b', 2], // a_bb_o
@@ -22,7 +17,30 @@ const englishRecommendedBlacklistMatcherTransformers = [
             ['s', 2], // a_ss_
             ['g', 2], // ni_gg_er
         ]),
-    }),
+    });
+}
+
+/**
+ * A set of transformers to be used when matching blacklisted patterns with the
+ * [[englishDataset | english word dataset]].
+ */
+const englishRecommendedBlacklistMatcherTransformers = [
+    resolveConfusablesTransformer(),
+    resolveLeetSpeakTransformer(),
+    toAsciiLowerCaseTransformer(),
+    // See #23 and #46.
+    // skipNonAlphabeticTransformer(),
+    createCollapseDuplicatesTransformer(),
+];
+
+/**
+ * Same as above but without leet speak transformation.
+ * This allows matching terms that contain leet speak characters literally (e.g., "4skin").
+ */
+const englishRecommendedBlacklistMatcherTransformersNoLeet = [
+    resolveConfusablesTransformer(),
+    toAsciiLowerCaseTransformer(),
+    createCollapseDuplicatesTransformer(),
 ];
 
 const hateGroupNamesTransformers = [
@@ -55,6 +73,14 @@ const englishRecommendedTransformers: Pick<
     whitelistMatcherTransformers: englishRecommendedWhitelistMatcherTransformers,
 };
 
+const englishRecommendedTransformersNoLeet: Pick<
+    RegExpMatcherOptions,
+	'blacklistMatcherTransformers' | 'whitelistMatcherTransformers'
+> = {
+    blacklistMatcherTransformers: englishRecommendedBlacklistMatcherTransformersNoLeet,
+    whitelistMatcherTransformers: englishRecommendedWhitelistMatcherTransformers,
+};
+
 function buildProfanityList() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const additionalTerms = require('./termLists/AdditionalProfanityTerms.json');
@@ -84,6 +110,11 @@ function buildHateGroupsList() {
 export const karabastProfanityMatcher = new RegExpMatcher({
     ...buildProfanityList(),
     ...englishRecommendedTransformers,
+});
+
+export const karabastProfanityMatcherNoLeet = new RegExpMatcher({
+    ...buildProfanityList(),
+    ...englishRecommendedTransformersNoLeet,
 });
 
 export const hateGroupsMatcher = new RegExpMatcher({

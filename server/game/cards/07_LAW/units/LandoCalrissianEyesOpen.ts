@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class LandoCalrissianEyesOpen extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lando-calrissian#eyes-open-id',
+            id: '2254545413',
             internalName: 'lando-calrissian#eyes-open',
         };
     }
