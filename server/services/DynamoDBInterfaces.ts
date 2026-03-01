@@ -96,22 +96,6 @@ export interface IDeckDataEntity {
     stats?: IDeckStatsEntity;
 }
 
-// Interface for game record
-export interface IGameRecordEntity {
-    id: string;
-    player1: string;
-    player2: string;
-    firstInitiativePlayer: string;
-    winner: string;
-    winnerBaseHealthRemaining: number;
-    player1LeaderId: string;
-    player1BaseId: string;
-    player2LeaderId: string;
-    player2BaseId: string;
-    timestampStart: Date;
-    timestampEnd: Date;
-}
-
 export enum ServerRole {
     Admin = 'admin',
     Developer = 'developer',
@@ -128,4 +112,36 @@ export interface IServerRoleUsersListsEntity {
     developers: IServerRoleUserEntity[];
     moderators: IServerRoleUserEntity[];
     contributors: IServerRoleUserEntity[];
+}
+
+export enum ModActionType {
+    Mute = 'Mute',
+    Warning = 'Warning',
+    Rename = 'Rename',
+}
+
+export const ActiveModActionTypes: ReadonlySet<ModActionType> = new Set([
+    ModActionType.Mute,
+    ModActionType.Rename,
+]);
+
+export interface IModActionEntity {
+    id: string;
+    playerId: string;
+    actionType: ModActionType;
+    durationDays?: number;
+    note?: string;
+    moderatorId: string;
+    createdAt: string;
+    expiresAt: string;
+    cancelledAt?: string;
+    cancelledBy?: string;
+}
+
+export interface IActiveModActionCacheEntry {
+    id: string;
+    actionType: ModActionType;
+    expiresAt: string;
+    durationDays: number;
+    modActionId: string;
 }

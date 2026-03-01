@@ -10,7 +10,19 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
-import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IServerRoleUsersListsEntity } from './DynamoDBInterfaces';
+import type {
+    IModActionEntity
+} from './DynamoDBInterfaces';
+import {
+    ActiveModActionTypes
+} from './DynamoDBInterfaces';
+import {
+    type IDeckDataEntity,
+    type IDeckStatsEntity,
+    type IUserProfileDataEntity,
+    type IUserPreferences,
+    type IServerRoleUsersListsEntity
+} from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { IDeckDataEntitySchema, IDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
@@ -740,6 +752,165 @@ class DynamoDBService {
                 contributors: result.Item.contributors || []
             };
         }, 'Error getting admin users');
+    }
+
+    // Mod Actions
+
+    /**
+     * Query items using the GSI_PK_INDEX
+     * @param gsiPkValue The value for the GSI_PK partition key
+     * @param options Optional sk filter using beginsWith
+     */
+    public queryByGSIAsync(gsiPkValue: string, options: { beginsWith?: string } = {}) {
+        return this.executeDbOperationAsync(() => {
+            let keyConditionExpression = 'GSI_PK = :gsiPk';
+            const expressionAttributeValues: Record<string, any> = { ':gsiPk': gsiPkValue };
+
+            if (options.beginsWith) {
+                keyConditionExpression += ' AND begins_with(sk, :skPrefix)';
+                expressionAttributeValues[':skPrefix'] = options.beginsWith;
+            }
+
+            const command = new QueryCommand({
+                TableName: this.tableName,
+                IndexName: 'GSI_PK_INDEX',
+                KeyConditionExpression: keyConditionExpression,
+                ExpressionAttributeValues: expressionAttributeValues
+            });
+
+            return this.client.send(command);
+        }, 'DynamoDB queryByGSI error');
+    }
+
+    /**
+     * Get mod actions from DynamoDB.
+     *
+     * - { playerId }  All mod actions for a specific player (main table query)
+     */
+    public getModActionsAsync(options: { playerId?: string } = {}): Promise<IModActionEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = options.playerId
+                ? await this.queryItemsAsync(`USER#${options.playerId}`, { beginsWith: 'MODACTION#' })
+                : await this.queryByGSIAsync('ACTIVE_MODACTION');
+
+            if (!result.Items || result.Items.length === 0) {
+                return [];
+            }
+
+            return result.Items.map((item: any) => ({
+                id: item.id,
+                playerId: item.playerId,
+                actionType: item.actionType,
+                durationDays: item.durationDays ?? null,
+                note: item.note,
+                moderatorId: item.moderatorId,
+                createdAt: item.createdAt,
+                expiresAt: item.expiresAt ?? null,
+                cancelledAt: item.cancelledAt ?? null,
+                cancelledBy: item.cancelledBy ?? null,
+            })) as IModActionEntity[];
+        }, 'Error getting mod actions');
+    }
+
+    /**
+     * Save a new mod action item.
+     * For Mute actions, GSI_PK is set to 'ACTIVE_MODACTION' so it appears in the sparse index.
+     */
+    public saveModActionAsync(modAction: IModActionEntity) {
+        return this.executeDbOperationAsync(() => {
+            const item: Record<string, any> = {
+                pk: `USER#${modAction.playerId}`,
+                sk: `MODACTION#${modAction.id}`,
+                ...modAction,
+            };
+
+            // Active action types (Mute, Rename) get indexed via the sparse GSI
+            if (ActiveModActionTypes.has(modAction.actionType) && !modAction.cancelledAt) {
+                item.GSI_PK = 'ACTIVE_MODACTION';
+            }
+
+            return this.putItemAsync(item);
+        }, 'Error saving mod action');
+    }
+
+    /**
+     * Cancel a mod action: set cancelledAt and cancelledBy, remove GSI_PK to drop it from the active index.
+     */
+    public cancelModActionAsync(playerId: string, modActionId: string, cancelledBy: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: {
+                    pk: `USER#${playerId}`,
+                    sk: `MODACTION#${modActionId}`,
+                },
+                UpdateExpression: 'SET cancelledAt = :cancelledAt, cancelledBy = :cancelledBy REMOVE GSI_PK',
+                ExpressionAttributeValues: {
+                    ':cancelledAt': new Date().toISOString(),
+                    ':cancelledBy': cancelledBy,
+                },
+                ReturnValues: 'ALL_NEW'
+            });
+
+            return this.client.send(command);
+        }, 'Error cancelling mod action');
+    }
+
+    /**
+     * Remove GSI_PK from an expired mod action (cleanup only, doesn't set cancelledAt/cancelledBy).
+     * This drops the item from the ACTIVE_MODACTION sparse index.
+     */
+    public removeModActionFromActiveIndexAsync(playerId: string, modActionId: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: {
+                    pk: `USER#${playerId}`,
+                    sk: `MODACTION#${modActionId}`,
+                },
+                UpdateExpression: 'REMOVE GSI_PK',
+                ReturnValues: 'ALL_NEW'
+            });
+
+            return this.client.send(command);
+        }, 'Error removing mod action from active index');
+    }
+
+    // Username
+    /**
+     * Save a username -> userId link for mod tools username search.
+     * Uses lowercase username to ensure case-insensitive lookups.
+     */
+    public saveUsernameLinkAsync(username: string, userId: string) {
+        return this.executeDbOperationAsync(() => {
+            const item = {
+                pk: `USERNAME#${username.toLowerCase()}`,
+                sk: `USER#${userId}`,
+                GSI_PK: userId,
+            };
+            return this.putItemAsync(item);
+        }, 'Error saving username link');
+    }
+
+    /**
+     * Look up all userIds that share a given username.
+     * @returns Array of userIds
+     */
+    public getUserIdsByUsernameAsync(username: string): Promise<string[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USERNAME#${username.toLowerCase()}`);
+            return (result.Items || []).map((item: any) => item.GSI_PK as string);
+        }, 'Error getting user IDs by username');
+    }
+
+    /**
+     * Delete a specific username link for a user.
+     * Uses both username and userId
+     */
+    public deleteUsernameLinkAsync(username: string, userId: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.deleteItemAsync(`USERNAME#${username.toLowerCase()}`, `USER#${userId}`);
+        }, 'Error deleting username link');
     }
 
     // Clear all data (for testing purposes only)

@@ -41,6 +41,11 @@ import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
+import { ModActionCache } from '../utils/ModActionCache';
+import { ModActionType, type IModActionEntity } from '../services/DynamoDBInterfaces';
+import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema } from '../services/DynamoDBInterfaceSchemas';
+import { v4 as uuid } from 'uuid';
+import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -115,11 +120,13 @@ export class GameServer {
 
         let cosmeticsService: CosmeticsService | undefined;
         let serverRoleUsersCache: ServerRoleUsersCache | undefined;
+        let modActionCache: ModActionCache | undefined;
         const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
         if (shouldInitializeDbCaches) {
             console.log('SETUP: Initializing caches for server roles and customizations.');
             serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
             cosmeticsService = await CosmeticsService.createAsync();
+            modActionCache = await ModActionCache.createAsync();
             console.log('SETUP: Caches for server roles and customizations initialized.');
         }
 
@@ -131,6 +138,7 @@ export class GameServer {
             deckValidator,
             serverRoleUsersCache,
             cosmeticsService,
+            modActionCache,
             testGameBuilder
         );
     }
@@ -186,12 +194,14 @@ export class GameServer {
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
+    public readonly modActionCache?: ModActionCache;
 
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
         cosmeticsService?: CosmeticsService,
+        modActionCache?: ModActionCache,
         testGameBuilder?: any
     ) {
         const app = express();
@@ -200,6 +210,7 @@ export class GameServer {
 
         this.serverRoleUsersCache = serverRoleUsersCache;
         this.cosmeticsService = cosmeticsService;
+        this.modActionCache = modActionCache;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -1278,6 +1289,231 @@ export class GameServer {
             } catch (error) {
                 logger.error('GameServer (user-is-moderator) Server error:', error);
                 next(error);
+            }
+        });
+
+        // ---------- POST /api/mod/find-user ----------
+        app.post('/api/mod/find-user', this.buildAuthMiddleware('mod-find-user', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = FindUserSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { searchQuery } = parseResult.data;
+                const dbService = await getDynamoDbServiceAsync();
+
+                if (!dbService) {
+                    return res.status(503).json({ success: false, message: 'Database service unavailable' });
+                }
+
+                // TODO Try to find by userId first (direct lookup) We need to rewrite this so we use UserFactory
+                const directProfile = await dbService.getUserProfileAsync(searchQuery);
+
+                if (directProfile) {
+                    // TODO rewrite so we use the cache
+                    const modActions = await dbService.getModActionsAsync({ playerId: directProfile.id });
+                    modActions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+                    return res.status(200).json({
+                        success: true,
+                        players: [{
+                            id: directProfile.id,
+                            username: directProfile.username,
+                            createdAt: directProfile.createdAt,
+                            lastLogin: directProfile.lastLogin,
+                            isMuted: this.modActionCache?.isPlayerMuted(directProfile.id) ?? false,
+                        }],
+                        modActions,
+                    });
+                }
+
+                // Try to find by username (can return multiple users)
+                const userIds = await dbService.getUserIdsByUsernameAsync(searchQuery);
+
+                if (!userIds || userIds.length === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Player not found'
+                    });
+                }
+
+                // Load profiles for all matching userIds
+                const players = [];
+                for (const userId of userIds) {
+                    // TODO rewrite so we use the UserFactory
+                    const profile = await dbService.getUserProfileAsync(userId);
+                    if (profile) {
+                        players.push({
+                            id: profile.id,
+                            username: profile.username,
+                            createdAt: profile.createdAt,
+                            lastLogin: profile.lastLogin,
+                            isMuted: this.modActionCache?.isPlayerMuted(profile.id) ?? false,
+                        });
+                    }
+                }
+                // TODO rewrite so we throw an error
+                if (players.length === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Player not found'
+                    });
+                }
+
+                // If single match, also include mod actions directly
+                // If multiple matches, the FE will need to pick a player first
+                // TODO rewrite so we use the cache
+                let modActions = [];
+                if (players.length === 1) {
+                    modActions = await dbService.getModActionsAsync({ playerId: players[0].id });
+                    modActions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    players,
+                    modActions,
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-find-user) Server error:', err);
+                next(err);
+            }
+        });
+
+
+        // ---------- POST /api/mod/submit-action ----------
+        app.post('/api/mod/submit-action', this.buildAuthMiddleware('mod-submit-action', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = ModActionSubmitSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { playerId, actionType, durationDays, note } = parseResult.data;
+                const moderatorId = req.user.getId();
+                const dbService = await getDynamoDbServiceAsync();
+
+                if (!dbService) {
+                    return res.status(503).json({ success: false, message: 'Database service unavailable' });
+                }
+
+                // Verify target player exists
+                // TODO rewrite so we use the UserFactory
+                const playerProfile = await dbService.getUserProfileAsync(playerId);
+                if (!playerProfile) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Target player not found'
+                    });
+                }
+
+                const now = new Date();
+                const modActionId = uuid();
+                const expiresAt = actionType === ModActionType.Mute && durationDays
+                    ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString()
+                    : null;
+
+                const modAction: IModActionEntity = {
+                    id: modActionId,
+                    playerId,
+                    actionType,
+                    durationDays: durationDays ?? null,
+                    note,
+                    moderatorId,
+                    createdAt: now.toISOString(),
+                    expiresAt,
+                    cancelledAt: null,
+                    cancelledBy: null,
+                };
+
+                // Write to DynamoDB
+                // TODO rewrite so we use the UserFactory
+                await dbService.saveModActionAsync(modAction);
+
+                // Write-through to cache
+                if (this.modActionCache) {
+                    await this.modActionCache.onActionSubmitted(playerId, modAction);
+                }
+
+                logger.info(`GameServer (mod-submit-action): Moderator ${moderatorId} issued ${actionType} on player ${playerId}`, {
+                    moderatorId,
+                    playerId,
+                    actionType,
+                    modActionId,
+                    durationDays: durationDays ?? null,
+                });
+
+                return res.status(200).json({
+                    success: true,
+                    message: `${actionType} action submitted successfully`,
+                    modAction,
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-submit-action) Server error:', err);
+                next(err);
+            }
+        });
+
+
+        // ---------- POST /api/mod/cancel-action ----------
+        app.post('/api/mod/cancel-action', this.buildAuthMiddleware('mod-cancel-action', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = ModActionCancelSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { modActionId, playerId } = parseResult.data;
+                const cancelledBy = req.user.getId();
+                const dbService = await getDynamoDbServiceAsync();
+
+                if (!dbService) {
+                    return res.status(503).json({ success: false, message: 'Database service unavailable' });
+                }
+
+                // Cancel in DynamoDB (sets cancelledAt/cancelledBy, removes GSI_PK)
+                // TODO rewrite so we use the cache
+                const result = await dbService.cancelModActionAsync(playerId, modActionId, cancelledBy);
+                const cancelledAction = result.Attributes;
+
+                if (!cancelledAction) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Mod action not found'
+                    });
+                }
+
+                // Write-through to cache
+                if (this.modActionCache) {
+                    this.modActionCache.onActionCancelled(playerId, modActionId);
+                }
+
+                logger.info(`GameServer (mod-cancel-action): Moderator ${cancelledBy} cancelled action ${modActionId} on player ${playerId}`, {
+                    moderatorId: cancelledBy,
+                    playerId,
+                    modActionId,
+                });
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'Mod action cancelled successfully',
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-cancel-action) Server error:', err);
+                next(err);
             }
         });
     }

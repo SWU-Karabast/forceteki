@@ -245,13 +245,16 @@ export class UserFactory {
                 }
             }
 
+            // update the GSI username
+            await dbService.deleteUsernameLinkAsync(userProfile.username, userId);
+            await dbService.saveUsernameLinkAsync(newUsername, userId);
+
             // Update username and set the timestamp
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
                 needsUsernameChange: false,
             });
-
             logger.info(`Username for ${userId} changed to ${newUsername}`);
 
             return {
@@ -354,6 +357,8 @@ export class UserFactory {
             await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
             // Save the user profile
             await dbService.saveUserProfileAsync(newUser);
+            // create username link
+            await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
             // Create email link if email is available
             if (!email) {
                 throw new Error(`Email not found for user ${newUser.id}`);
