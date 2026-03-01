@@ -35,9 +35,16 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
     };
 
     public eventHandler(event): void {
+        const context = event.context as AbilityContext;
         const player = event.player;
         const newContext = (event.attackAbility as InitiateAttackAction).createContext(player);
-        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
+        context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
+        context.game.queueSimpleStep(() => {
+            if (context.activeAttackId !== undefined) {
+                return;
+            }
+            context.activeAttackId = newContext.activeAttackId;
+        }, 'copy active attack id to parent context');
     }
 
     protected override addPropertiesToEvent(event, attacker: IUnitCard, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): void {

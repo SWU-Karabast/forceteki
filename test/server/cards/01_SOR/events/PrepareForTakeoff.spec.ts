@@ -15,7 +15,7 @@ describe('Prepare for Takeoff', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.prepareForTakeoff);
-                expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 2 cards');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour, context.escortSkiff],
                     invalid: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
@@ -42,8 +42,15 @@ describe('Prepare for Takeoff', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.infernoFour, true);
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(3)).toContain('player1 plays Prepare for Takeoff to look at the top 8 cards of their deck');
-                expect(context.getChatLogs(3)).toContain('player1 takes Green Squadron A-Wing and Restored ARC-170');
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.greenSquadronAwing, context.restoredArc170]);
+                context.player2.clickDone();
+
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Prepare for Takeoff to search the top 8 cards of their deck',
+                    'player1 uses Prepare for Takeoff to reveal and draw Green Squadron A-Wing and Restored ARC-170 and to move 6 cards to the bottom of their deck'
+                ]);
                 expect(context.greenSquadronAwing).toBeInZone('hand');
                 expect(context.restoredArc170).toBeInZone('hand');
 
@@ -59,7 +66,7 @@ describe('Prepare for Takeoff', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.prepareForTakeoff);
-                expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 2 cards');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour, context.escortSkiff],
@@ -76,7 +83,12 @@ describe('Prepare for Takeoff', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing');
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.greenSquadronAwing]);
+                context.player2.clickDone();
+
+                expect(context.getChatLog()).toEqual('player1 uses Prepare for Takeoff to reveal and draw Green Squadron A-Wing and to move 7 cards to the bottom of their deck');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
 
                 expect(context.restoredArc170).toBeInBottomOfDeck(context.player1, 7);

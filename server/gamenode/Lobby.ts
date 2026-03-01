@@ -36,6 +36,7 @@ import { ModerationType } from '../services/DynamoDBInterfaces';
 import type { MessageText } from '../game/Interfaces';
 import { ReportType } from '../game/Interfaces';
 import { PlayerReportType } from '../game/Interfaces';
+import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -57,6 +58,7 @@ interface IChatMessageEntry {
 
 enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
+    AllowSpectators = 'allowSpectators',
 }
 
 enum Bo3SetEndedReason {
@@ -154,6 +156,7 @@ export class Lobby {
     private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
+    private readonly spectateLink?: string;
     private readonly gameChat: GameChat;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -167,6 +170,7 @@ export class Lobby {
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
+    private allowSpectators = false;
 
     private game?: Game;
     public users: LobbyUserWrapper[] = [];
@@ -209,7 +213,9 @@ export class Lobby {
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat(() => this.sendLobbyState());
         this.connectionLink = matchmakingType !== MatchmakingType.Quick ? this.createLobbyLink() : null;
+        this.spectateLink = matchmakingType !== MatchmakingType.Quick ? this.createSpectateLink() : null;
         this.isPrivate = matchmakingType === MatchmakingType.PrivateLobby;
+        this.allowSpectators = matchmakingType !== MatchmakingType.PrivateLobby;
         this.matchmakingType = matchmakingType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
@@ -242,6 +248,10 @@ export class Lobby {
 
     public get format(): SwuGameFormat {
         return this.gameFormat;
+    }
+
+    public get spectationAllowed(): boolean {
+        return this.allowSpectators;
     }
 
     public get gamesToWinMode(): GamesToWinMode {
@@ -346,6 +356,7 @@ export class Lobby {
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
+            spectateLink: this.spectateLink,
             gameType: this.matchmakingType,
             userWhoMutedChat: this.userWhoMutedChat,
             gameFormat: this.gameFormat,
@@ -359,6 +370,7 @@ export class Lobby {
             sideboardTimeoutStatus: this.bo3LobbyReadyTimer?.timeRemainingStatus,
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
+                allowSpectators: this.allowSpectators,
             },
         };
     }
@@ -411,6 +423,12 @@ export class Lobby {
             : `https://karabast.net/lobby?lobbyId=${this._id}`;
     }
 
+    private createSpectateLink(): string {
+        return process.env.ENVIRONMENT === 'development'
+            ? `http://localhost:3000/spectate?lobbyId=${this._id}`
+            : `https://karabast.net/spectate?lobbyId=${this._id}`;
+    }
+
     private updateUserLastActivity(id: string): void {
         // if we received a message we know the user is connected
         this.getUser(id).state = 'connected';
@@ -461,6 +479,15 @@ export class Lobby {
             socket.disconnect();
             return;
         }
+
+        // Remove any existing lobby listeners if spectator already existed and reconnected
+        if (socket.eventContainsListener('lobby')) {
+            socket.removeEventsListeners(['lobby']);
+        }
+
+        // Limited lobby message handling for spectators
+        socket.registerEvent('lobby', (socket, command, ...args) => this.onSpectatorLobbyMessage(socket, command, ...args));
+
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
@@ -1205,6 +1232,7 @@ export class Lobby {
             this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
+
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
             game.started = true;
@@ -1333,6 +1361,7 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
+            attackRulesVersion: this.format === SwuGameFormat.Premier ? AttackRulesVersion.CR6 : AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
@@ -1358,6 +1387,20 @@ export class Lobby {
         this.server.handleIntentionalDisconnect(userId, false, this);
 
         logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
+    }
+
+    private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
+
+    private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
+        try {
+            if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
+                return;
+            }
+
+            await this[command](socket, ...args);
+        } catch (error) {
+            logger.error('Lobby: error processing spectator lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
@@ -2077,11 +2120,39 @@ export class Lobby {
                 user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
-        for (const user of this.spectators) {
-            if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+        for (const spectator of this.spectators) {
+            if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
+                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
             }
         }
+    }
+
+    /**
+     * Handle client request for message retransmit when gaps are detected.
+     * Client calls this with (startIndex, endIndex) to get messages in that range.
+     */
+    private retransmitGameMessages(socket: Socket, startIndex: number, endIndex: number): void {
+        if (!this.game) {
+            return;
+        }
+
+        const allMessages = this.game.messages;
+        const totalCount = allMessages.length;
+
+        // Clamp indices to valid range
+        const safeStart = Math.max(0, Math.min(startIndex, totalCount));
+        const safeEnd = Math.max(safeStart, Math.min(endIndex, totalCount));
+
+        const requestedMessages = allMessages.slice(safeStart, safeEnd);
+
+        const userId = socket.user.getId();
+        logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: this.game.getChatMessageOffset(userId) });
+
+        socket.send('retransmitResponse', {
+            messages: requestedMessages,
+            startIndex: safeStart,
+            totalCount: totalCount
+        });
     }
 
     private safeSetUserConnected(userId: string): void {
@@ -2116,6 +2187,12 @@ export class Lobby {
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.undoMode = settingValue ? UndoMode.Request : UndoMode.Free;
                 this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`);
+                break;
+            case LobbySettingKeys.AllowSpectators:
+                Contract.assertTrue(this.isPrivate, 'The allowSpectators setting can only be changed in private lobbies');
+                this.assertSettingType(settingName, settingValue, 'boolean');
+                this.allowSpectators = settingValue;
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} spectation`);
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);

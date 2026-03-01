@@ -7,7 +7,7 @@ import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 export default class HighsingerDeadlyDroid extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'highsinger#deadly-droid-id',
+            id: '3224839175',
             internalName: 'highsinger#deadly-droid'
         };
     }

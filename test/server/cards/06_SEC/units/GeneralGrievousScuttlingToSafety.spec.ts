@@ -72,7 +72,6 @@ describe('General Grievous, Scuttling to Safety', function() {
 
                 context.player2.clickPrompt('You');
                 context.player2.clickPrompt('(no effect) Restore 3');
-                context.player2.clickPrompt('Trigger');
                 context.player2.setDistributeDamagePromptState(new Map([
                     [context.generalGrievousScuttlingToSafety, 3],
                 ]));

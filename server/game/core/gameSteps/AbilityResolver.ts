@@ -267,9 +267,13 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         const abilityCosts = this.context.ability.getCosts(this.context);
 
-        // prioritize any costs that have a targeting requirement first so that they can be cancellable
-        const { trueAra: metaActionCosts, falseAra: otherCosts } = Helpers.splitArray(abilityCosts, (cost) => cost.isMetaActionCost());
-        const orderedAbilityCosts = metaActionCosts.concat(otherCosts);
+        let orderedAbilityCosts = abilityCosts;
+        // Check if cost reordering is disabled for this ability
+        if (!this.context.ability.isActionAbility() || !this.context.ability.disableCostReordering) {
+            // prioritize any costs that have a targeting requirement first so that they can be cancellable
+            const { trueAra: metaActionCosts, falseAra: otherCosts } = Helpers.splitArray(abilityCosts, (cost) => cost.isMetaActionCost());
+            orderedAbilityCosts = metaActionCosts.concat(otherCosts);
+        }
 
         this.context.player.hasResolvedAbilityThisTimepoint = true;
         for (const cost of orderedAbilityCosts) {

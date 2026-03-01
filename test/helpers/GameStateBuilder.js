@@ -7,6 +7,7 @@ const fs = require('fs');
 const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager');
 const { StateWatcherLibrary } = require('../../server/game/stateWatchers/StateWatcherLibrary');
+const { AttackRulesVersion } = require('../../server/game/core/attack/AttackFlow');
 
 class GameStateBuilder {
     constructor() {
@@ -107,6 +108,7 @@ class GameStateBuilder {
         this.validatePlayerOptions(options.player2, 'player2', options.phase);
 
         context.game.gameMode = SwuGameFormat.Premier;
+        context.game.attackRulesVersion = options.attackRulesVersion ?? AttackRulesVersion.CR6;
 
         if (options.hasOwnProperty('enableConfirmationToUndo')) {
             context.game.setUndoConfirmationRequired(!!options.enableConfirmationToUndo);
@@ -326,6 +328,7 @@ class GameStateBuilder {
             'autoSingleTarget',
             'testUndo',
             'enableConfirmationToUndo',
+            'attackRulesVersion'
         ];
 
         // Check for unknown properties

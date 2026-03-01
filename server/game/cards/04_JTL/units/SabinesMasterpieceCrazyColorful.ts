@@ -45,9 +45,11 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                         amountOfChoices: 1,
                         choices: () => ({
                             ['Exhaust a resource']: AbilityHelper.immediateEffects.selectPlayer({
+                                activePromptTitle: 'Choose a player to exhaust a resource',
                                 immediateEffect: AbilityHelper.immediateEffects.exhaustResources({ amount: 1 }),
                             }),
                             ['Ready a resource']: AbilityHelper.immediateEffects.selectPlayer({
+                                activePromptTitle: 'Choose a player to ready a resource',
                                 immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
                             }),
                         })

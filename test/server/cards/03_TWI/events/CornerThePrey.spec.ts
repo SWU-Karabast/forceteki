@@ -20,14 +20,14 @@ describe('Corner The Prey', function () {
                 context.player1.clickCard(context.cornerThePrey);
                 context.player1.clickCard(context.consularSecurityForce);
                 context.player1.clickCard(context.chewbacca);
-                expect(context.getChatLogs(2)).toEqual([
+                expect(context.getChatLogs(3)).toEqual([
                     'player1 plays Corner the Prey to initiate an attack with Consular Security Force',
                     'player1 attacks Chewbacca with Consular Security Force and uses Corner the Prey to give +2/+0 to Consular Security Force for this attack',
+                    'player1 uses Consular Security Force\'s gained ability from Vambrace Flamethrower to distribute 3 damage among enemy units',
                 ]);
 
                 // The Consular Security Force should have +2 power for this attack
                 expect(context.consularSecurityForce.getPower()).toBe(6);
-                context.player1.clickPrompt('Trigger');
 
                 // Deal 3 damage to Chewbacca before the attack resolution
                 // They should not increase the power of the Consular Security Force for this attack

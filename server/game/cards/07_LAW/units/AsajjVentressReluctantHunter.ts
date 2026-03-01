@@ -6,7 +6,7 @@ import { Trait, WildcardCardType } from '../../../core/Constants';
 export default class AsajjVentressReluctantHunter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'asajj-ventress#reluctant-hunter-id',
+            id: '2967567348',
             internalName: 'asajj-ventress#reluctant-hunter',
         };
     }

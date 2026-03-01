@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { RelativePlayer } from '../../../core/Constants';
 
 export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +17,10 @@ export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.isUpgrade(),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }
