@@ -1,8 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect } from '../../../core/Constants';
-import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class KuiilIHaveSpoken extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,14 +12,13 @@ export default class KuiilIHaveSpoken extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `Discard a card from your deck. If it has a ${TextHelper.aspects(Aspect.Vigilance)} aspect icon, return it to your hand`,
-            optional: true,
+            title: 'Discard a card from your deck. If it shares an aspect with your base, return it to your hand',
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
                 target: context.player
             })),
             ifYouDo: (context) => ({
-                title: `If it has a ${TextHelper.aspects(Aspect.Vigilance)} aspect icon, return it to your hand`,
+                title: 'If it shares an aspect with your base, return it to your hand',
                 ifYouDoCondition: () => this.hasMatchingAspects(context),
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand({
                     target: context.events[0].card
