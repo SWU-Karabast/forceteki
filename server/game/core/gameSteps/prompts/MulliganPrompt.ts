@@ -72,7 +72,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
                     card.moveTo(DeckZoneDestination.DeckBottom);
                 }
 
-                player.shuffleDeck();
+                player.shuffleDeck(true);
 
                 new DrawSystem({ amount: player.getStartingHandSize() })
                     .resolve(

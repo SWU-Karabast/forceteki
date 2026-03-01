@@ -19,7 +19,6 @@ export default class FaithInYourFriends extends EventCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 3,
                 selectCount: 1,
-                revealSelected: false,
                 selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
             }),
             then: {

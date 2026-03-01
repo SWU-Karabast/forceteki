@@ -7,6 +7,8 @@ import { DamageSystem } from './DamageSystem';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
+import * as Helpers from '../core/utils/Helpers';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -34,7 +36,20 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['draw {0}', [ChatHelpers.pluralize(properties.amount, 'a card', 'cards')]];
+        const effects: FormatMessage[] = Helpers.asArray(properties.target).map((target) => {
+            const cardAmount = ChatHelpers.pluralize(properties.amount, 'a card', 'cards');
+            if (target === context.player) {
+                return {
+                    format: 'draw {0}',
+                    args: [cardAmount],
+                };
+            }
+            return {
+                format: 'make {0} draw {1}',
+                args: [target, cardAmount],
+            };
+        });
+        return [ChatHelpers.formatWithLength(effects.length, 'to '), effects];
     }
 
     public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDrawProperties> = {}): boolean {

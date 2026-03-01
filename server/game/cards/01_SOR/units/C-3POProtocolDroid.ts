@@ -31,19 +31,16 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
                     const topCardOfDeck = context.player.getTopCardOfDeck();
                     return {
                         condition: parseInt(thenContext.select) === topCardOfDeck?.printedCost,
-                        onTrue: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => ({
+                        onTrue: AbilityHelper.immediateEffects.lookAtAndChooseOption({
                             target: topCardOfDeck,
                             perCardButtons: [
                                 {
                                     text: 'Reveal and Draw',
                                     arg: 'reveal-draw',
-                                    immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                                        AbilityHelper.immediateEffects.drawSpecificCard(),
-                                        AbilityHelper.immediateEffects.reveal({
-                                            useDisplayPrompt: true,
-                                            promptedPlayer: RelativePlayer.Opponent
-                                        }),
-                                    ])
+                                    immediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                                        useDisplayPrompt: true,
+                                        promptedPlayer: RelativePlayer.Opponent
+                                    })
                                 },
                                 {
                                     text: 'Leave on Top',
@@ -51,7 +48,7 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
                                     immediateEffect: AbilityHelper.immediateEffects.noAction()
                                 }
                             ]
-                        })),
+                        }),
                         onFalse: AbilityHelper.immediateEffects.lookAt({
                             target: topCardOfDeck,
                             useDisplayPrompt: true

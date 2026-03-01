@@ -58,6 +58,7 @@ interface IChatMessageEntry {
 
 enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
+    AllowSpectators = 'allowSpectators',
 }
 
 enum Bo3SetEndedReason {
@@ -155,6 +156,7 @@ export class Lobby {
     private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
+    private readonly spectateLink?: string;
     private readonly gameChat: GameChat;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -168,6 +170,7 @@ export class Lobby {
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
+    private allowSpectators = false;
 
     private game?: Game;
     public users: LobbyUserWrapper[] = [];
@@ -210,7 +213,9 @@ export class Lobby {
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat(() => this.sendLobbyState());
         this.connectionLink = matchmakingType !== MatchmakingType.Quick ? this.createLobbyLink() : null;
+        this.spectateLink = matchmakingType !== MatchmakingType.Quick ? this.createSpectateLink() : null;
         this.isPrivate = matchmakingType === MatchmakingType.PrivateLobby;
+        this.allowSpectators = matchmakingType !== MatchmakingType.PrivateLobby;
         this.matchmakingType = matchmakingType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
@@ -243,6 +248,10 @@ export class Lobby {
 
     public get format(): SwuGameFormat {
         return this.gameFormat;
+    }
+
+    public get spectationAllowed(): boolean {
+        return this.allowSpectators;
     }
 
     public get gamesToWinMode(): GamesToWinMode {
@@ -347,6 +356,7 @@ export class Lobby {
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
+            spectateLink: this.spectateLink,
             gameType: this.matchmakingType,
             userWhoMutedChat: this.userWhoMutedChat,
             gameFormat: this.gameFormat,
@@ -360,6 +370,7 @@ export class Lobby {
             sideboardTimeoutStatus: this.bo3LobbyReadyTimer?.timeRemainingStatus,
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
+                allowSpectators: this.allowSpectators,
             },
         };
     }
@@ -410,6 +421,12 @@ export class Lobby {
         return process.env.ENVIRONMENT === 'development'
             ? `http://localhost:3000/lobby?lobbyId=${this._id}`
             : `https://karabast.net/lobby?lobbyId=${this._id}`;
+    }
+
+    private createSpectateLink(): string {
+        return process.env.ENVIRONMENT === 'development'
+            ? `http://localhost:3000/spectate?lobbyId=${this._id}`
+            : `https://karabast.net/spectate?lobbyId=${this._id}`;
     }
 
     private updateUserLastActivity(id: string): void {
@@ -2170,6 +2187,12 @@ export class Lobby {
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.undoMode = settingValue ? UndoMode.Request : UndoMode.Free;
                 this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`);
+                break;
+            case LobbySettingKeys.AllowSpectators:
+                Contract.assertTrue(this.isPrivate, 'The allowSpectators setting can only be changed in private lobbies');
+                this.assertSettingType(settingName, settingValue, 'boolean');
+                this.allowSpectators = settingValue;
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} spectation`);
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);

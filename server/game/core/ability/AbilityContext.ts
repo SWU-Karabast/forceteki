@@ -54,6 +54,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public playType?: PlayType;
     public cardStateWhenInitiated: any = null;
     public selectedPromptCards: Card[] = [];
+    public activeAttackId?: number;
 
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
@@ -99,6 +100,7 @@ export class AbilityContext<TSource extends Card = Card> {
         copy.gameActionsResolutionChain = this.gameActionsResolutionChain;
         copy.playType = this.playType;
         copy.events = this.events;
+        copy.activeAttackId = this.activeAttackId;
         return copy;
     }
 

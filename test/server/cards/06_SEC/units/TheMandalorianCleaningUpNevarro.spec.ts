@@ -116,7 +116,6 @@ describe('The Mandalorian, Cleaning Up Nevarro', function() {
 
                 context.player1.clickCard(context.theMandalorianCleaningUpNevarro);
                 context.player1.clickCard(context.jawaScavenger);
-                context.player1.clickPrompt('Trigger');
 
                 // trigger flamethrower damage
                 context.player1.setDistributeDamagePromptState(new Map([

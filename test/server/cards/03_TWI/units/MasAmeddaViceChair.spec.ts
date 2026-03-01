@@ -35,7 +35,11 @@ describe('Mas Amedda, Vice Chair', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.systemPatrolCraft);
 
-                expect(context.getChatLogs(2)).toContain('player1 takes System Patrol Craft');
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.systemPatrolCraft]);
+                context.player2.clickDone();
+
+                expect(context.getChatLog()).toContain('player1 uses Mas Amedda to reveal and draw System Patrol Craft');
 
                 // Check cards in hand
                 expect(context.systemPatrolCraft).toBeInZone('hand');
