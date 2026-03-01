@@ -1,6 +1,7 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class SawGerrerasUWingBreakingTheRules extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -12,7 +13,7 @@ export default class SawGerrerasUWingBreakingTheRules extends NonLeaderUnitCard 
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addWhenAttackEndsAbility({
-            title: 'Attack with another Aggression unit',
+            title: `Attack with another ${TextHelper.aspects(Aspect.Aggression)} unit`,
             attackerMustSurvive: true,
             optional: true,
             initiateAttack: {

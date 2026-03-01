@@ -3,6 +3,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { Aspect, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class GalacticAmbition extends EventCard {
     protected override getImplementationId () {
@@ -14,7 +15,7 @@ export default class GalacticAmbition extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Play a non-Heroism unit from your hand for free. if you do, deal damage to your base equal to its cost',
+            title: `Play a non-${TextHelper.aspects(Aspect.Heroism)} unit from your hand for free. if you do, deal damage to your base equal to its cost`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,

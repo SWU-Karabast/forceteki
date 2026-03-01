@@ -5,6 +5,7 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class MonMothmaFormingACoalition extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +17,7 @@ export default class MonMothmaFormingACoalition extends LeaderUnitCard {
 
     private buildMonMothmaAbilityProperties(abilityHelper: IAbilityHelper) {
         return {
-            title: 'Ignore the aspect penalty on non-Villainy Official units you play',
+            title: `Ignore the aspect penalty on non-${TextHelper.aspects(Aspect.Villainy)} Official units you play`,
             targetController: RelativePlayer.Self,
             ongoingEffect: abilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.Unit,

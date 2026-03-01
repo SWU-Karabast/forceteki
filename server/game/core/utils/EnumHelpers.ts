@@ -1,7 +1,9 @@
-import type { CardTypeFilter, ZoneFilter, MoveZoneDestination, Aspect, Conjunction } from '../Constants';
+import type { CardTypeFilter, ZoneFilter, MoveZoneDestination, Aspect } from '../Constants';
+import type { Conjunction } from '../Constants';
 import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
 import type { Player } from '../Player';
 import * as Helpers from './Helpers';
+import { TextHelper } from './TextHelpers';
 
 // Cache for enum lookup maps (lowercase string -> enum value)
 const enumLookupCache = new Map<object, Map<string, unknown>>();
@@ -269,15 +271,11 @@ export const asRelativePlayer = (player: Player, otherPlayer: Player): RelativeP
     return player === otherPlayer ? RelativePlayer.Self : RelativePlayer.Opponent;
 };
 
+/** @deprecated Use {@link TextHelper.aspects} instead */
 export function aspectString(
     aspects: Aspect[],
     conjunction: Conjunction | null = null
 ): string {
-    return aspects
-        .map((aspect, index) => {
-            return (conjunction && aspects.length > 1 && index === aspects.length - 1)
-                ? `${conjunction} :${aspect.toLowerCase()}:`
-                : `:${aspect.toLowerCase()}:`;
-        })
-        .join((!conjunction || aspects.length > 2) ? ', ' : ' ');
+    // TODO: Remove this function entirely and update the call sites
+    return TextHelper.aspects(aspects, conjunction);
 }

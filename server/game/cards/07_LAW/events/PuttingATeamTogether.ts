@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { Aspect, Conjunction, RelativePlayer } from '../../../core/Constants';
-import { aspectString } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class PuttingATeamTogether extends EventCard {
     protected override getImplementationId() {
@@ -14,7 +14,7 @@ export default class PuttingATeamTogether extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `Search the top 8 cards of your deck for a ${aspectString([Aspect.Vigilance, Aspect.Aggression, Aspect.Cunning], Conjunction.Or)} unit, reveal it, and draw it`,
+            title: `Search the top 8 cards of your deck for a ${TextHelper.aspects([Aspect.Vigilance, Aspect.Aggression, Aspect.Cunning], Conjunction.Or)} unit, reveal it, and draw it`,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect([Aspect.Vigilance, Aspect.Aggression, Aspect.Cunning]),

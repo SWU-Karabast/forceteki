@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,7 +15,7 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Play a Heroism unit from your discard pile. It costs 3 less',
+            title: `Play a ${TextHelper.aspects(Aspect.Heroism)} unit from your discard pile. It costs 3 less`,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
                 zoneFilter: ZoneName.Discard,
