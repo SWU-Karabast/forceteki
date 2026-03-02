@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { Duration, EffectName } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { GameObjectBase } from '../../GameObjectBase';
 import { registerState } from '../../GameObjectUtils';
 import type { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';

@@ -2,7 +2,7 @@ import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { UpgradeCard } from '../card/UpgradeCard';
 import { WildcardCardType } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { registerState } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import { SimpleZone } from './SimpleZone';

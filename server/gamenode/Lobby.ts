@@ -1,4 +1,4 @@
-import Game from '../game/core/Game';
+import { Game } from '../game/core/Game';
 import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import * as Contract from '../game/core/utils/Contract';
@@ -33,7 +33,7 @@ import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
-import type { MessageText } from '../game/Interfaces';
+import type { ISerializedMessage } from '../game/Interfaces';
 import { ReportType } from '../game/Interfaces';
 import { PlayerReportType } from '../game/Interfaces';
 import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
@@ -44,16 +44,6 @@ interface LobbySpectatorWrapper {
     state: 'connected' | 'disconnected';
     socket?: Socket;
     user?: User;
-}
-
-interface IChatMessageEntry {
-    date: Date;
-    message: MessageText | {
-        alert: {
-            type: string;
-            message: string | string[];
-        };
-    };
 }
 
 enum LobbySettingKeys {
@@ -2233,7 +2223,7 @@ export class Lobby {
                 ? this.game.captureGameState(socket.user.getId())
                 : { phase: 'action', player1: {}, player2: {} };
 
-            let gameMessages: IChatMessageEntry[];
+            let gameMessages: ISerializedMessage[];
             let opponent: { id: string; username: string };
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());

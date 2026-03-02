@@ -1,7 +1,7 @@
 import { AbilityType } from '../Constants';
 import type { IDamageModificationAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, WhenTypeOrStandard } from '../../Interfaces';
 import type { Card } from '../card/Card';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import TriggeredAbility from './TriggeredAbility';
 import type { Player } from '../Player';
 import { ReplacementEffectContext } from './ReplacementEffectContext';

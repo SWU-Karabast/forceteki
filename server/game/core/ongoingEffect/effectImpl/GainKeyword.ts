@@ -3,7 +3,7 @@ import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import * as Helpers from '../../utils/Helpers';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import type { Card } from '../../card/Card';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { FormatMessage } from '../../chat/GameChat';
 
 export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | IKeywordProperties[]> {

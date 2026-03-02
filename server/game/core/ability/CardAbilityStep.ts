@@ -10,7 +10,7 @@ import type { GameEvent } from '../event/GameEvent.js';
 import type { Player } from '../Player.js';
 import type { AbilityContext } from './AbilityContext.js';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker.js';
 import type { FormatMessage, MsgArg } from '../chat/GameChat.js';
 import * as ChatHelpers from '../chat/ChatHelpers';
@@ -92,7 +92,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             if (!Array.isArray(messageArgs)) {
                 messageArgs = [messageArgs];
             }
-            this.game.addMessage(this.properties.message, ...(messageArgs as any[]));
+            this.game.addMessage(this.properties.message as string, ...(messageArgs as any[]));
             return;
         }
 

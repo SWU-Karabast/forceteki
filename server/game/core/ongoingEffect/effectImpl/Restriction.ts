@@ -4,7 +4,7 @@ import type { FormatMessage } from '../../chat/GameChat';
 import type { EffectName } from '../../Constants';
 import { AbilityRestriction } from '../../Constants';
 import type { Card } from '../../card/Card';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 

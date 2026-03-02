@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { ICostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 import type { ICostAdjustmentResolutionProperties } from './CostInterfaces';

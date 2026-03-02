@@ -30,7 +30,7 @@ import { ResourceZone } from './zone/ResourceZone';
 import { DiscardZone } from './zone/DiscardZone';
 import { OutsideTheGameZone } from './zone/OutsideTheGameZone';
 import { BaseZone } from './zone/BaseZone';
-import type Game from './Game';
+import type { Game } from './Game';
 import type { ZoneAbstract } from './zone/ZoneAbstract';
 import type { Card } from './card/Card';
 import type { IUser } from '../../Settings';

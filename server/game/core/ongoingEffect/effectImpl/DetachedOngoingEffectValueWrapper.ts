@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import { registerState, undoMap } from '../../GameObjectUtils';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';

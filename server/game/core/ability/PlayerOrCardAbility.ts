@@ -8,7 +8,7 @@ import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetR
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import * as Helpers from '../utils/Helpers.js';
 import { AbilityContext } from './AbilityContext.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import type { Player } from '../Player.js';
 import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';

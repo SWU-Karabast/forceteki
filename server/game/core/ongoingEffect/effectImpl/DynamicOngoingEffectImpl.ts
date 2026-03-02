@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { GameObject } from '../../GameObject';
 import { registerState, undoMap } from '../../GameObjectUtils';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';

@@ -9,7 +9,7 @@ import { CardsDiscardedThisPhaseWatcher } from './CardsDiscardedThisPhaseWatcher
 import { UnitsHealedThisPhaseWatcher } from './UnitsHealedThisPhaseWatcher';
 import { LeadersDeployedThisPhaseWatcher } from './LeadersDeployedThisPhaseWatcher';
 import { ForceUsedThisPhaseWatcher } from './ForceUsedThisPhaseWatcher';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import { ActionsThisPhaseWatcher } from './ActionsThisPhaseWatcher';

@@ -1,7 +1,7 @@
 import { PhaseName, RollbackSetupEntryPoint } from '../Constants';
 import { RollbackRoundEntryPoint as RollbackRoundEntryPoint } from '../Constants';
 import { SnapshotType } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
 import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';

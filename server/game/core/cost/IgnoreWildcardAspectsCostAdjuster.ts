@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IIgnoreWildcardAspectsCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustResult, ICostAdjustTriggerResult } from './CostInterfaces';

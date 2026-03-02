@@ -8,7 +8,7 @@ import type { IAttackProperties } from '../gameSystems/AttackStepsSystem.js';
 import { AttackStepsSystem } from '../gameSystems/AttackStepsSystem.js';
 import { GameSystemCost } from '../core/cost/GameSystemCost.js';
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem.js';
-import type Game from '../core/Game.js';
+import type { Game } from '../core/Game';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker.js';
 

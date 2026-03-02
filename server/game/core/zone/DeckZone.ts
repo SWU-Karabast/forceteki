@@ -8,7 +8,7 @@ import type { IAddRemoveZone } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IRandomness } from '../Randomness';
 import { registerState, undoArray } from '../GameObjectUtils';
 

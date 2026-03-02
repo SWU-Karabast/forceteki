@@ -3,7 +3,7 @@ import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
 
 export interface IAbilityLimit {

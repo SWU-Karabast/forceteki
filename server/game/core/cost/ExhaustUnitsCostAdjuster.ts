@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import { EventName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IExhaustUnitsCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode, CostAdjustType } from './CostAdjuster';
 import * as Contract from '../utils/Contract.js';

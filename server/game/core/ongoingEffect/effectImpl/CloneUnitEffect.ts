@@ -5,7 +5,7 @@ import type { FormatMessage } from '../../chat/GameChat';
 import { EffectName } from '../../Constants';
 import type { ICardWithStandardAbilitySetup } from '../../card/propertyMixins/StandardAbilitySetup';
 import type { IUnitAbilityRegistrar, IUnitCard } from '../../card/propertyMixins/UnitProperties';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 
 export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandardAbilitySetup<Card>> {
     private printedActionAbilitiesUuidByTargetCard?: Set<string>;

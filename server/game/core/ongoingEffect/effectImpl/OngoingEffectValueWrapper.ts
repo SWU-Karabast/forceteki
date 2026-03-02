@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { FormatMessage } from '../../chat/GameChat';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { GameObjectBase } from '../../GameObjectBase';
 import { registerState } from '../../GameObjectUtils';

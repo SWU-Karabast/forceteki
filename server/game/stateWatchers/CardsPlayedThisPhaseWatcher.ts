@@ -6,7 +6,7 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
 export interface PlayedCardEntry {

@@ -2,7 +2,7 @@ import type { IBaseCard } from '../card/BaseCard';
 import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../card/propertyMixins/Token';
 import { ZoneName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { registerState, undoArray, undoObject } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';

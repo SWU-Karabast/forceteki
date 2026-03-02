@@ -1,7 +1,7 @@
 
 import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
-import type Game from './Game';
+import type { Game } from './Game';
 import type { Player } from './Player';
 import type { Card } from './card/Card';
 import type { GameObjectRef, IGameObjectBaseState } from './GameObjectBase';

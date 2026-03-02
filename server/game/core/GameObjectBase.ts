@@ -1,4 +1,4 @@
-import type Game from './Game';
+import type { Game } from './Game';
 import { CopyMode, copyState, registerState } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';

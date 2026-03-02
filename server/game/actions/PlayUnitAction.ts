@@ -4,7 +4,7 @@ import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { Card } from '../core/card/Card.js';
-import type Game from '../core/Game.js';
+import type { Game } from '../core/Game';
 import type { FormatMessage } from '../core/chat/GameChat.js';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';

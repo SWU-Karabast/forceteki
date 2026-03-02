@@ -4,7 +4,7 @@ import { PlayerZone } from './PlayerZone';
 import * as Helpers from '../utils/Helpers.js';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
-import type Game from '../Game';
+import type { Game } from '../Game';
 
 export class ResourceZone extends PlayerZone<IPlayableCard> {
     public override readonly hiddenForPlayers: RelativePlayer.Opponent;
