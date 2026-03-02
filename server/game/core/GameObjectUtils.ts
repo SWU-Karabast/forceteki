@@ -771,26 +771,3 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     }
 }
 
-
-/**
- * Decorator that marks a class field as non-enumerable.
- * This prevents the property from appearing in `for...in` loops, `Object.keys()`, etc.
- * Uses `addInitializer` so that the property is redefined after the field is set.
- *
- * @example
- * ⁣@nonEnumerable accessor myProp: string = 'value';
- */
-export function nonEnumerable(_target: undefined, context: ClassFieldDecoratorContext) {
-    context.addInitializer(function (this: object) {
-        // eslint-disable-next-line no-invalid-this
-        const descriptor = Object.getOwnPropertyDescriptor(this, context.name);
-        if (descriptor && descriptor.enumerable !== false) {
-            // eslint-disable-next-line no-invalid-this
-            Object.defineProperty(this, context.name, {
-                ...descriptor,
-                enumerable: false,
-            });
-        }
-    });
-}
-

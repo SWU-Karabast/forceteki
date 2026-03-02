@@ -7,7 +7,7 @@ import { TrackedGameCardMetric, GameCardMetric } from '../../server/gameStatisti
 import type Game from '../../server/game/core/Game.js';
 import type { InPlayCard } from '../../server/game/core/card/baseClasses/InPlayCard.js';
 import type { IStatefulPromptResults } from '../../server/game/core/gameSteps/PromptInterfaces.js';
-import { nonEnumerable } from '../../server/game/core/GameObjectUtils.js';
+import { nonEnumerable } from './decorators.js';
 
 export class PlayerInteractionWrapper {
     @nonEnumerable
