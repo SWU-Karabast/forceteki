@@ -2,11 +2,13 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
 import type Game from '../Game';
+import { registerState } from '../GameObjectUtils';
 import type { IIgnoreWildcardAspectsCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustResult, ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
+@registerState()
 export class IgnoreWildcardAspectsCostAdjuster extends CostAdjuster {
     public readonly wildcardAspects: Set<Aspect>;
     public readonly ignoreCount: number;

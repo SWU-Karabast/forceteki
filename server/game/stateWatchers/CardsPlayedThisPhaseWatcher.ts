@@ -9,6 +9,8 @@ import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployabl
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export interface PlayedCardEntry {
     card: GameObjectRef<IPlayableCard>;
     // playEvent: any;
@@ -22,6 +24,7 @@ export interface PlayedCardEntry {
     playedAsType: CardType;
 }
 
+@registerState()
 export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry> {
     public constructor(
         game: Game,

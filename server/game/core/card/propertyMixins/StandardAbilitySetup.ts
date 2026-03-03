@@ -1,23 +1,32 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { registerState } from '../../GameObjectUtils';
 import * as Contract from '../../utils/Contract';
 import type { IBasicAbilityRegistrar } from '../AbilityRegistrationInterfaces';
-import type { Card, CardConstructor, ICardState } from '../Card';
+import type { Card, CardConstructor } from '../Card';
 
 export interface ICardWithStandardAbilitySetup<T extends Card> extends Card {
     setupCardAbilities(registrar: IBasicAbilityRegistrar<T>, AbilityHelper: IAbilityHelper): void;
 }
 
 /** Mixin function that creates a version of the base class that is a Token. */
-export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
-    return class WithStandardAbilitySetup extends BaseClass implements ICardWithStandardAbilitySetup<Card<TState>> {
+export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+    @registerState()
+    class WithStandardAbilitySetup extends BaseClass implements ICardWithStandardAbilitySetup<Card> {
+        private readonly cardText: string;
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
 
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
+            this.cardText = cardData.text;
+        }
+
+        protected override onInitialize(): void {
+            super.onInitialize();
+
             this.callSetupWithRegistrar();
-            this.validateCardAbilities(this.triggeredAbilities, cardData.text);
+            this.validateCardAbilities(this.triggeredAbilities, this.cardText);
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
             if (this.hasImplementationFile) {
@@ -43,5 +52,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         public setupCardAbilities(registrar: IBasicAbilityRegistrar<this>, AbilityHelper: IAbilityHelper) { }
-    };
+    }
+
+    return WithStandardAbilitySetup;
 }

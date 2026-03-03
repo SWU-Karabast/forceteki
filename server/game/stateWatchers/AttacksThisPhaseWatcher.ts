@@ -9,6 +9,8 @@ import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 import type { ICardAttributes } from '../Interfaces';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export interface AttackEntry {
     attacker: GameObjectRef<IUnitCard>;
     attackerInPlayId: number;
@@ -21,6 +23,7 @@ export interface AttackEntry {
     attackId: number;
 }
 
+@registerState()
 export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
     public constructor(
         game: Game,
