@@ -1,6 +1,7 @@
 import type Game from '../Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
-import type { IGameSnapshot } from './SnapshotInterfaces';
+import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
+import { copyState } from '../GameObjectUtils';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
 import { to } from '../utils/TypeHelpers';
@@ -9,6 +10,7 @@ import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
 
 export interface IGameObjectRegistrar {
+    readonly lastGameObjectId: number;
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
     get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null;
 
@@ -90,6 +92,7 @@ export class GameStateManager implements IGameObjectRegistrar {
             if (!this._disableRegistration) {
                 this.allGameObjects.push(go);
                 this.gameObjectMapping.set(go.uuid, go);
+                this.#game.deltaTracker?.recordObjectCreation(go.uuid);
             }
         }
     }
@@ -217,5 +220,118 @@ export class GameStateManager implements IGameObjectRegistrar {
     private afterTakeSnapshot() {
         // TODO: We want this to be able to go through
         //          and remove any unused OngoingEffects from the list once they are no longer needed by any snapshots.
+    }
+
+    /**
+     * Rolls back state by applying a single reverse delta.
+     * On failure, attempts to restore from beforeRollbackSnapshot if provided.
+     */
+    public rollbackToDelta(delta: IDeltaSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
+        Contract.assertNotNullLike(delta, 'Empty delta provided for rollback');
+        this._isRollingBack = true;
+        try {
+            const removals: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+            const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+
+            let rollbackError: Error | null = null;
+            try {
+                // 1. Restore Game.state
+                this.#game.state = v8.deserialize(delta.gameState);
+
+                // 2. Restore RNG state
+                this.#game.randomGenerator.restore(delta.rngState);
+
+                // 3. Restore lastGameObjectId
+                this._lastGameObjectId = delta.lastGameObjectId;
+
+                // 4. Remove GOs created during this delta window
+                for (const uuid of delta.createdObjectUuids) {
+                    const go = this.gameObjectMapping.get(uuid);
+                    if (go) {
+                        removals.push({ go, oldState: go.getState() });
+                    }
+                }
+
+                // 5. Restore changed fields
+                for (const [uuid, fields] of delta.changedFields) {
+                    const go = this.gameObjectMapping.get(uuid);
+                    if (!go) {
+                        // GO may have been removed in a previous delta in the chain — skip
+                        continue;
+                    }
+
+                    updates.push({ go, oldState: go.getState() });
+
+                    // Write old values back to state
+                    const stateRef = go.getStateUnsafe();
+                    for (const [fieldName, oldValue] of Object.entries(fields)) {
+                        stateRef[fieldName] = oldValue;
+                    }
+
+                    // Rebuild caches (UndoArray, resolved refs, etc.)
+                    copyState(go, stateRef);
+                }
+
+                // 6. Cleanup removed GOs
+                for (const removed of removals) {
+                    removed.go.cleanupOnRemove(removed.oldState);
+                }
+
+                // 7. afterSetState on updated GOs
+                for (const update of updates) {
+                    // afterSetState is protected — use the public setState flow workaround.
+                    // Since we already wrote state fields and called copyState, we invoke afterSetState indirectly
+                    // by calling the same hook pattern as setState does.
+                    (update.go as unknown as { afterSetState(oldState: IGameObjectBaseState): void }).afterSetState(update.oldState);
+                }
+            } catch (error) {
+                if (!beforeRollbackSnapshot) {
+                    logger.error('Error during delta rollback and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
+                }
+
+                rollbackError = error;
+                logger.error('Error during delta rollback. Attempting to restore existing state before rollback.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+            }
+
+            if (rollbackError) {
+                try {
+                    this.rollbackToSnapshot(beforeRollbackSnapshot);
+                    this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
+                    return false;
+                } catch (error) {
+                    logger.error('The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
+                }
+            }
+
+            // Remove created GOs from registry
+            const removalUuids = new Set(removals.map((r) => r.go.uuid));
+            this.allGameObjects = this.allGameObjects.filter((go) => !removalUuids.has(go.uuid));
+            for (const uuid of removalUuids) {
+                this.gameObjectMapping.delete(uuid);
+            }
+
+            // 8. afterSetAllState on updated GOs (cross-GO dependencies)
+            for (const update of updates) {
+                update.go.afterSetAllState(update.oldState);
+            }
+
+            return true;
+        } finally {
+            this._isRollingBack = false;
+        }
+    }
+
+    /**
+     * Rolls back state by applying multiple reverse deltas in sequence (most recent first).
+     */
+    public rollbackToDeltaChain(deltas: IDeltaSnapshot[], beforeRollbackSnapshot?: IGameSnapshot): boolean {
+        for (const delta of deltas) {
+            if (!this.rollbackToDelta(delta, beforeRollbackSnapshot)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

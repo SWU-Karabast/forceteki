@@ -155,3 +155,35 @@ export enum QuickUndoAvailableState {
     RequestUndoAvailable = 'requestUndoAvailable',
     WaitingForConfirmation = 'waitingForConfirmation',
 }
+
+export interface IDeltaSnapshot {
+
+    /** Monotonically increasing snapshot ID (from SnapshotFactory) */
+    id: number;
+
+    /** Field-level changes: uuid → { fieldName: previousValue } */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    changedFields: Map<string, Record<string, any>>;
+
+    /** UUIDs of GOs created during this delta window (to remove on rollback) */
+    createdObjectUuids: string[];
+
+    /** v8-serialized Game.state at the start of this delta window */
+    gameState: Buffer;
+
+    /** RNG state for deterministic replay */
+    rngState: IRandomness['rngState'];
+
+    /** Last GO ID at the start of this delta window */
+    lastGameObjectId: number;
+
+    // Metadata (same purpose as IGameSnapshot)
+    actionNumber: number;
+    roundNumber: number;
+    phase: PhaseName;
+    timepoint: SnapshotTimepoint;
+    timepointNumber: number;
+    activePlayerId?: string;
+    requiresConfirmationToRollback: boolean;
+    nextSnapshotIsSamePlayer?: boolean;
+}

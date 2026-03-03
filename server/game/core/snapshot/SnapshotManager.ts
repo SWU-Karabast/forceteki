@@ -4,7 +4,7 @@ import { SnapshotType } from '../Constants';
 import type Game from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
+import type { ICanRollBackResult, IDeltaSnapshot, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
 import { SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
@@ -13,7 +13,9 @@ import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { SnapshotMap } from './container/SnapshotMap';
 import type { MetaSnapshotArray } from './container/MetaSnapshotArray';
 import { QuickRollbackPoint } from './container/MetaSnapshotArray';
+import type { DeltaSnapshotContainer } from './container/DeltaSnapshotContainer';
 import { PromptType } from '../gameSteps/PromptInterfaces';
+import v8 from 'node:v8';
 
 export enum UndoMode {
     Disabled = 'disabled',
@@ -46,6 +48,7 @@ export class SnapshotManager {
     protected readonly actionSnapshots: SnapshotHistoryMap<string>;
     protected readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
     protected readonly quickSnapshots: Map<string, MetaSnapshotArray>;
+    protected readonly deltaContainer: DeltaSnapshotContainer;
 
     /** Maps each player id to a map of snapshots by snapshot id */
     protected readonly manualSnapshots: Map<string, SnapshotMap<number>>;
@@ -104,6 +107,7 @@ export class SnapshotManager {
         const limits = SnapshotManager.SnapshotLimits;
         this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(limits.get(SnapshotType.Action));
         this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(limits.get(SnapshotType.Phase));
+        this.deltaContainer = this.snapshotFactory.createDeltaSnapshotContainer(limits.get(SnapshotType.Action));
         this.manualSnapshots = new Map<string, SnapshotMap<number>>();
 
         this.quickSnapshots = new Map<string, MetaSnapshotArray>();
@@ -119,15 +123,109 @@ export class SnapshotManager {
             return;
         }
 
-        if (timepoint === SnapshotTimepoint.Action) {
-            this.snapshotFactory.setNextSnapshotIsSamePlayer(this.#game.actionPhaseActivePlayer.id === this.currentSnapshottedActivePlayer);
-        }
+        if (this.shouldUseDelta(timepoint)) {
+            // Checkpoint the current delta and start a new tracking window
+            this.checkpointDelta(timepoint);
+        } else {
+            // Full snapshot for phase boundaries, setup, etc.
+            // First, checkpoint the current delta window to maintain chain continuity
+            // across phase boundaries (so cross-phase rollback via deltas works correctly).
+            // Only do this if there's an active delta chain (i.e., deltas have been created).
+            if (this.#game.deltaTracker.isTracking && this.deltaContainer.getDeltaCount() > 0) {
+                this.checkpointDeltaBeforeFullSnapshot(timepoint);
+            } else {
+                this.#game.deltaTracker.stopTracking();
+            }
 
-        this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
+            if (timepoint === SnapshotTimepoint.Action) {
+                this.snapshotFactory.setNextSnapshotIsSamePlayer(this.#game.actionPhaseActivePlayer.id === this.currentSnapshottedActivePlayer);
+            }
+
+            this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
+
+            // Start tracking for the next delta window
+            this.#game.deltaTracker.startTracking();
+        }
 
         if (this._gameStepsSinceLastUndo != null) {
             this._gameStepsSinceLastUndo++;
         }
+    }
+
+    private shouldUseDelta(timepoint: SnapshotTimepoint): boolean {
+        // Only use deltas if we already have a full snapshot as anchor (i.e., delta tracker is running)
+        if (!this.#game.deltaTracker.isTracking) {
+            return false;
+        }
+
+        return [
+            SnapshotTimepoint.Action,
+            SnapshotTimepoint.RegroupResource,
+            SnapshotTimepoint.RegroupReadyCards,
+        ].includes(timepoint);
+    }
+
+    /**
+     * Checkpoints the current delta tracking window and stores the delta.
+     * The delta records all field changes since the last checkpoint/full snapshot.
+     */
+    private checkpointDelta(timepoint: SnapshotTimepoint): void {
+        // Clean up unused GOs (same as buildGameStateForSnapshot does for full snapshots)
+        this._gameStateManager.removeUnusedGameObjects();
+
+        const { snapshotId, timepointNumber } = this.snapshotFactory.advanceIds();
+
+        if (timepoint === SnapshotTimepoint.Action) {
+            this.snapshotFactory.setNextSnapshotIsSamePlayer(this.#game.actionPhaseActivePlayer?.id === this.currentSnapshottedActivePlayer);
+        }
+
+        const delta = this.#game.deltaTracker.checkpoint({
+            id: snapshotId,
+            actionNumber: this.#game.actionNumber,
+            roundNumber: this.#game.roundNumber,
+            phase: this.#game.currentPhase,
+            timepoint,
+            timepointNumber,
+            activePlayerId: this.#game.actionPhaseActivePlayer?.id,
+            requiresConfirmationToRollback: false,
+        });
+
+        // Update metadata so currentSnapshottedXxx getters return correct values
+        this.snapshotFactory.updateCurrentMetadataFromDelta(delta);
+
+        // Store delta in the global sequence
+        this.deltaContainer.addDelta(delta);
+
+        // Start fresh tracking window
+        this.#game.deltaTracker.startTracking();
+    }
+
+    /**
+     * Checkpoints the current delta window before a full snapshot is created at a phase boundary.
+     * This ensures delta chain continuity across phase boundaries so cross-phase rollback works.
+     * Unlike checkpointDelta, this does NOT restart tracking (caller handles that).
+     */
+    private checkpointDeltaBeforeFullSnapshot(timepoint: SnapshotTimepoint): void {
+        this._gameStateManager.removeUnusedGameObjects();
+
+        const { snapshotId, timepointNumber } = this.snapshotFactory.advanceIds();
+
+        const delta = this.#game.deltaTracker.checkpoint({
+            id: snapshotId,
+            actionNumber: this.#game.actionNumber,
+            roundNumber: this.#game.roundNumber,
+            phase: this.#game.currentPhase,
+            timepoint,
+            timepointNumber,
+            activePlayerId: this.#game.actionPhaseActivePlayer?.id,
+            requiresConfirmationToRollback: false,
+        });
+
+        this.snapshotFactory.updateCurrentMetadataFromDelta(delta);
+        this.deltaContainer.addDelta(delta);
+
+        // Stop tracking — the full snapshot path will restart it
+        this.#game.deltaTracker.stopTracking();
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {
@@ -137,6 +235,13 @@ export class SnapshotManager {
 
         switch (settings.type) {
             case SnapshotType.Action:
+                // If we have a delta for this player, use it for quick snapshots
+                const latestDelta = this.deltaContainer.getMostRecentDelta();
+                if (latestDelta) {
+                    this.addQuickDeltaSnapshot(settings.playerId, latestDelta);
+                    return latestDelta.id;
+                }
+                // Fall back to full snapshot action path
                 const actionSnapshotNumber = this.actionSnapshots.takeSnapshot(settings.playerId);
                 this.addQuickActionSnapshot(settings.playerId);
                 return actionSnapshotNumber;
@@ -173,6 +278,29 @@ export class SnapshotManager {
         Contract.assertTrue(actionSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from an action snapshot, but the latest action snapshot for ${playerId} (${actionSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that an action snapshot is taken before creating a quick snapshot from it.`);
 
         quickSnapshots.addSnapshotFromMap(this.actionSnapshots, playerId);
+    }
+
+    /**
+     * Adds a quick snapshot entry backed by a delta snapshot.
+     * The rollback handler will apply the delta chain instead of restoring a full snapshot.
+     */
+    private addQuickDeltaSnapshot(playerId: string, delta: IDeltaSnapshot) {
+        Contract.assertNotNullLike(playerId);
+
+        let quickSnapshots = this.quickSnapshots.get(playerId);
+        if (!quickSnapshots) {
+            quickSnapshots = this.snapshotFactory.createMetaSnapshotArray();
+            this.quickSnapshots.set(playerId, quickSnapshots);
+        }
+
+        const snapshotId = delta.id;
+
+        quickSnapshots.addDeltaSnapshot(
+            snapshotId,
+            () => this.rollbackDelta(snapshotId),
+            () => this.deltaContainer.hasSnapshotId(snapshotId),
+            () => this.deltaContainer.getSnapshotPropertiesById(snapshotId)
+        );
     }
 
     private addQuickStartOfPhaseSnapshots(phase: PhaseName.Regroup | PhaseName.Setup) {
@@ -270,6 +398,11 @@ export class SnapshotManager {
 
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
+
+            // Restart delta tracking after any rollback
+            this.#game.deltaTracker.stopTracking();
+            this.#game.deltaTracker.startTracking();
+
             this._gameStepsSinceLastUndo = 0;
             return {
                 success: true,
@@ -304,6 +437,71 @@ export class SnapshotManager {
         }
 
         return snapshotId;
+    }
+
+    /**
+     * Performs a delta rollback: collects all deltas from the player's delta chain
+     * that are newer than the target snapshot's ID, and applies them in reverse.
+     * After rollback, rebuilds the current snapshot from the resulting game state.
+     */
+    private rollbackDelta(targetSnapshotId: number): number | null {
+        // Stop delta tracking first — we need to capture the live (un-checkpointed) changes
+        this.#game.deltaTracker.stopTracking();
+
+        // Create a live delta from the current tracking window (captures the current action's changes)
+        const liveDelta = this.#game.deltaTracker.createLiveDelta();
+
+        // Get stored deltas that are NEWER than the target (we want to roll back to the target point)
+        const storedDeltasToApply = this.deltaContainer.getDeltasNewerThan(targetSnapshotId);
+
+        // Build the full chain: live delta first (most recent), then stored deltas in reverse chronological order
+        const deltasToApply = [liveDelta, ...storedDeltasToApply];
+
+        // Get a safety full snapshot before attempting delta rollback
+        const beforeRollbackSnapshot = this.snapshotFactory.currentSnapshotId != null
+            ? (() => {
+                // Build a fresh full snapshot of current state for safety
+                const gameState = v8.serialize(this.#game.state);
+                const states = this._gameStateManager.buildGameStateForSnapshot();
+                return {
+                    id: this.snapshotFactory.currentSnapshotId,
+                    lastGameObjectId: this._gameStateManager.lastGameObjectId,
+                    actionNumber: this.#game.actionNumber,
+                    roundNumber: this.#game.roundNumber,
+                    timepoint: this.currentSnapshottedTimepointType,
+                    timepointNumber: this.currentSnapshottedTimepointNumber,
+                    phase: this.#game.currentPhase,
+                    gameState,
+                    states,
+                    rngState: this.#game.randomGenerator.rngState,
+                    requiresConfirmationToRollback: false,
+                    activePlayerId: this.#game.actionPhaseActivePlayer?.id
+                };
+            })()
+            : undefined;
+
+        const success = this._gameStateManager.rollbackToDeltaChain(deltasToApply, beforeRollbackSnapshot);
+
+        if (!success) {
+            // Restart tracking after failed rollback
+            this.#game.deltaTracker.startTracking();
+            return null;
+        }
+
+        // Rebuild the current snapshot state from game state after delta rollback
+        // The target delta is the one we rolled back TO (its metadata has the correct timepoint info)
+        const targetDelta = this.deltaContainer.getSnapshotPropertiesById(targetSnapshotId);
+        if (targetDelta) {
+            this.snapshotFactory.rebuildCurrentSnapshotAfterDeltaRollback({
+                timepointNumber: targetDelta.timepointNumber,
+                timepoint: targetDelta.timepoint
+            });
+        }
+
+        // Restart delta tracking
+        this.#game.deltaTracker.startTracking();
+
+        return targetSnapshotId;
     }
 
     /**
@@ -475,12 +673,16 @@ export class SnapshotManager {
 
     public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {
         this.actionSnapshots.setRequiresConfirmationToRollbackCurrentSnapshot(playerId);
+        this.deltaContainer.setRequiresConfirmationToRollback();
     }
 
     public clearAllSnapshots(): void {
         this.actionSnapshots.clearAllSnapshots();
         this.phaseSnapshots.clearAllSnapshots();
+        this.deltaContainer.clearAllSnapshots();
         this.snapshotFactory.clearCurrentSnapshot();
+
+        this.#game.deltaTracker.stopTracking();
 
         for (const playerSnapshots of this.manualSnapshots.values()) {
             playerSnapshots.clearAllSnapshots();

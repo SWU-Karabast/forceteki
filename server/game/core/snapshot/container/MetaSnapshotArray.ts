@@ -96,6 +96,24 @@ export class MetaSnapshotArray {
         });
     }
 
+    /**
+     * Adds a quick snapshot entry backed by a delta snapshot.
+     * The rollback/available/properties handlers are provided by the caller (SnapshotManager).
+     */
+    public addDeltaSnapshot(
+        snapshotId: number,
+        rollback: RollbackHandler,
+        checkAvailable: AvailableHandler,
+        snapshotProperties: SnapshotPropertiesHandler
+    ): void {
+        this.entries.push({
+            rollback,
+            checkAvailable,
+            snapshotProperties,
+            snapshotId
+        });
+    }
+
     private clearNewerSnapshots(snapshotId: number): void {
         this.entries = this.entries.filter((entry) => entry.snapshotId <= snapshotId);
     }

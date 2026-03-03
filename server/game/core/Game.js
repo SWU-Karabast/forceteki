@@ -46,6 +46,7 @@ const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
 const { logger } = require('../../logger.js');
 const { SnapshotManager, UndoMode } = require('./snapshot/SnapshotManager.js');
+const { DeltaTracker } = require('./snapshot/DeltaTracker.js');
 const AbilityHelper = require('../AbilityHelper.js');
 const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
 const { getAbilityHelper } = require('../AbilityHelper.js');
@@ -239,6 +240,9 @@ class Game extends EventEmitter {
 
         /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
+
+        /** @public @readonly @type {import('./snapshot/DeltaTracker.js').DeltaTracker} */
+        this.deltaTracker = new DeltaTracker(this);
 
         /** @private @readonly @type {import('./Randomness.js').IRandomness} */
         this._randomGenerator = new Randomness();
