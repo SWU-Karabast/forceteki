@@ -237,11 +237,11 @@ class Game extends EventEmitter {
         /** @public @readonly @type {import('./attack/AttackFlow.js').AttackRulesVersion} */
         this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR6;
 
-        /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
-        this._snapshotManager = new SnapshotManager(this, details.undoMode);
-
         /** @private @readonly @type {import('./Randomness.js').IRandomness} */
         this._randomGenerator = new Randomness();
+
+        /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
+        this._snapshotManager = new SnapshotManager(this, details.undoMode);
 
         /** @private @readonly @type {Lobby} */
         this._router = options.router;
