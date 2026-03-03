@@ -14,7 +14,7 @@ export default class BenduTheOneInTheMiddle extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `The next non-${TextHelper.aspects(Aspect.Heroism)}, non-${TextHelper.aspects(Aspect.Villainy)} card you play this phase costs 2 less`,
+            title: TextHelper.performReplacements('The next non-Heroism, non-Villainy card you play this phase costs 2 less'),
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Playable,

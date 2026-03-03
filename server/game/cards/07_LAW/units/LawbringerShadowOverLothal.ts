@@ -2,7 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { Aspect, TargetMode } from '../../../core/Constants';
-import { aspectString } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -22,12 +22,12 @@ export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: () => ({
-                    [aspectString([Aspect.Vigilance])]: LawbringerShadowOverLothal.buildAbility(Aspect.Vigilance, abilityHelper),
-                    [aspectString([Aspect.Command])]: LawbringerShadowOverLothal.buildAbility(Aspect.Command, abilityHelper),
-                    [aspectString([Aspect.Aggression])]: LawbringerShadowOverLothal.buildAbility(Aspect.Aggression, abilityHelper),
-                    [aspectString([Aspect.Cunning])]: LawbringerShadowOverLothal.buildAbility(Aspect.Cunning, abilityHelper),
-                    [aspectString([Aspect.Villainy])]: LawbringerShadowOverLothal.buildAbility(Aspect.Villainy, abilityHelper),
-                    [aspectString([Aspect.Heroism])]: LawbringerShadowOverLothal.buildAbility(Aspect.Heroism, abilityHelper),
+                    [TextHelper.performReplacements('Vigilance')]: LawbringerShadowOverLothal.buildAbility(Aspect.Vigilance, abilityHelper),
+                    [TextHelper.performReplacements('Command')]: LawbringerShadowOverLothal.buildAbility(Aspect.Command, abilityHelper),
+                    [TextHelper.performReplacements('Aggression')]: LawbringerShadowOverLothal.buildAbility(Aspect.Aggression, abilityHelper),
+                    [TextHelper.performReplacements('Cunning')]: LawbringerShadowOverLothal.buildAbility(Aspect.Cunning, abilityHelper),
+                    [TextHelper.performReplacements('Villainy')]: LawbringerShadowOverLothal.buildAbility(Aspect.Villainy, abilityHelper),
+                    [TextHelper.performReplacements('Heroism')]: LawbringerShadowOverLothal.buildAbility(Aspect.Heroism, abilityHelper),
                 })
             }
         });

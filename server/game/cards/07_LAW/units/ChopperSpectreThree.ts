@@ -14,7 +14,7 @@ export default class ChopperSpectreThree extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `Give an experience token to this unit. If you control a ${TextHelper.aspects([Aspect.Cunning, Aspect.Vigilance], Conjunction.Or)} unit, give two experience tokens to him instead`,
+            title: TextHelper.performReplacements(`Give an experience token to this unit. If you control a ${TextHelper.aspectList([Aspect.Cunning, Aspect.Vigilance], Conjunction.Or)} unit, give two experience tokens to him instead`),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.isAspectInPlay([Aspect.Cunning, Aspect.Vigilance], context.source),
                 onTrue: AbilityHelper.immediateEffects.giveExperience({ amount: 2 }),

@@ -15,7 +15,7 @@ export default class AnakinSkywalkerTemptedByTheDarkSide extends LeaderUnitCard 
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Play a ${TextHelper.aspects(Aspect.Villainy)} non-unit card from your hand, ignoring its aspect penalties.`,
+            title: TextHelper.performReplacements('Play a Villainy non-unit card from your hand, ignoring its aspect penalties.'),
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
@@ -31,7 +31,7 @@ export default class AnakinSkywalkerTemptedByTheDarkSide extends LeaderUnitCard 
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Play a ${TextHelper.aspects(Aspect.Villainy)} non-unit card from your hand, ignoring its aspect penalties.`,
+            title: TextHelper.performReplacements('Play a Villainy non-unit card from your hand, ignoring its aspect penalties.'),
             cost: AbilityHelper.costs.useTheForce(),
             targetResolver: {
                 zoneFilter: ZoneName.Hand,

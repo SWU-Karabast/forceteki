@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, RelativePlayer } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class HighsingerDeadlyDroid extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -16,7 +16,7 @@ export default class HighsingerDeadlyDroid extends NonLeaderUnitCard {
         const aggression = [Aspect.Aggression];
         const command = [Aspect.Command];
         registrar.addWhenPlayedAbility({
-            title: `Give an experience to another friendly ${EnumHelpers.aspectString(command)} unit`,
+            title: TextHelper.performReplacements(`Give an experience to another friendly ${TextHelper.aspectList(command)} unit`),
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => card !== context.source && card.isUnit() && card.hasSomeAspect(Aspect.Command),
@@ -24,7 +24,7 @@ export default class HighsingerDeadlyDroid extends NonLeaderUnitCard {
             }
         });
         registrar.addWhenDefeatedAbility({
-            title: `Give an experience to a friendly ${EnumHelpers.aspectString(aggression)} unit`,
+            title: TextHelper.performReplacements(`Give an experience to a friendly ${TextHelper.aspectList(aggression)} unit`),
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Aggression),

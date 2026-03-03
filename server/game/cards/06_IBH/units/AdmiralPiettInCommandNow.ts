@@ -14,7 +14,7 @@ export default class AdmiralPiettInCommandNow extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `If you control a ${TextHelper.aspects(Aspect.Aggression)} unit, draw a card`,
+            title: TextHelper.performReplacements('If you control a Aggression unit, draw a card'),
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit({ aspect: Aspect.Aggression }),
                 onTrue: abilityHelper.immediateEffects.draw()

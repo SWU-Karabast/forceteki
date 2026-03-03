@@ -14,7 +14,7 @@ export default class R2D2KnownToMakeMistakes extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `If you control a ${TextHelper.aspects(Aspect.Command)} unit, exhaust an enemy ground unit that costs 4 or less`,
+            title: TextHelper.performReplacements('If you control a Command unit, exhaust an enemy ground unit that costs 4 or less'),
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit({ aspect: Aspect.Command }),
                 onTrue: abilityHelper.immediateEffects.selectCard({

@@ -14,7 +14,7 @@ export default class ImperialDeckOfficer extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Heal 2 damage from a ${TextHelper.aspects(Aspect.Villainy)} unit`,
+            title: TextHelper.performReplacements('Heal 2 damage from a Villainy unit'),
             cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

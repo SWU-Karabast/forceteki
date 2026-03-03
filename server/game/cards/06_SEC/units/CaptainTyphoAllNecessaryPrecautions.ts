@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class CaptainTyphoAllNecessaryPrecautions extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class CaptainTyphoAllNecessaryPrecautions extends NonLeaderUnitCa
         const aspects = [Aspect.Command, Aspect.Heroism];
 
         registrar.addOnDefenseAbility({
-            title: `Disclose ${EnumHelpers.aspectString(aspects)} to heal 1 damage from your base`,
+            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to heal 1 damage from your base`),
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Heal 1 damage from your base',

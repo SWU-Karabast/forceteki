@@ -14,7 +14,7 @@ export default class AidFromTheInnocent extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `Search the top 10 cards of your deck for 2 ${TextHelper.aspects(Aspect.Heroism)} non-unit cards and discard them. For this phase, you may play the discarded cards, and they each cost 2 less.`,
+            title: TextHelper.performReplacements('Search the top 10 cards of your deck for 2 Heroism non-unit cards and discard them. For this phase, you may play the discarded cards, and they each cost 2 less.'),
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 targetMode: TargetMode.UpTo,
                 selectCount: 2,

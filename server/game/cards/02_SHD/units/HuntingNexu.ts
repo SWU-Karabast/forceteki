@@ -14,7 +14,7 @@ export default class HuntingNexu extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another ${TextHelper.aspects(Aspect.Aggression)} unit, this unit gains Raid 2`,
+            title: TextHelper.performReplacements('While you control another Aggression unit, this unit gains Raid 2'),
             condition: (context) => context.player.isAspectInPlay(Aspect.Aggression, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });

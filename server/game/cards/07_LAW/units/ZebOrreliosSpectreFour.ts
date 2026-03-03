@@ -14,7 +14,7 @@ export default class ZebOrreliosSpectreFour extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `Deal 3 damage to a ground unit. If you control a ${TextHelper.aspects([Aspect.Command, Aspect.Cunning], Conjunction.Or)} unit, deal 5 damage to a ground unit instead`,
+            title: TextHelper.performReplacements(`Deal 3 damage to a ground unit. If you control a ${TextHelper.aspectList([Aspect.Command, Aspect.Cunning], Conjunction.Or)} unit, deal 5 damage to a ground unit instead`),
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,
