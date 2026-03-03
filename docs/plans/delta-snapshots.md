@@ -34,7 +34,7 @@ moveToNextTimepoint(timepoint)
 | `server/game/core/snapshot/container/MetaSnapshotArray.ts` | Current quick snapshot container (pointers to full snapshots) |
 | `server/game/core/snapshot/container/SnapshotHistoryMap.ts` | Bounded container for action/phase snapshots |
 | `server/game/core/snapshot/container/SnapshotContainerBase.ts` | Base class with `clearNewerSnapshots` binding |
-| `server/game/core/Game.js` | `Game.state` (plain object, not a GameObjectBase). Manual getters/setters for state fields |
+| `server/game/core/Game.ts` | `Game.state` (plain object, not a GameObjectBase). Manual getters/setters for state fields |
 
 ### How State Decorators Work
 
@@ -135,7 +135,7 @@ Maximum delta chain length is bounded by the action snapshot limit (**currently 
 
 ### `Game.state` Handling
 
-`Game.state` is a plain object (~11 fields, ~1-2KB serialized). It is **not** a `GameObjectBase`. Continue using `v8.serialize(game.state)` in delta snapshots — the cost is negligible and avoids the complexity of intercepting the manual getters/setters in `Game.js`.
+`Game.state` is a plain object (~11 fields, ~1-2KB serialized). It is **not** a `GameObjectBase`. Continue using `v8.serialize(game.state)` in delta snapshots — the cost is negligible and avoids the complexity of intercepting the manual getters/setters in `Game.ts`.
 
 ### Collection Handling
 
@@ -370,7 +370,7 @@ export class DeltaTracker {
 
 ### Step 3: Add `deltaTracker` to `Game`
 
-**File**: `server/game/core/Game.js`
+**File**: `server/game/core/Game.ts`
 
 - Add a `DeltaTracker` instance as a property on `Game`, created in the constructor.
 - It should be accessible as `this.game.deltaTracker` from any `GameObjectBase`.
@@ -1443,7 +1443,7 @@ The `deleteProperty` trap (line 425 of `GameObjectUtils.ts`) currently does `del
 | Decision | Rationale |
 |---|---|
 | Collections use **bulk copy** on first mutation | Simple, fast enough for typical collection sizes (0–40 elements). Granular operation tracking deferred unless profiling identifies a need. |
-| `Game.state` stays **v8-serialized** in deltas | ~1-2KB, not worth the complexity of intercepting manual getters/setters in `Game.js`. |
+| `Game.state` stays **v8-serialized** in deltas | ~1-2KB, not worth the complexity of intercepting manual getters/setters in `Game.ts`. |
 | Action undo **chains deltas** (max 3 per player) | No full snapshots during action phase. Phase snapshots at phase boundaries serve as safety checkpoints. |
 | Delta rollback failure **attempts recovery first** | Matches existing rollback behavior: restore from `beforeRollbackSnapshot`, then severe-halt only if recovery fails. |
 | Full snapshots remain at **phase boundaries, setup, and manual snapshots** | Infrequent, provides safe anchors for delta chains. |
