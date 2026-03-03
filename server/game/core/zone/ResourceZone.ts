@@ -4,7 +4,7 @@ import { PlayerZone } from './PlayerZone';
 import * as Helpers from '../utils/Helpers.js';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
-import type Game from '../Game';
+import type { Game } from '../Game';
 
 import { registerState } from '../GameObjectUtils';
 

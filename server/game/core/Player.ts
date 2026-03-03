@@ -30,7 +30,7 @@ import { ResourceZone } from './zone/ResourceZone';
 import { DiscardZone } from './zone/DiscardZone';
 import { OutsideTheGameZone } from './zone/OutsideTheGameZone';
 import { BaseZone } from './zone/BaseZone';
-import type Game from './Game';
+import type { Game } from './Game';
 import type { ZoneAbstract } from './zone/ZoneAbstract';
 import type { Card } from './card/Card';
 import type { IUser } from '../../Settings';
@@ -723,14 +723,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     // }
 
     /**
-     * Shuffles the deck, optionally displaying a message in chat
-     * @param {boolean} emitMessage - Whether to display a message in chat
+     * Shuffles the deck
      */
-    public shuffleDeck(emitMessage = false) {
-        if (emitMessage) {
-            this.game.addMessage('{0} is shuffling their deck', this);
-        }
-
+    public shuffleDeck() {
         this.deckZone.shuffle(this.game.randomGenerator);
     }
 

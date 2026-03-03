@@ -1,6 +1,6 @@
 import { OngoingEffect } from './OngoingEffect';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Card } from '../card/Card';
 import type { IOngoingPlayerEffectProps } from '../../Interfaces';
 import type { Player } from '../Player';

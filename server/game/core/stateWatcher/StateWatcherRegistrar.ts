@@ -1,5 +1,5 @@
 import type { StateWatcherName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefMap } from '../GameObjectUtils';
 import type { StateWatcher } from './StateWatcher';

@@ -5,7 +5,7 @@ import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../
 import type { IEventRegistration, ITriggeredAbilityProps, WhenType, WhenTypeOrStandard } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import * as Contract from '../utils/Contract';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';

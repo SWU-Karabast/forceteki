@@ -3,7 +3,7 @@ import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
 import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityType } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';

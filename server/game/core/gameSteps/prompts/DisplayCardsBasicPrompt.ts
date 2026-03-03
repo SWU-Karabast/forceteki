@@ -1,6 +1,6 @@
 import * as Util from '../../../../Util';
 import type { Card } from '../../card/Card';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';

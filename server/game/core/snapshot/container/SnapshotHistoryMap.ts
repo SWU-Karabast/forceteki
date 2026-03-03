@@ -1,4 +1,4 @@
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { GameStateManager } from '../GameStateManager';
 import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
 import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';

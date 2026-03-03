@@ -29,7 +29,7 @@ import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
-import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
+import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { requireEnvVars } from '../env';
@@ -568,7 +568,7 @@ export class GameServer {
                 }
 
                 // Check for profanity
-                if (usernameContainsProfanity(newUsername)) {
+                if (userOrLobbyNameContainsProfanity(newUsername)) {
                     logger.warn(`GameServer (change-username): User ${user.getId()} attempted to use a username containing profanity: ${newUsername}`);
                     return res.status(400).json({
                         success: false,
@@ -1002,6 +1002,24 @@ export class GameServer {
                 if (req.user?.hasClientProvidedId()) {
                     logger.verbose(`GameServer (create-lobby): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
                     this.dailyActiveUserIds.add(req.user.getId());
+                }
+
+                // Check for profanity
+                if (userOrLobbyNameContainsProfanity(lobbyName)) {
+                    logger.warn(`GameServer (create-lobby): User ${user.getId()} attempted to use a lobby name containing profanity: ${lobbyName}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Lobby name contains inappropriate words'
+                    });
+                }
+
+                // Check for length
+                if (lobbyName.length > 100) {
+                    logger.warn(`GameServer (create-lobby): User ${user.getId()} attempted to use a lobby name that is too long: ${lobbyName}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Lobby name is too long, max 100 characters'
+                    });
                 }
 
                 // Check if the user is already in a lobby
