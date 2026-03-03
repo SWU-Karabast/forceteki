@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 
 export default class NabooSecurityForce extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class NabooSecurityForce extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command];
         registrar.addTriggeredAbility({
-            title: `Disclose ${EnumHelpers.aspectString(aspects)} to give a friendly unit Sentinel for this phase`,
+            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to give a friendly unit Sentinel for this phase`),
             when: {
                 whenPlayed: true,
                 whenDefeated: true,

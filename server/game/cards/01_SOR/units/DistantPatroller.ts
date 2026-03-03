@@ -14,7 +14,7 @@ export default class DistantPatroller extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: `Give a Shield token to a ${TextHelper.aspects(Aspect.Vigilance)} unit`,
+            title: TextHelper.performReplacements('Give a Shield token to a Vigilance unit'),
             optional: true,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Vigilance),

@@ -14,7 +14,7 @@ export default class EscortSkiff extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Gain Ambush while you control another ${TextHelper.aspects(Aspect.Command)} unit`,
+            title: TextHelper.performReplacements('Gain Ambush while you control another Command unit'),
             condition: (context) => context.player.isAspectInPlay(Aspect.Command, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
         });

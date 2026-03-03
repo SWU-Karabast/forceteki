@@ -16,9 +16,13 @@ export default class DarthVaderCommandingTheFirstLegion extends NonLeaderUnitCar
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `Search the top 10 cards of your deck for any number of ${TextHelper.aspects(Aspect.Villainy)} units with combined cost 3 or less and play each of them for free`,
+            title: TextHelper.performReplacements(
+                'Search the top 10 cards of your deck for any number of Villainy units with combined cost 3 or less and play each of them for free'
+            ),
             immediateEffect: AbilityHelper.immediateEffects.playMultipleCardsFromDeck({
-                activePromptTitle: `Choose any number of ${TextHelper.aspects(Aspect.Villainy)} units with combined cost 3 or less to play for free`,
+                activePromptTitle: TextHelper.performReplacements(
+                    'Choose any number of Villainy units with combined cost 3 or less to play for free'
+                ),
                 searchCount: 10,
                 selectCount: 10,
                 canChooseFewer: true,

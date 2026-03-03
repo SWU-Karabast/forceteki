@@ -14,7 +14,7 @@ export default class LieutenantChildsenDeathStarPrisonWarden extends NonLeaderUn
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `Reveal up to 4 ${TextHelper.aspects(Aspect.Vigilance)} cards from your hand. For each card revealed this way, give an Experience token to this unit`,
+            title: TextHelper.performReplacements('Reveal up to 4 Vigilance cards from your hand. For each card revealed this way, give an Experience token to this unit'),
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 4,

@@ -24,7 +24,7 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
 
     protected override setupLeaderSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `If a friendly ${TextHelper.aspects(Aspect.Heroism)} unit was defeated this phase, draw a card, heal 2 damage from your base, then flip this leader.`,
+            title: TextHelper.performReplacements('If a friendly Heroism unit was defeated this phase, draw a card, heal 2 damage from your base, then flip this leader.'),
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.friendlyHeroismCardDefeatedThisPhase(context),
@@ -39,7 +39,7 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
 
     protected override setupLeaderBackSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `If you played a ${TextHelper.aspects(Aspect.Villainy)} card this phase, create a Clone Trooper, deal 2 damage to each enemy base, and then flip this leader.`,
+            title: TextHelper.performReplacements('If you played a Villainy card this phase, create a Clone Trooper, deal 2 damage to each enemy base, and then flip this leader.'),
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.villainyCardPlayedThisPhase(context),

@@ -14,7 +14,7 @@ export default class C3POOhDearOhDear extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `If you control a ${TextHelper.aspects(Aspect.Cunning)} unit, draw a card`,
+            title: TextHelper.performReplacements('If you control a Cunning unit, draw a card'),
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit({ aspect: Aspect.Cunning }),
                 onTrue: abilityHelper.immediateEffects.draw()

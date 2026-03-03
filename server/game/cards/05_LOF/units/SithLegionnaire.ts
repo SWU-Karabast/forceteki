@@ -14,7 +14,7 @@ export default class SithLegionnaire extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another ${TextHelper.aspects(Aspect.Villainy)} unit, this unit gets +2/+0`,
+            title: TextHelper.performReplacements('While you control another Villainy unit, this unit gets +2/+0'),
             condition: (context) => context.player.hasSomeArenaUnit({
                 aspect: Aspect.Villainy,
                 otherThan: context.source
