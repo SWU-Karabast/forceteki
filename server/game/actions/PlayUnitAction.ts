@@ -1,5 +1,5 @@
-import type { PlayRestriction } from '../core/Constants.js';
 import { AbilityRestriction, PlayType, ZoneName } from '../core/Constants.js';
+import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -70,26 +70,16 @@ export class PlayUnitAction extends PlayCardAction {
      * @param player The player attempting to play the unit
      * @param card The unit card being played
      * @param context The context for restriction checks
-     * @returns The AbilityRestriction blocking play, or null if not restricted
+     * @returns The Restriction blocking play, or null if not restricted
      */
-    public static getPlayRestriction(player: Player, card: Card, context: AbilityContext): PlayRestriction | null {
-        if (player.hasRestriction(AbilityRestriction.Play, context)) {
-            return AbilityRestriction.Play;
-        }
-        if (player.hasRestriction(AbilityRestriction.PlayUnit, context)) {
-            return AbilityRestriction.PlayUnit;
-        }
-        if (player.hasRestriction(AbilityRestriction.PutIntoPlay, context)) {
-            return AbilityRestriction.PutIntoPlay;
-        }
-        if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
-            return AbilityRestriction.EnterPlay;
-        }
-        return null;
+    public static getPlayRestriction(player: Player, card: Card, context: AbilityContext): Restriction | null {
+        return player.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.PlayUnit, AbilityRestriction.PutIntoPlay], context)[0]
+            ?? card.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.EnterPlay], context)[0]
+            ?? null;
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
-        if (PlayUnitAction.getPlayRestriction(context.player, context.source, context) !== null) {
+        if (PlayUnitAction.getPlayRestriction(context.player, context.source, context) != null) {
             return 'restriction';
         }
         return super.meetsRequirements(context, ignoredRequirements);

@@ -5,7 +5,7 @@ import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityType, CardType, ZoneName, WildcardRelativePlayer, StandardTriggeredAbilityType } from '../Constants';
-import type { PlayRestriction } from '../Constants';
+import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationEffectAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../Interfaces';
@@ -55,7 +55,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties));
     }
 
-    protected override getPlayRestriction(player: Player, context: AbilityContext): PlayRestriction | null {
+    protected override getPlayRestriction(player: Player, context: AbilityContext): Restriction | null {
         return PlayUpgradeAction.getPlayRestriction(player, this, context);
     }
 

@@ -10,7 +10,7 @@ import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
-import type { PlayRestriction } from '../../Constants';
+
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
@@ -242,10 +242,10 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
      * Subclasses should override this to call the appropriate static method from their PlayAction class.
      * @param player The player attempting to play the card
      * @param context The context for restriction checks
-     * @returns The AbilityRestriction blocking play, or null if not restricted
+     * @returns The Restriction blocking play, or null if not restricted
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected getPlayRestriction(player: Player, context: AbilityContext): PlayRestriction | null {
+    protected getPlayRestriction(player: Player, context: AbilityContext): Restriction | null {
         // Base implementation - should be overridden by subclasses
         return null;
     }
@@ -263,24 +263,20 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             return null;
         }
 
-        // Use the subclass implementation to check which restriction is blocking play
+        // Use the subclass implementation to check which restriction is blocking play.
+        // Only surface restrictions applied by an opponent's card (not self-imposed play restrictions
+        // like One in a Million's "can't be played from hand" condition).
         const playRestriction = this.getPlayRestriction(this.controller, context);
-        if (playRestriction === null) {
+        if (playRestriction == null) {
             return null;
         }
 
-        // Find the source of the blocking restriction
-        const restrictions = this.controller.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions);
-        const sources = this.controller.getOngoingEffectSources(EffectName.AbilityRestrictions);
-
-        for (let i = 0; i < restrictions.length; i++) {
-            if (restrictions[i].isMatch(playRestriction, context)) {
-                const sourceName = sources[i]?.title || 'an effect';
-                return `Blocked by ${sourceName}`;
-            }
+        const restrictionSource = playRestriction.context?.source;
+        if (restrictionSource == null || restrictionSource.controller === this.controller) {
+            return null;
         }
 
-        return null;
+        return `Blocked by ${restrictionSource.title}`;
     }
 
     public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {

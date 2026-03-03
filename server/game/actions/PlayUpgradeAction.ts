@@ -3,8 +3,8 @@ import type { IPlayCardActionProperties, PlayCardContext } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import type { PlayRestriction } from '../core/Constants';
 import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, ZoneName } from '../core/Constants';
+import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type Game from '../core/Game';
 import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
@@ -70,23 +70,16 @@ export class PlayUpgradeAction extends PlayCardAction {
      * @param player The player attempting to play the upgrade
      * @param card The upgrade card being played
      * @param context The context for restriction checks
-     * @returns The AbilityRestriction blocking play, or null if not restricted
+     * @returns The Restriction blocking play, or null if not restricted
      */
-    public static getPlayRestriction(player: Player, card: Card, context: AbilityContext): PlayRestriction | null {
-        if (player.hasRestriction(AbilityRestriction.Play, context)) {
-            return AbilityRestriction.Play;
-        }
-        if (player.hasRestriction(AbilityRestriction.PlayUpgrade, context)) {
-            return AbilityRestriction.PlayUpgrade;
-        }
-        if (player.hasRestriction(AbilityRestriction.PutIntoPlay, context)) {
-            return AbilityRestriction.PutIntoPlay;
-        }
-        return null;
+    public static getPlayRestriction(player: Player, card: Card, context: AbilityContext): Restriction | null {
+        return player.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.PlayUpgrade, AbilityRestriction.PutIntoPlay], context)[0]
+            ?? card.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.EnterPlay], context)[0]
+            ?? null;
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
-        if (PlayUpgradeAction.getPlayRestriction(context.player, context.source, context) !== null) {
+        if (PlayUpgradeAction.getPlayRestriction(context.player, context.source, context) != null) {
             return 'restriction';
         }
 

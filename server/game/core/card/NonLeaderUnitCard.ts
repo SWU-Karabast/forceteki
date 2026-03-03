@@ -2,7 +2,7 @@ import type { Player } from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
 import { CardType, PlayType, Trait, ZoneName } from '../Constants';
-import type { PlayRestriction } from '../Constants';
+import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -43,7 +43,7 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
         return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUnitAction(this.game, this, properties));
     }
 
-    protected override getPlayRestriction(player: Player, context: AbilityContext): PlayRestriction | null {
+    protected override getPlayRestriction(player: Player, context: AbilityContext): Restriction | null {
         return PlayUnitAction.getPlayRestriction(player, this, context);
     }
 

@@ -1401,7 +1401,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             controllerId: this.controller.id,
             ownerId: this.owner.id,
             zone: this.zoneName,
-            blockedFromPlayReason,
             uuid: isActivePlayer ? this.uuid : undefined
         };
         return { ...state, ...selectionState };
