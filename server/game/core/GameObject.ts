@@ -4,15 +4,17 @@ import { AbilityRestriction, EffectName, Stage } from './Constants';
 import type Game from './Game';
 import type { Player } from './Player';
 import type { Card } from './card/Card';
-import type { GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
+import type { IGameObjectBaseState } from './GameObjectBase';
 import { GameObjectBase } from './GameObjectBase';
 import type { Restriction } from './ongoingEffect/effectImpl/Restriction';
 import type { OngoingCardEffect } from './ongoingEffect/OngoingCardEffect';
+import { registerState, stateRefArray, statePrimitive } from './GameObjectUtils';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IGameObjectState extends IGameObjectBaseState {
-    id: string;
-    nameField: string;
-    ongoingEffects: GameObjectRef<OngoingCardEffect>[];
+    // id: string;
+    // nameField: string;
+    // ongoingEffects: GameObjectRef<OngoingCardEffect>[];
 }
 
 export interface IOngoingEffectFilters {
@@ -22,22 +24,20 @@ export interface IOngoingEffectFilters {
 }
 
 // TODO: Rename to TargetableGameObject? Or something to imply this is a object with effects (as opposed to an Ability).
-export abstract class GameObject<T extends IGameObjectState = IGameObjectState> extends GameObjectBase<T> {
-    private get ongoingEffects(): readonly OngoingCardEffect[] {
-        return this.state.ongoingEffects.map((x) => this.game.getFromRef(x));
-    }
+@registerState()
+export abstract class GameObject extends GameObjectBase {
+    @stateRefArray(false)
+    private accessor _ongoingEffects: OngoingCardEffect[] = [];
+
+    @statePrimitive()
+    private accessor _name: string;
 
     public get name() {
-        return this.state.nameField;
+        return this._name;
     }
 
-    public get id() {
-        return this.state.id;
-    }
-
-    public set id(value) {
-        this.state.id = value;
-    }
+    @statePrimitive()
+    public accessor id: string;
 
     public constructor(
         game: Game,
@@ -46,34 +46,29 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     ) {
         super(game);
 
-        this.state.id = id ?? name;
-        this.state.nameField = name;
-    }
-
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-        this.state.ongoingEffects = [];
+        this.id = id ?? name;
+        this._name = name;
     }
 
     public addOngoingEffect(ongoingEffect: OngoingCardEffect) {
-        this.state.ongoingEffects.push(ongoingEffect.getRef());
+        this._ongoingEffects.push(ongoingEffect);
     }
 
     public removeOngoingEffect(ongoingEffect: OngoingCardEffect) {
-        this.state.ongoingEffects = this.ongoingEffects.filter((e) => e.uuid !== ongoingEffect.uuid).map((x) => x.getRef());
+        this._ongoingEffects = this._ongoingEffects.filter((e) => e.uuid !== ongoingEffect.uuid);
     }
 
     public removeOngoingEffects(type: EffectName) {
-        this.state.ongoingEffects = this.ongoingEffects.filter((e) => e.type !== type).map((x) => x.getRef());
+        this._ongoingEffects = this._ongoingEffects.filter((e) => e.type !== type);
     }
 
     public getOngoingEffectValues<V = any>(type: EffectName): V[] {
-        const effects = this.state.ongoingEffects;
+        const effects = this._ongoingEffects;
         const result: V[] = [];
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < effects.length; i++) {
             // This call will want to be swapped out when the decorator is in place
-            const effect = this.game.getFromRef(effects[i]);
+            const effect = effects[i];
             if (effect.type === type) {
                 result.push(effect.getValue(this));
             }
@@ -82,12 +77,12 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     public getOngoingEffectSources(type: EffectName): Card[] {
-        const effects = this.state.ongoingEffects;
+        const effects = this._ongoingEffects;
         const result: Card[] = [];
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < effects.length; i++) {
             // This call will want to be swapped out when the decorator is in place
-            const effect = this.game.getFromRef(effects[i]);
+            const effect = effects[i];
             if (effect.type === type) {
                 result.push(effect.context.source);
             }
@@ -96,11 +91,12 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
     }
 
     public hasOngoingEffect(type: EffectName): boolean {
-        const effects = this.state.ongoingEffects;
+        const effects = this._ongoingEffects;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < effects.length; i++) {
+            const effect = effects[i];
             // This call will want to be swapped out when the decorator is in place
-            if (this.game.getFromRef(effects[i]).type === type) {
+            if (effect.type === type) {
                 return true;
             }
         }
@@ -175,7 +171,7 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
 
     protected getOngoingEffects(): readonly OngoingCardEffect[] {
         // Curently this still derefs the entire array of ongoing effects from the gamestate manager
-        return this.ongoingEffects;
+        return this._ongoingEffects;
     }
 
     public isPlayer(): this is Player {
@@ -186,3 +182,5 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return false;
     }
 }
+
+

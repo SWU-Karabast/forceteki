@@ -2,20 +2,16 @@ import type { ZoneName } from '../../Constants';
 import { CardType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import type { Player } from '../../Player';
-import type { IPlayableOrDeployableCardState, PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
+import type { PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { registerState, statePrimitive } from '../../GameObjectUtils';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ILeaderCard extends ICardWithExhaustProperty {}
-
-export interface ILeaderPropertiesCardState extends IPlayableOrDeployableCardState {
-    deployed: boolean;
-    onStartingSide: boolean;
-}
 
 /**
  * Mixin function that adds the standard properties for a unit (leader or non-leader) to a base class.
@@ -25,12 +21,25 @@ export interface ILeaderPropertiesCardState extends IPlayableOrDeployableCardSta
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithLeaderProperties<TState extends IPlayableOrDeployableCardState, TBaseClass extends PlayableOrDeployableCardConstructor = PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
-    return class AsLeader extends (BaseClass as typeof BaseClass & PlayableOrDeployableCardConstructor<TState & ILeaderPropertiesCardState>) implements ILeaderCard {
+export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCardConstructor = PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
+    @registerState()
+    class AsLeader extends (BaseClass as TBaseClass) implements ILeaderCard {
+        // STATE TODO: I am uncertain if this needs to be undefined or false to start. LeaderUnitCard sets the default, which is odd.
+        // NAMING NOTE: Normally only TS private fields would start with underscore, but there's a unusual split of logic and accessors between here and LeaderUnitCard, so this is a exception to the rule.
+        @statePrimitive()
+        protected accessor _deployed: boolean = false;
+
+        @statePrimitive()
+        protected accessor _onStartingSide: boolean = true;
+
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
             Contract.assertEqual(this.printedType, CardType.Leader);
+        }
+
+        protected override onInitialize(): void {
+            super.onInitialize();
 
             this.callSetupLeaderWithRegistrar();
         }
@@ -58,5 +67,8 @@ export function WithLeaderProperties<TState extends IPlayableOrDeployableCardSta
         public override takeControl(newController: Player, _moveTo?: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource): undefined {
             Contract.fail(`Attempting to take control of leader ${this.internalName} for player ${newController.name}, which is illegal`);
         }
-    };
+    }
+
+    return AsLeader;
 }
+

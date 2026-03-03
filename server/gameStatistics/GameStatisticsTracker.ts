@@ -4,7 +4,7 @@ import { EventRegistrar } from '../game/core/event/EventRegistrar';
 import type { GameEvent } from '../game/core/event/GameEvent';
 import type Game from '../game/core/Game';
 import { GameObjectBase } from '../game/core/GameObjectBase';
-import { registerState, undoArray } from '../game/core/GameObjectUtils';
+import { registerState, stateRefArray } from '../game/core/GameObjectUtils';
 import type { Player } from '../game/core/Player';
 import * as Helpers from '../game/core/utils/Helpers';
 
@@ -36,6 +36,7 @@ export interface IGameStatisticsTracker {
     ): void;
 }
 
+@registerState()
 export class TrackedGameCardMetric extends GameObjectBase {
     public readonly metric: GameCardMetric;
     public readonly card: string;
@@ -64,7 +65,7 @@ export class TrackedGameCardMetric extends GameObjectBase {
 export class GameStatisticsLogger extends GameObjectBase implements IGameStatisticsTracker {
     private events: EventRegistrar;
 
-    @undoArray()
+    @stateRefArray()
     public accessor cardMetrics: readonly TrackedGameCardMetric[] = [];
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style

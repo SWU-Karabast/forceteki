@@ -10,7 +10,6 @@ import { UpgradeCard } from './UpgradeCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
-
 /**
  * Create a default implementation for a card from cardData by calling the appropriate
  * derived class constructor based on the card type

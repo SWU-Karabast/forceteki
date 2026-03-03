@@ -3,17 +3,25 @@ import type { PhaseName } from '../../Constants';
 import type Game from '../../Game';
 import * as Helpers from '../../utils/Helpers';
 import * as Contract from '../../utils/Contract';
-import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { registerState, stateRef, stateValue } from '../../GameObjectUtils';
 
-export interface IAdditionalPhaseState extends IGameObjectBaseState {
-    phaseStartedForRounds: Set<number>;
-    phaseEndedForRounds: Set<number>;
-    source: GameObjectRef<Card>;
-}
-
-export class AdditionalPhaseEffect extends OngoingEffectValueWrapper<AdditionalPhaseEffect, IAdditionalPhaseState> {
+@registerState()
+export class AdditionalPhaseEffect extends OngoingEffectValueWrapper<AdditionalPhaseEffect> {
     public readonly phase: PhaseName;
+
+    @stateValue()
+    private accessor _phaseStartedForRounds: Set<number> = new Set<number>();
+
+    @stateValue()
+    private accessor _phaseEndedForRounds: Set<number> = new Set<number>();
+
+    @stateRef()
+    private accessor _source: Card | null = null;
+
+    public get source(): Card {
+        return this._source;
+    }
 
     public constructor(game: Game, phase: PhaseName) {
         const effectDescription = `grant an additional ${Helpers.capitalize(phase)} phase after the first one each round`;
@@ -30,33 +38,29 @@ export class AdditionalPhaseEffect extends OngoingEffectValueWrapper<AdditionalP
 
         super.setContext(context);
 
-        this.state.source = this.context.source.getRef();
-    }
-
-    protected override setupDefaultState(): void {
-        this.state.phaseStartedForRounds = new Set<number>();
-        this.state.phaseEndedForRounds = new Set<number>();
+        this._source = this.context.source;
     }
 
     public markAdditionalPhaseStarted(roundNumber: number): void {
         Contract.assertFalse(this.hasStartedPhaseThisRound(roundNumber), 'Additional phase has already started this round');
-        this.state.phaseStartedForRounds.add(roundNumber);
+        this._phaseStartedForRounds.add(roundNumber);
     }
 
     public hasStartedPhaseThisRound(roundNumber: number): boolean {
-        return this.state.phaseStartedForRounds.has(roundNumber);
+        return this._phaseStartedForRounds.has(roundNumber);
     }
 
     public markAdditionalPhaseEnded(roundNumber: number): void {
         Contract.assertFalse(this.hasEndedPhaseThisRound(roundNumber), 'Additional phase has already ended this round');
-        this.state.phaseEndedForRounds.add(roundNumber);
+        this._phaseEndedForRounds.add(roundNumber);
     }
 
     public hasEndedPhaseThisRound(roundNumber: number): boolean {
-        return this.state.phaseEndedForRounds.has(roundNumber);
+        return this._phaseEndedForRounds.has(roundNumber);
     }
 
     public override isAdditionalPhase(): this is AdditionalPhaseEffect {
         return true;
     }
 }
+

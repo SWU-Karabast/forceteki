@@ -5,10 +5,13 @@ import type { Player } from '../core/Player';
 import type Game from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 
+import { registerState } from '../core/GameObjectUtils';
+
 export interface ForceUsedEntry {
     player: GameObjectRef<Player>;
 }
 
+@registerState()
 export class ForceUsedThisPhaseWatcher extends StateWatcher<ForceUsedEntry> {
     public constructor(
         game: Game,

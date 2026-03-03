@@ -1,31 +1,35 @@
-const { ZoneName, DeckZoneDestination, DeployType } = require('../../server/game/core/Constants.js');
-const Game = require('../../server/game/core/Game.js');
-const { Card } = require('../../server/game/core/card/Card.js');
-const { Player } = require('../../server/game/core/Player.js');
-const { detectBinary } = require('../../server/Util.js');
-const GameFlowWrapper = require('./GameFlowWrapper.js');
-const TestSetupError = require('./TestSetupError.js');
-const Util = require('./Util.js');
-const { TrackedGameCardMetric, GameCardMetric } = require('../../server/gameStatistics/GameStatisticsTracker.js');
+/* eslint-disable @typescript-eslint/prefer-for-of */
+import { ZoneName, DeckZoneDestination, DeployType } from '../../server/game/core/Constants.js';
+import { Card } from '../../server/game/core/card/Card.js';
+import TestSetupError from './TestSetupError.js';
+import Util from './Util.js';
+import { TrackedGameCardMetric, GameCardMetric } from '../../server/gameStatistics/GameStatisticsTracker.js';
+import type Game from '../../server/game/core/Game.js';
+import type { InPlayCard } from '../../server/game/core/card/baseClasses/InPlayCard.js';
+import type { IStatefulPromptResults } from '../../server/game/core/gameSteps/PromptInterfaces.js';
+import { nonEnumerable } from './decorators.js';
 
-class PlayerInteractionWrapper {
-    /**
-     *
-     * @param {Game} game
-     * @param {Player} player
-     * @param {GameFlowWrapper} testContext
-     */
-    constructor(game, player, testContext) {
+export class PlayerInteractionWrapper {
+    @nonEnumerable
+    public game: Game;
+
+    @nonEnumerable
+    public player: Player;
+
+    @nonEnumerable
+    public testContext: GameFlowWrapper;
+
+    public constructor(game: Game, player: Player, testContext: GameFlowWrapper) {
         this.game = game;
         this.player = player;
         this.testContext = testContext;
     }
 
-    get name() {
+    public get name() {
         return this.player.user.username;
     }
 
-    get id() {
+    public get id() {
         return this.player.id;
     }
 
@@ -33,7 +37,7 @@ class PlayerInteractionWrapper {
      * Moves all cards other than leader + base to the RemovedFromTheGame zone so they can
      * be moved into their proper starting zones for the test.
      */
-    moveAllNonBaseZonesToRemoved() {
+    public moveAllNonBaseZonesToRemoved() {
         // Collect all cards from all zones
         const arenaCards = this.player.getArenaCards();
         const resourceCards = this.player.resourceZone.clearCards();
@@ -59,7 +63,7 @@ class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
-    get hand() {
+    public get hand() {
         return this.player.hand;
     }
 
@@ -68,11 +72,11 @@ class PlayerInteractionWrapper {
      * hand and conflict deck
      * @param {String|DrawCard[]} [newContents] - a list of card names or objects
      */
-    setHand(newContents = [], prevZones = ['deck']) {
-        this.hand.forEach((card) => this.setupMoveCard(card, 'deck'));
+    public setHand(newContents = [], prevZones = ['deck']) {
+        this.hand.forEach((card: any) => this.setupMoveCard(card, 'deck'));
 
         newContents.forEach((nameOrCard) => {
-            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
+            const card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.setupMoveCard(card, 'hand');
         });
     }
@@ -80,14 +84,14 @@ class PlayerInteractionWrapper {
     /**
      * Gets the player's base card
      */
-    get base() {
+    public get base() {
         return this.player.base;
     }
 
     /**
      * Sets the player's base card
      */
-    set base(Card) {
+    public set base(Card) {
         this.player.base = Card;
     }
 
@@ -95,11 +99,11 @@ class PlayerInteractionWrapper {
      * Gets all cards in play for a player in the space arena
      * @return {BaseCard[]} - List of player's cards currently in play in the space arena
      */
-    get inPlay() {
+    public get inPlay() {
         return this.player.filterCardsInPlay(() => true);
     }
 
-    setLeaderStatus(leaderOptions) {
+    public setLeaderStatus(leaderOptions: { card: any; deployed: boolean; damage: number; exhausted: boolean; upgrades: any; capturedUnits: any; flipped: any }) {
         if (!leaderOptions) {
             return;
         }
@@ -116,14 +120,16 @@ class PlayerInteractionWrapper {
             throw new TestSetupError(`Provided leader name ${leaderOptions.card} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
         }
 
-        var leaderCard = this.player.leader;
+        const leaderCard = this.player.leader;
 
         if (leaderOptions.deployed) {
             leaderCard.deploy({ type: DeployType.LeaderUnit });
 
             // mark the deploy epic action as used
-            const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.getTitle().includes('Deploy'));
-            deployAbility.limit.increment(this.player);
+            const deployAbility = leaderCard.getActionAbilities().find((ability: { getTitle: () => string | string[] }) => ability.getTitle().includes('Deploy'));
+            if (deployAbility?.limit) {
+                deployAbility.limit.increment(this.player);
+            }
 
             leaderCard.damage = leaderOptions.damage || 0;
             leaderCard.exhausted = leaderOptions.exhausted || false;
@@ -159,7 +165,7 @@ class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
-    setBaseStatus(baseOptions) {
+    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits: any }) {
         if (!baseOptions) {
             return;
         }
@@ -175,7 +181,7 @@ class PlayerInteractionWrapper {
             throw new TestSetupError(`Provided base name ${baseOptions.card} does not match player's base ${this.player.base.internalName}. Do not try to change base after test has initialized.`);
         }
 
-        var baseCard = this.player.base;
+        const baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
 
         if (baseOptions.capturedUnits) {
@@ -189,19 +195,19 @@ class PlayerInteractionWrapper {
      * Gets all cards in play for a player in the space arena
      * @return {BaseCard[]} - List of player's cards currently in play in the space arena
      */
-    get spaceArena() {
-        return this.player.filterCardsInPlay((card) => card.zoneName === 'spaceArena');
+    public get spaceArena() {
+        return this.player.filterCardsInPlay((card: { zoneName: string }) => card.zoneName === 'spaceArena');
     }
 
     /**
      * List of player's units in the space arena
      * @return {BaseCard[]} - List of player's units currently in play in the space arena
      */
-    get spaceArenaUnits() {
-        return this.spaceArena.filter((card) => card.isUnit());
+    public get spaceArenaUnits() {
+        return this.spaceArena.filter((card: { isUnit: () => any }) => card.isUnit());
     }
 
-    setSpaceArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
+    public setSpaceArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
         this.setArenaUnits('spaceArena', this.spaceArena, newState, prevZones);
     }
 
@@ -209,19 +215,19 @@ class PlayerInteractionWrapper {
      * Gets all cards in play for a player in the ground arena
      * @return {BaseCard[]} - List of player's cards currently in play in the ground arena
      */
-    get groundArena() {
-        return this.player.filterCardsInPlay((card) => card.zoneName === 'groundArena');
+    public get groundArena() {
+        return this.player.filterCardsInPlay((card: { zoneName: string }) => card.zoneName === 'groundArena');
     }
 
     /**
      * List of player's units in the ground arena
      * @return {BaseCard[]} - List of player's units currently in play in the ground arena
      */
-    get groundArenaUnits() {
-        return this.groundArena.filter((card) => card.isUnit());
+    public get groundArenaUnits() {
+        return this.groundArena.filter((card: { isUnit: () => any }) => card.isUnit());
     }
 
-    setGroundArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
+    public setGroundArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
         this.setArenaUnits('groundArena', this.groundArena, newState, prevZones);
     }
 
@@ -240,9 +246,9 @@ class PlayerInteractionWrapper {
      * @param {DrawCard[]} currentUnitsInArena - list of cards currently in the arena
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
-    setArenaUnits(arenaName, currentUnitsInArena, newState = [], prevZones = ['deck', 'hand']) {
+    public setArenaUnits(arenaName: string, currentUnitsInArena: any[], newState = [], prevZones = ['deck', 'hand']) {
         // First, move all cards in play back to the deck
-        currentUnitsInArena.forEach((card) => {
+        currentUnitsInArena.forEach((card: any) => {
             this.setupMoveCard(card, 'deck');
         });
         // Set up each of the cards
@@ -258,7 +264,7 @@ class PlayerInteractionWrapper {
 
             const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.name;
 
-            var card;
+            let card: Card;
             if (Util.isTokenUnit(options.card)) {
                 card = this.generateToken(this.player, options.card);
             } else {
@@ -280,12 +286,14 @@ class PlayerInteractionWrapper {
 
             // Set exhausted state (false by default)
             if (options.exhausted != null) {
+                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
                 options.exhausted ? card.exhaust() : card.ready();
             } else {
                 card.ready();
             }
 
             if (options.damage != null) {
+                // @ts-expect-error - need to be able to set damage on non-unit cards for testing purposes
                 card.damage = options.damage;
             }
 
@@ -298,6 +306,7 @@ class PlayerInteractionWrapper {
             }
 
             if (options.damage !== undefined) {
+                // @ts-expect-error - need to be able to set damage on non-unit cards for testing purposes
                 card.damage = options.damage;
             }
         });
@@ -305,12 +314,12 @@ class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
-    setCardUpgrades(card, upgrades, prevZones = 'any') {
+    public setCardUpgrades(card: any, upgrades: any, prevZones: string | string[] = 'any') {
         for (const upgrade of upgrades) {
             const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
-            let upgradeCard;
+            let upgradeCard: InPlayCard;
             if (Util.isTokenUpgrade(upgradeName)) {
-                upgradeCard = this.generateToken(this.player, upgradeName);
+                upgradeCard = this.generateToken(this.player, upgradeName) as InPlayCard;
             } else {
                 upgradeCard = this.findCardByName(upgradeName, prevZones);
             }
@@ -319,11 +328,11 @@ class PlayerInteractionWrapper {
         }
     }
 
-    setCapturedUnits(card, capturedUnits, prevZones = 'any') {
+    public setCapturedUnits(card: { captureZone: any }, capturedUnits: any, prevZones: string | string[] = 'any') {
         for (const capturedUnit of capturedUnits) {
             const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
             const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.name) ? 'self' : 'opponent';
-            let capturedUnitCard;
+            let capturedUnitCard: { moveToCaptureZone: (arg0: any) => void };
             if (Util.isTokenUnit(capturedUnitName)) {
                 throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
             } else {
@@ -333,8 +342,8 @@ class PlayerInteractionWrapper {
         }
     }
 
-    generateToken(player, tokenName) {
-        let tokenClassName;
+    public generateToken(player: any, tokenName: any) {
+        let tokenClassName: string;
         switch (tokenName) {
             case 'battle-droid':
                 tokenClassName = 'battleDroid';
@@ -359,24 +368,24 @@ class PlayerInteractionWrapper {
                 throw new TestSetupError(`Unknown token type: ${tokenName}`);
         }
 
-        return this.game.generateToken(player, tokenClassName);
+        return this.game.generateToken(player, tokenClassName as any);
     }
 
-    get deck() {
+    public get deck() {
         return this.player.drawDeck;
     }
 
-    setDeck(newContents = [], prevZones = ['any']) {
+    public setDeck(newContents = [], prevZones = ['any']) {
         this.player.deckZone.cards.forEach(
-            (card) => this.setupMoveCard(card, 'outsideTheGame')
+            (card: any) => this.setupMoveCard(card, 'outsideTheGame')
         );
         newContents.reverse().forEach((nameOrCard) => {
-            var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
+            const card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.setupMoveCard(card, 'deck');
         });
     }
 
-    get resources() {
+    public get resources() {
         return this.player.resources;
     }
 
@@ -384,7 +393,7 @@ class PlayerInteractionWrapper {
      * Sets the player's resource count to the specified number, using
      * a default card name
      */
-    setResourceCount(count) {
+    public setResourceCount(count: any) {
         this.setResourceCards(Array(count).fill('underworld-thug'));
     }
 
@@ -398,23 +407,23 @@ class PlayerInteractionWrapper {
      * or String containing name or id of the card
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
-    setResourceCards(newContents = [], prevZones = ['deck', 'hand']) {
+    public setResourceCards(newContents = [], prevZones = ['deck', 'hand']) {
         //  Move cards to the deck
-        this.resources.forEach((card) => {
+        this.resources.forEach((card: any) => {
             this.setupMoveCard(card, 'deck');
         });
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((resource) => {
             const name = typeof resource === 'string' ? resource : resource.card;
-            var card = this.findCardByName(name, prevZones);
+            const card = this.findCardByName(name, prevZones);
             this.setupMoveCard(card, 'resource');
             card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
         });
         Util.refreshGameState(this.game);
     }
 
-    attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
+    public attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
         for (const upgrade of opponentOwnedUpgrades) {
             const upgradeCard = this.findCardByName(upgrade.card, 'any', 'opponent');
             const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.name;
@@ -423,23 +432,23 @@ class PlayerInteractionWrapper {
         }
     }
 
-    get handSize() {
+    public get handSize() {
         return this.player.hand.length;
     }
 
-    get deckSize() {
+    public get deckSize() {
         return this.player.decklist.deckCards.length;
     }
 
-    get readyResourceCount() {
+    public get readyResourceCount() {
         return this.player.readyResourceCount;
     }
 
-    get exhaustedResourceCount() {
+    public get exhaustedResourceCount() {
         return this.player.exhaustedResourceCount;
     }
 
-    get discard() {
+    public get discard() {
         return this.player.discard;
     }
 
@@ -447,9 +456,9 @@ class PlayerInteractionWrapper {
      * Sets the contents of the conflict discard pile
      * @param {String[]} newContents - list of names of cards to be put in conflict discard
      */
-    setDiscard(newContents = [], prevZones = ['deck']) {
+    public setDiscard(newContents = [], prevZones = ['deck']) {
         //  Move cards to the deck
-        this.discard.forEach((card) => this.setupMoveCard(card, 'deck'));
+        this.discard.forEach((card: any) => this.setupMoveCard(card, 'deck'));
         // Move cards to the discard in reverse order
         // (helps with referring to cards by index)
         newContents.reverse().forEach((name) => {
@@ -458,48 +467,48 @@ class PlayerInteractionWrapper {
         });
     }
 
-    get initiativePlayer() {
+    public get initiativePlayer() {
         return this.game.initiativePlayer;
     }
 
-    get hasInitiative() {
+    public get hasInitiative() {
         return this.game.initiativePlayer != null && this.game.initiativePlayer.id === this.player.id;
     }
 
-    get hasTheForce() {
+    public get hasTheForce() {
         return this.player.hasTheForce;
     }
 
-    get credits() {
+    public get credits() {
         return this.player.creditTokenCount;
     }
 
-    get actionPhaseActivePlayer() {
+    public get actionPhaseActivePlayer() {
         return this.game.actionPhaseActivePlayer;
     }
 
-    get activePlayer() {
+    public get activePlayer() {
         return this.game.getActivePlayer();
     }
 
-    get opponent() {
+    public get opponent() {
         return this.player.opponent;
     }
 
-    currentPrompt() {
+    public currentPrompt() {
         return this.player.currentPrompt();
     }
 
-    get currentButtons() {
-        var buttons = this.currentPrompt().buttons;
-        return buttons.map((button) => button.text.toString());
+    public get currentButtons() {
+        const buttons = this.currentPrompt().buttons;
+        return buttons.map((button: { text: { toString: () => any } }) => button.text.toString());
     }
 
     /**
      * Lists cards selectable by the player during the action
      * @return {DrawCard[]} - selectable cards
      */
-    get currentActionTargets() {
+    public get currentActionTargets() {
         return this.player.promptState.selectableCards;
     }
 
@@ -507,7 +516,7 @@ class PlayerInteractionWrapper {
      * Lists cards currently selected by the player
      * @return {DrawCard[]} - selected cards
      */
-    get selectedCards() {
+    public get selectedCards() {
         return this.player.promptState.selectedCards;
     }
 
@@ -515,12 +524,12 @@ class PlayerInteractionWrapper {
      * Determines whether a player can initiate actions
      * @return {Boolean} - whether the player can initiate actions or has to wait
      */
-    get canAct() {
+    public get canAct() {
         return !this.hasPrompt('Waiting for opponent to take an action or pass');
     }
 
-    findCardByName(name, zones = 'any', side) {
-        var cards = this.filterCardsByName(name, zones, side);
+    public findCardByName(name: string, zones: string | string[] = 'any', side?: string) {
+        const cards = this.filterCardsByName(name, zones, side);
         // TODO: Update to throw exception when returning more or less than 1 card. This will require updates to the test suite.git
         if (cards.length === 0) {
             throw new TestSetupError(`Could not find any cards matching name ${name}`);
@@ -528,7 +537,7 @@ class PlayerInteractionWrapper {
         return cards[0];
     }
 
-    findCardsByName(names, zones = 'any', side) {
+    public findCardsByName(names: any, zones: string | string[] = 'any', side?: any) {
         return this.filterCardsByName(names, zones, side);
     }
 
@@ -538,7 +547,7 @@ class PlayerInteractionWrapper {
      * @param {String[]|String} [zones = 'any'] - zones in which to look for. 'provinces' = 'province 1', 'province 2', etc.
      * @param {String?} side - set to 'opponent' to search in opponent's cards
      */
-    filterCardsByName(names, zones = 'any', side) {
+    public filterCardsByName(names: any, zones: string | string[] = 'any', side?: any) {
         // So that function can accept either lists or single zones
         const namesAra = Array.isArray(names) ? names : [names];
         if (zones !== 'any') {
@@ -547,13 +556,13 @@ class PlayerInteractionWrapper {
             }
         }
         return this.filterCards(
-            (card) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
+            (card: { cardData: { internalName: any }; zoneName: string }) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
             side
         );
     }
 
-    findCard(condition, side) {
-        var cards = this.filterCards(condition, side);
+    public findCard(condition: any, side: any) {
+        const cards = this.filterCards(condition, side);
         if (cards.length === 0) {
             throw new TestSetupError('Could not find any matching cards');
         }
@@ -566,22 +575,22 @@ class PlayerInteractionWrapper {
      *   @param {String} [side] - set to 'opponent' to search in opponent's cards
      *   @returns {any[]}
      */
-    filterCards(condition, side) {
+    public filterCards(condition: (card: any) => boolean, side: string) {
         let player = this.player;
         if (side === 'opponent') {
             player = this.opponent;
         }
         return player.decklist.allCards.map(
-            (x) => this.game.getFromRef(x)
+            (x: any) => this.game.getFromRef(x)
         ).filter(condition);
     }
 
-    exhaustResources(number) {
+    public exhaustResources(number: any) {
         this.player.exhaustResources(number);
         Util.refreshGameState(this.game);
     }
 
-    setExactReadyResources(number) {
+    public setExactReadyResources(number: number) {
         const availableResources = this.player.resources.length;
 
         if (number > availableResources) {
@@ -595,39 +604,38 @@ class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
-    hasPrompt(title) {
-        var currentPrompt = this.player.currentPrompt();
+    public hasPrompt(title: string) {
+        const currentPrompt = this.player.currentPrompt();
 
         // Evaluar si menuTitle es una función o un string
         const menuTitle =
-    typeof currentPrompt.menuTitle === 'function'
-        ? currentPrompt.menuTitle(this.player.context)
-        : currentPrompt.menuTitle;
+            typeof currentPrompt.menuTitle === 'function'
+                ? currentPrompt.menuTitle(this.player.context)
+                : currentPrompt.menuTitle;
 
         // Evaluar si promptTitle es una función o un string
         const promptTitle =
-    typeof currentPrompt.promptTitle === 'function'
-        ? currentPrompt.promptTitle(this.player.context)
-        : currentPrompt.promptTitle;
+            typeof currentPrompt.promptTitle === 'function'
+                ? currentPrompt.promptTitle(this.player.context)
+                : currentPrompt.promptTitle;
 
         return (
             !!currentPrompt &&
             (menuTitle && menuTitle.toLowerCase() === title.toLowerCase()) ||
             (menuTitle && (menuTitle.replace('(because you are choosing from a hidden zone you may choose nothing)', '').trim()
-                .toLowerCase() === title.toLowerCase())) ||
-                (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
+                .toLowerCase() === title.toLowerCase())) || (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
         );
     }
 
-    selectDeck(deck) {
+    public selectDeck(deck: any) {
         this.game.selectDeck(this.player.id, deck);
     }
 
-    clickPrompt(text) {
+    public clickPrompt(text: string) {
         text = text.toString();
-        var currentPrompt = this.player.currentPrompt();
-        var promptButton = currentPrompt.buttons.find(
-            (button) => button.text.toString().toLowerCase() === text.toLowerCase()
+        const currentPrompt = this.player.currentPrompt();
+        const promptButton = currentPrompt.buttons.find(
+            (button: { text: { toString: () => string } }) => button.text.toString().toLowerCase() === text.toLowerCase()
         );
 
         if (!promptButton || promptButton.disabled) {
@@ -641,46 +649,47 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    chooseListOption(text) {
-        var currentPrompt = this.player.currentPrompt();
+    public chooseListOption(text: any) {
+        const currentPrompt = this.player.currentPrompt();
         if (!currentPrompt.dropdownListOptions.includes(text)) {
             throw new TestSetupError(
                 `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
+        // @ts-ignore
         this.game.menuButton(this.player.id, text, currentPrompt.promptUuid);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
 
-    setDistributeDamagePromptState(cardDistributionMap) {
+    public setDistributeDamagePromptState(cardDistributionMap: any) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
     }
 
-    setDistributeIndirectDamagePromptState(cardDistributionMap) {
+    public setDistributeIndirectDamagePromptState(cardDistributionMap: any) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeIndirectDamage');
     }
 
-    setDistributeHealingPromptState(cardDistributionMap) {
+    public setDistributeHealingPromptState(cardDistributionMap: any) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
     }
 
-    setDistributeExperiencePromptState(cardDistributionMap) {
+    public setDistributeExperiencePromptState(cardDistributionMap: any) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeExperience');
     }
 
-    setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
-        var currentPrompt = this.player.currentPrompt();
+    public setDistributeAmongTargetsPromptState(cardDistributionMap: any, type: string) {
+        const currentPrompt = this.player.currentPrompt();
 
         const cardDistributionArray = [...cardDistributionMap].map(([card, amount]) => ({
             uuid: card.uuid,
             amount
         }));
 
-        const promptResults = {
+        const promptResults: IStatefulPromptResults = {
             valueDistribution: cardDistributionArray,
-            type
+            type: type as any
         };
 
         this.game.statefulPromptResults(this.player.id, promptResults, currentPrompt.promptUuid);
@@ -688,20 +697,21 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    clickDisplayCardPromptButton(cardUuid, arg) {
-        var currentPrompt = this.player.currentPrompt();
+    public clickDisplayCardPromptButton(cardUuid: any, arg: any) {
+        const currentPrompt = this.player.currentPrompt();
 
+        // @ts-ignore
         this.game.perCardMenuButton(this.player.id, arg, cardUuid, currentPrompt.promptUuid);
         this.game.continue();
     }
 
-    clickCardInDisplayCardPrompt(card, allowClickUnselectable = false) {
+    public clickCardInDisplayCardPrompt(card: { uuid: any; internalName: any }, allowClickUnselectable = false) {
         Util.checkNullCard(card);
 
-        var currentPrompt = this.player.currentPrompt();
+        const currentPrompt = this.player.currentPrompt();
 
-        var clickingCard = currentPrompt.displayCards.find(
-            (cardEntry) => cardEntry.cardUuid === card.uuid
+        const clickingCard = currentPrompt.displayCards.find(
+            (cardEntry: { cardUuid: any }) => cardEntry.cardUuid === card.uuid
         );
 
         if (!clickingCard || (!allowClickUnselectable && (clickingCard.selectionState === 'unselectable' || clickingCard.selectionState === 'invalid'))) {
@@ -719,8 +729,8 @@ class PlayerInteractionWrapper {
 
     // click any N of the selectable cards available
     // used for randomly selecting resource cards to get through the setup phase
-    clickAnyOfSelectableCards(nCardsToChoose) {
-        let availableCards = this.currentActionTargets;
+    public clickAnyOfSelectableCards(nCardsToChoose: number) {
+        const availableCards = this.currentActionTargets;
 
         if (!availableCards || availableCards.length < nCardsToChoose) {
             throw new TestSetupError(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${Util.formatBothPlayerPrompts(this.testContext)}`);
@@ -734,11 +744,13 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    clickCardNonChecking(card, zone = 'any', side = 'self') {
+    public clickCardNonChecking(card: any, zone = 'any', side = 'self') {
         this.clickCard(card, zone, side, false);
     }
 
-    clickCard(card, zone = 'any', side = 'self', expectChange = true) {
+    public clickCard(card: {
+        name: string; internalName: any; uuid: any;
+    }, zone = 'any', side = 'self', expectChange = true) {
         Util.checkNullCard(card);
 
         if (typeof card === 'string') {
@@ -775,7 +787,7 @@ class PlayerInteractionWrapper {
      * @param {String} zone - The zone to click the first card in.
      * @param {Number} pos - The position of the card to click.
      */
-    clickCardPosInZone(zone, pos, side = 'self', expectChange = true) {
+    public clickCardPosInZone(zone: string, pos: number, side = 'self', expectChange = true) {
         if (pos < 0 || pos >= this.player[zone].length) {
             throw new TestSetupError(`Position ${pos} is out of bounds for ${zone} zone`);
         }
@@ -787,7 +799,7 @@ class PlayerInteractionWrapper {
      * Clicks the first card in the specified zone.
      * @param {String} zone - The zone to click the first card in.
      */
-    clickFirstCardInZone(zone, side = 'self', expectChange = true) {
+    public clickFirstCardInZone(zone: any, side = 'self', expectChange = true) {
         return this.clickCardPosInZone(zone, 0, side, expectChange);
     }
 
@@ -795,49 +807,51 @@ class PlayerInteractionWrapper {
      * Clicks the card in the player's hand at the specified position.
      * @param {Number} pos - The position of the card to click.
      */
-    clickCardInHand(pos, expectChange = true) {
+    public clickCardInHand(pos: number, expectChange = true) {
         return this.clickCardPosInZone('hand', pos, 'self', expectChange);
     }
 
     /**
      * Clicks the first card in the player's hand.
      */
-    clickFirstCardInHand(expectChange = true) {
+    public clickFirstCardInHand(expectChange = true) {
         return this.clickCardInHand(0, expectChange);
     }
 
     /**
      * Clicks the second card in the player's hand.
      */
-    clickSecondCardInHand(expectChange = true) {
+    public clickSecondCardInHand(expectChange = true) {
         return this.clickCardInHand(1, expectChange);
     }
 
-    clickMenu(card, menuText) {
+    public clickMenu(card: { getMenu: () => any[]; name: any; uuid: any }, menuText: any) {
         if (typeof card === 'string') {
             card = this.findCardByName(card);
         }
 
-        var items = card.getMenu().filter((item) => item.text === menuText);
+        const items = card.getMenu().filter((item: { text: any }) => item.text === menuText);
 
         if (items.length === 0) {
             throw new TestSetupError(`Card ${card.name} does not have a menu item '${menuText}'`);
         }
 
+        // @ts-ignore - Need to ignore type error because menuItemClick expects a MenuItem object but we're only passing the text property of the MenuItem for testing purposes
         this.game.menuItemClick(this.player.id, card.uuid, items[0]);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
 
-    getCardsInZone(zone) {
+    public getCardsInZone(zone: any) {
         return this.player.getCardsInZone(zone);
     }
 
-    getArenaCards() {
+    public getArenaCards() {
         return this.player.getArenaCards();
     }
 
-    dragCard(card, targetZone) {
+    public dragCard(card: { uuid: any; zoneName: any }, targetZone: any) {
+        // @ts-ignore
         this.game.drop(this.player.id, card.uuid, card.zoneName, targetZone);
         this.game.continue();
         // this.checkUnserializableGameState();
@@ -850,12 +864,13 @@ class PlayerInteractionWrapper {
      * @param {String | String[]} searchZones - zones where to find the
      * card object, if card parameter is a String
      */
-    moveCard(card, targetZone, searchZones = 'any') {
+    public moveCard(card: string | Card | { card: Card }, targetZone: string, searchZones = 'any') {
         // TODO: Check that space units can not be added to ground arena and vice versa
         if (!(card instanceof Card)) {
             const cardName = typeof card === 'string' ? card : card.card;
             card = this.mixedListToCardList([cardName], searchZones)[0];
         }
+        // @ts-ignore - Need to ignore type error because moveTo expects a Zone object but we're only passing the zone name for testing purposes
         card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         this.game.continue();
         return card;
@@ -869,23 +884,24 @@ class PlayerInteractionWrapper {
      * @param {String} targetZone - zone where the card should be moved
      * @param {String | String[]} searchZones - zones where to find the card object
      */
-    setupMoveCard(card, targetZone, searchZones = 'any') {
+    public setupMoveCard(card: string | Card | { card: Card }, targetZone: string, searchZones: string | string[] = 'any') {
         if (!(card instanceof Card)) {
             const cardName = typeof card === 'string' ? card : card.card;
             card = this.mixedListToCardList([cardName], searchZones)[0];
         }
+        // @ts-ignore - Need to ignore type error because moveTo expects a Zone object but we're only passing the zone name for testing purposes
         card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         return card;
     }
 
-    togglePromptedActionWindow(window, value) {
+    public togglePromptedActionWindow(window: string | number, value: any) {
         this.player.promptedActionWindows[window] = value;
     }
 
     /**
      * Player's action of passing priority
      */
-    passAction() {
+    public passAction() {
         if (!this.canAct) {
             throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
         }
@@ -895,7 +911,7 @@ class PlayerInteractionWrapper {
     /**
      * Player clicks Done prompt
      */
-    clickDone() {
+    public clickDone() {
         if (!this.currentButtons.includes('Done')) {
             throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt`);
         }
@@ -905,7 +921,7 @@ class PlayerInteractionWrapper {
     /**
      * Player's action of passing priority
      */
-    claimInitiative() {
+    public claimInitiative() {
         if (!this.canAct) {
             throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
         }
@@ -915,9 +931,10 @@ class PlayerInteractionWrapper {
     /**
      *
      */
-    setActivePlayer() {
+    public setActivePlayer() {
         this.game.actionPhaseActivePlayer = this.player;
         if (this.game.currentActionWindow) {
+            // @ts-ignore - Need to ignore type error because activePlayer expects a Player object but we're only passing the player for testing purposes
             this.game.currentActionWindow.activePlayer = this.player;
         }
         Util.refreshGameState(this.game);
@@ -927,14 +944,14 @@ class PlayerInteractionWrapper {
      * Sets the Force Token state for the player
      * @param {Boolean} hasForce - true if the player should have the Force Token
      */
-    setHasTheForce(hasForce = true) {
+    public setHasTheForce(hasForce = true) {
         if (hasForce) {
             if (this.player.hasTheForce) {
                 throw new TestSetupError(`Attempting to give Force Token to ${this.player.name}, but they already have it.`);
             }
 
             const forceTokens = this.player.outsideTheGameZone
-                .getCards({ condition: (card) => card.isForceToken() });
+                .getCards({ condition: (card: { isForceToken: () => any }) => card.isForceToken() });
 
             if (forceTokens.length === 0) {
                 throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
@@ -955,7 +972,7 @@ class PlayerInteractionWrapper {
         }
     }
 
-    setCreditTokenCount(count) {
+    public setCreditTokenCount(count: number) {
         const currentCount = this.player.creditTokenCount;
 
         if (count < currentCount) {
@@ -968,10 +985,10 @@ class PlayerInteractionWrapper {
         }
 
         const tokensToAdd = count - currentCount;
-        let tokens = [];
+        const tokens = [];
 
         for (let i = 0; i < count; i++) {
-            tokens.push(this.game.generateToken(this.player, 'credit'));
+            tokens.push(this.game.generateToken(this.player, 'credit' as any));
         }
 
         for (const token of tokens) {
@@ -979,8 +996,8 @@ class PlayerInteractionWrapper {
         }
     }
 
-    playAttachment(attachment, target) {
-        let card = this.clickCard(attachment, 'hand');
+    public playAttachment(attachment: any, target: any) {
+        const card = this.clickCard(attachment, 'hand');
         if (this.currentButtons.includes('Play ' + card.name + ' as an attachment')) {
             this.clickPrompt('Play ' + card.name + ' as an attachment');
         }
@@ -988,12 +1005,12 @@ class PlayerInteractionWrapper {
         return card;
     }
 
-    readyResources(number) {
+    public readyResources(number: any) {
         this.player.readyResources(number);
         Util.refreshGameState(this.game);
     }
 
-    playCharacterFromHand(card, fate = 0) {
+    public playCharacterFromHand(card: any, fate = 0) {
         if (typeof card === 'string') {
             card = this.findCardByName(card, 'hand');
         }
@@ -1010,17 +1027,17 @@ class PlayerInteractionWrapper {
      * @param {(DrawCard|String)[]} mixed - mixed list of cards and names or ids
      * @param {String[]|String} zones - list of zones to get card objects from
      */
-    mixedListToCardList(mixed, zones = 'any') {
+    public mixedListToCardList(mixed: any[], zones: string | string[] = 'any'): Card[] {
         if (!mixed) {
             return [];
         }
         // Yank all the non-string cards
-        var cardList = mixed.filter((card) => typeof card !== 'string');
-        mixed = mixed.filter((card) => typeof card === 'string');
+        const cardList = mixed.filter((card: any) => typeof card !== 'string');
+        mixed = mixed.filter((card: any) => typeof card === 'string');
         // Find cards objects for the rest
-        mixed.forEach((card) => {
+        mixed.forEach((card: any) => {
             // Find only those cards that aren't already in the list
-            var cardObject = this.filterCardsByName(card, zones).find((card) => !cardList.includes(card));
+            const cardObject = this.filterCardsByName(card, zones).find((card: any) => !cardList.includes(card));
             if (!cardObject) {
                 throw new TestSetupError(`Could not find card named ${card}`);
             }
@@ -1035,8 +1052,8 @@ class PlayerInteractionWrapper {
      * @param {DrawCard[]} cardList - list of card objects
      * @param {String} type - type of conflict 'military' or 'political'
      */
-    filterUnableToParticipate(cardList, type) {
-        return cardList.filter((card) => {
+    public filterUnableToParticipate(cardList: any[], type: any) {
+        return cardList.filter((card: { hasDash: (arg0: any) => any }) => {
             if (!card) {
                 return false;
             }
@@ -1052,7 +1069,7 @@ class PlayerInteractionWrapper {
     //     }
     // }
 
-    reduceDeckToNumber(number) {
+    public reduceDeckToNumber(number: number) {
         for (let i = this.deck.length - 1; i >= number; i--) {
             this.moveCard(this.deck[i], 'discard');
         }
@@ -1063,7 +1080,7 @@ class PlayerInteractionWrapper {
      * @param {Card} card - The card that was played
      * @returns {TrackedGameCardMetric}
      */
-    played(card) {
+    public played(card: Card) {
         return new TrackedGameCardMetric(this.game, GameCardMetric.Played, card, this.player);
     }
 
@@ -1072,7 +1089,7 @@ class PlayerInteractionWrapper {
      * @param {Card} card - The card that was drawn
      * @returns {TrackedGameCardMetric}
      */
-    drew(card) {
+    public drew(card: Card) {
         return new TrackedGameCardMetric(this.game, GameCardMetric.Drawn, card, this.player);
     }
 
@@ -1081,7 +1098,7 @@ class PlayerInteractionWrapper {
      * @param {Card} card - The card that was discarded
      * @returns {TrackedGameCardMetric}
      */
-    discarded(card) {
+    public discarded(card: Card) {
         return new TrackedGameCardMetric(this.game, GameCardMetric.Discarded, card, this.player);
     }
 
@@ -1090,7 +1107,7 @@ class PlayerInteractionWrapper {
      * @param {Card} card - The card that was resourced
      * @returns {TrackedGameCardMetric}
      */
-    resourced(card) {
+    public resourced(card: Card) {
         return new TrackedGameCardMetric(this.game, GameCardMetric.Resourced, card, this.player);
     }
 
@@ -1100,7 +1117,7 @@ class PlayerInteractionWrapper {
      * @param {Card} card - The card that was activated
      * @returns {TrackedGameCardMetric}
      */
-    activated(card) {
+    public activated(card: Card) {
         return new TrackedGameCardMetric(this.game, GameCardMetric.Activated, card, this.player);
     }
 }
