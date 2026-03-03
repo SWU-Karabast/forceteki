@@ -43,6 +43,7 @@ describe('Maz Kanata, Where\'s My Boyfriend', function () {
                 context.player1.passAction();
 
                 expect(context.syndicateLackeys).toBeInBottomOfDeck(context.player1, 1);
+                expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Maz Kanata to move Syndicate Lackeys to the bottom of their deck');
             });
 
             it('should not return the played unit if it dies on phase', function () {
