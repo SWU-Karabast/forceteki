@@ -1,7 +1,7 @@
 import type { StateWatcherName } from '../Constants';
 import type Game from '../Game';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, undoMap } from '../GameObjectUtils';
+import { registerState, stateRefMap } from '../GameObjectUtils';
 import type { StateWatcher } from './StateWatcher';
 
 // TODO: This piece's job is now to simply register the names of the state watchers. If a name exists, return that instance.
@@ -12,7 +12,7 @@ import type { StateWatcher } from './StateWatcher';
  */
 @registerState()
 export class StateWatcherRegistrar extends GameObjectBase {
-    @undoMap()
+    @stateRefMap()
     private accessor watchers: Map<string, StateWatcher> = new Map();
 
     public constructor(game: Game) {
@@ -41,3 +41,4 @@ export class StateWatcherRegistrar extends GameObjectBase {
         return 'StateWatcherRegistrar';
     }
 }
+

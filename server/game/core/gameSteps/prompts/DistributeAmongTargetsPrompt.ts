@@ -123,7 +123,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             })
             .filter((entry): entry is [Card, number] => entry !== null);
 
-
         Contract.assertTrue(results.valueDistribution.length === targetsArray.length, 'Illegal prompt results, some target cards were not found');
         return { type: results.type, valueDistribution: new Map(targetsArray) };
     }
