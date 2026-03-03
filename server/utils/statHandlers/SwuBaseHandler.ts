@@ -2,7 +2,7 @@ import { logger } from '../../logger';
 import type { GameServer, IToken } from '../../gamenode/GameServer';
 import { type UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
-import type Game from '../../game/core/Game';
+import type { Game } from '../../game/core/Game';
 import type { Player } from '../../game/core/Player';
 import type { SwuGameFormat } from '../../game/core/Constants';
 import { StatsMessageKey } from '../stats/statsMessages';
