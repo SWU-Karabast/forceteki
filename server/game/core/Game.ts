@@ -1318,7 +1318,7 @@ export class Game extends EventEmitter {
      * Creates a game GameEvent, and opens a window for it.
      */
     public createEventAndOpenWindow(
-        eventName: string,
+        eventName: EventName,
         context: AbilityContext | null = null,
         params: Record<string, any> = {},
         triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow,
@@ -1332,7 +1332,7 @@ export class Game extends EventEmitter {
     /**
      * Directly emits an event to all listeners (does NOT open an event window)
      */
-    public emitEvent(eventName: string, context: AbilityContext | null = null, params: Record<string, any> = {}): void {
+    public emitEvent(eventName: EventName, context: AbilityContext | null = null, params: Record<string, any> = {}): void {
         const event = new GameEvent(eventName, context ?? this.getFrameworkContext(), params);
         this.emit(event.name, event);
     }
@@ -1554,7 +1554,7 @@ export class Game extends EventEmitter {
         player.outsideTheGameZone.addCard(token);
         token.initializeZone(player.outsideTheGameZone);
 
-        return token as unknown as Card;
+        return token;
     }
 
     /**

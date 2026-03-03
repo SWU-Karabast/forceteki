@@ -25,6 +25,6 @@ export abstract class ConcreteOrMetaArenaZone extends SimpleZone<IInPlayCard> {
     }
 
     public getUpgradeCards(filter?: Omit<IArenaZoneCardFilterProperties, 'type'>): UpgradeCard[] {
-        return this.getCards({ ...filter, type: WildcardCardType.Upgrade }) as unknown as UpgradeCard[];
+        return this.getCards({ ...filter, type: WildcardCardType.Upgrade }) as UpgradeCard[];
     }
 }
