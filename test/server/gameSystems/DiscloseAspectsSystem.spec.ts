@@ -10,8 +10,6 @@ describe('The Disclose aspects mechanic', function() {
         //       need to revisit this later if this sequence turns out to be illegal. A fix would probably
         //       involve adding some deselection logic to the card selector.
 
-        const minaDisclosePrompt = 'Disclose :command:, :command:, :heroism: to draw a card';
-
         it('allows a player to perform an effect if the required aspects are disclosed', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -32,7 +30,7 @@ describe('The Disclose aspects mechanic', function() {
             context.player2.clickCard(context.minaBonteri);
 
             // Prompt to disclose required aspects to draw a card
-            expect(context.player1).toHavePrompt(minaDisclosePrompt);
+            expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.salvage,
                 context.battlefieldMarine
@@ -108,7 +106,7 @@ describe('The Disclose aspects mechanic', function() {
             context.player2.clickCard(context.minaBonteri);
 
             // Prompt to disclose required aspects to draw a card
-            expect(context.player1).toHavePrompt(minaDisclosePrompt);
+            expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.superlaserTechnician,
                 context.salvage,
@@ -166,7 +164,7 @@ describe('The Disclose aspects mechanic', function() {
             context.player2.clickCard(context.minaBonteri);
 
             // Prompt to disclose required aspects to draw a card
-            expect(context.player1).toHavePrompt(minaDisclosePrompt);
+            expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.salvage,
                 context.battlefieldMarine,
@@ -232,7 +230,7 @@ describe('The Disclose aspects mechanic', function() {
             context.player2.clickCard(context.minaBonteri);
 
             // Prompt to disclose required aspects to draw a card
-            expect(context.player1).toHavePrompt(minaDisclosePrompt);
+            expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.salvage,
                 context.battlefieldMarine

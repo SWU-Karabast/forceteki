@@ -1,7 +1,5 @@
 describe('Mina Bonteri, Stop This War', function() {
     integration(function(contextRef) {
-        const disclosePrompt = 'Disclose :command:, :command:, :heroism: to draw a card';
-
         describe('Mina Bonteri\'s when defeated ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -48,7 +46,7 @@ describe('Mina Bonteri, Stop This War', function() {
                 context.player1.clickCard(context.reinforcementWalker);
 
                 // Prompt to disclose required aspects
-                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.salvage,
                     context.battlefieldMarine,
@@ -89,7 +87,7 @@ describe('Mina Bonteri, Stop This War', function() {
                 context.player1.clickCard(context.reinforcementWalker);
 
                 // Prompt to disclose required aspects
-                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.salvage,
                     context.battlefieldMarine,
@@ -149,7 +147,7 @@ describe('Mina Bonteri, Stop This War', function() {
                 context.player2.clickCard(context.minaBonteri);
 
                 // Prompt to disclose required aspects
-                expect(context.player2).toHavePrompt(disclosePrompt);
+                expect(context.player2).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
                 expect(context.player2).toBeAbleToSelectExactly([
                     context.resupply,
                     context.echoBaseDefender
@@ -182,7 +180,7 @@ describe('Mina Bonteri, Stop This War', function() {
                 context.player1.clickCard(context.minaBonteri);
                 context.player1.clickCard(context.reinforcementWalker);
 
-                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHavePrompt('Disclose Command, Command, Heroism to draw a card');
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
 
                 context.player1.clickPrompt('Choose nothing');
