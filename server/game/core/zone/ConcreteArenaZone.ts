@@ -1,6 +1,6 @@
 import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
 import type { ZoneName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { registerState } from '../GameObjectUtils';
 import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
 import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';

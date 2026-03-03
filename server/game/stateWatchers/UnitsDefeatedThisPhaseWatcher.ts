@@ -5,7 +5,7 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Player } from '../core/Player';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
 import type { IDefeatSource } from '../IDamageOrDefeatSource';
 import { registerState } from '../core/GameObjectUtils';

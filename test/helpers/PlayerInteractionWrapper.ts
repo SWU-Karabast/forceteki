@@ -4,7 +4,7 @@ import { Card } from '../../server/game/core/card/Card.js';
 import TestSetupError from './TestSetupError.js';
 import Util from './Util.js';
 import { TrackedGameCardMetric, GameCardMetric } from '../../server/gameStatistics/GameStatisticsTracker.js';
-import type Game from '../../server/game/core/Game.js';
+import type { Game } from '../../server/game/core/Game.js';
 import type { InPlayCard } from '../../server/game/core/card/baseClasses/InPlayCard.js';
 import type { IStatefulPromptResults } from '../../server/game/core/gameSteps/PromptInterfaces.js';
 import { nonEnumerable } from './decorators.js';

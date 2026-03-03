@@ -2,7 +2,7 @@ import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import type { EffectName } from '../../Constants';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { registerState, stateRef } from '../../GameObjectUtils';
 
 @registerState()

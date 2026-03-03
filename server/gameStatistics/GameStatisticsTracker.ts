@@ -2,7 +2,7 @@ import type { Card } from '../game/core/card/Card';
 import { EventName } from '../game/core/Constants';
 import { EventRegistrar } from '../game/core/event/EventRegistrar';
 import type { GameEvent } from '../game/core/event/GameEvent';
-import type Game from '../game/core/Game';
+import type { Game } from '../game/core/Game';
 import { GameObjectBase } from '../game/core/GameObjectBase';
 import { registerState, stateRefArray } from '../game/core/GameObjectUtils';
 import type { Player } from '../game/core/Player';

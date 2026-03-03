@@ -3,7 +3,7 @@ import type { CardTypeFilter, RelativePlayerFilter, ZoneFilter } from '../Consta
 import { Duration, WildcardZoneName } from '../Constants.js';
 import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';

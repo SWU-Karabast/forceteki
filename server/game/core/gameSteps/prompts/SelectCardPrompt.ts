@@ -1,7 +1,7 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
 import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
