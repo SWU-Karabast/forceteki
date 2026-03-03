@@ -6,6 +6,9 @@ import * as Contract from '../../core/utils/Contract';
 import * as GameSystemLibrary from '../../gameSystems/GameSystemLibrary';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
+import { registerState } from '../../core/GameObjectUtils';
+
+@registerState()
 export class RestoreAbility extends TriggeredAbility {
     public readonly keyword: KeywordName = KeywordName.Restore;
 

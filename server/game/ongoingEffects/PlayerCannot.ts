@@ -22,6 +22,7 @@ export function playerCannot(properties: IPlayerCannotProperties) {
             new Restriction(game,
                 typeof properties === 'string'
                     ? { type: properties }
-                    : Object.assign({ type: properties.cannot }, properties))
+                    : Object.assign({ type: properties.cannot }, properties)
+            )
     );
 }

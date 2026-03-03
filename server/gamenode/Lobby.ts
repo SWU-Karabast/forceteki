@@ -146,7 +146,6 @@ export class Lobby {
     private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
-    private readonly spectateLink?: string;
     private readonly gameChat: GameChat;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -203,7 +202,6 @@ export class Lobby {
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat(() => this.sendLobbyState());
         this.connectionLink = matchmakingType !== MatchmakingType.Quick ? this.createLobbyLink() : null;
-        this.spectateLink = matchmakingType !== MatchmakingType.Quick ? this.createSpectateLink() : null;
         this.isPrivate = matchmakingType === MatchmakingType.PrivateLobby;
         this.allowSpectators = matchmakingType !== MatchmakingType.PrivateLobby;
         this.matchmakingType = matchmakingType;
@@ -346,7 +344,7 @@ export class Lobby {
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
-            spectateLink: this.spectateLink,
+            spectateLink: this.spectationAllowed ? this.createSpectateLink() : undefined,
             gameType: this.matchmakingType,
             userWhoMutedChat: this.userWhoMutedChat,
             gameFormat: this.gameFormat,

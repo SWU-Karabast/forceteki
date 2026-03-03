@@ -63,6 +63,6 @@ export const OngoingEffectBuilder = {
         static:
             <TValue>(type: EffectName, value?: ((game: Game) => OngoingEffectValueWrapper<TValue>) | OngoingEffectValueWrapper<TValue> | TValue): IOngoingAllCardsForPlayerEffectGenerator =>
                 (game: Game, source: Card, props: IOngoingAllCardsForPlayerEffectProps) =>
-                    new OngoingAllCardsForPlayerEffect(game, source, props, new StaticOngoingEffectImpl(game, type, is.function(value) ? value(game) : value))
+                    new OngoingAllCardsForPlayerEffect(game, source, props, new StaticOngoingEffectImpl(game, type, is.function(value) ? value(game) : value)),
     }
 };

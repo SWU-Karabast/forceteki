@@ -9,7 +9,7 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerState, stateRefArray } from '../GameObjectUtils';
 
 export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
     targets: GameObjectRef<TTarget>[];
@@ -43,8 +43,8 @@ export interface IOngoingEffectState<TTarget extends GameObject> extends IGameOb
  *                        and the numerical value of the effect, if any.
  */
 @registerState()
-export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TState extends IOngoingEffectState<TTarget> = IOngoingEffectState<TTarget>> extends GameObjectBase<TState> {
-    public source: Card;
+export abstract class OngoingEffect<TTarget extends GameObject = GameObject> extends GameObjectBase {
+    public readonly source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
     public readonly matchTarget: TTarget | ((target: TTarget, context: AbilityContext) => boolean);
     public readonly duration?: Duration;
@@ -55,13 +55,12 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
     public readonly ongoingEffect: IOngoingEffectProps<TTarget>;
     public context: AbilityContext;
 
-    @undoArray()
+    @stateRefArray()
     public accessor targets: readonly TTarget[] = [];
 
     public get type() {
         return this.impl.type;
     }
-
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps<TTarget>, effectImpl: OngoingEffectImpl<any>) {
         Contract.assertFalse(
@@ -200,7 +199,9 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
         };
     }
 
-    public override afterSetAllState(oldState: TState) {
+    public override afterSetAllState(oldState) {
         this.refreshContext();
     }
 }
+
+
