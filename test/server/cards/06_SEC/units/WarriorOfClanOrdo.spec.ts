@@ -1,7 +1,5 @@
 describe('Warrior of Clan Ordo', function () {
     integration(function (contextRef) {
-        const disclosePrompt = 'Disclose :aggression: to not deal 2 damage to your base';
-
         it('Warrior of Clan Ordo\'s ability allows disclosing Aggression to avoid dealing 2 damage to your base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -19,7 +17,7 @@ describe('Warrior of Clan Ordo', function () {
             context.player1.clickCard(context.warriorOfClanOrdo);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toHavePrompt(disclosePrompt);
+            expect(context.player1).toHavePrompt('Disclose Aggression to not deal 2 damage to your base');
             context.player1.clickCard(context.wampa);
 
             // Opponent reviews the disclosed card(s)

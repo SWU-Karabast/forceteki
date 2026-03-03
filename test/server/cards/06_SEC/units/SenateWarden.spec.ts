@@ -1,7 +1,5 @@
 describe('Senate Warden', function () {
     integration(function (contextRef) {
-        const disclosePrompt = 'Disclose :vigilance: to give an Experience token to a unit';
-
         describe('Senate Warden\'s ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -24,7 +22,7 @@ describe('Senate Warden', function () {
                 context.player1.clickCard(context.takedown);
                 context.player1.clickCard(context.senateWarden);
 
-                expect(context.player2).toHavePrompt(disclosePrompt);
+                expect(context.player2).toHavePrompt('Disclose Vigilance to give an Experience token to a unit');
                 expect(context.player2).toBeAbleToSelectExactly([context.protector]);
                 expect(context.player2).toHaveChooseNothingButton();
                 context.player2.clickCard(context.protector);
@@ -45,7 +43,7 @@ describe('Senate Warden', function () {
                 context.player1.clickCard(context.noGloryOnlyResults);
                 context.player1.clickCard(context.senateWarden);
 
-                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHavePrompt('Disclose Vigilance to give an Experience token to a unit');
                 context.player1.clickCard(context.takedown);
 
                 expect(context.player2).toHaveExactViewableDisplayPromptCards([context.takedown]);
