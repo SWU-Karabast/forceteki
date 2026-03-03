@@ -13,3 +13,8 @@ export interface ICardMetrics {
     drawn: number;
     discarded: number;
 }
+
+export enum RefreshTokenSource {
+    SWUStats = 'SWUStats',
+    SWUBase = 'SWUBase',
+}

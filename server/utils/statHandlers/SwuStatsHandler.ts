@@ -8,10 +8,11 @@ import type { IBaseCard } from '../../game/core/card/BaseCard';
 import { Aspect } from '../../game/core/Constants';
 import { GameCardMetric, type IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
 import type { GameServer, IToken } from '../../gamenode/GameServer';
-import { RefreshTokenSource, type UserFactory } from '../user/UserFactory';
+import { type UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
 import { StatsMessageKey } from '../stats/statsMessages';
-import type { ICardMetrics, IOAuthTokenResponse } from './statHandlerTypes';
+import type { ICardMetrics, IOAuthTokenResponse } from './StatHandlerTypes';
+import { RefreshTokenSource } from './StatHandlerTypes';
 
 
 interface ITurnResults {

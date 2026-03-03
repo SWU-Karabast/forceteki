@@ -1,6 +1,6 @@
 import { logger } from '../../logger';
 import type { GameServer, IToken } from '../../gamenode/GameServer';
-import { RefreshTokenSource, type UserFactory } from '../user/UserFactory';
+import { type UserFactory } from '../user/UserFactory';
 import { requireEnvVars } from '../../env';
 import type Game from '../../game/core/Game';
 import type { Player } from '../../game/core/Player';
@@ -8,7 +8,8 @@ import type { SwuGameFormat } from '../../game/core/Constants';
 import { StatsMessageKey } from '../stats/statsMessages';
 import type { IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker';
-import type { ICardMetrics, IOAuthTokenResponse } from './statHandlerTypes';
+import type { ICardMetrics, IOAuthTokenResponse } from './StatHandlerTypes';
+import { RefreshTokenSource } from './StatHandlerTypes';
 
 export class SwuBaseHandler {
     private readonly apiUrl: string;

@@ -6,14 +6,9 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type {
-    IUserDataEntity,
-    IUserProfileDataEntity,
-    IUserPreferences
-} from '../../services/DynamoDBInterfaces';
-import {
-    ModerationType
-} from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity } from '../../services/DynamoDBInterfaces';
+import { ModerationType } from '../../services/DynamoDBInterfaces';
+import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
 
 const getDefaultSoundPreferences = () => ({
@@ -34,11 +29,6 @@ export const getDefaultPreferences = (): IUserPreferences => ({
     cosmetics: getDefaultCosmeticsPreferences(),
 });
 
-
-export enum RefreshTokenSource {
-    SWUStats = 'SWUStats',
-    SWUBase = 'SWUBase',
-}
 
 const refreshTokenFieldMap: Record<RefreshTokenSource, {
     [K in keyof IUserDataEntity]: IUserDataEntity[K] extends string | undefined ? K : never;

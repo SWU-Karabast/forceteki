@@ -33,7 +33,7 @@ import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
-import { RefreshTokenSource, UserFactory } from '../utils/user/UserFactory';
+import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
@@ -47,6 +47,7 @@ import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
+import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 
 /**
  * Represents additional Socket types we can leverage these later.

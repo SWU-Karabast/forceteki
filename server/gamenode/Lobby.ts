@@ -1681,7 +1681,7 @@ export class Lobby {
         try {
             const [p1statsMessageKey, p2statsMessageKey] = await this.server.swuBaseHandler.sendGameResultAsync(game, player1, player2, this.id, this.server, sequenceNumber ?? 1, this.format);
             // Success return message
-            logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
+            logger.info(`Lobby ${this.id}: Successfully updated deck SWUBase stats for game ${game.id}`, { lobbyId: this.id });
             return {
                 player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUBase ? p1statsMessageKey : null,
                 player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUBase ? p2statsMessageKey : null
@@ -1799,13 +1799,18 @@ export class Lobby {
 
             // Send to SWUBase if handler is available
             if (this.swuBaseEnabled && (player1SwuBaseStatus || player2SwuBaseStatus)) {
-                const {
-                    player1StatsMessageKey,
-                    player2StatsMessageKey
-                } = await this.updatePlayerSWUBaseAsync(game, player1, player2, sequenceNumber ?? 1);
+                if (this.format === SwuGameFormat.Premier) {
+                    const {
+                        player1StatsMessageKey,
+                        player2StatsMessageKey
+                    } = await this.updatePlayerSWUBaseAsync(game, player1, player2, sequenceNumber ?? 1);
 
-                updateStatsMessage(player1SwuBaseStatus, player1StatsMessageKey);
-                updateStatsMessage(player2SwuBaseStatus, player2StatsMessageKey);
+                    updateStatsMessage(player1SwuBaseStatus, player1StatsMessageKey);
+                    updateStatsMessage(player2SwuBaseStatus, player2StatsMessageKey);
+                } else {
+                    updateStatsMessage(player1SwuBaseStatus, StatsMessageKey.NonPremierNotSupported);
+                    updateStatsMessage(player2SwuBaseStatus, StatsMessageKey.NonPremierNotSupported);
+                }
             }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
         } finally {
