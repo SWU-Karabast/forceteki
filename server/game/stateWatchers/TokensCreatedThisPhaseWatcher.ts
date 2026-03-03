@@ -1,6 +1,6 @@
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import { StateWatcherName } from '../core/Constants';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 import { registerState } from '../core/GameObjectUtils';
 import type { Player } from '../core/Player';

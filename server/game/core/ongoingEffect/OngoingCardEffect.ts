@@ -4,7 +4,7 @@ import { RelativePlayer, WildcardZoneName, WildcardCardType, EffectName } from '
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Card } from '../card/Card';
 import type { IOngoingCardEffectProps } from '../../Interfaces';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';

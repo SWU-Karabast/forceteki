@@ -8,7 +8,7 @@ import type TriggeredAbility from '../../ability/TriggeredAbility';
 import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { PromptType } from '../PromptInterfaces';
 
 export abstract class TriggerWindowBase extends BaseStep {

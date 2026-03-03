@@ -1,6 +1,6 @@
 import type { Card } from '../card/Card';
 import type { EffectName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IOngoingCardEffectProps, IOngoingPlayerEffectProps, IOngoingCardEffectGenerator, IOngoingPlayerEffectGenerator, IOngoingAllCardsForPlayerEffectGenerator } from '../../Interfaces';
 // import type { StatusToken } from '../StatusToken';
 import { OngoingCardEffect } from './OngoingCardEffect';

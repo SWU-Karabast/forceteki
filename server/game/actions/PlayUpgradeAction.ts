@@ -4,7 +4,7 @@ import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, ZoneName } from '../core/Constants';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
