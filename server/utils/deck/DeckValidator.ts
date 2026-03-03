@@ -324,7 +324,7 @@ export class DeckValidator {
 
     private getCardCheckData(setCode: string): ICardCheckData {
         // slightly confusing - the SWUDB format calls the set code the "id" but we use it to mean the numerical card id
-        const cardId = this.setCodeToId.get(setCode);
+        const cardId = this.setCodeToId.get(setCode.toUpperCase());
         return this.cardData.get(cardId);
     }
 
