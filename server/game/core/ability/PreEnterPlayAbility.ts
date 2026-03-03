@@ -1,7 +1,7 @@
 import type { IAbilityPropsWithSystems } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import { AbilityType } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { AbilityContext } from './AbilityContext';
 import { CardAbility } from './CardAbility';
 import * as Contract from '../utils/Contract';

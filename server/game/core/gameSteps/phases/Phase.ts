@@ -1,6 +1,6 @@
 import { AlertType, PhaseName, SnapshotType } from '../../Constants';
 import { EventName } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
 import { SimpleStep } from '../SimpleStep';
 import type { IStep } from '../IStep';

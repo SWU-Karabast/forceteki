@@ -5,7 +5,7 @@ import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import { RelativePlayer, TargetMode, WildcardCardType, type EventName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';

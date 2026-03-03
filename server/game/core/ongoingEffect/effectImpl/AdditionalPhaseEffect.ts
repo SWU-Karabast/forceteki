@@ -1,6 +1,6 @@
 import type { Card } from '../../card/Card';
 import type { PhaseName } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import * as Helpers from '../../utils/Helpers';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';

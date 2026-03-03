@@ -1,7 +1,7 @@
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
-import type Game from '../../core/Game';
+import type { Game } from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import * as GameSystemLibrary from '../../gameSystems/GameSystemLibrary';
 import type { ITriggeredAbilityProps } from '../../Interfaces';

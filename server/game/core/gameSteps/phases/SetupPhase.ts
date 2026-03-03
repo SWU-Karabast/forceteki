@@ -1,5 +1,5 @@
 import { randomItem } from '../../utils/Helpers';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';

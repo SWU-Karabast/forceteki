@@ -1,6 +1,6 @@
 import type { IReplacementEffectAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { ReplacementEffectSystem } from '../../gameSystems/ReplacementEffectSystem';
 import ReplacementAbilityBase from './ReplacementAbilityBase';
 import { registerState } from '../GameObjectUtils';

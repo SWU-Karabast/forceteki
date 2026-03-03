@@ -1,6 +1,6 @@
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import type { Card } from '../card/Card.js';
 import type { AbilityContext } from './AbilityContext.js';
 import { registerState } from '../GameObjectUtils';
