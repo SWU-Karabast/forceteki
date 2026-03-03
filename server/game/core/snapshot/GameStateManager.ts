@@ -1,6 +1,7 @@
 import type Game from '../Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
-import type { IGameSnapshot } from './SnapshotInterfaces';
+import { copyState } from '../GameObjectUtils';
+import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
 import { to } from '../utils/TypeHelpers';
@@ -90,6 +91,7 @@ export class GameStateManager implements IGameObjectRegistrar {
             if (!this._disableRegistration) {
                 this.allGameObjects.push(go);
                 this.gameObjectMapping.set(go.uuid, go);
+                this.#game.deltaTracker?.recordObjectCreation(go.uuid);
             }
         }
     }
@@ -212,6 +214,100 @@ export class GameStateManager implements IGameObjectRegistrar {
         } finally {
             this._isRollingBack = false;
         }
+    }
+
+    public rollbackToDelta(delta: IDeltaSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
+        Contract.assertNotNullLike(delta, 'Empty delta snapshot provided for rollback');
+        this._isRollingBack = true;
+        try {
+            const removals: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+            const updatesByUuid = new Map<string, { go: GameObjectBase; oldState: IGameObjectBaseState }>();
+
+            let rollbackError: Error | null = null;
+            try {
+                this.#game.state = v8.deserialize(delta.gameState);
+                this.#game.randomGenerator.restore(delta.rngState);
+                this._lastGameObjectId = delta.lastGameObjectId;
+
+                for (const uuid of delta.createdObjectUuids) {
+                    const go = this.gameObjectMapping.get(uuid);
+                    if (go) {
+                        removals.push({ go, oldState: go.getState() });
+                    }
+                }
+
+                for (const [uuid, changedFields] of delta.changedFields.entries()) {
+                    const go = this.gameObjectMapping.get(uuid);
+                    if (!go || removals.some((removal) => removal.go.uuid === uuid)) {
+                        continue;
+                    }
+
+                    let update = updatesByUuid.get(uuid);
+                    if (!update) {
+                        update = { go, oldState: go.getState() };
+                        updatesByUuid.set(uuid, update);
+                    }
+
+                    for (const [fieldName, oldValue] of Object.entries(changedFields)) {
+                        // @ts-expect-error Overriding state accessibility for internal rollback state restoration
+                        go.state[fieldName] = oldValue;
+                    }
+
+                    // @ts-expect-error Overriding state accessibility for internal rollback state restoration
+                    copyState(go, go.state);
+                    // @ts-expect-error protected hook used during rollback restoration
+                    go.afterSetState(update.oldState);
+                }
+
+                for (const removed of removals) {
+                    removed.go.cleanupOnRemove(removed.oldState);
+                }
+            } catch (error) {
+                if (!beforeRollbackSnapshot) {
+                    logger.error('Error during delta rollback and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
+                }
+
+                rollbackError = error;
+                logger.error('Error during delta rollback. Attempting to restore existing state before rollback.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+            }
+
+            if (rollbackError) {
+                try {
+                    this.rollbackToSnapshot(beforeRollbackSnapshot);
+                    this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
+                    return false;
+                } catch (error) {
+                    logger.error('The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
+                }
+            }
+
+            const removalUuids = new Set(removals.map((r) => r.go.uuid));
+            this.allGameObjects = this.allGameObjects.filter((go) => !removalUuids.has(go.uuid));
+            for (const uuid of removalUuids) {
+                this.gameObjectMapping.delete(uuid);
+            }
+
+            for (const update of updatesByUuid.values()) {
+                update.go.afterSetAllState(update.oldState);
+            }
+
+            return true;
+        } finally {
+            this._isRollingBack = false;
+        }
+    }
+
+    public rollbackToDeltaChain(deltas: IDeltaSnapshot[], beforeRollbackSnapshot?: IGameSnapshot): boolean {
+        for (const delta of deltas) {
+            const success = this.rollbackToDelta(delta, beforeRollbackSnapshot);
+            if (!success) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private afterTakeSnapshot() {

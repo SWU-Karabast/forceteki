@@ -1,6 +1,6 @@
 import type Game from '../Game';
 import type { GameStateManager } from './GameStateManager';
-import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
+import type { IDeltaSnapshot, IGameSnapshot, ISnapshotMetadata, SnapshotTimepoint } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotArray } from './container/SnapshotArray';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler } from './container/SnapshotContainerBase';
@@ -8,6 +8,7 @@ import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
 import { MetaSnapshotArray } from './container/MetaSnapshotArray';
+import { DeltaSnapshotContainer } from './container/DeltaSnapshotContainer';
 import v8 from 'node:v8';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
@@ -31,40 +32,42 @@ export class SnapshotFactory {
 
     /** Caches the snapshot for the current action  */
     private currentActionSnapshot: IGameSnapshot;
+    private currentDeltaSnapshot: IDeltaSnapshot;
+    private currentSnapshotMetadata: ISnapshotMetadata;
 
     private lastAssignedSnapshotId = -1;
     private lastAssignedTimepointNumber = -1;
 
     public get currentSnapshotId(): number | null {
-        return this.currentActionSnapshot?.id;
+        return this.currentSnapshotMetadata?.id;
     }
 
     public get currentSnapshottedAction(): number | null {
-        return this.currentActionSnapshot?.actionNumber;
+        return this.currentSnapshotMetadata?.actionNumber;
     }
 
     public get currentSnapshottedActivePlayer(): string | null {
-        return this.currentActionSnapshot?.activePlayerId;
+        return this.currentSnapshotMetadata?.activePlayerId;
     }
 
     public get currentSnapshottedPhase(): PhaseName | null {
-        return this.currentActionSnapshot?.phase;
+        return this.currentSnapshotMetadata?.phase;
     }
 
     public get currentSnapshottedRound(): number | null {
-        return this.currentActionSnapshot?.roundNumber;
+        return this.currentSnapshotMetadata?.roundNumber;
     }
 
     public get currentSnapshottedTimepointNumber(): number | null {
-        return this.currentActionSnapshot?.timepointNumber;
+        return this.currentSnapshotMetadata?.timepointNumber;
     }
 
     public get currentSnapshottedTimepointType(): SnapshotTimepoint | null {
-        return this.currentActionSnapshot?.timepoint;
+        return this.currentSnapshotMetadata?.timepoint;
     }
 
     public get currentSnapshotRequiresConfirmationToRollback(): boolean | null {
-        return this.currentActionSnapshot?.requiresConfirmationToRollback;
+        return this.currentSnapshotMetadata?.requiresConfirmationToRollback;
     }
 
     public constructor(game: Game, gameStateManager: GameStateManager) {
@@ -117,8 +120,23 @@ export class SnapshotFactory {
         );
     }
 
+    public createDeltaSnapshotContainer<T>(maxHistoryLength: number): DeltaSnapshotContainer<T> {
+        return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
+            new DeltaSnapshotContainer<T>(
+                maxHistoryLength,
+                this.gameStateManager,
+                () => this.getCurrentDeltaSnapshot(),
+                (snapshot: IDeltaSnapshot) => this.updateCurrentDeltaSnapshot(snapshot),
+                () => this.getCurrentActionSnapshotOrNull(),
+                clearNewerSnapshotsBinding
+            )
+        );
+    }
+
     public clearCurrentSnapshot(): void {
         this.currentActionSnapshot = null;
+        this.currentDeltaSnapshot = null;
+        this.currentSnapshotMetadata = null;
     }
 
     /**
@@ -144,30 +162,54 @@ export class SnapshotFactory {
         const nextSnapshotId = this.lastAssignedSnapshotId + 1;
         const nextTimepointNumber = this.lastAssignedTimepointNumber + 1;
 
+        const snapshotBase = this.buildSnapshotMetadata(timepoint, nextSnapshotId, nextTimepointNumber);
         const snapshot: IGameSnapshot = {
-            id: nextSnapshotId,
-            lastGameObjectId: this.gameStateManager.lastGameObjectId,
-            actionNumber: this.game.actionNumber,
-            roundNumber: this.game.roundNumber,
-            timepoint,
-            timepointNumber: nextTimepointNumber,
-            phase: this.game.currentPhase,
+            ...snapshotBase,
             gameState: v8.serialize(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
             rngState: this.game.randomGenerator.rngState,
-            requiresConfirmationToRollback: false,
-            activePlayerId: this.game.actionPhaseActivePlayer?.id
         };
 
         this.lastAssignedSnapshotId = nextSnapshotId;
         this.lastAssignedTimepointNumber = nextTimepointNumber;
 
         this.currentActionSnapshot = snapshot;
+        this.currentSnapshotMetadata = snapshot;
+        this.currentDeltaSnapshot = null;
+    }
+
+    public createDeltaSnapshotForCurrentTimepoint(timepoint: SnapshotTimepoint): void {
+        const nextSnapshotId = this.lastAssignedSnapshotId + 1;
+        const nextTimepointNumber = this.lastAssignedTimepointNumber + 1;
+
+        const snapshotBase = this.buildSnapshotMetadata(timepoint, nextSnapshotId, nextTimepointNumber);
+        const snapshot: IDeltaSnapshot = {
+            ...snapshotBase,
+            gameState: v8.serialize(this.game.state),
+            changedFields: this.game.deltaTracker.getTrackedChangedFields(),
+            createdObjectUuids: this.game.deltaTracker.getTrackedCreatedObjectUuids(),
+            rngState: this.game.randomGenerator.rngState,
+        };
+
+        this.lastAssignedSnapshotId = nextSnapshotId;
+        this.lastAssignedTimepointNumber = nextTimepointNumber;
+
+        this.currentDeltaSnapshot = snapshot;
+        this.currentSnapshotMetadata = snapshot;
+        this.currentActionSnapshot = null;
     }
 
     public setNextSnapshotIsSamePlayer(value: boolean) {
-        if (this.currentActionSnapshot) {
-            this.currentActionSnapshot.nextSnapshotIsSamePlayer = value;
+        if (this.currentSnapshotMetadata) {
+            this.currentSnapshotMetadata.nextSnapshotIsSamePlayer = value;
+
+            if (this.currentActionSnapshot) {
+                this.currentActionSnapshot.nextSnapshotIsSamePlayer = value;
+            }
+
+            if (this.currentDeltaSnapshot) {
+                this.currentDeltaSnapshot.nextSnapshotIsSamePlayer = value;
+            }
         }
     }
 
@@ -180,6 +222,16 @@ export class SnapshotFactory {
         return this.currentActionSnapshot;
     }
 
+    private getCurrentActionSnapshotOrNull(): IGameSnapshot | null {
+        return this.currentActionSnapshot ?? null;
+    }
+
+    private getCurrentDeltaSnapshot(): IDeltaSnapshot {
+        Contract.assertNotNullLike(this.currentDeltaSnapshot, 'Attempting to read delta snapshot before any is set, meaning the game is likely not initialized');
+
+        return this.currentDeltaSnapshot;
+    }
+
     /**
      * Helper method to facilitate snapshot updating the current snapshot after a rollback
      */
@@ -188,7 +240,31 @@ export class SnapshotFactory {
 
         this.currentActionSnapshot = snapshot;
         this.currentActionSnapshot.requiresConfirmationToRollback = false;
+        this.currentSnapshotMetadata = this.currentActionSnapshot;
         this.lastAssignedTimepointNumber = snapshot.timepointNumber;
+    }
+
+    private updateCurrentDeltaSnapshot(snapshot: IDeltaSnapshot): void {
+        Contract.assertNotNullLike(this.currentDeltaSnapshot, 'Attempting to update delta snapshot before any is set, meaning the game is likely not initialized');
+
+        this.currentDeltaSnapshot = snapshot;
+        this.currentDeltaSnapshot.requiresConfirmationToRollback = false;
+        this.currentSnapshotMetadata = this.currentDeltaSnapshot;
+        this.lastAssignedTimepointNumber = snapshot.timepointNumber;
+    }
+
+    private buildSnapshotMetadata(timepoint: SnapshotTimepoint, snapshotId: number, timepointNumber: number): ISnapshotMetadata {
+        return {
+            id: snapshotId,
+            lastGameObjectId: this.gameStateManager.lastGameObjectId,
+            actionNumber: this.game.actionNumber,
+            roundNumber: this.game.roundNumber,
+            timepoint,
+            timepointNumber,
+            phase: this.game.currentPhase,
+            requiresConfirmationToRollback: false,
+            activePlayerId: this.game.actionPhaseActivePlayer?.id
+        };
     }
 
     /** Helper method for correctly building snapshot containers in a way that they can pass back a handle for calling the `clearNewerSnapshots()` method */

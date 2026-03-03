@@ -133,6 +133,26 @@ export interface IGameSnapshot {
     nextSnapshotIsSamePlayer?: boolean;
 }
 
+export interface ISnapshotMetadata {
+    id: number;
+    lastGameObjectId: number;
+    actionNumber: number;
+    roundNumber: number;
+    phase: PhaseName;
+    timepoint: SnapshotTimepoint;
+    timepointNumber: number;
+    activePlayerId?: string;
+    requiresConfirmationToRollback: boolean;
+    nextSnapshotIsSamePlayer?: boolean;
+}
+
+export interface IDeltaSnapshot extends ISnapshotMetadata {
+    changedFields: Map<string, Record<string, unknown>>;
+    createdObjectUuids: string[];
+    gameState: Buffer;
+    rngState: IRandomness['rngState'];
+}
+
 export interface IGameState {
     roundNumber: number;
     initialFirstPlayer: GameObjectRef<Player> | null;

@@ -14,6 +14,7 @@ import type { SnapshotMap } from './container/SnapshotMap';
 import type { MetaSnapshotArray } from './container/MetaSnapshotArray';
 import { QuickRollbackPoint } from './container/MetaSnapshotArray';
 import { PromptType } from '../gameSteps/PromptInterfaces';
+import type { DeltaSnapshotContainer } from './container/DeltaSnapshotContainer';
 
 export enum UndoMode {
     Disabled = 'disabled',
@@ -43,7 +44,7 @@ export class SnapshotManager {
     private readonly _gameStateManager: GameStateManager;
     protected readonly snapshotFactory: SnapshotFactory;
 
-    protected readonly actionSnapshots: SnapshotHistoryMap<string>;
+    protected readonly actionSnapshots: DeltaSnapshotContainer<string>;
     protected readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
     protected readonly quickSnapshots: Map<string, MetaSnapshotArray>;
 
@@ -102,7 +103,7 @@ export class SnapshotManager {
         this._undoMode = undoMode;
 
         const limits = SnapshotManager.SnapshotLimits;
-        this.actionSnapshots = this.snapshotFactory.createSnapshotHistoryMap<string>(limits.get(SnapshotType.Action));
+        this.actionSnapshots = this.snapshotFactory.createDeltaSnapshotContainer<string>(limits.get(SnapshotType.Action));
         this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(limits.get(SnapshotType.Phase));
         this.manualSnapshots = new Map<string, SnapshotMap<number>>();
 
@@ -123,11 +124,27 @@ export class SnapshotManager {
             this.snapshotFactory.setNextSnapshotIsSamePlayer(this.#game.actionPhaseActivePlayer.id === this.currentSnapshottedActivePlayer);
         }
 
-        this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
+        if (this.shouldUseDelta(timepoint)) {
+            this._gameStateManager.removeUnusedGameObjects();
+            this.#game.deltaTracker.startTracking();
+            this.snapshotFactory.createDeltaSnapshotForCurrentTimepoint(timepoint);
+        } else {
+            this.#game.deltaTracker.stopTracking();
+            this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
+            this.#game.deltaTracker.startTracking();
+        }
 
         if (this._gameStepsSinceLastUndo != null) {
             this._gameStepsSinceLastUndo++;
         }
+    }
+
+    private shouldUseDelta(timepoint: SnapshotTimepoint): boolean {
+        return [
+            SnapshotTimepoint.Action,
+            SnapshotTimepoint.RegroupResource,
+            SnapshotTimepoint.RegroupReadyCards,
+        ].includes(timepoint);
     }
 
     public takeSnapshot(settings: ISnapshotSettings): number {
@@ -172,7 +189,7 @@ export class SnapshotManager {
         const actionSnapshotId = this.actionSnapshots.getSnapshotProperties(playerId)?.snapshotId;
         Contract.assertTrue(actionSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from an action snapshot, but the latest action snapshot for ${playerId} (${actionSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that an action snapshot is taken before creating a quick snapshot from it.`);
 
-        quickSnapshots.addSnapshotFromMap(this.actionSnapshots, playerId);
+        quickSnapshots.addSnapshotFromSource(this.actionSnapshots, playerId);
     }
 
     private addQuickStartOfPhaseSnapshots(phase: PhaseName.Regroup | PhaseName.Setup) {
@@ -481,6 +498,7 @@ export class SnapshotManager {
         this.actionSnapshots.clearAllSnapshots();
         this.phaseSnapshots.clearAllSnapshots();
         this.snapshotFactory.clearCurrentSnapshot();
+        this.#game.deltaTracker.stopTracking();
 
         for (const playerSnapshots of this.manualSnapshots.values()) {
             playerSnapshots.clearAllSnapshots();

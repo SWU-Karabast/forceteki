@@ -20,6 +20,13 @@ interface IQuickRollbackEntry {
     snapshotId: number;
 }
 
+interface IQuickSnapshotSource<T> {
+    rollbackById(snapshotId: number): number | null;
+    hasSnapshotId(snapshotId: number): boolean;
+    getSnapshotPropertiesById(snapshotId: number): ISnapshotProperties | null;
+    getSnapshotProperties(key: T): ISnapshotProperties | null;
+}
+
 export class MetaSnapshotArray {
     private entries: IQuickRollbackEntry[] = [];
 
@@ -84,14 +91,18 @@ export class MetaSnapshotArray {
     }
 
     public addSnapshotFromMap<T>(snapshotMap: SnapshotMap<T> | SnapshotHistoryMap<T>, key: T): void {
-        const snapshotId = snapshotMap.getSnapshotProperties(key)?.snapshotId;
+        this.addSnapshotFromSource(snapshotMap, key);
+    }
+
+    public addSnapshotFromSource<T>(snapshotSource: IQuickSnapshotSource<T>, key: T): void {
+        const snapshotId = snapshotSource.getSnapshotProperties(key)?.snapshotId;
 
         Contract.assertNotNullLike(snapshotId);
 
         this.entries.push({
-            rollback: () => snapshotMap.rollbackById(snapshotId),
-            checkAvailable: () => snapshotMap.hasSnapshotId(snapshotId),
-            snapshotProperties: () => snapshotMap.getSnapshotPropertiesById(snapshotId),
+            rollback: () => snapshotSource.rollbackById(snapshotId),
+            checkAvailable: () => snapshotSource.hasSnapshotId(snapshotId),
+            snapshotProperties: () => snapshotSource.getSnapshotPropertiesById(snapshotId),
             snapshotId
         });
     }
