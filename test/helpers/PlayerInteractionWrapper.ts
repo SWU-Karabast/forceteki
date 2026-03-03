@@ -3,6 +3,7 @@ import { ZoneName, DeckZoneDestination, DeployType } from '../../server/game/cor
 import { Card } from '../../server/game/core/card/Card.js';
 import TestSetupError from './TestSetupError.js';
 import Util from './Util.js';
+import { AspectHelper } from './TextReplacementHelpers.js';
 import { TrackedGameCardMetric, GameCardMetric } from '../../server/gameStatistics/GameStatisticsTracker.js';
 import type { Game } from '../../server/game/core/Game.js';
 import type { InPlayCard } from '../../server/game/core/card/baseClasses/InPlayCard.js';
@@ -621,10 +622,19 @@ export class PlayerInteractionWrapper {
 
         return (
             !!currentPrompt &&
-            (menuTitle && menuTitle.toLowerCase() === title.toLowerCase()) ||
-            (menuTitle && (menuTitle.replace('(because you are choosing from a hidden zone you may choose nothing)', '').trim()
-                .toLowerCase() === title.toLowerCase())) || (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
+            (menuTitle && this.normalizePromptTitle(menuTitle) === title.toLowerCase()) ||
+            (promptTitle && this.normalizePromptTitle(promptTitle) === title.toLowerCase())
         );
+    }
+
+    private normalizePromptTitle(promptTitle: string) {
+        const hiddenZoneText = '(because you are choosing from a hidden zone you may choose nothing)';
+        const withAspectTokensRemoved = AspectHelper.removeReplacementTokens(promptTitle);
+
+        return withAspectTokensRemoved
+            .replace(hiddenZoneText, '')
+            .toLowerCase()
+            .trim();
     }
 
     public selectDeck(deck: any) {
@@ -632,10 +642,11 @@ export class PlayerInteractionWrapper {
     }
 
     public clickPrompt(text: string) {
-        text = text.toString();
+        const expectedText = AspectHelper.insertReplacementTokens(text.toString());
         const currentPrompt = this.player.currentPrompt();
         const promptButton = currentPrompt.buttons.find(
-            (button: { text: { toString: () => string } }) => button.text.toString().toLowerCase() === text.toLowerCase()
+            (button: { text: { toString: () => string } }) =>
+                button.text.toString().toLowerCase() === expectedText.toLowerCase()
         );
 
         if (!promptButton || promptButton.disabled) {

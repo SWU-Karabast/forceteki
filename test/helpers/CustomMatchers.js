@@ -7,6 +7,7 @@ const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
 const { Card } = require('../../server/game/core/card/Card.js');
 const { TrackedGameCardMetric } = require('../../server/gameStatistics/GameStatisticsTracker.js');
+const { AspectHelper } = require('./TextReplacementHelpers.js');
 
 var customMatchers = {
     toHavePrompt: function () {
@@ -878,7 +879,7 @@ var customMatchers = {
                     throw new TestSetupError(`Parameter 'buttons' is not an array: ${buttons}`);
                 }
 
-                const actualButtons = player.currentPrompt().buttons.map((button) => button.text);
+                const actualButtons = player.currentPrompt().buttons.map((button) => AspectHelper.removeReplacementTokens(button.text));
 
                 const expectedButtons = [...buttons];
 

@@ -5,6 +5,7 @@ const util = require('util');
 const { Card } = require('../../server/game/core/card/Card.js');
 const Game = require('../../server/game/core/Game.js');
 const { Player } = require('../../server/game/core/Player.js');
+const { Aspect } = require('../../server/game/core/Constants.js');
 
 // Add custom toString methods for better Jasmine output
 function formatObject(keys) {
