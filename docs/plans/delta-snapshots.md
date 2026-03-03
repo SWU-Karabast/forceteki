@@ -301,7 +301,7 @@ export class DeltaTracker {
             return value; // primitives, null, undefined
         }
         if (Array.isArray(value)) {
-            return [...value];
+            return value.concat();
         }
         if (value instanceof Map) {
             return new Map(value);
