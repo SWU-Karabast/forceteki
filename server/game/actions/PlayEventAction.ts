@@ -50,9 +50,9 @@ export class PlayEventAction extends PlayCardAction {
      * @returns The AbilityRestriction blocking play, or null if not restricted
      */
     public static getPlayRestriction(player: Player, card: IEventCard, context: AbilityContext): Restriction | null {
-        return player.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.PlayEvent], context)[0]
-            ?? card.getMatchingRestrictions(AbilityRestriction.Play, context)[0]
-            ?? null;
+        return player.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.PlayEvent], context)[0] ??
+          card.getMatchingRestrictions(AbilityRestriction.Play, context)[0] ??
+          null;
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

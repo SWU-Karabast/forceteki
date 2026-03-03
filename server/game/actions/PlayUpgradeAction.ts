@@ -73,9 +73,9 @@ export class PlayUpgradeAction extends PlayCardAction {
      * @returns The Restriction blocking play, or null if not restricted
      */
     public static getPlayRestriction(player: Player, card: Card, context: AbilityContext): Restriction | null {
-        return player.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.PlayUpgrade, AbilityRestriction.PutIntoPlay], context)[0]
-            ?? card.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.EnterPlay], context)[0]
-            ?? null;
+        return player.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.PlayUpgrade, AbilityRestriction.PutIntoPlay], context)[0] ??
+          card.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.EnterPlay], context)[0] ??
+          null;
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
