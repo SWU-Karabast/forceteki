@@ -358,7 +358,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         protected override getType(): CardType {
             if (this.isLeaderAttachedToThis()) {
-                return CardType.LeaderUnit;
+                return CardType.NonTokenLeaderUnit;
             }
             return super.getType();
         }
