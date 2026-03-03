@@ -116,7 +116,12 @@ export class SwuBaseHandler {
     }
 
     private buildPlayerData(player: Player, accessToken: string | null) {
-        const { id, name, base, leader, deckSource } = player.lobbyDeck;
+        const { name, base, leader, deckSource, deckLink } = player.lobbyDeck;
+
+        // Deck Links in the form: https://swubase.com/decks/${deckId}
+        const match = deckLink.match(/\/decks\/([^/]+)\/?$/);
+        const deckId = match ? match[1] : null;
+
         return {
             name: player.name,
             id: player.id,
@@ -124,7 +129,7 @@ export class SwuBaseHandler {
             leader: player.leader?.id,
             base: player.base?.id,
             deck: {
-                id: accessToken ? id : 'unknown', // "unknown" deck ids for players NOT linked to swubase
+                id: accessToken ? deckId : 'unknown', // "unknown" deck ids for players NOT linked to swubase
                 name,
                 base,
                 leader,
