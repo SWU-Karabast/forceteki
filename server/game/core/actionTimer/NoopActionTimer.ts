@@ -12,7 +12,6 @@ export class NoopActionTimer implements IActionTimer {
         return false;
     }
 
-
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
         return PlayerTimeRemainingStatus.NoAlert;
     }

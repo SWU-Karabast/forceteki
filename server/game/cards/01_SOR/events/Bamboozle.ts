@@ -8,6 +8,8 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
 
+import { registerState } from '../../../core/GameObjectUtils';
+
 export default class Bamboozle extends EventCard {
     protected override getImplementationId() {
         return {
@@ -48,6 +50,7 @@ export default class Bamboozle extends EventCard {
     }
 }
 
+@registerState()
 class PlayBamboozleAction extends PlayEventAction {
     private abilityHelper: IAbilityHelper;
 

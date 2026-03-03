@@ -6,6 +6,9 @@ import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import type { FormatMessage } from '../../chat/GameChat';
 
+import { registerState } from '../../GameObjectUtils';
+
+@registerState()
 export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | IKeywordProperties[]> {
     public constructor(game: Game, keywordProps: KeywordNameOrProperties | KeywordNameOrProperties[]) {
         const effectDescription: FormatMessage = {

@@ -6,6 +6,8 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, PlayType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
+import { registerState } from '../../../core/GameObjectUtils';
+
 export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
@@ -33,6 +35,7 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
     }
 }
 
+@registerState()
 class FirstLightSmuggleAction extends PlayUnitAction {
     private abilityHelper: IAbilityHelper;
 

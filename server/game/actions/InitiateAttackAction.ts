@@ -12,6 +12,8 @@ import type Game from '../core/Game.js';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker.js';
 
+import { registerState } from '../core/GameObjectUtils';
+
 interface IInitiateAttackProperties extends IAttackProperties {
     allowExhaustedAttacker?: boolean;
 }
@@ -23,6 +25,7 @@ interface IInitiateAttackProperties extends IAttackProperties {
  * Default behaviors can be overridden by passing in an {@link IInitiateAttackProperties} object.
  * See {@link GameSystemLibrary.initiateAttack} for using it in abilities.
  */
+@registerState()
 export class InitiateAttackAction extends PlayerAction {
     public readonly initiateAttackSource?: Card;
 

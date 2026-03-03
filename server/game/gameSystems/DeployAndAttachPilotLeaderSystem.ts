@@ -70,7 +70,6 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
                 newController: context.player,
             });
 
-
             return [
                 entersPlayEvent,
                 attachUpgradeEvent,

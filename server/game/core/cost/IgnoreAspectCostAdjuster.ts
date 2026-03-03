@@ -8,6 +8,9 @@ import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 import type { ICostAdjustmentResolutionProperties, ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class IgnoreAspectCostAdjuster extends CostAdjuster {
     public readonly ignoredAspect?: Aspect;
 
