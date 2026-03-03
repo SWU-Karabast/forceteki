@@ -723,14 +723,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     // }
 
     /**
-     * Shuffles the deck, optionally displaying a message in chat
-     * @param {boolean} emitMessage - Whether to display a message in chat
+     * Shuffles the deck
      */
-    public shuffleDeck(emitMessage = false) {
-        if (emitMessage) {
-            this.game.addMessage('{0} is shuffling their deck', this);
-        }
-
+    public shuffleDeck() {
         this.deckZone.shuffle(this.game.randomGenerator);
     }
 

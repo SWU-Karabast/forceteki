@@ -87,6 +87,7 @@ export class SetupPhase extends Phase {
 
     private drawStartingHands() {
         for (const player of this.game.getPlayers()) {
+            this.game.addMessage('{0} is shuffling their deck', player);
             new ShuffleDeckSystem({ target: player })
                 .resolve(
                     player,
@@ -94,6 +95,7 @@ export class SetupPhase extends Phase {
                     TriggerHandlingMode.ResolvesTriggers
                 );
 
+            this.game.addMessage('{0} draws {1} cards in their starting hand', player, player.getStartingHandSize());
             new DrawSystem({ amount: player.getStartingHandSize() })
                 .resolve(
                     player,

@@ -80,7 +80,9 @@ export class MulliganPrompt extends AllPlayerPrompt {
                     TriggerHandlingMode.ResolvesTriggers
                 );
 
+
                 // Shuffle the deck
+                this.game.addMessage('{0} is shuffling their deck', player);
                 new ShuffleDeckSystem({ target: player })
                     .resolve(
                         player,
@@ -88,7 +90,9 @@ export class MulliganPrompt extends AllPlayerPrompt {
                         TriggerHandlingMode.ResolvesTriggers
                     );
 
+
                 // Draw a new starting hand
+                this.game.addMessage('{0} draws {1} cards in their starting hand', player, player.getStartingHandSize());
                 new DrawSystem({ amount: player.getStartingHandSize() })
                     .resolve(
                         player,
