@@ -36,4 +36,13 @@ export class OngoingPlayerEffect extends OngoingEffect<Player> {
     public override getTargets() {
         return this.game.getPlayers();
     }
+
+    protected override abilityPlayer(): Player {
+        const validTargets = this.getTargets().filter((target) => this.isValidTarget(target));
+        if (validTargets.length === 1) {
+            return validTargets[0];
+        }
+
+        return super.abilityPlayer();
+    }
 }

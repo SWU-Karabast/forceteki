@@ -6,7 +6,7 @@ import { Duration, EventName, GameStateChangeRequired } from '../core/Constants'
 import type { GameEvent } from '../core/event/GameEvent';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import type { IOngoingEffectFactory, WhenType } from '../Interfaces';
+import type { IOngoingEffectFactory, ITriggeredAbilityProps, WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
@@ -93,19 +93,28 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
                 Contract.assertArraySize(target, 1, `Expected exactly one target for delayed effect but found ${target.length}`);
                 target = target[0];
             }
+        } else if (properties.delayedEffectType === DelayedEffectType.Player) {
+            if (Array.isArray(target)) {
+                Contract.assertFalse(target.length > 1, `Expected exactly one target or no target for delayed effect but found ${target.length}`);
+                target = target.length === 1 ? target[0] : null;
+            }
         }
 
         const { title, when, limit, immediateEffect, ...otherProperties } = properties;
 
+        const ongoingEffectProperties: ITriggeredAbilityProps = {
+            title,
+            when,
+            immediateEffect,
+            limit: limit ?? new PerPlayerPerGameAbilityLimit(context.game, 1),
+        };
+
         const effectProperties: IOngoingEffectFactory<any> = {
             ...otherProperties,
-            matchTarget: properties.delayedEffectType === DelayedEffectType.Card ? target : null,
-            ongoingEffect: OngoingEffectLibrary.delayedEffect({
-                title,
-                when,
-                immediateEffect,
-                limit: limit ?? new PerPlayerPerGameAbilityLimit(context.game, 1),
-            })
+            matchTarget: target,
+            ongoingEffect: properties.delayedEffectType === DelayedEffectType.Card
+                ? OngoingEffectLibrary.cardDelayedEffect(ongoingEffectProperties)
+                : OngoingEffectLibrary.playerDelayedEffect(ongoingEffectProperties)
         };
 
         event.sourceCard = context.source;

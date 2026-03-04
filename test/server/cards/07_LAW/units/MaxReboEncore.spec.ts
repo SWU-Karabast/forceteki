@@ -193,7 +193,7 @@ describe('Max Rebo, Encore!', () => {
                 // First Regroup Phase begins
                 expect(context.getChatLogs(2)).toEqual([
                     'Round: 1 - Regroup Phase',
-                    'player2 uses a delayed effect applied by Arrest to rescue Max Rebo',
+                    'player1 uses a delayed effect applied by Arrest to rescue Max Rebo',
                 ]);
 
                 // Max Rebo is rescued at the beginning of the Regroup Phase
