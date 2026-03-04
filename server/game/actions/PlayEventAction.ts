@@ -163,5 +163,5 @@ export abstract class PlayEventActionBase extends PlayCardAction {
 export class PlayEventAction extends PlayEventActionBase {
     public override getGameObjectName() {
         return 'PlayEventAction';
-    }    
+    }
 }

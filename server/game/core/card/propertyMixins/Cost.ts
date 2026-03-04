@@ -1,5 +1,5 @@
 import { EffectName } from '../../Constants';
-import { registerState, registerStateBase } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';

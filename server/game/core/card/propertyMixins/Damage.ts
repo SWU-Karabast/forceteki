@@ -6,7 +6,7 @@ import type { ICardWithPrintedHpProperty } from './PrintedHp';
 import { WithPrintedHp } from './PrintedHp';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { EffectName } from '../../Constants';
-import { registerState, registerStateBase, statePrimitive } from '../../GameObjectUtils';
+import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 
 export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
     setActiveAttack(attack: Attack);

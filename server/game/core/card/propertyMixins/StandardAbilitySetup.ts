@@ -1,5 +1,5 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { registerState, registerStateBase } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 import * as Contract from '../../utils/Contract';
 import type { IBasicAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { Card, CardConstructor } from '../Card';

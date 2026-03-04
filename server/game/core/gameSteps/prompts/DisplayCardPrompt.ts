@@ -1,5 +1,6 @@
 import type { Game } from '../../Game';
-import { OngoingEffectSource, OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectSource';
+import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectSource';
+import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';

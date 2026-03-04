@@ -3,7 +3,7 @@ import type PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import { type PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../Card';
 import * as Contract from '../../utils/Contract';
-import { registerState, registerStateBase } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 
 export interface IPreEnterPlayAbilityRegistrar<T extends Card> {
     addPreEnterPlayAbility(properties: IActionAbilityProps<T>): PreEnterPlayAbility;

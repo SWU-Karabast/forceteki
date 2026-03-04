@@ -6,7 +6,7 @@ import type { PlayableOrDeployableCardConstructor } from '../baseClasses/Playabl
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { registerState, registerStateBase, statePrimitive } from '../../GameObjectUtils';
+import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
 

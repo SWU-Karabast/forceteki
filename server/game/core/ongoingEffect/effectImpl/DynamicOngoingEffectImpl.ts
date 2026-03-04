@@ -5,6 +5,7 @@ import { GameObject } from '../../GameObject';
 import { registerState, stateRefMap } from '../../GameObjectUtils';
 import { OngoingEffectValueWrapper, OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { StaticOngoingEffectImplBase } from './StaticOngoingEffectImpl';
+
 export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext, game: Game) => TValue;
 export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: AbilityContext, game: Game) => TValue | OngoingEffectValueWrapperBase<TValue>;
 

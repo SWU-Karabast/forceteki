@@ -121,7 +121,7 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             enumerable: false,
             configurable: false
         });
-        
+
         Object.defineProperty(wrappedClass, registerStateAutoInitializeMarker, {
             value: true,
             writable: false,
@@ -142,9 +142,9 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
     };
 }
 
-/** 
+/**
  * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
- * 
+ *
  * This is meant for base classes that need to be extended by &#64;registerState classes, but should not be directly instantiated themselves, and thus don't need the constructor wrapper that guarantees initialize() is called.
  */
 export function registerStateBase<T extends GameObjectBase>(copyModeOrOptions?: CopyMode | Omit<RegisterStateOptions, 'autoInitialize'>) {
@@ -156,7 +156,7 @@ export function registerStateBase<T extends GameObjectBase>(copyModeOrOptions?: 
  * Mirrors the wrapper pattern used in registerState() in GameObjectUtils.ts.
  * Used with the dynamically imported Cards to automatically wrap them with a constructor that calls initialize, and to mark them with the appropriate metadata for state copying.
  */
-export function buildAutoInitializingCardClass(targetCardClass: any): any {    
+export function buildAutoInitializingCardClass(targetCardClass: any): any {
     const parentClass = Object.getPrototypeOf(targetCardClass);
 
     if (parentClass?.[registerStateAutoInitializeMarker] === true) {

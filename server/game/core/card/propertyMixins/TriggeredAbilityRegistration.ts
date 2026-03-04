@@ -4,7 +4,7 @@ import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 import DamageModificationAbility from '../../ability/DamageModificationAbility';
-import { registerState, registerStateBase } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 
 export interface ITriggeredAbilityRegistrar<T extends Card> {
     addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbilityBase;

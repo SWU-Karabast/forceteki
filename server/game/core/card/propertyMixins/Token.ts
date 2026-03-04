@@ -2,7 +2,7 @@ import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCa
 import * as Contract from '../../utils/Contract';
 import { ZoneName } from '../../Constants';
 import type { IPlayableCard } from '../baseClasses/PlayableOrDeployableCard';
-import { registerState, registerStateBase } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 
 export interface ITokenCard extends IInPlayCard {
     removeFromGame(): void;
