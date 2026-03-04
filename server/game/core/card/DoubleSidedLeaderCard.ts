@@ -13,7 +13,7 @@ import type TriggeredAbility from '../ability/TriggeredAbility';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -22,7 +22,7 @@ export interface IDoubleSidedLeaderCard extends ILeaderCard {
     flipLeader(): void;
 }
 
-@registerState()
+@registerStateBase()
 export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implements IDoubleSidedLeaderCard {
     protected setupLeaderBackSide = false;
 

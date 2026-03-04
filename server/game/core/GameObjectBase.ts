@@ -1,5 +1,5 @@
 import type { Game } from './Game';
-import { copyState, registerState, registerStateClassMarker, statePrimitive } from './GameObjectUtils';
+import { copyState, registerStateBase, registerStateClassMarker, statePrimitive } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -49,7 +49,7 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
         T);
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
-@registerState()
+@registerStateBase()
 export abstract class GameObjectBase implements IGameObjectBase {
     public readonly game: Game;
 

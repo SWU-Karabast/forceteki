@@ -2,7 +2,7 @@ import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import type { Aspect, CardTypeFilter, KeywordName, MoveZoneDestination, Trait } from '../Constants';
 import { ZoneAbstract } from './ZoneAbstract';
-import { registerState, stateRefArray } from '../GameObjectUtils';
+import { registerStateBase, stateRefArray } from '../GameObjectUtils';
 
 /**
  * Collection of filters for searching cards in a zone.
@@ -30,7 +30,7 @@ export interface IAddRemoveZone {
 /**
  * Base class for all Zones that contain a list of Cards. Defines some common properties and methods.
  */
-@registerState()
+@registerStateBase()
 export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract<TCard> {
     /** Number of cards in the zone */
     public override get count(): number {

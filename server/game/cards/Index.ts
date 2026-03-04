@@ -35,9 +35,7 @@ function buildAutoInitializingCardClass(targetCardClass: any): any {
             public constructor(...args: any[]) {
                 super(...args);
 
-                if (!this.initialized) {
-                    this.initialize();
-                }
+                this.initialize();
             }
         }
     }[targetCardClass.name];

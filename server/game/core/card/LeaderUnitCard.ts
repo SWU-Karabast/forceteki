@@ -21,7 +21,7 @@ import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState, stateRef } from '../GameObjectUtils';
+import { registerStateBase, stateRef } from '../GameObjectUtils';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
@@ -35,7 +35,7 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
     undeploy(): void;
 }
 
-@registerState()
+@registerStateBase()
 export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
 
@@ -295,7 +295,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 }
 
 // STATE TODO: Once we've fully converted to decorators, this can be removed and LeaderUnitCardInternal can be renamed to LeaderUnitCard
-@registerState()
+@registerStateBase()
 export class LeaderUnitCard extends LeaderUnitCardInternal {
     public declare state: never;
 }

@@ -14,13 +14,13 @@ import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker.js
 import type { FormatMessage, MsgArg } from '../chat/GameChat.js';
 import * as ChatHelpers from '../chat/ChatHelpers';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
-@registerState()
+@registerStateBase()
 export class CardAbilityStep extends PlayerOrCardAbility {
     private handler: (context: AbilityContext) => void;
 

@@ -3,10 +3,10 @@ import type { FormatMessage } from '../../chat/GameChat';
 import type { Duration, EffectName } from '../../Constants';
 import type { Game } from '../../Game';
 import { GameObjectBase } from '../../GameObjectBase';
-import { registerState } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 import type { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 
-@registerState()
+@registerStateBase()
 export abstract class OngoingEffectImpl<TValue> extends GameObjectBase {
     public duration?: Duration = null;
     public isConditional = false;

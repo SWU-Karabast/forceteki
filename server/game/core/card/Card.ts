@@ -49,7 +49,7 @@ import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPl
 import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
-import { registerState, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
+import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
 
 // required for mixins to be based on this class
@@ -68,7 +68,7 @@ export enum InitializeCardStateOption {
  * or {@link Card.canBeExhausted} to confirm that the card has the expected properties and then cast
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
-@registerState()
+@registerStateBase()
 export class Card extends OngoingEffectSource implements IGameStatisticsTrackable {
     public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
         if (cardData.types.includes('leader')) {

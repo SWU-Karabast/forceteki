@@ -5,7 +5,7 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type { Game } from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
-import { registerState, stateValue, statePrimitive } from '../GameObjectUtils';
+import { registerState, registerStateBase, stateValue, statePrimitive } from '../GameObjectUtils';
 
 export interface IAbilityLimit {
     get ability(): CardAbility | null;
@@ -24,7 +24,7 @@ export interface IAbilityLimitState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
-@registerState()
+@registerStateBase()
 export abstract class AbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability: CardAbility | null = null;
 
@@ -149,7 +149,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
     }
 }
 
-@registerState()
+@registerStateBase()
 export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
     public readonly max: number;
 

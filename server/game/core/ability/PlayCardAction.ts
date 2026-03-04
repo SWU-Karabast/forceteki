@@ -16,7 +16,7 @@ import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCost
 import type { Game } from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -52,7 +52,7 @@ export type IPlayCardActionProperties = IStandardPlayActionProperties | IPilotin
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
-@registerState()
+@registerStateBase()
 export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjusters: CostAdjuster[];
     public readonly exploitValue?: number;

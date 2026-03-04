@@ -25,7 +25,7 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
-import { registerState, stateRef, statePrimitive } from '../../GameObjectUtils';
+import { registerStateBase, stateRef, statePrimitive } from '../../GameObjectUtils';
 
 const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
@@ -60,7 +60,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 2. Defeat state management
  * 3. Uniqueness management
  */
-@registerState()
+@registerStateBase()
 export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private readonly _printedUpgradeHp: number;
     private readonly _printedUpgradePower: number;
