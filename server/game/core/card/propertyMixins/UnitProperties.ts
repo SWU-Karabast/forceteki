@@ -1119,8 +1119,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             if (this.isInPlay()) {
                 const hasSentinel = this.hasSomeKeyword(KeywordName.Sentinel);
                 const cannotBeAttacked = (this.hasRestriction(AbilityRestriction.BeAttacked) && !hasSentinel);
-                const clonedCardSetId = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].setId : null;
-                const clonedCardTitle = this.hasOngoingEffect(EffectName.CloneUnit) ? this.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0].title : null;
+
+                const clonedCards = this.getOngoingEffectValues<Card>(EffectName.CloneUnit);
+                const clonedCard = clonedCards.length > 0 ? clonedCards[0] : null;
 
                 return {
                     ...super.getSummary(activePlayer, overrideHidden),
@@ -1128,10 +1129,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     hp: this.getHp(),
                     sentinel: hasSentinel,
                     cannotBeAttacked: cannotBeAttacked,
-                    isAttacker: this.isInPlay() && this.isUnit() && (this.isAttacking() || this.controller.getAttackerHighlightingState(this)),
-                    isDefender: this.isInPlay() && this.isUnit() && this.isDefending(),
-                    clonedCardId: clonedCardSetId,
-                    clonedCardName: clonedCardTitle
+                    isAttacker: this.isUnit() && (this.isAttacking() || this.controller.getAttackerHighlightingState(this)),
+                    isDefender: this.isUnit() && this.isDefending(),
+                    clonedCardId: clonedCard?.setId ?? null,
+                    clonedCardName: clonedCard?.title ?? null
                 };
             }
 
