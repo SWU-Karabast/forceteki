@@ -3,7 +3,7 @@ import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
 import { CardType, PlayType, Stage, WildcardCardType } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';

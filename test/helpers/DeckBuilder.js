@@ -40,27 +40,33 @@ class DeckBuilder {
 
         let opponentAttachedUpgrades = [];
 
-        if ((arena === 'groundArena' || arena === 'anyArena') && playerOptions.groundArena) {
-            if (playerOptions.groundArena.some((card) => card.hasOwnProperty('ownerAndController'))) {
+        if ((arena === 'groundArena' || arena === 'anyArena') && (playerOptions.groundArena || oppOptions.groundArena)) {
+            const playerGroundArena = playerOptions.groundArena || [];
+            const oppGroundArena = oppOptions.groundArena || [];
+
+            if ([...playerGroundArena, ...oppGroundArena].some((card) => card.hasOwnProperty('ownerAndController'))) {
                 throw new TestSetupError('Do not use the \'ownerAndController\' property on units, use \'owner\' instead');
             }
 
-            const playerControlled = playerOptions.groundArena.filter((card) => !card.hasOwnProperty('owner') && !card.owner?.endsWith(playerNumber));
-            const oppControlled = oppOptions.groundArena?.filter((card) => card.hasOwnProperty('owner') && card.owner?.endsWith(playerNumber));
+            const playerControlled = playerGroundArena.filter((card) => !card.hasOwnProperty('owner') && !card.owner?.endsWith(playerNumber));
+            const oppControlled = oppGroundArena?.filter((card) => card.hasOwnProperty('owner') && card.owner?.endsWith(playerNumber));
             playerCards.groundArena = (playerControlled || []).concat((oppControlled || []));
 
-            opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerOptions.groundArena, playerNumber, oppOptions.groundArena, playerCards));
+            opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerGroundArena, playerNumber, oppGroundArena, playerCards));
         }
-        if ((arena === 'spaceArena' || arena === 'anyArena') && playerOptions.spaceArena) {
-            if (playerOptions.spaceArena.some((card) => card.hasOwnProperty('ownerAndController'))) {
+        if ((arena === 'spaceArena' || arena === 'anyArena') && (playerOptions.spaceArena || oppOptions.spaceArena)) {
+            const playerSpaceArena = playerOptions.spaceArena || [];
+            const oppSpaceArena = oppOptions.spaceArena || [];
+
+            if ([...playerSpaceArena, ...oppSpaceArena].some((card) => card.hasOwnProperty('ownerAndController'))) {
                 throw new TestSetupError('Do not use the \'ownerAndController\' property on units, use \'owner\' instead');
             }
 
-            const playerControlled = playerOptions.spaceArena.filter((card) => !card.hasOwnProperty('owner') && !card.owner?.endsWith(playerNumber));
-            const oppControlled = oppOptions.spaceArena?.filter((card) => card.hasOwnProperty('owner') && card.owner?.endsWith(playerNumber));
+            const playerControlled = playerSpaceArena.filter((card) => !card.hasOwnProperty('owner') && !card.owner?.endsWith(playerNumber));
+            const oppControlled = oppSpaceArena?.filter((card) => card.hasOwnProperty('owner') && card.owner?.endsWith(playerNumber));
             playerCards.spaceArena = (playerControlled || []).concat((oppControlled || []));
 
-            opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerOptions.spaceArena, playerNumber, oppOptions.spaceArena, playerCards));
+            opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerSpaceArena, playerNumber, oppSpaceArena, playerCards));
         }
 
         playerCards.opponentAttachedUpgrades = opponentAttachedUpgrades;

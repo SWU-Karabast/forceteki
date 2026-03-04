@@ -1,5 +1,5 @@
 import { logger } from '../../logger';
-import type Game from '../../game/core/Game';
+import type { Game } from '../../game/core/Game';
 import type { Player } from '../../game/core/Player';
 import * as Contract from '../../game/core/utils/Contract';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
