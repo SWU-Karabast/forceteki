@@ -6,6 +6,68 @@ Every time `moveToNextTimepoint` fires (every player action, phase boundary, reg
 
 The goal is to **stop creating full snapshots at every timepoint** during the action phase. Instead, track field-level changes via reverse deltas for quick/action undo. Full snapshots remain at phase boundaries and for manual snapshots.
 
+## Restart Requirements (Discovered During 2026-03 Implementation)
+
+If we re-implement this from scratch, treat the following as **hard requirements** in addition to the design below.
+
+### 1) Delta chain correctness must be global by snapshot ID
+
+- Do **not** build rollback chains only from per-player quick history.
+- Maintain a global `snapshotId -> IDeltaSnapshot` index in `SnapshotManager` and build rollback chain as:
+    - `all deltas where delta.id > targetSnapshotId && delta.id <= currentSnapshotId`, ordered descending.
+- This is required for correct rollback across phase boundaries and mixed ownership history.
+
+### 2) Non-delta timepoints still need delta continuity
+
+- For full-snapshot timepoints (`StartOfPhase`, `EndOfPhase`, setup/manual anchors), create a **bridge delta checkpoint** so later delta rollbacks can cross these boundaries safely.
+- Without bridge deltas, quick rollback around action→regroup / end-of-phase prompts lands in wrong states.
+
+### 3) Quick history must support mixed entry types
+
+- Quick container must support both:
+    - delta entries (`IDeltaSnapshot`), and
+    - full snapshot references (phase/manual anchors).
+- It must dedupe by snapshot id and preserve insertion order semantics for `Current` vs `Previous`.
+- Action history limits and quick-history limits must be enforced without dropping required phase anchor behavior.
+
+### 4) Delta tracking lifecycle must be strict
+
+- Start tracking immediately after creating a rollback anchor/current snapshot.
+- Stop tracking before rollback begins; restart tracking after rollback completes (if current snapshot still exists).
+- On rollback success, prune both container snapshots and global delta map for ids newer than rollback target.
+
+### 5) Rollback side effects must match full rollback semantics
+
+- Delta rollback must still trigger:
+    - `afterSetState` for changed objects,
+    - `afterSetAllState` for all remaining objects,
+    - cleanup/removal for objects created after target snapshot.
+- Preserve `beforeRollbackSnapshot` recovery path and severe-failure behavior exactly.
+
+### 6) Action-phase re-entry must restore active player deterministically
+
+- When rollback entry point is within/start-of action phase and `actionPhaseActivePlayer` is null, restore from snapshotted active player id (fallback to initiative player).
+- This is required to avoid null/invalid action window flow after rollback.
+
+### 7) Test execution requirement (critical)
+
+- Always run `npm run build-test` before filtered Jasmine runs.
+- Direct filtered runs without build can read stale compiled JS and produce misleading results.
+
+### 8) Regression guardrails learned this round
+
+- Avoid broad heuristics that skip `QuickRollbackPoint.Previous` based on ad-hoc timepoint rules; they caused regressions.
+- Avoid adding blanket “end-of-action quick snapshots for all players”; this regressed previously green snapshot integration behavior.
+- Keep changes surgical and validate against both suites:
+    - `Snapshot types - integration` (must stay green)
+    - `Start / end of phase snapshots - integration` (historically fragile)
+
+### 9) Minimum restart acceptance gates
+
+- `npx jasmine --config=jasmine.json --filter="Snapshot types - integration"` => 0 failures.
+- `npx jasmine --config=jasmine.json --filter="Start / end of phase snapshots - integration"` => 0 failures.
+- Only after these pass, expand to broader undo scenario coverage.
+
 ## Background & Architecture
 
 ### Current Snapshot Flow
