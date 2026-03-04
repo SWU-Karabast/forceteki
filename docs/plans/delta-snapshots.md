@@ -181,19 +181,26 @@ Delta storage shape:
 ### Delta Chaining for Multi-Step Rollback
 
 ```
-Phase Start (full snapshot at T0)
-  → Action 1: Delta D1 (records T0→T1 field changes before they happened)
-  → Action 2: Delta D2 (records T1→T2 field changes)
-  → Action 3: Delta D3 (records T2→T3 field changes)
-  ← Current state is T3
+Full(Regroup) F10
+  → Bridge Delta B11
+  → Action Delta D12 (P1)
+  → Action Delta D13 (P2)
+  → EndOfPhase Full F14
+  → Bridge Delta B15
+  → Action Delta D16 (P1)
+  ← Current snapshot id = 16
 
-To rollback 1 action (to T2): apply D3
-To rollback 2 actions (to T1): apply D3, then D2
-To rollback 3 actions (to T0): apply D3, D2, D1
-Phase undo (to T0): use the full phase snapshot directly
+Rollback target snapshot id = 13
+  chain = all deltas with id > 13 && id <= 16
+  apply in descending id order: D16, B15
 ```
 
-Maximum delta chain length is bounded by the action snapshot limit (**currently 3** per player in `SnapshotManager.SnapshotLimits`).
+Rollback chain assembly is global, not per-player:
+- `SnapshotManager` keeps `Map<number, IDeltaSnapshot>` keyed by snapshot ID.
+- Quick/action history selects the rollback target snapshot ID.
+- Delta chain is computed from the global index: all deltas where `delta.id > targetSnapshotId && delta.id <= currentSnapshotId`, ordered descending.
+
+Effective chain length is bounded by retained undo history and global delta-map pruning, not by a single per-player delta list.
 
 ### `Game.state` Handling
 
@@ -762,17 +769,27 @@ This is cleaner than using `// @ts-expect-error` bracket access and matches the 
 
 **Note on `go.state` access**: `state` is `protected` on `GameObjectBase`. `GameStateManager` already accesses it via `getStateUnsafe()`. For delta rollback field writes, use `// @ts-expect-error` to bypass the access modifier (matching existing patterns in `Undo*` classes, see lines 700, 710, etc. in `GameObjectUtils.ts`).
 
-### Step 8: Create Delta Snapshot Container
+### Step 8: Create Delta Snapshot Container and Global Delta Index
 
 **New file**: `server/game/core/snapshot/container/DeltaSnapshotContainer.ts`
 
-This container stores `IDeltaSnapshot[]` per player and replaces `MetaSnapshotArray` for quick undo during the action phase. It should:
+This step introduces two structures:
+- Per-player `DeltaSnapshotContainer` timelines (quick/action history).
+- A global `snapshotId -> IDeltaSnapshot` index on `SnapshotManager` for rollback chain assembly.
+
+Container requirements:
 
 - Extend or follow the pattern of `SnapshotContainerBase` for `clearNewerSnapshots` registration
-- Store deltas per player: `Map<string, IDeltaSnapshot[]>`
-- Support `QuickRollbackPoint.Current` (last delta) and `.Previous` (second-to-last)
-- Support chained rollback (return the N most recent deltas for a player)
-- Implement `clearNewerSnapshots(snapshotId)` to prune deltas with `id > snapshotId`
+- Store mixed entries per player (`delta` + full snapshot references) in insertion order
+- Support `QuickRollbackPoint.Current` (last entry) and `.Previous` (second-to-last entry)
+- Dedupe by `snapshotId` on insert so `Current`/`Previous` semantics stay stable when an id is re-added
+- Enforce action/quick limits without removing required phase anchor behavior
+- Implement `clearNewerSnapshots(snapshotId)` to prune entries with `id > snapshotId`
+
+Global index requirements:
+- Add `private readonly deltaSnapshotsById = new Map<number, IDeltaSnapshot>()` in `SnapshotManager`.
+- Populate on every delta/bridge checkpoint.
+- Prune after rollback (`id > rolledBackSnapshotId`) and on `clearAllSnapshots()`.
 
 Register this container with `SnapshotFactory` so it participates in the `clearNewerSnapshots` broadcast. Use the existing `createSnapshotContainerWithClearSnapshotsBinding` method on `SnapshotFactory` (lines 196–212) or add a new factory method.
 
@@ -794,10 +811,13 @@ public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
     }
 
     if (this.shouldUseDelta(timepoint)) {
-        // Checkpoint the current delta and start a new tracking window
-        this.checkpointDelta(timepoint);
+        // Standard delta checkpoint for action/regroup windows
+        this.checkpointDelta(timepoint, { bridge: false });
     } else {
-        // Full snapshot for phase boundaries, setup, etc.
+        // Non-delta timepoints still need continuity for future delta rollback.
+        // Create a bridge delta checkpoint (if there is an active window) first.
+        this.checkpointDelta(timepoint, { bridge: true });
+
         this.#game.deltaTracker.stopTracking();
         
         if (timepoint === SnapshotTimepoint.Action) {
@@ -829,10 +849,13 @@ private shouldUseDelta(timepoint: SnapshotTimepoint): boolean {
 `checkpointDelta` would:
 1. Call `removeUnusedGameObjects()` (previously done in `buildGameStateForSnapshot`)
 2. Allocate/update snapshot metadata via `SnapshotFactory` so `currentSnapshotId/currentSnapshotted*` getters remain the single source of truth for both full and delta checkpoints
-3. Build the metadata for the delta (id, round, phase, etc.), including `nextSnapshotIsSamePlayer` for action timepoints — note that `gameState`, `rngState`, and `lastGameObjectId` are NOT passed here; they were already captured by `startTracking()` at the beginning of the window
+3. Build the metadata for the delta (id, round, phase, `activePlayerId`, etc.), including `nextSnapshotIsSamePlayer` for action timepoints — note that `gameState`, `rngState`, and `lastGameObjectId` are NOT passed here; they were already captured by `startTracking()` at the beginning of the window
 4. Call `deltaTracker.checkpoint(metadata)` to freeze the current delta
-5. Store the delta in the `DeltaSnapshotContainer`
-6. Call `deltaTracker.startTracking()` to begin the next window (this captures the current `game.state`, `rngState`, and `lastGameObjectId` for the next delta)
+5. Store the delta in both:
+   - per-player `DeltaSnapshotContainer`, and
+   - global `deltaSnapshotsById` keyed by `delta.id`
+6. If this is a bridge checkpoint, keep the entry so future rollbacks can cross the full-snapshot boundary
+7. Call `deltaTracker.startTracking()` to begin the next window (this captures the current `game.state`, `rngState`, and `lastGameObjectId` for the next delta)
 
 Factory coordination requirement:
 - Keep `SnapshotFactory` as the canonical owner of snapshot IDs and current snapshot metadata for all snapshot styles.
@@ -842,7 +865,7 @@ Factory coordination requirement:
 
 **Files**: `server/game/core/snapshot/SnapshotManager.ts`, `server/game/core/snapshot/container/DeltaSnapshotContainer.ts` (from Step 8), `server/game/core/snapshot/SnapshotFactory.ts`
 
-The `DeltaSnapshotContainer` from Step 8 replaces **both** `actionSnapshots` (for delta-based action undo) and `MetaSnapshotArray` (for quick undo). This eliminates the indirection layer where `MetaSnapshotArray` stores closures pointing back into `SnapshotHistoryMap` — instead, deltas are stored directly and full-snapshot references are stored alongside them for phase boundaries. One container per player serves as the single source of truth for both quick undo and action undo.
+The `DeltaSnapshotContainer` from Step 8 replaces **both** `actionSnapshots` (for delta-based action undo) and `MetaSnapshotArray` (for quick undo). This eliminates the indirection layer where `MetaSnapshotArray` stores closures pointing back into `SnapshotHistoryMap` — instead, deltas are stored directly and full-snapshot references are stored alongside them for phase boundaries. Per-player containers are the source of rollback targets, while `SnapshotManager.deltaSnapshotsById` is the source of rollback chains.
 
 #### 10a: Unified Entry Type in `DeltaSnapshotContainer`
 
@@ -872,6 +895,8 @@ Entries are ordered chronologically by snapshot ID. `QuickRollbackPoint.Current`
 ```
 [Full(Regroup)] → [Delta(RegroupResource)] → [Full(Action)] → [Delta(Action1)] → [Delta(Action2)]
 ```
+
+On insert, dedupe by `snapshotId` before appending so `Current` and `Previous` always reflect the latest ordering for mixed entry types.
 
 #### 10b: Replace `quickSnapshots` Field Type and Remove `actionSnapshots`
 
@@ -906,10 +931,12 @@ private getOrCreateDeltaContainer(playerId: string): DeltaSnapshotContainer {
 When `checkpointDelta` (Step 9) freezes a delta, store it on `SnapshotManager` so `takeSnapshot` can retrieve it. This mirrors how `SnapshotFactory.currentActionSnapshot` makes the latest full snapshot available to `SnapshotHistoryMap.takeSnapshot()` via `getCurrentSnapshotFn()`:
 
 ```typescript
+private readonly deltaSnapshotsById = new Map<number, IDeltaSnapshot>();
 private _currentDelta: IDeltaSnapshot | null = null;
 
 // In checkpointDelta(), after calling deltaTracker.checkpoint():
 this._currentDelta = this.#game.deltaTracker.checkpoint(metadata);
+this.deltaSnapshotsById.set(this._currentDelta.id, this._currentDelta);
 ```
 
 #### 10d: Modify `takeSnapshot(SnapshotType.Action)`
@@ -952,10 +979,9 @@ private addQuickStartOfPhaseSnapshots(phase: PhaseName.Regroup | PhaseName.Setup
 
 The container exposes the same public interface as `MetaSnapshotArray` so `SnapshotManager` call sites require minimal changes. It does NOT extend `SnapshotContainerBase` — it only needs the `clearNewerSnapshots` binding, not the full `getCurrentSnapshotFn` / `rollbackToSnapshotInternal` plumbing.
 
+Restart requirement merge: the container resolves rollback targets (`snapshotId`) only. `SnapshotManager` owns global delta-chain assembly and executes `rollbackToDeltaChain(...)` from `deltaSnapshotsById`.
+
 ```typescript
-import type Game from '../../Game';
-import type { GameStateManager } from '../GameStateManager';
-import type { SnapshotFactory } from '../SnapshotFactory';
 import type { IDeltaSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import type { SnapshotHistoryMap } from './SnapshotHistoryMap';
@@ -982,19 +1008,8 @@ export class DeltaSnapshotContainer {
     private static readonly MaxDeltaEntries = 3;
 
     private entries: QuickRollbackEntry[] = [];
-    private readonly game: Game;
-    private readonly gameStateManager: GameStateManager;
-    private readonly snapshotFactory: SnapshotFactory;
 
-    public constructor(
-        game: Game,
-        gameStateManager: GameStateManager,
-        snapshotFactory: SnapshotFactory,
-        clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding
-    ) {
-        this.game = game;
-        this.gameStateManager = gameStateManager;
-        this.snapshotFactory = snapshotFactory;
+    public constructor(clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding) {
         clearNewerSnapshotsBinding.clearNewerSnapshots = (id) => this.clearNewerSnapshots(id);
     }
 
@@ -1002,6 +1017,7 @@ export class DeltaSnapshotContainer {
 
     /** Add a delta entry (action/regroup-phase undo). */
     public addDelta(delta: IDeltaSnapshot): void {
+        this.removeExistingEntryBySnapshotId(delta.id);
         this.entries.push({ type: 'delta', delta });
         this.enforceMaxDeltaCount();
     }
@@ -1013,6 +1029,7 @@ export class DeltaSnapshotContainer {
     ): void {
         const snapshotId = snapshotMap.getSnapshotProperties(key)?.snapshotId;
         Contract.assertNotNullLike(snapshotId);
+        this.removeExistingEntryBySnapshotId(snapshotId);
 
         this.entries.push({
             type: 'full',
@@ -1087,14 +1104,9 @@ export class DeltaSnapshotContainer {
      *
      * For a full-snapshot entry: delegates to the source container's closure (unchanged behavior).
      *
-     * For a delta entry: builds a chain of all consecutive delta entries from the target
-     * through the end of the list (most-recent-first). Takes a fresh full snapshot for
-     * error recovery, then calls `gameStateManager.rollbackToDeltaChain()`. Updates the
-     * SnapshotFactory metadata to reflect the rolled-back state.
-     *
-     * The chain must not cross a full-snapshot boundary — if it does, that is a logic error
-     * (full-snapshot entries only appear at phase boundaries, and delta entries within a phase
-     * are always consecutive).
+     * For a delta entry: returns the target delta snapshot id only.
+     * SnapshotManager then builds the rollback chain globally using:
+     *   all deltas where id > targetSnapshotId && id <= currentSnapshotId.
      */
     public rollbackToSnapshot(rollbackPoint: QuickRollbackPoint): number | null {
         Contract.assertNonEmpty(this.entries, 'Attempting to quick rollback with no entries');
@@ -1111,40 +1123,7 @@ export class DeltaSnapshotContainer {
             return entry.rollback();
         }
 
-        // ── Delta path ──
-        // Collect all entries from targetIdx to end. They must all be deltas —
-        // a full-snapshot entry in this span means the delta chain crosses a
-        // phase boundary, which should never happen.
-        const chain: IDeltaSnapshot[] = [];
-        for (let i = this.entries.length - 1; i >= targetIdx; i--) {
-            const e = this.entries[i];
-            Contract.assertTrue(
-                e.type === 'delta',
-                'Delta chain unexpectedly contains a full-snapshot entry'
-            );
-            chain.push(e.delta);
-        }
-
-        if (chain.length === 0) {
-            return null;
-        }
-
-        // Take a fresh full snapshot for error recovery before rollback.
-        // This matches the existing pattern where rollbackToSnapshotInternal
-        // passes getCurrentSnapshotFn() as the beforeRollbackSnapshot.
-        const beforeRollbackSnapshot = this.snapshotFactory.createRecoverySnapshot();
-
-        const success = this.gameStateManager.rollbackToDeltaChain(chain, beforeRollbackSnapshot);
-        if (!success) {
-            return null;
-        }
-
-        // Update SnapshotFactory metadata so its getters (currentSnapshotId,
-        // currentSnapshottedPhase, etc.) reflect the rolled-back state.
-        const targetDelta = entry.delta;
-        this.snapshotFactory.updateCurrentSnapshotFromDelta(targetDelta);
-
-        return targetDelta.id;
+        return entry.delta.id;
     }
 
     public clearAllSnapshots(): void {
@@ -1171,6 +1150,10 @@ export class DeltaSnapshotContainer {
 
     private getEntrySnapshotId(entry: QuickRollbackEntry): number {
         return entry.type === 'delta' ? entry.delta.id : entry.snapshotId;
+    }
+
+    private removeExistingEntryBySnapshotId(snapshotId: number): void {
+        this.entries = this.entries.filter((entry) => this.getEntrySnapshotId(entry) !== snapshotId);
     }
 
     private clearNewerSnapshots(snapshotId: number): void {
@@ -1205,7 +1188,7 @@ export class DeltaSnapshotContainer {
 
 #### 10g: Modify `SnapshotType.Action` Rollback in `rollbackToInternal`
 
-The `SnapshotType.Action` case in `rollbackToInternal` previously went through `actionSnapshots.rollbackToSnapshot(playerId, offset)`. It now queries the delta container using the same offset semantics as before.
+The `SnapshotType.Action` case in `rollbackToInternal` previously went through `actionSnapshots.rollbackToSnapshot(playerId, offset)`. It now resolves a target snapshot ID from the delta container using the same offset semantics, then rolls back through the global delta index in `SnapshotManager`.
 
 **Important compatibility requirement**: preserve existing `actionOffset` behavior (`0`, `-1`, `-2` with current history limit 3). Do **not** collapse action rollback into `QuickRollbackPoint` (`Current` / `Previous`) only.
 
@@ -1214,16 +1197,22 @@ case SnapshotType.Action:
     const deltaContainer = this.quickSnapshots.get(settings.playerId);
     Contract.assertNotNullLike(deltaContainer, `No delta container for player ${settings.playerId}`);
 
-    rolledBackSnapshotIdx = deltaContainer.rollbackToActionOffset(
+    const targetSnapshotId = deltaContainer.rollbackToActionOffset(
         this.checkGetOffset(settings.actionOffset)
     );
+    rolledBackSnapshotIdx = this.rollbackToDeltaSnapshotId(targetSnapshotId);
     break;
 ```
 
 `rollbackToActionOffset(offset)` in `DeltaSnapshotContainer` should:
 - Support `offset <= 0` with the same meaning as `SnapshotHistoryMap.rollbackToSnapshot` today
-- Build the delta chain from the target delta to the newest delta
+- Return the target delta snapshot ID (or `null` if unavailable)
 - Reject offsets beyond available delta history (return `null`)
+
+`rollbackToDeltaSnapshotId(targetSnapshotId)` in `SnapshotManager` should:
+- Read `currentSnapshotId` from `SnapshotFactory`
+- Build chain from global index: all deltas with `id > targetSnapshotId && id <= currentSnapshotId`
+- Apply chain in descending ID order via `gameStateManager.rollbackToDeltaChain(...)`
 
 `QuickRollbackPoint` remains for **quick undo only**; action undo remains **offset-based**.
 
@@ -1246,12 +1235,12 @@ public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {
 
 #### 10i: Add Factory Methods to `SnapshotFactory`
 
-Replace `createMetaSnapshotArray()` with a new factory method. The `DeltaSnapshotContainer` receives a reference to the `SnapshotFactory` so it can call `createRecoverySnapshot()` and `updateCurrentSnapshotFromDelta()` during rollback:
+Replace `createMetaSnapshotArray()` with a new factory method. The `DeltaSnapshotContainer` now only manages entry history and target resolution; rollback execution stays in `SnapshotManager`:
 
 ```typescript
 public createDeltaSnapshotContainer(): DeltaSnapshotContainer {
     return this.createSnapshotContainerWithClearSnapshotsBinding((binding) =>
-        new DeltaSnapshotContainer(this.game, this.gameStateManager, this, binding)
+        new DeltaSnapshotContainer(binding)
     );
 }
 ```
@@ -1309,7 +1298,7 @@ public updateCurrentSnapshotFromDelta(delta: IDeltaSnapshot): void {
 
 #### 10j: Update `clearAllSnapshots`
 
-Remove the `actionSnapshots.clearAllSnapshots()` call and add delta container clearing:
+Remove the `actionSnapshots.clearAllSnapshots()` call and add delta container + global delta-index clearing:
 
 ```typescript
 public clearAllSnapshots(): void {
@@ -1319,6 +1308,7 @@ public clearAllSnapshots(): void {
     for (const container of this.quickSnapshots.values()) {
         container.clearAllSnapshots();
     }
+    this.deltaSnapshotsById.clear();
 
     for (const playerSnapshots of this.manualSnapshots.values()) {
         playerSnapshots.clearAllSnapshots();
@@ -1334,7 +1324,7 @@ public clearAllSnapshots(): void {
 
 **File**: `server/game/core/snapshot/SnapshotManager.ts` (lines 241–276)
 
-For `SnapshotType.Quick` and `SnapshotType.Action`: retrieve deltas from the delta container and call `gameStateManager.rollbackToDeltaChain`.
+For `SnapshotType.Quick` and `SnapshotType.Action`: resolve target snapshot IDs from the player container, then build the rollback chain from the global `deltaSnapshotsById` index.
 
 For `SnapshotType.Phase` and `SnapshotType.Manual`: unchanged (full snapshot rollback).
 
@@ -1346,17 +1336,30 @@ this.#game.deltaTracker.stopTracking();
 
 // ... perform the rollback (delta or full snapshot) ...
 
-// After rollback completes:
-// 1. clearNewerSnapshots clears both full snapshot and delta containers
-this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
+if (rolledBackSnapshotIdx != null) {
+    // 1. Prune full snapshot containers and quick timelines
+    this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
 
-// 2. Restart tracking for the new delta window
-this.#game.deltaTracker.startTracking();
+    // 2. Prune global delta map
+    this.pruneDeltaSnapshotIndex(rolledBackSnapshotIdx);
+
+    // 3. Action-phase re-entry: restore active player deterministically
+    if (this.currentSnapshottedPhase === PhaseName.Action && !this.#game.actionPhaseActivePlayer) {
+        const activePlayerId = this.currentSnapshottedActivePlayer ?? this.#game.initiativePlayer.id;
+        this.#game.actionPhaseActivePlayer = this.#game.getPlayerById(activePlayerId);
+    }
+
+    // 4. Restart tracking only if we still have a valid current snapshot anchor
+    if (this.currentSnapshotId != null) {
+        this.#game.deltaTracker.startTracking();
+    }
+}
 ```
 
 Use rollback plumbing that preserves current responsibilities:
 - Delta rollback path should still update the active/current snapshot metadata in `SnapshotFactory`.
 - RNG restoration should continue using `randomGenerator.restore(...)`.
+- Global delta index pruning must happen in the same rollback transaction as snapshot-container pruning.
 
 ### Step 12: Handle `removeUnusedGameObjects` Timing
 
@@ -1382,11 +1385,12 @@ When a GO is constructed mid-game (e.g., creating a token card), `register()` ru
 ### 2. Delta Tracking Across Phase Boundaries
 
 When `moveToNextTimepoint(StartOfPhase)` fires:
-1. Stop tracking
-2. Take a full snapshot (this captures everything including any pending changes)
-3. Start tracking for the new phase
+1. Checkpoint a bridge delta for continuity (if a tracking window is active)
+2. Stop tracking
+3. Take a full snapshot (this captures everything including any pending changes)
+4. Start tracking for the new phase
 
-The full snapshot serves as the "zero point" for the delta chain. Delta chaining never crosses a phase boundary.
+The full snapshot remains a hard anchor, but delta rollback continuity can cross boundaries via bridge deltas in the global snapshot-id chain.
 
 Bootstrap detail:
 - At game start (or when enabling undo), initialize tracking immediately after the first full snapshot anchor is created so the first action/regroup delta has a valid start-of-window baseline.
@@ -1487,7 +1491,12 @@ The `deleteProperty` trap (line 425 of `GameObjectUtils.ts`) currently does `del
 
 ### Integration Tests
 
-- Run existing quick undo test scenarios (search for `QuickRollbackPoint` / `SnapshotType.Quick` in test files) — these should pass unchanged
+- **Required command order**: run `npm run build-test` before any filtered Jasmine run.
+- Restart acceptance gates (must pass before broader runs):
+  - `npx jasmine --config=jasmine.json --filter="Snapshot types - integration"` => 0 failures
+  - `npx jasmine --config=jasmine.json --filter="Start / end of phase snapshots - integration"` => 0 failures
+- Keep rollback-point behavior surgical: avoid heuristic skips of `QuickRollbackPoint.Previous` and avoid blanket end-of-action quick snapshots for all players.
+- Only after acceptance gates pass: run existing quick undo test scenarios (search for `QuickRollbackPoint` / `SnapshotType.Quick` in test files)
 - Run existing action undo tests — these should pass with delta-based action snapshots
 - Phase undo tests — should be unaffected (still full snapshots)
 - Test ongoing effects remain correct after delta rollback (effects whose own state didn't change but whose targets moved)
@@ -1496,7 +1505,7 @@ The `deleteProperty` trap (line 425 of `GameObjectUtils.ts`) currently does `del
 
 - Compare snapshot creation time: full `v8.serialize` of all GOs vs `deltaTracker.checkpoint()` at ~300 GOs with ~10 mutated
 - Memory usage comparison: full `Buffer` per snapshot vs delta `Map` per snapshot
-- Verify rollback time is acceptable for chained deltas (up to 3)
+- Verify rollback time is acceptable for chained deltas within configured history limits (including bridge checkpoints)
 
 ---
 
@@ -1506,9 +1515,11 @@ The `deleteProperty` trap (line 425 of `GameObjectUtils.ts`) currently does `del
 |---|---|
 | Collections use **bulk copy** on first mutation | Simple, fast enough for typical collection sizes (0–40 elements). Granular operation tracking deferred unless profiling identifies a need. |
 | `Game.state` stays **v8-serialized** in deltas | ~1-2KB, not worth the complexity of intercepting manual getters/setters in `Game.ts`. |
-| Action undo **chains deltas** (max 3 per player) | No full snapshots during action phase. Phase snapshots at phase boundaries serve as safety checkpoints. |
+| Delta rollback chain is resolved **globally by snapshot ID** | Build rollback chain from `delta.id > targetSnapshotId && delta.id <= currentSnapshotId` using `SnapshotManager`'s global index. This avoids per-player history blind spots. |
 | Delta rollback failure **attempts recovery first** | Matches existing rollback behavior: restore from `beforeRollbackSnapshot`, then severe-halt only if recovery fails. |
 | Full snapshots remain at **phase boundaries, setup, and manual snapshots** | Infrequent, provides safe anchors for delta chains. |
+| Non-delta timepoints create **bridge delta checkpoints** | Preserves delta rollback continuity across full-snapshot boundaries while keeping full snapshots as explicit anchors. |
+| Quick history stores **mixed entry types with snapshot-id dedupe** | Maintains stable `Current`/`Previous` semantics with both full and delta entries, while enforcing action/quick limits. |
 | Recording hooks go in **decorator setters** and **`Undo*` mutation methods** | These are the only paths that mutate `go.state[field]`. Complete coverage of all state mutations. |
 | `startTracking()` captures `gameState`, `rngState`, `lastGameObjectId` | These must be snapshotted at the START of the window, not at checkpoint time, because game state is mutated during the window. |
 | `afterSetAllState` runs on **all GOs**, not just changed ones | Matches full-rollback semantics. `OngoingEffectEngine.resolveEffects(true)` must run even if the engine's own state didn't change. Most GOs have empty implementations so cost is negligible. |
@@ -1519,4 +1530,6 @@ The `deleteProperty` trap (line 425 of `GameObjectUtils.ts`) currently does `del
 | `SnapshotFactory` remains **metadata authority** | Prevents drift in `currentSnapshotId/currentSnapshotted*` and keeps quick-undo / rollback entry-point logic stable across full + delta checkpoints. |
 | Include `nextSnapshotIsSamePlayer` in deltas | Preserves existing quick-undo confirmation behavior that checks whether opponent acted since the rollback point. |
 | Action rollback stays **offset-based** | Preserves existing `actionOffset` contract (`0/-1/-2`) and existing tests; `QuickRollbackPoint` remains quick-undo-only. |
+| Action-phase re-entry restores **active player deterministically** | If rollback lands in action phase with null `actionPhaseActivePlayer`, restore from snapshotted active player id, then fallback to initiative player. |
+| Filtered Jasmine runs require **`npm run build-test` first** | Prevents stale compiled JS from producing misleading integration results. |
 | `startTracking()` has **startup guards** | Prevents invalid capture before `randomGenerator` and initial full-snapshot anchor are ready given constructor initialization order. |
