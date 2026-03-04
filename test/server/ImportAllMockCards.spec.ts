@@ -1,3 +1,5 @@
+import { createGameObject } from '../../server/game/core/GameObjectUtils';
+
 /**
  * This test is here to validate that all mocked cards can be legally instantiated from their json card data.
  */
@@ -23,7 +25,7 @@ describe('Importing all cards', function() {
                 const cardCtor = implementedCardsCtors.get(cardId) ?? unimplementedCardCtor;
 
                 // the test here is just to confirm that cards can be created without an exception happening
-                const card = new cardCtor(context.player1Object, cardData);
+                const card = createGameObject(cardCtor, context.player1Object, cardData);
             }
         });
     });

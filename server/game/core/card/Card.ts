@@ -49,7 +49,7 @@ import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPl
 import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
-import { registerState, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
+import { createGameObject, registerState, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
 
 // required for mixins to be based on this class
@@ -534,15 +534,15 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
 
     // ******************************************* ABILITY HELPERS *******************************************
     public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
-        return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
+        return createGameObject(ActionAbility, this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
     }
 
     public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
-        return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties));
+        return createGameObject(ConstantAbility, this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties));
     }
 
     protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
-        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
+        return createGameObject(TriggeredAbility, this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
     protected getAbilityRegistrar() {
@@ -1507,4 +1507,3 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return this.internalName;
     }
 }
-

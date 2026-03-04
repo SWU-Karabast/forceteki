@@ -12,7 +12,7 @@ import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
-import { registerState, statePrimitive } from '../../GameObjectUtils';
+import { createGameObject, registerState, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
@@ -370,7 +370,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     protected createPreEnterPlayAbility<TSource extends Card = this>(properties: IAbilityPropsWithSystems<AbilityContext<TSource>>): PreEnterPlayAbility {
-        return new PreEnterPlayAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties));
+        return createGameObject(PreEnterPlayAbility, this.game, this, Object.assign(this.buildGeneralAbilityProps('preEnterPlay'), properties));
     }
 
     private buildCostAdjusterGenericProperties() {
@@ -392,4 +392,3 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         return costAdjustAbilityProps;
     }
 }
-

@@ -10,7 +10,7 @@ import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
-import { registerState } from '../core/GameObjectUtils';
+import { createGameObject, registerState } from '../core/GameObjectUtils';
 
 @registerState()
 export class PlayUpgradeAction extends PlayCardAction {
@@ -63,7 +63,7 @@ export class PlayUpgradeAction extends PlayCardAction {
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayUpgradeAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
+        return createGameObject(PlayUpgradeAction, this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

@@ -102,6 +102,7 @@ import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
+import { createGameObject } from './GameObjectUtils';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -332,7 +333,7 @@ export class Game extends EventEmitter {
         this._randomGenerator = new Randomness();
         this._router = options.router;
 
-        this.ongoingEffectEngine = new OngoingEffectEngine(this);
+        this.ongoingEffectEngine = createGameObject(OngoingEffectEngine, this);
         this.abilityHelper = getAbilityHelper(this);
 
         this.playersAndSpectators = {};
@@ -387,12 +388,12 @@ export class Game extends EventEmitter {
         };
 
         this.tokenFactories = null;
-        this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
+        this.stateWatcherRegistrar = createGameObject(StateWatcherRegistrar, this);
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
         this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
 
-        this.statsTracker = new GameStatisticsLogger(this);
+        this.statsTracker = createGameObject(GameStatisticsLogger, this);
 
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
@@ -406,7 +407,8 @@ export class Game extends EventEmitter {
         );
 
         details.players.forEach((player) => {
-            this.playersAndSpectators[player.id] = new Player(
+            this.playersAndSpectators[player.id] = createGameObject(
+                Player,
                 player.id,
                 player,
                 this,
@@ -418,9 +420,9 @@ export class Game extends EventEmitter {
             this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
         });
 
-        this.spaceArena = new SpaceArenaZone(this);
-        this.groundArena = new GroundArenaZone(this);
-        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
+        this.spaceArena = createGameObject(SpaceArenaZone, this);
+        this.groundArena = createGameObject(GroundArenaZone, this);
+        this.allArenas = createGameObject(AllArenasZone, this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
     }
@@ -1379,7 +1381,7 @@ export class Game extends EventEmitter {
             return false;
         }
 
-        this.playersAndSpectators[user.username] = new Player(socketId, user, this);
+        this.playersAndSpectators[user.username] = createGameObject(Player, socketId, user, this);
 
         return true;
     }
@@ -1528,7 +1530,7 @@ export class Game extends EventEmitter {
 
             Contract.assertNotNullLike(tokenConstructor, `Token card data for ${tokenName} contained unknown id '${cardData.id}'`);
 
-            this.tokenFactories[tokenName] = (player, additionalProperties) => new tokenConstructor(player, cardData, additionalProperties);
+            this.tokenFactories[tokenName] = (player, additionalProperties) => createGameObject(tokenConstructor, player, cardData, additionalProperties);
         }
     }
 

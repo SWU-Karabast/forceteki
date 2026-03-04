@@ -6,6 +6,7 @@ import type { Player } from '../core/Player';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { Game } from '../core/Game';
+import { createGameObject } from '../core/GameObjectUtils';
 
 type IPlayerCannotProperties =
   | AbilityRestriction | EffectName
@@ -19,7 +20,7 @@ type IPlayerCannotProperties =
 export function playerCannot(properties: IPlayerCannotProperties) {
     return OngoingEffectBuilder.player.static(
         EffectName.AbilityRestrictions, (game: Game) =>
-            new Restriction(game,
+            createGameObject(Restriction, game,
                 typeof properties === 'string'
                     ? { type: properties }
                     : Object.assign({ type: properties.cannot }, properties)

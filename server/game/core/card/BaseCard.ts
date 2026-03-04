@@ -17,7 +17,7 @@ import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityReg
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithCaptureZone } from '../zone/CaptureZone';
 import { CaptureZone } from '../zone/CaptureZone';
-import { registerState } from '../GameObjectUtils';
+import { createGameObject, registerState } from '../GameObjectUtils';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -85,7 +85,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     private setEpicActionAbility(properties: IEpicActionProps<this>): void {
         Contract.assertIsNullLike(this._epicActionAbility, 'Epic action ability already set');
 
-        this._epicActionAbility = new EpicActionAbility(this.game, this, properties);
+        this._epicActionAbility = createGameObject(EpicActionAbility, this.game, this, properties);
     }
 
     private epicActionSpentInternal(): boolean {
@@ -115,6 +115,6 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 
     private initializeCaptureZone() {
-        this._captureZone = new CaptureZone(this.game, this.owner, this);
+        this._captureZone = createGameObject(CaptureZone, this.game, this.owner, this);
     }
 }

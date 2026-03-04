@@ -1,7 +1,7 @@
 /* global global */
 
 const { GameObjectBase } = require('../../server/game/core/GameObjectBase.js');
-const { registerState } = require('../../server/game/core/GameObjectUtils.js');
+const { createGameObject, registerState } = require('../../server/game/core/GameObjectUtils.js');
 
 function applyRegisterState(targetClass) {
     const parentMetadata = Object.getPrototypeOf(targetClass)?.[Symbol.metadata] ?? null;
@@ -10,6 +10,14 @@ function applyRegisterState(targetClass) {
     };
 
     return registerState()(targetClass, context);
+}
+
+function createGameObjectFactory(targetClass) {
+    return class {
+        constructor(...args) {
+            return createGameObject(targetClass, ...args);
+        }
+    };
 }
 
 class TestGameObject extends GameObjectBase {
@@ -27,6 +35,7 @@ class TestGameObject extends GameObjectBase {
 }
 
 const DecoratedTestGameObject = applyRegisterState(TestGameObject);
+const TestGameObjectFactory = createGameObjectFactory(DecoratedTestGameObject);
 
 class ParentGameObject extends GameObjectBase {
     constructor(game) {
@@ -40,6 +49,7 @@ class ParentGameObject extends GameObjectBase {
 }
 
 const DecoratedParentGameObject = applyRegisterState(ParentGameObject);
+const ParentGameObjectFactory = createGameObjectFactory(DecoratedParentGameObject);
 
 class ChildGameObject extends DecoratedParentGameObject {
     constructor(game, childConstructorValue) {
@@ -57,6 +67,7 @@ class ChildGameObject extends DecoratedParentGameObject {
 }
 
 const DecoratedChildGameObject = applyRegisterState(ChildGameObject);
+const ChildGameObjectFactory = createGameObjectFactory(DecoratedChildGameObject);
 
 function createUndecoratedGameObjectClass() {
     return class UndecoratedGameObject extends GameObjectBase {
@@ -83,7 +94,7 @@ function createMockGame() {
 global.gameObjectHelper = {
     createMockGame,
     createUndecoratedGameObjectClass,
-    TestGameObject: DecoratedTestGameObject,
-    ParentGameObject: DecoratedParentGameObject,
-    ChildGameObject: DecoratedChildGameObject
+    TestGameObject: TestGameObjectFactory,
+    ParentGameObject: ParentGameObjectFactory,
+    ChildGameObject: ChildGameObjectFactory
 };

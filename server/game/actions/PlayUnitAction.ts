@@ -9,7 +9,7 @@ import type { FormatMessage } from '../core/chat/GameChat.js';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 
-import { registerState } from '../core/GameObjectUtils';
+import { createGameObject, registerState } from '../core/GameObjectUtils';
 
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
@@ -63,7 +63,7 @@ export class PlayUnitAction extends PlayCardAction {
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayUnitAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
+        return createGameObject(PlayUnitAction, this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

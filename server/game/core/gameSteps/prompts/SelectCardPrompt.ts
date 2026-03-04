@@ -8,6 +8,7 @@ import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import type { IButton, ISelectCardPromptProperties } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
+import { createGameObject } from '../../GameObjectUtils';
 
 /**
  * General purpose prompt that asks the user to select 1 or more cards.
@@ -75,7 +76,7 @@ export class SelectCardPrompt extends UiPrompt {
 
         this.choosingPlayer = choosingPlayer;
         if (typeof properties.source === 'string') {
-            properties.source = new OngoingEffectSource(game, properties.source);
+            properties.source = createGameObject(OngoingEffectSource, game, properties.source);
         } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
         }

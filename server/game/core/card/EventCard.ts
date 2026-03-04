@@ -20,7 +20,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState, stateRef } from '../GameObjectUtils';
+import { createGameObject, registerState, stateRef } from '../GameObjectUtils';
 
 const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard)));
 
@@ -76,7 +76,7 @@ export class EventCard extends EventCardParent implements IEventCard {
     public getEventAbility(): EventAbility {
         if (this.isBlank()) {
             const blankSource = this.getOngoingEffectSources(EffectName.Blank);
-            return new EventAbility(this.game, this, {
+            return createGameObject(EventAbility, this.game, this, {
                 title: 'No effect',
                 printedAbility: false,
                 effect: 'do nothing due to an ongoing effect of {1}',
@@ -84,7 +84,7 @@ export class EventCard extends EventCardParent implements IEventCard {
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
             });
         } else if (!this.hasImplementationFile) {
-            return new EventAbility(this.game, this, {
+            return createGameObject(EventAbility, this.game, this, {
                 title: 'Unimplemented event card ability',
                 printedAbility: false,
                 effect: 'do nothing because the card is not implemented yet',
@@ -135,7 +135,7 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
-        this.eventAbility = new EventAbility(this.game, this, properties);
+        this.eventAbility = createGameObject(EventAbility, this.game, this, properties);
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
@@ -157,4 +157,3 @@ export class EventCard extends EventCardParent implements IEventCard {
         this.constantAbilities.push(ability);
     }
 }
-

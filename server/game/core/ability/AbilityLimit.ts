@@ -5,7 +5,7 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type { Game } from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
-import { registerState, stateValue, statePrimitive } from '../GameObjectUtils';
+import { createGameObject, registerState, stateValue, statePrimitive } from '../GameObjectUtils';
 
 export interface IAbilityLimit {
     get ability(): CardAbility | null;
@@ -83,7 +83,7 @@ export class UnlimitedAbilityLimit extends AbilityLimit {
     @stateValue() private accessor useCount: Map<string, number> = new Map();
 
     public clone() {
-        return new UnlimitedAbilityLimit(this.game);
+        return createGameObject(UnlimitedAbilityLimit, this.game);
     }
 
     public isRepeatable(): boolean {
@@ -125,7 +125,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
     }
 
     public clone() {
-        return new PerGameAbilityLimit(this.game, this.max);
+        return createGameObject(PerGameAbilityLimit, this.game, this.max);
     }
 
     public isRepeatable(): boolean {
@@ -161,7 +161,7 @@ export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
     }
 
     public clone() {
-        return new PerPlayerPerGameAbilityLimit(this.game, this.max);
+        return createGameObject(PerPlayerPerGameAbilityLimit, this.game, this.max);
     }
 
     public isRepeatable(): boolean {
@@ -210,7 +210,7 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
     }
 
     public override clone() {
-        return new RepeatableAbilityLimit(this.game, this.max, this.eventName);
+        return createGameObject(RepeatableAbilityLimit, this.game, this.max, this.eventName);
     }
 
     public override isRepeatable(): boolean {
@@ -255,7 +255,7 @@ export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
     }
 
     public override clone() {
-        return new EpicActionLimit(this.game);
+        return createGameObject(EpicActionLimit, this.game);
     }
 
     public override isEpicActionLimit(): this is EpicActionLimit {
@@ -274,15 +274,15 @@ export class AbilityLimitInstance {
     }
 
     public repeatable(max: number, eventName: EventName) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([eventName]));
+        return createGameObject(RepeatableAbilityLimit, this.game, max, new Set([eventName]));
     }
 
     public perPhase(max: number) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnPhaseEnded]));
+        return createGameObject(RepeatableAbilityLimit, this.game, max, new Set([EventName.OnPhaseEnded]));
     }
 
     public perRound(max: number) {
-        return new RepeatableAbilityLimit(this.game, max, new Set([EventName.OnRoundEnded]));
+        return createGameObject(RepeatableAbilityLimit, this.game, max, new Set([EventName.OnRoundEnded]));
     }
 
     /**
@@ -294,18 +294,18 @@ export class AbilityLimitInstance {
      * @param max The maximum number of times this ability can be used in a game.
      */
     public perGame(max: number) {
-        return new PerGameAbilityLimit(this.game, max);
+        return createGameObject(PerGameAbilityLimit, this.game, max);
     }
 
     public perPlayerPerGame(max: number) {
-        return new PerPlayerPerGameAbilityLimit(this.game, max);
+        return createGameObject(PerPlayerPerGameAbilityLimit, this.game, max);
     }
 
     public epicAction() {
-        return new EpicActionLimit(this.game);
+        return createGameObject(EpicActionLimit, this.game);
     }
 
     public unlimited() {
-        return new UnlimitedAbilityLimit(this.game);
+        return createGameObject(UnlimitedAbilityLimit, this.game);
     }
 }

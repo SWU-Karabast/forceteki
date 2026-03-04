@@ -5,6 +5,7 @@ import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { DisplayCardSelectionState, PromptType, type SelectCardMode, type IDisplayCard, type IDisplayCardPromptPropertiesBase } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
+import { createGameObject } from '../../GameObjectUtils';
 
 export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPropertiesBase> extends UiPrompt {
     protected readonly properties: TProperties;
@@ -20,7 +21,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
 
         this.choosingPlayer = choosingPlayer;
         if (typeof properties.source === 'string') {
-            properties.source = new OngoingEffectSource(game, properties.source);
+            properties.source = createGameObject(OngoingEffectSource, game, properties.source);
         }
 
         if (!properties.waitingPromptTitle) {

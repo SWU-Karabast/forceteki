@@ -3,7 +3,7 @@ import type { EffectName } from '../../Constants';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 import type { Game } from '../../Game';
-import { registerState, stateRef } from '../../GameObjectUtils';
+import { createGameObject, registerState, stateRef } from '../../GameObjectUtils';
 
 @registerState()
 export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
@@ -24,7 +24,7 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         if (value instanceof OngoingEffectValueWrapper) {
             this._valueWrapper = value;
         } else {
-            this._valueWrapper = new OngoingEffectValueWrapper(game, value);
+            this._valueWrapper = createGameObject(OngoingEffectValueWrapper, game, value);
         }
     }
 
@@ -55,5 +55,4 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         return Object.assign(super.getDebugInfo(), { value: this._valueWrapper });
     }
 }
-
 

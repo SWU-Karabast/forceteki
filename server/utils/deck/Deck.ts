@@ -6,6 +6,7 @@ import type { ISwuDbFormatCardEntry, IDecklistInternal, IInternalCardEntry, ILea
 import { DeckSource } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards } from '../../game/cards/Index';
+import { createGameObject } from '../../game/core/GameObjectUtils';
 
 export class Deck {
     private static buildDecklistEntry(cardId: string, count: number, cardDataGetter: CardDataGetter): IInternalCardEntry {
@@ -217,8 +218,10 @@ export class Deck {
         const generatedCards: Card[] = [];
 
         for (let i = 0; i < count; i++) {
-            const CardConstructor = cards.get(cardData.id) ?? CardHelpers.createUnimplementedCard;
-            const card: Card = new CardConstructor(player, cardData);
+            const CardConstructor = cards.get(cardData.id);
+            const card: Card = CardConstructor
+                ? createGameObject(CardConstructor, player, cardData)
+                : CardHelpers.createUnimplementedCard(player, cardData);
             generatedCards.push(card);
         }
 

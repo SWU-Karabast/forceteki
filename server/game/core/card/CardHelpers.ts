@@ -9,6 +9,7 @@ import { TokenCard, TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import { UpgradeCard } from './UpgradeCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import { createGameObject } from '../GameObjectUtils';
 
 /**
  * Create a default implementation for a card from cardData by calling the appropriate
@@ -20,21 +21,21 @@ export function createUnimplementedCard(owner: Player, cardData: ICardDataJson):
 
     switch (cardType) {
         case CardType.Event:
-            return new EventCard(owner, cardData);
+            return createGameObject(EventCard, owner, cardData);
         case CardType.Base:
-            return new BaseCard(owner, cardData);
+            return createGameObject(BaseCard, owner, cardData);
         case CardType.BasicUpgrade:
-            return new UpgradeCard(owner, cardData);
+            return createGameObject(UpgradeCard, owner, cardData);
         case CardType.Leader:
-            return new LeaderUnitCard(owner, cardData);
+            return createGameObject(LeaderUnitCard, owner, cardData);
         case CardType.BasicUnit:
-            return new NonLeaderUnitCard(owner, cardData);
+            return createGameObject(NonLeaderUnitCard, owner, cardData);
         case CardType.TokenUnit:
-            return new TokenUnitCard(owner, cardData);
+            return createGameObject(TokenUnitCard, owner, cardData);
         case CardType.TokenUpgrade:
-            return new TokenUpgradeCard(owner, cardData);
+            return createGameObject(TokenUpgradeCard, owner, cardData);
         case CardType.TokenCard:
-            return new TokenCard(owner, cardData);
+            return createGameObject(TokenCard, owner, cardData);
         default:
             throw new Error(`Unexpected card type: ${cardType}`);
     }

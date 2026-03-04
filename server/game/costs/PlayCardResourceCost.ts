@@ -8,6 +8,7 @@ import { ResourceCost } from './ResourceCost';
 import { CostAdjustStage, ResourceCostType } from '../core/cost/CostInterfaces';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
 import { AdjustedCostEvaluator } from '../core/cost/evaluation/AdjustedCostEvaluator';
+import { createGameObject } from '../core/GameObjectUtils';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -57,7 +58,7 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
         if (exploitAdjusters.length > 1) {
             Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
             Contract.assertTrue(context.source.hasCost());
-            const mergedExploitAdjuster = new MergedExploitCostAdjuster(exploitAdjusters, context.source, context);
+            const mergedExploitAdjuster = createGameObject(MergedExploitCostAdjuster, exploitAdjusters, context.source, context);
             costAdjustersByStage.set(CostAdjustStage.Exploit_2, [mergedExploitAdjuster]);
         }
 

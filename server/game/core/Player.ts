@@ -54,7 +54,7 @@ import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
-import { registerState, stateRefArray, stateRef, stateValue } from './GameObjectUtils';
+import { createGameObject, registerState, stateRefArray, stateRef, stateValue } from './GameObjectUtils';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -229,13 +229,13 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         }
 
         this.canTakeActionsThisPhase = null;
-        this._handZone = new HandZone(game, this);
-        this._resourceZone = new ResourceZone(game, this);
-        this._discardZone = new DiscardZone(game, this);
+        this._handZone = createGameObject(HandZone, game, this);
+        this._resourceZone = createGameObject(ResourceZone, game, this);
+        this._discardZone = createGameObject(DiscardZone, game, this);
         // mainly used for staging tokens when they are created / removed
-        this._outsideTheGameZone = new OutsideTheGameZone(game, this);
+        this._outsideTheGameZone = createGameObject(OutsideTheGameZone, game, this);
         // baseZone is already null from accessor init
-        this._deckZone = new DeckZone(game, this);
+        this._deckZone = createGameObject(DeckZone, game, this);
 
         /** @type {Deck} */
         this.decklistNames = null;
@@ -754,7 +754,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this._baseZone = new BaseZone(this.game, this, this.base, this.leader);
+        this._baseZone = createGameObject(BaseZone, this.game, this, this.base, this.leader);
 
         this._decklist = preparedDecklist;
     }
@@ -798,7 +798,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         if (this.creditTokenCount === 0 && creditTokenAdjusters.length > 0) {
             this.removeCostAdjuster(creditTokenAdjusters[0]);
         } else if (this.creditTokenCount > 0 && creditTokenAdjusters.length === 0) {
-            const newAdjuster = new DefeatCreditTokensCostAdjuster(this.game, this);
+            const newAdjuster = createGameObject(DefeatCreditTokensCostAdjuster, this.game, this);
             this.addCostAdjuster(newAdjuster);
         }
     }
@@ -1354,4 +1354,3 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.name;
     }
 }
-

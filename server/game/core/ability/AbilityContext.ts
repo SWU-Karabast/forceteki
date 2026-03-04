@@ -9,6 +9,7 @@ import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';
 import type { ReplacementEffectContext } from './ReplacementEffectContext';
+import { createGameObject } from '../GameObjectUtils';
 
 export interface IAbilityContextProperties {
     game: Game;
@@ -58,7 +59,7 @@ export class AbilityContext<TSource extends Card = Card> {
 
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
-        this.source = properties.source || new OngoingEffectSource(this.game);
+        this.source = properties.source || createGameObject(OngoingEffectSource, this.game);
         this.player = properties.player;
         this.ability = properties.ability;
         this.costs = properties.costs || {};

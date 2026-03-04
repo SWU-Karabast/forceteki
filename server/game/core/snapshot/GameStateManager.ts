@@ -7,6 +7,7 @@ import { to } from '../utils/TypeHelpers';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
+import { initializeGameObject } from '../GameObjectUtils';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -124,7 +125,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         this._disableRegistration = true;
 
         try {
-            const obj = handler();
+            const obj = initializeGameObject(handler());
             obj.setCannotHaveRefs();
             return obj;
         } finally {

@@ -34,6 +34,7 @@ import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
 import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/AdditionalPhaseEffect';
+import { createGameObject } from '../core/GameObjectUtils';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -115,24 +116,24 @@ export = {
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
-    cloneUnit: (target: Card) => OngoingEffectBuilder.card.static(EffectName.CloneUnit, (game) => new CloneUnitEffect(game, target)),
+    cloneUnit: (target: Card) => OngoingEffectBuilder.card.static(EffectName.CloneUnit, (game) => createGameObject(CloneUnitEffect, game, target)),
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
-        OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
+        OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => createGameObject(GainAbility, game, properties)),
     gainDamageModificationAbility: (properties: IDamageModificationEffectAbilityPropsWithType) =>
-        OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
+        OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => createGameObject(GainAbility, game, properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
     gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties>) => {
         switch (typeof keywordOrKeywordProperties) {
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
-                    (target, context, game) => new GainKeyword(game, keywordOrKeywordProperties(target, context, game)));
+                    (target, context, game) => createGameObject(GainKeyword, game, keywordOrKeywordProperties(target, context, game)));
             default:
-                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, (game) => new GainKeyword(game, keywordOrKeywordProperties));
+                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, (game) => createGameObject(GainKeyword, game, keywordOrKeywordProperties));
         }
     },
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
-        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
+        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => createGameObject(GainKeyword, game, calculate(target, context))),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseAllOtherAbilities: (properties: { exceptKeyword: KeywordName }) =>
@@ -180,7 +181,7 @@ export = {
             default:
                 return OngoingEffectBuilder.card.static(
                     EffectName.ModifyStats,
-                    (game) => new OngoingEffectValueWrapper(game, modifier, { format: 'give {0}', args: [StatsModifierWrapper.statsModifierDescription(modifier)] })
+                    (game) => createGameObject(OngoingEffectValueWrapper, game, modifier, { format: 'give {0}', args: [StatsModifierWrapper.statsModifierDescription(modifier)] })
                 );
         }
     },
@@ -225,9 +226,9 @@ export = {
     // participatesFromHome: (properties) => OngoingEffectBuilder.card.static(EffectName.ParticipatesFromHome, properties),
     // unlessActionCost: (properties) => OngoingEffectBuilder.card.static(EffectName.UnlessActionCost, properties),
     // // Player effects
-    additionalAction: () => OngoingEffectBuilder.player.static(EffectName.AdditionalAction, (game) => new OngoingEffectValueWrapper(game, true, 'give an additional action')),
+    additionalAction: () => OngoingEffectBuilder.player.static(EffectName.AdditionalAction, (game) => createGameObject(OngoingEffectValueWrapper, game, true, 'give an additional action')),
     additionalPhase: (properties: { phase: PhaseName }) =>
-        OngoingEffectBuilder.player.static(EffectName.AdditionalPhase, (game) => new AdditionalPhaseEffect(game, properties.phase)),
+        OngoingEffectBuilder.player.static(EffectName.AdditionalPhase, (game) => createGameObject(AdditionalPhaseEffect, game, properties.phase)),
     // additionalCardPlayed: (amount = 1) => OngoingEffectBuilder.player.flexible(EffectName.AdditionalCardPlayed, amount),
     // additionalCharactersInConflict: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.AdditionalCharactersInConflict, amount),
@@ -337,4 +338,3 @@ export = {
     //     OngoingEffectBuilder.conflict.static(EffectName.AdditionalAttackedProvince, province),
     // conflictIgnoreStatusTokens: () => OngoingEffectBuilder.conflict.static(EffectName.ConflictIgnoreStatusTokens),
 };
-

@@ -8,7 +8,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
 
-import { registerState } from '../../../core/GameObjectUtils';
+import { createGameObject, registerState } from '../../../core/GameObjectUtils';
 
 export default class Bamboozle extends EventCard {
     protected override getImplementationId() {
@@ -71,13 +71,15 @@ class PlayBamboozleAction extends PlayEventAction {
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayBamboozleAction(
+        return createGameObject(
+            PlayBamboozleAction,
             this.card as Bamboozle,
             PlayBamboozleAction.generateProperties(this.card as Bamboozle,
                 {
                     ...this.createdWithProperties,
                     ...overrideProperties
-                }, this.abilityHelper)
-            , this.abilityHelper);
+                }, this.abilityHelper),
+            this.abilityHelper
+        );
     }
 }

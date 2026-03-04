@@ -4,12 +4,12 @@ import { ActionAbility } from '../core/ability/ActionAbility';
 import type { Card } from '../core/card/Card';
 import type { Game } from '../core/Game';
 import type { IEpicActionProps } from '../Interfaces';
-import { registerState } from '../core/GameObjectUtils';
+import { createGameObject, registerState } from '../core/GameObjectUtils';
 
 @registerState()
 export class EpicActionAbility extends ActionAbility {
     public constructor(game: Game, card: Card, properties: IEpicActionProps) {
-        super(game, card, { ...properties, limit: new EpicActionLimit(game) });
+        super(game, card, { ...properties, limit: createGameObject(EpicActionLimit, game) });
 
         this.canResolveWithoutLegalTargets = true;
     }

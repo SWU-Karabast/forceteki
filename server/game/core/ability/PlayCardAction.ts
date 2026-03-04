@@ -16,7 +16,7 @@ import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCost
 import type { Game } from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
-import { registerState } from '../GameObjectUtils';
+import { createGameObject, registerState } from '../GameObjectUtils';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -84,7 +84,7 @@ export abstract class PlayCardAction extends PlayerAction {
             propertiesWithDefaults = Helpers.mergeArrayProperty(
                 propertiesWithDefaults,
                 'costAdjusters',
-                [new ExploitCostAdjuster(card.game, card, { costAdjustType: CostAdjustType.Exploit, exploitKeywordAmount: properties.exploitValue })]
+                [createGameObject(ExploitCostAdjuster, card.game, card, { costAdjustType: CostAdjustType.Exploit, exploitKeywordAmount: properties.exploitValue })]
             );
         }
 

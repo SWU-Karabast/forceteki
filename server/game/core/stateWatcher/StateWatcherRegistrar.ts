@@ -1,7 +1,7 @@
 import type { StateWatcherName } from '../Constants';
 import type { Game } from '../Game';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, stateRefMap } from '../GameObjectUtils';
+import { initializeGameObject, registerState, stateRefMap } from '../GameObjectUtils';
 import type { StateWatcher } from './StateWatcher';
 
 // TODO: This piece's job is now to simply register the names of the state watchers. If a name exists, return that instance.
@@ -31,7 +31,7 @@ export class StateWatcherRegistrar extends GameObjectBase {
     public registerWatcher<TWatcher extends StateWatcher>(name: StateWatcherName, watcherFactory: (registrar: StateWatcherRegistrar) => TWatcher): TWatcher {
         let watcher = this.watchers.get(name) as TWatcher;
         if (!watcher) {
-            watcher = watcherFactory(this);
+            watcher = initializeGameObject(watcherFactory(this));
             this.watchers.set(name, watcher);
         }
         return watcher;
@@ -41,4 +41,3 @@ export class StateWatcherRegistrar extends GameObjectBase {
         return 'StateWatcherRegistrar';
     }
 }
-

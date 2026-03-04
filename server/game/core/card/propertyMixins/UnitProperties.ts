@@ -45,7 +45,7 @@ import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/Pri
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
-import { registerState, stateRefArray, stateRef, statePrimitive } from '../../GameObjectUtils';
+import { createGameObject, registerState, stateRefArray, stateRef, statePrimitive } from '../../GameObjectUtils';
 import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
@@ -307,7 +307,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
             this._unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
 
-            this.defaultAttackAction = new InitiateAttackAction(this.game, this);
+            this.defaultAttackAction = createGameObject(InitiateAttackAction, this.game, this);
         }
 
         protected override onInitialize(): void {
@@ -347,7 +347,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
             // STATE TODO: Is this a leak? It's a GO but it can be thrown out.
-            const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this) : null;
+            const zone = enabledStatus ? createGameObject(CaptureZone, this.game, this.owner, this) : null;
             this._captureZone = zone;
         }
 
@@ -843,7 +843,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             for (const bountyKeyword of bountyKeywords) {
                 const abilityProps = bountyKeyword.abilityProps;
 
-                const bountyAbility = new BountyAbility(this.game, this, { ...this.buildGeneralAbilityProps('triggered'), ...abilityProps });
+                const bountyAbility = createGameObject(BountyAbility, this.game, this, { ...this.buildGeneralAbilityProps('triggered'), ...abilityProps });
 
                 bountyAbility.registerEvents();
                 registeredAbilities.push(bountyAbility);
@@ -1174,4 +1174,3 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
     return AsUnit;
 }
-

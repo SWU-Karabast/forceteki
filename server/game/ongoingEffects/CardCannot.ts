@@ -4,6 +4,7 @@ import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder
 import { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import { createGameObject } from '../core/GameObjectUtils';
 
 type ICardCannotProperties =
   | AbilityRestriction | EffectName
@@ -15,7 +16,7 @@ type ICardCannotProperties =
 export function cardCannot(properties: ICardCannotProperties) {
     return OngoingEffectBuilder.card.static(
         EffectName.AbilityRestrictions, (game) =>
-            new Restriction(game,
+            createGameObject(Restriction, game,
                 typeof properties === 'string'
                     ? { type: properties }
                     : Object.assign({ type: properties.cannot }, properties)

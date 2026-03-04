@@ -16,6 +16,7 @@ const bulkCopyMetadata = Symbol();
 const stateClassesStr: Record<string, string> = {};
 
 export const registerStateClassMarker = Symbol('registerStateClassMarker');
+type GameObjectConstructor<TGameObject extends GameObjectBase, TArgs extends unknown[]> = new (...args: TArgs) => TGameObject;
 
 export enum CopyMode {
 
@@ -64,41 +65,23 @@ export function registerState<T extends GameObjectBase>(copyMode = CopyMode.UseM
             configurable: false
         });
 
-        // Wrap the decorated class so framework initialization is guaranteed after the full constructor chain finishes.
-        // The computed-property trick preserves the original class name for diagnostics and metadata lookups.
-        const wrappedClass: any = {
-            [targetClass.name]: class extends targetClass {
-                public constructor(...args: any[]) {
-                    super(...args);
-
-                    // Only initialize at the most-derived wrapper boundary.
-                    // Parent wrapped constructors run with a different `new.target` and must not initialize early.
-                    if (new.target === wrappedClass) {
-                        this.initialize();
-                    }
-                }
-            }
-        }[targetClass.name];
-
-        // Mark the wrapper too; runtime enforcement checks the constructed class, not just the original targetClass.
-        Object.defineProperty(wrappedClass, registerStateClassMarker, {
-            value: true,
-            writable: false,
-            enumerable: false,
-            configurable: false
-        });
-
-        // copyState walks Symbol.metadata on constructors in the prototype chain.
-        // Re-expose the original metadata on the wrapper so state copy behavior is unchanged.
-        Object.defineProperty(wrappedClass, Symbol.metadata, {
-            value: targetClass[Symbol.metadata],
-            writable: false,
-            enumerable: false,
-            configurable: true
-        });
-
-        return wrappedClass;
+        return targetClass;
     };
+}
+
+export function initializeGameObject<T extends GameObjectBase>(instance: T): T {
+    if (!instance.initialized) {
+        instance.initialize();
+    }
+
+    return instance;
+}
+
+export function createGameObject<T extends GameObjectBase, TArgs extends unknown[]>(
+    targetClass: GameObjectConstructor<T, TArgs>,
+    ...args: TArgs
+): T {
+    return initializeGameObject(new targetClass(...args));
 }
 
 export function statePrimitive<T extends GameObjectBase, TValue extends string | number | boolean>() {
@@ -770,4 +753,3 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         throw new Error('Fill is not supported in UndoArray.');
     }
 }
-

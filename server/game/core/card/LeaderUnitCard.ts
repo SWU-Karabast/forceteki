@@ -21,7 +21,7 @@ import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState, stateRef } from '../GameObjectUtils';
+import { createGameObject, registerState, stateRef } from '../GameObjectUtils';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
@@ -63,7 +63,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
-        this._deployEpicActionLimit = new EpicActionLimit(this.game);
+        this._deployEpicActionLimit = createGameObject(EpicActionLimit, this.game);
 
         const registrar = this.getAbilityRegistrar();
 
@@ -299,4 +299,3 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 export class LeaderUnitCard extends LeaderUnitCardInternal {
     public declare state: never;
 }
-

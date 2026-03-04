@@ -4,7 +4,7 @@ import type TriggeredAbility from '../../ability/TriggeredAbility';
 import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 import DamageModificationAbility from '../../ability/DamageModificationAbility';
-import { registerState } from '../../GameObjectUtils';
+import { createGameObject, registerState } from '../../GameObjectUtils';
 
 export interface ITriggeredAbilityRegistrar<T extends Card> {
     addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbility;
@@ -79,7 +79,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
         }
 
         public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
-            return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
+            return createGameObject(ReplacementEffectAbility, this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
         }
 
         private addDamageModificationAbility(properties: IDamageModificationAbilityProps<this>): DamageModificationAbility {
@@ -92,7 +92,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
         }
 
         public createDamageModificationAbility<TSource extends Card = this>(properties: IDamageModificationAbilityProps<TSource>): DamageModificationAbility {
-            return new DamageModificationAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
+            return createGameObject(DamageModificationAbility, this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
         }
 
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************

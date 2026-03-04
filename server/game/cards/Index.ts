@@ -21,37 +21,6 @@ function allJsFiles(path: string): string[] {
     return files;
 }
 
-/**
- * Mirrors the wrapper pattern used in registerState() in GameObjectUtils.ts.
- * We dynamically import card classes, then return a named subclass wrapper that:
- * 1) preserves the original class name for diagnostics/lookup behavior,
- * 2) guarantees initialize() has run before the instance is used, and
- * 3) marks the runtime constructor with registerStateClassMarker so state-class checks
- *    operate on the constructed wrapper class (not only the original imported class).
- */
-function buildAutoInitializingCardClass(targetCardClass: any): any {
-    const wrappedClass: any = {
-        [targetCardClass.name]: class extends targetCardClass {
-            public constructor(...args: any[]) {
-                super(...args);
-
-                if (!this.initialized) {
-                    this.initialize();
-                }
-            }
-        }
-    }[targetCardClass.name];
-
-    Object.defineProperty(wrappedClass, registerStateClassMarker, {
-        value: true,
-        writable: false,
-        enumerable: false,
-        configurable: false
-    });
-
-    return wrappedClass;
-}
-
 // card.name
 const cardsMap = new Map<string, any>();
 const overrideNotImplementedCardsMap = new Map<string, any>();
@@ -78,16 +47,23 @@ for (const filepath of allJsFiles(__dirname)) {
         throw Error(`Import card class with duplicate class name: ${card.name}`);
     }
 
-    const wrappedCardClass = buildAutoInitializingCardClass(card);
-    cardsMap.set(cardId.id, wrappedCardClass);
+    if (!Object.prototype.hasOwnProperty.call(card, registerStateClassMarker)) {
+        Object.defineProperty(card, registerStateClassMarker, {
+            value: true,
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+    }
+
+    cardsMap.set(cardId.id, card);
     cardClassNames.add(card.name);
 
     if (card.prototype.overrideNotImplemented) {
-        overrideNotImplementedCardsMap.set(cardId.id, wrappedCardClass);
+        overrideNotImplementedCardsMap.set(cardId.id, card);
     }
 }
 
 export const cards = cardsMap;
 export const overrideNotImplementedCards = overrideNotImplementedCardsMap;
-
 
