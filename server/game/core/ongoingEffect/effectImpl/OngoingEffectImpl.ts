@@ -4,7 +4,7 @@ import type { Duration, EffectName } from '../../Constants';
 import type { Game } from '../../Game';
 import { GameObjectBase } from '../../GameObjectBase';
 import { registerStateBase } from '../../GameObjectUtils';
-import type { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import type { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 
 @registerStateBase()
 export abstract class OngoingEffectImpl<TValue> extends GameObjectBase {
@@ -23,7 +23,7 @@ export abstract class OngoingEffectImpl<TValue> extends GameObjectBase {
     }
 
     // TODO: add type union in constants.ts for ability targets (player or card, anything else?)
-    public abstract get valueWrapper(): OngoingEffectValueWrapper<TValue>;
+    public abstract get valueWrapper(): OngoingEffectValueWrapperBase<TValue>;
     public abstract getValue(target?): TValue;
     public abstract apply(effect, target): void;
     public abstract unapply(effect, target): void;

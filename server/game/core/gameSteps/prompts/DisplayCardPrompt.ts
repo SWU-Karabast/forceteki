@@ -1,5 +1,5 @@
 import type { Game } from '../../Game';
-import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
+import { OngoingEffectSource, OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
@@ -12,7 +12,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
     private readonly choosingPlayer: Player;
     private readonly menuTitle?: string;
     private readonly promptTitle: string;
-    private readonly source: OngoingEffectSource;
+    private readonly source: OngoingEffectSourceBase;
     private readonly selectCardMode: SelectCardMode;
 
     public constructor(game: Game, choosingPlayer: Player, properties: TProperties, selectCardMode: SelectCardMode) {
@@ -48,11 +48,11 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
     protected abstract defaultProperties(): Partial<TProperties>;
     protected abstract getDisplayCards(): IDisplayCard[];
 
-    protected getDefaultWaitingPromptTitle(source: OngoingEffectSource) {
+    protected getDefaultWaitingPromptTitle(source: OngoingEffectSourceBase) {
         return `Waiting for opponent to use ${source.name}`;
     }
 
-    protected getDefaultActivePromptTitle(source: OngoingEffectSource) {
+    protected getDefaultActivePromptTitle(source: OngoingEffectSourceBase) {
         return `Choose cards for ${source.name} ability`;
     }
 

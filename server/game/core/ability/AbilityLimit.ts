@@ -70,14 +70,6 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
     public abstract reset(): void;
 }
 
-interface IPerPlayerAbilityLimitState extends IAbilityLimitState {
-    useCount: Map<string, number>;
-}
-
-interface IPerGameAbilityLimitState extends IAbilityLimitState {
-    useCount: 0;
-}
-
 @registerState()
 export class UnlimitedAbilityLimit extends AbilityLimit {
     @stateValue() private accessor useCount: Map<string, number> = new Map();
@@ -150,7 +142,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
 }
 
 @registerStateBase()
-export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
+export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     public readonly max: number;
 
     @stateValue() private accessor useCount: Map<string, number> = new Map();
@@ -196,7 +188,10 @@ export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
 }
 
 @registerState()
-export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
+export class PerPlayerPerGameAbilityLimit extends PerPlayerPerGameAbilityLimitBase { }
+
+@registerState()
+export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimitBase {
     private readonly eventName: Set<EventName>;
     private eventRegistrations?: IEventRegistration[];
 
@@ -249,7 +244,7 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
 }
 
 @registerState()
-export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
+export class EpicActionLimit extends PerPlayerPerGameAbilityLimitBase {
     public constructor(game: Game) {
         super(game, 1);
     }

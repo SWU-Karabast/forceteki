@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, GameStateChangeRequired, Stage, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import TriggeredAbility from '../core/ability/TriggeredAbility';
+import { TriggeredAbilityBase, TriggeredAbility } from '../core/ability/TriggeredAbility';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ITriggeredAbilityProps } from '../Interfaces';
 import { InitiateAttackSystem } from './InitiateAttackSystem';
@@ -25,7 +25,7 @@ export class UseOnAttackSystem<TContext extends AbilityContext = AbilityContext>
         const onAttackSource = event.onAttackSource;
         const triggerAll = event.triggerAll;
         const onAttackDeclaredEvent = event.onAttackDeclaredEvent;
-        const onAttackAbilities: TriggeredAbility[] = onAttackDeclaredEvent == null ? event.onAttackAbilities : [event.resolvedAbility];
+        const onAttackAbilities: TriggeredAbilityBase[] = onAttackDeclaredEvent == null ? event.onAttackAbilities : [event.resolvedAbility];
 
         if (onAttackAbilities.length === 1 || triggerAll) {
             onAttackAbilities.forEach((onAttackAbility) => {
@@ -56,7 +56,7 @@ export class UseOnAttackSystem<TContext extends AbilityContext = AbilityContext>
         }
     }
 
-    private useOnAttackAbility(onAttackAbility: TriggeredAbility, onAttackSource: Card, event, onAttackDeclaredEvent = null) {
+    private useOnAttackAbility(onAttackAbility: TriggeredAbilityBase, onAttackSource: Card, event, onAttackDeclaredEvent = null) {
         const onAttackProps = { ...(onAttackAbility.properties as ITriggeredAbilityProps), optional: false, target: onAttackSource };
         const ability = event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new TriggeredAbility(event.context.game, onAttackSource, onAttackProps));
 

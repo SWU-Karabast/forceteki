@@ -4,7 +4,7 @@ import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
-import type { ActionAbility } from '../ability/ActionAbility';
+import type { ActionAbilityBase } from '../ability/ActionAbility';
 import type { IEpicActionProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
@@ -70,7 +70,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         }
     }
 
-    public override getActionAbilities(): ActionAbility[] {
+    public override getActionAbilities(): ActionAbilityBase[] {
         if (!this.isFullyBlanked() && this._epicActionAbility) {
             return super.getActionAbilities().concat(this._epicActionAbility);
         }

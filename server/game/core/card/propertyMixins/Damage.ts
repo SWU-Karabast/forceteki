@@ -6,7 +6,7 @@ import type { ICardWithPrintedHpProperty } from './PrintedHp';
 import { WithPrintedHp } from './PrintedHp';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { EffectName } from '../../Constants';
-import { registerState, statePrimitive } from '../../GameObjectUtils';
+import { registerState, registerStateBase, statePrimitive } from '../../GameObjectUtils';
 
 export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
     setActiveAttack(attack: Attack);
@@ -26,7 +26,7 @@ export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
 export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     const HpClass = WithPrintedHp(BaseClass);
 
-    @registerState()
+    @registerStateBase()
     class WithDamage extends HpClass implements ICardWithDamageProperty {
         // This is transitive state and needs to be cleared during any rollback.
         private _activeAttack?: Attack = null;

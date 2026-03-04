@@ -12,11 +12,11 @@ const stateSetMetadata = Symbol();
 const stateRecordMetadata = Symbol();
 const stateObjectMetadata = Symbol();
 const bulkCopyMetadata = Symbol();
-const autoInitializeClassMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
 export const registerStateClassMarker = Symbol('registerStateClassMarker');
+export const registerStateAutoInitializeMarker = Symbol('registerStateAutoInitializeMarker');
 
 export enum CopyMode {
 
@@ -58,11 +58,8 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
         const options = normalizeRegisterStateOptions(copyModeOrOptions);
         const parentClass = Object.getPrototypeOf(targetClass);
 
-        if (
-            process.env.ENFORCE_REGISTER_STATE_AUTO_INITIALIZE_FINAL === 'true' &&
-            parentClass?.[autoInitializeClassMetadata] === true
-        ) {
-            throw new Error(`class "${targetClass.name}" cannot extend auto-initialized class "${parentClass.name}"`);
+        if (parentClass?.[registerStateAutoInitializeMarker] === true) {
+            throw new Error(`class "${targetClass.name}" cannot extend @registerState class "${parentClass.name}". If a class needs to be both, split the class into a abstract base class and a concrete version (see ExploitCostAdjusterBase and ExploitCostAdjuster).`);
         }
 
         const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
@@ -84,17 +81,11 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
         stateClassesStr[targetClass.name] = parentClass.name;
         // Check to see if parent is missing @registerState. This will happen in order of lowest class to highest class, so we can rely on it checking if it's parent class was registered.
         if (parentClass.name && parentClass !== Object && stateClassesStr[parentClass.name] == null) {
-            throw new Error(`class "${parentClass.name}" is missing @registerState`);
+            throw new Error(`class "${parentClass.name}" is missing @registerStateBase`);
         }
 
         Object.defineProperty(targetClass, registerStateClassMarker, {
             value: true,
-            writable: false,
-            enumerable: false,
-            configurable: false
-        });
-        Object.defineProperty(targetClass, autoInitializeClassMetadata, {
-            value: options.autoInitialize,
             writable: false,
             enumerable: false,
             configurable: false
@@ -104,17 +95,24 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             return targetClass;
         }
 
+        // Add the auto-initialize marker as a safety check to prevent multiple registrations and to allow for special handling of automatically initialized classes (like implemented Cards).
+        Object.defineProperty(targetClass, registerStateAutoInitializeMarker, {
+            value: true,
+            writable: false,
+            enumerable: false,
+            configurable: false
+        });
+
         // Wrap the decorated class so framework initialization is guaranteed after the full constructor chain finishes.
-        // The computed-property trick preserves the original class name for diagnostics and metadata lookups.
-        // By convention, only final classes use autoInitialize, so initialize() can run unconditionally here.
-        const wrappedClass: any = {
-            [targetClass.name]: class extends targetClass {
-                public constructor(...args: any[]) {
-                    super(...args);
-                    this.initialize();
-                }
+        const wrappedClass: any = class extends targetClass {
+            public constructor(...args: any[]) {
+                super(...args);
+
+                this.initialize();
             }
-        }[targetClass.name];
+        };
+        // Preserve the original class name for diagnostics and metadata lookups (e.g. copyState).
+        Object.defineProperty(wrappedClass, 'name', { value: targetClass.name });
 
         // Mark the wrapper too; runtime enforcement checks the constructed class, not just the original targetClass.
         Object.defineProperty(wrappedClass, registerStateClassMarker, {
@@ -123,7 +121,8 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             enumerable: false,
             configurable: false
         });
-        Object.defineProperty(wrappedClass, autoInitializeClassMetadata, {
+        
+        Object.defineProperty(wrappedClass, registerStateAutoInitializeMarker, {
             value: true,
             writable: false,
             enumerable: false,
@@ -143,9 +142,44 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
     };
 }
 
+/** 
+ * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
+ * 
+ * This is meant for base classes that need to be extended by &#64;registerState classes, but should not be directly instantiated themselves, and thus don't need the constructor wrapper that guarantees initialize() is called.
+ */
 export function registerStateBase<T extends GameObjectBase>(copyModeOrOptions?: CopyMode | Omit<RegisterStateOptions, 'autoInitialize'>) {
     const copyMode = typeof copyModeOrOptions === 'number' ? copyModeOrOptions : copyModeOrOptions?.copyMode;
     return registerState<T>({ copyMode, autoInitialize: false });
+}
+
+/**
+ * Mirrors the wrapper pattern used in registerState() in GameObjectUtils.ts.
+ * Used with the dynamically imported Cards to automatically wrap them with a constructor that calls initialize, and to mark them with the appropriate metadata for state copying.
+ */
+export function buildAutoInitializingCardClass(targetCardClass: any): any {    
+    const parentClass = Object.getPrototypeOf(targetCardClass);
+
+    if (parentClass?.[registerStateAutoInitializeMarker] === true) {
+        throw new Error(`class "${targetCardClass.name}" is a Card Implementation which is automatically registered, and does not need @registerState.`);
+    }
+    const wrappedClass: any = class extends targetCardClass {
+        public constructor(...args: any[]) {
+            super(...args);
+
+            this.initialize();
+        }
+    };
+    // Preserve the original class name for diagnostics and metadata lookups (e.g. copyState).
+    Object.defineProperty(wrappedClass, 'name', { value: targetCardClass.name });
+
+    Object.defineProperty(wrappedClass, registerStateClassMarker, {
+        value: true,
+        writable: false,
+        enumerable: false,
+        configurable: false
+    });
+
+    return wrappedClass;
 }
 
 export function statePrimitive<T extends GameObjectBase, TValue extends string | number | boolean>() {

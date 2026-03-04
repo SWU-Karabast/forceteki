@@ -97,7 +97,7 @@ export abstract class GameObjectBase implements IGameObjectBase {
         const ctor = this.constructor as { [registerStateClassMarker]?: boolean; name: string };
         Contract.assertTrue(
             Object.prototype.hasOwnProperty.call(ctor, registerStateClassMarker) && ctor[registerStateClassMarker] === true,
-            `Class "${ctor.name}" extends GameObjectBase but is missing @registerState()`
+            `Class "${ctor.name}" extends GameObjectBase but is missing @registerState() or @registerStateBase(). Please add one of these decorators to ensure the state of this class is properly tracked.`
         );
 
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.

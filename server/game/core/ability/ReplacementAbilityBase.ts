@@ -2,7 +2,7 @@ import { AbilityType } from '../Constants';
 import type { IDamageModificationAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, WhenTypeOrStandard } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
-import TriggeredAbility from './TriggeredAbility';
+import { TriggeredAbilityBase } from './TriggeredAbility';
 import type { Player } from '../Player';
 import { ReplacementEffectContext } from './ReplacementEffectContext';
 import type { AbilityContext } from './AbilityContext';
@@ -13,7 +13,7 @@ import { isFunction } from 'underscore';
 import { registerStateBase } from '../GameObjectUtils';
 
 @registerStateBase()
-export default class ReplacementAbilityBase extends TriggeredAbility {
+export default class ReplacementAbilityBase extends TriggeredAbilityBase {
     public constructor(game: Game, card: Card, replacementBaseProps: IReplacementEffectAbilityProps | IDamageModificationAbilityProps,
         replacementSystem: GameSystem<TriggeredAbilityContext>, whenTrigger: WhenTypeOrStandard) {
         const { onlyIfYouDoEffect, ...otherProps } = replacementBaseProps;

@@ -19,7 +19,7 @@ import type { IActionTargetResolver, ITargetResolverBase } from '../../TargetInt
 import type { AbilityLimit } from './AbilityLimit.js';
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
-import type { ActionAbility } from './ActionAbility.js';
+import type { ActionAbilityBase } from './ActionAbility.js';
 import type { IGameObjectBaseState } from '../GameObjectBase.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { CardAbility } from './CardAbility.js';
@@ -442,7 +442,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return false;
     }
 
-    public isActionAbility(): this is ActionAbility {
+    public isActionAbility(): this is ActionAbilityBase {
         return false;
     }
 }

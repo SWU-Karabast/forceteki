@@ -4,7 +4,7 @@ import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
-import { registerState } from '../../GameObjectUtils';
+import { registerState, registerStateBase } from '../../GameObjectUtils';
 
 export interface IConstantAbilityRegistrar<T extends Card> {
     addConstantAbility(properties: IConstantAbilityProps<T>): IConstantAbility;
@@ -19,7 +19,7 @@ export interface ICardWithConstantAbilities<T extends Card> {
 
 /** Mixin function that adds the ability to register constant abilities to a base card class. */
 export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    @registerState()
+    @registerStateBase()
     class WithConstantAbilities extends BaseClass {
         private addConstantAbility(properties: IConstantAbilityProps<this>): ConstantAbility {
             const ability = this.createConstantAbility({ ...properties, printedAbility: true });

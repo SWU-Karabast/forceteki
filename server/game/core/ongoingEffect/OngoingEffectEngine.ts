@@ -1,7 +1,7 @@
 import { Duration, EffectName, EventName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
 import type { OngoingEffect } from './OngoingEffect';
-import type { OngoingEffectSource } from './OngoingEffectSource';
+import type { OngoingEffectSourceBase } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type { Game } from '../Game';
 import * as Contract from '../utils/Contract';
@@ -174,7 +174,7 @@ export class OngoingEffectEngine extends GameObjectBase {
         }
     }
 
-    public removeLastingEffects(card: OngoingEffectSource) {
+    public removeLastingEffects(card: OngoingEffectSourceBase) {
         Contract.assertTrue(card.isCard());
 
         this.unapplyAndRemove(

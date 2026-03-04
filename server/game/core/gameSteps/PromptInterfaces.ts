@@ -3,7 +3,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { BaseCardSelector } from '../cardSelector/BaseCardSelector';
 import type { GameSystem } from '../gameSystem/GameSystem';
-import type { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
+import type { OngoingEffectSourceBase } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
 
 export enum DisplayCardSelectionState {
@@ -99,7 +99,7 @@ export interface IDistributeAmongTargetsPromptMapResults {
 }
 
 export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
-    source: string | OngoingEffectSource;
+    source: string | OngoingEffectSourceBase;
     isOpponentEffect: boolean;
 
     activePromptTitle?: ((context: AbilityContext, selectedCards?: Card[]) => string) | string;
@@ -122,7 +122,7 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
 
 export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {
     displayCards: Card[];
-    source: string | OngoingEffectSource;
+    source: string | OngoingEffectSourceBase;
 }
 
 export interface IDisplayCardsBasicPromptProperties extends IDisplayCardPromptPropertiesBase {

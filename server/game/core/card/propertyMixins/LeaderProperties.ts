@@ -6,7 +6,7 @@ import type { PlayableOrDeployableCardConstructor } from '../baseClasses/Playabl
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { registerState, statePrimitive } from '../../GameObjectUtils';
+import { registerState, registerStateBase, statePrimitive } from '../../GameObjectUtils';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
 
@@ -22,7 +22,7 @@ export interface ILeaderCard extends ICardWithExhaustProperty {}
  * - the ability to have attached upgrades
  */
 export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCardConstructor = PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
-    @registerState()
+    @registerStateBase()
     class AsLeader extends (BaseClass as TBaseClass) implements ILeaderCard {
         // STATE TODO: I am uncertain if this needs to be undefined or false to start. LeaderUnitCard sets the default, which is odd.
         // NAMING NOTE: Normally only TS private fields would start with underscore, but there's a unusual split of logic and accessors between here and LeaderUnitCard, so this is a exception to the rule.

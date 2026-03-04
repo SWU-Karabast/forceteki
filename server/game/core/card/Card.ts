@@ -7,9 +7,9 @@ import type {
     ISerializedCardState,
     ICardAttributes
 } from '../../Interfaces';
-import { ActionAbility } from '../ability/ActionAbility';
+import { ActionAbilityBase, ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
-import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
+import { OngoingEffectSourceBase } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
@@ -22,7 +22,7 @@ import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues, KeywordWithNumericValue } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
-import TriggeredAbility from '../ability/TriggeredAbility';
+import { TriggeredAbilityBase, TriggeredAbility } from '../ability/TriggeredAbility';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import type { IEventCard } from './EventCard';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
@@ -69,7 +69,7 @@ export enum InitializeCardStateOption {
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
 @registerStateBase()
-export class Card extends OngoingEffectSource implements IGameStatisticsTrackable {
+export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrackable {
     public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
         if (cardData.types.includes('leader')) {
             return true;
@@ -154,13 +154,13 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
     }
 
     @stateRefArray(false)
-    protected accessor actionAbilities: ActionAbility[] = [];
+    protected accessor actionAbilities: ActionAbilityBase[] = [];
 
     @stateRefArray(false)
     protected accessor constantAbilities: ConstantAbility[] = [];
 
     @stateRefArray(false)
-    protected accessor triggeredAbilities: TriggeredAbility[] = [];
+    protected accessor triggeredAbilities: TriggeredAbilityBase[] = [];
 
     protected get printedType(): CardType {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
@@ -387,8 +387,8 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
      * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
      * abilities have a cost in brackets that must be paid in order to use the ability.
      */
-    public getActionAbilities(): ActionAbility[] {
-        const deduplicatedActionAbilities: ActionAbility[] = [];
+    public getActionAbilities(): ActionAbilityBase[] {
+        const deduplicatedActionAbilities: ActionAbilityBase[] = [];
 
         // Add any gained action abilities, deduplicating by any identical gained action abilities from
         // the same source card (e.g., two Heroic Resolve actions)
@@ -408,7 +408,7 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
     }
 
-    public getPrintedActionAbilities(): ActionAbility[] {
+    public getPrintedActionAbilities(): ActionAbilityBase[] {
         return this.actionAbilities.filter((action) => action.printedAbility);
     }
 
@@ -435,7 +435,7 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return this.constantAbilities.filter((constant) => constant.printedAbility);
     }
 
-    public getPrintedTriggeredAbilities(): TriggeredAbility[] {
+    public getPrintedTriggeredAbilities(): TriggeredAbilityBase[] {
         return this.triggeredAbilities.filter((triggered) => triggered.printedAbility);
     }
 
@@ -529,11 +529,11 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected validateCardAbilities(abilities: readonly TriggeredAbility[], cardText?: string) {
+    protected validateCardAbilities(abilities: readonly TriggeredAbilityBase[], cardText?: string) {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************
-    public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
+    public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbilityBase {
         return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
     }
 
@@ -541,7 +541,7 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
         return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties));
     }
 
-    protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
+    protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbilityBase {
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
@@ -1106,10 +1106,10 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
     }
 
     protected updateActionAbilitiesForZone(from: ZoneName, to: ZoneName) {
-        this.updateActionAbilitiesForZoneInternal(this.actionAbilities as ActionAbility[], from, to);
+        this.updateActionAbilitiesForZoneInternal(this.actionAbilities as ActionAbilityBase[], from, to);
     }
 
-    protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbility[], from: ZoneName, to: ZoneName) {
+    protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbilityBase[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const action of actionAbilities) {
                 if (action.limit) {
@@ -1120,10 +1120,10 @@ export class Card extends OngoingEffectSource implements IGameStatisticsTrackabl
     }
 
     protected updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
-        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities as TriggeredAbility[], from, to);
+        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities as TriggeredAbilityBase[], from, to);
     }
 
-    protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbility[], from: ZoneName, to: ZoneName) {
+    protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbilityBase[], from: ZoneName, to: ZoneName) {
         // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {

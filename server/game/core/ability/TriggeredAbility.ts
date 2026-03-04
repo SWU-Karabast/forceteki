@@ -11,7 +11,7 @@ import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
-import { registerStateBase, statePrimitive } from '../GameObjectUtils';
+import { registerState, registerStateBase, statePrimitive } from '../GameObjectUtils';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import * as AttackHelpers from '../attack/AttackHelpers';
 
@@ -48,7 +48,7 @@ export interface ITriggeredAbilityState extends IGameObjectBaseState {
  */
 
 @registerStateBase()
-export default abstract class TriggeredAbility extends CardAbility {
+export abstract class TriggeredAbilityBase extends CardAbility {
     public readonly when?: WhenType;
     public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
     public readonly anyPlayer: boolean;
@@ -322,4 +322,7 @@ export default abstract class TriggeredAbility extends CardAbility {
         }
     }
 }
+
+@registerState()
+export class TriggeredAbility extends TriggeredAbilityBase { }
 
