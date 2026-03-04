@@ -63,6 +63,7 @@ import * as Helpers from './utils/Helpers';
 import type { CostAdjuster } from './cost/CostAdjuster';
 import { logger } from '../../logger';
 import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';
+import { DeltaTracker } from './snapshot/DeltaTracker';
 import { getAbilityHelper } from '../AbilityHelper';
 import type { IAbilityHelper } from '../AbilityHelper';
 import { PhaseInitializeMode } from './gameSteps/phases/Phase';
@@ -316,6 +317,7 @@ export class Game extends EventEmitter {
     public finishedAt?: Date;
     public gameEndReason?: GameEndReason;
     private _actionsSinceLastUndo?: number;
+    public readonly deltaTracker: DeltaTracker;
 
     // #endregion
 
@@ -330,6 +332,7 @@ export class Game extends EventEmitter {
         this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR6;
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
+        this.deltaTracker = new DeltaTracker(this);
         this._router = options.router;
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);

@@ -1,13 +1,14 @@
 import type { Game } from '../Game';
 import type { GameStateManager } from './GameStateManager';
-import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
+import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
+import { SnapshotTimepoint } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import { SnapshotArray } from './container/SnapshotArray';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler } from './container/SnapshotContainerBase';
 import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
-import { MetaSnapshotArray } from './container/MetaSnapshotArray';
+import { DeltaSnapshotContainer } from './container/DeltaSnapshotContainer';
 import v8 from 'node:v8';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
@@ -111,9 +112,9 @@ export class SnapshotFactory {
         );
     }
 
-    public createMetaSnapshotArray(): MetaSnapshotArray {
+    public createDeltaSnapshotContainer(): DeltaSnapshotContainer {
         return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
-            new MetaSnapshotArray(clearNewerSnapshotsBinding)
+            new DeltaSnapshotContainer(clearNewerSnapshotsBinding)
         );
     }
 
@@ -165,6 +166,85 @@ export class SnapshotFactory {
         this.currentActionSnapshot = snapshot;
     }
 
+    public createDeltaMetadataForCurrentTimepoint(timepoint: SnapshotTimepoint): Omit<IDeltaSnapshot, 'changedFields' | 'createdObjectUuids' | 'gameState' | 'states' | 'rngState' | 'lastGameObjectId'> {
+        const nextSnapshotId = this.lastAssignedSnapshotId + 1;
+        const nextTimepointNumber = this.lastAssignedTimepointNumber + 1;
+
+        const metadata: Omit<IDeltaSnapshot, 'changedFields' | 'createdObjectUuids' | 'gameState' | 'states' | 'rngState' | 'lastGameObjectId'> = {
+            id: nextSnapshotId,
+            actionNumber: this.game.actionNumber,
+            roundNumber: this.game.roundNumber,
+            phase: this.game.currentPhase,
+            timepoint,
+            timepointNumber: nextTimepointNumber,
+            activePlayerId: this.game.actionPhaseActivePlayer?.id,
+            requiresConfirmationToRollback: false,
+            nextSnapshotIsSamePlayer: undefined,
+        };
+
+        this.lastAssignedSnapshotId = nextSnapshotId;
+        this.lastAssignedTimepointNumber = nextTimepointNumber;
+
+        this.currentActionSnapshot = {
+            id: metadata.id,
+            lastGameObjectId: this.gameStateManager.lastGameObjectId,
+            actionNumber: metadata.actionNumber,
+            roundNumber: metadata.roundNumber,
+            timepoint: metadata.timepoint,
+            timepointNumber: metadata.timepointNumber,
+            phase: metadata.phase,
+            gameState: Buffer.alloc(0),
+            states: Buffer.alloc(0),
+            rngState: this.game.randomGenerator.rngState,
+            requiresConfirmationToRollback: metadata.requiresConfirmationToRollback,
+            activePlayerId: metadata.activePlayerId,
+            nextSnapshotIsSamePlayer: metadata.nextSnapshotIsSamePlayer,
+        };
+
+        return metadata;
+    }
+
+    public updateCurrentSnapshotFromDelta(delta: IDeltaSnapshot): void {
+        this.currentActionSnapshot = {
+            id: delta.id,
+            lastGameObjectId: delta.lastGameObjectId,
+            actionNumber: delta.actionNumber,
+            roundNumber: delta.roundNumber,
+            timepoint: delta.timepoint,
+            timepointNumber: delta.timepointNumber,
+            phase: delta.phase,
+            activePlayerId: delta.activePlayerId,
+            requiresConfirmationToRollback: false,
+            nextSnapshotIsSamePlayer: delta.nextSnapshotIsSamePlayer,
+            gameState: delta.gameState,
+            states: delta.states,
+            rngState: delta.rngState,
+        };
+        this.lastAssignedTimepointNumber = delta.timepointNumber;
+    }
+
+    public createRecoverySnapshot(): IGameSnapshot {
+        return {
+            id: this.currentActionSnapshot?.id ?? this.lastAssignedSnapshotId,
+            lastGameObjectId: this.gameStateManager.lastGameObjectId,
+            actionNumber: this.game.actionNumber,
+            roundNumber: this.game.roundNumber,
+            timepoint: this.currentActionSnapshot?.timepoint ?? SnapshotTimepoint.Action,
+            timepointNumber: this.currentActionSnapshot?.timepointNumber ?? this.lastAssignedTimepointNumber,
+            phase: this.game.currentPhase,
+            gameState: v8.serialize(this.game.state),
+            states: this.gameStateManager.buildGameStateForSnapshot(),
+            rngState: this.game.randomGenerator.rngState,
+            requiresConfirmationToRollback: false,
+            activePlayerId: this.game.actionPhaseActivePlayer?.id,
+            nextSnapshotIsSamePlayer: this.currentActionSnapshot?.nextSnapshotIsSamePlayer,
+        };
+    }
+
+    public materializeCurrentSnapshotState(): void {
+        this.currentActionSnapshot = this.createRecoverySnapshot();
+    }
+
     public setNextSnapshotIsSamePlayer(value: boolean) {
         if (this.currentActionSnapshot) {
             this.currentActionSnapshot.nextSnapshotIsSamePlayer = value;
@@ -176,6 +256,10 @@ export class SnapshotFactory {
      */
     private getCurrentActionSnapshot(): IGameSnapshot {
         Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read action snapshot before any is set, meaning the game is likely not initialized');
+
+        if (!this.currentActionSnapshot.states || this.currentActionSnapshot.states.length === 0) {
+            return this.createRecoverySnapshot();
+        }
 
         return this.currentActionSnapshot;
     }

@@ -68,6 +68,26 @@ If we re-implement this from scratch, treat the following as **hard requirements
 - `npx jasmine --config=jasmine.json --filter="Start / end of phase snapshots - integration"` => 0 failures.
 - Only after these pass, expand to broader undo scenario coverage.
 
+### 10) Issues discovered in the 2026-03-03 validation run
+
+- **Initial broad undo regression**:
+    - `npx jasmine --config=jasmine.json --filter="Undo" --random=false`
+    - 1 failing spec: `Undo - integration - Randomness cases should give the same top deck after two snapshots`.
+- **First fix attempt regression**:
+    - Added delta `states` plumbing and updated checkpoint flow to set current snapshot directly from produced delta metadata.
+    - Targeted randomness spec passed, but broad undo regressed heavily (24 failures), concentrated in `Undo confirmation` prompt / active-player sequencing.
+- **Root cause observed**:
+    - Binding current snapshot identity to reverse-delta anchor data at checkpoint changed rollback semantics for manual/action anchors.
+    - This shifted expectations in prompt ordering and active-player restoration for undo-confirmation flows.
+- **Final corrective change**:
+    - Keep delta `states` captured at tracking-window start.
+    - At checkpoint, materialize/freeze current snapshot from live game state (instead of re-pointing current snapshot to delta anchor payload).
+    - This restored manual/action anchor semantics while preserving delta rollback correctness.
+- **Post-fix validation status**:
+    - `Undo` filtered run: 92 specs, 0 failures, 1 pending.
+    - `Snapshot types - integration`: 65 specs, 0 failures.
+    - `Start / end of phase snapshots - integration`: 27 specs, 0 failures.
+
 ## Background & Architecture
 
 ### Current Snapshot Flow

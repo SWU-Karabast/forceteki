@@ -1,14 +1,16 @@
 import type { Game } from '../Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
-import type { IGameSnapshot } from './SnapshotInterfaces';
+import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
 import { to } from '../utils/TypeHelpers';
+import { copyState } from '../GameObjectUtils';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
 
 export interface IGameObjectRegistrar {
+    readonly lastGameObjectId: number;
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
     get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null;
 
@@ -90,6 +92,7 @@ export class GameStateManager implements IGameObjectRegistrar {
             if (!this._disableRegistration) {
                 this.allGameObjects.push(go);
                 this.gameObjectMapping.set(go.uuid, go);
+                this.#game.deltaTracker?.recordObjectCreation(go.uuid);
             }
         }
     }
@@ -206,6 +209,100 @@ export class GameStateManager implements IGameObjectRegistrar {
             // Inform GOs that all states have been updated.
             for (const update of updates) {
                 update.go.afterSetAllState(update.oldState);
+            }
+
+            return true;
+        } finally {
+            this._isRollingBack = false;
+        }
+    }
+
+    public rollbackToDeltaChain(deltas: IDeltaSnapshot[], beforeRollbackSnapshot?: IGameSnapshot): boolean {
+        Contract.assertNotNullLike(deltas, 'Empty delta chain provided for rollback');
+        this._isRollingBack = true;
+        try {
+            const allRemovals: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+            const allUpdates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+            const seenUpdateUuids = new Set<string>();
+
+            let rollbackError: Error | null = null;
+            try {
+                for (const delta of deltas) {
+                    this.#game.state = v8.deserialize(delta.gameState);
+                    this.#game.randomGenerator.restore(delta.rngState);
+                    this._lastGameObjectId = delta.lastGameObjectId;
+
+                    for (const uuid of delta.createdObjectUuids) {
+                        const go = this.gameObjectMapping.get(uuid);
+                        if (go) {
+                            allRemovals.push({ go, oldState: go.getState() });
+                        }
+                    }
+
+                    const changedUuids = new Set(delta.changedFields.keys());
+                    for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
+                        const go = this.allGameObjects[i];
+                        if (!changedUuids.has(go.uuid)) {
+                            continue;
+                        }
+
+                        const fields = delta.changedFields.get(go.uuid);
+                        if (!fields) {
+                            continue;
+                        }
+
+                        if (!seenUpdateUuids.has(go.uuid)) {
+                            seenUpdateUuids.add(go.uuid);
+                            allUpdates.push({ go, oldState: go.getState() });
+                        }
+
+                        for (const [fieldName, oldValue] of Object.entries(fields)) {
+                            // @ts-expect-error Overriding state accessibility
+                            go.state[fieldName] = oldValue;
+                        }
+
+                        // @ts-expect-error Overriding state accessibility
+                        copyState(go, go.state);
+                    }
+                }
+
+                for (const removed of allRemovals) {
+                    removed.go.cleanupOnRemove(removed.oldState);
+                }
+
+                const removalUuids = new Set(allRemovals.map((r) => r.go.uuid));
+                this.allGameObjects = this.allGameObjects.filter((go) => !removalUuids.has(go.uuid));
+                for (const uuid of removalUuids) {
+                    this.gameObjectMapping.delete(uuid);
+                }
+
+                for (const update of allUpdates) {
+                    update.go.notifyAfterSetState(update.oldState);
+                }
+
+                const oldStateByUuid = new Map(allUpdates.map((update) => [update.go.uuid, update.oldState]));
+                for (const go of this.allGameObjects) {
+                    go.afterSetAllState(oldStateByUuid.get(go.uuid) ?? go.getState());
+                }
+            } catch (error) {
+                if (!beforeRollbackSnapshot) {
+                    logger.error('Error during delta rollback and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
+                }
+
+                rollbackError = error;
+                logger.error('Error during delta rollback. Attempting to restore state from full snapshot.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+            }
+
+            if (rollbackError) {
+                try {
+                    this.rollbackToSnapshot(beforeRollbackSnapshot);
+                    this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
+                    return false;
+                } catch (error) {
+                    logger.error('Attempt to restore from full snapshot after delta rollback failure has also failed.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
+                }
             }
 
             return true;

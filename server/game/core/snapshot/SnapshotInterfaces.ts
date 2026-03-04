@@ -133,6 +133,28 @@ export interface IGameSnapshot {
     nextSnapshotIsSamePlayer?: boolean;
 }
 
+export interface IDeltaSnapshot {
+    id: number;
+
+    changedFields: Map<string, Record<string, any>>;
+    createdObjectUuids: string[];
+
+    gameState: Buffer;
+    states: Buffer;
+    rngState: IRandomness['rngState'];
+    lastGameObjectId: number;
+
+    actionNumber: number;
+    roundNumber: number;
+    phase: PhaseName;
+    timepoint: SnapshotTimepoint;
+    timepointNumber: number;
+    activePlayerId?: string;
+
+    requiresConfirmationToRollback: boolean;
+    nextSnapshotIsSamePlayer?: boolean;
+}
+
 export interface IGameState {
     roundNumber: number;
     initialFirstPlayer: GameObjectRef<Player> | null;

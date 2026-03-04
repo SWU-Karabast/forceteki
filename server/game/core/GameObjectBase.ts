@@ -160,6 +160,10 @@ export abstract class GameObjectBase implements IGameObjectBase {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected afterSetState(oldState: IGameObjectBaseState) { }
 
+    public notifyAfterSetState(oldState: IGameObjectBaseState) {
+        this.afterSetState(oldState);
+    }
+
     /**
      * A function for game to call on all objects if they are being removed from the GameObject list (typically after a rollback to before the object was created).
      * This is intended to be used for cleanup of any state that the object has that is not part of the state object.

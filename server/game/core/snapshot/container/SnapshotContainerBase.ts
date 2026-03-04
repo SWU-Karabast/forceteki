@@ -2,6 +2,7 @@ import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '
 import type { GameStateManager } from '../GameStateManager';
 import type { Game } from '../../Game';
 import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
+import v8 from 'node:v8';
 
 export type IClearNewerSnapshotsHandler = (snapshotId: number) => void;
 
@@ -69,7 +70,21 @@ export abstract class SnapshotContainerBase {
     }
 
     protected rollbackToSnapshotInternal(snapshot: IGameSnapshot): boolean {
-        const success = this.gameStateManager.rollbackToSnapshot(snapshot, this.getCurrentSnapshotFn());
+        const currentSnapshot = this.getCurrentSnapshotFn();
+        const beforeRollbackSnapshot = currentSnapshot.states?.length > 0 ? currentSnapshot : {
+            ...currentSnapshot,
+            lastGameObjectId: this.gameStateManager.lastGameObjectId,
+            actionNumber: this.game.actionNumber,
+            roundNumber: this.game.roundNumber,
+            phase: this.game.currentPhase,
+            activePlayerId: this.game.actionPhaseActivePlayer?.id,
+            gameState: v8.serialize(this.game.state),
+            states: this.gameStateManager.buildGameStateForSnapshot(),
+            rngState: this.game.randomGenerator.rngState,
+            requiresConfirmationToRollback: false,
+        };
+
+        const success = this.gameStateManager.rollbackToSnapshot(snapshot, beforeRollbackSnapshot);
         if (!success) {
             return false;
         }
