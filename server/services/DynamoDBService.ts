@@ -801,13 +801,14 @@ class DynamoDBService {
                 id: item.id,
                 playerId: item.playerId,
                 actionType: item.actionType,
-                durationDays: item.durationDays ?? null,
-                note: item.note,
+                durationDays: item.durationDays ?? undefined,
+                note: item.note ?? undefined,
                 moderatorId: item.moderatorId,
                 createdAt: item.createdAt,
-                expiresAt: item.expiresAt ?? null,
-                cancelledAt: item.cancelledAt ?? null,
-                cancelledBy: item.cancelledBy ?? null,
+                startedAt: item.startedAt ?? undefined,
+                expiresAt: item.expiresAt ?? undefined,
+                cancelledAt: item.cancelledAt ?? undefined,
+                cancelledBy: item.cancelledBy ?? undefined,
             })) as IModActionEntity[];
         }, 'Error getting mod actions');
     }
@@ -831,6 +832,24 @@ class DynamoDBService {
 
             return this.putItemAsync(item);
         }, 'Error saving mod action');
+    }
+
+    /**
+     * Activate a pending mute: set startedAt and expiresAt.
+     * Called when the muted user first logs in.
+     */
+    public activateMuteAsync(playerId: string, modActionId: string, startedAt: string, expiresAt: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
+                `USER#${playerId}`,
+                `MODACTION#${modActionId}`,
+                'SET startedAt = :startedAt, expiresAt = :expiresAt',
+                {
+                    ':startedAt': startedAt,
+                    ':expiresAt': expiresAt,
+                }
+            );
+        }, 'Error activating mute');
     }
 
     /**

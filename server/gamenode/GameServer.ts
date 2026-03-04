@@ -37,15 +37,17 @@ import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
-import { ServerRole } from '../services/DynamoDBInterfaces';
+import type { IActiveModActionCacheEntry,
+    IModerationAction } from '../services/DynamoDBInterfaces';
+import {
+    ModerationType,
+    ServerRole
+} from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 import { ModActionCache } from '../utils/ModActionCache';
-import { ModActionType, type IModActionEntity } from '../services/DynamoDBInterfaces';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema } from '../services/DynamoDBInterfaceSchemas';
-import { v4 as uuid } from 'uuid';
-import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -438,34 +440,49 @@ export class GameServer {
 
         // *** Start of User Object calls ***
 
-        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), (req, res, next) => {
+        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), async (req, res, next) => {
             try {
-                // const { decks, preferences } = req.body;
                 const user = req.user as User;
-                // We try to sync the decks first
-                // if (decks.length > 0) {
-                //     try {
-                //         await this.deckService.syncDecksAsync(user.getId(), decks);
-                //     } catch (err) {
-                //         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
-                //         next(err);
-                //     }
-                // }
-                // if (preferences) {
-                //     try {
-                //         user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
-                //     } catch (err) {
-                //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
-                //     }
-                // }
+
+                // Start with legacy values (backwards compatibility)
+                let moderation = user.getModeration();
+                let needsUsernameChange = user.needsUsernameChange();
+
+                if (user.isAuthenticatedUser()) {
+                    const userId = user.getId();
+                    const activeActions = this.modActionCache.getActiveActionsForPlayer(userId);
+
+                    if (activeActions) {
+                        if (this.modActionCache.playerNeedsRename(userId)) {
+                            needsUsernameChange = true;
+                        }
+
+                        // Only derive mute from cache if no legacy moderation exists
+                        if (!moderation) {
+                            const muteEntry = this.modActionCache.getActiveMuteForPlayer(userId);
+
+                            if (muteEntry) {
+                                // Pending mute — activate it (sets startedAt + expiresAt)
+                                if (!muteEntry.startedAt) {
+                                    const activated = await this.modActionCache.activatePendingMuteAsync(userId);
+                                    moderation = this.buildModerationFromCacheEntry(activated, false);
+                                } else if (muteEntry.expiresAt) {
+                                    // Already active — just build the moderation object
+                                    moderation = this.buildModerationFromCacheEntry(muteEntry, true);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 return res.status(200).json({ success: true, user: {
                     id: user.getId(),
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
-                    needsUsernameChange: user.needsUsernameChange(),
-                    moderation: user.getModeration(),
+                    needsUsernameChange,
+                    moderation,
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
@@ -1291,8 +1308,7 @@ export class GameServer {
                 next(error);
             }
         });
-
-        // ---------- POST /api/mod/find-user ----------
+        // MOD ACTIONS
         app.post('/api/mod/find-user', this.buildAuthMiddleware('mod-find-user', ServerRole.Moderator), async (req, res, next) => {
             try {
                 const parseResult = FindUserSchema.safeParse(req.body);
@@ -1305,73 +1321,28 @@ export class GameServer {
                 }
 
                 const { searchQuery } = parseResult.data;
-                const dbService = await getDynamoDbServiceAsync();
+                const profiles = await this.userFactory.findUserProfilesAsync(searchQuery);
 
-                if (!dbService) {
-                    return res.status(503).json({ success: false, message: 'Database service unavailable' });
-                }
-
-                // TODO Try to find by userId first (direct lookup) We need to rewrite this so we use UserFactory
-                const directProfile = await dbService.getUserProfileAsync(searchQuery);
-
-                if (directProfile) {
-                    // TODO rewrite so we use the cache
-                    const modActions = await dbService.getModActionsAsync({ playerId: directProfile.id });
-                    modActions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-                    return res.status(200).json({
-                        success: true,
-                        players: [{
-                            id: directProfile.id,
-                            username: directProfile.username,
-                            createdAt: directProfile.createdAt,
-                            lastLogin: directProfile.lastLogin,
-                            isMuted: this.modActionCache?.isPlayerMuted(directProfile.id) ?? false,
-                        }],
-                        modActions,
-                    });
-                }
-
-                // Try to find by username (can return multiple users)
-                const userIds = await dbService.getUserIdsByUsernameAsync(searchQuery);
-
-                if (!userIds || userIds.length === 0) {
+                if (profiles.length === 0) {
                     return res.status(404).json({
                         success: false,
                         message: 'Player not found'
                     });
                 }
 
-                // Load profiles for all matching userIds
-                const players = [];
-                for (const userId of userIds) {
-                    // TODO rewrite so we use the UserFactory
-                    const profile = await dbService.getUserProfileAsync(userId);
-                    if (profile) {
-                        players.push({
-                            id: profile.id,
-                            username: profile.username,
-                            createdAt: profile.createdAt,
-                            lastLogin: profile.lastLogin,
-                            isMuted: this.modActionCache?.isPlayerMuted(profile.id) ?? false,
-                        });
-                    }
-                }
-                // TODO rewrite so we throw an error
-                if (players.length === 0) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Player not found'
-                    });
-                }
+                const players = profiles.map((profile) => ({
+                    id: profile.id,
+                    username: profile.username,
+                    createdAt: profile.createdAt,
+                    lastLogin: profile.lastLogin,
+                    isMuted: this.modActionCache?.isPlayerMuted(profile.id) ?? false,
+                    needsRename: this.modActionCache?.playerNeedsRename(profile.id) ?? false,
+                }));
 
-                // If single match, also include mod actions directly
-                // If multiple matches, the FE will need to pick a player first
-                // TODO rewrite so we use the cache
+                // If single match, include mod actions directly
                 let modActions = [];
                 if (players.length === 1) {
-                    modActions = await dbService.getModActionsAsync({ playerId: players[0].id });
-                    modActions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                    modActions = await this.userFactory.getModActionHistoryAsync(players[0].id);
                 }
 
                 return res.status(200).json({
@@ -1385,8 +1356,6 @@ export class GameServer {
             }
         });
 
-
-        // ---------- POST /api/mod/submit-action ----------
         app.post('/api/mod/submit-action', this.buildAuthMiddleware('mod-submit-action', ServerRole.Moderator), async (req, res, next) => {
             try {
                 const parseResult = ModActionSubmitSchema.safeParse(req.body);
@@ -1400,57 +1369,19 @@ export class GameServer {
 
                 const { playerId, actionType, durationDays, note } = parseResult.data;
                 const moderatorId = req.user.getId();
-                const dbService = await getDynamoDbServiceAsync();
 
-                if (!dbService) {
-                    return res.status(503).json({ success: false, message: 'Database service unavailable' });
-                }
-
-                // Verify target player exists
-                // TODO rewrite so we use the UserFactory
-                const playerProfile = await dbService.getUserProfileAsync(playerId);
-                if (!playerProfile) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Target player not found'
-                    });
-                }
-
-                const now = new Date();
-                const modActionId = uuid();
-                const expiresAt = actionType === ModActionType.Mute && durationDays
-                    ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString()
-                    : null;
-
-                const modAction: IModActionEntity = {
-                    id: modActionId,
+                const modAction = await this.userFactory.submitModActionAsync(
                     playerId,
                     actionType,
-                    durationDays: durationDays ?? null,
-                    note,
                     moderatorId,
-                    createdAt: now.toISOString(),
-                    expiresAt,
-                    cancelledAt: null,
-                    cancelledBy: null,
-                };
-
-                // Write to DynamoDB
-                // TODO rewrite so we use the UserFactory
-                await dbService.saveModActionAsync(modAction);
+                    note,
+                    durationDays ?? undefined,
+                );
 
                 // Write-through to cache
                 if (this.modActionCache) {
                     await this.modActionCache.onActionSubmitted(playerId, modAction);
                 }
-
-                logger.info(`GameServer (mod-submit-action): Moderator ${moderatorId} issued ${actionType} on player ${playerId}`, {
-                    moderatorId,
-                    playerId,
-                    actionType,
-                    modActionId,
-                    durationDays: durationDays ?? null,
-                });
 
                 return res.status(200).json({
                     success: true,
@@ -1463,8 +1394,6 @@ export class GameServer {
             }
         });
 
-
-        // ---------- POST /api/mod/cancel-action ----------
         app.post('/api/mod/cancel-action', this.buildAuthMiddleware('mod-cancel-action', ServerRole.Moderator), async (req, res, next) => {
             try {
                 const parseResult = ModActionCancelSchema.safeParse(req.body);
@@ -1478,34 +1407,13 @@ export class GameServer {
 
                 const { modActionId, playerId } = parseResult.data;
                 const cancelledBy = req.user.getId();
-                const dbService = await getDynamoDbServiceAsync();
 
-                if (!dbService) {
-                    return res.status(503).json({ success: false, message: 'Database service unavailable' });
-                }
-
-                // Cancel in DynamoDB (sets cancelledAt/cancelledBy, removes GSI_PK)
-                // TODO rewrite so we use the cache
-                const result = await dbService.cancelModActionAsync(playerId, modActionId, cancelledBy);
-                const cancelledAction = result.Attributes;
-
-                if (!cancelledAction) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Mod action not found'
-                    });
-                }
+                await this.userFactory.cancelModActionAsync(playerId, modActionId, cancelledBy);
 
                 // Write-through to cache
                 if (this.modActionCache) {
                     this.modActionCache.onActionCancelled(playerId, modActionId);
                 }
-
-                logger.info(`GameServer (mod-cancel-action): Moderator ${cancelledBy} cancelled action ${modActionId} on player ${playerId}`, {
-                    moderatorId: cancelledBy,
-                    playerId,
-                    modActionId,
-                });
 
                 return res.status(200).json({
                     success: true,
@@ -1518,6 +1426,7 @@ export class GameServer {
         });
     }
 
+
     /**
      * Creates an auth middleware function with the GameServer instance injected.
      * @param routeName - Optional name for logging
@@ -1526,6 +1435,25 @@ export class GameServer {
      */
     private buildAuthMiddleware(routeName?: string, serverRoleRequired?: ServerRole) {
         return authMiddleware(this, routeName, serverRoleRequired);
+    }
+
+    /**
+     * Builds a ModerationAction suitable for the FE from the CacheEntry
+     * @param entry - The Cache ActiveModAction object
+     * @param hasSeen - The boolean that tells us whether a user has seen the Mod action popup
+     * @private
+     */
+    private buildModerationFromCacheEntry(entry: IActiveModActionCacheEntry, hasSeen: boolean): IModerationAction {
+        const expiresAt = new Date(entry.expiresAt);
+        const now = new Date();
+        const daysRemaining = Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
+
+        return {
+            daysRemaining,
+            endDate: entry.expiresAt,
+            hasSeen,
+            moderationType: ModerationType.Mute,
+        };
     }
 
     // dev only endpoints

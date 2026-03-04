@@ -74,4 +74,3 @@ export const ModActionCancelSchema = z.object({
 export const FindUserSchema = z.object({
     searchQuery: z.string().min(1, 'searchQuery is required'),
 });
-

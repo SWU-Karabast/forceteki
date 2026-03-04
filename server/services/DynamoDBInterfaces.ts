@@ -133,7 +133,8 @@ export interface IModActionEntity {
     note?: string;
     moderatorId: string;
     createdAt: string;
-    expiresAt: string;
+    startedAt?: string;
+    expiresAt?: string;
     cancelledAt?: string;
     cancelledBy?: string;
 }
@@ -141,7 +142,8 @@ export interface IModActionEntity {
 export interface IActiveModActionCacheEntry {
     id: string;
     actionType: ModActionType;
-    expiresAt: string;
-    durationDays: number;
+    durationDays?: number;
+    startedAt?: string;
+    expiresAt?: string;
     modActionId: string;
 }
