@@ -155,6 +155,7 @@ export interface IDeltaSnapshot {
     nextSnapshotIsSamePlayer?: boolean;
 }
 
+// TODO: Move GameState to a GameObject of it's own so it supports delta snapshots and can be rolled back to without needing to roll back the entire game state.
 export interface IGameState {
     roundNumber: number;
     initialFirstPlayer: GameObjectRef<Player> | null;
