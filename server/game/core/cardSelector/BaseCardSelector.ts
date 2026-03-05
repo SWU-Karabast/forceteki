@@ -59,6 +59,12 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
                 case WildcardCardType.NonLeaderUpgrade:
                     filters.push(plural ? 'non-leader upgrades' : 'non-leader upgrade');
                     break;
+                case WildcardCardType.NonTokenUnit:
+                    filters.push(plural ? 'non-token units' : 'non-token unit');
+                    break;
+                case WildcardCardType.LeaderUnit:
+                    filters.push(plural ? 'leader units' : 'leader unit');
+                    break;
                 case WildcardCardType.NonUnit:
                     filters.push(plural ? 'non-units' : 'non-unit');
                     break;
@@ -77,8 +83,11 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
                 case CardType.Leader:
                     filters.push(plural ? 'leaders' : 'leader');
                     break;
-                case CardType.LeaderUnit:
-                    filters.push(plural ? 'leader units' : 'leader unit');
+                case CardType.NonTokenLeaderUnit:
+                    filters.push(plural ? 'non-token leader units' : 'non-token leader unit');
+                    break;
+                case CardType.TokenLeaderUnit:
+                    filters.push(plural ? 'token leader units' : 'token leader unit');
                     break;
                 default:
                     return fallback;
