@@ -29,6 +29,8 @@ export class Restriction extends OngoingEffectValueWrapperBase<Restriction> {
             return { format: 'being healed', args: [] };
         } else if (type === AbilityRestriction.BeAttacked) {
             return { format: 'being attacked', args: [] };
+        } else if (type === AbilityRestriction.DoesNotReadyDuringRegroup) {
+            return { format: 'readying during the regroup phase', args: [] };
         }
 
         return undefined;
