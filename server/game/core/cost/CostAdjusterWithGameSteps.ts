@@ -6,12 +6,12 @@ import type { ICostResult } from './ICost';
 import * as CostHelpers from './CostHelpers';
 import * as Contract from '../../core/utils/Contract';
 
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 /**
  * ABC for cost adjusters that require game steps to execute during cost adjustment.
  */
-@registerState()
+@registerStateBase()
 export abstract class CostAdjusterWithGameSteps extends CostAdjuster {
     public override requiresGameSteps(): this is CostAdjusterWithGameSteps {
         return true;

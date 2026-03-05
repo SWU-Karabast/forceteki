@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { EffectName } from '../../Constants';
 import { AbilityRestriction } from '../../Constants';
@@ -16,7 +16,7 @@ export interface RestrictionProperties {
 }
 
 @registerState()
-export class Restriction extends OngoingEffectValueWrapper<Restriction> {
+export class Restriction extends OngoingEffectValueWrapperBase<Restriction> {
     public readonly type: AbilityRestriction | EffectName;
     public restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
 

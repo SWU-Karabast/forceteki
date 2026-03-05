@@ -17,11 +17,11 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar, IUpgradeAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
 import type { IAbilityHelper } from '../../AbilityHelper';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
-@registerState()
+@registerStateBase()
 export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPlayableCard {
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);

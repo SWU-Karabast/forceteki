@@ -4,7 +4,7 @@ import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
-import type { ActionAbility } from '../ability/ActionAbility';
+import type { ActionAbilityBase } from '../ability/ActionAbility';
 import type { IEpicActionProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
@@ -17,7 +17,7 @@ import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityReg
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithCaptureZone } from '../zone/CaptureZone';
 import { CaptureZone } from '../zone/CaptureZone';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -26,7 +26,7 @@ export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbili
 }
 
 /** A Base card (as in, the card you put in your base zone) */
-@registerState()
+@registerStateBase()
 export class BaseCard extends BaseCardParent implements IBaseCard {
     private _epicActionAbility?: EpicActionAbility;
 
@@ -70,7 +70,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         }
     }
 
-    public override getActionAbilities(): ActionAbility[] {
+    public override getActionAbilities(): ActionAbilityBase[] {
         if (!this.isFullyBlanked() && this._epicActionAbility) {
             return super.getActionAbilities().concat(this._epicActionAbility);
         }

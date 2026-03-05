@@ -3,19 +3,19 @@ import type { EffectName } from '../../Constants';
 import type { Game } from '../../Game';
 import { GameObject } from '../../GameObject';
 import { registerState, stateRefMap } from '../../GameObjectUtils';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
-import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
+import { OngoingEffectValueWrapper, OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
+import { StaticOngoingEffectImplBase } from './StaticOngoingEffectImpl';
 
 export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext, game: Game) => TValue;
-export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: AbilityContext, game: Game) => TValue | OngoingEffectValueWrapper<TValue>;
+export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: AbilityContext, game: Game) => TValue | OngoingEffectValueWrapperBase<TValue>;
 
 // TODO: eventually this will subclass OngoingEffectImpl directly
 @registerState()
-export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
+export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImplBase<TValue> {
     private readonly calculate: CalculateOngoingEffectValueWrapper<TValue>;
 
     @stateRefMap()
-    private accessor values: Map<string, OngoingEffectValueWrapper<TValue>> = new Map();
+    private accessor values: Map<string, OngoingEffectValueWrapperBase<TValue>> = new Map();
 
     public constructor(game: Game,
         type: EffectName,
@@ -47,21 +47,21 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
         return this.values.get(target.uuid)?.getValue();
     }
 
-    private setValue(target: GameObject, value: OngoingEffectValueWrapper<TValue>) {
+    private setValue(target: GameObject, value: OngoingEffectValueWrapperBase<TValue>) {
         this.values.get(target.uuid)?.unapply(target);
         this.values.set(target.uuid, value);
         value.apply(target);
         return value.getValue();
     }
 
-    private recalculateValue(target, context: AbilityContext): OngoingEffectValueWrapper<TValue> {
+    private recalculateValue(target, context: AbilityContext): OngoingEffectValueWrapperBase<TValue> {
         const value = this.calculate(target, context, this.game);
 
-        if (value instanceof OngoingEffectValueWrapper) {
+        if (value instanceof OngoingEffectValueWrapperBase) {
             return value;
         }
 
-        return new OngoingEffectValueWrapper(this.game, value);
+        return new OngoingEffectValueWrapper<TValue>(this.game, value);
     }
 
     private compareValues(oldValue: TValue, newValue: TValue) {

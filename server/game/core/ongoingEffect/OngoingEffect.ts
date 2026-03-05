@@ -9,7 +9,7 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { registerState, stateRefArray } from '../GameObjectUtils';
+import { registerStateBase, stateRefArray } from '../GameObjectUtils';
 import type { Player } from '../Player';
 
 export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
@@ -43,7 +43,7 @@ export interface IOngoingEffectState<TTarget extends GameObject> extends IGameOb
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-@registerState()
+@registerStateBase()
 export abstract class OngoingEffect<TTarget extends GameObject = GameObject> extends GameObjectBase {
     public readonly source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?

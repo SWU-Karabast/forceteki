@@ -1,4 +1,4 @@
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import * as Contract from '../../utils/Contract';
 import type { Card } from '../../card/Card';
 import type { FormatMessage } from '../../chat/GameChat';
@@ -10,7 +10,7 @@ import type { Game } from '../../Game';
 import { registerState } from '../../GameObjectUtils';
 
 @registerState()
-export class CloneUnitEffect extends OngoingEffectValueWrapper<ICardWithStandardAbilitySetup<Card>> {
+export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>> {
     private printedActionAbilitiesUuidByTargetCard?: Set<string>;
     private printedTriggeredAbilitiesUuidByTargetCard?: Set<string>;
     private printedConstantAbilitiesUuidByTargetCard?: Set<string>;

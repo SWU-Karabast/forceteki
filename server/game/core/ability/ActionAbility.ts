@@ -7,7 +7,7 @@ import type { Game } from '../Game.js';
 import type { ITargetResult } from './abilityTargets/TargetResolver.js';
 import * as Contract from '../utils/Contract';
 
-import { registerState } from '../GameObjectUtils';
+import { registerState, registerStateBase } from '../GameObjectUtils';
 
 /**
  * Represents an action ability provided by card text.
@@ -31,8 +31,8 @@ import { registerState } from '../GameObjectUtils';
  * clickToActivate - boolean that indicates the action should be activated when
  *                   the card is clicked.
  */
-@registerState()
-export class ActionAbility extends CardAbility {
+@registerStateBase()
+export abstract class ActionAbilityBase extends CardAbility {
     protected readonly anyPlayer: boolean;
     protected readonly doesNotTarget: boolean;
     protected readonly phase: string;
@@ -104,7 +104,13 @@ export class ActionAbility extends CardAbility {
         return this.earlyTargetResults;
     }
 
-    public override isActionAbility(): this is ActionAbility {
+    public override isActionAbility(): this is ActionAbilityBase {
         return true;
     }
 }
+
+// This class intentionally adds no logic.
+// @registerState classes are terminal (cannot be further extended), but we still need
+// a concrete, instantiable type for ActionAbilityBase.
+@registerState()
+export class ActionAbility extends ActionAbilityBase { }

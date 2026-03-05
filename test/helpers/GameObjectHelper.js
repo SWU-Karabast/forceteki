@@ -12,6 +12,15 @@ function applyRegisterState(targetClass) {
     return registerState()(targetClass, context);
 }
 
+function applyRegisterStateNoAutoInit(targetClass) {
+    const parentMetadata = Object.getPrototypeOf(targetClass)?.[Symbol.metadata] ?? null;
+    const context = {
+        metadata: Object.create(parentMetadata)
+    };
+
+    return registerState({ autoInitialize: false })(targetClass, context);
+}
+
 class TestGameObject extends GameObjectBase {
     constructor(game, initializedValue) {
         super(game);
@@ -39,7 +48,7 @@ class ParentGameObject extends GameObjectBase {
     }
 }
 
-const DecoratedParentGameObject = applyRegisterState(ParentGameObject);
+const DecoratedParentGameObject = applyRegisterStateNoAutoInit(ParentGameObject);
 
 class ChildGameObject extends DecoratedParentGameObject {
     constructor(game, childConstructorValue) {

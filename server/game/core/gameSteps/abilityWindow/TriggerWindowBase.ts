@@ -4,7 +4,7 @@ import type { EventWindow } from '../../event/EventWindow';
 import { AbilityType, SubStepCheck } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
-import type TriggeredAbility from '../../ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
@@ -16,10 +16,10 @@ export abstract class TriggerWindowBase extends BaseStep {
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
 
     /** Already resolved effects / abilities */
-    protected resolved: { ability: TriggeredAbility; event: GameEvent }[] = [];
+    protected resolved: { ability: TriggeredAbilityBase; event: GameEvent }[] = [];
 
     /** Map tracking which events have triggered which abilities (for duplicate prevention) */
-    protected triggeredAbilityEvents = new Map<TriggeredAbility, GameEvent[]>();
+    protected triggeredAbilityEvents = new Map<TriggeredAbilityBase, GameEvent[]>();
 
     /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
@@ -223,10 +223,10 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private getRepeatedAbilityTriggers(abilitiesToResolve: TriggeredAbilityContext[]) {
-        const repeatedAbilities = new Set<TriggeredAbility>();
-        const allAbilitiesByPlayer = new Map<Player, Set<TriggeredAbility>>();
+        const repeatedAbilities = new Set<TriggeredAbilityBase>();
+        const allAbilitiesByPlayer = new Map<Player, Set<TriggeredAbilityBase>>();
 
-        function addAbilityForPlayer(player: Player, ability: TriggeredAbility) {
+        function addAbilityForPlayer(player: Player, ability: TriggeredAbilityBase) {
             if (!allAbilitiesByPlayer.has(player)) {
                 allAbilitiesByPlayer.set(player, new Set([ability]));
             } else {
