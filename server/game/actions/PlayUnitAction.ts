@@ -77,5 +77,8 @@ export abstract class PlayUnitActionBase extends PlayCardAction {
     }
 }
 
+// This class intentionally adds no logic.
+// @registerState classes are terminal (cannot be further extended), but we still need
+// a concrete, instantiable type for PlayUnitActionBase.
 @registerState()
 export class PlayUnitAction extends PlayUnitActionBase {}

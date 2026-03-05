@@ -187,6 +187,9 @@ export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     }
 }
 
+// This class intentionally adds no logic.
+// @registerState classes are terminal (cannot be further extended), but we still need
+// a concrete, instantiable type for PerPlayerPerGameAbilityLimitBase.
 @registerState()
 export class PerPlayerPerGameAbilityLimit extends PerPlayerPerGameAbilityLimitBase { }
 

@@ -49,6 +49,7 @@ function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterSta
 
 /**
  * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
+ * This is meant for classes that are meant to be directly instantiated, they must be non-abstract and leafs.
  * @param copyModeOrOptions If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the state decorators.
  * If options.autoInitialize=false, the class is marked/registered without creating a constructor wrapper.
  */

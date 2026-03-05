@@ -85,6 +85,9 @@ export abstract class OngoingEffectSourceBase extends GameObject {
     }
 }
 
+// This class intentionally adds no logic.
+// @registerState classes are terminal (cannot be further extended), but we still need
+// a concrete, instantiable type for OngoingEffectSourceBase.
 @registerState()
 export class OngoingEffectSource extends OngoingEffectSourceBase { }
 

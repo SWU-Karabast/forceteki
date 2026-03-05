@@ -109,5 +109,8 @@ export abstract class ActionAbilityBase extends CardAbility {
     }
 }
 
+// This class intentionally adds no logic.
+// @registerState classes are terminal (cannot be further extended), but we still need
+// a concrete, instantiable type for ActionAbilityBase.
 @registerState()
 export class ActionAbility extends ActionAbilityBase { }
