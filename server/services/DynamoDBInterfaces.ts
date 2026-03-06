@@ -3,6 +3,11 @@ export enum ModerationType {
     Ban = 'Ban',
 }
 
+export enum ModerationFieldState {
+    Enabled = 'enabled',
+    EnabledAndSeen = 'enabledAndSeen',
+}
+
 export interface IModerationAction {
     daysRemaining: number;
     endDate?: string;
@@ -18,6 +23,8 @@ export interface IUserDataEntity {
     swubaseRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
+    mustRequestUsernameChange?: ModerationFieldState;
+    reportingDisabled?: ModerationFieldState;
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
 }
