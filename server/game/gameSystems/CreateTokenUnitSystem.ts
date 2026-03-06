@@ -4,7 +4,6 @@ import { EffectName, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
-import * as Helpers from '../core/utils/Helpers';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 
@@ -43,10 +42,8 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         // generate the tokens here so they can be used in the contingent events
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
-        for (const player of Helpers.asArray(properties.target)) {
-            for (let i = 0; i < properties.amount; i++) {
-                event.generatedTokens.push(context.game.generateToken(player, this.getTokenType()));
-            }
+        for (let i = 0; i < properties.amount; i++) {
+            event.generatedTokens.push(context.game.generateToken(player, this.getTokenType()));
         }
 
         // add contingent events for putting the generated unit token(s) into play
