@@ -70,7 +70,6 @@ export class SwuBaseHandler {
                 lobbyId: lobbyId,
                 startedAt: game.startedAt,
                 finishedAt: game.finishedAt,
-                winnerNames: game.winnerNames,
                 roundNumber: game.roundNumber,
                 sequenceNumber,
                 format,
@@ -123,7 +122,6 @@ export class SwuBaseHandler {
         const deckId = match ? match[1] : null;
 
         return {
-            name: player.name,
             id: player.id,
             accessToken: accessToken,
             leader: player.leader?.id,
