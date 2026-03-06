@@ -9,7 +9,8 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { registerState, stateRefArray } from '../GameObjectUtils';
+import { registerStateBase, stateRefArray } from '../GameObjectUtils';
+import type { Player } from '../Player';
 
 export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
     targets: GameObjectRef<TTarget>[];
@@ -42,7 +43,7 @@ export interface IOngoingEffectState<TTarget extends GameObject> extends IGameOb
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-@registerState()
+@registerStateBase()
 export abstract class OngoingEffect<TTarget extends GameObject = GameObject> extends GameObjectBase {
     public readonly source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
@@ -90,8 +91,12 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         return this.impl.getValue(card);
     }
 
+    protected abilityPlayer(): Player {
+        return this.source.controller;
+    }
+
     public refreshContext() {
-        this.context = this.game.getFrameworkContext(this.source.controller);
+        this.context = this.game.getFrameworkContext(this.abilityPlayer());
         this.context.source = this.source;
         // The process of creating the OngoingEffect tacks on additional properties that are ability related,
         //  so this is *probably* fine, but definitely a sign it needs a refactor at some point.
@@ -107,9 +112,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         return null;
     }
 
-    public getTargets() {
-        return [];
-    }
+    public abstract getTargets(): TTarget[];
 
     public addTarget(target: TTarget) {
         this.targets = [...this.targets, target];

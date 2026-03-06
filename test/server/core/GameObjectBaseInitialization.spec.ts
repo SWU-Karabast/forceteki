@@ -24,6 +24,14 @@ describe('GameObjectBase initialization', function() {
         expect(gameObject.initializedWith).toBe('derived-ready');
     });
 
+    it('does not auto-initialize classes registered without constructor wrapping', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const parent = new gameObjectHelper.ParentGameObject(game);
+
+        expect(parent.initialized).toBeFalse();
+        expect(parent.parentInitializeCallCount).toBe(0);
+    });
+
     it('throws for classes missing @registerState', function() {
         const UndecoratedGameObject = gameObjectHelper.createUndecoratedGameObjectClass();
         const { game } = gameObjectHelper.createMockGame();

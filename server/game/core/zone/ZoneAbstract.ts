@@ -5,7 +5,7 @@ import type { Player } from '../Player';
 import type { Game } from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 /**
  * Collection of filters for searching cards in a zone.
@@ -33,7 +33,7 @@ export interface IAddRemoveZone {
 /**
  * Base class for all Zone types. Defines some common properties and methods.
  */
-@registerState()
+@registerStateBase()
 export abstract class ZoneAbstract<TCard extends Card = Card> extends GameObjectBase {
     public readonly owner: Player | Game;
 

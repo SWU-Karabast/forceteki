@@ -1,5 +1,5 @@
 import { EffectName } from '../../Constants';
-import { registerState } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';
@@ -11,7 +11,7 @@ export interface ICardWithCostProperty extends Card {
 
 /** Mixin function that adds the `cost` property to a base class. */
 export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    @registerState()
+    @registerStateBase()
     class WithCost extends BaseClass implements ICardWithCostProperty {
         private readonly _printedCost: number;
 

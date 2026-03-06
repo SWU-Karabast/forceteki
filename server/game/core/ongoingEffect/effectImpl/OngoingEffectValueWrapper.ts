@@ -2,12 +2,12 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { Game } from '../../Game';
 import { GameObjectBase } from '../../GameObjectBase';
-import { registerState } from '../../GameObjectUtils';
+import { registerState, registerStateBase } from '../../GameObjectUtils';
 import type { AdditionalPhaseEffect } from './AdditionalPhaseEffect';
 import type { GainAbility } from './GainAbility';
 
-@registerState()
-export class OngoingEffectValueWrapper<TValue> extends GameObjectBase {
+@registerStateBase()
+export abstract class OngoingEffectValueWrapperBase<TValue> extends GameObjectBase {
     private readonly value: TValue;
     public context?: AbilityContext;
     public effectDescription?: FormatMessage;
@@ -50,3 +50,9 @@ export class OngoingEffectValueWrapper<TValue> extends GameObjectBase {
     }
 }
 
+@registerState()
+export class OngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapperBase<TValue> {
+    public override getGameObjectName() {
+        return 'OngoingEffectValueWrapper';
+    }
+}

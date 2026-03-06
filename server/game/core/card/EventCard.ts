@@ -20,7 +20,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState, stateRef } from '../GameObjectUtils';
+import { registerStateBase, stateRef } from '../GameObjectUtils';
 
 const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard)));
 
@@ -28,7 +28,7 @@ export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeCon
     getEventAbility(): EventAbility;
 }
 
-@registerState()
+@registerStateBase()
 export class EventCard extends EventCardParent implements IEventCard {
     @stateRef() private accessor eventAbility: EventAbility | null = null;
 

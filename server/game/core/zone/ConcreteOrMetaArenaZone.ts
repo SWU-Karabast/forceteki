@@ -3,7 +3,7 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { UpgradeCard } from '../card/UpgradeCard';
 import { WildcardCardType } from '../Constants';
 import type { Game } from '../Game';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import { SimpleZone } from './SimpleZone';
 import type { IZoneCardFilterProperties } from './ZoneAbstract';
@@ -15,7 +15,7 @@ export interface IArenaZoneCardFilterProperties extends IZoneCardFilterPropertie
 /**
  * Base class for arena zones, including the meta-zone for all arenas
  */
-@registerState()
+@registerStateBase()
 export abstract class ConcreteOrMetaArenaZone extends SimpleZone<IInPlayCard> {
     public override readonly hiddenForPlayers: null;
     public declare readonly owner: Game;

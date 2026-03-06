@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
-import { PlayEventAction } from '../../../actions/PlayEventAction';
+import { PlayEventActionBase } from '../../../actions/PlayEventAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
@@ -51,7 +51,7 @@ export default class Bamboozle extends EventCard {
 }
 
 @registerState()
-class PlayBamboozleAction extends PlayEventAction {
+class PlayBamboozleAction extends PlayEventActionBase {
     private abilityHelper: IAbilityHelper;
 
     private static generateProperties(card: Bamboozle, properties: IPlayCardActionProperties, AbilityHelper: IAbilityHelper) {
