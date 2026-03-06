@@ -402,4 +402,34 @@ export class ModActionCache {
             });
         }
     }
+
+    /**
+     * Called when a user completes a username change, resolving an active Rename action.
+     * Removes the Rename entry from cache and deactivates it in DB.
+     */
+    public async onRenameCompleted(playerId: string): Promise<void> {
+        const playerActions = this.getPlayerActions(playerId);
+        if (!playerActions) {
+            return;
+        }
+
+        const renameEntry = playerActions.get(ModActionType.Rename);
+        if (!renameEntry) {
+            return;
+        }
+
+        // Remove from cache
+        playerActions.delete(ModActionType.Rename);
+        if (playerActions.size === 0) {
+            this.cache.getValue()?.delete(playerId);
+        }
+
+        // Deactivate in DB (remove GSI_PK)
+        await this.deactivateModActionInDb(playerId, renameEntry.modActionId);
+
+        logger.info(`ModActionCache: Rename completed for player ${playerId}, deactivated action ${renameEntry.modActionId}`, {
+            playerId,
+            modActionId: renameEntry.modActionId,
+        });
+    }
 }

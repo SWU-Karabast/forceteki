@@ -607,6 +607,7 @@ export class GameServer {
                 // Call the changeUsername method
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername);
                 if (result.success) {
+                    await this.modActionCache.onRenameCompleted(user.getId());
                     return res.status(200).json({
                         succeess: true,
                         message: 'Username successfully changed',
