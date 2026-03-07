@@ -438,16 +438,9 @@ export class GameServer {
 
         // *** Start of User Object calls ***
 
-        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), async (req, res, next) => {
+        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), (req, res, next) => {
             try {
-                let user = req.user as User;
-
-                // Re-fetch from DB to ensure server-authoritative fields
-                // (e.g. mustRequestUsernameChange, reportingDisabled) are up-to-date,
-                // since the auth middleware may have used client-provided data.
-                if (user.isAuthenticatedUser()) {
-                    user = await this.userFactory.refreshAuthenticatedUserAsync(user.getId());
-                }
+                const user = req.user as User;
                 // We try to sync the decks first
                 // if (decks.length > 0) {
                 //     try {

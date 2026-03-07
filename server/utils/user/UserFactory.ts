@@ -70,21 +70,6 @@ export class UserFactory {
     }
 
     /**
-     * Re-fetches an authenticated user's profile from the database by user ID.
-     * Use when you need server-authoritative fields that may not be present
-     * in client-provided user data.
-     */
-    public async refreshAuthenticatedUserAsync(userId: string): Promise<AuthenticatedUser> {
-        const dbService = await this.dbServicePromise;
-        let userData = await dbService.getUserProfileAsync(userId);
-        Contract.assertNotNullLike(userData, `User profile not found for authenticated user ${userId}`);
-
-        userData = await this.processModerationAsync(userData);
-
-        return new AuthenticatedUser(userData);
-    }
-
-    /**
      * Creates an anonymous user with a generated ID or provided ID
      * @param id Optional ID for the anonymous user
      * @param name Optional name for the anonymous user
