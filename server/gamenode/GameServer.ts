@@ -440,7 +440,6 @@ export class GameServer {
 
         app.post('/api/get-user', this.buildAuthMiddleware('get-user'), (req, res, next) => {
             try {
-                // const { decks, preferences } = req.body;
                 const user = req.user as User;
                 // We try to sync the decks first
                 // if (decks.length > 0) {
@@ -465,6 +464,8 @@ export class GameServer {
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
+                    mustRequestUsernameChange: user.mustRequestUsernameChange(),
+                    reportingDisabled: user.reportingDisabled(),
                     moderation: user.getModeration(),
                 } });
             } catch (err) {
@@ -645,6 +646,54 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (set-moderation-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/set-must-request-username-change-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (set-must-request-username-change-seen): Anonymous user ${user.getId()} attempted to set must-request-username-change seen`, { userId: user.getId() });
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                const result = await this.userFactory.setMustRequestUsernameChangeSeenAsync(user.getId());
+
+                return res.status(200).json({
+                    success: result,
+                    message: 'Must-request-username-change seen status updated'
+                });
+            } catch (err) {
+                logger.error('GameServer (set-must-request-username-change-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/set-reporting-disabled-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (set-reporting-disabled-seen): Anonymous user ${user.getId()} attempted to set reporting-disabled seen`, { userId: user.getId() });
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                const result = await this.userFactory.setReportingDisabledSeenAsync(user.getId());
+
+                return res.status(200).json({
+                    success: result,
+                    message: 'Reporting-disabled seen status updated'
+                });
+            } catch (err) {
+                logger.error('GameServer (set-reporting-disabled-seen) Server Error: ', err);
                 next(err);
             }
         });
