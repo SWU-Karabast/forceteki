@@ -92,6 +92,7 @@ type EnglishProfaneWord =
   | 'kike'
   | 'kkk'
   | 'kys'
+  | 'limpwrist'
   | 'lube'
   | 'masturbate'
   | 'negro'
@@ -534,4 +535,9 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
         phrase
             .setMetadata({ originalWord: 'swisher' })
             .addPattern(normalizedPattern`swisher`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'limpwrist' })
+            .addPattern(normalizedPattern`limp[ ]wrist`)
     );

@@ -2,7 +2,7 @@ import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import type { Aspect, CardTypeFilter, KeywordName, MoveZoneDestination, Trait } from '../Constants';
 import { ZoneAbstract } from './ZoneAbstract';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerStateBase, stateRefArray } from '../GameObjectUtils';
 
 /**
  * Collection of filters for searching cards in a zone.
@@ -30,14 +30,14 @@ export interface IAddRemoveZone {
 /**
  * Base class for all Zones that contain a list of Cards. Defines some common properties and methods.
  */
-@registerState()
+@registerStateBase()
 export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract<TCard> {
     /** Number of cards in the zone */
     public override get count(): number {
         return this._cards.length;
     }
 
-    @undoArray(true)
+    @stateRefArray(true)
     protected accessor _cards: readonly TCard[] = [];
 
     public override get cards(): TCard[] {
@@ -46,7 +46,6 @@ export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract
 
     public addCard(card: TCard) {
         Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
-
 
         this._cards = [...this._cards, card];
     }
@@ -86,3 +85,4 @@ export abstract class SimpleZone<TCard extends Card = Card> extends ZoneAbstract
         return ('game' in this.owner ? `${this.owner.name}:` : '') + this.name;
     }
 }
+

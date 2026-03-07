@@ -1,12 +1,14 @@
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+
+import { registerState } from '../core/GameObjectUtils';
 
 export interface CardLeftPlayEntry {
     card: GameObjectRef<IInPlayCard>;
@@ -14,6 +16,7 @@ export interface CardLeftPlayEntry {
     cardType: CardType;
 }
 
+@registerState()
 export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntry> {
     public constructor(game: Game, registrar: StateWatcherRegistrar) {
         super(game, StateWatcherName.CardsLeftPlayThisPhase, registrar);

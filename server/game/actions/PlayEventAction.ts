@@ -8,8 +8,10 @@ import type { IEventCard } from '../core/card/EventCard.js';
 import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolver.js';
 import type { EventAbility } from '../core/ability/EventAbility';
 import type { Player } from '../core/Player';
+import { registerState, registerStateBase } from '../core/GameObjectUtils';
 
-export class PlayEventAction extends PlayCardAction {
+@registerStateBase()
+export abstract class PlayEventActionBase extends PlayCardAction {
     private earlyTargetResults?: ITargetResult;
 
     public override executeHandler(context: PlayCardContext): void {
@@ -154,5 +156,12 @@ export class PlayEventAction extends PlayCardAction {
 
     private generateEventAbilityContext(eventAbility: EventAbility, player: Player) {
         return eventAbility.createContext(player);
+    }
+}
+
+@registerState()
+export class PlayEventAction extends PlayEventActionBase {
+    public override getGameObjectName() {
+        return 'PlayEventAction';
     }
 }
