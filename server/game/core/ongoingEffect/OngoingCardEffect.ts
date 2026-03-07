@@ -19,7 +19,7 @@ export class OngoingCardEffect extends OngoingEffect<Card> {
     public readonly targetController: RelativePlayer;
     public declare matchTarget: Card | ((target: Card, context: AbilityContext) => boolean);
 
-    public constructor(game: Game, source: Card, properties: IOngoingCardEffectProps, effect: OngoingEffectImpl<any>) {
+    public constructor(game: Game, source: Card, properties: IOngoingCardEffectProps, effect: OngoingEffectImpl<any, Card>) {
         super(game, source, properties, effect);
 
         if (!properties.matchTarget) {

@@ -40,7 +40,6 @@ import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
-import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
@@ -48,6 +47,7 @@ import type Clone from '../../../cards/03_TWI/units/Clone';
 import { stateRefArray, stateRef, statePrimitive, registerStateBase } from '../../GameObjectUtils';
 import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { OngoingEffect } from '../../ongoingEffect/OngoingEffect';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -986,15 +986,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // TODO: add a summary method that logs these modifiers (i.e., the names, amounts, etc.)
-        private getStatModifiers(exclusions: (string[] | ((effect: OngoingCardEffect) => boolean)) = []): StatsModifierWrapper[] {
-            let rawEffects: OngoingCardEffect[];
+        private getStatModifiers(exclusions: (string[] | ((effect: OngoingEffect<this>) => boolean)) = []): StatsModifierWrapper[] {
+            let rawEffects: OngoingEffect<this>[];
             if (typeof exclusions === 'function') {
                 rawEffects = this.getOngoingEffects().filter((effect) => !exclusions(effect));
             } else {
                 rawEffects = this.getOngoingEffects().filter((effect) => !exclusions.includes(effect.type));
             }
 
-            const modifierEffects: OngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
+            const modifierEffects: OngoingEffect<this>[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
             const wrappedStatsModifiers = modifierEffects.map((modifierEffect) => StatsModifierWrapper.fromEffect(modifierEffect, this));
 
             if (!this.isAttached()) {
@@ -1152,7 +1152,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
         }
 
-        public override addOngoingEffect(ongoingEffect: OngoingCardEffect): void {
+        public override addOngoingEffect(ongoingEffect: OngoingEffect<this>): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
                 this._lastPlayerToModifyHp = ongoingEffect.context.source.controller;
                 this._expiredLastingEffectChangedRemainingHp = false;
@@ -1160,7 +1160,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             super.addOngoingEffect(ongoingEffect);
         }
 
-        public override removeOngoingEffect(ongoingEffect: OngoingCardEffect): void {
+        public override removeOngoingEffect(ongoingEffect: OngoingEffect<this>): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
                 if (this.game.currentAbilityResolver?.context?.player) {
                     this._lastPlayerToModifyHp = this.game.currentAbilityResolver.context.player;
