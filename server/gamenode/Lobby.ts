@@ -1041,6 +1041,7 @@ export class Lobby {
             }
 
             user.state = 'disconnected';
+            this.gameChat.setTypingState(id, false);
             logger.info(`Lobby: setting user ${user.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
 
