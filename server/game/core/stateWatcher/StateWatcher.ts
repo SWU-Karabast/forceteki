@@ -52,6 +52,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
         registrar: StateWatcherRegistrar
     ) {
         super(game);
+        this.state.entries = [];
         this.name = name;
         Contract.assertFalse(registrar.isRegistered(name), `State Watcher type "${name}" is already registered.`);
 
@@ -61,10 +62,6 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
         const stateResetUpdater: IStateListenerProperties<TState[]> = Object.assign(this.stateResetTrigger, { update: () => this.getResetValue() });
         this.allUpdaters = this.stateUpdaters.concat(stateResetUpdater);
         this.registerListeners();
-    }
-
-    protected override setupDefaultState(): void {
-        this.state.entries = [];
     }
 
     // This will remain for the life of the game, and will only be remove on rollback in the case of a token. At that point the associated card will also be removed, and it should be GC'd normally.
