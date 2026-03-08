@@ -17,7 +17,6 @@ const stateClassesStr: Record<string, string> = {};
 
 export const registerStateClassMarker = Symbol('registerStateClassMarker');
 export const registerStateAutoInitializeMarker = Symbol('registerStateAutoInitializeMarker');
-declare const brand: unique symbol;
 
 // A generic helper type
 declare const __brand: unique symbol;
@@ -44,6 +43,7 @@ export interface RegisterStateOptions {
 
 type StateHydrationHandler = (instance: GameObjectBase, rawValue: unknown) => void;
 
+// Registers how a state field should be rebuilt from raw copied state during copyState().
 function registerStateHydrator(metaState: Record<string | symbol, unknown>, fieldName: string, hydrator: StateHydrationHandler) {
     const hydrationMetadata = (metaState[stateHydrationMetadata] ??= {}) as Record<string, StateHydrationHandler>;
     hydrationMetadata[fieldName] = hydrator;
