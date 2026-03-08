@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import type { ICardWithCostProperty } from '../../../core/card/propertyMixins/Cost';
 import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class TechSourceOfInsight extends NonLeaderUnitCard {
@@ -17,7 +18,7 @@ export default class TechSourceOfInsight extends NonLeaderUnitCard {
             targetZoneFilter: ZoneName.Resource,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Any,
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword((target) => ({
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword((target: ICardWithCostProperty) => ({
                 keyword: KeywordName.Smuggle,
                 cost: target.cost + 2,
                 aspects: target.aspects

@@ -27,7 +27,6 @@ import type { IOngoingCardEffectGenerator, KeywordNameOrProperties } from '../In
 import { KeywordInstance } from '../core/ability/KeywordInstance';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import type { OngoingCardEffect } from '../core/ongoingEffect/OngoingCardEffect';
-import type { OngoingPlayerEffect } from '../core/ongoingEffect/OngoingPlayerEffect';
 import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
@@ -364,7 +363,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     /** Checks if there are any lasting effects that would give the attacker Saboteur, for the purposes of targeting */
-    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>, predicate: (effect: OngoingCardEffect | OngoingPlayerEffect) => boolean = () => false): boolean {
+    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>, predicate: (effect: OngoingCardEffect) => boolean = () => false): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const attackerLastingEffects = Helpers.asArray(properties.attackerLastingEffects);

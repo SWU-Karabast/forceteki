@@ -7,7 +7,7 @@ import type { Card } from './card/Card';
 import type { IGameObjectBaseState } from './GameObjectBase';
 import { GameObjectBase } from './GameObjectBase';
 import type { Restriction } from './ongoingEffect/effectImpl/Restriction';
-import type { OngoingCardEffect } from './ongoingEffect/OngoingCardEffect';
+import type { OngoingEffect } from './ongoingEffect/OngoingEffect';
 import { registerStateBase, stateRefArray, statePrimitive } from './GameObjectUtils';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -27,7 +27,7 @@ export interface IOngoingEffectFilters {
 @registerStateBase()
 export abstract class GameObject extends GameObjectBase {
     @stateRefArray(false)
-    private accessor _ongoingEffects: OngoingCardEffect[] = [];
+    private accessor _ongoingEffects: OngoingEffect<this>[] = [];
 
     @statePrimitive()
     private accessor _name: string;
@@ -50,11 +50,11 @@ export abstract class GameObject extends GameObjectBase {
         this._name = name;
     }
 
-    public addOngoingEffect(ongoingEffect: OngoingCardEffect) {
+    public addOngoingEffect(ongoingEffect: OngoingEffect<this>) {
         this._ongoingEffects.push(ongoingEffect);
     }
 
-    public removeOngoingEffect(ongoingEffect: OngoingCardEffect) {
+    public removeOngoingEffect(ongoingEffect: OngoingEffect<this>) {
         this._ongoingEffects = this._ongoingEffects.filter((e) => e.uuid !== ongoingEffect.uuid);
     }
 
@@ -169,7 +169,7 @@ export abstract class GameObject extends GameObjectBase {
         return effects[effects.length - 1];
     }
 
-    protected getOngoingEffects(): readonly OngoingCardEffect[] {
+    protected getOngoingEffects(): readonly OngoingEffect<this>[] {
         // Curently this still derefs the entire array of ongoing effects from the gamestate manager
         return this._ongoingEffects;
     }
