@@ -1596,7 +1596,7 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly.
+     * @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `getFromId` and may result in runtime errors if used incorrectly.
      */
     public getFromUuidUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T | null {
         return this.gameObjectManager.getUnsafe(uuid);

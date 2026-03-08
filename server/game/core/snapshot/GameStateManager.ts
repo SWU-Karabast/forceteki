@@ -13,7 +13,7 @@ export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
     get<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null;
 
-    /** Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
+    /** @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
     getUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T;
 
     /**
