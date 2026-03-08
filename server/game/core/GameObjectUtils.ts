@@ -386,14 +386,15 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
         (metaState[stateArrayMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: GameObjectRef<TValue>[] | null | undefined) => {
-            if (readonly) {
-                target.set.call(instance as T, hydrateReadonlyArrayFromRefs<TValue>(instance, rawValue) as typeof readonly extends true ? readonly TValue[] : TValue[]);
-                return;
-            }
-
-            target.set.call(instance as T, CreateUndoArrayInternalFromRefs<TValue>(instance, name, rawValue) as typeof readonly extends true ? readonly TValue[] : TValue[]);
-        });
+        if (readonly) {
+            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectRef<TValue>[] | null | undefined) => {
+                target.set.call(instance as T, hydrateReadonlyArrayFromRefs<TValue>(instance, rawValue) as readonly TValue[]);
+            });
+        } else {
+            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectRef<TValue>[] | null | undefined) => {
+                target.set.call(instance as T, CreateUndoArrayInternalFromRefs<TValue>(instance, name, rawValue) as TValue[]);
+            });
+        }
 
         // Use the backing fields as the cache, and write refs to the state.
         if (readonly) {
