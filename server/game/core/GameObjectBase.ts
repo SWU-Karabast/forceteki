@@ -100,8 +100,6 @@ export abstract class GameObjectBase implements IGameObjectBase {
             `Class "${ctor.name}" extends GameObjectBase but is missing @registerState() or @registerStateBase(). Please add one of these decorators to ensure the state of this class is properly tracked.`
         );
 
-        // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.
-        this.setupDefaultState();
         this.game.gameObjectManager.register(this);
     }
 
@@ -117,10 +115,6 @@ export abstract class GameObjectBase implements IGameObjectBase {
     /** A overridable method . Always ensure to call super.setupDefaultState() as the first line if you do override this.  */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected onInitialize() { }
-
-    /** A overridable method so a child can set defaults for it's state. Always ensure to call super.setupDefaultState() as the first line if you do override this.  */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupDefaultState() { }
 
     public setCannotHaveRefs() {
         Contract.assertFalse(this._hasRef, `Attempting to set cannotHaveRefs=true on ${this.getGameObjectName()} (UUID: ${this.uuid}) but it already has refs (hasRef: true)`);
