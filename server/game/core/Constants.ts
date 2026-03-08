@@ -620,7 +620,8 @@ export enum NamedAction {
 export enum SwuGameFormat {
     Premier = 'premier',
     NextSetPreview = 'nextSetPreview',
-    Open = 'open'
+    Open = 'open',
+    Eternal = 'eternal',
 }
 
 export enum GamesToWinMode {
