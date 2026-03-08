@@ -102,6 +102,7 @@ import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
+import type { GameObjectId } from './GameObjectUtils';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -1598,7 +1599,7 @@ export class Game extends EventEmitter {
     /**
      * @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly.
      */
-    public getFromUuidUnsafe<T extends GameObjectBase>(uuid: string): T | null {
+    public getFromUuidUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T | null {
         return this.gameObjectManager.getUnsafe(uuid);
     }
 

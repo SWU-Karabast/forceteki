@@ -1,5 +1,5 @@
 import type { Game } from './Game';
-import { copyState, registerStateBase, registerStateClassMarker, statePrimitive } from './GameObjectUtils';
+import { copyState, registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -8,11 +8,13 @@ export interface IGameObjectBaseState {
 }
 
 export interface IGameObjectBase {
+    getObjectId(): GameObjectId;
     getRef<TRef extends GameObjectBase>(): GameObjectRef<TRef>;
 }
 
 /**
- * A wrapper object that contains a UUID. This should be used when saving any object reference to the state object.
+ * A wrapper object that contains a UUID. This should be used when manually saving any object reference to the state object.
+ * Decorator-managed state uses GameObjectId internally instead.
  * Never create an object with this interface manually, instead always use {@link GameObjectBase.getRef} to create an instance.
  * @template T The template itself is unused, but it can provide some type safety, or at least awareness,
  * of what type the GameObjectRef was created from. See the Card.controller set property for an example.
@@ -167,13 +169,24 @@ export abstract class GameObjectBase implements IGameObjectBase {
         Contract.assertTrue(this._initialized, `Attempting to ${operation} on uninitialized GameObject: ${this.getGameObjectName()} (UUID: ${this.uuid})`);
     }
 
-
-    /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
-    public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
-        this.assertInitialized('create a ref');
-        Contract.assertFalse(this.cannotHaveRefs, `Attempting to create a ref for ${this.getGameObjectName()} (UUID: ${this.uuid}) but it cannot have refs (cannotHaveRefs: true)`);
+    private markReferenced(operation: string) {
+        this.assertInitialized(operation);
+        Contract.assertFalse(this.cannotHaveRefs, `Attempting to ${operation} for ${this.getGameObjectName()} (UUID: ${this.uuid}) but it cannot have refs (cannotHaveRefs: true)`);
 
         this._hasRef = true;
+    }
+
+
+    /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
+    public getObjectId(): GameObjectId {
+        this.markReferenced('create a state id');
+
+        return this.uuid as GameObjectId;
+    }
+
+    /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created for manually managed state. */
+    public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
+        this.markReferenced('create a ref');
 
         const ref = { isRef: true, uuid: this.uuid };
 
