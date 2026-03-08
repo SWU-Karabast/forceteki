@@ -41,7 +41,7 @@ function registerStateHydrator(metaState: Record<string | symbol, unknown>, fiel
 
 function createRefArray<TValue extends IGameObjectBase>(values: readonly TValue[] | TValue[] | null | undefined): GameObjectRef<TValue>[] | null | undefined {
     if (values == null) {
-        return values as unknown as GameObjectRef<TValue>[] | null | undefined;
+        return null;
     }
 
     const refs = new Array<GameObjectRef<TValue>>(values.length);
@@ -54,7 +54,7 @@ function createRefArray<TValue extends IGameObjectBase>(values: readonly TValue[
 
 function createRefMap<TValue extends GameObjectBase>(values: Map<string, TValue> | null | undefined): Map<string, GameObjectRef<TValue>> | null | undefined {
     if (values == null) {
-        return values as unknown as Map<string, GameObjectRef<TValue>> | null | undefined;
+        return null;
     }
 
     const refs = new Map<string, GameObjectRef<TValue>>();
@@ -67,7 +67,7 @@ function createRefMap<TValue extends GameObjectBase>(values: Map<string, TValue>
 
 function createRefUuidSet<TValue extends GameObjectBase>(values: Set<TValue> | null | undefined): Set<string> | null | undefined {
     if (values == null) {
-        return values as unknown as Set<string> | null | undefined;
+        return null;
     }
 
     const refs = new Set<string>();
@@ -80,7 +80,7 @@ function createRefUuidSet<TValue extends GameObjectBase>(values: Set<TValue> | n
 
 function createRefRecord<TValue extends GameObjectBase>(values: Record<string, TValue> | null | undefined): Record<string, GameObjectRef<TValue>> | null | undefined {
     if (values == null) {
-        return values as unknown as Record<string, GameObjectRef<TValue>> | null | undefined;
+        return null;
     }
 
     const refs: Record<string, GameObjectRef<TValue>> = {};
@@ -95,7 +95,7 @@ function createRefRecord<TValue extends GameObjectBase>(values: Record<string, T
 
 function hydrateReadonlyArrayFromRefs<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: readonly GameObjectRef<TValue>[] | GameObjectRef<TValue>[] | null | undefined): readonly TValue[] | null | undefined {
     if (rawValue == null) {
-        return rawValue as null | undefined;
+        return null;
     }
 
     const values = new Array<TValue>(rawValue.length);
@@ -108,7 +108,7 @@ function hydrateReadonlyArrayFromRefs<TValue extends GameObjectBase>(instance: G
 
 function hydrateUndoMapFromRefs<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Map<string, GameObjectRef<TValue>> | null | undefined): Map<string, TValue> | null | undefined {
     if (rawValue == null) {
-        return rawValue as unknown as Map<string, TValue> | null | undefined;
+        return null;
     }
 
     const hydratedMap = new UndoMap<TValue>(instance, prop);
@@ -121,7 +121,7 @@ function hydrateUndoMapFromRefs<TValue extends GameObjectBase>(instance: GameObj
 
 function hydrateUndoSetFromRefs<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Set<string> | null | undefined): Set<TValue> | null | undefined {
     if (rawValue == null) {
-        return rawValue as unknown as Set<TValue> | null | undefined;
+        return null;
     }
 
     const hydratedSet = new UndoSet<TValue>(instance, prop);
@@ -134,7 +134,7 @@ function hydrateUndoSetFromRefs<TValue extends GameObjectBase>(instance: GameObj
 
 function hydrateUndoRecordFromRefs<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Record<string, GameObjectRef<TValue>> | null | undefined): Record<string, TValue> | null | undefined {
     if (rawValue == null) {
-        return rawValue as unknown as Record<string, TValue> | null | undefined;
+        return null;
     }
 
     const hydratedRecord: Record<string, TValue> = {};
@@ -149,7 +149,7 @@ function hydrateUndoRecordFromRefs<TValue extends GameObjectBase>(instance: Game
 
 function hydrateRefFromState<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: GameObjectRef<TValue> | null | undefined): TValue | null | undefined {
     if (rawValue == null) {
-        return rawValue as unknown as TValue | null | undefined;
+        return null;
     }
 
     return instance.game.getFromRef(rawValue);
