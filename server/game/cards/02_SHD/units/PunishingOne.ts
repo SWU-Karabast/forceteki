@@ -10,7 +10,6 @@ export default class PunishingOne extends NonLeaderUnitCard {
         };
     }
 
-
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Ready this unit',

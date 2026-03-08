@@ -10,7 +10,6 @@ import * as Helpers from '../core/utils/Helpers.js';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { MsgArg } from '../core/chat/GameChat';
 
-
 export interface IRandomSelectionSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
 
     /**

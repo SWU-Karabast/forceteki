@@ -149,7 +149,10 @@ describe('Max Rebo, Encore!', () => {
                 expect(context.p1MaxRebo).toBeInZone('discard');
 
                 // Regroup Phase begins (draw A,B but not C,D)
-                expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+                expect(context.getChatLogs(2)).toEqual([
+                    'Round: 1 - Regroup Phase',
+                    'player1 uses a delayed effect applied by Sneak Attack to defeat Max Rebo',
+                ]);
                 expect(context.p1Draws.a).toBeInZone('hand');
                 expect(context.p1Draws.b).toBeInZone('hand');
                 expect(context.p2Draws.a).toBeInZone('hand');
@@ -188,7 +191,10 @@ describe('Max Rebo, Encore!', () => {
                 context.moveToRegroupPhase();
 
                 // First Regroup Phase begins
-                expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+                expect(context.getChatLogs(2)).toEqual([
+                    'Round: 1 - Regroup Phase',
+                    'player1 uses a delayed effect applied by Arrest to rescue Max Rebo',
+                ]);
 
                 // Max Rebo is rescued at the beginning of the Regroup Phase
                 expect(context.p1MaxRebo).toBeInZone('groundArena', context.player1);
@@ -270,7 +276,10 @@ describe('Max Rebo, Encore!', () => {
                     context.moveToRegroupPhase();
 
                     // First Regroup Phase begins (Zorii's delayed effect triggers discard effect)
-                    expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+                    expect(context.getChatLogs(2)).toEqual([
+                        'Round: 1 - Regroup Phase',
+                        'player1 uses a delayed effect applied by Zorii Bliss to make themself discard a card',
+                    ]);
                     expect(context.player1).toHavePrompt('Choose a card to discard for Zorii Bliss\'s effect');
                     expect(context.player1).toBeAbleToSelectExactly([
                         context.sneakAttack,
@@ -325,7 +334,10 @@ describe('Max Rebo, Encore!', () => {
                     context.moveToRegroupPhase();
 
                     // First Regroup Phase begins
-                    expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+                    expect(context.getChatLogs(2)).toEqual([
+                        'Round: 1 - Regroup Phase',
+                        'player1 uses a delayed effect applied by Dryden Vos to prevent Dryden Vos from readying for this phase',
+                    ]);
 
                     // Each player passes resourcing
                     context.player1.clickDone();
@@ -509,7 +521,10 @@ describe('Max Rebo, Encore!', () => {
                     context.moveToRegroupPhase();
 
                     // First Regroup Phase begins
-                    expect(context.getChatLog()).toEqual('Round: 1 - Regroup Phase');
+                    expect(context.getChatLogs(2)).toEqual([
+                        'Round: 1 - Regroup Phase',
+                        'player1 uses a delayed effect applied by Sneak Attack to defeat Max Rebo',
+                    ]);
 
                     // P1's Max Rebo is defeated due to Sneak Attack
                     expect(context.p1MaxRebo).toBeInZone('discard');

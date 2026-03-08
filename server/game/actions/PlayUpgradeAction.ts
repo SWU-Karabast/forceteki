@@ -4,12 +4,15 @@ import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, ZoneName } from '../core/Constants';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
+import { registerState } from '../core/GameObjectUtils';
+
+@registerState()
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {

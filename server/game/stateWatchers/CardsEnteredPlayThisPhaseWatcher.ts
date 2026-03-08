@@ -4,8 +4,10 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+
+import { registerState } from '../core/GameObjectUtils';
 
 export interface EnteredCardEntry {
     card: GameObjectRef<IInPlayCard>;
@@ -13,6 +15,7 @@ export interface EnteredCardEntry {
 }
 
 // there is a known issue where CardsEnteredPlayThisPhaseWatcher currently doesn't work with leaders
+@registerState()
 export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEntry> {
     public constructor(
         game: Game,
