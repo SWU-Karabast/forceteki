@@ -1,5 +1,4 @@
 import type { GameObjectBase, GameObjectRef, IGameObjectBase } from './GameObjectBase';
-import { to } from './utils/TypeHelpers';
 import * as Contract from './utils/Contract';
 
 // @ts-expect-error Symbol.metadata is not yet a standard.
@@ -11,6 +10,7 @@ const stateMapMetadata = Symbol();
 const stateSetMetadata = Symbol();
 const stateRecordMetadata = Symbol();
 const stateObjectMetadata = Symbol();
+const stateHydrationMetadata = Symbol();
 const bulkCopyMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
@@ -30,6 +30,149 @@ export enum CopyMode {
 export interface RegisterStateOptions {
     copyMode?: CopyMode;
     autoInitialize?: boolean;
+}
+
+type StateHydrationHandler = (instance: GameObjectBase, rawValue: unknown) => void;
+
+function registerStateHydrator(metaState: Record<string | symbol, unknown>, fieldName: string, hydrator: StateHydrationHandler) {
+    const hydrationMetadata = (metaState[stateHydrationMetadata] ??= {}) as Record<string, StateHydrationHandler>;
+    hydrationMetadata[fieldName] = hydrator;
+}
+
+function createRefArray<TValue extends IGameObjectBase>(values: readonly TValue[] | TValue[] | null | undefined): GameObjectRef<TValue>[] | null | undefined {
+    if (values == null) {
+        return values as unknown as GameObjectRef<TValue>[] | null | undefined;
+    }
+
+    const refs = new Array<GameObjectRef<TValue>>(values.length);
+    for (let i = 0; i < values.length; i++) {
+        refs[i] = values[i]?.getRef();
+    }
+
+    return refs;
+}
+
+function createRefMap<TValue extends GameObjectBase>(values: Map<string, TValue> | null | undefined): Map<string, GameObjectRef<TValue>> | null | undefined {
+    if (values == null) {
+        return values as unknown as Map<string, GameObjectRef<TValue>> | null | undefined;
+    }
+
+    const refs = new Map<string, GameObjectRef<TValue>>();
+    for (const [key, value] of values) {
+        refs.set(key, value?.getRef());
+    }
+
+    return refs;
+}
+
+function createRefUuidSet<TValue extends GameObjectBase>(values: Set<TValue> | null | undefined): Set<string> | null | undefined {
+    if (values == null) {
+        return values as unknown as Set<string> | null | undefined;
+    }
+
+    const refs = new Set<string>();
+    for (const value of values) {
+        refs.add(value.getRef().uuid);
+    }
+
+    return refs;
+}
+
+function createRefRecord<TValue extends GameObjectBase>(values: Record<string, TValue> | null | undefined): Record<string, GameObjectRef<TValue>> | null | undefined {
+    if (values == null) {
+        return values as unknown as Record<string, GameObjectRef<TValue>> | null | undefined;
+    }
+
+    const refs: Record<string, GameObjectRef<TValue>> = {};
+    for (const key in values) {
+        if (Object.prototype.hasOwnProperty.call(values, key)) {
+            refs[key] = values[key]?.getRef();
+        }
+    }
+
+    return refs;
+}
+
+function hydrateReadonlyArrayFromRefs<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: readonly GameObjectRef<TValue>[] | GameObjectRef<TValue>[] | null | undefined): readonly TValue[] | null | undefined {
+    if (rawValue == null) {
+        return rawValue as null | undefined;
+    }
+
+    const values = new Array<TValue>(rawValue.length);
+    for (let i = 0; i < rawValue.length; i++) {
+        values[i] = instance.game.getFromRef(rawValue[i]);
+    }
+
+    return values;
+}
+
+function hydrateUndoMapFromRefs<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Map<string, GameObjectRef<TValue>> | null | undefined): Map<string, TValue> | null | undefined {
+    if (rawValue == null) {
+        return rawValue as unknown as Map<string, TValue> | null | undefined;
+    }
+
+    const hydratedMap = new UndoMap<TValue>(instance, prop);
+    for (const [key, valueRef] of rawValue) {
+        Map.prototype.set.call(hydratedMap, key, instance.game.getFromRef(valueRef));
+    }
+
+    return hydratedMap;
+}
+
+function hydrateUndoSetFromRefs<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Set<string> | null | undefined): Set<TValue> | null | undefined {
+    if (rawValue == null) {
+        return rawValue as unknown as Set<TValue> | null | undefined;
+    }
+
+    const hydratedSet = new UndoSet<TValue>(instance, prop);
+    for (const uuid of rawValue) {
+        Set.prototype.add.call(hydratedSet, instance.game.getFromUuidUnsafe(uuid));
+    }
+
+    return hydratedSet;
+}
+
+function hydrateUndoRecordFromRefs<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Record<string, GameObjectRef<TValue>> | null | undefined): Record<string, TValue> | null | undefined {
+    if (rawValue == null) {
+        return rawValue as unknown as Record<string, TValue> | null | undefined;
+    }
+
+    const hydratedRecord: Record<string, TValue> = {};
+    for (const key in rawValue) {
+        if (Object.prototype.hasOwnProperty.call(rawValue, key)) {
+            hydratedRecord[key] = instance.game.getFromRef(rawValue[key]);
+        }
+    }
+
+    return UndoSafeRecord(instance, hydratedRecord, prop);
+}
+
+function hydrateRefFromState<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: GameObjectRef<TValue> | null | undefined): TValue | null | undefined {
+    if (rawValue == null) {
+        return rawValue as unknown as TValue | null | undefined;
+    }
+
+    return instance.game.getFromRef(rawValue);
+}
+
+function pushRefsOntoStateArray<TValue extends GameObjectBase>(stateArray: GameObjectRef<TValue>[], items: TValue[]): number {
+    for (let i = 0; i < items.length; i++) {
+        stateArray.push(items[i].getRef());
+    }
+
+    return stateArray.length;
+}
+
+function unshiftRefsOntoStateArray<TValue extends GameObjectBase>(stateArray: GameObjectRef<TValue>[], items: TValue[]): number {
+    for (let i = items.length - 1; i >= 0; i--) {
+        stateArray.unshift(items[i].getRef());
+    }
+
+    return stateArray.length;
+}
+
+function getStateRefArray<TValue extends GameObjectBase>(go: GameObjectBase, name: string): GameObjectRef<TValue>[] {
+    return (go as GameObjectBase & { state: Record<string, GameObjectRef<TValue>[]> }).state[name];
 }
 
 function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterStateOptions | undefined): Required<RegisterStateOptions> {
@@ -240,7 +383,16 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateArrayMetadata] ??= [];
         (metaState[stateArrayMetadata] as string[]).push(context.name);
-        const name = context.name;
+        const name = context.name as string;
+
+        registerStateHydrator(metaState, name, (instance, rawValue: GameObjectRef<TValue>[] | null | undefined) => {
+            if (readonly) {
+                target.set.call(instance as T, hydrateReadonlyArrayFromRefs<TValue>(instance, rawValue) as typeof readonly extends true ? readonly TValue[] : TValue[]);
+                return;
+            }
+
+            target.set.call(instance as T, CreateUndoArrayInternalFromRefs<TValue>(instance, name, rawValue) as typeof readonly extends true ? readonly TValue[] : TValue[]);
+        });
 
         // Use the backing fields as the cache, and write refs to the state.
         if (readonly) {
@@ -249,11 +401,11 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
                     return target.get.call(this);
                 },
                 set(this: T, newValue: TValue[]) {
-                    this.state[name] = newValue?.map((x) => x.getRef());
+                    this.state[name] = createRefArray(newValue);
                     target.set.call(this, newValue);
                 },
                 init(this: T, value: TValue[]) {
-                    this.state[name] = value?.map((x) => x.getRef());
+                    this.state[name] = createRefArray(value);
                     return value;
                 }
             };
@@ -270,11 +422,11 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
                 }
             },
             set(this: T, newValue: TValue[]) {
-                this.state[name] = newValue?.map((x) => x.getRef());
+                this.state[name] = createRefArray(newValue);
                 target.set.call(this, newValue ? CreateUndoArrayInternal(this, name, newValue) : newValue);
             },
             init(this: T, value: TValue[]) {
-                this.state[name] = value?.map((x) => x.getRef());
+                this.state[name] = createRefArray(value);
                 return value ? CreateUndoArrayInternal(this, name) : value;
             }
         };
@@ -298,7 +450,11 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateMapMetadata] ??= [];
         (metaState[stateMapMetadata] as string[]).push(context.name);
-        const name = context.name;
+        const name = context.name as string;
+
+        registerStateHydrator(metaState, name, (instance, rawValue: Map<string, GameObjectRef<TValue>> | null | undefined) => {
+            target.set.call(instance as T, hydrateUndoMapFromRefs<TValue>(instance, name, rawValue) as Map<string, TValue>);
+        });
 
         // Use the backing fields as the cache, and write refs to the state.
         return {
@@ -307,7 +463,7 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
             },
             set(this: GameObjectBase, newValue) {
                 // The below UndoMap instantiation will also load the state map with all of it's values.
-                this.state[name] = newValue ? new Map(Array.from(newValue, ([key, value]) => [key, value.getRef()])) : newValue;
+                this.state[name] = createRefMap(newValue);
                 target.set.call(this, newValue ? new UndoMap(this, name, newValue.entries()) : newValue);
             },
             init(this: GameObjectBase, value) {
@@ -337,7 +493,11 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateSetMetadata] ??= [];
         (metaState[stateSetMetadata] as string[]).push(context.name);
-        const name = context.name;
+        const name = context.name as string;
+
+        registerStateHydrator(metaState, name, (instance, rawValue: Set<string> | null | undefined) => {
+            target.set.call(instance as T, hydrateUndoSetFromRefs<TValue>(instance, name, rawValue) as Set<TValue>);
+        });
 
         // Use the backing fields as the cache, and write refs to the state.
         // State stores a Set<string> keyed by UUID so that delete can look up by key.
@@ -347,7 +507,7 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
             },
             set(this: GameObjectBase, newValue) {
                 // The below UndoSet instantiation will also load the state map with all of its values.
-                this.state[name] = newValue ? new Set(Array.from(newValue, (value) => value.getRef().uuid)) : newValue;
+                this.state[name] = createRefUuidSet(newValue);
                 target.set.call(this, newValue ? new UndoSet(this, name, newValue.values()) : newValue);
             },
             init(this: GameObjectBase, value) {
@@ -377,7 +537,11 @@ export function stateRefRecord<T extends GameObjectBase, TValue extends GameObje
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateRecordMetadata] ??= [];
         (metaState[stateRecordMetadata] as string[]).push(context.name);
-        const name = context.name;
+        const name = context.name as string;
+
+        registerStateHydrator(metaState, name, (instance, rawValue: Record<string, GameObjectRef<TValue>> | null | undefined) => {
+            target.set.call(instance as T, hydrateUndoRecordFromRefs<TValue>(instance, name, rawValue) as Record<string, TValue>);
+        });
 
         // Use the backing fields as the cache, and write refs to the state.
         return {
@@ -385,7 +549,7 @@ export function stateRefRecord<T extends GameObjectBase, TValue extends GameObje
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
-                this.state[name] = to.record(Object.keys(newValue), (key) => key, (key) => newValue[key]?.getRef());
+                this.state[name] = createRefRecord(newValue);
                 target.set.call(this, UndoSafeRecord(this, newValue, name));
             },
             init(this: GameObjectBase, value) {
@@ -413,6 +577,11 @@ export function stateRef<T extends IGameObjectBase, TValue extends IGameObjectBa
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateObjectMetadata] ??= [];
         (metaState[stateObjectMetadata] as string[]).push(context.name);
+        const name = context.name as string;
+
+        registerStateHydrator(metaState, name, (instance, rawValue: GameObjectRef<TValue> | null | undefined) => {
+            target.set.call(instance as unknown as T, hydrateRefFromState(instance, rawValue) as unknown as TValue);
+        });
 
         // Use the backing fields as the cache, and write refs to the state.
         return {
@@ -421,12 +590,12 @@ export function stateRef<T extends IGameObjectBase, TValue extends IGameObjectBa
             },
             set(this, newValue) {
                 // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[context.name as string] = newValue?.getRef();
+                this.state[name] = newValue?.getRef();
                 target.set.call(this, newValue);
             },
             init(value) {
                 // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[context.name] = value?.getRef();
+                this.state[name] = value?.getRef();
                 return value;
             }
         };
@@ -531,8 +700,11 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
             } else if (prop === 'push' || prop === 'unshift') {
                 return function (...args) {
                     const result = Reflect.apply(target[prop], target, args);
-                    // @ts-expect-error Override accessibility and call the same method on the internal state.
-                    Reflect.apply(go.state[name][prop], go.state[name], args.map((x) => x.getRef()));
+                    if (prop === 'push') {
+                        pushRefsOntoStateArray(getStateRefArray(go, name), args);
+                    } else {
+                        unshiftRefsOntoStateArray(getStateRefArray(go, name), args);
+                    }
 
                     return result;
                 };
@@ -575,13 +747,34 @@ export function UndoArrayInternal<T extends GameObjectBase, TValue extends GameO
 }
 
 /** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
-function CreateUndoArrayInternal<T extends GameObjectBase, TValue extends GameObjectBase>(go: GameObjectBase, prop: string, arr?: TValue[]) {
-    let undoArr: UndoArray<TValue>;
+function CreateUndoArrayInternal<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, arr?: TValue[]) {
+    const undoArr = CreateUndoArrayBase<TValue>(go, prop);
     if (arr) {
-        undoArr = new UndoArray(...arr);
-    } else {
-        undoArr = new UndoArray();
+        undoArr.length = arr.length;
+        for (let i = 0; i < arr.length; i++) {
+            undoArr[i] = arr[i];
+        }
     }
+
+    return CreateUndoArrayProxy(undoArr) as TValue[];
+}
+
+function CreateUndoArrayInternalFromRefs<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, refs?: readonly GameObjectRef<TValue>[] | GameObjectRef<TValue>[] | null) {
+    if (refs == null) {
+        return refs as unknown as TValue[] | null | undefined;
+    }
+
+    const undoArr = CreateUndoArrayBase<TValue>(go, prop);
+    undoArr.length = refs.length;
+    for (let i = 0; i < refs.length; i++) {
+        undoArr[i] = go.game.getFromRef(refs[i]);
+    }
+
+    return CreateUndoArrayProxy(undoArr) as TValue[];
+}
+
+function CreateUndoArrayBase<TValue extends GameObjectBase>(go: GameObjectBase, prop: string) {
+    const undoArr = new UndoArray<TValue>();
     // Keep internal UndoArray bookkeeping properties off enumerable object shape so test equality checks on
     // arrays only see card entries, not proxy internals.
     Object.defineProperty(undoArr, 'go', {
@@ -603,6 +796,10 @@ function CreateUndoArrayInternal<T extends GameObjectBase, TValue extends GameOb
         configurable: true
     });
 
+    return undoArr;
+}
+
+function CreateUndoArrayProxy<TValue extends GameObjectBase>(undoArr: UndoArray<TValue>) {
     const proxiedArray = new Proxy(undoArr, {
         set(target, prop, newValue, receiver): boolean {
             // @ts-expect-error overriding accessibility.
@@ -616,7 +813,7 @@ function CreateUndoArrayInternal<T extends GameObjectBase, TValue extends GameOb
         },
     });
 
-    return proxiedArray as TValue[];
+    return proxiedArray;
 }
 
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
@@ -632,6 +829,8 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
 
         // If there is any state, go through each of the types and do the copy process.
         if (metaState) {
+            const hydrationMetadata = metaState[stateHydrationMetadata] as Record<string, StateHydrationHandler> | undefined;
+
             // STATE NOTE: We only need to copy this if we aren't using structuredClone.
             if (!isFullCopy && metaState[stateSimpleMetadata]) {
                 const metaSimples = metaState[stateSimpleMetadata] as string[];
@@ -644,37 +843,31 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
             if (metaState[stateArrayMetadata]) {
                 const metaArrays = metaState[stateArrayMetadata] as string[];
                 for (const field of metaArrays) {
-                    // It's a little extra work but that's far less than when we did it every time it did a get call to the accessor.
-                    instance[field] = (newState[field] as GameObjectRef[])?.map((x) => instance.game.getFromRef(x));
+                    hydrationMetadata[field](instance, newState[field]);
                 }
             }
             if (metaState[stateMapMetadata]) {
                 const metaMaps = metaState[stateMapMetadata] as string[];
                 for (const field of metaMaps) {
-                    const mappedEntries: [string, GameObjectBase][] = Array.from((newState[field] as Map<string, GameObjectRef>), ([key, value]) => [key, instance.game.getFromRef(value)]);
-                    instance[field] = new Map(mappedEntries);
+                    hydrationMetadata[field](instance, newState[field]);
                 }
             }
             if (metaState[stateSetMetadata]) {
                 const metaSets = metaState[stateSetMetadata] as string[];
                 for (const field of metaSets) {
-                    // State stores a Map<string, GameObjectRef> keyed by UUID
-                    const mappedValues: GameObjectBase[] = Array.from((newState[field] as Set<string>).values(), (uuid) => instance.game.getFromUuidUnsafe(uuid));
-                    instance[field] = new Set(mappedValues);
+                    hydrationMetadata[field](instance, newState[field]);
                 }
             }
             if (metaState[stateRecordMetadata]) {
                 const metaRecords = metaState[stateRecordMetadata] as string[];
                 for (const field of metaRecords) {
-                    const newValue = (newState[field] as Record<string, GameObjectRef>);
-                    instance[field] = to.record(Object.keys(newValue), (key) => key, (key) => instance.game.getFromRef(newValue[key]));
+                    hydrationMetadata[field](instance, newState[field]);
                 }
             }
             if (metaState[stateObjectMetadata]) {
                 const metaObjects = metaState[stateObjectMetadata] as string[];
                 for (const field of metaObjects) {
-                    // It's a little extra work but that's far less than when we did it every time it did a get call to the accessor.
-                    instance[field] = instance.game.getFromRef((newState[field] as GameObjectRef));
+                    hydrationMetadata[field](instance, newState[field]);
                 }
             }
         }
@@ -779,7 +972,7 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         this.accessing = true;
         try {
             // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectRef<TValue>[]).push(...items.map((x) => x.getRef()));
+            pushRefsOntoStateArray(this.go.state[this.prop], items);
             return super.push(...items);
         } finally {
             this.accessing = false;
@@ -790,7 +983,7 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         this.accessing = true;
         try {
             // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectRef<TValue>[]).unshift(...items.map((x) => x.getRef()));
+            unshiftRefsOntoStateArray(this.go.state[this.prop], items);
             return super.unshift(...items);
         } finally {
             this.accessing = false;
