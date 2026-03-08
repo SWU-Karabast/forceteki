@@ -17,6 +17,12 @@ const stateClassesStr: Record<string, string> = {};
 
 export const registerStateClassMarker = Symbol('registerStateClassMarker');
 export const registerStateAutoInitializeMarker = Symbol('registerStateAutoInitializeMarker');
+declare const brand: unique symbol;
+
+// A generic helper type
+export type Brand<T, TBrand extends string> = T & { [brand]: TBrand };
+// A branded type for GameObject IDs. This is just a string, but the branding prevents it from being accidentally interchanged with other strings.
+export type GameObjectId = Brand<string, 'GameObjectId'>;
 
 export enum CopyMode {
 
