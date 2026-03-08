@@ -20,7 +20,7 @@ const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPl
 export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
 
 @registerStateBase()
-export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
+export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
@@ -85,13 +85,7 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
     public override checkIsAttachable(): void {
         Contract.assertTrue(this.hasSomeTrait(Trait.Pilot));
     }
-}
 
-// STATE TODO: Once we've fully converted to decorators, this can be removed and NonLeaderUnitCardInternal can be renamed to NonLeaderUnitCard
-/** used for derived implementations classes. */
-@registerStateBase()
-export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
-    public declare state: never;
 
     protected override getAbilityRegistrar(): INonLeaderUnitAbilityRegistrar {
         return super.getAbilityRegistrar();
