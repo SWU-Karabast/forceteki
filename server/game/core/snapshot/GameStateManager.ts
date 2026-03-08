@@ -159,13 +159,17 @@ export class GameStateManager implements IGameObjectRegistrar {
                         throw new Error(`GameObject ${go.getGameObjectName()} (UUID: ${go.uuid}, Type: ${go.constructor.name}) is not initialized during rollback. This should not be possible.`);
                     }
 
+                    // Rollback swaps the entire state object reference, so retaining the previous object here is safe
+                    // and avoids a structuredClone for every updated or removed GameObject.
+                    const oldState = go.getStateUnsafe();
+
                     const updatedState = snapshotStatesByUuid[go.uuid];
                     if (!updatedState) {
-                        removals.push({ index: i, go, oldState: go.getState() });
+                        removals.push({ index: i, go, oldState });
                         continue;
                     }
 
-                    updates.push({ go, oldState: go.getState() });
+                    updates.push({ go, oldState });
                     go.setState(updatedState);
                 }
 
@@ -195,8 +199,11 @@ export class GameStateManager implements IGameObjectRegistrar {
             }
 
             // Remove GOs that hadn't yet been created by this point.
-            // Use filter for efficient removal instead of multiple splice operations
-            const removalIndexSet = new Set(removals.map((r) => r.index));
+            // Rebuild the list once without allocating an intermediate index list or cloning state objects.
+            const removalIndexSet = new Set<number>();
+            for (const removed of removals) {
+                removalIndexSet.add(removed.index);
+            }
             this.allGameObjects = this.allGameObjects.filter((_, index) => !removalIndexSet.has(index));
 
             for (const removed of removals) {

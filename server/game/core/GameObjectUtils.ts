@@ -156,6 +156,7 @@ function hydrateRefFromState<TValue extends GameObjectBase>(instance: GameObject
 }
 
 function pushRefsOntoStateArray<TValue extends GameObjectBase>(stateArray: GameObjectRef<TValue>[], items: TValue[]): number {
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < items.length; i++) {
         stateArray.push(items[i].getRef());
     }
