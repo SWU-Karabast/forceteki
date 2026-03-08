@@ -5,15 +5,15 @@ import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
 import type { Game } from '../Game';
 import type { GameObject } from '../GameObject';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { registerStateBase, stateRefArray } from '../GameObjectUtils';
+import { registerStateBase, stateRefArray, type GameObjectId } from '../GameObjectUtils';
 import type { Player } from '../Player';
 
 export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
-    targets: GameObjectRef<TTarget>[];
+    targets: GameObjectId<TTarget>[];
 }
 
 /**
@@ -84,7 +84,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         this.impl.isConditional = !!properties.condition;
 
         // bit of a hack to keep the impl object added to the game state
-        this.impl.getRef();
+        this.impl.getObjectId();
     }
 
     public getValue(card: GameObject) {

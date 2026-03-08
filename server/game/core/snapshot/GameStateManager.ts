@@ -1,5 +1,5 @@
 import type { Game } from '../Game';
-import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
@@ -11,7 +11,7 @@ import type { GameObjectId } from '../GameObjectUtils';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
-    get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null;
+    get<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null;
 
     /** Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
     getUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T;
@@ -45,13 +45,13 @@ export class GameStateManager implements IGameObjectRegistrar {
         this.#game = game;
     }
 
-    public get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null {
-        if (!gameObjectRef?.uuid) {
+    public get<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null {
+        if (!gameObjectId) {
             return null;
         }
 
-        const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
-        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
+        const ref = this.gameObjectMapping.get(gameObjectId);
+        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectId}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {

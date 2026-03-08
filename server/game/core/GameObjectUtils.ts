@@ -20,12 +20,13 @@ export const registerStateAutoInitializeMarker = Symbol('registerStateAutoInitia
 
 // A generic helper type
 declare const __brand: unique symbol;
+declare const __gameObjectTypeBrand: unique symbol;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type Brand<B> = { [__brand]: B };
 type Branded<T, B> = T & Brand<B>;
 // A branded type for GameObject IDs. This is just a string, but the branding prevents it from being accidentally interchanged with other strings.
-export type GameObjectId = Branded<string, 'GameObjectId'>;
+export type GameObjectId<T extends IGameObjectBase = IGameObjectBase> = Branded<string, 'GameObjectId'> & { readonly [__gameObjectTypeBrand]?: T };
 
 export enum CopyMode {
 
@@ -49,12 +50,12 @@ function registerStateHydrator(metaState: Record<string | symbol, unknown>, fiel
     hydrationMetadata[fieldName] = hydrator;
 }
 
-function createIdArray<TValue extends IGameObjectBase>(values: readonly TValue[] | TValue[] | null | undefined): GameObjectId[] | null | undefined {
+function createIdArray<TValue extends IGameObjectBase>(values: readonly TValue[] | TValue[] | null | undefined): GameObjectId<TValue>[] | null | undefined {
     if (values == null) {
         return null;
     }
 
-    const ids = new Array<GameObjectId>(values.length);
+    const ids = new Array<GameObjectId<TValue>>(values.length);
     for (let i = 0; i < values.length; i++) {
         ids[i] = values[i].getObjectId();
     }
@@ -62,12 +63,12 @@ function createIdArray<TValue extends IGameObjectBase>(values: readonly TValue[]
     return ids;
 }
 
-function createIdMap<TValue extends IGameObjectBase>(values: Map<string, TValue> | null | undefined): Map<string, GameObjectId> | null | undefined {
+function createIdMap<TValue extends IGameObjectBase>(values: Map<string, TValue> | null | undefined): Map<string, GameObjectId<TValue>> | null | undefined {
     if (values == null) {
         return null;
     }
 
-    const ids = new Map<string, GameObjectId>();
+    const ids = new Map<string, GameObjectId<TValue>>();
     for (const [key, value] of values) {
         ids.set(key, value.getObjectId());
     }
@@ -75,12 +76,12 @@ function createIdMap<TValue extends IGameObjectBase>(values: Map<string, TValue>
     return ids;
 }
 
-function createIdSet<TValue extends IGameObjectBase>(values: Set<TValue> | null | undefined): Set<GameObjectId> | null | undefined {
+function createIdSet<TValue extends IGameObjectBase>(values: Set<TValue> | null | undefined): Set<GameObjectId<TValue>> | null | undefined {
     if (values == null) {
         return null;
     }
 
-    const ids = new Set<GameObjectId>();
+    const ids = new Set<GameObjectId<TValue>>();
     for (const value of values) {
         ids.add(value.getObjectId());
     }
@@ -88,12 +89,12 @@ function createIdSet<TValue extends IGameObjectBase>(values: Set<TValue> | null 
     return ids;
 }
 
-function createIdRecord<TValue extends IGameObjectBase>(values: Record<string, TValue> | null | undefined): Record<string, GameObjectId> | null | undefined {
+function createIdRecord<TValue extends IGameObjectBase>(values: Record<string, TValue> | null | undefined): Record<string, GameObjectId<TValue>> | null | undefined {
     if (values == null) {
         return null;
     }
 
-    const ids: Record<string, GameObjectId> = {};
+    const ids: Record<string, GameObjectId<TValue>> = {};
     for (const key in values) {
         if (Object.prototype.hasOwnProperty.call(values, key)) {
             ids[key] = values[key].getObjectId();
@@ -103,7 +104,7 @@ function createIdRecord<TValue extends IGameObjectBase>(values: Record<string, T
     return ids;
 }
 
-function hydrateReadonlyArrayFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: readonly GameObjectId[] | GameObjectId[] | null | undefined): readonly TValue[] | null | undefined {
+function hydrateReadonlyArrayFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: readonly GameObjectId<TValue>[] | GameObjectId<TValue>[] | null | undefined): readonly TValue[] | null | undefined {
     if (rawValue == null) {
         return null;
     }
@@ -116,7 +117,7 @@ function hydrateReadonlyArrayFromIds<TValue extends GameObjectBase>(instance: Ga
     return values;
 }
 
-function hydrateUndoMapFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Map<string, GameObjectId> | null | undefined): Map<string, TValue> | null | undefined {
+function hydrateUndoMapFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Map<string, GameObjectId<TValue>> | null | undefined): Map<string, TValue> | null | undefined {
     if (rawValue == null) {
         return null;
     }
@@ -129,7 +130,7 @@ function hydrateUndoMapFromIds<TValue extends GameObjectBase>(instance: GameObje
     return hydratedMap;
 }
 
-function hydrateUndoSetFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Set<GameObjectId> | null | undefined): Set<TValue> | null | undefined {
+function hydrateUndoSetFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Set<GameObjectId<TValue>> | null | undefined): Set<TValue> | null | undefined {
     if (rawValue == null) {
         return null;
     }
@@ -142,7 +143,7 @@ function hydrateUndoSetFromIds<TValue extends GameObjectBase>(instance: GameObje
     return hydratedSet;
 }
 
-function hydrateUndoRecordFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Record<string, GameObjectId> | null | undefined): Record<string, TValue> | null | undefined {
+function hydrateUndoRecordFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Record<string, GameObjectId<TValue>> | null | undefined): Record<string, TValue> | null | undefined {
     if (rawValue == null) {
         return null;
     }
@@ -157,7 +158,7 @@ function hydrateUndoRecordFromIds<TValue extends GameObjectBase>(instance: GameO
     return UndoSafeRecord(instance, hydratedRecord, prop);
 }
 
-function hydrateIdFromState<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: GameObjectId | null | undefined): TValue | null | undefined {
+function hydrateIdFromState<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: GameObjectId<TValue> | null | undefined): TValue | null | undefined {
     if (rawValue == null) {
         return null;
     }
@@ -165,7 +166,7 @@ function hydrateIdFromState<TValue extends GameObjectBase>(instance: GameObjectB
     return instance.game.getFromUuidUnsafe(rawValue);
 }
 
-function pushIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameObjectId[], items: TValue[]): number {
+function pushIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameObjectId<TValue>[], items: TValue[]): number {
     // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < items.length; i++) {
         stateArray.push(items[i].getObjectId());
@@ -174,7 +175,7 @@ function pushIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameO
     return stateArray.length;
 }
 
-function unshiftIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameObjectId[], items: TValue[]): number {
+function unshiftIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameObjectId<TValue>[], items: TValue[]): number {
     for (let i = items.length - 1; i >= 0; i--) {
         stateArray.unshift(items[i].getObjectId());
     }
@@ -182,8 +183,8 @@ function unshiftIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: Ga
     return stateArray.length;
 }
 
-function getStateIdArray(go: GameObjectBase, name: string): GameObjectId[] {
-    return (go as GameObjectBase & { state: Record<string, GameObjectId[]> }).state[name];
+function getStateIdArray<TValue extends IGameObjectBase>(go: GameObjectBase, name: string): GameObjectId<TValue>[] {
+    return (go as GameObjectBase & { state: Record<string, GameObjectId<TValue>[]> }).state[name];
 }
 
 function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterStateOptions | undefined): Required<RegisterStateOptions> {
@@ -397,11 +398,11 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
         const name = context.name as string;
 
         if (readonly) {
-            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId[] | null | undefined) => {
+            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue>[] | null | undefined) => {
                 target.set.call(instance as T, hydrateReadonlyArrayFromIds<TValue>(instance, rawValue) as readonly TValue[]);
             });
         } else {
-            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId[] | null | undefined) => {
+            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue>[] | null | undefined) => {
                 target.set.call(instance as T, CreateUndoArrayInternalFromIds<TValue>(instance, name, rawValue) as TValue[]);
             });
         }
@@ -464,7 +465,7 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
         (metaState[stateMapMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: Map<string, GameObjectId> | null | undefined) => {
+        registerStateHydrator(metaState, name, (instance, rawValue: Map<string, GameObjectId<TValue>> | null | undefined) => {
             target.set.call(instance as T, hydrateUndoMapFromIds<TValue>(instance, name, rawValue) as Map<string, TValue>);
         });
 
@@ -507,7 +508,7 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
         (metaState[stateSetMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: Set<GameObjectId> | null | undefined) => {
+        registerStateHydrator(metaState, name, (instance, rawValue: Set<GameObjectId<TValue>> | null | undefined) => {
             target.set.call(instance as T, hydrateUndoSetFromIds<TValue>(instance, name, rawValue) as Set<TValue>);
         });
 
@@ -551,7 +552,7 @@ export function stateRefRecord<T extends GameObjectBase, TValue extends GameObje
         (metaState[stateRecordMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: Record<string, GameObjectId> | null | undefined) => {
+        registerStateHydrator(metaState, name, (instance, rawValue: Record<string, GameObjectId<TValue>> | null | undefined) => {
             target.set.call(instance as T, hydrateUndoRecordFromIds<TValue>(instance, name, rawValue) as Record<string, TValue>);
         });
 
@@ -573,7 +574,7 @@ export function stateRefRecord<T extends GameObjectBase, TValue extends GameObje
 }
 
 /** Creates a undo safe GameObject reference. */
-export function stateRef<T extends IGameObjectBase, TValue extends IGameObjectBase>() {
+export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
@@ -591,7 +592,7 @@ export function stateRef<T extends IGameObjectBase, TValue extends IGameObjectBa
         (metaState[stateObjectMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId | null | undefined) => {
+        registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue> | null | undefined) => {
             target.set.call(instance as unknown as T, hydrateIdFromState(instance, rawValue) as unknown as TValue);
         });
 
@@ -771,7 +772,7 @@ function CreateUndoArrayInternal<TValue extends GameObjectBase>(go: GameObjectBa
     return CreateUndoArrayProxy(undoArr) as TValue[];
 }
 
-function CreateUndoArrayInternalFromIds<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, ids?: readonly GameObjectId[] | GameObjectId[] | null) {
+function CreateUndoArrayInternalFromIds<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, ids?: readonly GameObjectId<TValue>[] | GameObjectId<TValue>[] | null) {
     if (ids == null) {
         return ids as unknown as TValue[] | null | undefined;
     }
@@ -911,7 +912,7 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
         // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
             // @ts-expect-error Overriding state accessibility
-            const stateValue = this.go.state[this.prop] as Map<string, GameObjectId>;
+            const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
             stateValue.set(key, value.getObjectId());
         }
         return super.set(key, value);
@@ -919,14 +920,14 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
 
     public override delete(key: string): boolean {
         // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Map<string, GameObjectId>;
+        const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
         stateValue.delete(key);
         return super.delete(key);
     }
 
     public override clear(): void {
         // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Map<string, GameObjectId>;
+        const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
         stateValue.clear();
         super.clear();
     }
@@ -949,7 +950,7 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
         // Add is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
             // @ts-expect-error Overriding state accessibility
-            const stateValue = this.go.state[this.prop] as Set<GameObjectId>;
+            const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
             stateValue.add(value.getObjectId());
         }
         return super.add(value);
@@ -957,14 +958,14 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
 
     public override delete(value: TValue): boolean {
         // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Set<GameObjectId>;
+        const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
         stateValue.delete(value.getObjectId());
         return super.delete(value);
     }
 
     public override clear(): void {
         // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Set<GameObjectId>;
+        const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
         stateValue.clear();
         super.clear();
     }

@@ -5,13 +5,13 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Game } from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { UnwrapRef } from '../core/GameObjectBase';
 
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface EnteredCardEntry {
-    card: GameObjectRef<IInPlayCard>;
-    playedBy: GameObjectRef<Player>;
+    card: GameObjectId<IInPlayCard>;
+    playedBy: GameObjectId<Player>;
 }
 
 // there is a known issue where CardsEnteredPlayThisPhaseWatcher currently doesn't work with leaders
@@ -24,7 +24,7 @@ export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEn
     }
 
     protected override mapCurrentValue(stateValue: EnteredCardEntry[]): UnwrapRef<EnteredCardEntry[]> {
-        return stateValue.map((x) => ({ playedBy: this.game.getFromRef(x.playedBy), card: this.game.getFromRef(x.card) }));
+        return stateValue.map((x) => ({ playedBy: this.game.getFromId(x.playedBy), card: this.game.getFromId(x.card) }));
     }
 
     /**
@@ -54,7 +54,7 @@ export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEn
                 onUnitEntersPlay: () => true,
             },
             update: (currentState: EnteredCardEntry[], event: any) =>
-                currentState.concat({ card: event.card.getRef(), playedBy: event.card.controller.getRef() })
+                currentState.concat({ card: event.card.getObjectId(), playedBy: event.card.controller.getObjectId() })
         });
     }
 

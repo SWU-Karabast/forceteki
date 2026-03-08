@@ -6,19 +6,19 @@ import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { Game } from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { UnwrapRef } from '../core/GameObjectBase';
 import type { ICardAttributes } from '../Interfaces';
 
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface AttackEntry {
-    attacker: GameObjectRef<IUnitCard>;
+    attacker: GameObjectId<IUnitCard>;
     attackerInPlayId: number;
     attackerAttributes: ICardAttributes;
-    attackingPlayer: GameObjectRef<Player>;
-    targets: GameObjectRef<IAttackableCard>[];
+    attackingPlayer: GameObjectId<Player>;
+    targets: GameObjectId<IAttackableCard>[];
     targetInPlayId?: number;
-    defendingPlayer: GameObjectRef<Player>;
+    defendingPlayer: GameObjectId<Player>;
     actionNumber: number;
     attackId: number;
 }
@@ -34,10 +34,10 @@ export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
     protected override mapCurrentValue(stateValue: AttackEntry[]): UnwrapRef<AttackEntry>[] {
         return stateValue.map((x) => ({
             ...x,
-            attacker: this.game.getFromRef(x.attacker),
-            attackingPlayer: this.game.getFromRef(x.attackingPlayer),
-            targets: x.targets.map((y) => this.game.getFromRef(y)),
-            defendingPlayer: this.game.getFromRef(x.defendingPlayer),
+            attacker: this.game.getFromId(x.attacker),
+            attackingPlayer: this.game.getFromId(x.attackingPlayer),
+            targets: x.targets.map((y) => this.game.getFromId(y)),
+            defendingPlayer: this.game.getFromId(x.defendingPlayer),
         }));
     }
 
@@ -90,13 +90,13 @@ export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
             },
             update: (currentState: AttackEntry[], event: any) =>
                 currentState.concat({
-                    attacker: event.attack.attacker.getRef(),
+                    attacker: event.attack.attacker.getObjectId(),
                     attackerInPlayId: event.attack.attacker.inPlayId,
                     attackerAttributes: event.attack.attacker.attributes,
-                    attackingPlayer: event.attack.attacker.controller.getRef(),
-                    targets: event.attack.getAllTargets().map((x) => x.getRef()),
+                    attackingPlayer: event.attack.attacker.controller.getObjectId(),
+                    targets: event.attack.getAllTargets().map((x) => x.getObjectId()),
                     targetInPlayId: event.attack.targetInPlayId,
-                    defendingPlayer: event.attack.getDefendingPlayer().getRef(),
+                    defendingPlayer: event.attack.getDefendingPlayer().getObjectId(),
                     actionNumber: event.context.game.actionNumber,
                     attackId: event.attack.id,
                 })

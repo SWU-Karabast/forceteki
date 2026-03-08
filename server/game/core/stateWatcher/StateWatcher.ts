@@ -80,7 +80,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
     // Returns the value that the state will be initialized to at the beginning of the phase
     protected abstract getResetValue(): TState[];
 
-    /** A function to map any GameObjectRefs in the stateValue to their game objects. If no GameObjectRefs are used, you can simply return the stateValue as-is. */
+    /** A function to map any GameObjectIds in the stateValue to their game objects. If no GameObjectIds are used, you can simply return the stateValue as-is. */
     protected abstract mapCurrentValue(stateValue: TState[]): UnwrapRef<TState>[];
 
     public getCurrentValue(): UnwrapRef<TState>[] {
@@ -103,7 +103,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
                     value = value[0];
                 }
                 if (value instanceof GameObjectBase) {
-                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is GameObject which is not allowed. Use GameObjectRef instead and call go.getRef() to capture the reference in state.`);
+                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is GameObject which is not allowed. Use GameObjectId instead and call go.getObjectId() to capture the reference in state.`);
                 }
                 if (value instanceof GameEvent) {
                     throw new Error(`State Watcher contains invalid state. Property "${prop}" is a GameEvent which is not allowed.Capture the relevant properties off the GameEvent instead and store them in the watcher state. See DamageDealtThisPhaseWatcher for an example.`);
