@@ -3,17 +3,14 @@ import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelati
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
-import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
+import { registerStateBase } from '../GameObjectUtils';
 
-export interface ICardAbilityState extends IPlayerOrCardAbilityState {
-    placeholder?: false;
-}
-
-export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityState> extends CardAbilityStep<T> {
+@registerStateBase()
+export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];

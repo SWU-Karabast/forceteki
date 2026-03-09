@@ -47,6 +47,7 @@ describe('Embo, Stoic and Resolute', function () {
                 // defender is defeated but not in discard
                 context.player1.clickCard(context.embo);
                 context.player1.clickCard(context.superlaserTechnician);
+                context.player1.clickPrompt('Opponent');
                 context.player2.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.embo, context.escortSkiff, context.consularSecurityForce, context.swoopRacer, context.greenSquadronAwing]);
                 context.player1.setDistributeHealingPromptState(new Map([

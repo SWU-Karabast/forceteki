@@ -4,7 +4,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import { EventName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { CostAdjustType, type ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
@@ -16,6 +16,9 @@ import * as ChatHelpers from '../chat/ChatHelpers';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
 import type { FormatMessage } from '../chat/GameChat';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
     private readonly costName = 'creditTokens';
 

@@ -1,4 +1,3 @@
-import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility.js';
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
 import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, PlayType } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
@@ -10,17 +9,19 @@ import type { GameEvent } from '../event/GameEvent.js';
 import type { Player } from '../Player.js';
 import type { AbilityContext } from './AbilityContext.js';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker.js';
 import type { FormatMessage, MsgArg } from '../chat/GameChat.js';
 import * as ChatHelpers from '../chat/ChatHelpers';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
+import { registerState, registerStateBase } from '../GameObjectUtils';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
-export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends PlayerOrCardAbility<T> {
+@registerStateBase()
+export abstract class CardAbilityStep extends PlayerOrCardAbility {
     private handler: (context: AbilityContext) => void;
 
     /** @param card The card this ability is attached to. */
@@ -92,7 +93,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
             if (!Array.isArray(messageArgs)) {
                 messageArgs = [messageArgs];
             }
-            this.game.addMessage(this.properties.message, ...(messageArgs as any[]));
+            this.game.addMessage(this.properties.message as string, ...(messageArgs as any[]));
             return;
         }
 
@@ -286,7 +287,7 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
     }
 
     private buildSubAbilityStep(subAbilityStepProps) {
-        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type));
+        return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new FrameworkCardAbilityStep(this.game, this.card, subAbilityStepProps, this.type));
     }
 
     private getCanBeTriggeredBy(subAbilityStep, context: AbilityContext) {
@@ -312,3 +313,6 @@ export class CardAbilityStep<T extends IPlayerOrCardAbilityState = IPlayerOrCard
         }
     }
 }
+
+@registerState()
+export class FrameworkCardAbilityStep extends CardAbilityStep { }
