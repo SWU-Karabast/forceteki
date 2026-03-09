@@ -21,7 +21,7 @@ describe('Barriss Offee, Its Only A Matter Of Time', function() {
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.p1Base);
 
-                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacker');
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to AT-ST');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeActivePlayer();
@@ -63,7 +63,7 @@ describe('Barriss Offee, Its Only A Matter Of Time', function() {
                 // First opponent attack
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.p1Base);
-                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacker');
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to AT-ST');
                 context.player1.clickPrompt('Trigger');
 
                 context.player1.passAction();
@@ -72,7 +72,7 @@ describe('Barriss Offee, Its Only A Matter Of Time', function() {
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.p1Base);
 
-                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacker');
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to Wampa');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeActivePlayer();
@@ -99,12 +99,12 @@ describe('Barriss Offee, Its Only A Matter Of Time', function() {
             context.player2.clickCard(context.attackRun);
             context.player2.clickCard(context.awing);
             context.player2.clickCard(context.p1Base);
-            expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacker');
+            expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to A-Wing');
             context.player1.clickPrompt('Trigger');
 
             context.player2.clickCard(context.greenSquadronAwing);
             context.player2.clickCard(context.p1Base);
-            expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacker');
+            expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to Green Squadron A-Wing');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeActivePlayer();
