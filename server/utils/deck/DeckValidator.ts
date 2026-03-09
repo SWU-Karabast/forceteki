@@ -236,7 +236,7 @@ export class DeckValidator {
 
     private normalizeSetCodeId(id: string): string {
         const underscoreIndex = id.indexOf('_');
-        if (underscoreIndex === -1) {
+        if (underscoreIndex === -1 || id.length - underscoreIndex - 1 >= 3) {
             return id;
         }
         const setCode = id.substring(0, underscoreIndex);
