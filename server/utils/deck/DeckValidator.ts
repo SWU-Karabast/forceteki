@@ -39,7 +39,7 @@ const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
     [SwuGameFormat.Premier, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
     [SwuGameFormat.Open, new Set(rotationBlocks.keys())],
     [SwuGameFormat.NextSetPreview, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
-    [SwuGameFormat.Eternal, new Set(rotationBlocks.keys())],
+    [SwuGameFormat.Eternal, new Set([SwuRotationBlock.Block0, SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
 ]);
 
 const bannedPremierCards = new Map([
