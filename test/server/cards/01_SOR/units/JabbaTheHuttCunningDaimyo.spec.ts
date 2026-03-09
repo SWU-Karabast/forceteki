@@ -24,7 +24,7 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 context.player1.clickCard(context.jabbaTheHutt);
 
                 // select a trick event on the top 8 cards
-                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHavePrompt('Select a card');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.battlefieldMarine, context.echoBaseDefender, context.cantinaBraggart, context.ardentSympathizer, context.pykeSentinel],
                     selectable: [context.waylay, p1ShootFirst, context.asteroidSanctuary]
@@ -32,6 +32,11 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.waylay);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.waylay]);
+                context.player2.clickDone();
+
                 expect(context.waylay).toBeInZone('hand');
 
                 context.player2.passAction();

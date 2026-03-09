@@ -5,7 +5,7 @@ import * as Contract from '../../utils/Contract';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Helpers from '../../utils/Helpers';
 import type { IButton } from '../PromptInterfaces';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { AllPlayerPrompt } from './AllPlayerPrompt';
 
 export abstract class UiPrompt extends BaseStep {

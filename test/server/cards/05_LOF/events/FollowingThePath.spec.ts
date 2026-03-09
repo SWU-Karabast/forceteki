@@ -15,7 +15,7 @@ describe('Following The Path', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.followingThePath);
-                expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 2 cards');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.devotion],
                     selectable: [context.jediKnight, context.secretiveSage]
@@ -65,7 +65,7 @@ describe('Following The Path', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.followingThePath);
-                expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+                expect(context.player1).toHavePrompt('Select up to 2 cards');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.devotion],
                     selectable: [context.jediKnight, context.secretiveSage]

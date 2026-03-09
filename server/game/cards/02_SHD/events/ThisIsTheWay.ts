@@ -1,7 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { TargetMode, Trait } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, Trait } from '../../../core/Constants';
 
 export default class ThisIsTheWay extends EventCard {
     protected override getImplementationId() {
@@ -19,7 +19,10 @@ export default class ThisIsTheWay extends EventCard {
                 selectCount: 2,
                 searchCount: 8,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Mandalorian) || card.isUpgrade(),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

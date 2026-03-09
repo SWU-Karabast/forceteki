@@ -36,9 +36,10 @@ const rotationBlocks = new Map<SwuRotationBlock, Set<SwuSet>>([
 ]);
 
 const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
-    [SwuGameFormat.Premier, new Set([SwuRotationBlock.Block0, SwuRotationBlock.BlockA])],
+    [SwuGameFormat.Premier, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
     [SwuGameFormat.Open, new Set(rotationBlocks.keys())],
-    [SwuGameFormat.NextSetPreview, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])]
+    [SwuGameFormat.NextSetPreview, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
+    [SwuGameFormat.Eternal, new Set(rotationBlocks.keys())],
 ]);
 
 const bannedPremierCards = new Map([
@@ -52,7 +53,8 @@ const bannedPremierCards = new Map([
 const bannedCardsPerFormat = new Map<SwuGameFormat, Map<string, string>>([
     [SwuGameFormat.Premier, bannedPremierCards],
     [SwuGameFormat.Open, new Map<string, string>()],
-    [SwuGameFormat.NextSetPreview, bannedPremierCards]
+    [SwuGameFormat.NextSetPreview, bannedPremierCards],
+    [SwuGameFormat.Eternal, new Map<string, string>()],
 ]);
 
 const maxCopiesOfCards = new Map([
@@ -77,8 +79,6 @@ interface ICardCheckData {
 export class DeckValidator {
     private readonly cardData: Map<string, ICardCheckData>;
     private readonly setCodeToId: Map<string, string>;
-
-    private static readonly MaxSideboardSize = 10;
 
     public static filterOutSideboardingErrors(failures: IDeckValidationFailures): IDeckValidationFailures {
         const filtered: IDeckValidationFailures = {};
@@ -175,7 +175,7 @@ export class DeckValidator {
 
     // update this function if anything affects the sideboard count
     public getMaxSideboardSize(format: SwuGameFormat): number {
-        // sideboard is only restricted in Premier
+        // sideboard is only restricted in Premier and Eternal
         if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
             return -1;
         }
@@ -400,14 +400,16 @@ export class DeckValidator {
     }
 
     protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        // sideboard is only restricted in Premier
-        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
+        const maxSideboardSize = this.getMaxSideboardSize(format);
+
+        // sideboard is not restricted in all formats (e.g. Open)
+        if (maxSideboardSize < 0) {
             return;
         }
 
-        if (sideboardCardsCount > DeckValidator.MaxSideboardSize) {
+        if (sideboardCardsCount > maxSideboardSize) {
             failures[DeckValidationFailureReason.MaxSideboardSizeExceeded] = {
-                maxSideboardSize: DeckValidator.MaxSideboardSize,
+                maxSideboardSize: maxSideboardSize,
                 actualSideboardSize: sideboardCardsCount
             };
         }

@@ -9,12 +9,13 @@ import type { GameSystem } from '../core/gameSystem/GameSystem.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import type { Player } from '../core/Player.js';
-import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import type { DeckZone } from '../core/zone/DeckZone.js';
+import type { FormatMessage, MsgArg } from '../core/chat/GameChat.js';
+import { MoveCardSystem } from './MoveCardSystem.js';
 
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
@@ -32,14 +33,10 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
 
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
     selectCount?: number | ((context: TContext) => number);
-    revealSelected?: boolean;
     shuffleWhenDone?: boolean | ((context: TContext) => boolean);
     title?: string;
 
-    message?: string;
-    player?: Player;
     choosingPlayer?: Player;
-    messageArgs?: (context: TContext, cards: Card[]) => any | any[];
 
     /** This determines what to do with the selected cards (if a custom selectedCardsHandler is not provided). */
     selectedCardsImmediateEffect?: GameSystem<TContext>;
@@ -70,7 +67,6 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         selectedCardsHandler: null,
         chooseNothingImmediateEffect: null,
         shuffleWhenDone: false,
-        revealSelected: true,
         cardCondition: () => true,
         multiSelectCondition: () => true,
         remainingCardsHandler: null,
@@ -85,7 +81,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         if (this.computeSearchCount(properties.searchCount, context) === 0) {
             return false;
         }
-        const player = properties.player || context.player;
+        const player = this.getSingleTarget(properties.target);
         return this.getDeck(player).length > 0 && super.canAffectInternal(player, context);
     }
 
@@ -99,11 +95,19 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
-        const message =
-        searchCountAmount > 0
-            ? 'look at the top {0} of their deck'
-            : 'search their deck';
-        return [message, [ChatHelpers.pluralize(searchCountAmount, 'card', 'cards')]];
+        const player = this.getSingleTarget(properties.target);
+
+        const targetIsSelf = player === context.player;
+        const targetMessage: string | FormatMessage = targetIsSelf ? 'their' : { format: '{0}\'s', args: [player] };
+        const verb = searchCountAmount === 1 ? 'look at' : 'search';
+        const searchSpaceMessage: string | FormatMessage = searchCountAmount > 0
+            ? { format: 'the top {0} of ', args: [ChatHelpers.pluralize(searchCountAmount, 'card', 'cards')] }
+            : '';
+
+        return [
+            '{0} {1}{2} deck',
+            [verb, searchSpaceMessage, targetMessage]
+        ];
     }
 
     public override defaultTargets(context: TContext): Player[] {
@@ -119,7 +123,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const player = properties.player || context.player;
+        const player = this.getSingleTarget(properties.target);
         const event = this.generateRetargetedEvent(player, context, additionalProperties) as any;
         const deckLength = this.getDeck(player).length;
         const amount = event.amount === -1 ? deckLength : (event.amount > deckLength ? deckLength : event.amount);
@@ -168,11 +172,10 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
         let title = properties.activePromptTitle;
         if (!properties.activePromptTitle) {
-            title = 'Select a card' + (properties.revealSelected ? ' to reveal' : '');
+            title = 'Select a card';
             if (selectAmount < 0 || selectAmount > 1) {
                 title =
-                    `Select ${selectAmount < 0 ? 'all' : 'up to ' + selectAmount} cards` +
-                    (properties.revealSelected ? ' to reveal' : '');
+                    `Select ${selectAmount < 0 ? 'all' : 'up to ' + selectAmount} cards`;
             }
         }
 
@@ -191,6 +194,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 choosingPlayer,
                 promptProperties
             );
+        } else {
+            this.onSearchComplete(properties, context, event, [], cards);
         }
     }
 
@@ -224,52 +229,61 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         context.selectedPromptCards = Array.from(selectedCards);
 
         const selectedCardsSet = new Set(selectedCards);
-
         const cardsToMove = allCards.filter((card) => !selectedCardsSet.has(card));
+
+        const selectedCardMessages: FormatMessage[] = [];
+        const remainingCardMessages: FormatMessage[] = [];
 
         // Handle remaining cards
         if (properties.remainingCardsHandler !== null) {
             properties.remainingCardsHandler(context, event, cardsToMove);
         } else if (properties.remainingCardsImmediateEffect !== null) {
-            this.remainingCardsImmediateEffectHandler(properties, context, event, cardsToMove);
+            this.remainingCardsImmediateEffectHandler(properties, context, event, cardsToMove, remainingCardMessages);
         } else {
-            this.remainingCardsDefaultHandler(context, event, cardsToMove);
+            this.remainingCardsDefaultHandler(context, event, cardsToMove, remainingCardMessages);
         }
 
-        this.searchCompleteHandler(properties, context, event, selectedCardsSet);
+        // Handle selected cards
+        this.searchCompleteHandler(properties, context, event, selectedCardsSet, selectedCardMessages);
         if (properties.selectedCardsHandler === null) {
-            this.selectedCardsDefaultHandler(properties, context, event, selectedCardsSet);
+            this.selectedCardsDefaultHandler(properties, context, event, selectedCardsSet, selectedCardMessages);
         } else {
             properties.selectedCardsHandler(context, event, selectedCards);
         }
 
-        if (this.shouldShuffle(properties.shuffleWhenDone, context)) {
-            context.game.openEventWindow([
-                new ShuffleDeckSystem({}).generateEvent(context)
-            ]);
+        // Shuffle if needed
+        if (
+            // Whole deck search always requires a shuffle
+            this.computeSearchCount(properties.searchCount, context) === -1 ||
+            this.shouldShuffle(properties.shuffleWhenDone, context)
+        ) {
+            this.handleDeckShuffle(properties, context, remainingCardMessages);
         }
+
+        this.buildAndEmitGameMessage(context, [...selectedCardMessages, ...remainingCardMessages]);
     }
 
-    private remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[]) {
+    protected remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[], effectMessages: FormatMessage[]) {
         if (cardsToMove.length > 0) {
-            shuffleArray(cardsToMove, context.game.randomGenerator);
-            for (const card of cardsToMove) {
-                card.moveTo(DeckZoneDestination.DeckBottom);
-            }
-            context.game.addMessage(
-                '{0} puts {1} card{2} on the bottom of their deck',
-                event.player,
-                cardsToMove.length,
-                cardsToMove.length > 1 ? 's' : ''
-            );
+            this.handleMoveToBottomOfDeck(context, event, cardsToMove, effectMessages);
         }
     }
 
-    private remainingCardsImmediateEffectHandler(properties: ISearchDeckProperties, context: TContext, event: any, remainingCards: Card[]): void {
+    private remainingCardsImmediateEffectHandler(
+        properties: ISearchDeckProperties,
+        context: TContext,
+        event: any,
+        remainingCards: Card[],
+        effectMessages: FormatMessage[]
+    ) {
         const gameSystem = properties.remainingCardsImmediateEffect;
         if (gameSystem && remainingCards.length > 0) {
             const events = [];
             gameSystem.setDefaultTargetFn(() => remainingCards);
+
+            const [effectMessage, effectArgs] = gameSystem.getEffectMessage(context);
+            effectMessages.push({ format: effectMessage, args: effectArgs });
+
             gameSystem.queueGenerateEventGameSteps(events, context);
 
             context.game.queueSimpleStep(() => {
@@ -278,9 +292,15 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         }
     }
 
-    private selectedCardsDefaultHandler(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>): void {
+    private selectedCardsDefaultHandler(
+        properties: ISearchDeckProperties,
+        context: TContext,
+        event: any,
+        selectedCards: Set<Card>,
+        effectMessages: FormatMessage[]
+    ) {
         const gameSystem = properties.selectedCardsImmediateEffect;
-        const targetDeckOwner = properties.player || context.player;
+        const targetDeckOwner = this.getSingleTarget(properties.target);
         if (gameSystem && selectedCards.size > 0) {
             const selectedArray = Array.from(selectedCards);
 
@@ -289,42 +309,34 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
             const events = [];
             gameSystem.setDefaultTargetFn(() => selectedArray);
+
+            const [effectMessage, effectArgs] = gameSystem.getEffectMessage(context);
+            effectMessages.push({ format: effectMessage, args: effectArgs });
+
             gameSystem.queueGenerateEventGameSteps(events, context);
 
             context.game.queueSimpleStep(() => {
                 context.game.openEventWindow(events);
-            }, 'resolve effect on searched cards');
+            }, 'resolve effect on selected cards');
         }
     }
 
-    private searchCompleteHandler(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>): void {
-        const choosingPlayer = properties.choosingPlayer || event.player;
-        if (selectedCards.size > 0 && properties.message) {
-            const args = properties.messageArgs ? properties.messageArgs(context, Array.from(selectedCards)) : [];
-            return context.game.addMessage(properties.message, ...args);
-        }
-
+    private searchCompleteHandler(
+        properties: ISearchDeckProperties,
+        context: TContext,
+        event: any,
+        selectedCards: Set<Card>,
+        effectMessages: FormatMessage[]
+    ) {
         if (selectedCards.size === 0) {
-            return this.chooseNothingHandler(properties, context, event);
+            return this.chooseNothingHandler(properties, context, event, effectMessages);
         }
-
-        if (properties.revealSelected) {
-            const isDiscard = properties.selectedCardsImmediateEffect.eventName === EventName.OnCardDiscarded;
-            return context.game.addMessage(`{0} ${isDiscard ? 'discards' : 'takes'} {1}`, choosingPlayer, this.getTargetMessage(Array.from(selectedCards), context));
-        }
-
-        context.game.addMessage(
-            '{0} takes {1} {2}',
-            choosingPlayer,
-            selectedCards.size,
-            selectedCards.size > 1 ? 'cards' : 'card'
-        );
     }
 
-    private chooseNothingHandler(properties: ISearchDeckProperties, context: TContext, event: any) {
+    private chooseNothingHandler(properties: ISearchDeckProperties, context: TContext, event: any, effectMessages: FormatMessage[]) {
         const choosingPlayer = properties.choosingPlayer || event.player;
         const isDiscard = properties.selectedCardsImmediateEffect.eventName === EventName.OnCardDiscarded;
-        context.game.addMessage(`{0} ${isDiscard ? 'discards' : 'takes'} nothing`, choosingPlayer);
+        effectMessages.push({ format: isDiscard ? 'discard no cards' : 'take no cards', args: [choosingPlayer] });
 
         if (properties.chooseNothingImmediateEffect) {
             context.game.queueSimpleStep(() => {
@@ -333,5 +345,68 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 }
             }, 'Choose nothing');
         }
+    }
+
+    private handleMoveToBottomOfDeck(context: TContext, event: any, cards: Card[], effectMessages: FormatMessage[]) {
+        const moveSystem = new MoveCardSystem({
+            target: cards,
+            destination: DeckZoneDestination.DeckBottom,
+            shuffleMovedCards: true
+        });
+
+        const [effectMessage, effectArgs] = moveSystem.getEffectMessage(context);
+        effectMessages.push({ format: effectMessage, args: effectArgs });
+
+        const moveEvents = [];
+        moveSystem.queueGenerateEventGameSteps(moveEvents, context);
+        context.game.queueSimpleStep(() => {
+            context.game.openEventWindow(moveEvents);
+        }, 'resolve move for remaining cards');
+    }
+
+    private handleDeckShuffle(properties: ISearchDeckProperties, context: TContext, effectMessages: FormatMessage[]) {
+        const shuffleSystem = new ShuffleDeckSystem({ target: this.getSingleTarget(properties.target) });
+        const [shuffleMessage, shuffleArgs] = shuffleSystem.getEffectMessage(context);
+        effectMessages.push({ format: shuffleMessage, args: shuffleArgs });
+
+        context.game.openEventWindow([
+            shuffleSystem.generateEvent(context)
+        ]);
+    }
+
+    private getSingleTarget(target: Player | Player[]): Player {
+        if (Array.isArray(target)) {
+            Contract.assertTrue(target.length === 1, 'Support for multiple player targets in SearchDeckSystem not implemented yet');
+
+            return target[0];
+        }
+
+        return target;
+    }
+
+    private buildAndEmitGameMessage(context: TContext, effectMessages: FormatMessage[]) {
+        if (effectMessages.length === 0) {
+            return;
+        }
+
+        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source];
+        const gainAbilitySource = context.ability && context.ability.isCardAbility() && context.ability.gainAbilitySource;
+
+        if (gainAbilitySource && gainAbilitySource !== context.source) {
+            messageArgs.push('\'s gained ability from ', gainAbilitySource);
+        }
+
+        messageArgs.push(' to ');
+        messageArgs.push({
+            format: ChatHelpers.formatWithLength(effectMessages.length, 'to '),
+            args: effectMessages
+        });
+
+        const message: FormatMessage = {
+            format: `{${[...Array(messageArgs.length).keys()].join('}{')}}`,
+            args: messageArgs
+        };
+
+        context.game.addMessage(message.format, ...message.args);
     }
 }
