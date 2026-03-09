@@ -1002,7 +1002,7 @@ export class Lobby {
         this.updateUserLastActivity(user.id);
     }
 
-    private typingstate(socket: Socket, isTyping: boolean) {
+    private typingState(socket: Socket, isTyping: boolean) {
         const userId = socket.user.getId();
         this.gameChat.setTypingState(userId, isTyping);
     }
