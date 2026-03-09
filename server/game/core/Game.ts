@@ -327,7 +327,7 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
-        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR6;
+        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR7;
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
         this._router = options.router;
