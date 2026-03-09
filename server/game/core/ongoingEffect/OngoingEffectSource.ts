@@ -1,18 +1,15 @@
-import type { IGameObjectState } from '../GameObject';
 import { GameObject } from '../GameObject.js';
 import * as Helpers from '../utils/Helpers.js';
 import { Duration, WildcardZoneName } from '../Constants.js';
 import type { OngoingEffect } from './OngoingEffect';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IOngoingEffectFactory } from '../../Interfaces';
+import { registerState, registerStateBase } from '../GameObjectUtils';
 
 // This class is inherited by Card and also represents Framework effects
 
-// Here mostly as a placeholder.
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IOngoingEffectSourceState extends IGameObjectState { }
-
-export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingEffectSourceState> extends GameObject<T> {
+@registerStateBase()
+export abstract class OngoingEffectSourceBase extends GameObject {
     public constructor(game: Game, name = 'Framework effect') {
         super(game, name);
     }
@@ -57,7 +54,6 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
         this.addEffectToEngine(Object.assign({ duration: Duration.WhileSourceInPlay, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
-
     /**
      * Applies a 'lasting effect' (SWU 7.7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */
@@ -88,3 +84,10 @@ export class OngoingEffectSource<T extends IOngoingEffectSourceState = IOngoingE
         this.game.ongoingEffectEngine.removeLastingEffects(this);
     }
 }
+
+// This class intentionally adds no logic.
+// @registerState classes are terminal (cannot be further extended), but we still need
+// a concrete, instantiable type for OngoingEffectSourceBase.
+@registerState()
+export class OngoingEffectSource extends OngoingEffectSourceBase { }
+

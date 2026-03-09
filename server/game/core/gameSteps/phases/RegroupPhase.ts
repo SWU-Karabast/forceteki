@@ -1,5 +1,5 @@
 import { AbilityRestriction, EventName, PhaseName, ZoneName } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';

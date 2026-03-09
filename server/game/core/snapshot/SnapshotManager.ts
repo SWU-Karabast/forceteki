@@ -1,7 +1,7 @@
 import { PhaseName, RollbackSetupEntryPoint } from '../Constants';
 import { RollbackRoundEntryPoint as RollbackRoundEntryPoint } from '../Constants';
 import { SnapshotType } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
 import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
@@ -39,7 +39,7 @@ export class SnapshotManager {
         [SnapshotType.Phase, 2],
     ]);
 
-    private readonly game: Game;
+    readonly #game: Game;
     private readonly _gameStateManager: GameStateManager;
     protected readonly snapshotFactory: SnapshotFactory;
 
@@ -95,7 +95,7 @@ export class SnapshotManager {
     }
 
     public constructor(game: Game, undoMode: UndoMode = UndoMode.Disabled) {
-        this.game = game;
+        this.#game = game;
         this._gameStateManager = new GameStateManager(game);
         this.snapshotFactory = new SnapshotFactory(game, this._gameStateManager);
 
@@ -111,7 +111,7 @@ export class SnapshotManager {
 
     /** Indicates that we're on a new action and that a new action snapshot can be taken */
     public moveToNextTimepoint(timepoint: SnapshotTimepoint) {
-        this.game.resetForNewTimepoint();
+        this.#game.resetForNewTimepoint();
 
         if (this._undoMode === UndoMode.Disabled) {
             // if undo is not enabled, still do explicit GO cleanup to avoid heavy memory usage
@@ -120,7 +120,7 @@ export class SnapshotManager {
         }
 
         if (timepoint === SnapshotTimepoint.Action) {
-            this.snapshotFactory.setNextSnapshotIsSamePlayer(this.game.actionPhaseActivePlayer.id === this.currentSnapshottedActivePlayer);
+            this.snapshotFactory.setNextSnapshotIsSamePlayer(this.#game.actionPhaseActivePlayer.id === this.currentSnapshottedActivePlayer);
         }
 
         this.snapshotFactory.createSnapshotForCurrentTimepoint(timepoint);
@@ -145,8 +145,8 @@ export class SnapshotManager {
             case SnapshotType.Phase:
                 const phaseSnapshotNumber = this.phaseSnapshots.takeSnapshot(settings.phaseName);
 
-                if (this.game.currentPhase === PhaseName.Regroup || this.game.currentPhase === PhaseName.Setup) {
-                    this.addQuickStartOfPhaseSnapshots(this.game.currentPhase);
+                if (this.#game.currentPhase === PhaseName.Regroup || this.#game.currentPhase === PhaseName.Setup) {
+                    this.addQuickStartOfPhaseSnapshots(this.#game.currentPhase);
                 }
 
                 return phaseSnapshotNumber;
@@ -180,7 +180,7 @@ export class SnapshotManager {
         const phaseSnapshotId = this.phaseSnapshots.getSnapshotProperties(phase)?.snapshotId;
         Contract.assertTrue(phaseSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from a ${phase} snapshot, but the latest ${phase} phase start snapshot (${phaseSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that a ${phase} phase start snapshot is taken before creating a quick snapshot from it.`);
 
-        for (const player of this.game.getPlayers()) {
+        for (const player of this.#game.getPlayers()) {
             let quickSnapshots = this.quickSnapshots.get(player.id);
             if (!quickSnapshots) {
                 quickSnapshots = this.snapshotFactory.createMetaSnapshotArray();
@@ -244,7 +244,7 @@ export class SnapshotManager {
     private rollbackToInternal(settings: IGetSnapshotSettings, overrideQuickRollbackPoint?: QuickRollbackPoint): IRollbackResult {
         Contract.assertFalse(settings.type !== SnapshotType.Quick && overrideQuickRollbackPoint != null, 'overrideQuickRollbackPoint can only be set when rolling back a Quick snapshot');
 
-        const gameWonBeforeRollback = this.game.winnerNames.length > 0;
+        const gameWonBeforeRollback = this.#game.winnerNames.length > 0;
 
         let rolledBackSnapshotIdx: number = null;
         switch (settings.type) {
@@ -266,7 +266,7 @@ export class SnapshotManager {
         }
 
         if (rolledBackSnapshotIdx != null) {
-            const gameWonAfterRollback = this.game.winnerNames.length > 0;
+            const gameWonAfterRollback = this.#game.winnerNames.length > 0;
 
             // Throw out all snapshots after the rollback snapshot.
             this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
@@ -310,14 +310,14 @@ export class SnapshotManager {
      * Returns the snapshot type to do a quick rollback to, if available
      */
     private getQuickRollbackPoint(playerId: string): QuickRollbackPoint | null {
-        const player = this.game.getPlayerById(playerId);
+        const player = this.#game.getPlayerById(playerId);
         const playerPromptType = player.promptState.promptType;
 
-        const currentOpenPrompt = this.game.getCurrentOpenPrompt();
+        const currentOpenPrompt = this.#game.getCurrentOpenPrompt();
 
         // if we're currently in resource selection and the player has already clicked "done", we'll roll back to start of resource selection
         if (
-            this.game.currentPhase === PhaseName.Regroup &&
+            this.#game.currentPhase === PhaseName.Regroup &&
             playerPromptType === PromptType.Resource &&
             currentOpenPrompt?.isAllPlayerPrompt() &&
             currentOpenPrompt?.completionCondition(player)

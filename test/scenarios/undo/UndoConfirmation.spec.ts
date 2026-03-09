@@ -315,6 +315,39 @@ describe('Undo confirmation', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
+        it('should require confirmation for the acting player to rollback after discarding a card from their own deck', async function() {
+            await contextRef.setupTestAsync({
+                enableConfirmationToUndo: true,
+                phase: 'action',
+                player1: {
+                    deck: ['black-sun-patroller'],
+                    groundArena: ['bt1#blastomech']
+                },
+                player2: {
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Generate a quick snapshot
+            context.player2.passAction();
+
+            // Attack with BT-1, triggering the discard ability
+            context.player1.clickCard(context.bt1);
+            context.player1.clickCard(context.p2Base);
+
+            // Card is discarded and rollback requires confirmation since new information was revealed
+            expect(context.blackSunPatroller).toBeInZone('discard', context.player1);
+            expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+
+            contextRef.snapshot.quickRollback(context.player1.id);
+            expect(context.player2).toHaveConfirmUndoPrompt();
+
+            context.player2.clickPrompt('Allow');
+            expect(context.player1).toBeActivePlayer();
+        });
+
         it('should require confirmation for the acting player to rollback after taking control of an opponent resource', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

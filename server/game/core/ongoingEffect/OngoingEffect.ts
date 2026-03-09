@@ -3,13 +3,14 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { GameObject } from '../GameObject';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerStateBase, stateRefArray } from '../GameObjectUtils';
+import type { Player } from '../Player';
 
 export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
     targets: GameObjectRef<TTarget>[];
@@ -42,9 +43,9 @@ export interface IOngoingEffectState<TTarget extends GameObject> extends IGameOb
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-@registerState()
-export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TState extends IOngoingEffectState<TTarget> = IOngoingEffectState<TTarget>> extends GameObjectBase<TState> {
-    public source: Card;
+@registerStateBase()
+export abstract class OngoingEffect<TTarget extends GameObject = GameObject> extends GameObjectBase {
+    public readonly source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
     public readonly matchTarget: TTarget | ((target: TTarget, context: AbilityContext) => boolean);
     public readonly duration?: Duration;
@@ -55,13 +56,12 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
     public readonly ongoingEffect: IOngoingEffectProps<TTarget>;
     public context: AbilityContext;
 
-    @undoArray()
+    @stateRefArray()
     public accessor targets: readonly TTarget[] = [];
 
     public get type() {
         return this.impl.type;
     }
-
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps<TTarget>, effectImpl: OngoingEffectImpl<any>) {
         Contract.assertFalse(
@@ -91,8 +91,12 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
         return this.impl.getValue(card);
     }
 
+    protected abilityPlayer(): Player {
+        return this.source.controller;
+    }
+
     public refreshContext() {
-        this.context = this.game.getFrameworkContext(this.source.controller);
+        this.context = this.game.getFrameworkContext(this.abilityPlayer());
         this.context.source = this.source;
         // The process of creating the OngoingEffect tacks on additional properties that are ability related,
         //  so this is *probably* fine, but definitely a sign it needs a refactor at some point.
@@ -108,9 +112,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
         return null;
     }
 
-    public getTargets() {
-        return [];
-    }
+    public abstract getTargets(): TTarget[];
 
     public addTarget(target: TTarget) {
         this.targets = [...this.targets, target];
@@ -200,7 +202,9 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject, TSt
         };
     }
 
-    public override afterSetAllState(oldState: TState) {
+    public override afterSetAllState(oldState) {
         this.refreshContext();
     }
 }
+
+
