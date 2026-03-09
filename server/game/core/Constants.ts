@@ -342,6 +342,7 @@ export enum MetaEventName {
     PlayCard = 'playCard',
     RandomSelection = 'randomSelection',
     ReplacementEffect = 'replacementEffect',
+    RevealAndDrawCard = 'revealAndDrawCard',
     SelectCard = 'selectCard',
     SelectPlayer = 'selectPlayer',
     Sequential = 'sequential',
@@ -619,7 +620,8 @@ export enum NamedAction {
 export enum SwuGameFormat {
     Premier = 'premier',
     NextSetPreview = 'nextSetPreview',
-    Open = 'open'
+    Open = 'open',
+    Eternal = 'eternal',
 }
 
 export enum GamesToWinMode {

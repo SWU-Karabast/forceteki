@@ -1,14 +1,18 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
-import type { CardType, DamageType } from '../core/Constants';
+import type { CardType } from '../core/Constants';
+import { DamageType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../core/card/Card';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+
+import { registerState } from '../core/GameObjectUtils';
 
 export interface DamageDealtEntry {
     damageType: DamageType;
@@ -22,10 +26,12 @@ export interface DamageDealtEntry {
     targetController: GameObjectRef<Player>;
     amount: number;
     isIndirect: boolean;
+    activeAttackId?: number;
 }
 
 export type IDamageDealtThisPhase = DamageDealtEntry[];
 
+@registerState()
 export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> {
     public constructor(
         game: Game,
@@ -53,13 +59,23 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
     }
 
     public unitHasDealtDamage(card: Card, filter: (entry: UnwrapRef<DamageDealtEntry>) => boolean = () => true): boolean {
-        return this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.damageSourceCardType))
-            .filter((entry) => {
-                return entry.damageSourceCard === card &&
-                  card.canBeInPlay() &&
-                  entry.damageSourceInPlayId === this.getCardId(card) &&
-                  filter(entry);
-            }).length > 0;
+        return this.getCurrentValue()
+            .filter((entry) =>
+                EnumHelpers.isUnit(entry.damageSourceCardType) &&
+                entry.damageSourceCard === card &&
+                card.canBeInPlay() &&
+                entry.damageSourceInPlayId === this.getCardId(card) &&
+                filter(entry)
+            ).length > 0;
+    }
+
+    public unitHasDealtCombatDamageToBaseThisAttack(card: Card, context: TriggeredAbilityContext): boolean {
+        return this.unitHasDealtDamage(
+            card,
+            (entry) =>
+                entry.activeAttackId === context.event.attack.id &&
+                ((entry.damageType === DamageType.Combat && entry.targets.some((target) => target.isBase())) || entry.damageType === DamageType.Overwhelm)
+        );
     }
 
     protected override setupWatcher() {
@@ -72,37 +88,42 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                 let damageSourceCardType: CardType = undefined;
                 let damageSourceInPlayId: number = undefined;
                 let targets: GameObjectRef<Card>[] = [];
+                let activeAttackId: number = undefined;
 
-                if (event.type === 'combat') {
+                if (event.type === DamageType.Combat) {
                     damageSourceCard = event.damageSource.attack?.attacker.getRef();
                     damageSourceInPlayId = this.getCardId(event.damageSource.attack?.attacker);
                     damageSourceCardType = event.damageSource.attack?.attacker.type;
                     targets = event.damageSource.attack?.getAllTargets().map((x) => x.getRef());
-                } else if (event.type === 'overwhelm') {
+                    activeAttackId = event.damageSource.attack?.id;
+                } else if (event.type === DamageType.Overwhelm) {
                     damageSourceCard = event.damageSource.attack?.attacker.getRef();
                     damageSourceCardType = event.damageSource.attack?.attacker.type;
                     damageSourceInPlayId = this.getCardId(event.damageSource.attack?.attacker);
                     targets = [event.card.getRef()];
-                } else if (event.type === 'ability') {
+                    activeAttackId = event.damageSource.attack?.id;
+                } else if (event.type === DamageType.Ability) {
                     damageSourceCard = event.damageSource.card.getRef();
                     damageSourceCardType = event.damageSource.card.type;
                     // TODO FIX EMPTY DECK DAMAGE EVENT
                     damageSourceInPlayId = 'canBeInPlay' in event.damageSource.card && event.damageSource.card.canBeInPlay() ? this.getCardId(event.damageSource.card) : null;
                     targets = [event.card.getRef()];
+                    activeAttackId = this.game.currentAttack?.id;
                 }
 
                 return currentState.concat({
                     damageType: event.type,
-                    damageSourceCard: damageSourceCard,
-                    damageSourceInPlayId: damageSourceInPlayId,
-                    damageSourceCardType: damageSourceCardType,
-                    targets: targets,
+                    damageSourceCard,
+                    damageSourceInPlayId,
+                    damageSourceCardType,
+                    targets,
                     damageSourcePlayer: event.damageSource.player?.getRef(),
                     damageSourceEventId: event.damageSource.eventId,
                     targetType: event.card.type,
                     targetController: event.card.controller?.getRef(),
                     amount: event.damageDealt,
                     isIndirect: event.isIndirect,
+                    activeAttackId,
                 });
             }
         });

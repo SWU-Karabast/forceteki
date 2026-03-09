@@ -1,5 +1,5 @@
 import { ZoneName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { registerState } from '../GameObjectUtils';
 import { ConcreteArenaZone } from './ConcreteArenaZone';
 

@@ -4,7 +4,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
-
 export default class TheGalleonMaraudingPirateShip extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {

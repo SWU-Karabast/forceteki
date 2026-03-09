@@ -8,8 +8,10 @@ import type { IEventCard } from '../core/card/EventCard.js';
 import type { ITargetResult } from '../core/ability/abilityTargets/TargetResolver.js';
 import type { EventAbility } from '../core/ability/EventAbility';
 import type { Player } from '../core/Player';
+import { registerState, registerStateBase } from '../core/GameObjectUtils';
 
-export class PlayEventAction extends PlayCardAction {
+@registerStateBase()
+export abstract class PlayEventActionBase extends PlayCardAction {
     private earlyTargetResults?: ITargetResult;
 
     public override executeHandler(context: PlayCardContext): void {
@@ -79,9 +81,8 @@ export class PlayEventAction extends PlayCardAction {
 
         const eventAbility = context.source.getEventAbility();
 
-        // if the opponent will be making any selections or the ability is optional, then we need to do play in the correct order (i.e. move to discard first, then select)
+        // if the ability is optional, then we need to do play in the correct order (i.e. move to discard first, then select)
         if (
-            eventAbility.hasTargetsChosenByPlayer(context, context.player.opponent) ||
             eventAbility.playerChoosingOptional === RelativePlayer.Opponent ||
             eventAbility.optional ||
             this.usesExploit(context as unknown as AbilityContext<IEventCard>) ||
@@ -155,5 +156,12 @@ export class PlayEventAction extends PlayCardAction {
 
     private generateEventAbilityContext(eventAbility: EventAbility, player: Player) {
         return eventAbility.createContext(player);
+    }
+}
+
+@registerState()
+export class PlayEventAction extends PlayEventActionBase {
+    public override getGameObjectName() {
+        return 'PlayEventAction';
     }
 }

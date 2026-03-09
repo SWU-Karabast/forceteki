@@ -5,9 +5,11 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 import type { ICardAttributes } from '../Interfaces';
+
+import { registerState } from '../core/GameObjectUtils';
 
 export interface AttackEntry {
     attacker: GameObjectRef<IUnitCard>;
@@ -18,8 +20,10 @@ export interface AttackEntry {
     targetInPlayId?: number;
     defendingPlayer: GameObjectRef<Player>;
     actionNumber: number;
+    attackId: number;
 }
 
+@registerState()
 export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
     public constructor(
         game: Game,
@@ -29,14 +33,11 @@ export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
 
     protected override mapCurrentValue(stateValue: AttackEntry[]): UnwrapRef<AttackEntry>[] {
         return stateValue.map((x) => ({
+            ...x,
             attacker: this.game.getFromRef(x.attacker),
-            attackerInPlayId: x.attackerInPlayId,
-            attackerAttributes: x.attackerAttributes,
             attackingPlayer: this.game.getFromRef(x.attackingPlayer),
             targets: x.targets.map((y) => this.game.getFromRef(y)),
-            targetInPlayId: x.targetInPlayId,
             defendingPlayer: this.game.getFromRef(x.defendingPlayer),
-            actionNumber: x.actionNumber
         }));
     }
 
@@ -97,6 +98,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
                     targetInPlayId: event.attack.targetInPlayId,
                     defendingPlayer: event.attack.getDefendingPlayer().getRef(),
                     actionNumber: event.context.game.actionNumber,
+                    attackId: event.attack.id,
                 })
         });
     }

@@ -5,8 +5,10 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+
+import { registerState } from '../core/GameObjectUtils';
 
 export interface DiscardedCardEntry {
     card: GameObjectRef<Card>;
@@ -15,6 +17,7 @@ export interface DiscardedCardEntry {
     discardedPlayId: number;
 }
 
+@registerState()
 export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEntry> {
     public constructor(
         game: Game,

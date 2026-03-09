@@ -1,7 +1,7 @@
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import { AbilityType } from '../../Constants';
 import type { EventWindow } from '../../event/EventWindow';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { TriggerWindowBase } from './TriggerWindowBase';
 
 export class TriggeredAbilityWindow extends TriggerWindowBase {

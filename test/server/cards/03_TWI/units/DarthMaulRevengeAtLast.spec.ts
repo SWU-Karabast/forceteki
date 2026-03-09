@@ -518,7 +518,6 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.darthMaul.getPower()).toBe(8);
 
             // Use Vambrace Flamethrower to spread 3 damage, but this shouldn't be added to Maul's power
-            context.player1.clickPrompt('Trigger');
             context.player1.setDistributeDamagePromptState(new Map([
                 [context.moistureFarmer, 2],
                 [context.cantinaBraggart, 1],

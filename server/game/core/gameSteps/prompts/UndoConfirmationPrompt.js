@@ -3,7 +3,7 @@ const HandlerMenuPrompt = require('./HandlerMenuPrompt.js');
 
 class UndoConfirmationPrompt extends HandlerMenuPrompt {
     /**
-     * @param {import('../../Game')} game
+     * @param {import('../../Game').Game} game
      * @param {import('../../Player').Player} promptedPlayer
      * @param {string} promptTypeMessage
      * @param {function} rollbackHandler

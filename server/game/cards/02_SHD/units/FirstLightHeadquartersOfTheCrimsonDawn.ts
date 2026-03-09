@@ -1,10 +1,12 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { PlayUnitAction } from '../../../actions/PlayUnitAction';
+import { PlayUnitActionBase } from '../../../actions/PlayUnitAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, PlayType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+
+import { registerState } from '../../../core/GameObjectUtils';
 
 export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -33,7 +35,8 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
     }
 }
 
-class FirstLightSmuggleAction extends PlayUnitAction {
+@registerState()
+class FirstLightSmuggleAction extends PlayUnitActionBase {
     private abilityHelper: IAbilityHelper;
 
     private static generateProperties(AbilityHelper: IAbilityHelper, properties: IPlayCardActionOverrides = {}): IPlayCardActionProperties {

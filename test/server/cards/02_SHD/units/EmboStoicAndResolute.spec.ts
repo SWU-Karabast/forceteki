@@ -47,6 +47,7 @@ describe('Embo, Stoic and Resolute', function () {
                 // defender is defeated but not in discard
                 context.player1.clickCard(context.embo);
                 context.player1.clickCard(context.superlaserTechnician);
+                context.player1.clickPrompt('Opponent');
                 context.player2.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.embo, context.escortSkiff, context.consularSecurityForce, context.swoopRacer, context.greenSquadronAwing]);
                 context.player1.setDistributeHealingPromptState(new Map([
@@ -84,8 +85,6 @@ describe('Embo, Stoic and Resolute', function () {
                 // kill battlefield marine, should heal 2 from a unit
                 context.player1.clickCard(context.embo);
                 context.player1.clickCard(context.battlefieldMarine);
-
-                context.player1.clickPrompt('Trigger');
 
                 // kill battlefield marine with flamethrower, embo should heal up to 2 damage
                 context.player1.setDistributeDamagePromptState(new Map([

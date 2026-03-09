@@ -1,232 +1,325 @@
-const EventEmitter = require('events');
+import { EventEmitter } from 'events';
 
-const { GameChat } = require('./chat/GameChat.js');
-const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
-const { Player } = require('./Player.js');
-const { Spectator } = require('../../Spectator.js');
-const { AnonymousSpectator } = require('../../AnonymousSpectator.js');
-const { GamePipeline } = require('./GamePipeline.js');
-const { SetupPhase } = require('./gameSteps/phases/SetupPhase.js');
-const { ActionPhase } = require('./gameSteps/phases/ActionPhase.js');
-const { RegroupPhase } = require('./gameSteps/phases/RegroupPhase.js');
-const { SimpleStep } = require('./gameSteps/SimpleStep.js');
-const MenuPrompt = require('./gameSteps/prompts/MenuPrompt.js');
-const HandlerMenuPrompt = require('./gameSteps/prompts/HandlerMenuPrompt.js');
-const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
-const GameSystems = require('../gameSystems/GameSystemLibrary.js');
-const { GameEvent } = require('./event/GameEvent.js');
-const { EventWindow, TriggerHandlingMode } = require('./event/EventWindow');
-const { AbilityResolver } = require('./gameSteps/AbilityResolver.js');
-const { AbilityContext } = require('./ability/AbilityContext.js');
-const Contract = require('./utils/Contract.js');
-const { cards } = require('../cards/Index.js');
+import { GameChat } from './chat/GameChat';
+import type { MsgArg } from './chat/GameChat';
+import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
+import { Player } from './Player';
+import { Spectator } from '../../Spectator';
+import { AnonymousSpectator } from '../../AnonymousSpectator';
+import { GamePipeline } from './GamePipeline';
+import { SetupPhase } from './gameSteps/phases/SetupPhase';
+import { ActionPhase } from './gameSteps/phases/ActionPhase';
+import { RegroupPhase } from './gameSteps/phases/RegroupPhase';
+import { SimpleStep } from './gameSteps/SimpleStep';
+import MenuPrompt from './gameSteps/prompts/MenuPrompt';
+import HandlerMenuPrompt from './gameSteps/prompts/HandlerMenuPrompt';
+import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
+import * as GameSystems from '../gameSystems/GameSystemLibrary';
+import { GameEvent } from './event/GameEvent';
+import { EventWindow, TriggerHandlingMode } from './event/EventWindow';
+import { AbilityResolver } from './gameSteps/AbilityResolver';
+import { AbilityContext } from './ability/AbilityContext';
+import * as Contract from './utils/Contract';
+import { cards } from '../cards/Index';
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType, SnapshotType, RollbackRoundEntryPoint, RollbackSetupEntryPoint, GameErrorSeverity, GameEndReason, EffectName } = require('./Constants.js');
-const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
-const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
-const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
-const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.js');
-const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
-const { Card } = require('./card/Card.js');
-const { GroundArenaZone } = require('./zone/GroundArenaZone.js');
-const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
-const { AllArenasZone } = require('./zone/AllArenasZone.js');
-const EnumHelpers = require('./utils/EnumHelpers.js');
-const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
-const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
-const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
-const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
-const { WildcardCardType } = require('./Constants');
-const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
-const { GameStateManager } = require('./snapshot/GameStateManager.js');
-const { ActionWindow } = require('./gameSteps/ActionWindow.js');
-const { User } = require('../../utils/user/User');
-const { GameObjectBase } = require('./GameObjectBase.js');
-const Helpers = require('./utils/Helpers.js');
-const { CostAdjuster } = require('./cost/CostAdjuster.js');
-const { logger } = require('../../logger.js');
-const { SnapshotManager, UndoMode } = require('./snapshot/SnapshotManager.js');
-const AbilityHelper = require('../AbilityHelper.js');
-const { AbilityLimitInstance } = require('./ability/AbilityLimit.js');
-const { getAbilityHelper } = require('../AbilityHelper.js');
-const { PhaseInitializeMode } = require('./gameSteps/phases/Phase.js');
-const { Randomness } = require('../core/Randomness.js');
-const { RollbackEntryPointType, QuickUndoAvailableState } = require('./snapshot/SnapshotInterfaces.js');
-const { Lobby } = require('../../gamenode/Lobby.js');
-const { DiscordDispatcher } = require('./DiscordDispatcher.js');
-const { GameStatisticsLogger } = require('../../gameStatistics/GameStatisticsTracker.js');
-const { UiPrompt } = require('./gameSteps/prompts/UiPrompt.js');
-const { QuickRollbackPoint } = require('./snapshot/container/MetaSnapshotArray.js');
-const { PerGameUndoLimit, UnlimitedUndoLimit } = require('./snapshot/UndoLimit.js');
-const UndoConfirmationPrompt = require('./gameSteps/prompts/UndoConfirmationPrompt.js');
-const { AdditionalPhaseEffect } = require('./ongoingEffect/effectImpl/AdditionalPhaseEffect.js');
-const { AttackRulesVersion } = require('./attack/AttackFlow.js');
+import {
+    AlertType,
+    EffectName,
+    EventName,
+    GameEndReason,
+    GameErrorSeverity,
+    PhaseName,
+    RollbackRoundEntryPoint,
+    RollbackSetupEntryPoint,
+    SnapshotType,
+    TokenCardName,
+    TokenUpgradeName,
+    TokenUnitName,
+    WildcardCardType,
+    WildcardZoneName,
+    ZoneName
+} from './Constants';
+import type { TokenName, Trait } from './Constants';
+import { StateWatcherRegistrar } from './stateWatcher/StateWatcherRegistrar';
+import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmongTargetsPrompt';
+import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
+import { DropdownListPrompt } from './gameSteps/prompts/DropdownListPrompt';
+import type { IDropdownListPromptProperties } from './gameSteps/prompts/DropdownListPrompt';
+import { UnitPropertiesCard } from './card/propertyMixins/UnitProperties';
+import type { Card } from './card/Card';
+import { GroundArenaZone } from './zone/GroundArenaZone';
+import { SpaceArenaZone } from './zone/SpaceArenaZone';
+import { AllArenasZone } from './zone/AllArenasZone';
+import type { IAllArenasZoneCardFilterProperties, IAllArenasSpecificTypeCardFilterProperties } from './zone/AllArenasZone';
+import * as EnumHelpers from './utils/EnumHelpers';
+import { SelectCardPrompt } from './gameSteps/prompts/SelectCardPrompt';
+import { DisplayCardsWithButtonsPrompt } from './gameSteps/prompts/DisplayCardsWithButtonsPrompt';
+import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCardsForSelectionPrompt';
+import { DisplayCardsBasicPrompt } from './gameSteps/prompts/DisplayCardsBasicPrompt';
+import { validateGameConfiguration, validateGameOptions } from './GameInterfaces';
+import type { GameConfiguration, GameOptions, ICurrentlyResolving } from './GameInterfaces';
+import type { GameObjectBase, GameObjectRef } from './GameObjectBase';
+import * as Helpers from './utils/Helpers';
+import type { CostAdjuster } from './cost/CostAdjuster';
+import { logger } from '../../logger';
+import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';
+import { getAbilityHelper } from '../AbilityHelper';
+import type { IAbilityHelper } from '../AbilityHelper';
+import { PhaseInitializeMode } from './gameSteps/phases/Phase';
+import { Randomness } from './Randomness';
+import type { IRandomness } from './Randomness';
+import { RollbackEntryPointType, QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
+import type {
+    IGameState,
+    IGetSnapshotSettings,
+    ICanRollBackResult,
+    IRollbackSetupEntryPoint,
+    IRollbackRoundEntryPoint
+} from './snapshot/SnapshotInterfaces';
+import type { Lobby } from '../../gamenode/Lobby';
+import { GameStatisticsLogger } from '../../gameStatistics/GameStatisticsTracker';
+import type { IGameStatisticsTracker } from '../../gameStatistics/GameStatisticsTracker';
+import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
+import { PerGameUndoLimit, UnlimitedUndoLimit } from './snapshot/UndoLimit';
+import type { UndoLimit } from './snapshot/UndoLimit';
+import UndoConfirmationPrompt from './gameSteps/prompts/UndoConfirmationPrompt';
+import type { AdditionalPhaseEffect } from './ongoingEffect/effectImpl/AdditionalPhaseEffect';
+import { AttackRulesVersion } from './attack/AttackFlow';
+import type { IStep } from './gameSteps/IStep';
+import type { ITokenCard } from './card/propertyMixins/Token';
+import type { IClientUIProperties, ISerializedGameState } from '../Interfaces';
+import type {
+    IDisplayCardsWithButtonsPromptProperties,
+    IDisplayCardsSelectProperties,
+    IDisplayCardsBasicPromptProperties,
+    ISelectCardPromptProperties,
+    IDistributeAmongTargetsPromptProperties,
+    IStatefulPromptResults
+} from './gameSteps/PromptInterfaces';
+import type { GameMode } from '../../GameMode';
+import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
+import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
+import type { IUser } from '../../Settings';
+import type { Deck } from '../../utils/deck/Deck';
+import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 
-class Game extends EventEmitter {
-    #debug;
-    #experimental;
+export class Game extends EventEmitter {
+    private _debug: { pipeline: boolean };
+    private _experimental: Record<string, never>;
 
-    /** @returns { Player | null } */
-    get actionPhaseActivePlayer() {
+    // #region ──── State-backed Properties ────────────────────────────────────
+
+    public get actionPhaseActivePlayer(): Player | null {
         return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
     }
 
-    /**
-     * @argument {Player | null} value
-     */
-    set actionPhaseActivePlayer(value) {
+    public set actionPhaseActivePlayer(value: Player | null) {
         this.state.actionPhaseActivePlayer = value?.getRef();
     }
 
-    get allCards() {
+    public get allCards() {
         return this.state.allCards.map((x) => this.getFromRef(x));
     }
 
-    /** @returns { Player | null } */
-    get initialFirstPlayer() {
+    public get initialFirstPlayer(): Player | null {
         return this.gameObjectManager.get(this.state.initialFirstPlayer);
     }
 
-    /**
-     * @argument {Player | null} value
-     */
-    set initialFirstPlayer(value) {
+    public set initialFirstPlayer(value: Player | null) {
         this.state.initialFirstPlayer = value?.getRef();
     }
 
-    /** @returns { Player | null } */
-    get initiativePlayer() {
+    public get initiativePlayer(): Player | null {
         return this.gameObjectManager.get(this.state.initiativePlayer);
     }
 
-    /**
-     * @argument {Player | null} value
-     */
-    set initiativePlayer(value) {
+    public set initiativePlayer(value: Player | null) {
         this.state.initiativePlayer = value?.getRef();
     }
 
-    get isInitiativeClaimed() {
+    public get isInitiativeClaimed() {
         return this.state.isInitiativeClaimed;
     }
 
-    set isInitiativeClaimed(value) {
+    public set isInitiativeClaimed(value: boolean) {
         this.state.isInitiativeClaimed = value;
     }
 
-    get roundNumber() {
+    public get roundNumber() {
         return this.state.roundNumber;
     }
 
-    set roundNumber(value) {
+    public set roundNumber(value: number) {
         Contract.assertNonNegative(value, 'Round number must be non-negative: ' + value);
         this.state.roundNumber = value;
     }
 
-    get isDebugPipeline() {
-        return this.#debug.pipeline;
-    }
-
-    get snapshotManager() {
-        return this._snapshotManager;
-    }
-
-    get isUndoEnabled() {
-        return this.snapshotManager.undoMode !== UndoMode.Disabled;
-    }
-
-    get actionNumber() {
+    public get actionNumber() {
         return this.state.actionNumber;
     }
 
-    set actionNumber(value) {
+    public set actionNumber(value: number) {
         Contract.assertNonNegative(value, 'Action number must be non-negative: ' + value);
         this.state.actionNumber = value;
     }
 
-    get gameObjectManager() {
-        return this._snapshotManager.gameObjectManager;
-    }
-
-    get winnerNames() {
+    public get winnerNames(): readonly string[] {
         return this.state.winnerNames;
     }
 
-    get randomGenerator() {
-        return this._randomGenerator;
-    }
-
-    get currentPhase() {
+    public get currentPhase() {
         return this.state.currentPhase;
     }
 
-    set currentPhase(value) {
+    public set currentPhase(value: PhaseName | null) {
         this.state.currentPhase = value;
     }
 
-    get currentAbilityResolver() {
-        return this.currentlyResolving.abilityResolver;
-    }
-
-    set currentAbilityResolver(value) {
-        this.currentlyResolving.abilityResolver = value;
-    }
-
-    get currentActionWindow() {
-        return this.currentlyResolving.actionWindow;
-    }
-
-    set currentActionWindow(value) {
-        this.currentlyResolving.actionWindow = value;
-    }
-
-    get currentAttack() {
-        return this.currentlyResolving.attack;
-    }
-
-    set currentAttack(value) {
-        this.currentlyResolving.attack = value;
-    }
-
-    get currentEventWindow() {
-        return this.currentlyResolving.eventWindow;
-    }
-
-    set currentEventWindow(value) {
-        this.currentlyResolving.eventWindow = value;
-    }
-
-    get lastEventId() {
+    public get lastEventId() {
         return this.state.lastGameEventId;
     }
 
-    get lobbyId() {
-        return this._router.id;
-    }
-
-    get gameStepsSinceLastUndo() {
-        return this.snapshotManager.gameStepsSinceLastUndo;
-    }
-
-    get serializationFailure() {
-        return this._serializationFailure;
-    }
-
-    /** @type {boolean | null} */
-    get prevActionPhasePlayerPassed() {
+    public get prevActionPhasePlayerPassed(): boolean | null {
         return this.state.prevActionPhasePlayerPassed;
     }
 
-    /** @type {boolean | null} */
-    set prevActionPhasePlayerPassed(value) {
+    public set prevActionPhasePlayerPassed(value: boolean | null) {
         this.state.prevActionPhasePlayerPassed = value;
     }
 
-    /**
-     * @param {import('./GameInterfaces.js').GameConfiguration} details
-     * @param {import('./GameInterfaces.js').GameOptions} options
-     */
-    constructor(details, options) {
+    // #endregion
+
+    // #region ──── Currently-resolving Properties ─────────────────────────────
+
+    public get currentAbilityResolver() {
+        return this.currentlyResolving.abilityResolver;
+    }
+
+    public set currentAbilityResolver(value: AbilityResolver | null) {
+        this.currentlyResolving.abilityResolver = value;
+    }
+
+    public get currentActionWindow() {
+        return this.currentlyResolving.actionWindow;
+    }
+
+    public set currentActionWindow(value: any) {
+        this.currentlyResolving.actionWindow = value;
+    }
+
+    public get currentAttack() {
+        return this.currentlyResolving.attack;
+    }
+
+    public set currentAttack(value: any) {
+        this.currentlyResolving.attack = value;
+    }
+
+    public get currentEventWindow() {
+        return this.currentlyResolving.eventWindow;
+    }
+
+    public set currentEventWindow(value: EventWindow | null) {
+        this.currentlyResolving.eventWindow = value;
+    }
+
+    // #endregion
+
+    // #region ──── Other Getters ──────────────────────────────────────────────
+
+    public get isDebugPipeline() {
+        return this._debug.pipeline;
+    }
+
+    public get snapshotManager(): SnapshotManager {
+        return this._snapshotManager;
+    }
+
+    public get isUndoEnabled() {
+        return this.snapshotManager.undoMode !== UndoMode.Disabled;
+    }
+
+    public get gameObjectManager(): IGameObjectRegistrar {
+        return this._snapshotManager.gameObjectManager;
+    }
+
+    public get randomGenerator(): IRandomness {
+        return this._randomGenerator;
+    }
+
+    public get lobbyId() {
+        return this._router.id;
+    }
+
+    public get gameStepsSinceLastUndo() {
+        return this.snapshotManager.gameStepsSinceLastUndo;
+    }
+
+    public get serializationFailure() {
+        return this._serializationFailure;
+    }
+
+    public get messages() {
+        return this.gameChat.messages;
+    }
+
+    public get actions() {
+        return GameSystems;
+    }
+
+    // #endregion
+
+    // #region ──── Instance Fields ────────────────────────────────────────────
+
+    public readonly attackRulesVersion: AttackRulesVersion;
+    private readonly _snapshotManager: SnapshotManager;
+    private readonly _randomGenerator: IRandomness;
+    private readonly _router: Lobby;
+
+    public ongoingEffectEngine: OngoingEffectEngine;
+    public abilityHelper: IAbilityHelper;
+    public playersAndSpectators: Record<string, Player | Spectator>;
+    public chatMessageOffsets: Map<string, number>;
+    public gameChat: GameChat;
+    public pipeline: GamePipeline;
+    public id: string;
+    public allowSpectators: boolean;
+    private freeUndoLimit: UndoLimit;
+    public owner: string;
+    public started: boolean;
+    public statsUpdated: boolean;
+    public playStarted: boolean;
+    public createdAt: Date;
+    public preUndoStateForError: { gameState: ISerializedGameState; settings: IGetSnapshotSettings } | null;
+    public undoConfirmationOpen: boolean;
+    private _serializationFailure: boolean;
+    private _lastAttackId: number;
+    public playerHasBeenPrompted: Map<string, boolean>;
+    public readonly buildSafeTimeoutHandler: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
+    public readonly userTimeoutDisconnect: (userId: string) => void;
+    public readonly preselectedFirstPlayerId: string | undefined;
+    public manualMode: boolean;
+    public gameMode: GameMode;
+    public currentlyResolving: ICurrentlyResolving;
+    public state: IGameState;
+    public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
+    public stateWatcherRegistrar: StateWatcherRegistrar;
+    public cardDataGetter: CardDataGetter;
+    public playableCardTitles: string[];
+    public allNonLeaderCardTitles: string[];
+    public readonly statsTracker: IGameStatisticsTracker;
+    public clientUIProperties: IClientUIProperties;
+    public spaceArena: SpaceArenaZone;
+    public groundArena: GroundArenaZone;
+    public allArenas: AllArenasZone;
+    public startedAt?: Date;
+    public finishedAt?: Date;
+    public gameEndReason?: GameEndReason;
+    private _actionsSinceLastUndo?: number;
+
+    // #endregion
+
+    public constructor(details: GameConfiguration, options: GameOptions) {
         super();
 
         Contract.assertNotNullLike(details);
@@ -234,34 +327,21 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
-        /** @public @readonly @type {import('./attack/AttackFlow.js').AttackRulesVersion} */
-        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR6;
-
-        /** @private @readonly @type {import('./snapshot/SnapshotManager.js').SnapshotManager} */
+        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR7;
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
-
-        /** @private @readonly @type {import('./Randomness.js').IRandomness} */
         this._randomGenerator = new Randomness();
-
-        /** @private @readonly @type {Lobby} */
         this._router = options.router;
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
-
-        /** @type {import('../AbilityHelper.js').IAbilityHelper} */
         this.abilityHelper = getAbilityHelper(this);
 
-        /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
-
-        /** @type {Map<string, number>} Tracks the last message offset sent to each user/spectator */
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
 
-        /** @private @type {import('./snapshot/UndoLimit.js').UndoLimit} */
         this.freeUndoLimit = details.undoMode === UndoMode.Request
             ? new PerGameUndoLimit(1)
             : new UnlimitedUndoLimit();
@@ -272,34 +352,25 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.createdAt = new Date();
         this.preUndoStateForError = null;
-
-        /** @public @type {boolean} */
         this.undoConfirmationOpen = false;
-
-        /** @private @type {boolean} */
         this._serializationFailure = false;
-
-        this.playerHasBeenPrompted = new Map();
-
+        this._lastAttackId = -1;
         this.playerHasBeenPrompted = new Map();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
-
-        /** @public @readonly @type {string | undefined} Player ID who gets to choose who starts with initiative, or undefined for random selection */
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
-        this.#debug = { pipeline: false };
+        this._debug = { pipeline: false };
         // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
-        this.#experimental = { };
+        this._experimental = {};
 
         this.manualMode = false;
         this.gameMode = details.gameMode;
 
         this.initializeCurrentlyResolving();
 
-        /** @type { import('./snapshot/SnapshotInterfaces.js').IGameState } */
         this.state = {
             initialFirstPlayer: null,
             initiativePlayer: null,
@@ -321,12 +392,10 @@ class Game extends EventEmitter {
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
         this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
 
-        /** @public @readonly @type {import('../../gameStatistics/GameStatisticsTracker.js').IGameStatisticsTracker} */
         this.statsTracker = new GameStatisticsLogger(this);
 
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
-        /** @type {import('../Interfaces').IClientUIProperties} */
         this.clientUIProperties = {};
 
         this.registerGlobalRulesListeners();
@@ -356,23 +425,18 @@ class Game extends EventEmitter {
         this.setMaxListeners(0);
     }
 
-
     /**
      * Reports errors from the game engine back to the router, optionally halting the game if the error is severe.
-     * @param {Error} error
-     * @param {GameErrorSeverity} severity
      */
-    reportError(error, severity = GameErrorSeverity.Normal) {
+    public reportError(error: Error, severity: GameErrorSeverity = GameErrorSeverity.Normal): void {
         this._router.handleError(this, error, severity);
     }
 
     /**
      * Reports that game state serialization failed.
      * Sends an error report and cleans up the game, as the game is now in an invalid state.
-     * @param {Error} error
-     * @returns {never}
      */
-    reportSerializationFailure(error) {
+    public reportSerializationFailure(error: Error): never {
         // if we've already seen a serialization failure, we may be in an infinite loop while try to report it, so just throw
         if (this._serializationFailure) {
             throw error;
@@ -388,37 +452,26 @@ class Game extends EventEmitter {
 
     /**
      * Adds a message to the in-game chat e.g 'Jadiel draws 1 card'
-     * @param {String} message to display (can include {i} references to args)
-     * @param {Array} args to match the references in @string
      */
-    addMessage() {
-        // @ts-expect-error
-        this.gameChat.addMessage(...arguments);
+    public addMessage(message: string, ...args: MsgArg[]): void {
+        this.gameChat.addMessage(message, ...args);
     }
 
     /**
      * Adds a message to in-game chat with a graphical icon
-     * @param {AlertType} type
-     * @param {String} message to display (can include {i} references to args)
-     * @param {Array} args to match the references in @string
      */
-    addAlert(type, message, ...args) {
+    public addAlert(type: AlertType, message: string, ...args: MsgArg[]): void {
         this.gameChat.addAlert(type, message, ...args);
     }
 
     /**
      * Build a timeout that will log an error on failure and not crash the server process
-     * @param {() => void} callback function to call when timeout hits
-     * @param {number} delayMs
-     * @param {string} errorMessage message to log on error (error details will be added automatically)
-     * @returns {NodeJS.Timeout} reference to timeout object
      */
-    buildSafeTimeout(callback, delayMs, errorMessage) {
+    public buildSafeTimeout(callback: () => void, delayMs: number, errorMessage: string): NodeJS.Timeout {
         return this.buildSafeTimeoutHandler(callback, delayMs, errorMessage);
     }
 
-    initializeCurrentlyResolving() {
-        /** @type {import('./GameInterfaces.js').ICurrentlyResolving} */
+    public initializeCurrentlyResolving(): void {
         this.currentlyResolving = {
             abilityResolver: null,
             actionWindow: null,
@@ -428,19 +481,14 @@ class Game extends EventEmitter {
         };
     }
 
-    get messages() {
-        return this.gameChat.messages;
-    }
-
-    /** @param {string} participantId */
-    getChatMessageOffset(participantId) {
+    public getChatMessageOffset(participantId: string): number {
         return this.chatMessageOffsets.get(participantId) ?? 0;
     }
 
     /**
-     * returns last 30 gameChat log messages excluding player chat messages.
+     * Returns gameChat log messages excluding player chat messages.
      */
-    getLogMessages(maxEntries = 100) {
+    public getLogMessages(maxEntries: number = 100) {
         let filteredMessages = this.gameChat.messages.filter((messageEntry) => {
             const message = messageEntry.message;
 
@@ -452,7 +500,7 @@ class Game extends EventEmitter {
             // We need this long check since the first element of message[0] can be String | String[] | object with type | []
             if (Array.isArray(message) && message.length > 0) {
                 const firstElement = message[0];
-                if (typeof firstElement === 'object' && firstElement && 'type' in firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat') {
+                if (typeof firstElement === 'object' && firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat') {
                     return false;
                 }
             }
@@ -469,28 +517,22 @@ class Game extends EventEmitter {
 
     /**
      * Checks if a player is a spectator
-     * @param {Player | Spectator} player
-     * @returns {player is Spectator}
      */
-    isSpectator(player) {
+    public isSpectator(player: Player | Spectator): player is Spectator {
         return player.constructor === Spectator;
     }
 
     /**
      * Checks if a player is a player
-     * @param {Player | Spectator} player
-     * @returns {player is Player}
      */
-    isPlayer(player) {
+    public isPlayer(player: Player | Spectator): player is Player {
         return !this.isSpectator(player);
     }
 
     /**
      * Checks whether a player/spectator is still in the game
-     * @param {String} playerName
-     * @returns {Boolean}
      */
-    hasPlayerNotInactive(playerName) {
+    public hasPlayerNotInactive(playerName: string): boolean {
         const player = this.playersAndSpectators[playerName];
         if (!player) {
             return false;
@@ -500,13 +542,11 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Get all players currently captured cards
-     * @param {Player} player
-     * @returns {Array}
+     * Get all cards captured by a player's units and base
      */
-    getAllCapturedCards(player) {
+    public getAllCapturedCards(player: Player) {
         const cardsCapturedByUnits = this
-            .findAnyCardsInPlay((card) => card.isUnit() && card.owner === player)
+            .getArenaUnits({ condition: (card) => card.owner === player })
             .flatMap((card) => card.capturedUnits);
 
         return cardsCapturedByUnits.concat(player.base.capturedUnits);
@@ -514,18 +554,15 @@ class Game extends EventEmitter {
 
     /**
      * Get all players (not spectators) in the game
-     * @returns {Player[]}
      */
-    getPlayers() {
-        return Object.values(this.playersAndSpectators).filter((player) => this.isPlayer(player));
+    public getPlayers(): Player[] {
+        return Object.values(this.playersAndSpectators).filter((player): player is Player => this.isPlayer(player));
     }
 
     /**
      * Returns the Player object (not spectator) for a name
-     * @param {String} playerName
-     * @returns {Player}
      */
-    getPlayerByName(playerName) {
+    public getPlayerByName(playerName: string): Player {
         const player = this.getPlayers().find((player) => player.name === playerName);
         if (player) {
             return player;
@@ -535,13 +572,12 @@ class Game extends EventEmitter {
     }
 
     /**
-     * @param {string} playerId
-     * @returns {Player}
+     * Returns the Player object for an id
      */
-    getPlayerById(playerId) {
+    public getPlayerById(playerId: string): Player {
         Contract.assertHasProperty(this.playersAndSpectators, playerId);
 
-        let player = this.playersAndSpectators[playerId];
+        const player = this.playersAndSpectators[playerId];
         Contract.assertNotNullLike(player, `Player with id ${playerId} not found`);
         Contract.assertTrue(this.isPlayer(player), `Player ${player.name} is a spectator`);
 
@@ -552,64 +588,54 @@ class Game extends EventEmitter {
      * Attach the lobby user object to a player. This preserves authentication
      * information needed for end-of-game stats updates after the user may have
      * been removed from the lobby.
-     * @param {string} playerId - The player ID
-     * @param {any} lobbyUser - The User object from the lobby
      */
-    attachLobbyUser(playerId, lobbyUser) {
+    public attachLobbyUser(playerId: string, lobbyUser: any): void {
         const player = this.getPlayerById(playerId);
         player.setLobbyUser(lobbyUser);
     }
 
     /**
      * Get all players (not spectators) with the first player at index 0
-     * @returns {Player[]} Array of Player objects
      */
-    getPlayersInInitiativeOrder() {
+    public getPlayersInInitiativeOrder(): Player[] {
         return this.getPlayers().sort((a) => (a.hasInitiative() ? -1 : 1));
     }
 
-    getActivePlayer() {
+    public getActivePlayer(): Player | null {
         return this.currentPhase === PhaseName.Action ? this.actionPhaseActivePlayer : this.initiativePlayer;
     }
 
     /**
      * Get all players and spectators in the game
-     * @returns {{[key: string]: Player | Spectator}} {name1: Player, name2: Player, name3: Spectator}
      */
-    getPlayersAndSpectators() {
+    public getPlayersAndSpectators(): Record<string, Player | Spectator> {
         return this.playersAndSpectators;
     }
 
     /**
      * Get all spectators in the game
-     * @returns {Spectator[]} {name1: Spectator, name2: Spectator}
      */
-    getSpectators() {
-        return Object.values(this.playersAndSpectators).filter((player) => this.isSpectator(player));
+    public getSpectators(): Spectator[] {
+        return Object.values(this.playersAndSpectators).filter((player): player is Spectator => this.isSpectator(player));
     }
 
     /**
      * Gets a player other than the one passed (usually their opponent)
-     * @param {Player} player
-     * @returns {Player}
      */
-    getOtherPlayer(player) {
-        var otherPlayer = this.getPlayers().find((p) => {
+    public getOtherPlayer(player: Player): Player | undefined {
+        return this.getPlayers().find((p) => {
             return p.name !== player.name;
         });
-
-        return otherPlayer;
     }
 
-
-    registerGlobalRulesListeners() {
+    public registerGlobalRulesListeners(): void {
         UnitPropertiesCard.registerRulesListeners(this);
     }
 
     /**
-     * Checks who the next legal active player for the action phase should be and updates @member {activePlayer}. If none available, sets it to null.
+     * Checks who the next legal active player for the action phase should be and updates activePlayer. If none available, sets it to null.
      */
-    rotateActivePlayer() {
+    public rotateActivePlayer(): void {
         Contract.assertTrue(this.currentPhase === PhaseName.Action, `rotateActivePlayer can only be called during the action phase, instead called during ${this.currentPhase}`);
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {
             this.createEventAndOpenWindow(
@@ -628,18 +654,20 @@ class Game extends EventEmitter {
         // by default, if the opponent has passed and the active player has not, they remain the active player and play continues
     }
 
-    setRandomSeed(seed) {
+    public setRandomSeed(seed: string): void {
         this._randomGenerator.reseed(seed);
     }
 
+    public getNextAttackId(): number {
+        this._lastAttackId++;
+        return this._lastAttackId;
+    }
+
     /**
-     * Returns the card (i.e. character) with matching uuid from either players
-     * 'in play' area.
-     * @param {String} cardId
-     * @returns DrawCard
+     * Returns the card with matching uuid from either players 'in play' area.
      */
-    findAnyCardInPlayByUuid(cardId) {
-        return this.getPlayers().reduce(
+    public findAnyCardInPlayByUuid(cardId: string) {
+        return this.getPlayers().reduce<Card | null>(
             (card, player) => {
                 if (card) {
                     return card;
@@ -652,90 +680,56 @@ class Game extends EventEmitter {
 
     /**
      * Returns the card with matching uuid from anywhere in the game
-     * @param {String} cardId
-     * @returns BaseCard
      */
-    findAnyCardInAnyList(cardId) {
+    public findAnyCardInAnyList(cardId: string) {
         return this.allCards.find((card) => card.uuid === cardId);
     }
 
     /**
      * Returns all cards from anywhere in the game matching the passed predicate
-     * @param {(value: any) => boolean} predicate - card => Boolean
-     * @returns {Array} Array of DrawCard objects
      */
-    findAnyCardsInAnyList(predicate) {
+    public findAnyCardsInAnyList(predicate: (card: Card) => boolean) {
         return this.allCards.filter(predicate);
     }
 
     /**
-     * Returns all cards which matching the passed predicated function from either players arenas
-     * @param {(card: Card) => boolean} predicate - card => Boolean
-     * @returns {Array} Array of DrawCard objects
+     * Returns all cards which match the passed predicate from either players arenas
      */
-    findAnyCardsInPlay(predicate = () => true) {
+    public findAnyCardsInPlay(predicate: (card: Card) => boolean = () => true) {
         return this.allArenas.getCards({ condition: predicate });
     }
 
     /**
      * Returns if a card is in play (units, upgrades, base, leader) that has the passed trait
-     * @param {Trait | Trait[]} trait
-     * @returns {boolean} true/false if the trait is in pay
      */
-    isTraitInPlay(trait) {
+    public isTraitInPlay(trait: Trait | Trait[]): boolean {
         return this.getPlayers().some((player) => player.isTraitInPlay(trait));
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
-     */
-    getArenaCards(filter = {}) {
+    public getArenaCards(filter: IAllArenasZoneCardFilterProperties = {}) {
         return this.allArenas.getCards(filter);
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
-     */
-    getArenaUnits(filter = {}) {
+    public getArenaUnits(filter: IAllArenasSpecificTypeCardFilterProperties = {}) {
         return this.allArenas.getUnitCards(filter);
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
-     */
-    getArenaUpgrades(filter = {}) {
+    public getArenaUpgrades(filter: IAllArenasSpecificTypeCardFilterProperties = {}) {
         return this.allArenas.getUpgradeCards(filter);
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
-     */
-    hasSomeArenaCard(filter = {}) {
+    public hasSomeArenaCard(filter: IAllArenasZoneCardFilterProperties = {}): boolean {
         return this.allArenas.hasSomeCard(filter);
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
-     */
-    hasSomeArenaUnit(filter = {}) {
+    public hasSomeArenaUnit(filter: IAllArenasSpecificTypeCardFilterProperties = {}): boolean {
         return this.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit });
     }
 
-    // createToken(card, token = undefined) {
-    //     if (!token) {
-    //         token = new SpiritOfTheRiver(card);
-    //     } else {
-    //         token = new token(card);
-    //     }
-    //     this.allCards.push(token);
-    //     return token;
-    // }
-
     /**
      * Return the `Zone` object corresponding to the arena type
-     * @param {ZoneName.SpaceArena | ZoneName.GroundArena | WildcardZoneName.AnyArena} arenaName
      */
-    getArena(arenaName) {
+    public getArena(arenaName: ZoneName.SpaceArena | ZoneName.GroundArena | WildcardZoneName.AnyArena) {
         switch (arenaName) {
             case ZoneName.GroundArena:
                 return this.groundArena;
@@ -748,61 +742,24 @@ class Game extends EventEmitter {
         }
     }
 
-    get actions() {
-        return GameSystems;
-    }
-
-    // recordConflict(conflict) {
-    //     this.conflictRecord.push({
-    //         attackingPlayer: conflict.attackingPlayer,
-    //         declaredType: conflict.declaredType,
-    //         passed: conflict.conflictPassed,
-    //         uuid: conflict.uuid
-    //     });
-    //     if (conflict.conflictPassed) {
-    //         conflict.attackingPlayer.declaredConflictOpportunities[ConflictTypes.Passed]++;
-    //     } else if (conflict.forcedDeclaredType) {
-    //         conflict.attackingPlayer.declaredConflictOpportunities[ConflictTypes.Forced]++;
-    //     } else {
-    //         conflict.attackingPlayer.declaredConflictOpportunities[conflict.declaredType]++;
-    //     }
-    // }
-
-    // getConflicts(player) {
-    //     if (!player) {
-    //         return [];
-    //     }
-    //     return this.conflictRecord.filter((record) => record.attackingPlayer === player);
-    // }
-
-    // recordConflictWinner(conflict) {
-    //     let record = this.conflictRecord.find((record) => record.uuid === conflict.uuid);
-    //     if (record) {
-    //         record.completed = true;
-    //         record.winner = conflict.winner;
-    //         record.typeSwitched = conflict.conflictTypeSwitched;
-    //     }
-    // }
-
-    resetForNewTimepoint() {
+    public resetForNewTimepoint(): void {
         for (const player of this.getPlayers()) {
             player.hasResolvedAbilityThisTimepoint = false;
         }
     }
 
-    restartAllActionTimers() {
+    public restartAllActionTimers(): void {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
     }
 
-    onPlayerAction(playerId) {
+    public onPlayerAction(playerId: string): void {
         const player = this.getPlayerById(playerId);
 
         player.incrementActionId();
         player.actionTimer.restartIfRunning();
     }
 
-    /** @param {Player} player */
-    onActionTimerExpired(player) {
+    public onActionTimerExpired(player: Player): null {
         player.opponent.actionTimer.stop();
 
         this.userTimeoutDisconnect(player.id);
@@ -813,17 +770,15 @@ class Game extends EventEmitter {
     // TODO: parameter contract checks for this flow
     /**
      * This function is called from the client whenever a card is clicked
-     * @param {String} sourcePlayerId - id of the clicking player
-     * @param {String} cardId - uuid of the card clicked
      */
-    cardClicked(sourcePlayerId, cardId) {
-        var player = this.getPlayerById(sourcePlayerId);
+    public cardClicked(sourcePlayerId: string, cardId: string): void {
+        const player = this.getPlayerById(sourcePlayerId);
 
         if (!player) {
             return;
         }
 
-        var card = this.findAnyCardInAnyList(cardId);
+        const card = this.findAnyCardInAnyList(cardId);
 
         if (!card) {
             return;
@@ -833,73 +788,10 @@ class Game extends EventEmitter {
         this.pipeline.handleCardClicked(player, card);
     }
 
-    // /**
-    //  * This function is called by the client when a card menu item is clicked
-    //  * @param {String} sourcePlayer - name of clicking player
-    //  * @param {String} cardId - uuid of card whose menu was clicked
-    //  * @param {Object} menuItem - { command: String, text: String, arg: String, method: String }
-    //  */
-    // menuItemClick(sourcePlayer, cardId, menuItem) {
-    //     var player = this.getPlayerByName(sourcePlayer);
-    //     var card = this.findAnyCardInAnyList(cardId);
-    //     if (!player || !card) {
-    //         return;
-    //     }
-
-    //     if (menuItem.command === 'click') {
-    //         this.cardClicked(sourcePlayer, cardId);
-    //         return;
-    //     }
-
-    //     MenuCommands.cardMenuClick(menuItem, this, player, card);
-    //     this.resolveGameState(true);
-    // }
-
-    // /**
-    //  * Sets a Player flag and displays a chat message to show that a popup with a
-    //  * player's conflict deck is open
-    //  * @param {String} playerName
-    //  */
-    // showDeck(playerName) {
-    //     var player = this.getPlayerByName(playerName);
-
-    //     if (!player) {
-    //         return;
-    //     }
-
-    //     if (!player.showConflict) {
-    //         player.showDeck();
-
-    //         this.addMessage('{0} is looking at their conflict deck', player);
-    //     } else {
-    //         player.showConflict = false;
-
-    //         this.addMessage('{0} stops looking at their conflict deck', player);
-    //     }
-    // }
-
-    // /**
-    //  * This function is called from the client whenever a card is dragged from
-    //  * one place to another
-    //  * @param {String} playerName
-    //  * @param {String} cardId - uuid of card
-    //  * @param {String} source - area where the card was dragged from
-    //  * @param {String} target - area where the card was dropped
-    //  */
-    // drop(playerName, cardId, source, target) {
-    //     var player = this.getPlayerByName(playerName);
-
-    //     if (!player) {
-    //         return;
-    //     }
-
-    //     player.drop(cardId, source, target);
-    // }
-
-    // /**
-    //  * Check to see if a base(or both bases) has been destroyed
-    //  */
-    checkWinCondition() {
+    /**
+     * Check to see if a base (or both bases) has been destroyed
+     */
+    public checkWinCondition(): void {
         const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp());
         if (losingPlayers.length === 1) {
             this.endGame(losingPlayers[0].opponent, GameEndReason.GameRules);
@@ -909,12 +801,9 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Display message declaring victory for one player, and record stats for
-     * the game
-     * @param {Player[]|Player} winnerPlayers
-     * @param {GameEndReason} reasonCode
+     * Display message declaring victory for one player, and record stats for the game
      */
-    endGame(winnerPlayers, reasonCode) {
+    public endGame(winnerPlayers: Player[] | Player, reasonCode: GameEndReason): void {
         this.gameEndReason = reasonCode;
 
         if (this.state.winnerNames.length > 0) {
@@ -939,15 +828,14 @@ class Game extends EventEmitter {
             this.addMessage('The game ends in a draw');
         } else {
             this.state.winnerNames.push(winners[0].name);
-            this.addMessage('{0} has won the game', winnerPlayers);
+            this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
         this._router.handleGameEnd();
-        // this._router.gameWon(this, reason, winner);
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
         if (typeof this._router.sendGameState === 'function') {
-            this._router.sendGameState(this); // call the function if it exists
+            this._router.sendGameState(this);
         } else {
             this.queueStep(new GameOverPrompt(this));
         }
@@ -955,17 +843,14 @@ class Game extends EventEmitter {
 
     /**
      * Changes a Player variable and displays a message in chat
-     * @param {String} playerId
-     * @param {String} stat
-     * @param {Number} value
      */
-    changeStat(playerId, stat, value) {
-        var player = this.getPlayerById(playerId);
+    public changeStat(playerId: string, stat: string, value: number): void {
+        const player = this.getPlayerById(playerId);
         if (!player) {
             return;
         }
 
-        var target = player;
+        const target: any = player;
 
         target[stat] += value;
 
@@ -978,33 +863,13 @@ class Game extends EventEmitter {
 
     /**
      * This function is called by the client every time a player enters a chat message
-     * @param {String} playerId
-     * @param {String} message
      */
-    chat(playerId, message) {
-        var player = this.getPlayerById(playerId);
-        var args = message.split(' ');
+    public chat(playerId: string, message: string): void {
+        const player = this.getPlayerById(playerId);
 
         if (!player) {
             return;
         }
-
-        // if (!this.isSpectator(player)) {
-        //     if (this.chatCommands.executeCommand(player, args[0], args)) {
-        //         this.resolveGameState(true);
-        //         return;
-        //     }
-
-        //     let card = _.find(this.shortCardData, (c) => {
-        //         return c.name.toLowerCase() === message.toLowerCase() || c.id.toLowerCase() === message.toLowerCase();
-        //     });
-
-        //     if (card) {
-        //         this.gameChat.addChatMessage(player, { message: this.gameChat.formatMessage('{0}', [card]) });
-
-        //         return;
-        //     }
-        // }
 
         if (!this.isSpectator(player)) {
             this.gameChat.addChatMessage(player, message);
@@ -1013,10 +878,9 @@ class Game extends EventEmitter {
 
     /**
      * This is called by the client when a player clicks 'Concede'
-     * @param {String} playerId
      */
-    concede(playerId) {
-        var player = this.getPlayerById(playerId);
+    public concede(playerId: string): void {
+        const player = this.getPlayerById(playerId);
 
         if (!player) {
             return;
@@ -1024,39 +888,35 @@ class Game extends EventEmitter {
 
         this.addMessage('{0} concedes the game', player);
 
-        var otherPlayer = this.getOtherPlayer(player);
+        const otherPlayer = this.getOtherPlayer(player);
 
         if (otherPlayer) {
             this.endGame(otherPlayer, GameEndReason.Concede);
         }
     }
 
-    selectDeck(playerId, deck) {
-        let player = this.getPlayerById(playerId);
+    public selectDeck(playerId: string, deck: Deck): void {
+        const player = this.getPlayerById(playerId);
         if (player) {
             player.selectDeck(deck);
         }
     }
 
     /**
-     * Called when a player clicks Shuffle Deck on the conflict deck menu in
-     * the client
-     * @param {String} playerId
-     * @param {AbilityContext} context
+     * Called when a player clicks Shuffle Deck on the deck menu in the client
      */
-    shuffleDeck(playerId, context = null) {
-        let player = this.getPlayerById(playerId);
+    public shuffleDeck(playerId: string): void {
+        const player = this.getPlayerById(playerId);
         if (player) {
-            player.shuffleDeck(context);
+            player.shuffleDeck();
         }
     }
 
-    getCurrentOpenPrompt() {
+    public getCurrentOpenPrompt(): UiPrompt | null | undefined {
         return this.currentlyResolving.openPrompt;
     }
 
-    /** @param {UiPrompt | null} currentPrompt */
-    setCurrentOpenPrompt(currentPrompt) {
+    public setCurrentOpenPrompt(currentPrompt: UiPrompt | null): void {
         if (currentPrompt) {
             for (const player of this.getPlayers()) {
                 if (currentPrompt.activeCondition(player)) {
@@ -1068,32 +928,27 @@ class Game extends EventEmitter {
         this.currentlyResolving.openPrompt = currentPrompt;
     }
 
-    resetPromptedPlayersTracking() {
+    public resetPromptedPlayersTracking(): void {
         this.playerHasBeenPrompted.clear();
     }
 
-    hasBeenPrompted(player) {
+    public hasBeenPrompted(player: Player): boolean {
         return !!this.playerHasBeenPrompted.get(player.id);
     }
 
     /**
      * Prompts a player with a multiple choice menu
-     * @param {Player} player
-     * @param {Object} contextObj - the object which contains the methods that are referenced by the menubuttons
-     * @param {Object} properties - see menuprompt.js
      */
-    promptWithMenu(player, contextObj, properties) {
+    public promptWithMenu(player: Player, contextObj: any, properties: any): void {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new MenuPrompt(this, player, contextObj, properties));
     }
 
     /**
-     * Prompts a player with a multiple choice menu
-     * @param {Player} player
-     * @param {Object} properties - see handlermenuprompt.js
+     * Prompts a player with a handler-based menu
      */
-    promptWithHandlerMenu(player, properties) {
+    public promptWithHandlerMenu(player: Player, properties: any): void {
         Contract.assertNotNullLike(player);
 
         if (properties.multiSelect) {
@@ -1103,31 +958,19 @@ class Game extends EventEmitter {
         }
     }
 
-    /**
-     *  @param {Player} player
-     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsWithButtonsPromptProperties} properties
-     */
-    promptDisplayCardsWithButtons(player, properties) {
+    public promptDisplayCardsWithButtons(player: Player, properties: IDisplayCardsWithButtonsPromptProperties): void {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DisplayCardsWithButtonsPrompt(this, player, properties));
     }
 
-    /**
-     *  @param {Player} player
-     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsSelectProperties} properties
-     */
-    promptDisplayCardsForSelection(player, properties) {
+    public promptDisplayCardsForSelection(player: Player, properties: IDisplayCardsSelectProperties): void {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DisplayCardsForSelectionPrompt(this, player, properties));
     }
 
-    /**
-     *  @param {Player} player
-     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsBasicPromptProperties} properties
-     */
-    promptDisplayCardsBasic(player, properties) {
+    public promptDisplayCardsBasic(player: Player, properties: IDisplayCardsBasicPromptProperties): void {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DisplayCardsBasicPrompt(this, player, properties));
@@ -1135,10 +978,8 @@ class Game extends EventEmitter {
 
     /**
      * Prompts a player with a menu for selecting a string from a list of options
-     * @param {Player} player
-     * @param {import('./gameSteps/prompts/DropdownListPrompt.js').IDropdownListPromptProperties} properties
      */
-    promptWithDropdownListMenu(player, properties) {
+    public promptWithDropdownListMenu(player: Player, properties: IDropdownListPromptProperties): void {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DropdownListPrompt(this, player, properties));
@@ -1146,10 +987,8 @@ class Game extends EventEmitter {
 
     /**
      * Prompts a player to click a card
-     * @param {Player} player
-     * @param {import('./gameSteps/PromptInterfaces.js').ISelectCardPromptProperties} properties - see selectcardprompt.js
      */
-    promptForSelect(player, properties) {
+    public promptForSelect(player: Player, properties: ISelectCardPromptProperties): void {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new SelectCardPrompt(this, player, properties));
@@ -1158,26 +997,18 @@ class Game extends EventEmitter {
     /**
      * Prompt for distributing healing or damage among target cards.
      * Response data must be returned via {@link Game.statefulPromptResults}.
-     *
-     * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptProperties} properties
      */
-    promptDistributeAmongTargets(player, properties) {
+    public promptDistributeAmongTargets(player: Player, properties: IDistributeAmongTargetsPromptProperties): void {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DistributeAmongTargetsPrompt(this, player, properties));
     }
 
     /**
-     * This function is called by the client whenever a player clicks a button
-     * in a prompt
-     * @param {String} playerId
-     * @param {String} arg - arg property of the button clicked
-     * @param {String} uuid - unique identifier of the prompt clicked
-     * @param {String} method - method property of the button clicked
-     * @returns {Boolean} this indicates to the server whether the received input is legal or not
+     * This function is called by the client whenever a player clicks a button in a prompt
      */
-    menuButton(playerId, arg, uuid, method) {
-        var player = this.getPlayerById(playerId);
+    public menuButton(playerId: string, arg: string, uuid: string, method: string): boolean {
+        const player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
@@ -1186,14 +1017,9 @@ class Game extends EventEmitter {
     /**
      * This function is called by the client whenever a player clicks a "per card" button
      * in a prompt (e.g. Inferno Four prompt). See {@link DisplayCardsWithButtonsPrompt}.
-     * @param {String} playerId
-     * @param {String} arg - arg property of the button clicked
-     * @param {String} uuid - unique identifier of the prompt clicked
-     * @param {String} method - method property of the button clicked
-     * @returns {Boolean} this indicates to the server whether the received input is legal or not
      */
-    perCardMenuButton(playerId, arg, cardUuid, uuid, method) {
-        var player = this.getPlayerById(playerId);
+    public perCardMenuButton(playerId: string, arg: string, cardUuid: string, uuid: string, method: string): boolean {
+        const player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method);
@@ -1203,11 +1029,9 @@ class Game extends EventEmitter {
      * Gets the results of a "stateful" prompt from the frontend. This is for more
      * involved prompts such as distributing damage / healing that require the frontend
      * to gather some state and send back, instead of just individual clicks.
-     * @param {import('./gameSteps/PromptInterfaces.js').IStatefulPromptResults} result
-     * @param {String} uuid - unique identifier of the prompt clicked
      */
-    statefulPromptResults(playerId, result, uuid) {
-        var player = this.getPlayerById(playerId);
+    public statefulPromptResults(playerId: string, result: IStatefulPromptResults, uuid: string): boolean {
+        const player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleStatefulPromptResults(player, result, uuid);
@@ -1216,12 +1040,9 @@ class Game extends EventEmitter {
     /**
      * This function is called by the client when a player clicks an action window
      * toggle in the settings menu
-     * @param {String} playerId
-     * @param {String} windowName - the name of the action window being toggled
-     * @param {Boolean} toggle - the new setting of the toggle
      */
-    togglePromptedActionWindow(playerId, windowName, toggle) {
-        var player = this.getPlayerById(playerId);
+    public togglePromptedActionWindow(playerId: string, windowName: string, toggle: boolean): void {
+        const player = this.getPlayerById(playerId);
         if (!player) {
             return;
         }
@@ -1232,12 +1053,9 @@ class Game extends EventEmitter {
     /**
      * This function is called by the client when a player clicks an option setting
      * toggle in the settings menu
-     * @param {String} playerId
-     * @param {String} settingName - the name of the setting being toggled
-     * @param {Boolean} toggle - the new setting of the toggle
      */
-    toggleOptionSetting(playerId, settingName, toggle) {
-        var player = this.getPlayerById(playerId);
+    public toggleOptionSetting(playerId: string, settingName: string, toggle: boolean): void {
+        const player = this.getPlayerById(playerId);
         if (!player) {
             return;
         }
@@ -1245,17 +1063,17 @@ class Game extends EventEmitter {
         player.optionSettings[settingName] = toggle;
     }
 
-    toggleManualMode(playerName) {
+    public toggleManualMode(_playerName: string): void {
         // this.chatCommands.manual(playerName);
     }
 
-    /*
+    /**
      * Sets up Player objects, creates allCards, starts the game pipeline
      */
-    async initialiseAsync() {
+    public async initialiseAsync(): Promise<void> {
         await Promise.all(this.getPlayers().map((player) => player.initialiseAsync()));
 
-        this.state.allCards = this.getPlayers().reduce(
+        this.state.allCards = this.getPlayers().reduce<GameObjectRef<Card>[]>(
             (cards, player) => {
                 return cards.concat(player.decklist.allCards);
             },
@@ -1274,11 +1092,9 @@ class Game extends EventEmitter {
     /**
      * Initializes the pipeline for the game setup.
      * Accepts a parameter indicating whether this operation is due to a rollback, and if so, to what point in the setup.
-     *
-     * @param {RollbackSetupEntryPoint | null} rollbackEntryPoint
      */
-    initializePipelineForSetup(rollbackEntryPoint = null) {
-        let setupPhaseInitializeMode;
+    public initializePipelineForSetup(rollbackEntryPoint: RollbackSetupEntryPoint | null = null): void {
+        let setupPhaseInitializeMode: PhaseInitializeMode;
 
         switch (rollbackEntryPoint) {
             case RollbackSetupEntryPoint.StartOfSetupPhase:
@@ -1304,11 +1120,10 @@ class Game extends EventEmitter {
         ]);
     }
 
-    /*
+    /**
      * Adds each of the game's main phases to the pipeline
-     * @returns {undefined}
      */
-    beginRound() {
+    public beginRound(): void {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
         this.initializePipelineForRound();
@@ -1317,13 +1132,11 @@ class Game extends EventEmitter {
     /**
      * Initializes the pipeline for a new game round.
      * Accepts a parameter indicating whether this operation is due to a rollback, and if so, to what point in the round.
-     *
-     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    initializePipelineForRound(rollbackEntryPoint = null) {
+    public initializePipelineForRound(rollbackEntryPoint: RollbackRoundEntryPoint | null = null): void {
         const isRollback = rollbackEntryPoint != null;
 
-        const roundStartStep = [];
+        const roundStartStep: IStep[] = [];
         if (!isRollback || rollbackEntryPoint === RollbackRoundEntryPoint.StartOfActionPhase) {
             roundStartStep.push(new SimpleStep(
                 this, () => this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers), 'beginRound'
@@ -1344,9 +1157,8 @@ class Game extends EventEmitter {
 
     /**
      * Initializes the action phase step in the pipeline.
-     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    buildActionPhaseSteps(rollbackEntryPoint = null) {
+    private buildActionPhaseSteps(rollbackEntryPoint: RollbackRoundEntryPoint | null = null): IStep[] {
         if (
             rollbackEntryPoint === RollbackRoundEntryPoint.StartOfRegroupPhase ||
             rollbackEntryPoint === RollbackRoundEntryPoint.WithinRegroupPhase ||
@@ -1355,7 +1167,7 @@ class Game extends EventEmitter {
             return [];
         }
 
-        let actionInitializeMode;
+        let actionInitializeMode: PhaseInitializeMode;
         switch (rollbackEntryPoint) {
             case RollbackRoundEntryPoint.StartOfActionPhase:
                 actionInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
@@ -1380,10 +1192,9 @@ class Game extends EventEmitter {
 
     /**
      * Initializes the regroup phase step in the pipeline.
-     * @param {RollbackRoundEntryPoint | null} rollbackEntryPoint
      */
-    buildRegroupPhaseSteps(rollbackEntryPoint = null) {
-        let regroupInitializeMode;
+    private buildRegroupPhaseSteps(rollbackEntryPoint: RollbackRoundEntryPoint | null = null): IStep[] {
+        let regroupInitializeMode: PhaseInitializeMode;
         switch (rollbackEntryPoint) {
             case RollbackRoundEntryPoint.StartOfRegroupPhase:
                 regroupInitializeMode = PhaseInitializeMode.RollbackToStartOfPhase;
@@ -1404,8 +1215,7 @@ class Game extends EventEmitter {
                 Contract.fail(`Unknown rollback entry point for regroup phase: ${rollbackEntryPoint}`);
         }
 
-        /** @type {AdditionalPhaseEffect[]} */
-        const additionalRegroupPhaseEffects = this.getPlayers()
+        const additionalRegroupPhaseEffects: AdditionalPhaseEffect[] = this.getPlayers()
             .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
             .filter((value) => value.phase === PhaseName.Regroup);
 
@@ -1425,16 +1235,14 @@ class Game extends EventEmitter {
 
     /**
      * Creates additional regroup phases as needed based on ongoing effects.
-     * @param {PhaseInitializeMode} regroupInitializeMode
      */
-    checkCreateAdditionalRegroupPhases(regroupInitializeMode) {
-        /** @type {AdditionalPhaseEffect[]} */
-        const additionalRegroupPhaseEffects = this.getPlayers()
+    private checkCreateAdditionalRegroupPhases(regroupInitializeMode: PhaseInitializeMode): void {
+        const additionalRegroupPhaseEffects: AdditionalPhaseEffect[] = this.getPlayers()
             .flatMap((p) => p.getOngoingEffectValues(EffectName.AdditionalPhase))
             .filter((value) =>
                 value.phase === PhaseName.Regroup &&
                 // Skip if this effect has completed an additional phase this round
-                // This can happen if we're rebuilding the pipline after a rollback
+                // This can happen if we're rebuilding the pipeline after a rollback
                 !value.hasEndedPhaseThisRound(this.roundNumber)
             );
 
@@ -1456,26 +1264,23 @@ class Game extends EventEmitter {
         }
     }
 
-    roundEnded() {
+    private roundEnded(): void {
         this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, TriggerHandlingMode.ResolvesTriggers);
 
         // at end of round, any tokens (except the Force tokens) in outsideTheGameZone are removed completely
         for (const player of this.getPlayers()) {
             for (const token of player.outsideTheGameZone.cards.filter((card) => card.isToken() && !card.isForceToken())) {
-                this.removeTokenFromPlay(token);
+                this.removeTokenFromPlay(token as ITokenCard);
             }
         }
     }
 
-    getNextActionNumber() {
+    private getNextActionNumber(): number {
         this.actionNumber++;
         return this.actionNumber;
     }
 
-    /**
-     * @param { Player } player
-     */
-    claimInitiative(player) {
+    public claimInitiative(player: Player): void {
         this.initiativePlayer = player;
         this.isInitiativeClaimed = true;
         player.passedActionPhase = true;
@@ -1487,72 +1292,56 @@ class Game extends EventEmitter {
 
     /**
      * Adds a step to the pipeline queue
-     * @template {import('./gameSteps/IStep.js').IStep} TStep
-     * @param {TStep} step
-     * @returns {TStep}
      */
-    queueStep(step) {
+    public queueStep<TStep extends IStep>(step: TStep): TStep {
         this.pipeline.queueStep(step);
         return step;
     }
 
     /**
      * Creates a step which calls a handler function
-     * @param {() => void} handler - () => void
-     * @param {string} stepName
      */
-    queueSimpleStep(handler, stepName) {
+    public queueSimpleStep(handler: () => void, stepName: string): void {
         this.pipeline.queueStep(new SimpleStep(this, handler, stepName));
     }
 
     /**
      * Resolves a card ability
-     * @param {AbilityContext} context - see AbilityContext.js
-     * @param {string[]} [ignoredRequirements=[]]
-     * @returns {AbilityResolver}
      */
-    resolveAbility(context, ignoredRequirements = []) {
-        let resolver = new AbilityResolver(this, context, false, null, null, ignoredRequirements);
+    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = []): AbilityResolver {
+        const resolver = new AbilityResolver(this, context, false, null, null, ignoredRequirements);
         this.queueStep(resolver);
         return resolver;
     }
 
     /**
      * Creates a game GameEvent, and opens a window for it.
-     * @param {String} eventName
-     * @param {AbilityContext} context - context for this event. Uses getFrameworkContext() to populate if null
-     * @param {Object} params - parameters for this event
-     * @param {TriggerHandlingMode} triggerHandlingMode - whether the EventWindow should make its own TriggeredAbilityWindow to resolve
-     * after its events and any nested events
-     * @param {(event: GameEvent) => void} handler - (GameEvent + params) => undefined
-     * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
-     * tell whether or not the handler resolved successfully
      */
-    createEventAndOpenWindow(eventName, context = null, params = {}, triggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow, handler = () => undefined) {
-        let event = new GameEvent(eventName, context ?? this.getFrameworkContext(), params, handler);
+    public createEventAndOpenWindow(
+        eventName: EventName,
+        context: AbilityContext | null = null,
+        params: Record<string, any> = {},
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow,
+        handler: (event: GameEvent) => void = () => undefined
+    ): GameEvent {
+        const event = new GameEvent(eventName, context ?? this.getFrameworkContext(), params, handler);
         this.openEventWindow([event], triggerHandlingMode);
         return event;
     }
 
     /**
      * Directly emits an event to all listeners (does NOT open an event window)
-     * @param {String} eventName
-     * @param {AbilityContext} context - Uses getFrameworkContext() to populate if null
-     * @param {Object} params - parameters for this event
      */
-    emitEvent(eventName, context = null, params = {}) {
-        let event = new GameEvent(eventName, context ?? this.getFrameworkContext(), params);
+    public emitEvent(eventName: EventName, context: AbilityContext | null = null, params: Record<string, any> = {}): void {
+        const event = new GameEvent(eventName, context ?? this.getFrameworkContext(), params);
         this.emit(event.name, event);
     }
 
     /**
      * Creates an EventWindow which will open windows for each kind of triggered
      * ability which can respond any passed events, and execute their handlers.
-     * @param events
-     * @param {TriggerHandlingMode} triggerHandlingMode
-     * @returns {EventWindow}
      */
-    openEventWindow(events, triggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow) {
+    public openEventWindow(events: GameEvent | GameEvent[], triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow): EventWindow {
         if (!Array.isArray(events)) {
             events = [events];
         }
@@ -1566,115 +1355,15 @@ class Game extends EventEmitter {
      *
      * Typically used for defeat events.
      */
-    addSubwindowEvents(events) {
+    public addSubwindowEvents(events: GameEvent | GameEvent[]): void {
         this.currentEventWindow.addSubwindowEvents(events);
     }
 
-    // /**
-    //  * Raises a custom event window for checking for any cancels to a card
-    //  * ability
-    //  * @param {Object} params
-    //  * @param {Function} handler - this is an arrow function which is called if
-    //  * nothing cancels the event
-    //  */
-    // raiseInitiateAbilityEvent(params, handler) {
-    //     this.raiseMultipleInitiateAbilityEvents([{ params: params, handler: handler }]);
-    // }
-
-    // /**
-    //  * Raises a custom event window for checking for any cancels to several card
-    //  * abilities which initiate simultaneously
-    //  * @param {Array} eventProps
-    //  */
-    // raiseMultipleInitiateAbilityEvents(eventProps) {
-    //     let events = eventProps.map((event) => new InitiateCardAbilityEvent(event.params, event.handler));
-    //     this.queueStep(new InitiateAbilityEventWindow(this, events));
-    // }
-
-    // /**
-    //  * Checks whether a game action can be performed on a card or an array of
-    //  * cards, and performs it on all legal targets.
-    //  * @param {AbilityContext} context
-    //  * @param {Object} actions - Object with { actionName: targets }
-    //  * @returns {GameEvent[]}
-    //  */
-    // applyGameAction(context, actions) {
-    //     if (!context) {
-    //         context = this.getFrameworkContext();
-    //     }
-    //     let actionPairs = Object.entries(actions);
-    //     let events = actionPairs.reduce((array, [action, cards]) => {
-    //         action = action === 'break' ? 'breakProvince' : action;
-    //         const gameActionFactory = GameSystems[action];
-    //         if (typeof gameActionFactory === 'function') {
-    //             const gameSystem = gameActionFactory({ target: cards });
-    //             array.push(...gameSystem.queueGenerateEventGameSteps(context));
-    //         }
-    //         return array;
-    //     }, []);
-    //     if (events.length > 0) {
-    //         this.openEventWindow(events);
-    //     }
-    //     return events;
-    // }
-
-    /**
-     * @param {Player} player
-     * @returns {AbilityContext}
-     */
-    getFrameworkContext(player = null) {
+    public getFrameworkContext(player: Player | null = null): AbilityContext {
         return new AbilityContext({ game: this, player: player });
     }
 
-    // initiateConflict(player, canPass, forcedDeclaredType, forceProvinceTarget) {
-    //     const conflict = new Conflict(
-    //         this,
-    //         player,
-    //         player.opponent,
-    //         null,
-    //         forceProvinceTarget ?? null,
-    //         forcedDeclaredType
-    //     );
-    //     this.queueStep(new ConflictFlow(this, conflict, canPass));
-    // }
-
-    // updateCurrentConflict(conflict) {
-    //     this.currentConflict = conflict;
-    //     this.resolveGameState(true);
-    // }
-
-    // /**
-    //  * Changes the controller of a card in play to the passed player, and cleans
-    //  * all the related stuff up
-    //  * @param {Player} player
-    //  * @param card
-    //  */
-    // takeControl(player, card) {
-    //     if (
-    //         card.controller === player ||
-    //         card.hasRestriction(EffectName.TakeControl, this.getFrameworkContext())
-    //     ) {
-    //         return;
-    //     }
-    //     if (!Contract.assertNotNullLike(player)) {
-    //         return;
-    //     }
-    //     card.controller.removeCardFromPile(card);
-    //     player.cardsInPlay.push(card);
-    //     card.controller = player;
-    //     if (card.isParticipating()) {
-    //         this.currentConflict.removeFromConflict(card);
-    //         if (player.isAttackingPlayer()) {
-    //             this.currentConflict.addAttacker(card);
-    //         } else {
-    //             this.currentConflict.addDefender(card);
-    //         }
-    //     }
-    //     card.updateEffectContexts();
-    //     this.resolveGameState(true);
-    // }
-
-    watch(socketId, user) {
+    public watch(socketId: string, user: IUser): boolean {
         if (!this.allowSpectators) {
             return false;
         }
@@ -1685,7 +1374,7 @@ class Game extends EventEmitter {
         return true;
     }
 
-    join(socketId, user) {
+    public join(socketId: string, user: IUser): boolean {
         if (this.started || this.getPlayers().length === 2) {
             return false;
         }
@@ -1695,12 +1384,8 @@ class Game extends EventEmitter {
         return true;
     }
 
-    // isEmpty() {
-    //     return _.all(this.playersAndSpectators, (player) => player.disconnected || player.left || player.id === 'TBA');
-    // }
-
-    leave(playerName) {
-        var player = this.playersAndSpectators[playerName];
+    public leave(playerName: string): void {
+        const player = this.playersAndSpectators[playerName];
 
         if (!player) {
             return;
@@ -1709,6 +1394,7 @@ class Game extends EventEmitter {
         this.addMessage('{0} has left the game', playerName);
 
         if (this.isSpectator(player) || !this.started) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete this.playersAndSpectators[playerName];
         } else {
             player.left = true;
@@ -1719,8 +1405,8 @@ class Game extends EventEmitter {
         }
     }
 
-    disconnect(playerName) {
-        var player = this.playersAndSpectators[playerName];
+    public disconnect(playerName: string): void {
+        const player = this.playersAndSpectators[playerName];
 
         if (!player) {
             return;
@@ -1729,6 +1415,7 @@ class Game extends EventEmitter {
         this.addMessage('{0} has disconnected', player);
 
         if (this.isSpectator(player)) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete this.playersAndSpectators[playerName];
         } else {
             player.disconnected = true;
@@ -1736,14 +1423,15 @@ class Game extends EventEmitter {
         }
     }
 
-    failedConnect(playerName) {
-        var player = this.playersAndSpectators[playerName];
+    public failedConnect(playerName: string): void {
+        const player = this.playersAndSpectators[playerName];
 
         if (!player) {
             return;
         }
 
         if (this.isSpectator(player) || !this.started) {
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete this.playersAndSpectators[playerName];
         } else {
             this.addMessage('{0} has failed to connect to the game', player);
@@ -1756,8 +1444,8 @@ class Game extends EventEmitter {
         }
     }
 
-    reconnect(socket, playerName) {
-        var player = this.getPlayerByName(playerName);
+    public reconnect(socket: any, playerName: string): void {
+        const player = this.getPlayerByName(playerName);
         if (!player) {
             return;
         }
@@ -1769,16 +1457,15 @@ class Game extends EventEmitter {
         this.addMessage('{0} has reconnected', player);
     }
 
-    /** @param {CostAdjuster} costAdjuster */
-    removeCostAdjusterFromAll(costAdjuster) {
+    public removeCostAdjusterFromAll(costAdjuster: CostAdjuster): void {
         for (const player of this.getPlayers()) {
             player.removeCostAdjuster(costAdjuster);
         }
     }
 
     /** Goes through the list of cards moved during event resolution and does a uniqueness rule check for each */
-    checkUniqueRule() {
-        const checkedCards = new Array();
+    public checkUniqueRule(): void {
+        const checkedCards: Card[] = [];
 
         for (const movedCard of this.state.movedCards.map((ref) => this.getFromRef(ref))) {
             if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
@@ -1796,7 +1483,7 @@ class Game extends EventEmitter {
         }
     }
 
-    resolveGameState(hasChanged = false, events = []) {
+    public resolveGameState(hasChanged = false, events: GameEvent[] = []): void {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
         for (const movedCard of this.state.movedCards.map((ref) => this.getFromRef(ref))) {
             movedCard.resolveAbilitiesForNewZone();
@@ -1810,7 +1497,6 @@ class Game extends EventEmitter {
 
         // check for a game state change (recalculating attack stats if necessary)
         if (
-            // (!this.currentAttack && this.ongoingEffectEngine.resolveEffects(hasChanged)) ||
             this.ongoingEffectEngine.resolveEffects(hasChanged) || hasChanged
         ) {
             this.checkWinCondition();
@@ -1823,15 +1509,14 @@ class Game extends EventEmitter {
         }
     }
 
-    continue() {
+    public continue(): void {
         this.pipeline.continue(this);
     }
 
     /**
      * Receives data for the token cards and builds a factory method for each type
-     * @param {*} tokenCardsData object in the form `{ tokenName: tokenCardData }`
      */
-    initialiseTokens(tokenCardsData) {
+    private initialiseTokens(tokenCardsData: ITokenCardsData): void {
         this.checkTokenDataProvided(TokenUpgradeName, tokenCardsData);
         this.checkTokenDataProvided(TokenUnitName, tokenCardsData);
         this.checkTokenDataProvided(TokenCardName, tokenCardsData);
@@ -1847,7 +1532,7 @@ class Game extends EventEmitter {
         }
     }
 
-    checkTokenDataProvided(tokenTypeNames, tokenCardsData) {
+    private checkTokenDataProvided(tokenTypeNames: Record<string, string>, tokenCardsData: ITokenCardsData): void {
         for (const tokenName of Object.values(tokenTypeNames)) {
             if (!(tokenName in tokenCardsData)) {
                 throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
@@ -1858,14 +1543,9 @@ class Game extends EventEmitter {
     /**
      * Creates a new token in an out of play zone owned by the player and
      * adds it to all relevant card lists
-     * @param {Player} player
-     * @param {import('./Constants.js').TokenName} tokenName
-     * @param {any} additionalProperties
-     * @returns {Card}
      */
-    generateToken(player, tokenName, additionalProperties = null) {
-        /** @type {import('./card/propertyMixins/Token.js').ITokenCard} */
-        const token = this.tokenFactories[tokenName](player, additionalProperties);
+    public generateToken(player: Player, tokenName: TokenName, additionalProperties: any = null): Card {
+        const token: ITokenCard = this.tokenFactories[tokenName](player, additionalProperties);
 
         // TODO: Rework allCards to be GO Refs
         this.state.allCards.push(token.getRef());
@@ -1878,38 +1558,26 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Removes a shield token from all relevant card lists, including its zone
-     * @param {import('./card/propertyMixins/Token.js').ITokenCard} token
+     * Removes a token from all relevant card lists, including its zone
      */
-    removeTokenFromPlay(token) {
+    public removeTokenFromPlay(token: ITokenCard): void {
         Contract.assertEqual(token.zoneName, ZoneName.OutsideTheGame,
             `Tokens must be moved to zone ${ZoneName.OutsideTheGame} before removing from play, instead found token at ${token.zoneName}`
         );
 
-        const player = token.owner;
-        // Functionality did nothing previously, now that it's fixed, disabling until we're ready to activate again.
-        // this.filterCardFromList(token, this.state.allCards);
-        // this.filterCardFromList(token, player.decklist.tokens);
-        // this.filterCardFromList(token, player.decklist.allCards);
         token.removeFromGame();
     }
 
     /**
      * Registers that a card has been moved to a different zone and therefore requires updating in the
      * next call to resolveGameState
-     * @param {Card} card
      */
-    registerMovedCard(card) {
+    public registerMovedCard(card: Card): void {
         this.state.movedCards.push(card.getRef());
     }
 
-    /**
-     *
-     * @param {Card} removeCard
-     * @param {import('./GameObjectBase.js').GameObjectRef[]} list
-     */
-    filterCardFromList(removeCard, list) {
-        const indexes = [];
+    public filterCardFromList(removeCard: Card, list: GameObjectRef[]): void {
+        const indexes: number[] = [];
 
         for (let i = list.length - 1; i >= 0; i--) {
             const ref = list[i];
@@ -1918,94 +1586,23 @@ class Game extends EventEmitter {
             }
         }
 
-        for (let index of indexes) {
+        for (const index of indexes) {
             list.splice(index, 1);
         }
     }
 
-    // formatDeckForSaving(deck) {
-    //     var result = {
-    //         faction: {},
-    //         conflictCards: [],
-    //         dynastyCards: [],
-    //         stronghold: undefined,
-    //         role: undefined
-    //     };
-
-    //     //faction
-    //     result.faction = deck.faction;
-
-    //     //conflict
-    //     deck.conflictCards.forEach((cardData) => {
-    //         if (cardData && cardData.card) {
-    //             result.conflictCards.push(`${cardData.count}x ${cardData.card.id}`);
-    //         }
-    //     });
-
-    //     //dynasty
-    //     deck.dynastyCards.forEach((cardData) => {
-    //         if (cardData && cardData.card) {
-    //             result.dynastyCards.push(`${cardData.count}x ${cardData.card.id}`);
-    //         }
-    //     });
-
-    //     //stronghold & role
-    //     if (deck.stronghold) {
-    //         deck.stronghold.forEach((cardData) => {
-    //             if (cardData && cardData.card) {
-    //                 result.stronghold = cardData.card.id;
-    //             }
-    //         });
-    //     }
-    //     if (deck.role) {
-    //         deck.role.forEach((cardData) => {
-    //             if (cardData && cardData.card) {
-    //                 result.role = cardData.card.id;
-    //             }
-    //         });
-    //     }
-
-    //     return result;
-    // }
-
-    // /*
-    //  * This information is all logged when a game is won
-    //  */
-    // getSaveState() {
-    //     const players = this.getPlayers().map((player) => ({
-    //         name: player.name,
-    //         faction: player.faction.name || player.faction.value,
-    //         honor: player.getTotalHonor(),
-    //         lostProvinces: player
-    //             .getProvinceCards()
-    //             .reduce((count, card) => (card && card.isBroken ? count + 1 : count), 0),
-    //         deck: this.formatDeckForSaving(player.deck)
-    //     }));
-
-    //     return {
-    //         id: this.savedGameId,
-    //         gameId: this.id,
-    //         startedAt: this.startedAt,
-    //         players: players,
-    //         winner: this.winner ? this.winner.name : undefined,
-    //         gameEndReason: this.gameEndReason,
-    //         gameMode: this.gameMode,
-    //         finishedAt: this.finishedAt,
-    //         roundNumber: this.roundNumber,
-    //         initialFirstPlayer: this.initialFirstPlayer
-    //     };
-    // }
-
-    /**
-     * @template {GameObjectBase} T
-     * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameRef
-     * @returns {T | null}
-     */
-    getFromRef(gameRef) {
+    public getFromRef<T extends GameObjectBase>(gameRef: GameObjectRef<T>): T | null {
         return this.gameObjectManager.get(gameRef);
     }
 
-    getNextGameEventId() {
+    /**
+     * @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly.
+     */
+    public getFromUuidUnsafe<T extends GameObjectBase>(uuid: string): T | null {
+        return this.gameObjectManager.getUnsafe(uuid);
+    }
+
+    public getNextGameEventId(): number {
         this.state.lastGameEventId += 1;
         return this.state.lastGameEventId;
     }
@@ -2013,9 +1610,8 @@ class Game extends EventEmitter {
     /**
      * Returns the serialized game state for a specific player/spectator.
      * Tracks message offsets internally per player/spectator for incremental message sync.
-     * @param {string} notInactivePlayerId - The player/spectator ID to get state for
      */
-    getState(notInactivePlayerId) {
+    public getState(notInactivePlayerId: string) {
         const lastMessageOffset = this.chatMessageOffsets.get(notInactivePlayerId) ?? 0;
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
@@ -2037,7 +1633,7 @@ class Game extends EventEmitter {
                 };
             }
 
-            let playerState = {};
+            const playerState: Record<string, any> = {};
             if (this.started) {
                 for (const player of this.getPlayers()) {
                     playerState[player.id] = player.getStateSummary(activePlayer);
@@ -2084,8 +1680,7 @@ class Game extends EventEmitter {
         }
     }
 
-    /** @param {boolean} enabled */
-    setUndoConfirmationRequired(enabled) {
+    public setUndoConfirmationRequired(enabled: boolean): void {
         if (
             enabled && this.snapshotManager.undoMode === UndoMode.Request ||
             !enabled && this.snapshotManager.undoMode !== UndoMode.Request
@@ -2099,29 +1694,22 @@ class Game extends EventEmitter {
             : new UnlimitedUndoLimit();
     }
 
-    /** @param {string} playerId */
-    countAvailableActionSnapshots(playerId) {
+    public countAvailableActionSnapshots(playerId: string): number {
         Contract.assertNotNullLike(playerId);
         return this.snapshotManager.countAvailableActionSnapshots(playerId);
     }
 
-    /** @param {string} playerId */
-    countAvailableManualSnapshots(playerId) {
+    public countAvailableManualSnapshots(playerId: string): number {
         Contract.assertNotNullLike(playerId);
         return this.snapshotManager.countAvailableManualSnapshots(playerId);
     }
 
-    /** @param {PhaseName.Action | PhaseName.Regroup} phaseName */
-    countAvailablePhaseSnapshots(phaseName) {
+    public countAvailablePhaseSnapshots(phaseName: PhaseName.Action | PhaseName.Regroup): number {
         Contract.assertNotNullLike(phaseName);
         return this.snapshotManager.countAvailablePhaseSnapshots(phaseName);
     }
 
-    /**
-     * @param {string} playerId
-     * @returns {QuickUndoAvailableState}
-     */
-    hasAvailableQuickSnapshot(playerId) {
+    public hasAvailableQuickSnapshot(playerId: string): QuickUndoAvailableState {
         Contract.assertNotNullLike(playerId);
 
         if (this.undoConfirmationOpen) {
@@ -2144,10 +1732,8 @@ class Game extends EventEmitter {
 
     /**
      * Takes a manual snapshot of the current game state for the given player
-     *
-     * @param {Player} player - The player for whom the snapshot is taken
      */
-    takeManualSnapshot(player) {
+    public takeManualSnapshot(player: Player): number {
         if (this.isUndoEnabled) {
             Contract.assertHasProperty(player, 'id', 'Player must have an id to take a manual snapshot');
             return this._snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId: player.id });
@@ -2159,11 +1745,9 @@ class Game extends EventEmitter {
     /**
      * Attempts to restore the designated snapshot
      *
-     * @param {string} playerId - The ID of the player requesting the rollback
-     * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings - Settings for the snapshot restoration
      * @return True if the rollback was successful or we prompted the opponent to confirm, false otherwise
      */
-    rollbackToSnapshot(playerId, settings) {
+    public rollbackToSnapshot(playerId: string, settings: IGetSnapshotSettings): boolean {
         if (!this.isUndoEnabled) {
             return false;
         }
@@ -2172,7 +1756,7 @@ class Game extends EventEmitter {
 
         const rollbackInformation = this.snapshotManager.getRollbackInformation(settings);
 
-        let message;
+        let message: string;
         switch (settings.type) {
             case SnapshotType.Manual:
                 message = 'a previous bookmark';
@@ -2228,12 +1812,7 @@ class Game extends EventEmitter {
         return result;
     }
 
-    /**
-     * @param {string} playerId - The ID of the player requesting the rollback
-     * @param {import('./snapshot/SnapshotInterfaces.js').ICanRollBackResult} rollbackInformation
-     * @returns {boolean}
-     */
-    confirmationRequiredForRollback(playerId, rollbackInformation) {
+    private confirmationRequiredForRollback(playerId: string, rollbackInformation: ICanRollBackResult): boolean {
         if (this.snapshotManager.undoMode !== UndoMode.Request) {
             return false;
         }
@@ -2254,18 +1833,14 @@ class Game extends EventEmitter {
         return !!opponent.hasResolvedAbilityThisTimepoint;
     }
 
-    /**
-     * @param {import('./snapshot/SnapshotInterfaces.js').IGetSnapshotSettings} settings
-     * @returns True if a snapshot was restored, false otherwise
-     */
-    rollbackToSnapshotInternal(settings, rollbackHandler = null) {
+    private rollbackToSnapshotInternal(settings: IGetSnapshotSettings, rollbackHandler: (() => any) | null = null): boolean {
         if (!this.isUndoEnabled) {
             return false;
         }
 
         const start = process.hrtime.bigint();
 
-        let rollbackResult;
+        let rollbackResult: any;
         try {
             this.preUndoStateForError = { gameState: this.captureGameState('any'), settings };
 
@@ -2304,7 +1879,7 @@ class Game extends EventEmitter {
             return rollbackResult.success;
         } catch (error) {
             if (process.env.NODE_ENV !== 'test') {
-                this.reportSevereRollbackFailure(error);
+                this.reportSevereRollbackFailure(error as Error);
             }
 
             throw error;
@@ -2313,7 +1888,7 @@ class Game extends EventEmitter {
         }
     }
 
-    reportSevereRollbackFailure(error) {
+    public reportSevereRollbackFailure(error: Error): void {
         if (process.env.NODE_ENV === 'test') {
             throw error;
         }
@@ -2321,17 +1896,14 @@ class Game extends EventEmitter {
         logger.error('Rollback failed', {
             lobbyId: this.lobbyId,
             gameId: this.id,
-            rollbackSettings: this.preUndoStateForError.settings,
-            preUndoState: this.preUndoStateForError.gameState,
+            rollbackSettings: this.preUndoStateForError?.settings,
+            preUndoState: this.preUndoStateForError?.gameState,
             error: { message: error.message, stack: error.stack }
         });
         this.reportError(error, GameErrorSeverity.SevereHaltGame);
     }
 
-    /**
-     * @param {import('./snapshot/SnapshotInterfaces.js').IRollbackSetupEntryPoint | import('./snapshot/SnapshotInterfaces.js').IRollbackRoundEntryPoint} entryPoint
-     */
-    postRollbackOperations(entryPoint) {
+    public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {
@@ -2345,40 +1917,35 @@ class Game extends EventEmitter {
     // TODO: Make a debug object type.
     /**
      * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
-     * @param {{ pipeline: boolean; }} settings
-     * @param {() => void} fcn
      */
-    debug(settings, fcn) {
-        const currDebug = this.#debug;
-        if (Helpers.isDevelopment) {
-            this.#debug = settings;
+    public debug(settings: { pipeline: boolean }, fcn: () => void): void {
+        const currDebug = this._debug;
+        if (Helpers.isDevelopment()) {
+            this._debug = settings;
         }
         try {
             fcn();
         } finally {
-            this.#debug = currDebug;
+            this._debug = currDebug;
         }
     }
 
     /**
      * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
-     * @param {() => void} fcn
      */
-    debugPipeline(fcn) {
-        this.#debug.pipeline = Helpers.isDevelopment();
+    public debugPipeline(fcn: () => void): void {
+        this._debug.pipeline = Helpers.isDevelopment();
         try {
             fcn();
         } finally {
-            this.#debug.pipeline = false;
+            this._debug.pipeline = false;
         }
     }
 
     /**
      * Captures the current game state for a bug report
-     * @param {string} reportingPlayer
-     * @returns {import('../Interfaces').ISerializedGameState} A simplified game state representation
      */
-    captureGameState(reportingPlayer) {
+    public captureGameState(reportingPlayer: string): ISerializedGameState {
         if (!this) {
             return {
                 error: 'game not found'
@@ -2390,7 +1957,8 @@ class Game extends EventEmitter {
                 error: `invalid number of players: ${players.length}`
             };
         }
-        let player1, player2;
+        let player1: Player;
+        let player2: Player;
 
         switch (reportingPlayer) {
             case players[0].id:
@@ -2416,64 +1984,4 @@ class Game extends EventEmitter {
             player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
         };
     }
-
-    // return this.getSummary(notInactivePlayerName);
-    // }
-
-    // /*
-    //  * This is used for debugging?
-    //  */
-    // getSummary(notInactivePlayerName) {
-    //     var playerSummaries = {};
-
-    //     for (const player of this.getPlayers()) {
-    //         var deck = undefined;
-    //         if (player.left) {
-    //             return;
-    //         }
-
-    //         if (notInactivePlayerName === player.name && player.deck) {
-    //             deck = { name: player.deck.name, selected: player.deck.selected };
-    //         } else if (player.deck) {
-    //             deck = { selected: player.deck.selected };
-    //         } else {
-    //             deck = {};
-    //         }
-
-    //         playerSummaries[player.name] = {
-    //             deck: deck,
-    //             emailHash: player.emailHash,
-    //             faction: player.faction.value,
-    //             id: player.id,
-    //             lobbyId: player.lobbyId,
-    //             left: player.left,
-    //             name: player.name,
-    //             owner: player.owner
-    //         };
-    //     }
-
-    //     return {
-    //         allowSpectators: this.allowSpectators,
-    //         createdAt: this.createdAt,
-    //         gameType: this.gameType,
-    //         id: this.id,
-    //         manualMode: this.manualMode,
-    //         messages: this.gameChat.messages,
-    //         name: this.name,
-    //         owner: _.omit(this.owner, ['blocklist', 'email', 'emailHash', 'promptedActionWindows', 'settings']),
-    //         players: playerSummaries,
-    //         started: this.started,
-    //         startedAt: this.startedAt,
-    //         gameMode: this.gameMode,
-    //         spectators: this.getSpectators().map((spectator) => {
-    //             return {
-    //                 id: spectator.id,
-    //                 lobbyId: spectator.lobbyId,
-    //                 name: spectator.name
-    //             };
-    //         })
-    //     };
-    // }
 }
-
-module.exports = Game;

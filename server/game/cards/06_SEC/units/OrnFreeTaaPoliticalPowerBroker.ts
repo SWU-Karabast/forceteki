@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 import type { IPlayableCard } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 
 export default class OrnFreeTaaPoliticalPowerBroker extends NonLeaderUnitCard {
@@ -26,7 +26,10 @@ export default class OrnFreeTaaPoliticalPowerBroker extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 10,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Law),
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

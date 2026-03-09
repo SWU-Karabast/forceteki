@@ -1,19 +1,17 @@
 import type { GameObject } from '../GameObject';
+import type { ISerializedMessage } from '../../Interfaces';
 import * as ChatHelpers from './ChatHelpers';
 
-export type MsgArg = string | FormatMessage | GameObject | MsgArg[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
+export type MsgArg = string | number | FormatMessage | GameObject | MsgArg[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
 export interface FormatMessage {
     format: string;
     args: MsgArg[];
 }
 
-type MessageText = string | (string | number)[];
-
 export class GameChat {
-    public messages: {
-        date: Date;
-        message: MessageText | { alert: { type: string; message: string | string[] } };
-    }[] = [];
+    public messages: ISerializedMessage[] = [];
+
+    public typingState: Record<string, boolean> = {};
 
     private readonly pushUpdate: () => void;
 
@@ -40,6 +38,10 @@ export class GameChat {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: { alert: { type: type, message: formattedMessage } } });
         this.pushUpdate();
+    }
+
+    public setTypingState(userId: string, isTyping: boolean): void {
+        this.typingState[userId] = isTyping;
     }
 
     private formatMessage(format: string, args: MsgArg[]): string | string[] {

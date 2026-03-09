@@ -4,11 +4,11 @@ import type { EventWindow } from '../../event/EventWindow';
 import { AbilityType, SubStepCheck } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
-import type TriggeredAbility from '../../ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { PromptType } from '../PromptInterfaces';
 
 export abstract class TriggerWindowBase extends BaseStep {
@@ -16,10 +16,10 @@ export abstract class TriggerWindowBase extends BaseStep {
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
 
     /** Already resolved effects / abilities */
-    protected resolved: { ability: TriggeredAbility; event: GameEvent }[] = [];
+    protected resolved: { ability: TriggeredAbilityBase; event: GameEvent }[] = [];
 
     /** Map tracking which events have triggered which abilities (for duplicate prevention) */
-    protected triggeredAbilityEvents = new Map<TriggeredAbility, GameEvent[]>();
+    protected triggeredAbilityEvents = new Map<TriggeredAbilityBase, GameEvent[]>();
 
     /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
@@ -170,7 +170,7 @@ export abstract class TriggerWindowBase extends BaseStep {
         }
 
         // Check to if we're dealing with a multi-selection of the 'same' ability
-        const repeatedAbilities = this.getRepeatedAbilityTriggers(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+        const repeatedAbilities = this.getRepeatedAbilityTriggers(abilitiesToResolve);
 
         for (const repeatedAbility of repeatedAbilities) {
             // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
@@ -222,21 +222,37 @@ export abstract class TriggerWindowBase extends BaseStep {
         return `${context.ability.getTitle(context)}: ${context.event.card.title}`;
     }
 
-    private getRepeatedAbilityTriggers(abilitiesToResolve: TriggeredAbilityContext[], resolvedAbilities: TriggeredAbility[]) {
-        const repeatedAbilities = new Set<TriggeredAbility>();
-        const allAbilities = new Set<TriggeredAbility>(resolvedAbilities);
+    private getRepeatedAbilityTriggers(abilitiesToResolve: TriggeredAbilityContext[]) {
+        const repeatedAbilities = new Set<TriggeredAbilityBase>();
+        const allAbilitiesByPlayer = new Map<Player, Set<TriggeredAbilityBase>>();
 
-        for (const ability of abilitiesToResolve.map((context) => context.ability)) {
-            if (allAbilities.has(ability)) {
+        function addAbilityForPlayer(player: Player, ability: TriggeredAbilityBase) {
+            if (!allAbilitiesByPlayer.has(player)) {
+                allAbilitiesByPlayer.set(player, new Set([ability]));
+            } else {
+                allAbilitiesByPlayer.get(player).add(ability);
+            }
+        }
+
+        for (const entry of this.resolved) {
+            const player = entry.event['player'] as Player;
+            addAbilityForPlayer(player, entry.ability);
+        }
+
+        for (const abilityContext of abilitiesToResolve) {
+            const ability = abilityContext.ability;
+            const player = abilityContext.event['player'] as Player;
+
+            // Only count abilities as "repeated" if they were triggered by the same player
+            if (allAbilitiesByPlayer.has(player) && allAbilitiesByPlayer.get(player).has(ability)) {
                 repeatedAbilities.add(ability);
             } else {
-                allAbilities.add(ability);
+                addAbilityForPlayer(player, ability);
             }
         }
 
         return repeatedAbilities;
     }
-
 
     private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();

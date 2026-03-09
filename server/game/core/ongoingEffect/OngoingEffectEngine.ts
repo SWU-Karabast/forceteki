@@ -1,25 +1,29 @@
 import { Duration, EffectName, EventName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
 import type { OngoingEffect } from './OngoingEffect';
-import type { OngoingEffectSource } from './OngoingEffectSource';
+import type { OngoingEffectSourceBase } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, undoArray } from '../GameObjectUtils';
+import { registerState, stateRefArray, statePrimitive } from '../GameObjectUtils';
 import { AttackRulesVersion } from '../attack/AttackFlow';
+import type { MsgArg } from '../chat/GameChat';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
-class CustomDurationEvent extends GameObjectBase<ICustomDurationEventState> {
+@registerState()
+class CustomDurationEvent extends GameObjectBase {
     public readonly name: string;
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;
+
+    @statePrimitive() private accessor isRegistered: boolean = false;
 
     public constructor(game: Game, name: string, handler: (...args: any[]) => void, effect: OngoingEffect<any>) {
         super(game);
@@ -28,23 +32,19 @@ class CustomDurationEvent extends GameObjectBase<ICustomDurationEventState> {
         this.effect = effect;
     }
 
-    protected override setupDefaultState(): void {
-        this.state.isRegistered = false;
-    }
-
     public registerEvent(): void {
-        this.state.isRegistered = true;
+        this.isRegistered = true;
         this.game.on(this.name, this.handler);
     }
 
     public unregisterEvent(): void {
-        this.state.isRegistered = false;
+        this.isRegistered = false;
         this.game.removeListener(this.name, this.handler);
     }
 
     protected override afterSetState(oldState: ICustomDurationEventState): void {
-        if (this.state.isRegistered !== oldState.isRegistered) {
-            if (this.state.isRegistered) {
+        if (this.isRegistered !== oldState.isRegistered) {
+            if (this.isRegistered) {
                 this.registerEvent();
             } else {
                 this.unregisterEvent();
@@ -64,7 +64,7 @@ export interface IOngoingEffectState extends IGameObjectBaseState {
 }
 
 @registerState()
-export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
+export class OngoingEffectEngine extends GameObjectBase {
     public events: EventRegistrar;
     public effectsChangedSinceLastCheck = false;
 
@@ -73,10 +73,10 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         return true;
     }
 
-    @undoArray()
+    @stateRefArray()
     public accessor effects: readonly OngoingEffect[] = [];
 
-    @undoArray()
+    @stateRefArray()
     public accessor customDurationEvents: readonly CustomDurationEvent[] = [];
 
     public constructor(game: Game) {
@@ -130,16 +130,19 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
                 handler: () => {
                     // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
                     properties.immediateEffect.setDefaultTargetFn(() => targets);
-                    if (properties.message && properties.immediateEffect.hasLegalTarget(context)) {
-                        let messageArgs = properties.messageArgs || [];
-                        if (typeof messageArgs === 'function') {
-                            messageArgs = messageArgs(context, targets);
-                        }
-                        this.game.addMessage(properties.message, ...messageArgs);
-                    }
+
                     const actionEvents = [];
                     properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
                     properties.limit.increment(context.player);
+
+                    if (properties.immediateEffect.hasLegalTarget(context)) {
+                        const messageArgs: MsgArg[] = [context.player, ' uses a delayed effect applied by ', context.source, ' to '];
+                        const [effectMessage, effectArgs] = properties.immediateEffect.getEffectMessage(context);
+                        messageArgs.push({ format: effectMessage, args: effectArgs });
+
+                        this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+                    }
+
                     this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
                     this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
                 }
@@ -175,7 +178,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         }
     }
 
-    public removeLastingEffects(card: OngoingEffectSource) {
+    public removeLastingEffects(card: OngoingEffectSourceBase) {
         Contract.assertTrue(card.isCard());
 
         this.unapplyAndRemove(
@@ -336,3 +339,5 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
         this.resolveEffects(true);
     }
 }
+
+

@@ -44,7 +44,9 @@ describe('Colossus', function() {
 
                 // Draw cards step
                 expect(context.player1.handSize).toBe(5);
+                expect(context.getChatLogs(3)).toContain('player1 draws 5 cards in their starting hand');
                 expect(context.player2.handSize).toBe(6);
+                expect(context.getChatLogs(3)).toContain('player2 draws 6 cards in their starting hand');
             });
 
             it('should draw 5 cards on mulligan', function () {

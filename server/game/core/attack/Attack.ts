@@ -1,4 +1,4 @@
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import { AbilityRestriction, EffectName, KeywordName } from '../Constants';
@@ -12,6 +12,7 @@ export class Attack {
     public readonly attacker: IUnitCard;
     public readonly attackingPlayer: Player;
     public readonly attackerInPlayId: number;
+    public readonly id: number;
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
 
@@ -27,12 +28,14 @@ export class Attack {
         attacker: IUnitCard,
         targets: IAttackableCard[],
         isAmbush: boolean = false,
-        attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number
+        attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number,
     ) {
         Contract.assertTrue(attacker.isInPlay(), `Attempting to construct an Attack but designated attacker ${attacker.internalName} is not in play`);
 
         const notInPlayTargets = targets.filter((target) => !target.isBase() && !target.isInPlay());
         Contract.assertTrue(notInPlayTargets.length === 0, `Attempting to construct an Attack but the following targets are not in play: ${notInPlayTargets.map((target) => target.internalName).join(', ')}`);
+
+        this.id = game.getNextAttackId();
 
         this.game = game;
         this.attacker = attacker;

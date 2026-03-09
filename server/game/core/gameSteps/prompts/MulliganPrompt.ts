@@ -1,11 +1,13 @@
 import { AllPlayerPrompt } from './AllPlayerPrompt';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 import { DeckZoneDestination, EffectName } from '../../Constants';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';
+import { ShuffleDeckSystem } from '../../../gameSystems/ShuffleDeckSystem';
+import { MoveCardSystem } from '../../../gameSystems/MoveCardSystem';
 
 export class MulliganPrompt extends AllPlayerPrompt {
     protected playersDone = new Map<string, boolean>();
@@ -68,12 +70,29 @@ export class MulliganPrompt extends AllPlayerPrompt {
     public override complete() {
         for (const player of this.game.getPlayers()) {
             if (this.playerMulligan[player.name]) {
-                for (const card of player.hand) {
-                    card.moveTo(DeckZoneDestination.DeckBottom);
-                }
+                // Move the first hand to the bottom of the deck
+                new MoveCardSystem({
+                    target: player.hand,
+                    destination: DeckZoneDestination.DeckBottom,
+                }).resolve(
+                    player,
+                    this.game.getFrameworkContext(player),
+                    TriggerHandlingMode.ResolvesTriggers
+                );
 
-                player.shuffleDeck();
 
+                // Shuffle the deck
+                this.game.addMessage('{0} is shuffling their deck', player);
+                new ShuffleDeckSystem({ target: player })
+                    .resolve(
+                        player,
+                        this.game.getFrameworkContext(player),
+                        TriggerHandlingMode.ResolvesTriggers
+                    );
+
+
+                // Draw a new starting hand
+                this.game.addMessage('{0} draws {1} cards in their starting hand', player, player.getStartingHandSize());
                 new DrawSystem({ amount: player.getStartingHandSize() })
                     .resolve(
                         player,

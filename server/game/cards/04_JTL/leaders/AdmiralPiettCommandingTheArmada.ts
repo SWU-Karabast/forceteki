@@ -42,4 +42,3 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
     }
 }
 
-
