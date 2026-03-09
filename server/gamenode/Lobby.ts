@@ -1347,7 +1347,7 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
-            attackRulesVersion: this.format === SwuGameFormat.Premier ? AttackRulesVersion.CR6 : AttackRulesVersion.CR7,
+            attackRulesVersion: AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
