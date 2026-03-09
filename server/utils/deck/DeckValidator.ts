@@ -234,9 +234,33 @@ export class DeckValidator {
         return this.validateCommonDeck(deck, properties.format, properties.allow30CardsInMainBoard);
     }
 
+    private normalizeSetCodeId(id: string): string {
+        const underscoreIndex = id.indexOf('_');
+        if (underscoreIndex === -1) {
+            return id;
+        }
+        const setCode = id.substring(0, underscoreIndex);
+        const cardNumber = id.substring(underscoreIndex + 1);
+        return `${setCode}_${cardNumber.padStart(3, '0')}`;
+    }
+
+    private normalizeCardEntryIds(entries: ISwuDbFormatCardEntry[]): void {
+        for (const entry of entries) {
+            entry.id = this.normalizeSetCodeId(entry.id);
+        }
+    }
+
     private validateCommonDeck(deck: IDecklistInternal | ISwuDbFormatDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
         try {
             Contract.assertFalse(format !== SwuGameFormat.Open && allow30CardsInMainBoard, '30-card setting can only be used in Open format');
+
+            // Normalize set code IDs to ensure card numbers are zero-padded (e.g. LAW_3 -> LAW_003)
+            deck.leader.id = this.normalizeSetCodeId(deck.leader.id);
+            deck.base.id = this.normalizeSetCodeId(deck.base.id);
+            this.normalizeCardEntryIds(deck.deck);
+            if (deck.sideboard) {
+                this.normalizeCardEntryIds(deck.sideboard);
+            }
 
             const failures: IDeckValidationFailures = {
                 [DeckValidationFailureReason.IllegalInFormat]: [],
