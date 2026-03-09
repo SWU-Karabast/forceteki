@@ -1002,6 +1002,11 @@ export class Lobby {
         this.updateUserLastActivity(user.id);
     }
 
+    private typingState(socket: Socket, isTyping: boolean) {
+        const userId = socket.user.getId();
+        this.gameChat.setTypingState(userId, isTyping);
+    }
+
     private getUser(id: string) {
         const user = this.users.find((u) => u.id === id);
         Contract.assertNotNullLike(user, `Unable to find user with id ${id} in lobby ${this.id}`);
@@ -1016,6 +1021,7 @@ export class Lobby {
             }
 
             user.state = 'disconnected';
+            this.gameChat.setTypingState(id, false);
             logger.info(`Lobby: setting user ${user.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
 
