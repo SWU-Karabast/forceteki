@@ -39,7 +39,7 @@ const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
     [SwuGameFormat.Premier, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
     [SwuGameFormat.Open, new Set(rotationBlocks.keys())],
     [SwuGameFormat.NextSetPreview, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
-    [SwuGameFormat.Eternal, new Set(rotationBlocks.keys())],
+    [SwuGameFormat.Eternal, new Set([SwuRotationBlock.Block0, SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
 ]);
 
 const bannedPremierCards = new Map([
@@ -234,9 +234,33 @@ export class DeckValidator {
         return this.validateCommonDeck(deck, properties.format, properties.allow30CardsInMainBoard);
     }
 
+    private normalizeSetCodeId(id: string): string {
+        const underscoreIndex = id.indexOf('_');
+        if (underscoreIndex === -1 || id.length - underscoreIndex - 1 >= 3) {
+            return id;
+        }
+        const setCode = id.substring(0, underscoreIndex);
+        const cardNumber = id.substring(underscoreIndex + 1);
+        return `${setCode}_${cardNumber.padStart(3, '0')}`;
+    }
+
+    private normalizeCardEntryIds(entries: ISwuDbFormatCardEntry[]): void {
+        for (const entry of entries) {
+            entry.id = this.normalizeSetCodeId(entry.id);
+        }
+    }
+
     private validateCommonDeck(deck: IDecklistInternal | ISwuDbFormatDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
         try {
             Contract.assertFalse(format !== SwuGameFormat.Open && allow30CardsInMainBoard, '30-card setting can only be used in Open format');
+
+            // Normalize set code IDs to ensure card numbers are zero-padded (e.g. LAW_3 -> LAW_003)
+            deck.leader.id = this.normalizeSetCodeId(deck.leader.id);
+            deck.base.id = this.normalizeSetCodeId(deck.base.id);
+            this.normalizeCardEntryIds(deck.deck);
+            if (deck.sideboard) {
+                this.normalizeCardEntryIds(deck.sideboard);
+            }
 
             const failures: IDeckValidationFailures = {
                 [DeckValidationFailureReason.IllegalInFormat]: [],
