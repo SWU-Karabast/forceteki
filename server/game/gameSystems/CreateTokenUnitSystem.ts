@@ -6,6 +6,8 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
+import * as Helpers from '../core/utils/Helpers';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -26,10 +28,28 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-
+        const players = Helpers.asArray(properties.target);
         const tokenTitle = context.game.cardDataGetter.tokenData[this.getTokenType()]?.title ?? this.getTokenType();
         const indefiniteArticle = this.getTokenType() === TokenUnitName.XWing ? 'an' : 'a';
-        return ['create {0}', [ChatHelpers.pluralize(properties.amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`)]];
+
+        const effectMessage = (player: Player): FormatMessage => {
+            const targetIsSelf = player === context.player;
+            const tokenText = ChatHelpers.pluralize(properties.amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`);
+
+            if (targetIsSelf) {
+                return {
+                    format: 'create {0}',
+                    args: [tokenText]
+                };
+            }
+
+            return {
+                format: 'make {0} create {1}',
+                args: [player, tokenText]
+            };
+        };
+
+        return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
     protected abstract getTokenType(): TokenUnitName;
