@@ -7,14 +7,17 @@
  *
  * Usage:
  *   node scripts/validate-deck.js <path-to-decklist.json> [options]
+ *   node scripts/validate-deck.js --clipboard [options]
  *
  * Options:
+ *   --clipboard                       Read deck JSON from clipboard (macOS only)
  *   --format <premier|open|next-set>  Game format (default: premier)
  *   --allow-30-cards                  Allow 30-card decks (only valid for Open format)
  *   --ignore-unimplemented            Don't report unimplemented cards in the deck
  *
  * Example:
  *   node scripts/validate-deck.js ./my-deck.json --format premier
+ *   node scripts/validate-deck.js --clipboard --format open
  *
  * Decklist JSON format (ISwuDbFormatDecklist):
  * {
@@ -34,6 +37,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 // Import from build directory
 const buildDir = path.resolve(__dirname, '../build');
@@ -60,15 +64,18 @@ Deck Validation Script
 
 Usage:
   node scripts/validate-deck.js <path-to-decklist.json> [options]
+  node scripts/validate-deck.js --clipboard [options]
 
 Options:
+  --clipboard                       Read deck JSON from clipboard (macOS only)
   --format <premier|open|next-set>  Game format (default: premier)
   --allow-30-cards                  Allow 30-card decks (only valid for Open format)
   --ignore-unimplemented            Don't report unimplemented cards in the deck
   --help, -h                        Show this help message
 
-Example:
+Examples:
   node scripts/validate-deck.js ./my-deck.json --format premier
+  node scripts/validate-deck.js --clipboard --format open
 `);
         process.exit(0);
     }
@@ -77,11 +84,14 @@ Example:
     let format = SwuGameFormat.Premier;
     let allow30Cards = false;
     let ignoreUnimplemented = false;
+    let useClipboard = false;
 
     for (let i = 0; i < args.length; i++) {
         const arg = args[i];
 
-        if (arg === '--format') {
+        if (arg === '--clipboard') {
+            useClipboard = true;
+        } else if (arg === '--format') {
             const formatArg = args[++i]?.toLowerCase();
             switch (formatArg) {
                 case 'premier':
@@ -106,8 +116,13 @@ Example:
         }
     }
 
-    if (!deckPath) {
-        console.error('Error: No decklist file path provided.');
+    if (!deckPath && !useClipboard) {
+        console.error('Error: No decklist file path provided. Use --clipboard to read from clipboard.');
+        process.exit(1);
+    }
+
+    if (deckPath && useClipboard) {
+        console.error('Error: Cannot use both a file path and --clipboard.');
         process.exit(1);
     }
 
@@ -117,7 +132,7 @@ Example:
         process.exit(1);
     }
 
-    return { deckPath, format, allow30Cards, ignoreUnimplemented };
+    return { deckPath, format, allow30Cards, ignoreUnimplemented, useClipboard };
 }
 
 function formatGameFormat(format) {
@@ -133,24 +148,53 @@ function formatGameFormat(format) {
     }
 }
 
-async function main() {
-    const { deckPath, format, allow30Cards, ignoreUnimplemented } = parseArgs();
-
-    // Resolve deck path
-    const resolvedDeckPath = path.isAbsolute(deckPath)
-        ? deckPath
-        : path.resolve(process.cwd(), deckPath);
-
-    // Check if file exists
-    if (!fs.existsSync(resolvedDeckPath)) {
-        console.error(`Error: Decklist file not found: ${resolvedDeckPath}`);
+function readFromClipboard() {
+    if (process.platform !== 'darwin') {
+        console.error('Error: --clipboard is currently only supported on macOS.');
+        console.error('On other platforms, please use a file path or pipe JSON via stdin.');
         process.exit(1);
     }
 
-    // Read and parse decklist
+    try {
+        const clipboardContent = execSync('pbpaste', { encoding: 'utf8' });
+        if (!clipboardContent.trim()) {
+            console.error('Error: Clipboard is empty.');
+            process.exit(1);
+        }
+        return clipboardContent;
+    } catch (error) {
+        console.error(`Error: Failed to read from clipboard: ${error.message}`);
+        process.exit(1);
+    }
+}
+
+async function main() {
+    const { deckPath, format, allow30Cards, ignoreUnimplemented, useClipboard } = parseArgs();
+
+    let deckContent;
+
+    if (useClipboard) {
+        // Read from clipboard
+        deckContent = readFromClipboard();
+    } else {
+        // Resolve deck path
+        const resolvedDeckPath = path.isAbsolute(deckPath)
+            ? deckPath
+            : path.resolve(process.cwd(), deckPath);
+
+        // Check if file exists
+        if (!fs.existsSync(resolvedDeckPath)) {
+            console.error(`Error: Decklist file not found: ${resolvedDeckPath}`);
+            process.exit(1);
+        }
+
+        // Read file content
+        deckContent = fs.readFileSync(resolvedDeckPath, 'utf8');
+    }
+
+    // Parse decklist JSON
     let decklist;
     try {
-        const deckContent = fs.readFileSync(resolvedDeckPath, 'utf8');
         decklist = JSON.parse(deckContent);
     } catch (error) {
         console.error(`Error: Failed to parse decklist JSON: ${error.message}`);
