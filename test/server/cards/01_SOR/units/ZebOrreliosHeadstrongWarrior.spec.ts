@@ -26,11 +26,16 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 // kill superlaser technician, should deal 4 to a ground unit
                 context.player1.clickCard(context.zebOrrelios);
                 context.player1.clickCard(context.superlaserTechnician);
-                context.player2.clickPrompt('Trigger');
+
+                // choose to resolve Zeb effect first
+                context.player1.clickPrompt('You');
                 expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios, context.swoopRacer, context.consularSecurityForce, context.steadfastBattalion]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.consularSecurityForce);
                 expect(context.consularSecurityForce.damage).toBe(4);
+
+                // resolve SLT effect
+                context.player2.clickPrompt('Trigger');
                 expect(context.player2).toBeActivePlayer();
 
                 // reset
