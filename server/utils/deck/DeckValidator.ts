@@ -36,7 +36,7 @@ const rotationBlocks = new Map<SwuRotationBlock, Set<SwuSet>>([
 ]);
 
 const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
-    [SwuGameFormat.Premier, new Set([SwuRotationBlock.Block0, SwuRotationBlock.BlockA])],
+    [SwuGameFormat.Premier, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
     [SwuGameFormat.Open, new Set(rotationBlocks.keys())],
     [SwuGameFormat.NextSetPreview, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
     [SwuGameFormat.Eternal, new Set(rotationBlocks.keys())],
