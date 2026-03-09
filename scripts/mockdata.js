@@ -1,5 +1,59 @@
 const mockCards = [
     // Add mock cards here
+    buildMockCard({
+        title: 'Yoda',
+        subtitle: 'Begun, the Clone War Has',
+        cost: 5,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Command', 'Heroism'],
+        types: 'unit',
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'TS26',
+            number: 14
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yoda#begun-the-clone-war-has'
+    }),
+    buildMockCard({
+        title: 'C-3P0',
+        subtitle: 'Die, Jedi Dogs!',
+        cost: 2,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Command'],
+        types: 'unit',
+        traits: ['droid'],
+        setId: {
+            set: 'TS26',
+            number: 15
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'c3po#die-jedi-dogs'
+    }),
+    buildMockCard({
+        title: 'General Grievous',
+        subtitle: 'Crush Them!',
+        cost: 0,
+        power: 0,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Command', 'Villainy'],
+        types: 'unit',
+        traits: ['separatist', 'official'],
+        setId: {
+            set: 'TS26',
+            number: 50
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-grievous#crush-them'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
