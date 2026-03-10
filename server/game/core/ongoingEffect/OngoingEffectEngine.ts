@@ -1,9 +1,9 @@
 import { Duration, EffectName, EventName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
 import type { OngoingEffect } from './OngoingEffect';
-import type { OngoingEffectSource } from './OngoingEffectSource';
+import type { OngoingEffectSourceBase } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
@@ -11,6 +11,7 @@ import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefArray, statePrimitive } from '../GameObjectUtils';
 import { AttackRulesVersion } from '../attack/AttackFlow';
+import type { MsgArg } from '../chat/GameChat';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
@@ -129,16 +130,19 @@ export class OngoingEffectEngine extends GameObjectBase {
                 handler: () => {
                     // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
                     properties.immediateEffect.setDefaultTargetFn(() => targets);
-                    if (properties.message && properties.immediateEffect.hasLegalTarget(context)) {
-                        let messageArgs = properties.messageArgs || [];
-                        if (typeof messageArgs === 'function') {
-                            messageArgs = messageArgs(context, targets);
-                        }
-                        this.game.addMessage(properties.message, ...messageArgs);
-                    }
+
                     const actionEvents = [];
                     properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
                     properties.limit.increment(context.player);
+
+                    if (properties.immediateEffect.hasLegalTarget(context)) {
+                        const messageArgs: MsgArg[] = [context.player, ' uses a delayed effect applied by ', context.source, ' to '];
+                        const [effectMessage, effectArgs] = properties.immediateEffect.getEffectMessage(context);
+                        messageArgs.push({ format: effectMessage, args: effectArgs });
+
+                        this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+                    }
+
                     this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
                     this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
                 }
@@ -174,7 +178,7 @@ export class OngoingEffectEngine extends GameObjectBase {
         }
     }
 
-    public removeLastingEffects(card: OngoingEffectSource) {
+    public removeLastingEffects(card: OngoingEffectSourceBase) {
         Contract.assertTrue(card.isCard());
 
         this.unapplyAndRemove(

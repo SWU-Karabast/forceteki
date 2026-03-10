@@ -23,6 +23,8 @@ describe('Dryden Vos, I Get All Worked Up', function() {
 
             context.moveToRegroupPhase();
 
+            expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Dryden Vos to prevent Dryden Vos from readying for this phase');
+
             context.player1.clickDone();
             context.player2.clickDone();
 

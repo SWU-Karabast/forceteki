@@ -12,25 +12,48 @@ import * as Contract from '../../game/core/utils/Contract';
 import { ScoreType } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import * as Util from '../../Util';
+
+interface IBaseMapping {
+    aggression: string;
+    command: string;
+    cunning: string;
+    vigilance: string;
+}
 
 /**
  * Service class for handling deck-related operations
  */
 export class DeckService {
     private dbServicePromise = getDynamoDbServiceAsync();
-    private readonly baseMapping30 = {
+    private readonly baseMapping30: IBaseMapping = {
         aggression: '30hp-aggression-base',
         command: '30hp-command-base',
         cunning: '30hp-cunning-base',
         vigilance: '30hp-vigilance-base'
     };
 
-    private readonly baseMapping28 = {
+    private readonly baseMapping28Force: IBaseMapping = {
         aggression: '28hp-aggression-force-base',
         command: '28hp-command-force-base',
         cunning: '28hp-cunning-force-base',
         vigilance: '28hp-vigilance-force-base'
     };
+
+    private readonly forceBaseSetIds = new Set<string>([
+        'LOF_020', 'LOF_021', 'LOF_023', 'LOF_024', 'LOF_026', 'LOF_027', 'LOF_029', 'LOF_030'
+    ]);
+
+    private readonly baseMapping27AspectPenalty: IBaseMapping = {
+        aggression: '27hp-aggression-aspectpenalty-base',
+        command: '27hp-command-aspectpenalty-base',
+        cunning: '27hp-cunning-aspectpenalty-base',
+        vigilance: '27hp-vigilance-aspectpenalty-base'
+    };
+
+    private readonly aspectPenaltyBaseSetIds = new Set<string>([
+        'LAW_020', 'LAW_021', 'LAW_022', 'LAW_024', 'LAW_025', 'LAW_027', 'LAW_028', 'LAW_030'
+    ]);
 
 
     /**
@@ -414,29 +437,36 @@ export class DeckService {
     private async convertBaseIdForStatsAsync(baseCard: any, cardDataGetter: CardDataGetter): Promise<{ setId: string; meleeId: string }> {
         const baseCardData = await cardDataGetter.getCardAsync(baseCard.id);
 
-        if (this.isBasicBase(baseCardData)) {
-            return this.createBasicBaseAggregatedId(baseCardData);
+        const basicBaseId = this.createBasicBaseAggregatedId(baseCardData);
+        if (basicBaseId) {
+            return basicBaseId;
         }
+
         return { setId: baseCard.setId.set + '_' + baseCard.setId.number, meleeId: baseCardData.title + `${baseCardData.subtitle ? ` | ${baseCardData.subtitle}` : ''}` };
     }
 
-    /**
-    * @param baseCardData The card data object of a basic 28hp force base and a 30hp force base
-    * @returns boolean True if this is a basic base
-    */
-    private isBasicBase(baseCardData: any): boolean {
-        const hp = baseCardData.hp;
-        return ((hp === 28 || hp === 30));
-    }
 
     /**
     * @param baseCardData The card data object
     * @returns string The grouped identifier
     */
-    private createBasicBaseAggregatedId(baseCardData: any): { setId: string; meleeId: string } {
+    private createBasicBaseAggregatedId(baseCardData: any): { setId: string; meleeId: string } | null {
         const aspects = baseCardData.aspects || [];
         const hp = baseCardData.hp;
-        const mapping = hp === 30 ? this.baseMapping30 : this.baseMapping28;
+
+        const setCode = Util.setCodeToString(baseCardData.setId);
+
+        let mapping: IBaseMapping;
+        if (hp === 30) {
+            mapping = this.baseMapping30;
+        } else if (this.forceBaseSetIds.has(setCode)) {
+            mapping = this.baseMapping28Force;
+        } else if (this.aspectPenaltyBaseSetIds.has(setCode)) {
+            mapping = this.baseMapping27AspectPenalty;
+        } else {
+            return null;
+        }
+
         return { setId: mapping[aspects[0]], meleeId: mapping[aspects[0]] };
     }
 }

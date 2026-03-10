@@ -5,20 +5,19 @@ import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { Card } from '../core/card/Card.js';
-import type Game from '../core/Game.js';
+import type { Game } from '../core/Game';
 import type { FormatMessage } from '../core/chat/GameChat.js';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Player } from '../core/Player.js';
-
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, registerStateBase } from '../core/GameObjectUtils';
 
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
 };
 
-@registerState()
-export class PlayUnitAction extends PlayCardAction {
+@registerStateBase()
+export abstract class PlayUnitActionBase extends PlayCardAction {
     private entersReady: boolean;
 
     public constructor(game: Game, card: Card, properties: IPlayUnitActionProperties) {
@@ -88,3 +87,9 @@ export class PlayUnitAction extends PlayCardAction {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 }
+
+// This class intentionally adds no logic.
+// @registerState classes are terminal (cannot be further extended), but we still need
+// a concrete, instantiable type for PlayUnitActionBase.
+@registerState()
+export class PlayUnitAction extends PlayUnitActionBase {}

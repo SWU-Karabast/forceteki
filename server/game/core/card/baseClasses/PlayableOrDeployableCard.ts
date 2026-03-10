@@ -14,7 +14,7 @@ import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, Wi
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
-import { registerState, statePrimitive } from '../../GameObjectUtils';
+import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -65,7 +65,7 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-@registerState()
+@registerStateBase()
 export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
 

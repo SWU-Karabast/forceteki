@@ -3,10 +3,10 @@ import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
 import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityType } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import * as Contract from '../../utils/Contract';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { registerState, stateRef, stateValue, statePrimitive } from '../../GameObjectUtils';
 
 export interface IGainAbilityState extends IGameObjectBaseState {
@@ -17,7 +17,7 @@ export interface IGainAbilityState extends IGameObjectBaseState {
 }
 
 @registerState()
-export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType> {
+export class GainAbility extends OngoingEffectValueWrapperBase<IAbilityPropsWithType> {
     public readonly abilityType: AbilityType;
     public readonly properties: IAbilityPropsWithType;
 

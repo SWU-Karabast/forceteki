@@ -2,7 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { CardTypeFilter, RelativePlayerFilter, TargetMode, ZoneFilter } from '../Constants';
 import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, WildcardCardType, CardType } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';

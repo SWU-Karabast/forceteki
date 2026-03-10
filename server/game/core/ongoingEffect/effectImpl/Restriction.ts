@@ -1,10 +1,10 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { EffectName } from '../../Constants';
 import { AbilityRestriction } from '../../Constants';
 import type { Card } from '../../card/Card';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 
@@ -16,7 +16,7 @@ export interface RestrictionProperties {
 }
 
 @registerState()
-export class Restriction extends OngoingEffectValueWrapper<Restriction> {
+export class Restriction extends OngoingEffectValueWrapperBase<Restriction> {
     public readonly type: AbilityRestriction | EffectName;
     public restrictedActionCondition?: (context: AbilityContext, source: Card) => boolean;
 
@@ -29,6 +29,8 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
             return { format: 'being healed', args: [] };
         } else if (type === AbilityRestriction.BeAttacked) {
             return { format: 'being attacked', args: [] };
+        } else if (type === AbilityRestriction.DoesNotReadyDuringRegroup) {
+            return { format: 'readying during the regroup phase', args: [] };
         }
 
         return undefined;

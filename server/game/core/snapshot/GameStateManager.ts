@@ -1,4 +1,4 @@
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';

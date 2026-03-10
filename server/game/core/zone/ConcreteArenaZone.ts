@@ -1,7 +1,7 @@
 import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
 import type { ZoneName } from '../Constants';
-import type Game from '../Game';
-import { registerState } from '../GameObjectUtils';
+import type { Game } from '../Game';
+import { registerStateBase } from '../GameObjectUtils';
 import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
 import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';
 import type { IAddRemoveZone } from './ZoneAbstract';
@@ -9,7 +9,7 @@ import type { IAddRemoveZone } from './ZoneAbstract';
 /**
  * Base class for the "concrete" arena zones - ground and space - which are not the meta-zone AllArenasZone
  */
-@registerState()
+@registerStateBase()
 export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implements IAddRemoveZone {
     public declare readonly hiddenForPlayers: null;
     public abstract override readonly name: ZoneName;

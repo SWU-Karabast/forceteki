@@ -1,10 +1,10 @@
 import type { AbilityContext } from '../../core/ability/AbilityContext';
-import TriggeredAbility from '../../core/ability/TriggeredAbility';
+import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
 import type { IUnitCard } from '../../core/card/propertyMixins/UnitProperties';
 import { EventName, KeywordName, RelativePlayer, SubStepCheck, WildcardZoneName } from '../../core/Constants';
 import { GameEvent } from '../../core/event/GameEvent';
-import type Game from '../../core/Game';
+import type { Game } from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import type { ITriggeredAbilityBaseProps } from '../../Interfaces';
 
@@ -15,12 +15,12 @@ export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeT
 };
 
 /**
- * Extension of {@link TriggeredAbility} to handle bounties. The major difference is that it emits an
+ * Extension of {@link TriggeredAbilityBase} to handle bounties. The major difference is that it emits an
  * `onBountyCollected` event with the properties for the bounty ability (used for Bossk leader ability).
  * This event is emitted regardless of whether the bounty's actual effects will change game state.
  */
 @registerState()
-export class BountyAbility extends TriggeredAbility {
+export class BountyAbility extends TriggeredAbilityBase {
     public readonly keyword: KeywordName = KeywordName.Bounty;
 
     private readonly bountyProperties: IResolvedBountyProperties;

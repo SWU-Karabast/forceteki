@@ -3,9 +3,9 @@ import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
-import { registerState, stateValue, statePrimitive } from '../GameObjectUtils';
+import { registerState, registerStateBase, stateValue, statePrimitive } from '../GameObjectUtils';
 
 export interface IAbilityLimit {
     get ability(): CardAbility | null;
@@ -24,7 +24,7 @@ export interface IAbilityLimitState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
-@registerState()
+@registerStateBase()
 export abstract class AbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability: CardAbility | null = null;
 
@@ -68,14 +68,6 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
     public abstract isAtMax(player: Player): boolean;
     public abstract increment(player: Player): void;
     public abstract reset(): void;
-}
-
-interface IPerPlayerAbilityLimitState extends IAbilityLimitState {
-    useCount: Map<string, number>;
-}
-
-interface IPerGameAbilityLimitState extends IAbilityLimitState {
-    useCount: 0;
 }
 
 @registerState()
@@ -149,8 +141,8 @@ export class PerGameAbilityLimit extends AbilityLimit {
     }
 }
 
-@registerState()
-export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
+@registerStateBase()
+export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     public readonly max: number;
 
     @stateValue() private accessor useCount: Map<string, number> = new Map();
@@ -195,8 +187,14 @@ export class PerPlayerPerGameAbilityLimit extends AbilityLimit {
     }
 }
 
+// This class intentionally adds no logic.
+// @registerState classes are terminal (cannot be further extended), but we still need
+// a concrete, instantiable type for PerPlayerPerGameAbilityLimitBase.
 @registerState()
-export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
+export class PerPlayerPerGameAbilityLimit extends PerPlayerPerGameAbilityLimitBase { }
+
+@registerState()
+export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimitBase {
     private readonly eventName: Set<EventName>;
     private eventRegistrations?: IEventRegistration[];
 
@@ -249,7 +247,7 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimit {
 }
 
 @registerState()
-export class EpicActionLimit extends PerPlayerPerGameAbilityLimit {
+export class EpicActionLimit extends PerPlayerPerGameAbilityLimitBase {
     public constructor(game: Game) {
         super(game, 1);
     }

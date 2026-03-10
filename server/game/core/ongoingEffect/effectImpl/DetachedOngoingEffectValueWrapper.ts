@@ -1,15 +1,15 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
 import { registerState, stateRefMap } from '../../GameObjectUtils';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 
 export interface IDetachedOngoingEffectValueWrapperState extends IGameObjectBaseState {
     targetStates: Record<string, GameObjectRef>;
 }
 
 @registerState()
-export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue> {
+export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapperBase<TValue> {
     public readonly applyFunc: any;
     public readonly unapplyFunc: any;
 

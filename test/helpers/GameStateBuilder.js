@@ -108,7 +108,7 @@ class GameStateBuilder {
         this.validatePlayerOptions(options.player2, 'player2', options.phase);
 
         context.game.gameMode = SwuGameFormat.Premier;
-        context.game.attackRulesVersion = options.attackRulesVersion ?? AttackRulesVersion.CR6;
+        context.game.attackRulesVersion = options.attackRulesVersion ?? AttackRulesVersion.CR7;
 
         if (options.hasOwnProperty('enableConfirmationToUndo')) {
             context.game.setUndoConfirmationRequired(!!options.enableConfirmationToUndo);

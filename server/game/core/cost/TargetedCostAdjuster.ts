@@ -5,7 +5,7 @@ import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import { RelativePlayer, TargetMode, WildcardCardType, type EventName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
@@ -15,7 +15,7 @@ import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { CostAdjustStage, IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 export type ITargetedCostAdjusterInitializationProperties = ITargetedCostAdjusterProperties & {
     targetCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
@@ -54,7 +54,7 @@ interface IOpportunityCostTarget {
  * building the target resolver and evaluating which selection are legal based on downstream adjusters,
  * and evaluating whether there is sufficient available adjustment to pay.
  */
-@registerState()
+@registerStateBase()
 export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
     protected readonly adjustAmountPerTarget: number;
     protected readonly costPropertyName: string;

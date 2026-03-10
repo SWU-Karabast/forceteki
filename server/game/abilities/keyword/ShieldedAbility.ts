@@ -1,7 +1,7 @@
-import TriggeredAbility from '../../core/ability/TriggeredAbility';
+import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
-import type Game from '../../core/Game';
+import type { Game } from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import { GiveShieldSystem } from '../../gameSystems/GiveShieldSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
@@ -9,7 +9,7 @@ import type { ITriggeredAbilityProps } from '../../Interfaces';
 import { registerState } from '../../core/GameObjectUtils';
 
 @registerState()
-export class ShieldedAbility extends TriggeredAbility {
+export class ShieldedAbility extends TriggeredAbilityBase {
     public readonly keyword: KeywordName = KeywordName.Shielded;
 
     public static buildShieldedAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {

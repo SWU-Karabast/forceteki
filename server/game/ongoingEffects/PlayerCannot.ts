@@ -5,7 +5,7 @@ import { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { Player } from '../core/Player';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 
 type IPlayerCannotProperties =
   | AbilityRestriction | EffectName

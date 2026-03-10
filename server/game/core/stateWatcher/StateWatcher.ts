@@ -1,7 +1,7 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import type { StateWatcherName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IGameObjectBaseState, UnwrapRef } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
@@ -9,7 +9,7 @@ import { isDevelopment } from '../utils/Helpers';
 import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
-import { CopyMode, registerState } from '../GameObjectUtils';
+import { CopyMode, registerStateBase } from '../GameObjectUtils';
 
 export interface IStateWatcherState<TState> extends IGameObjectBaseState {
     entries: TState[];
@@ -30,7 +30,7 @@ export interface IStateWatcherState<TState> extends IGameObjectBaseState {
  * - a state reset method that provides an initial state to reset to
  * - a set of event triggers which will update the stored state to keep the history
  */
-@registerState(CopyMode.UseBulkCopy)
+@registerStateBase(CopyMode.UseBulkCopy)
 export abstract class StateWatcher<TState = any> extends GameObjectBase {
     private stateUpdaters: IStateListenerProperties<TState[]>[] = [];
     private readonly allUpdaters;

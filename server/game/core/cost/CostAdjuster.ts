@@ -3,14 +3,14 @@ import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
 import { CardType, PlayType, Stage, WildcardCardType } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, stateRef, statePrimitive } from '../GameObjectUtils';
+import { registerStateBase, stateRef, statePrimitive } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { CostAdjustStage } from './CostInterfaces';
@@ -152,7 +152,7 @@ export enum CostAdjustResolutionMode {
     Trigger = 'trigger'
 }
 
-@registerState()
+@registerStateBase()
 export abstract class CostAdjuster extends GameObjectBase {
     public readonly costAdjustStage: CostAdjustStage;
     public readonly costAdjustType: CostAdjustType;

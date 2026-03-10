@@ -8,7 +8,7 @@ import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetR
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import * as Helpers from '../utils/Helpers.js';
 import { AbilityContext } from './AbilityContext.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import type { Player } from '../Player.js';
 import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
@@ -19,14 +19,14 @@ import type { IActionTargetResolver, ITargetResolverBase } from '../../TargetInt
 import type { AbilityLimit } from './AbilityLimit.js';
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
-import type { ActionAbility } from './ActionAbility.js';
+import type { ActionAbilityBase } from './ActionAbility.js';
 import type { IGameObjectBaseState } from '../GameObjectBase.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { CardAbility } from './CardAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
 import type { MsgArg } from '../chat/GameChat.js';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -45,7 +45,7 @@ export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
  * `player` that is executing the action, and the `source` card object that the
  * ability is generated from.
  */
-@registerState()
+@registerStateBase()
 export abstract class PlayerOrCardAbility extends GameObjectBase {
     private _title: string;
     private _contextTitle?: (context: AbilityContext) => string;
@@ -442,7 +442,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return false;
     }
 
-    public isActionAbility(): this is ActionAbility {
+    public isActionAbility(): this is ActionAbilityBase {
         return false;
     }
 }

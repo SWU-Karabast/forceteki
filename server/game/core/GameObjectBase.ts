@@ -1,5 +1,5 @@
-import type Game from './Game';
-import { copyState, registerState, registerStateClassMarker, statePrimitive } from './GameObjectUtils';
+import type { Game } from './Game';
+import { copyState, registerStateBase, registerStateClassMarker, statePrimitive } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 import * as Helpers from './utils/Helpers';
 
@@ -49,7 +49,7 @@ type UnwrapRefProperty<T> = T extends GameObjectRef<infer U> ?
         T);
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
-@registerState()
+@registerStateBase()
 export abstract class GameObjectBase implements IGameObjectBase {
     public readonly game: Game;
 
@@ -97,7 +97,7 @@ export abstract class GameObjectBase implements IGameObjectBase {
         const ctor = this.constructor as { [registerStateClassMarker]?: boolean; name: string };
         Contract.assertTrue(
             Object.prototype.hasOwnProperty.call(ctor, registerStateClassMarker) && ctor[registerStateClassMarker] === true,
-            `Class "${ctor.name}" extends GameObjectBase but is missing @registerState()`
+            `Class "${ctor.name}" extends GameObjectBase but is missing @registerState() or @registerStateBase(). Please add one of these decorators to ensure the state of this class is properly tracked.`
         );
 
         // All state defaults *must* happen before registration, so we can't rely on the derived constructor to set the defaults as register will already be called.
