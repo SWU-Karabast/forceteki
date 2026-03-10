@@ -1,4 +1,5 @@
 import { AbilityRestriction, EffectName, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
+import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -43,11 +44,21 @@ export abstract class PlayEventActionBase extends PlayCardAction {
         return new PlayEventAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
+    /**
+     * Check if playing an event card is restricted for the given player and card.
+     * @param player The player attempting to play the event
+     * @param card The event card being played
+     * @param context The context for restriction checks
+     * @returns The AbilityRestriction blocking play, or null if not restricted
+     */
+    public static getPlayRestriction(player: Player, card: IEventCard, context: AbilityContext): Restriction | null {
+        return player.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.PlayEvent], context)[0] ??
+          card.getMatchingRestrictions(AbilityRestriction.Play, context)[0] ??
+          null;
+    }
+
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
-        if (
-            context.player.hasRestriction(AbilityRestriction.PlayEvent, context) ||
-            context.source.hasRestriction(AbilityRestriction.Play, context)
-        ) {
+        if (PlayEventAction.getPlayRestriction(context.player, context.source as IEventCard, context) != null) {
             return 'restriction';
         }
         return super.meetsRequirements(context, ignoredRequirements);
