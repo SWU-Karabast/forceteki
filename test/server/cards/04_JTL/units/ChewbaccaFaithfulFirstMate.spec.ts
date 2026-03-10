@@ -11,6 +11,7 @@ describe('Chewbacca, Faithful First Mate', function() {
                     },
                     player2: {
                         spaceArena: ['avenger#hunting-star-destroyer'],
+                        groundArena: ['darth-maul#revenge-at-last'],
                         hand: [
                             'waylay',
                             'rivals-fall',
@@ -19,7 +20,8 @@ describe('Chewbacca, Faithful First Mate', function() {
                             'bamboozle',
                             'emperor-palpatine#master-of-the-dark-side',
                             'no-glory-only-results',
-                            'change-of-heart'
+                            'change-of-heart',
+                            'force-lightning'
                         ],
                     }
                 });
@@ -168,6 +170,30 @@ describe('Chewbacca, Faithful First Mate', function() {
 
                 expect(context.homeOne).toBeInZone('hand', context.player1);
                 expect(context.chewbacca).toBeInZone('discard', context.player1);
+            });
+
+            it('should allow the attached unit to be defeated by enemy card abilities after Force Lightning removes abilities', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                context.player1.clickCard(context.homeOne);
+
+                // Player1 passes, player2 uses Force Lightning
+                context.player1.passAction();
+                context.player2.clickCard(context.forceLightning);
+                context.player2.clickCard(context.homeOne);
+                context.player2.chooseListOption('0');
+
+                // Player2 passes, player1 passes again to get back to player2
+                context.player2.passAction();
+                context.player1.passAction();
+
+                // Now Rival's Fall should work
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.homeOne);
+                expect(context.homeOne).toBeInZone('discard');
+                expect(context.chewbacca).toBeInZone('discard');
             });
 
             // TODO: Add test interaction with Force Lightning or Imprisioned
