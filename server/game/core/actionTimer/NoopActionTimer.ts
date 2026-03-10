@@ -1,5 +1,6 @@
 import { ByoyomiTimer } from './ByoyomiTimer';
 import type { IByoyomiTimer } from './IByoyomiTimer';
+import { PlayerTimeRemainingStatus } from './IActionTimer';
 
 /**
  * No-op implementation of IByoyomiTimer for when timers are disabled.

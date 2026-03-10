@@ -756,10 +756,6 @@ export class Game extends EventEmitter {
         const player = this.getPlayerById(playerId);
 
         player.incrementActionId();
-
-        if (resetTimer) {
-            player.actionTimer.restartIfRunning();
-        }
     }
 
     public onActionTimerExpired(player: Player): null {
@@ -853,7 +849,7 @@ export class Game extends EventEmitter {
      * Sends updated game state to all players.
      * Used by action timers to push state updates when timer state changes.
      */
-    sendUpdatedGameStateToPlayers() {
+    public sendUpdatedGameStateToPlayers() {
         if (typeof this._router?.sendGameState === 'function') {
             this._router.sendGameState(this);
         }

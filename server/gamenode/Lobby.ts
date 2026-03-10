@@ -417,7 +417,7 @@ export class Lobby {
         this.userLastActivity.set(id, now);
 
         if (this.game) {
-            this.game.onPlayerAction(id, resetTimer);
+            this.game.onPlayerAction(id);
         }
     }
 
@@ -548,7 +548,7 @@ export class Lobby {
             this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
         }
 
-        this.updateUserLastActivity(user.getId(), false);
+        this.updateUserLastActivity(user.getId());
 
         // if the game is already going, send lobby and game state and stop here
         if (this.game) {
@@ -1427,7 +1427,7 @@ export class Lobby {
                 return;
             }
 
-            this.updateUserLastActivity(socket.user.getId(), false);
+            this.updateUserLastActivity(socket.user.getId());
 
             // this command is a no-op since we reset the timer just above
             if (command === 'resetActionTimer') {
