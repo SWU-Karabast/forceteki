@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class GeneralGrievousCrushThem extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '8997739660',
+            id: 'general-grievous#crush-them-id',
             internalName: 'general-grievous#crush-them',
         };
     }

@@ -8,7 +8,7 @@ const mockCards = [
         hp: 4,
         hasNonKeywordAbility: true,
         aspects: ['Vigilance', 'Command', 'Heroism'],
-        types: 'unit',
+        types: ['unit'],
         traits: ['force', 'jedi', 'republic'],
         setId: {
             set: 'TS26',
@@ -26,7 +26,7 @@ const mockCards = [
         hp: 5,
         hasNonKeywordAbility: true,
         aspects: ['Vigilance', 'Command'],
-        types: 'unit',
+        types: ['unit'],
         traits: ['droid'],
         setId: {
             set: 'TS26',
@@ -39,12 +39,12 @@ const mockCards = [
     buildMockCard({
         title: 'General Grievous',
         subtitle: 'Crush Them!',
-        cost: 0,
+        cost: 5,
         power: 0,
-        hp: 5,
+        hp: 0,
         hasNonKeywordAbility: true,
         aspects: ['Command', 'Villainy'],
-        types: 'unit',
+        types: ['unit'],
         traits: ['separatist', 'official'],
         setId: {
             set: 'TS26',

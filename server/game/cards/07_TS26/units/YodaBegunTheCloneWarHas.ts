@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class YodaBegunTheCloneWarHas extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '8997739660',
+            id: 'yoda#begun-the-clone-war-has-id',
             internalName: 'yoda#begun-the-clone-war-has',
         };
     }

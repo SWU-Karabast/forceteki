@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
-export default class C3P0DieJediDogs extends NonLeaderUnitCard {
+export default class C3PODieJediDogs extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: 'c3po#die-jedi-dogs-id',
