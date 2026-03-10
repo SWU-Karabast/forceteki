@@ -118,7 +118,7 @@ export class SwuBaseHandler {
         const { name, base, leader, deckSource, deckLink } = player.lobbyDeck;
 
         // Deck Links in the form: https://swubase.com/decks/${deckId}
-        const match = deckLink.match(/\/decks\/([^/]+)\/?$/);
+        const match = deckLink?.match(/\/decks\/([^/]+)\/?$/);
         const deckId = match ? match[1] : null;
 
         return {

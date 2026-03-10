@@ -2,7 +2,6 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
-import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Game } from '../core/Game';
 import type { UnwrapRef } from '../core/GameObjectBase';
@@ -14,7 +13,6 @@ export interface EnteredCardEntry {
     playedBy: GameObjectId<Player>;
 }
 
-// there is a known issue where CardsEnteredPlayThisPhaseWatcher currently doesn't work with leaders
 @registerState()
 export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEntry> {
     public constructor(
@@ -36,7 +34,7 @@ export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEn
     }
 
     /** Filters the list of entered play cards in the state and returns the cards that match */
-    public getCardsEnteredPlay(filter: (entry: UnwrapRef<EnteredCardEntry>) => boolean): Card[] {
+    public getCardsEnteredPlay(filter: (entry: UnwrapRef<EnteredCardEntry>) => boolean): IInPlayCard[] {
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.card);
