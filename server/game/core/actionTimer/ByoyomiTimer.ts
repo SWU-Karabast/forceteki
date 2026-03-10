@@ -14,10 +14,10 @@ import type { IByoyomiTimer } from './IByoyomiTimer';
  */
 export class ByoyomiTimer implements IByoyomiTimer {
     /** Time limit for each turn/prompt in seconds */
-    public static readonly TurnTimeLimitSeconds = 20;
+    public static readonly TurnTimeLimitSeconds = 10;
 
     /** Total main timer buffer in seconds */
-    public static readonly MainTimeLimitSeconds = 150;
+    public static readonly MainTimeLimitSeconds = 10;
 
     private readonly turnTimer: GameActionTimer;
     private readonly mainTimer: GameActionTimer;
