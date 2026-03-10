@@ -28,7 +28,6 @@ describe('Chewbacca, Hero Of Kessel', function() {
             context.player1.clickCard(context.yoda);
 
             expect(context.player2).toBeActivePlayer();
-            // TODO REARRANGE
             expect(context.player1.exhaustedResourceCount).toBe(0);
             expect(context.player1.readyResourceCount).toBe(1);
             expect(context.chewbacca.exhausted).toBeTrue();
