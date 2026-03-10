@@ -4,13 +4,15 @@ import { DamageType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../core/card/Card';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+
+import { registerState } from '../core/GameObjectUtils';
 
 export interface DamageDealtEntry {
     damageType: DamageType;
@@ -29,6 +31,7 @@ export interface DamageDealtEntry {
 
 export type IDamageDealtThisPhase = DamageDealtEntry[];
 
+@registerState()
 export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> {
     public constructor(
         game: Game,

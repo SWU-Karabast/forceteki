@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityCont
 import type { Card } from '../../card/Card';
 import { AbilityType } from '../../Constants';
 import type { EventWindow } from '../../event/EventWindow';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import { TriggerWindowBase } from './TriggerWindowBase';
 import type Shield from '../../../cards/01_SOR/tokens/Shield';

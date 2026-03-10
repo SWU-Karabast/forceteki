@@ -5,9 +5,11 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
 import type { ICardAttributes } from '../Interfaces';
+
+import { registerState } from '../core/GameObjectUtils';
 
 export interface AttackEntry {
     attacker: GameObjectRef<IUnitCard>;
@@ -21,6 +23,7 @@ export interface AttackEntry {
     attackId: number;
 }
 
+@registerState()
 export class AttacksThisPhaseWatcher extends StateWatcher<AttackEntry> {
     public constructor(
         game: Game,

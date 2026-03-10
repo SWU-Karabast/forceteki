@@ -3,8 +3,10 @@ import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { GameObjectRef, UnwrapRefObject } from '../core/GameObjectBase';
+
+import { registerState } from '../core/GameObjectUtils';
 
 export interface HealedUnitEntry {
     unit: GameObjectRef<IUnitCard>;
@@ -14,6 +16,7 @@ export interface HealedUnitEntry {
 
 export type IUnitsHealedThisPhase = HealedUnitEntry[];
 
+@registerState()
 export class UnitsHealedThisPhaseWatcher extends StateWatcher<HealedUnitEntry> {
     public constructor(
         game: Game,

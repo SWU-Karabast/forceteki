@@ -29,6 +29,7 @@ describe('Change of Heart', function() {
                 context.moveToRegroupPhase();
                 expect(context.wampa).toBeInZone('groundArena', context.player2);
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
+                expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Change of Heart to give control of Wampa to player2');
             });
 
             it('takes control and will return enemy non-leader unit to owner\'s control', function () {
@@ -46,6 +47,7 @@ describe('Change of Heart', function() {
                 context.moveToRegroupPhase();
                 expect(context.wampa).toBeInZone('discard', context.player2);
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
+                expect(context.getChatLogs(1)).toEqual(['Round: 1 - Regroup Phase']);
             });
 
             it('takes control and will return stolen friendly non-leader unit to owner\'s control', function () {
@@ -59,6 +61,7 @@ describe('Change of Heart', function() {
                 context.moveToRegroupPhase();
                 expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
+                expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Change of Heart to take control of Battlefield Marine');
             });
 
             it('takes control and will not return stolen friendly non-leader unit to owner\'s control if unit is dead', function () {

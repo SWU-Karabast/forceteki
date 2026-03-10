@@ -3,7 +3,6 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, RelativePlayer } from '../../../core/Constants';
 
-
 export default class CloneDiveTrooper extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
