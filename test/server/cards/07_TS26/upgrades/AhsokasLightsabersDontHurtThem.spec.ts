@@ -1,6 +1,6 @@
 describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
     integration(function(contextRef) {
-        it('can only attach to non-Vehicle units', async function() {
+        it('should only attach to non-Vehicle units', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -24,7 +24,7 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['ahsokas-lightsabers#dont-hurt-them']);
         });
 
-        describe('Basic functionality', function() {
+        describe('Ahsoka\'s Lightsabers\' ability', function() {
             beforeEach(function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -33,20 +33,21 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
                             { card: 'battlefield-marine', upgrades: ['ahsokas-lightsabers#dont-hurt-them'] },
                             'yoda#old-master'
                         ],
-                        hand: ['vanquish', 'rivals-fall'],
-                        leader: 'chewbacca#walking-carpet'
+                        hand: ['vanquish', 'rivals-fall', 'green-squadron-awing', 'devotion'],
+                        leader: 'chewbacca#walking-carpet',
+                        base: 'tarkintown'
                     },
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['awing'],
                         hand: ['resupply', 'no-glory-only-results', 'lost-and-forgotten'],
-                        base: 'echo-base',
+                        base: 'colossus',
                         leader: 'hondo-ohnaka#thats-good-business'
                     }
                 });
             });
 
-            it('should work when attached to a unit', function() {
+            it('when attacking, should give a Shield token to an enemy unit and the next event you play this phase should cost 2 resources less', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -63,11 +64,22 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player2.exhaustedResourceCount).toBe(4); // 3+ resupply exhausted
 
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player2.passAction();
+
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player2.passAction();
+
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+
                 context.player1.clickCard(context.vanquish);
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.player1.exhaustedResourceCount).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(7);// 2+2+3
 
                 context.player2.passAction();
 
@@ -75,10 +87,10 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
                 context.player1.clickCard(context.awing);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.player1.exhaustedResourceCount).toBe(9);
+                expect(context.player1.exhaustedResourceCount).toBe(13); // 2+2+3+6
             });
 
-            it('should work when attached to a unit', function() {
+            it('when attacking, should give a Shield token to an enemy unit. The cost reduction should not apply in the next phase', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -99,7 +111,7 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(5);
             });
 
-            it('should work when attached to a unit', function() {
+            it('when defeated, should give a Shield token to an enemy unit. If you do, the next event you play this phase costs 2 resources less (No Glory Only Results)', function() {
                 const { context } = contextRef;
 
                 context.player1.passAction();
@@ -114,10 +126,10 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
                 context.player2.clickCard(context.resupply);
 
                 expect(context.player1).toBeActivePlayer();
-                expect(context.player2.exhaustedResourceCount).toBe(9); // 5 + 3 + resuply exhausted
+                expect(context.player2.exhaustedResourceCount).toBe(7); // 5 + 1 + resuply exhausted
             });
 
-            it('should work when attached to a unit', function() {
+            it('when defeated, should give a Shield token to an enemy unit and the next event you play should cost 2 resources less', function() {
                 const { context } = contextRef;
 
                 context.player1.passAction();
@@ -134,7 +146,7 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
-            it('should work when attached to a unit', function() {
+            it('should apply cost reduction multiple times on phase if triggered multiple times (separate activation)', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -162,7 +174,7 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
             });
 
-            it('should work when attached to a unit', function() {
+            it('should apply cost reduction multiple times on phase if triggered multiple times (stacking activation)', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -182,7 +194,8 @@ describe('Ahsoka\'s Lightsabers, Don\'t Hurt Them', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });
         });
-        it('should work when attached to a unit', async function() {
+
+        it('Ahsoka\'s Lightsabers\' ability should not trigger if there no unit to give a Shield to', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

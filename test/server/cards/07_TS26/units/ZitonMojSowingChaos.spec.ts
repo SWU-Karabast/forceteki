@@ -1,7 +1,7 @@
-describe('ZitonMojSowingChaos', function () {
+describe('Ziton Moj, Sowing Chaos', function () {
     integration(function (contextRef) {
-        describe('ZitonMojSowingChaos\'s abilities', function () {
-            it('should work in hand', async function () {
+        describe('Ziton Moj\'s ability', function () {
+            it('should deal 1 damage to a friendly unit and 1 damage to an enemy unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -32,7 +32,7 @@ describe('ZitonMojSowingChaos', function () {
                 expect(context.atst.damage).toBe(1);
             });
 
-            it('should work in hand', async function () {
+            it('should deal 1 damage to a friendly unit when there are no enemy units', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
