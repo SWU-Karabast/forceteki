@@ -14,7 +14,12 @@ export default class TheStrangerNoSurvivors extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         // This is not technically a triggered ability, but the player must make a choice when this unit is attacking
         // so we use a triggered ability to prompt the player to make that choice at the start of the attack
-        registrar.addOnAttackAbility({
+        registrar.addTriggeredAbility({
+            when: {
+                onAttackDeclared: (event, context) =>
+                    event.attack.attacker === context.source &&
+                    event.attack.getAllTargets().some((t) => t.isUnit()) // Only trigger if at least one of the targets is a unit
+            },
             title: 'The defending unit can deal damage first for this attack',
             targetResolver: {
                 activePromptTitle: 'Choose how damage is dealt for this attack',

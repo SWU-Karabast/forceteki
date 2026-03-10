@@ -56,8 +56,12 @@ describe('Psychometry', function() {
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.jediLightCruiser);
 
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.jediLightCruiser]);
+                context.player2.clickDone();
+
                 expect(context.getChatLog()).toEqual(
-                    'player1 uses Psychometry to reveal Jedi Light Cruiser, to draw a card, and to move 4 cards to the bottom of their deck'
+                    'player1 uses Psychometry to reveal and draw Jedi Light Cruiser and to move 4 cards to the bottom of their deck'
                 );
 
                 expect(context.player2).toBeActivePlayer();
@@ -118,6 +122,11 @@ describe('Psychometry', function() {
                 });
 
                 context.player1.clickCardInDisplayCardPrompt(context.mysticReflection);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.mysticReflection]);
+                context.player2.clickDone();
+
                 expect(context.mysticReflection).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
             });

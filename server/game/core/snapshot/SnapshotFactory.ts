@@ -1,4 +1,4 @@
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { GameStateManager } from './GameStateManager';
 import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';

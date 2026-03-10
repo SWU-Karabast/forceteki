@@ -1,15 +1,18 @@
-import TriggeredAbility from '../../core/ability/TriggeredAbility';
+import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
-import type Game from '../../core/Game';
+import type { Game } from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import { ConditionalSystem } from '../../gameSystems/ConditionalSystem';
 import { InitiateAttackSystem } from '../../gameSystems/InitiateAttackSystem';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
-export class AmbushAbility extends TriggeredAbility {
+import { registerState } from '../../core/GameObjectUtils';
+
+@registerState()
+export class AmbushAbility extends TriggeredAbilityBase {
     public readonly keyword: KeywordName = KeywordName.Ambush;
 
     public static buildAmbushAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {

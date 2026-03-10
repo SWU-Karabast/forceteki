@@ -10,9 +10,14 @@ export class NoopActionTimer implements IByoyomiTimer {
         return false;
     }
 
+
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public get timeRemainingSeconds(): number | null {
         return null;
+    }
+
+    public get timeRemainingStatus(): PlayerTimeRemainingStatus {
+        return PlayerTimeRemainingStatus.NoAlert;
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style

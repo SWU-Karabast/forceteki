@@ -71,6 +71,10 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
                 context.player2.clickCardInDisplayCardPrompt(context.supercommandoSquad);
                 context.player2.clickPrompt('Done');
 
+                // P1 is prompted to see the revealed cards
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.sabineWren, context.supercommandoSquad]);
+                context.player1.clickDone();
+
                 expect(context.player1).toHavePrompt(disclosePrompt);
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player1).toBeAbleToSelectExactly([
@@ -158,6 +162,11 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
                 context.player2.clickCardInDisplayCardPrompt(context.supercommandoSquad);
                 context.player2.clickPrompt('Done');
 
+                // P1 is prompted to see the revealed cards
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.sabineWren, context.supercommandoSquad]);
+                context.player1.clickDone();
+
+                expect(context.player1).toHavePrompt(disclosePrompt);
                 context.player1.clickPrompt('Choose nothing');
 
                 const spy = context.player1.findCardsByName('spy');

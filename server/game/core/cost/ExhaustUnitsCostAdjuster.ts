@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import { EventName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IExhaustUnitsCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode, CostAdjustType } from './CostAdjuster';
 import * as Contract from '../utils/Contract.js';
@@ -14,6 +14,8 @@ import { ExhaustSystem } from '../../gameSystems/ExhaustSystem';
 import type { Card } from '../card/Card';
 import { DynamicOpportunityCost } from './evaluation/DynamicOpportunityCost';
 
+import { registerState } from '../GameObjectUtils';
+
 /**
  * Subclass of {@link TargetedCostAdjuster} that implements the additional details specific to
  * cost adjustment effects that allow exhausting units instead of paying resources (Vuutun Palaa).
@@ -21,6 +23,7 @@ import { DynamicOpportunityCost } from './evaluation/DynamicOpportunityCost';
  * The biggest difference is the addition of the "opportunity cost" for Exploiting away a unit
  * that would impact how many resources can be saved by using the adjuster effect.
  */
+@registerState()
 export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
     private canExhaustUnitCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
 

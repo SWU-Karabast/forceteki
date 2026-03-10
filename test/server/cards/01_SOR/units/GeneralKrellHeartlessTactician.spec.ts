@@ -35,6 +35,11 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickCard(context.atatSuppressor);
+                expect(context.player1).toHaveExactPromptButtons([
+                    '(No effect) Attack with another Rebel unit',
+                    'Draw a card'
+                ]);
+                context.player1.clickPrompt('Draw a card');
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
                 context.player1.clickPrompt('Trigger');
                 expect(context.leiaOrgana).toBeInZone('base');

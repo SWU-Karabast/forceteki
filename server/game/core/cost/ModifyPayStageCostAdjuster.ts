@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import * as Contract from '../utils/Contract';
 import type { IModifyPayStageCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode } from './CostAdjuster';
@@ -9,6 +9,9 @@ import type { ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvalu
 import { CostAdjustStage } from './CostInterfaces';
 import { DynamicOpportunityCost } from './evaluation/DynamicOpportunityCost';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class ModifyPayStageCostAdjuster extends CostAdjuster {
     private readonly payStageAmountAfterDiscount: (currentAmount: number) => number;
 

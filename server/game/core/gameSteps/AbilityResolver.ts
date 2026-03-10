@@ -2,7 +2,7 @@ import { BaseStepWithPipeline } from './BaseStepWithPipeline.js';
 import { SimpleStep } from './SimpleStep.js';
 import { ZoneName, Stage, EventName, RelativePlayer, GameErrorSeverity } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { ITargetResult } from '../ability/abilityTargets/TargetResolver.js';
 import type { ICost, ICostResult } from '../cost/ICost.js';

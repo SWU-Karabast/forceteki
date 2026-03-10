@@ -1,6 +1,6 @@
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import { ZoneName, RelativePlayer } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { registerState } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import { PlayerZone } from './PlayerZone';
