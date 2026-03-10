@@ -45,7 +45,7 @@ import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
-import { SwuGameFormat } from '../game/core/Constants';
+import { CardPool, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 
@@ -1125,7 +1125,7 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
+                const { deck, format, isPrivate, gamesToWinMode, lobbyName, cardPool } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1167,6 +1167,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
+                const resolvedCardPool = EnumHelpers.isEnumValue(cardPool, CardPool) ? cardPool : CardPool.Current;
+
                 // Check Bo3 access restrictions for anonymous users
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, isPrivate, 'create a public best of three lobby');
                 if (bo3AccessError) {
@@ -1174,8 +1176,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, allow30CardsInMainBoard);
+                await this.processDeckValidation(deck, true, { format, cardPool: resolvedCardPool }, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, resolvedCardPool);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1305,7 +1307,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
+                await this.processDeckValidation(deck, false, { format, cardPool: CardPool.Current }, res, () => {
                     const success = this.enterQueue(format, gamesToWinMode, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
@@ -1661,7 +1663,7 @@ export class GameServer {
         format: SwuGameFormat,
         gamesToWinMode: GamesToWinMode,
         isPrivate: boolean,
-        allow30CardsInMainBoard: boolean = false
+        cardPool: CardPool = CardPool.Current
     ) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
@@ -1676,7 +1678,7 @@ export class GameServer {
             isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
             format,
             gamesToWinMode,
-            allow30CardsInMainBoard,
+            cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1695,7 +1697,7 @@ export class GameServer {
             MatchmakingType.PublicLobby,
             SwuGameFormat.Open,
             GamesToWinMode.BestOfOne,
-            false,
+            CardPool.Current,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -2023,7 +2025,7 @@ export class GameServer {
             MatchmakingType.Quick,
             format.swuFormat,
             format.gamesToWinMode,
-            false,
+            CardPool.Current,
             this.cardDataGetter,
             this.deckValidator,
             this,
