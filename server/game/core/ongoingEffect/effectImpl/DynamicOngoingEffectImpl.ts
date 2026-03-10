@@ -5,33 +5,34 @@ import { GameObject } from '../../GameObject';
 import { registerState, stateRefMap } from '../../GameObjectUtils';
 import { OngoingEffectValueWrapper, OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { StaticOngoingEffectImplBase } from './StaticOngoingEffectImpl';
+import type { OngoingEffect } from '../OngoingEffect';
 
-export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext, game: Game) => TValue;
-export type CalculateOngoingEffectValueWrapper<TValue> = (target: any, context: AbilityContext, game: Game) => TValue | OngoingEffectValueWrapperBase<TValue>;
+export type CalculateOngoingEffect<TValue, TTarget extends GameObject> = (target: TTarget, context: AbilityContext, game: Game) => TValue;
+export type CalculateOngoingEffectValueWrapper<TValue, TTarget extends GameObject> = (target: TTarget, context: AbilityContext, game: Game) => TValue | OngoingEffectValueWrapperBase<TValue>;
 
 // TODO: eventually this will subclass OngoingEffectImpl directly
 @registerState()
-export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImplBase<TValue> {
-    private readonly calculate: CalculateOngoingEffectValueWrapper<TValue>;
+export default class DynamicOngoingEffectImpl<TValue, TTarget extends GameObject> extends StaticOngoingEffectImplBase<TValue, TTarget> {
+    private readonly calculate: CalculateOngoingEffectValueWrapper<TValue, TTarget>;
 
     @stateRefMap()
     private accessor values: Map<string, OngoingEffectValueWrapperBase<TValue>> = new Map();
 
     public constructor(game: Game,
         type: EffectName,
-        calculate: CalculateOngoingEffectValueWrapper<TValue>
+        calculate: CalculateOngoingEffectValueWrapper<TValue, TTarget>
     ) {
         super(game, type, null);
         this.calculate = calculate;
     }
 
-    public override apply(effect, target) {
+    public override apply(effect: OngoingEffect<TTarget>, target: TTarget) {
         super.apply(effect, target);
 
         this.recalculate(target);
     }
 
-    public override recalculate(target) {
+    public override recalculate(target: TTarget) {
         const oldValue = this.getValue(target);
         const newValue = this.recalculateValue(target, this.context);
 
@@ -43,18 +44,18 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
         return false;
     }
 
-    public override getValue(target) {
+    public override getValue(target: TTarget) {
         return this.values.get(target.uuid)?.getValue();
     }
 
-    private setValue(target: GameObject, value: OngoingEffectValueWrapperBase<TValue>) {
+    private setValue(target: TTarget, value: OngoingEffectValueWrapperBase<TValue>) {
         this.values.get(target.uuid)?.unapply(target);
         this.values.set(target.uuid, value);
         value.apply(target);
         return value.getValue();
     }
 
-    private recalculateValue(target, context: AbilityContext): OngoingEffectValueWrapperBase<TValue> {
+    private recalculateValue(target: TTarget, context: AbilityContext): OngoingEffectValueWrapperBase<TValue> {
         const value = this.calculate(target, context, this.game);
 
         if (value instanceof OngoingEffectValueWrapperBase) {

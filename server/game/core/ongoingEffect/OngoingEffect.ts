@@ -52,7 +52,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
     public readonly until: WhenType;
     public readonly condition: (context?: AbilityContext) => boolean;
     public readonly sourceZoneFilter: ZoneFilter | ZoneFilter[];
-    public readonly impl: OngoingEffectImpl<any>;
+    public readonly impl: OngoingEffectImpl<any, TTarget>;
     public readonly ongoingEffect: IOngoingEffectProps<TTarget>;
     public context: AbilityContext;
 
@@ -63,7 +63,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         return this.impl.type;
     }
 
-    public constructor(game: Game, source: Card, properties: IOngoingEffectProps<TTarget>, effectImpl: OngoingEffectImpl<any>) {
+    public constructor(game: Game, source: Card, properties: IOngoingEffectProps<TTarget>, effectImpl: OngoingEffectImpl<any, TTarget>) {
         Contract.assertFalse(
             properties.duration === Duration.WhileSourceInPlay && !source.canBeInPlay(),
             `${source.internalName} is not a legal target for an effect with duration '${Duration.WhileSourceInPlay}'`
@@ -87,8 +87,8 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         this.impl.getRef();
     }
 
-    public getValue(card: GameObject) {
-        return this.impl.getValue(card);
+    public getValue(target: TTarget) {
+        return this.impl.getValue(target);
     }
 
     protected abilityPlayer(): Player {
@@ -120,7 +120,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         this.impl.apply(this, target);
     }
 
-    public removeTarget(target) {
+    public removeTarget(target: TTarget) {
         this.removeTargets([target]);
     }
 

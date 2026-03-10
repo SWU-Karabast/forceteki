@@ -20,7 +20,7 @@ export default class MillenniumFalconGetOutAndPush extends NonLeaderUnitCard {
 
         registrar.addConstantAbility({
             title: 'This unit gets +1/+0 for each Pilot on it',
-            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
+            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target: this) => ({
                 power: target.upgrades.reduce((count: number, upgrade: Card) => count + (upgrade.hasSomeTrait(Trait.Pilot) ? 1 : 0), 0),
                 hp: 0
             })),

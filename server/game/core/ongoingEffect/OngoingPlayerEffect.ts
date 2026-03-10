@@ -9,7 +9,7 @@ import { registerState } from '../GameObjectUtils';
 
 @registerState()
 export class OngoingPlayerEffect extends OngoingEffect<Player> {
-    public constructor(game: Game, source: Card, properties: IOngoingPlayerEffectProps, effect: OngoingEffectImpl<any>) {
+    public constructor(game: Game, source: Card, properties: IOngoingPlayerEffectProps, effect: OngoingEffectImpl<any, Player>) {
         super(
             game,
             source,

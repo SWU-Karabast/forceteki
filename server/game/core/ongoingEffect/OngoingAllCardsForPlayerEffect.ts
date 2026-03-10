@@ -33,7 +33,7 @@ export class OngoingAllCardsForPlayerEffect extends OngoingEffect<Card> {
 
     public declare matchTarget: (target: Card, context: AbilityContext) => boolean;
 
-    public constructor(game: Game, source: Card, properties: IOngoingAllCardsForPlayerEffectProps, effect: OngoingEffectImpl<any>) {
+    public constructor(game: Game, source: Card, properties: IOngoingAllCardsForPlayerEffectProps, effect: OngoingEffectImpl<any, Card>) {
         Contract.assertIsNullLike((properties as any).targetZoneFilter, 'OngoingAllCardsForPlayerEffect does not support the targetZoneFilter property');
 
         super(game, source, properties, effect);
