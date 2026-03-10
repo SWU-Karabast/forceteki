@@ -10,11 +10,14 @@ import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
+import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
+import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
 import { Card } from '../Card';
 import type { ICardCanChangeControllers } from '../CardInterfaces';
@@ -233,6 +236,48 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {
         return true;
+    }
+
+    /**
+     * Checks if this card is restricted from being played by an opponent's effect.
+     * Subclasses should override this to call the appropriate static method from their PlayAction class.
+     * @param player The player attempting to play the card
+     * @param context The context for restriction checks
+     * @returns The Restriction blocking play, or null if not restricted
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected getPlayRestriction(player: Player, context: AbilityContext): Restriction | null {
+        // Base implementation - should be overridden by subclasses
+        return null;
+    }
+
+    /**
+     * Checks if this card is blocked from being played by an opponent's effect
+     * (e.g., Regional Governor naming this card, or Trade Route Taxation blocking events).
+     * This is used to display the lock icon on cards that could be played but are blocked.
+     * @param context The ability context to use for checking restrictions
+     * @returns A string describing why the card is blocked (with source card name), or null if not blocked
+     */
+    public override getBlockedFromPlayReason(context: AbilityContext): string | null {
+        // Only check if the card is not already in play
+        if (EnumHelpers.isArena(this.zoneName)) {
+            return null;
+        }
+
+        // Use the subclass implementation to check which restriction is blocking play.
+        // Only surface restrictions applied by an opponent's card (not self-imposed play restrictions
+        // like One in a Million's "can't be played from hand" condition).
+        const playRestriction = this.getPlayRestriction(this.controller, context);
+        if (playRestriction == null) {
+            return null;
+        }
+
+        const restrictionSource = playRestriction.context?.source;
+        if (restrictionSource == null || restrictionSource.controller === this.controller) {
+            return null;
+        }
+
+        return `Blocked by ${restrictionSource.title}`;
     }
 
     public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
