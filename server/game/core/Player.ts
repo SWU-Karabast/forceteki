@@ -1196,6 +1196,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             credits: this.getCreditsSummary(activePlayer),
             turnTimeRemainingSeconds: this.actionTimer.turnTimeRemainingSeconds,
             mainTimeRemainingSeconds: this.actionTimer.mainTimeRemainingSeconds,
+            timerIsRunning: this.actionTimer.isRunning,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
             topCardOfDeck: undefined
