@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import * as KeywordHelpers from '../../../core/ability/KeywordHelpers';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, KeywordName, RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, KeywordName, TargetMode, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 import type { KeywordNameOrProperties } from '../../../Interfaces';
 
 export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
@@ -36,9 +36,9 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
             effect: AbilityHelper.ongoingEffects.gainAbility({
                 type: AbilityType.Constant,
                 title: `Friendly Vehicle units gains ${choice}`,
-                targetController: RelativePlayer.Self,
+                targetController: WildcardRelativePlayer.Any,
                 targetCardTypeFilter: WildcardCardType.Unit,
-                matchTarget: (card) => card.hasSomeTrait(Trait.Vehicle),
+                matchTarget: (card, context) => card.hasSomeTrait(Trait.Vehicle) && card.controller === context.source.owner,
                 ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(choice),
             })
         });
