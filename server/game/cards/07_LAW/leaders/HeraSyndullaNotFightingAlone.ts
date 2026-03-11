@@ -19,7 +19,7 @@ export default class HeraSyndullaNotFightingAlone extends LeaderUnitCard {
 
     private buildHeraAbilityProperties (AbilityHelper: IAbilityHelper): IConstantAbilityProps<LeaderUnitCardInternal> {
         return {
-            title: TextHelper.performReplacements('Ignore the aspect penalty on Heroism cards you play'),
+            title: `Ignore the aspect penalty on ${TextHelper.aspect(Aspect.Heroism)} cards you play`,
             targetController: RelativePlayer.Self,
             condition: (context) => context.player.getArenaUnits().length >= 2,
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({

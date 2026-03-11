@@ -15,7 +15,7 @@ export default class NabooSecurityForce extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command];
         registrar.addTriggeredAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to give a friendly unit Sentinel for this phase`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to give a friendly unit Sentinel for this phase`,
             when: {
                 whenPlayed: true,
                 whenDefeated: true,

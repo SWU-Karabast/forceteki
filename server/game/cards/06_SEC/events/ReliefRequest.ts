@@ -15,13 +15,13 @@ export default class ReliefRequest extends EventCard {
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Vigilance];
         registrar.setEventAbility({
-            title: TextHelper.performReplacements(`Heal 3 damage from a unit. You may disclose ${TextHelper.aspectList(aspects)}. If you do, heal 3 damage from another unit`),
+            title: `Heal 3 damage from a unit. You may disclose ${TextHelper.aspectList(aspects)}. If you do, heal 3 damage from another unit`,
             immediateEffect: abilityHelper.immediateEffects.selectCard({
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.heal({ amount: 3 }),
             }),
             then: (thenContext) => ({
-                title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to give heal 3 damage from another unit`),
+                title: `Disclose ${TextHelper.aspectList(aspects)} to give heal 3 damage from another unit`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Heal 3 damage from another unit',

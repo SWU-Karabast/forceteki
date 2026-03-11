@@ -15,10 +15,10 @@ export default class UnauthorizedInvestigation extends EventCard {
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression];
         registrar.setEventAbility({
-            title: TextHelper.performReplacements(`Create a Spy token. You may disclose ${TextHelper.aspectList(aspects)}. If you do, create another Spy token`),
+            title: `Create a Spy token. You may disclose ${TextHelper.aspectList(aspects)}. If you do, create another Spy token`,
             immediateEffect: abilityHelper.immediateEffects.createSpy(),
             then: ({
-                title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to create another Spy token`),
+                title: `Disclose ${TextHelper.aspectList(aspects)} to create another Spy token`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Create another Spy token',

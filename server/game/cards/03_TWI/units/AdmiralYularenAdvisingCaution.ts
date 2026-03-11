@@ -14,7 +14,7 @@ export default class AdmiralYularenAdvisingCaution extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: TextHelper.performReplacements('Each other friendly Heroism unit gets +0/+1'),
+            title: `Each other friendly ${TextHelper.aspect(Aspect.Heroism)} unit gets +0/+1`,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             matchTarget: (card, context) => card !== context.source && card.hasSomeAspect(Aspect.Heroism),

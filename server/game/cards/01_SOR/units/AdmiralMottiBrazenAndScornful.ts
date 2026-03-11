@@ -14,7 +14,7 @@ export default class AdmiralMottiBrazenAndScornful extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: TextHelper.performReplacements('Ready a Villainy unit'),
+            title: `Ready a ${TextHelper.aspect(Aspect.Villainy)} unit`,
             optional: true,
             targetResolver: {
                 zoneFilter: WildcardZoneName.AnyArena,

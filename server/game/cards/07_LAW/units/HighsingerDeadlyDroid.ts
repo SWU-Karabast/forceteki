@@ -16,7 +16,7 @@ export default class HighsingerDeadlyDroid extends NonLeaderUnitCard {
         const aggression = [Aspect.Aggression];
         const command = [Aspect.Command];
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements(`Give an experience to another friendly ${TextHelper.aspectList(command)} unit`),
+            title: `Give an experience to another friendly ${TextHelper.aspectList(command)} unit`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => card !== context.source && card.isUnit() && card.hasSomeAspect(Aspect.Command),
@@ -24,7 +24,7 @@ export default class HighsingerDeadlyDroid extends NonLeaderUnitCard {
             }
         });
         registrar.addWhenDefeatedAbility({
-            title: TextHelper.performReplacements(`Give an experience to a friendly ${TextHelper.aspectList(aggression)} unit`),
+            title: `Give an experience to a friendly ${TextHelper.aspectList(aggression)} unit`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Aggression),

@@ -14,7 +14,7 @@ export default class TheGhostHomeOfTheSpectres extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements(`Give an Experience token and a Shield token to a unit. If you control a ${TextHelper.aspectList([Aspect.Vigilance, Aspect.Aggression], Conjunction.Or)} unit, you may give an Experience token and a Shield token to each of up to 2 units instead.`),
+            title: `Give an Experience token and a Shield token to a unit. If you control a ${TextHelper.aspectList([Aspect.Vigilance, Aspect.Aggression], Conjunction.Or)} unit, you may give an Experience token and a Shield token to each of up to 2 units instead.`,
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.isAspectInPlay([Aspect.Vigilance, Aspect.Aggression]),

@@ -15,13 +15,13 @@ export default class BogDownInProcedure extends EventCard {
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Cunning];
         registrar.setEventAbility({
-            title: TextHelper.performReplacements(`Exhaust a unit. You may disclose ${TextHelper.aspectList(aspects)}. If you do, exhaust another unit`),
+            title: `Exhaust a unit. You may disclose ${TextHelper.aspectList(aspects)}. If you do, exhaust another unit`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.exhaust()
             },
             then: (thenContext) => ({
-                title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to exhaust another unit`),
+                title: `Disclose ${TextHelper.aspectList(aspects)} to exhaust another unit`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Exhaust another unit',

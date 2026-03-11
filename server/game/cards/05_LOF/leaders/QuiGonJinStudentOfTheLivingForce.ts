@@ -15,7 +15,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: TextHelper.performReplacements('Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-Villainy unit that costs less than the returned unit for free'),
+            title: `Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-${TextHelper.aspect(Aspect.Villainy)} unit that costs less than the returned unit for free`,
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.useTheForce()
@@ -27,7 +27,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: TextHelper.performReplacements(`Play a non-Villainy unit that costs less than ${ifYouDoContext.target.cost}`),
+                title: `Play a non-${TextHelper.aspect(Aspect.Villainy)} unit that costs less than ${ifYouDoContext.target.cost}`,
                 targetResolver: {
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
@@ -43,7 +43,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenAttackEndsAbility({
-            title: TextHelper.performReplacements('Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-Villainy unit that costs less than the returned unit for free'),
+            title: `Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-${TextHelper.aspect(Aspect.Villainy)} unit that costs less than the returned unit for free`,
             optional: true,
             attackerMustSurvive: true,
             targetResolver: {
@@ -53,7 +53,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: TextHelper.performReplacements(`Play a non-Villainy unit that costs less than ${ifYouDoContext.target.cost}`),
+                title: `Play a non-${TextHelper.aspect(Aspect.Villainy)} unit that costs less than ${ifYouDoContext.target.cost}`,
                 targetResolver: {
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,

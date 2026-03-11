@@ -15,7 +15,7 @@ export default class RestoreFreedom extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: TextHelper.performReplacements('Play a unit from your hand. It costs 1 resource less for each Heroism aspect icon among friendly units.'),
+            title: `Play a unit from your hand. It costs 1 resource less for each ${TextHelper.aspect(Aspect.Heroism)} aspect icon among friendly units.`,
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: WildcardCardType.Unit,

@@ -15,7 +15,7 @@ export default class LuthensHaulcraftCountermeasuresArmed extends NonLeaderUnitC
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression, Aspect.Aggression, Aspect.Heroism];
         registrar.addWhenDefeatedAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to make your opponent discards 2 cards from their hand`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to make your opponent discards 2 cards from their hand`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Your opponent discards 2 cards from their hand',

@@ -14,7 +14,7 @@ export default class PuttingATeamTogether extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: TextHelper.performReplacements(`Search the top 8 cards of your deck for a ${TextHelper.aspectList([Aspect.Vigilance, Aspect.Aggression, Aspect.Cunning], Conjunction.Or)} unit, reveal it, and draw it`),
+            title: `Search the top 8 cards of your deck for a ${TextHelper.aspectList([Aspect.Vigilance, Aspect.Aggression, Aspect.Cunning], Conjunction.Or)} unit, reveal it, and draw it`,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect([Aspect.Vigilance, Aspect.Aggression, Aspect.Cunning]),

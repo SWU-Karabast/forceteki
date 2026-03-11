@@ -17,7 +17,7 @@ export default class MonMothmaFormingACoalition extends LeaderUnitCard {
 
     private buildMonMothmaAbilityProperties(abilityHelper: IAbilityHelper) {
         return {
-            title: TextHelper.performReplacements('Ignore the aspect penalty on non-Villainy Official units you play'),
+            title: `Ignore the aspect penalty on non-${TextHelper.aspect(Aspect.Villainy)} Official units you play`,
             targetController: RelativePlayer.Self,
             ongoingEffect: abilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.Unit,

@@ -14,7 +14,7 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements('If you control: a Vigilance unit, heal 2 damage from a base, a Command unit, give an Experience token to a unit, a Aggression unit, deal 1 damage to a unit or base, a Cunning unit, exhaust or ready a resource'),
+            title: `If you control: a ${TextHelper.aspect(Aspect.Vigilance)} unit, heal 2 damage from a base, a ${TextHelper.aspect(Aspect.Command)} unit, give an Experience token to a unit, a ${TextHelper.aspect(Aspect.Aggression)} unit, deal 1 damage to a unit or base, a ${TextHelper.aspect(Aspect.Cunning)} unit, exhaust or ready a resource`,
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isAspectInPlay(Aspect.Vigilance),

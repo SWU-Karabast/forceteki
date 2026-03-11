@@ -15,7 +15,7 @@ export default class ChargedWithEspionage extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Cunning, Aspect.Cunning];
         registrar.setEventAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)}. If you do, look at an opponent's hand and discard a unit from it`),
+            title: `Disclose ${TextHelper.aspectList(aspects)}. If you do, look at an opponent's hand and discard a unit from it`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Look at an opponent\'s hand and discard a unit from it',

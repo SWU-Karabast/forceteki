@@ -22,7 +22,7 @@ export default class FaithInYourFriends extends EventCard {
                 selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
             }),
             then: {
-                title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to create 2 Spy tokens`),
+                title: `Disclose ${TextHelper.aspectList(aspects)} to create 2 Spy tokens`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Create 2 Spy tokens',

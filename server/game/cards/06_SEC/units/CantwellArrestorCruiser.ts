@@ -15,7 +15,7 @@ export default class CantwellArrestorCruiser extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Vigilance, Aspect.Vigilance, Aspect.Villainy];
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to exhaust an enemy unit. That unit cannot ready while this unit is in play`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to exhaust an enemy unit. That unit cannot ready while this unit is in play`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Exhaust an enemy unit. That unit cannot ready while this unit is in play',

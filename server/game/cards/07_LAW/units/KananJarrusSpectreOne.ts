@@ -14,9 +14,7 @@ export default class KananJarrusSpectreOne extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements(
-                `Return a non-leader unit that costs 2 or less to it's owner's hand. If you control a ${TextHelper.aspectList([Aspect.Command, Aspect.Aggression], Conjunction.Or)} unit, return a non-leader unit that costs 4 or less instead`
-            ),
+            title: `Return a non-leader unit that costs 2 or less to it's owner's hand. If you control a ${TextHelper.aspectList([Aspect.Command, Aspect.Aggression], Conjunction.Or)} unit, return a non-leader unit that costs 4 or less instead`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

@@ -15,7 +15,7 @@ export default class SenateWarden extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Vigilance];
         registrar.addWhenDefeatedAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to give an Experience token to a unit`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to give an Experience token to a unit`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Give an Experience token to a unit',

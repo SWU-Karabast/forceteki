@@ -15,7 +15,7 @@ export default class TheGalleonMaraudingPirateShip extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression, Aspect.Aggression, Aspect.Villainy];
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to create 3 Spy tokens `),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to create 3 Spy tokens `,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Create 3 Spy tokens',

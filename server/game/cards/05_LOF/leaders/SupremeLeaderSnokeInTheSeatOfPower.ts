@@ -16,7 +16,7 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: TextHelper.performReplacements('Give an Experience token to the unit with the most power among Villainy units'),
+            title: `Give an Experience token to the unit with the most power among ${TextHelper.aspect(Aspect.Villainy)} units`,
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             immediateEffect: this.buildSnokeAbility(AbilityHelper),
         });
@@ -24,7 +24,7 @@ export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements('Give an Experience token to the unit with the most power among Villainy units'),
+            title: `Give an Experience token to the unit with the most power among ${TextHelper.aspect(Aspect.Villainy)} units`,
             immediateEffect: this.buildSnokeAbility(AbilityHelper),
         });
     }

@@ -14,7 +14,7 @@ export default class PhantomSpectreShuttle extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements('Play a Heroism unit from your hand and give an Experience token to it'),
+            title: `Play a ${TextHelper.aspect(Aspect.Heroism)} unit from your hand and give an Experience token to it`,
             optional: true,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Heroism),

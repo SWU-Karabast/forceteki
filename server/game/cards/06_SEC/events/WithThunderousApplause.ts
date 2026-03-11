@@ -15,7 +15,7 @@ export default class WithThunderousApplause extends EventCard {
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command];
         registrar.setEventAbility({
-            title: TextHelper.performReplacements(`Give a unit +2/+2 for this phase. You may disclose ${TextHelper.aspectList(aspects)}. If you do, give another unit +2/+2 for this phase`),
+            title: `Give a unit +2/+2 for this phase. You may disclose ${TextHelper.aspectList(aspects)}. If you do, give another unit +2/+2 for this phase`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
@@ -23,7 +23,7 @@ export default class WithThunderousApplause extends EventCard {
                 })
             },
             then: (thenContext) => ({
-                title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to give another unit +2/+2 for this phase`),
+                title: `Disclose ${TextHelper.aspectList(aspects)} to give another unit +2/+2 for this phase`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Give another unit +2/+2 for this phase',

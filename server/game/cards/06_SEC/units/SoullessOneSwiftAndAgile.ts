@@ -15,7 +15,7 @@ export default class SoullessOneSwiftAndAgile extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Cunning, Aspect.Cunning, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to ready 2 resources`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to ready 2 resources`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Ready 2 resources',

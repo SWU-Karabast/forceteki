@@ -15,7 +15,7 @@ export default class ViceAdmiralRampartOnSchedule extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Command, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to give an Experience token to each of up to 2 other units`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to give an Experience token to each of up to 2 other units`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Give an Experience token to each of up to 2 other units',

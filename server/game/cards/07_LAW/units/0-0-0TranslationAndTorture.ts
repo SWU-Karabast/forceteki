@@ -15,7 +15,7 @@ export default class _000TranslationAndTorture extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspect = [Aspect.Aggression];
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements(`Put an ${TextHelper.aspectList(aspect)} card from your discard pile on the bottom of your deck. If you do, deal 1 damage to each enemy base`),
+            title: `Put an ${TextHelper.aspectList(aspect)} card from your discard pile on the bottom of your deck. If you do, deal 1 damage to each enemy base`,
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.Discard,

@@ -88,7 +88,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                     mode: TargetMode.Single,
                     cardCondition: (card) => properties.aspects.some((aspect) => card.aspects.includes(aspect)),
                     immediateEffect: new RevealSystem<TContext>({
-                        activePromptTitle: TextHelper.performReplacements(`Opponent discloses ${TextHelper.aspectList(properties.aspects, Conjunction.Or)}`),
+                        activePromptTitle: `Opponent discloses ${TextHelper.aspectList(properties.aspects, Conjunction.Or)}`,
                         promptedPlayer: RelativePlayer.Opponent,
                         useDisplayPrompt: true,
                         interactMode: ViewCardInteractMode.ViewOnly
@@ -110,7 +110,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                         this.handCanSatisfyAspects(context.player.hand, properties.aspects, mode) &&
                         this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
                     immediateEffect: new RevealSystem<TContext>({
-                        activePromptTitle: TextHelper.performReplacements(`Opponent discloses ${TextHelper.aspectList(properties.aspects, Conjunction.AndOr)}`),
+                        activePromptTitle: `Opponent discloses ${TextHelper.aspectList(properties.aspects, Conjunction.AndOr)}`,
                         promptedPlayer: RelativePlayer.Opponent,
                         useDisplayPrompt: true,
                         interactMode: ViewCardInteractMode.ViewOnly
@@ -131,7 +131,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                         this.handCanSatisfyAspects(context.player.hand, properties.aspects, mode) &&
                         this.cardContainsMissingAspects(card, selectedCards, properties.aspects),
                     immediateEffect: new RevealSystem<TContext>({
-                        activePromptTitle: TextHelper.performReplacements(`Opponent discloses ${TextHelper.aspectList(properties.aspects)}`),
+                        activePromptTitle: `Opponent discloses ${TextHelper.aspectList(properties.aspects)}`,
                         promptedPlayer: RelativePlayer.Opponent,
                         useDisplayPrompt: true,
                         interactMode: ViewCardInteractMode.ViewOnly

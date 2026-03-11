@@ -15,7 +15,7 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements('Play a Heroism unit from your discard pile. It costs 3 less'),
+            title: `Play a ${TextHelper.aspect(Aspect.Heroism)} unit from your discard pile. It costs 3 less`,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
                 zoneFilter: ZoneName.Discard,

@@ -22,12 +22,12 @@ export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: () => ({
-                    [TextHelper.performReplacements('Vigilance')]: LawbringerShadowOverLothal.buildAbility(Aspect.Vigilance, abilityHelper),
-                    [TextHelper.performReplacements('Command')]: LawbringerShadowOverLothal.buildAbility(Aspect.Command, abilityHelper),
-                    [TextHelper.performReplacements('Aggression')]: LawbringerShadowOverLothal.buildAbility(Aspect.Aggression, abilityHelper),
-                    [TextHelper.performReplacements('Cunning')]: LawbringerShadowOverLothal.buildAbility(Aspect.Cunning, abilityHelper),
-                    [TextHelper.performReplacements('Villainy')]: LawbringerShadowOverLothal.buildAbility(Aspect.Villainy, abilityHelper),
-                    [TextHelper.performReplacements('Heroism')]: LawbringerShadowOverLothal.buildAbility(Aspect.Heroism, abilityHelper),
+                    [`${TextHelper.aspect(Aspect.Vigilance)}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Vigilance, abilityHelper),
+                    [`${TextHelper.aspect(Aspect.Command)}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Command, abilityHelper),
+                    [`${TextHelper.aspect(Aspect.Aggression)}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Aggression, abilityHelper),
+                    [`${TextHelper.aspect(Aspect.Cunning)}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Cunning, abilityHelper),
+                    [`${TextHelper.aspect(Aspect.Villainy)}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Villainy, abilityHelper),
+                    [`${TextHelper.aspect(Aspect.Heroism)}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Heroism, abilityHelper),
                 })
             }
         });

@@ -16,7 +16,7 @@ export default class DuchesssInvestigators extends NonLeaderUnitCard {
         const aspects = [Aspect.Cunning];
 
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to make your opponent discard a random card from their hand`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to make your opponent discard a random card from their hand`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Your opponent discards a random card from their hand',

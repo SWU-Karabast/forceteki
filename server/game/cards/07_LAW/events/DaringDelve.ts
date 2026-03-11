@@ -14,7 +14,7 @@ export default class DaringDelve extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: TextHelper.performReplacements('Discard 2 cards from your deck. You may return a Aggression card discarded this way to your hand'),
+            title: `Discard 2 cards from your deck. You may return a ${TextHelper.aspect(Aspect.Aggression)} card discarded this way to your hand`,
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 2,
                 target: context.player
@@ -26,7 +26,7 @@ export default class DaringDelve extends EventCard {
                     .filter((card) => card.hasSomeAspect(Aspect.Aggression));
 
                 return {
-                    title: TextHelper.performReplacements('Return a discarded Aggression card to your hand'),
+                    title: `Return a discarded ${TextHelper.aspect(Aspect.Aggression)} card to your hand`,
                     optional: true,
                     targetResolver: {
                         controller: RelativePlayer.Self,

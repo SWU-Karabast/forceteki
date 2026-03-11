@@ -16,7 +16,7 @@ export default class BardottanOrnithopter extends NonLeaderUnitCard {
         const aspects = [Aspect.Vigilance];
 
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to draw a card`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to draw a card`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Draw a card',

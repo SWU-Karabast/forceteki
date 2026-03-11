@@ -16,7 +16,7 @@ export default class CaptainTyphoAllNecessaryPrecautions extends NonLeaderUnitCa
         const aspects = [Aspect.Command, Aspect.Heroism];
 
         registrar.addOnDefenseAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to heal 1 damage from your base`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to heal 1 damage from your base`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Heal 1 damage from your base',

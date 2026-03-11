@@ -17,7 +17,7 @@ export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression, Aspect.Aggression, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to choose a unit. Deal 2 damage to that unit unless its controller discards a card from their hand`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to choose a unit. Deal 2 damage to that unit unless its controller discards a card from their hand`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Choose a unit to deal 2 damage unless its controller discard a card',

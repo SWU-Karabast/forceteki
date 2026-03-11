@@ -14,9 +14,7 @@ export default class EzraBridgerSpectreSix extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: TextHelper.performReplacements(
-                `Heal 2 damage from a unit. If you control a ${TextHelper.aspectList([Aspect.Aggression, Aspect.Cunning], Conjunction.Or)} unit, heal 4 damage from a unit instead`
-            ),
+            title: `Heal 2 damage from a unit. If you control a ${TextHelper.aspectList([Aspect.Aggression, Aspect.Cunning], Conjunction.Or)} unit, heal 4 damage from a unit instead`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

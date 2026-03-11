@@ -15,7 +15,7 @@ export default class WarriorOfClanOrdo extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression];
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to not deal 2 damage to your base`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to not deal 2 damage to your base`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDoNot: {
                 title: 'Deal 2 damage to your base',

@@ -15,7 +15,7 @@ export default class NalaSeChiefMedicalScientist extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Vigilance, Aspect.Vigilance];
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)}. If you do, heal up to 4 damage from among other units`),
+            title: `Disclose ${TextHelper.aspectList(aspects)}. If you do, heal up to 4 damage from among other units`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Heal up to 4 damage from among other units',

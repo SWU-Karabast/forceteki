@@ -9,7 +9,7 @@ export abstract class LAWCommonBase extends BaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         const aspects = [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning];
         registrar.setEpicActionAbility({
-            title: TextHelper.performReplacements(`Play a card from your hand, ignoring 1 of its ${TextHelper.aspectList(aspects, Conjunction.Or)} aspect penalties`),
+            title: `Play a card from your hand, ignoring 1 of its ${TextHelper.aspectList(aspects, Conjunction.Or)} aspect penalties`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,

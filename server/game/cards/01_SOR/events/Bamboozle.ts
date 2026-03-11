@@ -59,7 +59,7 @@ class PlayBamboozleAction extends PlayEventActionBase {
         const discardCost = AbilityHelper.costs.discardCardFromOwnHand({ cardCondition: (c) => c !== card && c.hasSomeAspect(Aspect.Cunning) });
 
         return {
-            title: TextHelper.performReplacements('Play Bamboozle by discarding a Cunning card'),
+            title: `Play Bamboozle by discarding a ${TextHelper.aspect(Aspect.Cunning)} card`,
             costAdjusters: [CostAdjusterFactory.create(card.game, card, { costAdjustType: CostAdjustType.Free })],
             additionalCosts: [discardCost],
             ...properties,

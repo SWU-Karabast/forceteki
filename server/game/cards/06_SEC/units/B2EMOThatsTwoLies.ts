@@ -16,7 +16,7 @@ export default class B2EMOThatsTwoLies extends NonLeaderUnitCard {
         const aspects = [Aspect.Heroism, Aspect.Heroism];
 
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to give a unit Sentinel for this phase`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to give a unit Sentinel for this phase`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Give a unit Sentinel for this phase',

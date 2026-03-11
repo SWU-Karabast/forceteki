@@ -15,7 +15,7 @@ export default class ChairmanPapanoidaUndauntedDiplomat extends NonLeaderUnitCar
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression, Aspect.Aggression];
         registrar.addTriggeredAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to create a Spy token`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to create a Spy token`,
             collectiveTrigger: true,
             when: {
                 onCardsDrawn: (_event, context) => context.game.currentPhase === PhaseName.Action,

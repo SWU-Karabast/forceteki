@@ -14,7 +14,7 @@ export default class BenthicTwoTubes extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: TextHelper.performReplacements('Give Raid 2 to a friendly Aggression unit'),
+            title: `Give Raid 2 to a friendly ${TextHelper.aspect(Aspect.Aggression)} unit`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => card !== context.source && card.isUnit() && card.hasSomeAspect(Aspect.Aggression),

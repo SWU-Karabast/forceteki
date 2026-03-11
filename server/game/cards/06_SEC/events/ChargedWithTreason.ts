@@ -15,7 +15,7 @@ export default class ChargedWithTreason extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression, Aspect.Aggression];
         registrar.setEventAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)}. If you do, deal 5 damage to a unit`),
+            title: `Disclose ${TextHelper.aspectList(aspects)}. If you do, deal 5 damage to a unit`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Deal 5 damage to a unit',

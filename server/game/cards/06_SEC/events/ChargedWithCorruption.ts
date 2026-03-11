@@ -15,7 +15,7 @@ export default class ChargedWithCorruption extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Command];
         registrar.setEventAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)}. If you do, a friendly unit captures an enemy non-leader unit`),
+            title: `Disclose ${TextHelper.aspectList(aspects)}. If you do, a friendly unit captures an enemy non-leader unit`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'A friendly unit captures an enemy non-leader unit',

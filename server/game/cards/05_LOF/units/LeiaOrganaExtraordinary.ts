@@ -14,12 +14,12 @@ export default class LeiaOrganaExtraordinary extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: TextHelper.performReplacements('While this unit is in the space arena, she can\'t ready and gains "Action [use the Force]: Move this unit to the ground arena and give each friendly Heroism unit +2/+2 for this phase"'),
+            title: `While this unit is in the space arena, she can\'t ready and gains "Action [use the Force]: Move this unit to the ground arena and give each friendly ${TextHelper.aspect(Aspect.Heroism)} unit +2/+2 for this phase"`,
             condition: (context) => context.source.zoneName === ZoneName.SpaceArena,
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Ready),
                 AbilityHelper.ongoingEffects.gainAbility({
-                    title: TextHelper.performReplacements('Move this unit to the ground arena and give each friendly Heroism unit +2/+2 for this phase'),
+                    title: `Move this unit to the ground arena and give each friendly ${TextHelper.aspect(Aspect.Heroism)} unit +2/+2 for this phase`,
                     type: AbilityType.Action,
                     cost: AbilityHelper.costs.useTheForce,
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([

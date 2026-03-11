@@ -15,7 +15,7 @@ export default class MinaBonteriStopThisWar extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command, Aspect.Command, Aspect.Heroism];
         registrar.addWhenDefeatedAbility({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)} to draw a card`),
+            title: `Disclose ${TextHelper.aspectList(aspects)} to draw a card`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'Draw a card',

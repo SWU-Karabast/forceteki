@@ -15,7 +15,7 @@ export default class DiplomaticImmunity extends UpgradeCard {
     public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Vigilance, Aspect.Vigilance, Aspect.Heroism, Aspect.Heroism];
         registrar.addGainTriggeredAbilityTargetingAttached({
-            title: TextHelper.performReplacements(`Disclose ${TextHelper.aspectList(aspects)}. If you do, the attacker gets -2/-0 for this attack`),
+            title: `Disclose ${TextHelper.aspectList(aspects)}. If you do, the attacker gets -2/-0 for this attack`,
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
             },
