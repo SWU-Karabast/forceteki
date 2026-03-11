@@ -18,6 +18,7 @@
       "program": "${workspaceFolder}/build/server/gamenode/index.js",
       "preLaunchTask": "build-dev",
       "console": "internalConsole",
+      "outputCapture": "std",
       "cwd": "${workspaceFolder}",
       "env": {
         "NODE_ENV": "development",
