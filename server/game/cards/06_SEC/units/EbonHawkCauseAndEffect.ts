@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { EventName } from '../../../core/Constants';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelpers';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { DiscloseMode } from '../../../gameSystems/DiscloseAspectsSystem';
 
@@ -17,13 +18,13 @@ export default class EbonHawkCauseAndEffect extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Heroism, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: 'Disclose Heroism to give this unit +2/+0 and/or Villainy to give the defending unit -4/-0 for this attack',
+            title: `Disclose ${TextHelper.aspect(Aspect.Heroism)} to give this unit +2/+0 and/or ${TextHelper.aspect(Aspect.Villainy)} to give the defending unit -4/-0 for this attack`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({
                 aspects: aspects,
                 mode: DiscloseMode.Some
             }),
             ifYouDo: (ifYouDoContext) => ({
-                title: 'If you disclosed Heroism, this unit gets +2/+0 for this attack. If you disclosed Villainy, give the defender -4/-0 for this attack.',
+                title: `If you disclosed ${TextHelper.aspect(Aspect.Heroism)}, this unit gets +2/+0 for this attack. If you disclosed ${TextHelper.aspect(Aspect.Villainy)}, give the defender -4/-0 for this attack.`,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.conditional({
                         condition: this.disclosedCardsContainAspect(Aspect.Heroism, ifYouDoContext),

@@ -23,7 +23,7 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Choose an Aspect',
                 mode: TargetMode.DropdownList,
-                // TODO: These can't use the aspect replacement strings since the dropdown component only supports raw strings
+                // eslint-disable-next-line forceteki/no-raw-token-text -- dropdown component only supports raw strings
                 options: ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism']
             },
             then: (outerContext) => ({
