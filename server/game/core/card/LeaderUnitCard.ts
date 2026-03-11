@@ -58,7 +58,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         if (this.canBeUpgrade && this.isAttached()) {
             return CardType.LeaderUpgrade;
         }
-        return this._deployed ? CardType.LeaderUnit : CardType.Leader;
+        return this.state.deployed ? CardType.NonTokenLeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: ICardDataJson) {

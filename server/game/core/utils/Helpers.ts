@@ -87,7 +87,8 @@ export function defaultLegalZonesForCardType(cardType: CardType) {
         case CardType.TokenUnit:
         case CardType.TokenUpgrade:
             return [ZoneName.SpaceArena, ZoneName.GroundArena, ZoneName.OutsideTheGame];
-        case CardType.LeaderUnit:
+        case CardType.NonTokenLeaderUnit:
+        case CardType.TokenLeaderUnit:
             return [ZoneName.SpaceArena, ZoneName.GroundArena];
         case CardType.Base:
         case CardType.Leader:
