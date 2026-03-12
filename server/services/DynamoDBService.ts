@@ -755,27 +755,17 @@ class DynamoDBService {
     }
 
     // Mod Actions
-
     /**
      * Query items using the GSI_PK_INDEX
      * @param gsiPkValue The value for the GSI_PK partition key
-     * @param options Optional sk filter using beginsWith
      */
-    public queryByGSIAsync(gsiPkValue: string, options: { beginsWith?: string } = {}) {
+    public queryByGSIAsync(gsiPkValue: string) {
         return this.executeDbOperationAsync(() => {
-            let keyConditionExpression = 'GSI_PK = :gsiPk';
-            const expressionAttributeValues: Record<string, any> = { ':gsiPk': gsiPkValue };
-
-            if (options.beginsWith) {
-                keyConditionExpression += ' AND begins_with(sk, :skPrefix)';
-                expressionAttributeValues[':skPrefix'] = options.beginsWith;
-            }
-
             const command = new QueryCommand({
                 TableName: this.tableName,
                 IndexName: 'GSI_PK_INDEX',
-                KeyConditionExpression: keyConditionExpression,
-                ExpressionAttributeValues: expressionAttributeValues
+                KeyConditionExpression: 'GSI_PK = :gsiPk',
+                ExpressionAttributeValues: { ':gsiPk': gsiPkValue }
             });
 
             return this.client.send(command);
@@ -784,13 +774,12 @@ class DynamoDBService {
 
     /**
      * Get mod actions from DynamoDB.
-     *
      * - { playerId }  All mod actions for a specific player (main table query)
      */
-    public getModActionsAsync(options: { playerId?: string } = {}): Promise<IModActionEntity[]> {
+    public getModActionsAsync(options: { userId?: string } = {}): Promise<IModActionEntity[]> {
         return this.executeDbOperationAsync(async () => {
-            const result = options.playerId
-                ? await this.queryItemsAsync(`USER#${options.playerId}`, { beginsWith: 'MODACTION#' })
+            const result = options.userId
+                ? await this.queryItemsAsync(`USER#${options.userId}`, { beginsWith: 'MODACTION#' })
                 : await this.queryByGSIAsync('ACTIVE_MODACTION');
 
             if (!result.Items || result.Items.length === 0) {

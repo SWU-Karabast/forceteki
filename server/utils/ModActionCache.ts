@@ -87,11 +87,6 @@ export class ModActionCache {
                 continue;
             }
 
-            // Only cache active action types (Mute, Rename)
-            if (!ActiveModActionTypes.has(action.actionType)) {
-                continue;
-            }
-
             if (!newCache.has(action.playerId)) {
                 newCache.set(action.playerId, new Map());
             }
@@ -299,9 +294,7 @@ export class ModActionCache {
         muteEntry.expiresAt = expiresAt;
 
         logger.info(`ModActionCache: Activated pending mute for player ${playerId} (expires ${expiresAt})`, {
-            playerId,
-            modActionId: muteEntry.modActionId,
-            durationDays: muteEntry.durationDays,
+            userId: playerId,
         });
 
         return muteEntry;
@@ -359,9 +352,7 @@ export class ModActionCache {
         });
 
         logger.info(`ModActionCache: Updated cache for player ${playerId} (${modAction.actionType})`, {
-            playerId,
-            actionType: modAction.actionType,
-            modActionId: modAction.id,
+            userId: playerId,
         });
     }
 
@@ -428,8 +419,7 @@ export class ModActionCache {
         await this.deactivateModActionInDb(playerId, renameEntry.modActionId);
 
         logger.info(`ModActionCache: Rename completed for player ${playerId}, deactivated action ${renameEntry.modActionId}`, {
-            playerId,
-            modActionId: renameEntry.modActionId,
+            userId: playerId,
         });
     }
 }

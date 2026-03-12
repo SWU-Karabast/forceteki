@@ -674,7 +674,6 @@ export class UserFactory {
         } catch (error) {
             logger.error('Error finding user profiles:', {
                 error: { message: error.message, stack: error.stack },
-                searchQuery
             });
             throw error;
         }
@@ -684,16 +683,16 @@ export class UserFactory {
      * Get the full mod action history for a player (all actions, including cancelled/expired).
      * Sorted by createdAt descending (newest first).
      */
-    public async getModActionHistoryAsync(playerId: string): Promise<IModActionEntity[]> {
+    public async getModActionHistoryAsync(userId: string): Promise<IModActionEntity[]> {
         try {
             const dbService = await this.dbServicePromise;
-            const modActions = await dbService.getModActionsAsync({ playerId });
+            const modActions = await dbService.getModActionsAsync({ userId });
             modActions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             return modActions;
         } catch (error) {
             logger.error('Error getting mod action history:', {
                 error: { message: error.message, stack: error.stack },
-                playerId
+                userId
             });
             throw error;
         }
@@ -743,7 +742,7 @@ export class UserFactory {
         } catch (error) {
             logger.error('Error submitting mod action:', {
                 error: { message: error.message, stack: error.stack },
-                playerId,
+                userId: playerId,
                 actionType,
             });
             throw error;
@@ -763,14 +762,12 @@ export class UserFactory {
 
             logger.info(`UserFactory: Moderator ${cancelledBy} cancelled action ${modActionId} on player ${playerId}`, {
                 moderatorId: cancelledBy,
-                playerId,
-                modActionId,
+                userId: playerId,
             });
         } catch (error) {
             logger.error('Error cancelling mod action:', {
                 error: { message: error.message, stack: error.stack },
-                playerId,
-                modActionId,
+                userId: playerId,
             });
             throw error;
         }

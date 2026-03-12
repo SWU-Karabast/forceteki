@@ -1508,7 +1508,6 @@ export class GameServer {
 
         app.post('/api/mod/submit-action', this.buildAuthMiddleware('mod-submit-action', ServerRole.Moderator), async (req, res, next) => {
             try {
-                console.log(req.body);
                 const parseResult = ModActionSubmitSchema.safeParse(req.body);
                 if (!parseResult.success) {
                     return res.status(400).json({
