@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { ZoneName } from '../../../core/Constants';
 
 export default class StolenATHauler extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,7 +21,9 @@ export default class StolenATHauler extends NonLeaderUnitCard {
                 AbilityHelper.immediateEffects.forThisPhasePlayerEffect((context) => ({
                     target: context.player.opponent,
                     effect: AbilityHelper.ongoingEffects.forFree({
-                        match: (card) => card === context.source
+                        match: (card) =>
+                            card === context.source &&
+                            card.zoneName === ZoneName.Discard
                     })
                 }))
             ])

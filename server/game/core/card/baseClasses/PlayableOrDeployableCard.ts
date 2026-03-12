@@ -10,12 +10,15 @@ import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
+import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
+import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
+import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
-import type { ICardState } from '../Card';
 import { Card } from '../Card';
 import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
@@ -23,7 +26,7 @@ import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
-export type PlayableOrDeployableCardConstructor<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> = new (...args: any[]) => PlayableOrDeployableCard<T>;
+export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
 
 export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
@@ -57,26 +60,26 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
 
-export interface IPlayableOrDeployableCardState extends ICardState {
-    exhausted: boolean | null;
-}
-
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> implements IPlayableOrDeployableCard {
+@registerStateBase()
+export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
 
+    @statePrimitive()
+    private accessor _exhausted: boolean | null = null;
+
     public get exhausted(): boolean {
-        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
-        return this.state.exhausted;
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
+        return this._exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
-        this.state.exhausted = val;
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
+        this._exhausted = val;
     }
 
     // see Card constructor for list of expected args
@@ -90,7 +93,8 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         if (this.hasSomeKeyword(KeywordName.Plot)) {
             const plotProps = Object.assign(this.buildGeneralAbilityProps('keyword_plot'), PlotAbility.buildPlotAbilityProperties(this.title));
             const plotAbility = this.createTriggeredAbility(plotProps);
-            this.state.triggeredAbilities.push(plotAbility.getRef());
+            plotAbility.registerEvents();
+            this.triggeredAbilities.push(plotAbility);
         }
     }
 
@@ -221,31 +225,73 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     }
 
     public exhaust() {
-        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
-        this.state.exhausted = true;
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
+        this._exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
-        this.state.exhausted = false;
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
+        this._exhausted = false;
     }
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {
         return true;
     }
 
+    /**
+     * Checks if this card is restricted from being played by an opponent's effect.
+     * Subclasses should override this to call the appropriate static method from their PlayAction class.
+     * @param player The player attempting to play the card
+     * @param context The context for restriction checks
+     * @returns The Restriction blocking play, or null if not restricted
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected getPlayRestriction(player: Player, context: AbilityContext): Restriction | null {
+        // Base implementation - should be overridden by subclasses
+        return null;
+    }
+
+    /**
+     * Checks if this card is blocked from being played by an opponent's effect
+     * (e.g., Regional Governor naming this card, or Trade Route Taxation blocking events).
+     * This is used to display the lock icon on cards that could be played but are blocked.
+     * @param context The ability context to use for checking restrictions
+     * @returns A string describing why the card is blocked (with source card name), or null if not blocked
+     */
+    public override getBlockedFromPlayReason(context: AbilityContext): string | null {
+        // Only check if the card is not already in play
+        if (EnumHelpers.isArena(this.zoneName)) {
+            return null;
+        }
+
+        // Use the subclass implementation to check which restriction is blocking play.
+        // Only surface restrictions applied by an opponent's card (not self-imposed play restrictions
+        // like One in a Million's "can't be played from hand" condition).
+        const playRestriction = this.getPlayRestriction(this.controller, context);
+        if (playRestriction == null) {
+            return null;
+        }
+
+        const restrictionSource = playRestriction.context?.source;
+        if (restrictionSource == null || restrictionSource.controller === this.controller) {
+            return null;
+        }
+
+        return `Blocked by ${restrictionSource.title}`;
+    }
+
     public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
         return { ...super.getSummary(activePlayer, overrideHidden),
-            exhausted: this.state.exhausted };
+            exhausted: this._exhausted };
     }
 
     public override getCardState(): any {
         return { ...super.getCardState(),
-            exhausted: this.state.exhausted };
+            exhausted: this._exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
-        this.state.exhausted = enabledStatus ? true : null;
+        this._exhausted = enabledStatus ? true : null;
     }
 
     /**
@@ -271,7 +317,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
         return keywordValueTotal > 0 ? keywordValueTotal : null;
     }
-
 
     /**
      * The passed player takes control of this card. If `moveTo` is provided, the card will be moved to that zone under the
@@ -340,7 +385,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 
-
     /** Create constant ability props on the card that decreases its cost under the given condition */
     protected generateIgnoreAllAspectPenaltiesAbilityProps(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps {
         const { title, condition, ...otherProps } = properties;
@@ -354,7 +398,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         const effect = OngoingEffectLibrary.ignoreAllAspectPenalties(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
-
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
     protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps {
@@ -394,3 +437,4 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         return costAdjustAbilityProps;
     }
 }
+

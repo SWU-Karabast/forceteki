@@ -218,6 +218,8 @@ export class AttackFlow extends BaseStepWithPipeline {
             }
 
             this.context.game.openEventWindow(damageEvents);
+        } else if (additionalEvent) {
+            this.context.game.openEventWindow(additionalEvent);
         }
     }
 

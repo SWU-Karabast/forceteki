@@ -23,20 +23,20 @@ export default class TheEyeOfAldhani extends EventCard {
                 immediateEffect: abilityHelper.immediateEffects.selectCard({
                     mode: TargetMode.UpToVariable,
                     cardTypeFilter: WildcardCardType.Unit,
-                    choosingPlayer: RelativePlayer.Opponent,
-                    controller: RelativePlayer.Opponent,
+                    choosingPlayer: RelativePlayer.Self,
+                    controller: RelativePlayer.Self,
                     activePromptTitle: (context) => {
-                        const upUnits = Math.min(context.player.opponent.resources.length, context.player.opponent.getArenaUnits().length);
+                        const upUnits = Math.min(context.player.resources.length, context.player.getArenaUnits().length);
                         return `Select up to ${upUnits} units and pay 1 resource for each of them to keep them ready`;
                     },
-                    numCardsFunc: (context) => Math.min(context.player.opponent.resources.length, context.player.opponent.getArenaUnits().length),
+                    numCardsFunc: (context) => Math.min(context.player.resources.length, context.player.getArenaUnits().length),
                     immediateEffect: abilityHelper.immediateEffects.simultaneous([
                         abilityHelper.immediateEffects.exhaust((context) => ({
-                            target: context.player.opponent.getArenaUnits({ condition: (card) => !context.targets.target.includes(card) }),
+                            target: context.player.getArenaUnits({ condition: (card) => !context.targets.target.includes(card) }),
                         })),
                         abilityHelper.immediateEffects.payResources((context) => ({
                             amount: context.targets.target.length,
-                            target: context.player.opponent,
+                            target: context.player,
                         })),
                     ])
                 })

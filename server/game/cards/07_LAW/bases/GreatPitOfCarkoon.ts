@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { BaseCard } from '../../../core/card/BaseCard';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { RelativePlayer } from '../../../core/Constants';
 
 export default class GreatPitOfCarkoon extends BaseCard {
     protected override getImplementationId() {
@@ -18,7 +19,10 @@ export default class GreatPitOfCarkoon extends BaseCard {
             }),
             immediateEffect: AbilityHelper.immediateEffects.entireDeckSearch({
                 cardCondition: (card) => card.title === 'The Sarlacc of Carkoon',
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw(),
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                }),
             })
         });
     }

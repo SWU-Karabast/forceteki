@@ -21,6 +21,10 @@ describe('Undercity Hunting Team', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.bobaFett);
 
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.bobaFett]);
+                context.player2.clickDone();
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.bobaFett).toBeInZone('hand', context.player1);
                 expect([context.bossk, context.wampa, context.battlefieldMarine, context.rebelPathfinder]).toAllBeInBottomOfDeck(context.player1, 4);

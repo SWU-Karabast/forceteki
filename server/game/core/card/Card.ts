@@ -7,24 +7,24 @@ import type {
     ISerializedCardState,
     ICardAttributes
 } from '../../Interfaces';
+import type { ActionAbilityBase } from '../ability/ActionAbility';
 import { ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
-import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
-import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
+import { OngoingEffectSourceBase } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { ChatObjectType, KeywordName, WildcardRelativePlayer } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import * as Helpers from '../utils/Helpers';
-import type { AbilityContext } from '../ability/AbilityContext';
+import { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues, KeywordWithNumericValue } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
-import TriggeredAbility from '../ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../ability/TriggeredAbility';
+import { TriggeredAbility } from '../ability/TriggeredAbility';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import type { IEventCard } from './EventCard';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
@@ -43,7 +43,6 @@ import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbil
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
-import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
 import { ConstantAbility } from '../ability/ConstantAbility';
@@ -52,27 +51,11 @@ import type { ICardWithPreEnterPlayAbilities } from './propertyMixins/PreEnterPl
 import type { ICardWithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
+import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
+import type { ZoneAbstract } from '../zone/ZoneAbstract';
 
 // required for mixins to be based on this class
-export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
-
-export interface ICardState extends IOngoingEffectSourceState {
-
-    facedown: boolean;
-    hiddenForController: boolean;
-    hiddenForOpponent: boolean;
-
-    controllerRef: GameObjectRef<Player>;
-    ownerRef: GameObjectRef<Player>;
-
-    zone: GameObjectRef<Zone> | null;
-    movedFromZone: ZoneName | null;
-    nextAbilityIdx: number;
-
-    actionAbilities: GameObjectRef<ActionAbility>[];
-    constantAbilities: GameObjectRef<ConstantAbility>[];
-    triggeredAbilities: GameObjectRef<TriggeredAbility>[];
-}
+export type CardConstructor = new (...args: any[]) => Card;
 
 export enum InitializeCardStateOption {
     Initialize = 'initialize',
@@ -87,7 +70,8 @@ export enum InitializeCardStateOption {
  * or {@link Card.canBeExhausted} to confirm that the card has the expected properties and then cast
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
-export class Card<T extends ICardState = ICardState> extends OngoingEffectSource<T> implements IGameStatisticsTrackable {
+@registerStateBase()
+export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrackable {
     public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
         if (cardData.types.includes('leader')) {
             return true;
@@ -142,38 +126,43 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
 
-    protected get hiddenForController() {
-        return this.state.hiddenForController;
+    @statePrimitive()
+    private accessor _facedown = true;
+
+    public get facedown(): boolean {
+        return this._facedown;
     }
+
+    @statePrimitive()
+    private accessor _hiddenForController = false;
+
+    protected get hiddenForController() {
+        return this._hiddenForController;
+    }
+
+    @statePrimitive()
+    private accessor _hiddenForOpponent = false;
 
     protected get hiddenForOpponent() {
-        return this.state.hiddenForOpponent;
+        return this._hiddenForOpponent;
     }
 
-    protected get movedFromZone() {
-        return this.state.movedFromZone;
-    }
-
-    protected set movedFromZone(value: ZoneName | null) {
-        this.state.movedFromZone = value;
-    }
+    @statePrimitive()
+    protected accessor movedFromZone: ZoneName | null = null;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     protected get overrideNotImplemented(): boolean {
         return false;
     }
 
-    protected get actionAbilities(): readonly ActionAbility[] {
-        return this.state.actionAbilities.map((x) => this.game.getFromRef(x));
-    }
+    @stateRefArray(false)
+    protected accessor actionAbilities: ActionAbilityBase[] = [];
 
-    protected get constantAbilities(): readonly ConstantAbility[] {
-        return this.state.constantAbilities.map((x) => this.game.getFromRef(x));
-    }
+    @stateRefArray(false)
+    protected accessor constantAbilities: ConstantAbility[] = [];
 
-    protected get triggeredAbilities(): readonly TriggeredAbility[] {
-        return this.state.triggeredAbilities.map((x) => this.game.getFromRef(x));
-    }
+    @stateRefArray(false)
+    protected accessor triggeredAbilities: TriggeredAbilityBase[] = [];
 
     protected get printedType(): CardType {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
@@ -213,24 +202,26 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this._backSideTitle;
     }
 
+    @stateRef()
+    private accessor _controller: Player;
+
     public get controller(): Player {
-        return this.game.gameObjectManager.get(this.state.controllerRef);
+        return this._controller;
     }
 
     protected set controller(value: Player) {
-        this.state.controllerRef = value.getRef();
+        this._controller = value;
     }
 
+    @stateRef()
+    private accessor _owner: Player;
+
     public get owner(): Player {
-        return this.game.gameObjectManager.get(this.state.ownerRef);
+        return this._owner;
     }
 
     protected set owner(value: Player) {
-        this.state.ownerRef = value.getRef();
-    }
-
-    public get facedown(): boolean {
-        return this.state.facedown;
+        this._owner = value;
     }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
@@ -309,30 +300,38 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.printedType;
     }
 
+    @stateRef()
+    private accessor _zone: ZoneAbstract | null = null;
+
     public get zone(): Zone | null {
-        return this.state.zone ? this.game.gameObjectManager.get(this.state.zone) : null;
+        return this._zone as Zone;
     }
 
-    protected set zone(zone: Zone | null) {
-        this.state.zone = zone?.getRef();
+    protected set zone(value: Zone | null) {
+        this._zone = value as ZoneAbstract;
     }
 
     public get zoneName(): ZoneName {
         return this.zone?.name;
     }
 
+    @statePrimitive()
+    private accessor nextAbilityIdx: number = 0;
+
     public get isImplemented(): boolean {
         // We consider a card "implemented" if it doesn't require any implementation
         return !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile);
     }
 
+    protected readonly cardData: ICardDataJson;
+
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
-        owner: Player,
-        private readonly cardData: ICardDataJson
+        owner: Player, cardData: ICardDataJson
     ) {
         super(owner.game, cardData.title);
 
+        this.cardData = cardData;
         this.validateCardData(cardData);
 
         const implementationId = this.getImplementationId();
@@ -377,23 +376,12 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 )
             );
         }
-
-        this.setupStateWatchers(this.owner.game.stateWatcherRegistrar, this.game.abilityHelper);
-        this.initializeStateForAbilitySetup();
     }
 
-    protected override setupDefaultState() {
-        super.setupDefaultState();
-
-        this.state.facedown = true;
-        this.state.hiddenForController = false;
-        this.state.hiddenForOpponent = false;
-        this.state.movedFromZone = null;
-        this.state.nextAbilityIdx = 0;
-
-        this.state.actionAbilities = [];
-        this.state.constantAbilities = [];
-        this.state.triggeredAbilities = [];
+    protected override onInitialize(): void {
+        super.onInitialize();
+        this.setupStateWatchers(this.owner.game.stateWatcherRegistrar, this.game.abilityHelper);
+        this.initializeStateForAbilitySetup();
     }
 
     // ******************************************* ABILITY GETTERS *******************************************
@@ -401,8 +389,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
      * abilities have a cost in brackets that must be paid in order to use the ability.
      */
-    public getActionAbilities(): ActionAbility[] {
-        const deduplicatedActionAbilities: ActionAbility[] = [];
+    public getActionAbilities(): ActionAbilityBase[] {
+        const deduplicatedActionAbilities: ActionAbilityBase[] = [];
 
         // Add any gained action abilities, deduplicating by any identical gained action abilities from
         // the same source card (e.g., two Heroic Resolve actions)
@@ -422,7 +410,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
     }
 
-    public getPrintedActionAbilities(): ActionAbility[] {
+    public getPrintedActionAbilities(): ActionAbilityBase[] {
         return this.actionAbilities.filter((action) => action.printedAbility);
     }
 
@@ -449,7 +437,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.constantAbilities.filter((constant) => constant.printedAbility);
     }
 
-    public getPrintedTriggeredAbilities(): TriggeredAbility[] {
+    public getPrintedTriggeredAbilities(): TriggeredAbilityBase[] {
         return this.triggeredAbilities.filter((triggered) => triggered.printedAbility);
     }
 
@@ -460,7 +448,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public getActions(): PlayerOrCardAbility[] {
         return this.getActionAbilities();
     }
-
 
     // **************************************** INITIALIZATION HELPERS ****************************************
     public static buildTypeFromPrinted(printedTypes: string[]): CardType {
@@ -544,11 +531,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected validateCardAbilities(abilities: readonly TriggeredAbility[], cardText?: string) {
+    protected validateCardAbilities(abilities: readonly TriggeredAbilityBase[], cardText?: string) {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************
-    public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
+    public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbilityBase {
         return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
     }
 
@@ -556,7 +543,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties));
     }
 
-    protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
+    protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbilityBase {
         return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
@@ -575,8 +562,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     /** Increments the ability index counter used for adding an index number to an ability's ID */
     private getNextAbilityIdx() {
-        this.state.nextAbilityIdx++;
-        return this.state.nextAbilityIdx - 1;
+        this.nextAbilityIdx++;
+        return this.nextAbilityIdx - 1;
     }
 
     // ******************************************* CARD TYPE HELPERS *******************************************
@@ -709,7 +696,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return false;
     }
 
-
     // ******************************************* KEYWORD HELPERS *******************************************
     /** Helper method for {@link Card.keywords} */
     protected getKeywords() {
@@ -752,14 +738,57 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return keywords as KeywordWithNumericValue[];
     }
 
+    /** Optimized check for a single keyword - avoids array allocation from getKeywords() */
+    private hasSingleKeyword(keyword: KeywordName): boolean {
+        // Check printed keywords first (fast path)
+        const printedKeywords = this.printedKeywords;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < printedKeywords.length; i++) {
+            const kw = printedKeywords[i];
+            if (kw.name === keyword && !kw.isBlank) {
+                return true;
+            }
+        }
+
+        // Check gained keywords from effects
+        const gainedKeywordEffects = this.getOngoingEffectValues(EffectName.GainKeyword);
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < gainedKeywordEffects.length; i++) {
+            const props = gainedKeywordEffects[i];
+            if (Array.isArray(props)) {
+                // eslint-disable-next-line @typescript-eslint/prefer-for-of
+                for (let j = 0; j < props.length; j++) {
+                    const p = props[j];
+                    // Check keyword name first (cheap), only create instance if match to check isBlank
+                    if (p.keyword === keyword) {
+                        const kwInstance = KeywordHelpers.keywordFromProperties(p, this);
+                        if (!kwInstance.isBlank) {
+                            return true;
+                        }
+                    }
+                }
+            } else if (props.keyword === keyword) {
+                const kwInstance = KeywordHelpers.keywordFromProperties(props, this);
+                if (!kwInstance.isBlank) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {
+        // Fast path for single keyword string - avoids array allocation from this.keywords getter
+        if (typeof keywords === 'string') {
+            return this.hasSingleKeyword(keywords);
+        }
         return this.hasSome(keywords, this.keywords.map((keyword) => keyword.name));
     }
 
     public hasEveryKeyword(keywords: Set<KeywordName> | KeywordName[]): boolean {
         return this.hasEvery(keywords, this.keywords.map((keyword) => keyword.name));
     }
-
 
     // ******************************************* TRAIT HELPERS *******************************************
     protected getPrintedTraits(): Set<Trait> {
@@ -803,7 +832,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public hasEveryAspect(aspects: Set<Aspect> | Aspect[]): boolean {
         return this.hasEvery(aspects, this.aspects);
     }
-
 
     // *************************************** EFFECT HELPERS ***************************************
 
@@ -877,12 +905,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
 
         const keywordExcludedFromBlankEffect = this.getOngoingEffectValues(EffectName.BlankExceptKeyword)
-            .map((value) => value.exceptKeyword)
-            .includes(keyword);
+            .some((value) => value.exceptKeyword === keyword);
 
         const isSpecificallyRemoved = this.getOngoingEffectValues(EffectName.LoseKeyword)
-            .flatMap((x) => Helpers.asArray(x))
-            .includes(keyword);
+            .some((value) => (Array.isArray(value) ? value.includes(keyword) : value === keyword));
 
         return isSpecificallyRemoved || (this.isBlank() && !keywordExcludedFromBlankEffect);
     }
@@ -914,7 +940,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return !this.facedown && !this.hasRestriction(AbilityRestriction.InitiateKeywords, context);
     }
 
-
     // ******************************************* ZONE MANAGEMENT *******************************************
     /**
      * Moves a card to a new zone, optionally resetting the card's controller back to its owner.
@@ -922,7 +947,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * @param targetZoneName Zone to move to
      */
     public moveTo(targetZoneName: MoveZoneDestination, initializeCardState: InitializeCardStateOption = InitializeCardStateOption.Initialize) {
-        Contract.assertNotNullLike(this.state.zone, `Attempting to move card ${this.internalName} before initializing zone`);
+        Contract.assertNotNullLike(this.zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const prevZone = this.zoneName;
         const resetController = EnumHelpers.zoneMoveRequiresControllerReset(prevZone, targetZoneName);
@@ -989,14 +1014,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public initializeZone(zone: Zone) {
-        Contract.assertIsNullLike(this.state.zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
+        Contract.assertIsNullLike(this.zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
 
         this.zone = zone;
 
         this.initializeForStartZone();
         this.initializeForCurrentZone(null);
     }
-
 
     protected initializeForStartZone(): void {
         this.controller = this.owner;
@@ -1084,10 +1108,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateActionAbilitiesForZone(from: ZoneName, to: ZoneName) {
-        this.updateActionAbilitiesForZoneInternal(this.actionAbilities as ActionAbility[], from, to);
+        this.updateActionAbilitiesForZoneInternal(this.actionAbilities as ActionAbilityBase[], from, to);
     }
 
-    protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbility[], from: ZoneName, to: ZoneName) {
+    protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbilityBase[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const action of actionAbilities) {
                 if (action.limit) {
@@ -1098,10 +1122,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
-        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities as TriggeredAbility[], from, to);
+        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities as TriggeredAbilityBase[], from, to);
     }
 
-    protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbility[], from: ZoneName, to: ZoneName) {
+    protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbilityBase[], from: ZoneName, to: ZoneName) {
         // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
@@ -1159,7 +1183,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) { }
 
-
     /**
      * Deals with the engine effects of entering a new zone, making sure all statuses are set with legal values.
      * If a card should have a different status on entry (e.g., readied instead of exhausted), call this method first
@@ -1168,44 +1191,44 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentZone(prevZone?: ZoneName) {
-        this.state.hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
+        this._hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
             case ZoneName.GroundArena:
-                this.state.facedown = false;
-                this.state.hiddenForController = false;
+                this._facedown = false;
+                this._hiddenForController = false;
                 break;
 
             case ZoneName.Base:
-                this.state.facedown = false;
-                this.state.hiddenForController = false;
+                this._facedown = false;
+                this._hiddenForController = false;
                 break;
 
             case ZoneName.Resource:
-                this.state.facedown = true;
-                this.state.hiddenForController = false;
+                this._facedown = true;
+                this._hiddenForController = false;
                 break;
 
             case ZoneName.Deck:
-                this.state.facedown = true;
-                this.state.hiddenForController = true;
+                this._facedown = true;
+                this._hiddenForController = true;
                 break;
 
             case ZoneName.Hand:
-                this.state.facedown = false;
-                this.state.hiddenForController = false;
+                this._facedown = false;
+                this._hiddenForController = false;
                 break;
 
             case ZoneName.Capture:
-                this.state.facedown = true;
-                this.state.hiddenForController = false;
+                this._facedown = true;
+                this._hiddenForController = false;
                 break;
 
             case ZoneName.Discard:
             case ZoneName.OutsideTheGame:
-                this.state.facedown = false;
-                this.state.hiddenForController = false;
+                this._facedown = false;
+                this._hiddenForController = false;
                 break;
 
             default:
@@ -1232,6 +1255,17 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     public isResource() {
         return this.zoneName === ZoneName.Resource;
+    }
+
+    /**
+     * Checks if this card is blocked from being played by an opponent's effect.
+     * Base implementation returns null; overridden in PlayableOrDeployableCard for cards that can be played.
+     * @param context The ability context to use for checking restrictions
+     * @returns A string describing why the card is blocked (with source card name), or null if not blocked
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public getBlockedFromPlayReason(context: AbilityContext): string | null {
+        return null;
     }
 
     // TODO: should we break this out into variants for event (Play) vs other (EnterPlay)?
@@ -1343,7 +1377,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     //     return clone;
     // }
 
-
     // TODO: Clean this up and review rules for visibility. We can probably reduce this down to arity 1
     /*
     * This is the infomation for each card that is sent to the client.
@@ -1353,6 +1386,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         const selectionState = activePlayer.getCardSelectionState(this);
         const shouldBeHidden = this.zone.hiddenForPlayers === WildcardRelativePlayer.Any ||
           (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent);
+
+        // Check if card is blocked from play by opponent effect (for lock icon display)
+        const context = new AbilityContext({
+            game: this.game,
+            source: this,
+            player: this.controller,
+            ability: { card: this, isPlayCardAbility: () => false } as any,
+        });
+        const blockedFromPlayReason = this.getBlockedFromPlayReason(context);
 
         if (overrideHidden || !shouldBeHidden) {
             const state = {
@@ -1370,6 +1412,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 uuid: this.uuid,
                 printedType: this.printedType,
                 isBlanked: this.isBlank(),
+                blockedFromPlayReason,
                 ...selectionState
             };
 
@@ -1413,9 +1456,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     private isHiddenForPlayer(player: Player) {
         switch (player) {
             case this.controller:
-                return this.state.hiddenForController;
+                return this.hiddenForController;
             case this.controller.opponent:
-                return this.state.hiddenForOpponent;
+                return this.hiddenForOpponent;
             default:
                 Contract.fail(`Unknown player: ${player}`);
                 return false;
@@ -1487,3 +1530,4 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.internalName;
     }
 }
+

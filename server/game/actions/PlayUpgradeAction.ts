@@ -4,12 +4,17 @@ import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, ZoneName } from '../core/Constants';
-import type Game from '../core/Game';
+import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
+import type { Player } from '../core/Player';
+import type { Game } from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
+import { registerState } from '../core/GameObjectUtils';
+
+@registerState()
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
     public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
@@ -63,11 +68,21 @@ export class PlayUpgradeAction extends PlayCardAction {
         return new PlayUpgradeAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
+    /**
+     * Check if playing an upgrade card is restricted for the given player and card.
+     * @param player The player attempting to play the upgrade
+     * @param card The upgrade card being played
+     * @param context The context for restriction checks
+     * @returns The Restriction blocking play, or null if not restricted
+     */
+    public static getPlayRestriction(player: Player, card: Card, context: AbilityContext): Restriction | null {
+        return player.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.PlayUpgrade, AbilityRestriction.PutIntoPlay], context)[0] ??
+          card.getMatchingRestrictions([AbilityRestriction.Play, AbilityRestriction.EnterPlay], context)[0] ??
+          null;
+    }
+
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
-        if (
-            context.player.hasRestriction(AbilityRestriction.PlayUpgrade, context) ||
-            context.player.hasRestriction(AbilityRestriction.PutIntoPlay, context)
-        ) {
+        if (PlayUpgradeAction.getPlayRestriction(context.player, context.source, context) != null) {
             return 'restriction';
         }
 

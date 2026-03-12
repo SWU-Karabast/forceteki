@@ -22,6 +22,10 @@ describe('Syndicate Spice Runner', function() {
 
             context.player1.clickCardInDisplayCardPrompt(context.weequayPirate);
 
+            // P2 is prompted to see the revealed card
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.weequayPirate]);
+            context.player2.clickDone();
+
             expect(context.player2).toBeActivePlayer();
             expect(context.weequayPirate).toBeInZone('hand');
             expect(context.getChatLog()).toContain('player1 uses Syndicate Spice Runner to reveal and draw Weequay Pirate and to move 2 cards to the bottom of their deck');
@@ -48,6 +52,10 @@ describe('Syndicate Spice Runner', function() {
             expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
             context.player1.clickCardInDisplayCardPrompt(context.weequayPirate);
+
+            // P2 is prompted to see the revealed card
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.weequayPirate]);
+            context.player2.clickDone();
 
             expect(context.player2).toBeActivePlayer();
             expect(context.weequayPirate).toBeInZone('hand');

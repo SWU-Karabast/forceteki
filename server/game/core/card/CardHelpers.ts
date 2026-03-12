@@ -10,7 +10,6 @@ import { UpgradeCard } from './UpgradeCard';
 import { LeaderUnitCard } from './LeaderUnitCard';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
-
 /**
  * Create a default implementation for a card from cardData by calling the appropriate
  * derived class constructor based on the card type
@@ -19,24 +18,40 @@ export function createUnimplementedCard(owner: Player, cardData: ICardDataJson):
     Contract.assertNotNullLike(cardData?.types);
     const cardType = Card.buildTypeFromPrinted(cardData.types);
 
+    let card: Card;
+
     switch (cardType) {
         case CardType.Event:
-            return new EventCard(owner, cardData);
+            card = new EventCard(owner, cardData);
+            break;
         case CardType.Base:
-            return new BaseCard(owner, cardData);
+            card = new BaseCard(owner, cardData);
+            break;
         case CardType.BasicUpgrade:
-            return new UpgradeCard(owner, cardData);
+            card = new UpgradeCard(owner, cardData);
+            break;
         case CardType.Leader:
-            return new LeaderUnitCard(owner, cardData);
+            card = new LeaderUnitCard(owner, cardData);
+            break;
         case CardType.BasicUnit:
-            return new NonLeaderUnitCard(owner, cardData);
+            card = new NonLeaderUnitCard(owner, cardData);
+            break;
         case CardType.TokenUnit:
-            return new TokenUnitCard(owner, cardData);
+            card = new TokenUnitCard(owner, cardData);
+            break;
         case CardType.TokenUpgrade:
-            return new TokenUpgradeCard(owner, cardData);
+            card = new TokenUpgradeCard(owner, cardData);
+            break;
         case CardType.TokenCard:
-            return new TokenCard(owner, cardData);
+            card = new TokenCard(owner, cardData);
+            break;
         default:
             throw new Error(`Unexpected card type: ${cardType}`);
     }
+
+    if (!card.initialized) {
+        card.initialize();
+    }
+
+    return card;
 }

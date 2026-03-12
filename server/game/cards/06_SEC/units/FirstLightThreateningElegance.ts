@@ -3,7 +3,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
-
 export default class FirstLightThreateningElegance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {

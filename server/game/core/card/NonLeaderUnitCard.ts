@@ -2,6 +2,8 @@ import type { Player } from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
 import { CardType, PlayType, Trait, ZoneName } from '../Constants';
+import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
+import type { AbilityContext } from '../ability/AbilityContext';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
@@ -13,11 +15,13 @@ import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { INonLeaderUnitAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import { type IAbilityHelper } from '../../AbilityHelper';
+import { registerStateBase } from '../GameObjectUtils';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
 export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
 
+@registerStateBase()
 export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
@@ -39,6 +43,10 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
             return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties));
         }
         return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUnitAction(this.game, this, properties));
+    }
+
+    protected override getPlayRestriction(player: Player, context: AbilityContext): Restriction | null {
+        return PlayUnitAction.getPlayRestriction(player, this, context);
     }
 
     public override isPlayable(): this is IPlayableCard {
@@ -85,7 +93,9 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
     }
 }
 
+// STATE TODO: Once we've fully converted to decorators, this can be removed and NonLeaderUnitCardInternal can be renamed to NonLeaderUnitCard
 /** used for derived implementations classes. */
+@registerStateBase()
 export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
     public declare state: never;
 

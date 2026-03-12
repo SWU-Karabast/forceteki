@@ -1,9 +1,11 @@
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import type { Card } from '../card/Card.js';
 import type { AbilityContext } from './AbilityContext.js';
+import { registerStateBase } from '../GameObjectUtils';
 
+@registerStateBase()
 export abstract class PlayerAction extends PlayerOrCardAbility {
     public cannotBeCancelled: boolean;
 

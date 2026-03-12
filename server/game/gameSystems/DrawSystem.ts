@@ -31,6 +31,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
             gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
         }
 
+        event.cards = event.player.drawDeck.slice(0, event.amount);
         event.player.drawCardsToHand(event.amount);
     }
 
@@ -64,7 +65,6 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDrawProperties>): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
-        event.cards = event.player.drawDeck.slice(0, amount);
         event.amount = amount;
     }
 

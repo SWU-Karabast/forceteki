@@ -24,6 +24,10 @@ describe('Scour The Archives', function () {
 
                 context.player1.clickCardInDisplayCardPrompt(context.devotion);
 
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.devotion]);
+                context.player2.clickDone();
+
                 expect(context.getChatLog()).toContain('player1 uses Scour the Archives to reveal and draw Devotion');
                 expect(context.devotion).toBeInZone('hand');
 

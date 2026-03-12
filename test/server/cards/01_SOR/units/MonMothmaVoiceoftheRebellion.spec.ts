@@ -24,6 +24,11 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 // Choose Battlefield Marine
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.battlefieldMarine]);
+                context.player2.clickDone();
+
                 expect(context.getChatLog()).toContain('player1 uses Mon Mothma to reveal and draw Battlefield Marine');
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
@@ -56,6 +61,10 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.battlefieldMarine]);
+                context.player2.clickDone();
 
                 // Ensure that cards have moved to bottom of deck
                 expect(context.player1.deck.length).toBe(2);

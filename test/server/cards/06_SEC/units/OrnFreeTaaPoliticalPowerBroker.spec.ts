@@ -20,6 +20,11 @@ describe('Orn Free Taa, Political Power Broker', function() {
             expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
             context.player1.clickCardInDisplayCardPrompt(context.confiscate);
+
+            // P2 is prompted to see the revealed card
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.confiscate]);
+            context.player2.clickDone();
+
             expect(context.getChatLog()).toContain('player1 uses Orn Free Taa to reveal and draw Confiscate');
             expect(context.confiscate).toBeInZone('hand');
 

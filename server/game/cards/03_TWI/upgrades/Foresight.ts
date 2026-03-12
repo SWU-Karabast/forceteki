@@ -1,6 +1,6 @@
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { PhaseName, TargetMode } from '../../../core/Constants';
+import { PhaseName, RelativePlayer, TargetMode } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 
 export default class Foresight extends UpgradeCard {
@@ -32,7 +32,9 @@ export default class Foresight extends UpgradeCard {
                     optional: true,
                     thenCondition: (context) => thenContext.select === context.player.getTopCardOfDeck()?.title,
                     immediateEffect: AbilityHelper.immediateEffects.revealAndDraw((context) => ({
-                        target: context.player.getTopCardOfDeck()
+                        target: context.player.getTopCardOfDeck(),
+                        useDisplayPrompt: true,
+                        promptedPlayer: RelativePlayer.Opponent
                     }))
                 }
             })
