@@ -24,7 +24,7 @@ import {
     type IServerRoleUsersListsEntity
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { IDeckDataEntitySchema, IDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
+import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
@@ -797,19 +797,15 @@ class DynamoDBService {
                 return [];
             }
 
-            return result.Items.map((item: any) => ({
-                id: item.id,
-                playerId: item.playerId,
-                actionType: item.actionType,
-                durationDays: item.durationDays ?? undefined,
-                note: item.note ?? undefined,
-                moderatorId: item.moderatorId,
-                createdAt: item.createdAt,
-                startedAt: item.startedAt ?? undefined,
-                expiresAt: item.expiresAt ?? undefined,
-                cancelledAt: item.cancelledAt ?? undefined,
-                cancelledBy: item.cancelledBy ?? undefined,
-            })) as IModActionEntity[];
+            return Promise.all(
+                result.Items.map((item: any) =>
+                    this.validateAndHandleAsync<IModActionEntity>(
+                        ModActionEntitySchema,
+                        item,
+                        `getModActionsAsync (action ${item.id})`,
+                    )
+                )
+            ).then((actions) => actions.filter(Boolean));
         }, 'Error getting mod actions');
     }
 
