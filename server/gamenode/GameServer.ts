@@ -492,9 +492,9 @@ export class GameServer {
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
-                    needsUsernameChange,
                     mustRequestUsernameChange: user.mustRequestUsernameChange(),
                     reportingDisabled: user.reportingDisabled(),
+                    needsUsernameChange,
                     moderation
                 } });
             } catch (err) {
