@@ -4,7 +4,7 @@ import type { Card } from '../../game/core/card/Card';
 import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
 import type { SwuGameFormat } from '../../game/core/Constants';
-import type { GameObjectRef } from '../../game/core/GameObjectBase';
+import type { GameObjectId } from '../../game/core/GameObjectUtils';
 
 export interface ISwuDbFormatCardEntry {
     id: string;
@@ -61,13 +61,13 @@ export type IDecklistInternal = ILeaderBaseInternal & IDeckListBase & {
 };
 
 export interface IDeckListForLoading {
-    deckCards: GameObjectRef<IPlayableCard>[];
+    deckCards: GameObjectId<IPlayableCard>[];
     outOfPlayCards: any[];
-    outsideTheGameCards: GameObjectRef<Card>[];
-    tokens: GameObjectRef<ITokenCard>[];
-    base: GameObjectRef<IBaseCard> | undefined;
-    leader: GameObjectRef<ILeaderCard> | undefined;
-    allCards: GameObjectRef<Card>[];
+    outsideTheGameCards: GameObjectId<Card>[];
+    tokens: GameObjectId<ITokenCard>[];
+    base: GameObjectId<IBaseCard> | undefined;
+    leader: GameObjectId<ILeaderCard> | undefined;
+    allCards: GameObjectId<Card>[];
 }
 
 export interface ICardIdAndName {

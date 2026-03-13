@@ -3,12 +3,12 @@ import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
 import type { Game } from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { UnwrapRef } from '../core/GameObjectBase';
 
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface ForceUsedEntry {
-    player: GameObjectRef<Player>;
+    player: GameObjectId<Player>;
 }
 
 @registerState()
@@ -20,7 +20,7 @@ export class ForceUsedThisPhaseWatcher extends StateWatcher<ForceUsedEntry> {
     }
 
     protected override mapCurrentValue(stateValue: ForceUsedEntry[]): UnwrapRef<ForceUsedEntry[]> {
-        return stateValue.map((x) => ({ player: this.game.getFromRef(x.player) }));
+        return stateValue.map((x) => ({ player: this.game.getFromId(x.player) }));
     }
 
     /**
@@ -42,7 +42,7 @@ export class ForceUsedThisPhaseWatcher extends StateWatcher<ForceUsedEntry> {
             },
             update: (currentState: ForceUsedEntry[], event: any) =>
                 currentState.concat({
-                    player: event.player.getRef(),
+                    player: event.player.getObjectId(),
                 })
         });
     }

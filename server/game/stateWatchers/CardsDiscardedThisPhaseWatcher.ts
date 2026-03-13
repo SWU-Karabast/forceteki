@@ -6,13 +6,13 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
 import type { Game } from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { UnwrapRef } from '../core/GameObjectBase';
 
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface DiscardedCardEntry {
-    card: GameObjectRef<Card>;
-    discardedFromPlayer: GameObjectRef<Player>;
+    card: GameObjectId<Card>;
+    discardedFromPlayer: GameObjectId<Player>;
     discardedFromZone: ZoneName;
     discardedPlayId: number;
 }
@@ -26,7 +26,7 @@ export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEn
     }
 
     protected override mapCurrentValue(stateValue: DiscardedCardEntry[]): UnwrapRef<DiscardedCardEntry[]> {
-        return stateValue.map((x) => ({ card: this.game.getFromRef(x.card), discardedFromPlayer: this.game.getFromRef(x.discardedFromPlayer), discardedFromZone: x.discardedFromZone, discardedPlayId: x.discardedPlayId }));
+        return stateValue.map((x) => ({ card: this.game.getFromId(x.card), discardedFromPlayer: this.game.getFromId(x.discardedFromPlayer), discardedFromZone: x.discardedFromZone, discardedPlayId: x.discardedPlayId }));
     }
 
     /**
@@ -46,8 +46,8 @@ export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEn
                 Contract.assertTrue(event.card != null);
                 Contract.assertTrue(event.discardedFromZone != null);
                 return currentState.concat({
-                    card: event.card.getRef(),
-                    discardedFromPlayer: event.card.controller.getRef(),
+                    card: event.card.getObjectId(),
+                    discardedFromPlayer: event.card.controller.getObjectId(),
                     discardedFromZone: event.discardedFromZone,
                     discardedPlayId: event.card.mostRecentInPlayId,
                 });

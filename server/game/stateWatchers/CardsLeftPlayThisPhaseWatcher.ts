@@ -2,17 +2,17 @@ import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { Game } from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { UnwrapRef } from '../core/GameObjectBase';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface CardLeftPlayEntry {
-    card: GameObjectRef<IInPlayCard>;
-    controlledBy: GameObjectRef<Player>;
+    card: GameObjectId<IInPlayCard>;
+    controlledBy: GameObjectId<Player>;
     cardType: CardType;
 }
 
@@ -23,7 +23,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
     }
 
     protected override mapCurrentValue(stateValue: CardLeftPlayEntry[]): UnwrapRef<CardLeftPlayEntry[]> {
-        return stateValue.map((x) => ({ controlledBy: this.game.getFromRef(x.controlledBy), card: this.game.getFromRef(x.card), cardType: x.cardType }));
+        return stateValue.map((x) => ({ controlledBy: this.game.getFromId(x.controlledBy), card: this.game.getFromId(x.card), cardType: x.cardType }));
     }
 
     public override getCurrentValue() {
@@ -76,7 +76,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             when: {
                 onCardLeavesPlay: () => true
             },
-            update: (currentState, event) => currentState.concat({ card: event.card.getRef(), controlledBy: event.lastKnownInformation.controller.getRef(), cardType: event.lastKnownInformation.type })
+            update: (currentState, event) => currentState.concat({ card: event.card.getObjectId(), controlledBy: event.lastKnownInformation.controller.getObjectId(), cardType: event.lastKnownInformation.type })
         });
     }
 
