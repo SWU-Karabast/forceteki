@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
     protected override getImplementationId () {

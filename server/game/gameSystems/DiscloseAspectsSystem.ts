@@ -12,7 +12,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
-import { TextHelper } from '../core/utils/TextHelpers';
+import { TextHelper } from '../core/utils/TextHelper';
 
 export enum DiscloseMode {
     Any = 'any',

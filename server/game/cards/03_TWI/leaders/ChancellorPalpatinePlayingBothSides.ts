@@ -3,7 +3,7 @@ import type { IDoubleSidedLeaderAbilityRegistrar } from '../../../core/card/Abil
 import { DoubleSidedLeaderCard } from '../../../core/card/DoubleSidedLeaderCard';
 import { Aspect } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 

@@ -3,7 +3,7 @@ import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrati
 import { BaseCard } from '../../../core/card/BaseCard';
 import { Aspect, Conjunction, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export abstract class LAWCommonBase extends BaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper): void {

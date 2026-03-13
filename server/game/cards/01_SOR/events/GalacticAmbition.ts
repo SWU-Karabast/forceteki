@@ -3,7 +3,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { Aspect, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GalacticAmbition extends EventCard {
     protected override getImplementationId () {

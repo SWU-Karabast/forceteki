@@ -6,7 +6,7 @@ import type {
 import type { LeaderUnitCardInternal } from '../../../core/card/LeaderUnitCard';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { IConstantAbilityProps } from '../../../Interfaces';
 
 export default class HeraSyndullaNotFightingAlone extends LeaderUnitCard {

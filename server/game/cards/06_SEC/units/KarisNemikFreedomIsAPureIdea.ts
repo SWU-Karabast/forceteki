@@ -2,7 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class KarisNemikFreedomIsAPureIdea extends NonLeaderUnitCard {
     protected override getImplementationId () {

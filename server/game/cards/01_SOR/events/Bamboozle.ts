@@ -7,7 +7,7 @@ import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAc
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 import { registerState } from '../../../core/GameObjectUtils';
 

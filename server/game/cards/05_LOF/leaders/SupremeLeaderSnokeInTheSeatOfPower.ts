@@ -4,7 +4,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SupremeLeaderSnokeInTheSeatOfPower extends LeaderUnitCard {
     protected override getImplementationId() {

@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, CardType, Duration, EventName, KeywordName } from '../../../core/Constants';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DiplomaticEnvoy extends NonLeaderUnitCard {
     protected override getImplementationId() {

@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { EventName } from '../../../core/Constants';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
-import { TextHelper } from '../../../core/utils/TextHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { DiscloseMode } from '../../../gameSystems/DiscloseAspectsSystem';
 
