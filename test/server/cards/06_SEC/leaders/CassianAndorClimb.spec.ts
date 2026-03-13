@@ -1,7 +1,7 @@
 describe('Cassian Andor, Climb!', function() {
     integration(function(contextRef) {
         describe('Cassian Andor\'s leader side constant ability', function() {
-            const cannotBeAttacked = (card: Card, game: Game) => {
+            const cannotBeAttacked = (card, game) => {
                 return card.getSummary(game.actionPhaseActivePlayer).cannotBeAttacked;
             };
 
@@ -496,6 +496,41 @@ describe('Cassian Andor, Climb!', function() {
                 expect(context.cassianAndor).toBeInZone('base');
                 expect(context.cassianAndor.exhausted).toBeTrue();
             });
+        });
+
+        it('Cassian is immediately defeated if an effect causes him to lose all abilities', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hasInitiative: true,
+                    leader: {
+                        card: 'cassian-andor#climb',
+                        deployed: true,
+                        damage: 3,
+                        upgrades: [
+                            'condemn'
+                        ]
+                    }
+                },
+                player2: {
+                    groundArena: [
+                        'darth-tyranus#servant-of-sidious'
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Cassian attacks Darth Tyranus and is immediately defeated before the attack resolves
+            context.player1.clickCard(context.cassianAndor);
+            context.player1.clickCard(context.darthTyranus);
+
+            // Darth Tyranus should be in play and Cassian should be defeated
+            expect(context.darthTyranus).toBeInZone('groundArena');
+            expect(context.darthTyranus.damage).toBe(0);
+            expect(context.cassianAndor).toBeInZone('base');
+            expect(context.cassianAndor.exhausted).toBeTrue();
+            expect(context.getChatLog()).toEqual('The attack does not resolve because the attacker is no longer valid');
         });
     });
 });

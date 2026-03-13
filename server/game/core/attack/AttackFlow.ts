@@ -50,12 +50,23 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
 
         this.pipeline.initialise([
-            new SimpleStep(this.game, () => this.setCurrentAttack(), 'setCurrentAttack'),
             new SimpleStep(this.game, () => this.declareAttack(), 'declareAttack'),
             ...attackResolutionSteps,
             new SimpleStep(this.game, () => this.cleanUpAttack(), 'cleanUpAttack'),
             new SimpleStep(this.game, () => this.game.resolveGameState(true), 'resolveGameState')
         ]);
+    }
+
+    private declareAttack() {
+        const declareAttackEvent = new GameEvent(
+            EventName.OnAttackDeclared,
+            this.context,
+            { attack: this.attack }
+        );
+
+        declareAttackEvent.setPreResolutionEffect((_event) => this.setCurrentAttack());
+
+        this.context.game.openEventWindow([declareAttackEvent], TriggerHandlingMode.ResolvesTriggers);
     }
 
     private setCurrentAttack() {
@@ -64,10 +75,6 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.attack.previousAttack = this.game.currentAttack;
         this.game.currentAttack = this.attack;
         this.game.resolveGameState(true);
-    }
-
-    private declareAttack() {
-        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
     }
 
     private openDealDamageWindow(includeAttackCompleteEvent = false): void {
