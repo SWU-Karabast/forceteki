@@ -13,13 +13,18 @@
     },
     {
       "name": "Debug dev server",
-      "type": "node-terminal",
+      "type": "node",
       "request": "launch",
-      "command": "npm run dev",
+      "program": "${workspaceFolder}/build/server/gamenode/index.js",
+      "preLaunchTask": "build-dev",
+      "console": "internalConsole",
+      "outputCapture": "std",
+      "cwd": "${workspaceFolder}",
       "env": {
         "NODE_ENV": "development",
         "NODE_OPTIONS": "--enable-source-maps"
       },
+      "envFile": "${workspaceFolder}/.env"
     },
     {
       "name": "Debug All Jasmine Tests",
