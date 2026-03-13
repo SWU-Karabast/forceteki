@@ -168,19 +168,19 @@ export class Deck {
 
             for (const cardCopy of cardCopies) {
                 Contract.assertTrue(cardCopy.isPlayable(), `Card ${cardCopy.internalName} cannot be in the deck`);
-                result.deckCards.push(cardCopy.getRef());
+                result.deckCards.push(cardCopy.getObjectId());
             }
         }
 
         // base
         const baseCard = (await this.buildCardsFromSetCodeAsync(this.base.id, player, cardDataGetter, 1))[0];
         Contract.assertTrue(baseCard.isBase());
-        result.base = baseCard.getRef();
+        result.base = baseCard.getObjectId();
 
         // leader
         const leaderCard = (await this.buildCardsFromSetCodeAsync(this.leader.id, player, cardDataGetter, 1))[0];
         Contract.assertTrue(leaderCard.isLeader(), `${leaderCard.internalName} is not a leader`);
-        result.leader = leaderCard.getRef();
+        result.leader = leaderCard.getObjectId();
 
         result.allCards.push(...result.deckCards);
         result.allCards.push(result.base);
