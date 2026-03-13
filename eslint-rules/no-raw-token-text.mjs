@@ -9,7 +9,7 @@ const TOKEN_CATEGORIES = [
     {
         names: ['Aggression', 'Command', 'Cunning', 'Heroism', 'Vigilance', 'Villainy'],
         messageId: 'rawAspectName',
-        helper: 'TextHelper.aspect(Aspect.{{name}})',
+        helper: 'TextHelper.{{name}})',
     },
     // Add more categories as needed, e.g. traits, keywords, etc.
 ];
@@ -29,7 +29,7 @@ const combinedPattern = new RegExp(`\\b(${allNames.join('|')})\\b`, 'g');
 const messages = Object.fromEntries(
     TOKEN_CATEGORIES.map((cat) => [
         cat.messageId,
-        `Raw ${cat.messageId.replace('raw', '').replace(/([A-Z])/g, ' $1').trim().toLowerCase()} "{{name}}" found in string literal. Use \`\${${cat.helper}}\` in a template literal instead.`,
+        `Raw ${cat.messageId.replace('raw', '').replace(/([A-Z])/g, ' $1').trim().toLowerCase()} "{{name}}" found in string literal. Use \`\${${cat.helper}}\` in a template literal, so the text can be rendered correctly on the client side (with icons, styling, etc).`,
     ])
 );
 

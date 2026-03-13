@@ -15,7 +15,7 @@ export default class GideonsLightCruiserDarkTroopersStation extends NonLeaderUni
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `If you control Moff Gideon, play a ${TextHelper.aspect(Aspect.Villainy)} unit that costs 3 or less from your hand or discard pile for free.`,
+            title: `If you control Moff Gideon, play a ${TextHelper.Villainy} unit that costs 3 or less from your hand or discard pile for free.`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: [ZoneName.Discard, ZoneName.Hand],

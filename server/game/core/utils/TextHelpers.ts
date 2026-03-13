@@ -1,5 +1,6 @@
+/* eslint-disable @stylistic/lines-around-comment */
 import * as Helpers from './Helpers';
-import type { Aspect } from '../Constants';
+import { Aspect } from '../Constants';
 import type { Conjunction } from '../Constants';
 
 /**
@@ -7,6 +8,21 @@ import type { Conjunction } from '../Constants';
  * These functions should be used in card text and other places where the text will be displayed to the user.
  */
 export namespace TextHelper {
+
+    // Quick access to specific aspects
+
+    /** The display representation of the Vigilance aspect, replaced by the icon on the client side */
+    export const Vigilance = aspect(Aspect.Vigilance);
+    /** The display representation of the Command aspect, replaced by the icon on the client side */
+    export const Command = aspect(Aspect.Command);
+    /** The display representation of the Aggression aspect, replaced by the icon on the client side */
+    export const Aggression = aspect(Aspect.Aggression);
+    /** The display representation of the Cunning aspect, replaced by the icon on the client side */
+    export const Cunning = aspect(Aspect.Cunning);
+    /** The display representation of the Villainy aspect, replaced by the icon on the client side */
+    export const Villainy = aspect(Aspect.Villainy);
+    /** The display representation of the Heroism aspect, replaced by the icon on the client side */
+    export const Heroism = aspect(Aspect.Heroism);
 
     /**
      * Returns the display representation of an aspect name for use in string interpolation.
@@ -16,7 +32,7 @@ export namespace TextHelper {
      * @example
      * // In tests: "Ready a Villainy unit"
      * // Otherwise: "Ready a :villainy: unit"
-     * const ex = `Ready a ${TextHelper.aspect(Aspect.Villainy)} unit`
+     * const ex = `Ready a ${TextHelper.Villainy} unit`
      */
     export function aspect(asp: Aspect): string {
         return process.env.NODE_ENV === 'test'

@@ -14,7 +14,7 @@ export default class EvilIsEverywhere extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `Defeat a unit with cost equal to or less than the number of ${TextHelper.aspect(Aspect.Villainy)} aspect icons among friendly units`,
+            title: `Defeat a unit with cost equal to or less than the number of ${TextHelper.Villainy} aspect icons among friendly units`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => {

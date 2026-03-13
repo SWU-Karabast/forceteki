@@ -18,13 +18,13 @@ export default class EbonHawkCauseAndEffect extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Heroism, Aspect.Villainy];
         registrar.addOnAttackAbility({
-            title: `Disclose ${TextHelper.aspect(Aspect.Heroism)} to give this unit +2/+0 and/or ${TextHelper.aspect(Aspect.Villainy)} to give the defending unit -4/-0 for this attack`,
+            title: `Disclose ${TextHelper.Heroism} to give this unit +2/+0 and/or ${TextHelper.Villainy} to give the defending unit -4/-0 for this attack`,
             immediateEffect: AbilityHelper.immediateEffects.disclose({
                 aspects: aspects,
                 mode: DiscloseMode.Some
             }),
             ifYouDo: (ifYouDoContext) => ({
-                title: `If you disclosed ${TextHelper.aspect(Aspect.Heroism)}, this unit gets +2/+0 for this attack. If you disclosed ${TextHelper.aspect(Aspect.Villainy)}, give the defender -4/-0 for this attack.`,
+                title: `If you disclosed ${TextHelper.Heroism}, this unit gets +2/+0 for this attack. If you disclosed ${TextHelper.Villainy}, give the defender -4/-0 for this attack.`,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.conditional({
                         condition: this.disclosedCardsContainAspect(Aspect.Heroism, ifYouDoContext),

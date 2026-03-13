@@ -14,7 +14,7 @@ export default class BT1Blastomech extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `Discard a card from your deck. If it's ${TextHelper.aspect(Aspect.Aggression)}, you may deal 1 damage to a ground unit.`,
+            title: `Discard a card from your deck. If it's ${TextHelper.Aggression}, you may deal 1 damage to a ground unit.`,
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
                 target: context.player

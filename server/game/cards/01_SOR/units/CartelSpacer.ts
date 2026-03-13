@@ -14,7 +14,7 @@ export default class CartelSpacer extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `If you control another ${TextHelper.aspect(Aspect.Cunning)} unit, exhaust an enemy unit that costs 4 or less`,
+            title: `If you control another ${TextHelper.Cunning} unit, exhaust an enemy unit that costs 4 or less`,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
                 controller: RelativePlayer.Opponent,
