@@ -15,6 +15,18 @@ describe('GameObjectBase initialization', function() {
         expect(() => gameObject.initialize()).toThrowError(/already initialized/i);
     });
 
+    it('creates a lightweight state id while marking the object as referenced', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const gameObject = new gameObjectHelper.TestGameObject(game, 'ready');
+
+        expect(gameObject.hasRef).toBeFalse();
+
+        const objectId = gameObject.getObjectId();
+
+        expect(objectId).toBe(gameObject.uuid);
+        expect(gameObject.hasRef).toBeTrue();
+    });
+
     it('initializes only once at the most-derived class boundary', function() {
         const { game } = gameObjectHelper.createMockGame();
         const gameObject = new gameObjectHelper.ChildGameObject(game, 'derived-ready');

@@ -7,9 +7,9 @@ import type { Game } from '../Game';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, stateRefArray, statePrimitive } from '../GameObjectUtils';
+import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
 import { AttackRulesVersion } from '../attack/AttackFlow';
 import type { MsgArg } from '../chat/GameChat';
 
@@ -60,7 +60,7 @@ class CustomDurationEvent extends GameObjectBase {
 }
 
 export interface IOngoingEffectState extends IGameObjectBaseState {
-    effects: GameObjectRef<OngoingEffect<any>>[]; // TODO: Can we make OngoingEffect have an ID w/o using GameObjectBase? Probably, do it similiar to how snapshot IDs work.
+    effects: GameObjectId<OngoingEffect<any>>[];
 }
 
 @registerState()

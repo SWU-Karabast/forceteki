@@ -36,11 +36,6 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         @statePrimitive()
         private accessor _damage: number | null = null;
 
-        protected override setupDefaultState() {
-            super.setupDefaultState();
-            this._attackEnabled = false;
-        }
-
         public setActiveAttack(attack: Attack) {
             Contract.assertNotNullLike(attack);
             this.assertPropertyEnabledForZoneBoolean(this._attackEnabled, 'activeAttack');

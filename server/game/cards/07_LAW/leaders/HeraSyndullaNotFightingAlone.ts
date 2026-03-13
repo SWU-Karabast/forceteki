@@ -3,7 +3,6 @@ import type {
     ILeaderUnitAbilityRegistrar,
     ILeaderUnitLeaderSideAbilityRegistrar
 } from '../../../core/card/AbilityRegistrationInterfaces';
-import type { LeaderUnitCardInternal } from '../../../core/card/LeaderUnitCard';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
@@ -17,7 +16,7 @@ export default class HeraSyndullaNotFightingAlone extends LeaderUnitCard {
         };
     }
 
-    private buildHeraAbilityProperties (AbilityHelper: IAbilityHelper): IConstantAbilityProps<LeaderUnitCardInternal> {
+    private buildHeraAbilityProperties (AbilityHelper: IAbilityHelper): IConstantAbilityProps<LeaderUnitCard> {
         return {
             title: `Ignore the aspect penalty on ${TextHelper.Heroism} cards you play`,
             targetController: RelativePlayer.Self,
