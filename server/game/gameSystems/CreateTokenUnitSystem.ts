@@ -4,9 +4,10 @@ import { EffectName, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
-import * as Helpers from '../core/utils/Helpers';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
+import * as Helpers from '../core/utils/Helpers';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -27,10 +28,28 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-
+        const players = Helpers.asArray(properties.target);
         const tokenTitle = context.game.cardDataGetter.tokenData[this.getTokenType()]?.title ?? this.getTokenType();
         const indefiniteArticle = this.getTokenType() === TokenUnitName.XWing ? 'an' : 'a';
-        return ['create {0}', [ChatHelpers.pluralize(properties.amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`)]];
+
+        const effectMessage = (player: Player): FormatMessage => {
+            const targetIsSelf = player === context.player;
+            const tokenText = ChatHelpers.pluralize(properties.amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`);
+
+            if (targetIsSelf) {
+                return {
+                    format: 'create {0}',
+                    args: [tokenText]
+                };
+            }
+
+            return {
+                format: 'make {0} create {1}',
+                args: [player, tokenText]
+            };
+        };
+
+        return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
     protected abstract getTokenType(): TokenUnitName;
@@ -43,10 +62,8 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         // generate the tokens here so they can be used in the contingent events
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
-        for (const player of Helpers.asArray(properties.target)) {
-            for (let i = 0; i < properties.amount; i++) {
-                event.generatedTokens.push(context.game.generateToken(player, this.getTokenType()));
-            }
+        for (let i = 0; i < properties.amount; i++) {
+            event.generatedTokens.push(context.game.generateToken(player, this.getTokenType()));
         }
 
         // add contingent events for putting the generated unit token(s) into play
