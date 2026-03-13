@@ -636,6 +636,7 @@ export enum SwuGameFormat {
 export enum CardPool {
     Current = 'current',
     NextSet = 'nextSet',
+    Unlimited = 'unlimited',
 }
 
 export enum GamesToWinMode {

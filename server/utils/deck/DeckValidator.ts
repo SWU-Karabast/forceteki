@@ -76,8 +76,9 @@ const nonRotatingSets: INonRotatingSet[] = [
 
 interface IFormatRules {
     minDeckSize: number;
-    maxRotationBlocks?: number;
+    maxCardCopies?: number;
     bannedCards: Map<string, string>;
+    rotationBlockCount?: number;
 }
 
 const bannedPremierCards = new Map([
@@ -89,9 +90,9 @@ const bannedPremierCards = new Map([
 ]);
 
 const formatRules = new Map<SwuGameFormat, IFormatRules>([
-    [SwuGameFormat.Premier, { minDeckSize: 50, maxRotationBlocks: 2, bannedCards: bannedPremierCards }],
-    [SwuGameFormat.Eternal, { minDeckSize: 50, bannedCards: new Map() }],
-    [SwuGameFormat.Open, { minDeckSize: 50, bannedCards: new Map() }],
+    [SwuGameFormat.Premier, { minDeckSize: 50, maxCardCopies: 3, rotationBlockCount: 2, bannedCards: bannedPremierCards }],
+    [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
+    [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
     [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map() }],
 ]);
 
@@ -150,17 +151,22 @@ export class DeckValidator {
     /**
      * Computes the set of legal {@link SwuSetId}s for a given format and card pool combination.
      *
-     * For **Open**, all sets (rotating and non-rotating) are included.
+     * For **Open**, all sets are included.
+     *
+     * For **Limited**, only a single set is legal, unless the card pool is Unlimited in which
+     * case all sets are legal. The single legal set is determined by:
+     * - {@link CardPool.Current}: the most recently released set
+     * - {@link CardPool.NextSet}: the most recent unreleased set
      *
      * For rotating formats (**Premier**), only released rotation blocks are considered
      * under {@link CardPool.Current}, whereas {@link CardPool.NextSet} also includes unreleased blocks.
-     * The format's `maxRotationBlocks` rule then trims to the latest N blocks.
+     * The format's `rotationBlockCount` rule then trims to the latest N blocks.
      *
      * Non-rotating sets (e.g. TS26) are added if their `legalFormats` includes the requested format,
      * subject to the same released/unreleased filtering.
      */
     public static getLegalSets(format: SwuGameFormat, cardPool: CardPool): Set<SwuSetId> {
-        // Open: everything, always
+        // Open or Unlimited pool: everything, always
         if (format === SwuGameFormat.Open) {
             const all = new Set<SwuSetId>(rotationBlocks.flatMap((block) => block.sets.map((s) => s.id)));
             for (const nrs of nonRotatingSets) {
@@ -168,6 +174,13 @@ export class DeckValidator {
             }
             return all;
         }
+
+        // Limited: restrict to a single set
+        if (format === SwuGameFormat.Limited) {
+            return this.getLimitedLegalSet(cardPool);
+        }
+
+        Contract.assertFalse(cardPool === CardPool.Unlimited, `Card pool '${CardPool.Unlimited}' is not supported for format '${format}'`);
 
         const rules = formatRules.get(format);
 
@@ -177,8 +190,8 @@ export class DeckValidator {
             : [...rotationBlocks];
 
         // Apply rotation window (take the last N blocks)
-        if (rules.maxRotationBlocks != null) {
-            candidateBlocks = candidateBlocks.slice(-rules.maxRotationBlocks);
+        if (rules.rotationBlockCount != null) {
+            candidateBlocks = candidateBlocks.slice(-rules.rotationBlockCount);
         }
 
         const legalSets = new Set<SwuSetId>();
@@ -199,6 +212,25 @@ export class DeckValidator {
         }
 
         return legalSets;
+    }
+
+    /**
+     * Returns the legal sets for Limited format based on the card pool.
+     */
+    private static getLimitedLegalSet(cardPool: CardPool): Set<SwuSetId> {
+        const allSets = rotationBlocks.flatMap((block) => block.sets);
+
+        if (cardPool === CardPool.Unlimited) {
+            return new Set<SwuSetId>(allSets.map((s) => s.id));
+        }
+
+        const targetSet = cardPool === CardPool.Current
+            ? [...allSets].reverse().find((s) => s.released)
+            : allSets.find((s) => !s.released);
+
+        Contract.assertNotNullLike(targetSet, `No ${cardPool === CardPool.Current ? 'released' : 'unreleased'} sets found for Limited format`);
+
+        return new Set<SwuSetId>([targetSet.id]);
     }
 
     private constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
@@ -484,11 +516,13 @@ export class DeckValidator {
         format: SwuGameFormat,
         failures: IDeckValidationFailures
     ) {
-        if (format === SwuGameFormat.Limited) {
+        const rules = formatRules.get(format);
+
+        if (!rules.maxCardCopies) {
             return;
         }
 
-        const maxCount = cardData.maxCopiesOfCardOverride ?? 3;
+        const maxCount = cardData.maxCopiesOfCardOverride ?? rules.maxCardCopies;
 
         if (card.count > maxCount) {
             failures[DeckValidationFailureReason.TooManyCopiesOfCard].push({
