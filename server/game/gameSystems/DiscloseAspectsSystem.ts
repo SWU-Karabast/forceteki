@@ -89,6 +89,13 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         return selectCardSystem.hasLegalTarget(newContext, null, mustChangeGameState);
     }
 
+    // Always report a legal target so the mock delay prompt fires even when the
+    // hand cannot satisfy the disclose. The real hand-check happens in
+    // queueGenerateEventGameSteps where we branch between the real prompt and the bluff.
+    public override hasLegalTarget(): boolean {
+        return true;
+    }
+
     // Private helpers
 
     private generateSelectCardSystem(
