@@ -42,12 +42,19 @@ import * as EnumHelpers from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
-import { ServerRole } from '../services/DynamoDBInterfaces';
+import type { IActiveModActionCacheEntry,
+    IModerationAction } from '../services/DynamoDBInterfaces';
+import {
+    ModerationType,
+    ServerRole
+} from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
+import { ModActionCache } from '../utils/ModActionCache';
+import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema } from '../services/DynamoDBInterfaceSchemas';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -123,11 +130,13 @@ export class GameServer {
 
         let cosmeticsService: CosmeticsService | undefined;
         let serverRoleUsersCache: ServerRoleUsersCache | undefined;
+        let modActionCache: ModActionCache | undefined;
         const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
         if (shouldInitializeDbCaches) {
             console.log('SETUP: Initializing caches for server roles and customizations.');
             serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
             cosmeticsService = await CosmeticsService.createAsync();
+            modActionCache = await ModActionCache.createAsync();
             console.log('SETUP: Caches for server roles and customizations initialized.');
         }
 
@@ -139,6 +148,7 @@ export class GameServer {
             deckValidator,
             serverRoleUsersCache,
             cosmeticsService,
+            modActionCache,
             testGameBuilder
         );
     }
@@ -196,12 +206,14 @@ export class GameServer {
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
+    public readonly modActionCache?: ModActionCache;
 
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
         cosmeticsService?: CosmeticsService,
+        modActionCache?: ModActionCache,
         testGameBuilder?: any
     ) {
         const app = express();
@@ -210,6 +222,7 @@ export class GameServer {
 
         this.serverRoleUsersCache = serverRoleUsersCache;
         this.cosmeticsService = cosmeticsService;
+        this.modActionCache = modActionCache;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -438,35 +451,51 @@ export class GameServer {
 
         // *** Start of User Object calls ***
 
-        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), (req, res, next) => {
+        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), async (req, res, next) => {
             try {
                 const user = req.user as User;
-                // We try to sync the decks first
-                // if (decks.length > 0) {
-                //     try {
-                //         await this.deckService.syncDecksAsync(user.getId(), decks);
-                //     } catch (err) {
-                //         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
-                //         next(err);
-                //     }
-                // }
-                // if (preferences) {
-                //     try {
-                //         user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
-                //     } catch (err) {
-                //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
-                //     }
-                // }
+
+                // Start with legacy values (backwards compatibility)
+                let moderation = user.getModeration();
+                let needsUsernameChange = user.needsUsernameChange();
+
+                if (user.isAuthenticatedUser()) {
+                    const userId = user.getId();
+                    const activeActions = this.modActionCache.getActiveActionsForPlayer(userId);
+
+                    if (activeActions) {
+                        if (this.modActionCache.playerNeedsRename(userId)) {
+                            needsUsernameChange = true;
+                        }
+
+                        // Only derive mute from cache if no legacy moderation exists
+                        if (!moderation) {
+                            const muteEntry = this.modActionCache.getActiveMuteForPlayer(userId);
+
+                            if (muteEntry) {
+                                // Pending mute — activate it (sets startedAt + expiresAt)
+                                if (!muteEntry.startedAt) {
+                                    const activated = await this.modActionCache.activatePendingMuteAsync(userId);
+                                    moderation = this.buildModerationFromCacheEntry(activated, false);
+                                } else if (muteEntry.expiresAt) {
+                                    // Already active — just build the moderation object
+                                    moderation = this.buildModerationFromCacheEntry(muteEntry, true);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 return res.status(200).json({ success: true, user: {
                     id: user.getId(),
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
-                    needsUsernameChange: user.needsUsernameChange(),
                     mustRequestUsernameChange: user.mustRequestUsernameChange(),
                     reportingDisabled: user.reportingDisabled(),
-                    moderation: user.getModeration(),
+                    needsUsernameChange,
+                    moderation
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
@@ -609,6 +638,7 @@ export class GameServer {
                 // Call the changeUsername method
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername);
                 if (result.success) {
+                    await this.modActionCache.onRenameCompleted(user.getId());
                     return res.status(200).json({
                         succeess: true,
                         message: 'Username successfully changed',
@@ -1428,7 +1458,124 @@ export class GameServer {
                 next(error);
             }
         });
+        // MOD ACTIONS
+        app.post('/api/mod/find-user', this.buildAuthMiddleware('mod-find-user', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = FindUserSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { searchQuery } = parseResult.data;
+                const profiles = await this.userFactory.findUserProfilesAsync(searchQuery);
+
+                if (profiles.length === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Player not found'
+                    });
+                }
+
+                const players = profiles.map((profile) => ({
+                    id: profile.id,
+                    username: profile.username,
+                    createdAt: profile.createdAt,
+                    lastLogin: profile.lastLogin,
+                    isMuted: this.modActionCache?.isPlayerMuted(profile.id) ?? false,
+                    needsRename: this.modActionCache?.playerNeedsRename(profile.id) ?? false,
+                }));
+
+                // If single match, include mod actions directly
+                let modActions = [];
+                if (players.length === 1) {
+                    modActions = await this.userFactory.getModActionHistoryAsync(players[0].id);
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    players,
+                    modActions,
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-find-user) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/submit-action', this.buildAuthMiddleware('mod-submit-action', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = ModActionSubmitSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { playerId, actionType, durationDays, note } = parseResult.data;
+                const moderatorId = req.user.getId();
+
+                const modAction = await this.userFactory.submitModActionAsync(
+                    playerId,
+                    actionType,
+                    moderatorId,
+                    note,
+                    durationDays ?? undefined,
+                );
+
+                // Write-through to cache
+                if (this.modActionCache) {
+                    await this.modActionCache.onActionSubmitted(playerId, modAction);
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    message: `${actionType} action submitted successfully`,
+                    modAction,
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-submit-action) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/cancel-action', this.buildAuthMiddleware('mod-cancel-action', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = ModActionCancelSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { modActionId, playerId } = parseResult.data;
+                const cancelledBy = req.user.getId();
+
+                await this.userFactory.cancelModActionAsync(playerId, modActionId, cancelledBy);
+
+                // Write-through to cache
+                if (this.modActionCache) {
+                    this.modActionCache.onActionCancelled(playerId, modActionId);
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'Mod action cancelled successfully',
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-cancel-action) Server error:', err);
+                next(err);
+            }
+        });
     }
+
 
     /**
      * Creates an auth middleware function with the GameServer instance injected.
@@ -1438,6 +1585,25 @@ export class GameServer {
      */
     private buildAuthMiddleware(routeName?: string, serverRoleRequired?: ServerRole) {
         return authMiddleware(this, routeName, serverRoleRequired);
+    }
+
+    /**
+     * Builds a ModerationAction suitable for the FE from the CacheEntry
+     * @param entry - The Cache ActiveModAction object
+     * @param hasSeen - The boolean that tells us whether a user has seen the Mod action popup
+     * @private
+     */
+    private buildModerationFromCacheEntry(entry: IActiveModActionCacheEntry, hasSeen: boolean): IModerationAction {
+        const expiresAt = new Date(entry.expiresAt);
+        const now = new Date();
+        const daysRemaining = Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
+
+        return {
+            daysRemaining,
+            endDate: entry.expiresAt,
+            hasSeen,
+            moderationType: ModerationType.Mute,
+        };
     }
 
     // dev only endpoints

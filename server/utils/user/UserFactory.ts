@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, ModActionType } from '../../services/DynamoDBInterfaces';
 import { ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
@@ -265,13 +265,16 @@ export class UserFactory {
                 }
             }
 
+            // update the GSI username
+            await dbService.deleteUsernameLinkAsync(userProfile.username, userId);
+            await dbService.saveUsernameLinkAsync(newUsername, userId);
+
             // Update username and set the timestamp
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
                 needsUsernameChange: false,
             });
-
             logger.info(`Username for ${userId} changed to ${newUsername}`);
 
             return {
@@ -377,6 +380,8 @@ export class UserFactory {
             await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
             // Save the user profile
             await dbService.saveUserProfileAsync(newUser);
+            // create username link
+            await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
             // Create email link if email is available
             if (!email) {
                 throw new Error(`Email not found for user ${newUser.id}`);
@@ -629,6 +634,140 @@ export class UserFactory {
             logger.error('Error setting moderation seen status:', {
                 error: { message: error.message, stack: error.stack },
                 userId
+            });
+            throw error;
+        }
+    }
+
+    // ------------------ MOD ACTIONS ------------------
+    /**
+     * Find user profile(s) by ID or username.
+     * - If searchQuery matches a userId: returns a single profile.
+     * - Otherwise tries username lookup: can return multiple profiles.
+     * @returns Array of matching user profiles, or empty array if not found.
+     */
+    public async findUserProfilesAsync(searchQuery: string): Promise<IUserProfileDataEntity[]> {
+        try {
+            const dbService = await this.dbServicePromise;
+
+            // Try direct lookup by userId first
+            const directProfile = await dbService.getUserProfileAsync(searchQuery);
+            if (directProfile) {
+                return [directProfile];
+            }
+
+            // Fallback to username search
+            const userIds = await dbService.getUserIdsByUsernameAsync(searchQuery);
+            if (!userIds || userIds.length === 0) {
+                return [];
+            }
+
+            const profiles: IUserProfileDataEntity[] = [];
+            for (const userId of userIds) {
+                const profile = await dbService.getUserProfileAsync(userId);
+                if (profile) {
+                    profiles.push(profile);
+                }
+            }
+
+            return profiles;
+        } catch (error) {
+            logger.error('Error finding user profiles:', {
+                error: { message: error.message, stack: error.stack },
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Get the full mod action history for a player (all actions, including cancelled/expired).
+     * Sorted by createdAt descending (newest first).
+     */
+    public async getModActionHistoryAsync(userId: string): Promise<IModActionEntity[]> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const modActions = await dbService.getModActionsAsync({ userId });
+            modActions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return modActions;
+        } catch (error) {
+            logger.error('Error getting mod action history:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Submit a new mod action against a player.
+     * Verifies the target player exists, builds the entity, and saves to DynamoDB.
+     * @returns The saved mod action entity.
+     * @throws Error if the target player is not found.
+     */
+    public async submitModActionAsync(
+        playerId: string,
+        actionType: ModActionType,
+        moderatorId: string,
+        note: string,
+        durationDays?: number,
+    ): Promise<IModActionEntity> {
+        try {
+            const dbService = await this.dbServicePromise;
+
+            // Verify target player exists
+            const playerProfile = await dbService.getUserProfileAsync(playerId);
+            Contract.assertNotNullLike(playerProfile, `Target player not found: ${playerId}`);
+
+            const modAction: IModActionEntity = {
+                id: uuid(),
+                playerId,
+                actionType,
+                durationDays,
+                note,
+                moderatorId,
+                createdAt: new Date().toISOString(),
+            };
+
+            await dbService.saveModActionAsync(modAction);
+
+            logger.info(`UserFactory: Moderator ${moderatorId} issued ${actionType} on player ${playerId}`, {
+                moderatorId,
+                playerId,
+                actionType,
+                modActionId: modAction.id,
+                durationDays: durationDays ?? null,
+            });
+
+            return modAction;
+        } catch (error) {
+            logger.error('Error submitting mod action:', {
+                error: { message: error.message, stack: error.stack },
+                userId: playerId,
+                actionType,
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Cancel a mod action.
+     * Sets cancelledAt/cancelledBy and removes it from the active index.
+     * @throws Error if the mod action is not found.
+     */
+    public async cancelModActionAsync(playerId: string, modActionId: string, cancelledBy: string): Promise<void> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const result = await dbService.cancelModActionAsync(playerId, modActionId, cancelledBy);
+            Contract.assertNotNullLike(result.Attributes, `Mod action not found: ${modActionId}`);
+
+            logger.info(`UserFactory: Moderator ${cancelledBy} cancelled action ${modActionId} on player ${playerId}`, {
+                moderatorId: cancelledBy,
+                userId: playerId,
+            });
+        } catch (error) {
+            logger.error('Error cancelling mod action:', {
+                error: { message: error.message, stack: error.stack },
+                userId: playerId,
             });
             throw error;
         }
