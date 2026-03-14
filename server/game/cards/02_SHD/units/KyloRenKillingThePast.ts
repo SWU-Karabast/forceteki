@@ -2,6 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { Aspect, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class KyloRenKillingThePast extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addIgnoreSpecificAspectPenaltyAbility({
-            title: 'If you control Rey, ignore the Villainy aspect when playing this',
+            title: `If you control Rey, ignore the ${TextHelper.Villainy} aspect when playing this`,
             ignoredAspect: Aspect.Villainy,
             condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Rey')
         });

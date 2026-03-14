@@ -4,14 +4,14 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Player } from '../core/Player';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { Game } from '../core/Game';
-import type { GameObjectRef, UnwrapRefObject } from '../core/GameObjectBase';
+import type { UnwrapRefObject } from '../core/GameObjectBase';
 
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface HealedUnitEntry {
-    unit: GameObjectRef<IUnitCard>;
+    unit: GameObjectId<IUnitCard>;
     inPlayId: number;
-    controlledBy: GameObjectRef<Player>;
+    controlledBy: GameObjectId<Player>;
 }
 
 export type IUnitsHealedThisPhase = HealedUnitEntry[];
@@ -33,7 +33,7 @@ export class UnitsHealedThisPhaseWatcher extends StateWatcher<HealedUnitEntry> {
     }
 
     protected override mapCurrentValue(stateValue: HealedUnitEntry[]): UnwrapRefObject<HealedUnitEntry>[] {
-        return stateValue.map((x) => ({ inPlayId: x.inPlayId, unit: this.game.getFromRef(x.unit), controlledBy: this.game.getFromRef(x.controlledBy) }));
+        return stateValue.map((x) => ({ inPlayId: x.inPlayId, unit: this.game.getFromId(x.unit), controlledBy: this.game.getFromId(x.controlledBy) }));
     }
 
     /** Check if a specific copy of a unit was healed this phase */
@@ -52,7 +52,7 @@ export class UnitsHealedThisPhaseWatcher extends StateWatcher<HealedUnitEntry> {
                 onDamageHealed: (context) => context.card.isUnit(),
             },
             update: (currentState: IUnitsHealedThisPhase, event: any) =>
-                currentState.concat({ unit: event.card.getRef(), inPlayId: event.card.inPlayId, controlledBy: event.card.controller.getRef() })
+                currentState.concat({ unit: event.card.getObjectId(), inPlayId: event.card.inPlayId, controlledBy: event.card.controller.getObjectId() })
         });
     }
 

@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Aspect } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DiplomaticImmunity extends UpgradeCard {
     protected override getImplementationId () {
@@ -15,7 +15,7 @@ export default class DiplomaticImmunity extends UpgradeCard {
     public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Vigilance, Aspect.Vigilance, Aspect.Heroism, Aspect.Heroism];
         registrar.addGainTriggeredAbilityTargetingAttached({
-            title: `Disclose ${EnumHelpers.aspectString(aspects)}. If you do, the attacker gets -2/-0 for this attack`,
+            title: `Disclose ${TextHelper.aspectList(aspects)}. If you do, the attacker gets -2/-0 for this attack`,
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
             },

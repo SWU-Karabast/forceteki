@@ -1,5 +1,7 @@
 describe('Darth Vader, Commanding the First Legion', function () {
     integration(function (contextRef) {
+        const abilityPrompt = 'Choose any number of Villainy units with combined cost 3 or less to play for free';
+
         describe('Darth Vader\'s ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -30,7 +32,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
                 context.player1.clickCard(context.darthVader);
 
                 context.player1.clickPrompt('(No effect) Ambush');
-                expect(context.player1).toHavePrompt('Choose any units with combined cost 3 or less to play for free');
+                expect(context.player1).toHavePrompt(abilityPrompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.scoutBikePursuer, context.tielnFighter, context.isbAgent, context.deathStarStormtrooper, context.superlaserTechnician],
                     invalid: [context.vanguardInfantry, context.huntingNexu, context.daringRaid, context.protector, context.battlefieldMarine]
@@ -81,7 +83,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
                 context.player1.clickCard(context.darthVader);
                 context.player1.clickPrompt('(No effect) Ambush');
 
-                expect(context.player1).toHavePrompt('Choose any units with combined cost 3 or less to play for free');
+                expect(context.player1).toHavePrompt(abilityPrompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.scoutBikePursuer, context.tielnFighter, context.isbAgent, context.deathStarStormtrooper, context.superlaserTechnician],
                     invalid: [context.vanguardInfantry, context.huntingNexu, context.daringRaid, context.protector, context.battlefieldMarine]
@@ -111,7 +113,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
                 context.player1.clickCard(context.darthVader);
 
                 context.player1.clickPrompt('(No effect) Ambush');
-                expect(context.player1).toHavePrompt('Choose any units with combined cost 3 or less to play for free');
+                expect(context.player1).toHavePrompt(abilityPrompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.scoutBikePursuer, context.tielnFighter, context.isbAgent, context.deathStarStormtrooper, context.superlaserTechnician],
                     invalid: [context.vanguardInfantry, context.huntingNexu, context.daringRaid, context.protector, context.battlefieldMarine]
@@ -140,7 +142,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
             context.player1.clickCard(context.darthVader);
 
             context.player1.clickPrompt('(No effect) Ambush');
-            expect(context.player1).toHavePrompt('Choose any units with combined cost 3 or less to play for free');
+            expect(context.player1).toHavePrompt(abilityPrompt);
             context.player1.clickCardInDisplayCardPrompt(context.salaciousCrumb);
             context.player1.clickCardInDisplayCardPrompt(context.outlandTieVanguard);
             context.player1.clickPrompt('Play cards in selection order');
@@ -182,7 +184,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
 
             context.player1.clickCard(context.darthVader);
             context.player1.clickPrompt('(No effect) Ambush');
-            expect(context.player1).toHavePrompt('Choose any units with combined cost 3 or less to play for free');
+            expect(context.player1).toHavePrompt(abilityPrompt);
 
             // play inferno four
             context.player1.clickCardInDisplayCardPrompt(context.infernoFour);

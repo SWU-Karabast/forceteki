@@ -3,6 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AnakinSkywalkerTemptedByTheDarkSide extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class AnakinSkywalkerTemptedByTheDarkSide extends LeaderUnitCard 
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a Villainy non-unit card from your hand, ignoring its aspect penalties.',
+            title: `Play a ${TextHelper.Villainy} non-unit card from your hand, ignoring its aspect penalties.`,
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
@@ -30,7 +31,7 @@ export default class AnakinSkywalkerTemptedByTheDarkSide extends LeaderUnitCard 
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a Villainy non-unit card from your hand, ignoring its aspect penalties.',
+            title: `Play a ${TextHelper.Villainy} non-unit card from your hand, ignoring its aspect penalties.`,
             cost: AbilityHelper.costs.useTheForce(),
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
