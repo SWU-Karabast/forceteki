@@ -14,9 +14,11 @@ export default class KouhunAssassination extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.setEventAbility({
             title: 'Your opponent may discard a card from their hand. If they do, give a non-Vehicle unit -8/-8 for this phase',
-            // optional: true,
+            optional: true,
+            contextTitle: (context) => `${context.player.opponent.name} discards a card from hand. If he does, ${context.player.name} give a non-Vehicle unit -8/-8 for this phase`,
             playerChoosingOptional: RelativePlayer.Opponent,
-            immediateEffect: abilityHelper.immediateEffects.discardCardsFromOpponentsHand({ optional: true, amount: 1 }),
+            // VBL 2026-03-14: add isCost here to not trigger if player has empty hand
+            immediateEffect: abilityHelper.immediateEffects.discardCardsFromOpponentsHand({ amount: 1, isCost: true }),
             ifYouDo: {
                 title: 'Give a non-Vehicle unit –8/–8 for this phase',
                 targetResolver: {

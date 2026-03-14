@@ -16,6 +16,7 @@ export default class EvadeArrest extends EventCard {
             title: 'Exhaust any number of non-unique units',
             targetResolver: {
                 mode: TargetMode.Unlimited,
+                canChooseNoCards: true,
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => !card.unique,
                 immediateEffect: abilityHelper.immediateEffects.exhaust()
