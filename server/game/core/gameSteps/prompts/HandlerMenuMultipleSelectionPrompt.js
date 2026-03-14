@@ -56,9 +56,10 @@ class HandlerMenuMultipleSelectionPrompt extends HandlerMenuPrompt {
                   : 'Select any number of choices and then choose "Done"'),
             buttons,
             controls: this.getAdditionalPromptControls(),
-            promptTitle: this.properties.source.name,
+            promptTitle: this.properties.promptTitle ?? this.properties.source.name,
             promptUuid: this.uuid,
-            promptType: this.properties.promptType
+            promptType: this.properties.promptType,
+            delayMs: this.properties.delayMs
         };
     }
 
