@@ -1237,7 +1237,7 @@ var customMatchers = {
     },
 
     /**
-     * Checks if the actual array contains at least the elements of the expected array. Required for the new UndoArray class.
+     * Checks if the actual array contains at least the elements of the expected array.
      * @param {jasmine.MatchersUtil} matchersUtil
      */
     toContainArray: function (matchersUtil) {
@@ -1265,7 +1265,7 @@ var customMatchers = {
     },
 
     /**
-     * Checks if the actual and expected arrays contain the exact same elements. Required for the new UndoArray class.
+     * Checks if the actual and expected arrays contain the exact same elements.
      * @param {jasmine.MatchersUtil} matchersUtil
      */
     toEqualArray: function (matchersUtil) {

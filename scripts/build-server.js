@@ -9,5 +9,6 @@ function runCommand(command) {
 
 fs.mkdirSync('./build/server', { recursive: true });
 
+runCommand('node scripts/generate-state-serializers.js');
 runCommand('tsc');
 runCommand('cpy ./card-data-version.txt ./build/server/');

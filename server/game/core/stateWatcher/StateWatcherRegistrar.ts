@@ -19,11 +19,6 @@ export class StateWatcherRegistrar extends GameObjectBase {
         super(game);
     }
 
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get alwaysTrackState(): boolean {
-        return true;
-    }
-
     public isRegistered(watcherName: StateWatcherName) {
         return this.watchers.has(watcherName);
     }

@@ -9,6 +9,8 @@ function runCommand(command) {
 
 fs.mkdirSync('./build/server', { recursive: true });
 
+runCommand('node scripts/generate-state-serializers.js');
+
 // Run TypeScript compilation
 runCommand('concurrently "tsc" "tsc -p ./test/tsconfig.json" "cpy ./test/json/ ./build/"');
 

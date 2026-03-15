@@ -98,11 +98,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     private _rejectedOpponentUndoRequests = 0;
     private _undoRequestsBlocked = false;
 
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get alwaysTrackState(): boolean {
-        return true;
-    }
-
     @stateRef() private accessor _handZone: HandZone | null = null;
     public get handZone(): HandZone {
         return this._handZone;

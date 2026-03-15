@@ -68,11 +68,6 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
     @stateRefArray()
     public accessor cardMetrics: readonly TrackedGameCardMetric[] = [];
 
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get alwaysTrackState(): boolean {
-        return true;
-    }
-
     public constructor(game: Game) {
         super(game);
 

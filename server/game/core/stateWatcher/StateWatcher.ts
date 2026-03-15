@@ -30,7 +30,7 @@ export interface IStateWatcherState<TState> extends IGameObjectBaseState {
  * - a state reset method that provides an initial state to reset to
  * - a set of event triggers which will update the stored state to keep the history
  */
-@registerStateBase(CopyMode.UseBulkCopy)
+@registerStateBase(CopyMode.Runtime)
 export abstract class StateWatcher<TState = any> extends GameObjectBase {
     private stateUpdaters: IStateListenerProperties<TState[]>[] = [];
     private readonly allUpdaters;
@@ -65,11 +65,6 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
     }
 
     // This will remain for the life of the game, and will only be remove on rollback in the case of a token. At that point the associated card will also be removed, and it should be GC'd normally.
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    protected override get alwaysTrackState(): boolean {
-        return true;
-    }
-
     public override getGameObjectName(): string {
         return `StateWatcher_${this.name}`;
     }

@@ -15,6 +15,8 @@ if (!fs.existsSync('./build/server')) {
     buildAll = true;
 }
 
+runCommand('node scripts/generate-state-serializers.js');
+
 if (!buildAll && !fs.existsSync('./build/test/json')) {
     fs.mkdirSync('./build/test/json', { recursive: true });
     runCommand('cpy ./test/json/ ./build/');

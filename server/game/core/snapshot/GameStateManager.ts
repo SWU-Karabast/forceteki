@@ -8,6 +8,7 @@ import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
 import type { GameObjectId } from '../GameObjectUtils';
+import { serializeGameObjectStateForSnapshot } from '../stateSerialization/StateSerialization';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -28,6 +29,14 @@ export interface IGameObjectRegistrar {
 export class GameStateManager implements IGameObjectRegistrar {
     readonly #game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
+    private readonly snapshotReachableGameObjectUuids = new Set<string>();
+    private static readonly nonStateReachabilityIgnoreProps = new Set([
+        'game',
+        'state',
+        '_uuid',
+        '_initialized',
+        '_cannotHaveRefs'
+    ]);
 
     private allGameObjects: GameObjectBase[] = [];
 
@@ -96,6 +105,11 @@ export class GameStateManager implements IGameObjectRegistrar {
     }
 
     public removeUnusedGameObjects() {
+        const reachableGameObjectUuids = this.getReachableGameObjectUuids();
+        for (const reachableGameObjectUuid of reachableGameObjectUuids) {
+            this.snapshotReachableGameObjectUuids.add(reachableGameObjectUuid);
+        }
+
         const removalUuids = new Set<string>();
         const removalIndexes = new Set<number>();
 
@@ -103,8 +117,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
             const go = this.allGameObjects[i];
 
-            if (!go.hasRef) {
-                // If the GameObjectBase doesn't have a ref, it means it was never used in the game, so we can skip it.
+            if (!this.snapshotReachableGameObjectUuids.has(go.uuid)) {
                 removalIndexes.add(i);
                 removalUuids.add(go.uuid);
             }
@@ -137,7 +150,7 @@ export class GameStateManager implements IGameObjectRegistrar {
         this.removeUnusedGameObjects();
 
         // Return the state of all game objects that are still in the game.
-        return v8.serialize(to.record(this.allGameObjects, (item) => item.uuid, (item) => item.getStateUnsafe()));
+        return v8.serialize(to.record(this.allGameObjects, (item) => item.uuid, (item) => serializeGameObjectStateForSnapshot(item)));
     }
 
     public rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
@@ -225,5 +238,128 @@ export class GameStateManager implements IGameObjectRegistrar {
     private afterTakeSnapshot() {
         // TODO: We want this to be able to go through
         //          and remove any unused OngoingEffects from the list once they are no longer needed by any snapshots.
+    }
+
+    private getReachableGameObjectUuids(): Set<string> {
+        const reachableGameObjectUuids = new Set<string>();
+        const visitedObjects = new WeakSet<object>();
+
+        const visitValue = (value: unknown): void => {
+            if (value == null) {
+                return;
+            }
+
+            if (typeof value === 'string') {
+                this.visitGameObjectId(value, reachableGameObjectUuids, visitedObjects, visitValue);
+                return;
+            }
+
+            if (typeof value !== 'object') {
+                return;
+            }
+
+            if (visitedObjects.has(value)) {
+                return;
+            }
+
+            if (Array.isArray(value)) {
+                visitedObjects.add(value);
+                for (const entry of value) {
+                    visitValue(entry);
+                }
+                return;
+            }
+
+            if (value instanceof Map) {
+                visitedObjects.add(value);
+                for (const [key, mapValue] of value) {
+                    visitValue(key);
+                    visitValue(mapValue);
+                }
+                return;
+            }
+
+            if (value instanceof Set) {
+                visitedObjects.add(value);
+                for (const entry of value) {
+                    visitValue(entry);
+                }
+                return;
+            }
+
+            if (value instanceof Date || Buffer.isBuffer(value)) {
+                visitedObjects.add(value);
+                return;
+            }
+
+            if (value instanceof Object && this.isTrackedGameObject(value)) {
+                this.visitGameObject(value, reachableGameObjectUuids, visitedObjects, visitValue);
+                return;
+            }
+
+            visitedObjects.add(value);
+            for (const entry of Object.values(value)) {
+                visitValue(entry);
+            }
+        };
+
+        for (const root of this.getReachabilityRoots()) {
+            visitValue(root);
+        }
+
+        return reachableGameObjectUuids;
+    }
+
+    private getReachabilityRoots(): unknown[] {
+        return [
+            this.#game.state,
+            this.#game.currentlyResolving,
+            this.#game.getPlayers(),
+            this.#game.statsTracker,
+            this.#game.ongoingEffectEngine,
+            this.#game.stateWatcherRegistrar,
+            this.#game.spaceArena,
+            this.#game.groundArena,
+            this.#game.allArenas
+        ];
+    }
+
+    private visitGameObjectId(
+        gameObjectId: string,
+        reachableGameObjectUuids: Set<string>,
+        visitedObjects: WeakSet<object>,
+        visitValue: (value: unknown) => void
+    ): void {
+        const gameObject = this.gameObjectMapping.get(gameObjectId);
+        if (gameObject) {
+            this.visitGameObject(gameObject, reachableGameObjectUuids, visitedObjects, visitValue);
+        }
+    }
+
+    private visitGameObject(
+        gameObject: GameObjectBase,
+        reachableGameObjectUuids: Set<string>,
+        visitedObjects: WeakSet<object>,
+        visitValue: (value: unknown) => void
+    ): void {
+        if (reachableGameObjectUuids.has(gameObject.uuid)) {
+            return;
+        }
+
+        reachableGameObjectUuids.add(gameObject.uuid);
+        visitedObjects.add(gameObject);
+        visitValue(serializeGameObjectStateForSnapshot(gameObject));
+
+        for (const [propertyName, propertyValue] of Object.entries(gameObject as unknown as Record<string, unknown>)) {
+            if (GameStateManager.nonStateReachabilityIgnoreProps.has(propertyName)) {
+                continue;
+            }
+
+            visitValue(propertyValue);
+        }
+    }
+
+    private isTrackedGameObject(value: object): value is GameObjectBase {
+        return 'uuid' in value && typeof (value as { uuid?: unknown }).uuid === 'string' && this.gameObjectMapping.has((value as { uuid: string }).uuid);
     }
 }

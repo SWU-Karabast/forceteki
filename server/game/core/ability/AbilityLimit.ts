@@ -30,11 +30,6 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
 
     @statePrimitive() private accessor isRegistered: boolean = false;
 
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get alwaysTrackState(): boolean {
-        return true;
-    }
-
     protected override afterSetState(oldState: IAbilityLimitState): void {
         if (this.isRegistered !== oldState.isRegistered) {
             if (this.isRegistered) {

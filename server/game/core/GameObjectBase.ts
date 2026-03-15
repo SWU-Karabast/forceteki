@@ -1,5 +1,6 @@
 import type { Game } from './Game';
-import { copyState, registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
+import { registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
+import { hydrateGameObjectStateFromSnapshot } from './stateSerialization/StateSerialization';
 import * as Contract from './utils/Contract';
 
 export interface IGameObjectBaseState {
@@ -43,25 +44,14 @@ export abstract class GameObjectBase implements IGameObjectBase {
     protected state: IGameObjectBaseState = {} as unknown as IGameObjectBaseState;
 
     private _cannotHaveRefs = false;
-    private _hasRef = false;
     private _initialized = false;
 
     public get cannotHaveRefs() {
         return this._cannotHaveRefs;
     }
 
-    public get hasRef() {
-        return this._hasRef || this.alwaysTrackState;
-    }
-
     public get initialized() {
         return this._initialized;
-    }
-
-    /** Subclasses can override this to force the state manager to keep track of this object, even if refs aren't created for it */
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    protected get alwaysTrackState() {
-        return false;
     }
 
     /** ID given by the game engine. */
@@ -101,8 +91,6 @@ export abstract class GameObjectBase implements IGameObjectBase {
     protected onInitialize() { }
 
     public setCannotHaveRefs() {
-        Contract.assertFalse(this._hasRef, `Attempting to set cannotHaveRefs=true on ${this.getGameObjectName()} (UUID: ${this.uuid}) but it already has refs (hasRef: true)`);
-
         this._cannotHaveRefs = true;
     }
 
@@ -110,7 +98,7 @@ export abstract class GameObjectBase implements IGameObjectBase {
     public setState(state: IGameObjectBaseState) {
         const oldState = this.state;
         this.state = state;
-        copyState(this, this.state);
+        hydrateGameObjectStateFromSnapshot(this, this.state);
         this.afterSetState(oldState);
     }
 
@@ -151,17 +139,15 @@ export abstract class GameObjectBase implements IGameObjectBase {
         Contract.assertTrue(this._initialized, `Attempting to ${operation} on uninitialized GameObject: ${this.getGameObjectName()} (UUID: ${this.uuid})`);
     }
 
-    private markReferenced(operation: string) {
+    private assertCanCreateRefs(operation: string) {
         this.assertInitialized(operation);
         Contract.assertFalse(this.cannotHaveRefs, `Attempting to ${operation} for ${this.getGameObjectName()} (UUID: ${this.uuid}) but it cannot have refs (cannotHaveRefs: true)`);
-
-        this._hasRef = true;
     }
 
 
     /** Creates a typed ID to this GO that can be used to do a lookup to the object. */
     public getObjectId(): GameObjectId<this> {
-        this.markReferenced('create a state id');
+        this.assertCanCreateRefs('create a state id');
 
         return this.uuid as GameObjectId<this>;
     }

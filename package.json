@@ -2,6 +2,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "cross-env NODE_ENV=development node scripts/run-server.js",
+    "generate-state-serializers": "node scripts/generate-state-serializers.js",
     "build": "node scripts/build-server.js",
     "build-dev": "node scripts/build-dev.js",
     "build-test": "node scripts/build-test.js",
@@ -72,6 +73,7 @@
     "eslint-plugin-import-x": "^4.6.1",
     "eslint-plugin-unused-imports": "^4.1.4",
     "nodemon": "^3.1.7",
+    "ts-morph": "^24.0.0",
     "ts-node": "^10.9.2",
     "tsc-watch": "^6.2.1"
   }

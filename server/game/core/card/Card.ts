@@ -224,11 +224,6 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         this._owner = value;
     }
 
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get alwaysTrackState(): boolean {
-        return true;
-    }
-
     public get internalName(): string {
         return this._internalName;
     }

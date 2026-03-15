@@ -68,11 +68,6 @@ export class OngoingEffectEngine extends GameObjectBase {
     public events: EventRegistrar;
     public effectsChangedSinceLastCheck = false;
 
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public override get alwaysTrackState(): boolean {
-        return true;
-    }
-
     @stateRefArray()
     public accessor effects: readonly OngoingEffect[] = [];
 
