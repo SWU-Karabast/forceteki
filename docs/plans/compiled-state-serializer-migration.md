@@ -313,7 +313,7 @@ Runtime wiring:
 - `GameObjectBase.deserializeStateFromSnapshot()` delegates the same way
 - `@registerState()` and card auto-wrappers are responsible for preserving that linkage on the final wrapped constructor
 
-Avoid making name-based lookup the primary contract. A temporary fallback by class name is acceptable only as a compatibility aid during migration and should fail loudly on ambiguity.
+Avoid making name-based lookup the primary contract.
 
 Use constructor-attached handlers as the normal path.
 
