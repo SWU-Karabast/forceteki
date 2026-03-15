@@ -70,7 +70,7 @@ If this plan needs to be reimplemented later, keep these issues and constraints 
 
 ## Objective
 
-Replace the current runtime metadata-driven `@registerState` snapshot system with generated serializers and deserializers built with `ts-morph`.
+Replace the current runtime metadata-driven `@registerState` snapshot system with generated serializers and deserializers built with `ts-morph`. The goal of this is to cut down on dynamic allocations and GC by making the serializers static.
 
 The desired end state is:
 
@@ -84,6 +84,7 @@ The desired end state is:
 
 - Use a full migration plan, not a narrow spike.
 - Generate build-only TypeScript files rather than committing generated output.
+- Treat generated serializer output as ignored repository state: add the generated path to `.gitignore` and do not review or commit it as source.
 - Do not generate a per-field runtime registry; generate straight-line serializer/deserializer functions for each concrete registered class and only keep minimal dispatch glue.
 - Keep a Runtime escape hatch for unsupported or intentionally opaque classes, with `StateWatcher` as the initial Runtime reference case.
 - Redesign reference tracking instead of keeping the current `getObjectId()` retention model.
