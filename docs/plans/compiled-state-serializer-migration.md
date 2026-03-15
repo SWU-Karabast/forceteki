@@ -50,7 +50,7 @@ If this plan needs to be reimplemented later, keep these issues and constraints 
 
 11. Validation needs undo-specific coverage, not just compile success.
    - The failures surfaced in undo / rollback scenarios first, especially phase snapshot flows.
-   - A reimplementation should always rerun `npm run build-test`, `npm run jasmine-fail-fast`, and the undo scenario coverage before considering the migration safe.
+   - A reimplementation should always rerun `npm run build-test`, `npm run jasmine-parallel-fail-fast`, and the undo scenario coverage before considering the migration safe.
 
 ## Objective
 
