@@ -4,6 +4,54 @@
 
 Proposed implementation plan for a follow-up coding agent.
 
+## Reimplementation Notes
+
+If this plan needs to be reimplemented later, keep these issues and constraints in mind:
+
+1. Reachability cannot be switched in one step.
+  - A pure traversal of current live roots initially pruned GameObjects that were still needed by older snapshots during rollback.
+  - The safe migration path was: generated snapshot serialization first, then traversal-based reachability, then only after validation remove the `getObjectId()` retention side effect.
+
+2. Snapshot reachability must account for older snapshots, not only the current live graph.
+  - The runtime needed a sticky set of snapshot-reachable UUIDs so objects reachable from earlier snapshots were not collected before rollback finished with them.
+  - Reimplementations should explicitly model this instead of assuming current liveness is enough.
+
+3. Traversing serialized state alone was not sufficient.
+  - Some GameObjects were only reachable through non-state own-properties and helper references.
+  - Reachability had to traverse both serialized GameObject state and selected non-state object properties, while excluding engine internals like `game`, `state`, `_uuid`, `_initialized`, and transient flags.
+
+4. Runtime decorators can be simplified only after rollback hydration is off metadata.
+  - Deleting `Symbol.metadata`, hydrator registration, and `copyState()` before generated hydration is active will break rollback.
+  - The safe order was: generated write path, generated read path, then decorator/runtime cleanup.
+
+5. Removing Undo wrappers changes the live-state contract.
+  - Once `stateRef*` decorators stop mirroring IDs into `this.state`, live state becomes reference-rich and snapshot conversion must be the only place that converts refs to IDs.
+  - Reimplementations should audit any direct `state` access before this step, especially `Game.ts`, rollback callbacks, and any Runtime classes.
+
+6. Rollback callbacks receive old live state, not snapshot-safe state.
+  - `afterSetState`, `afterSetAllState`, and `cleanupOnRemove` now receive the prior in-memory state object shape.
+  - Existing callbacks were safe because they only inspected primitive flags, but any future callback that expects raw IDs or mirrored collections will break.
+
+7. `StateWatcher` should stay Runtime until separately migrated.
+  - Its state intentionally stores `GameObjectId` payloads and rejects direct GameObject references.
+  - It is a good Runtime reference case and should not be silently pulled into the CompileTime path during a broad cleanup.
+
+8. Dynamic class coverage is still sensitive.
+  - Preserving constructor names made class-name lookup work for wrapped card classes, but constructor-based dispatch would be safer than name-only lookup if this is rebuilt again.
+  - Reimplementations should treat duplicate class names and mixin-produced classes as explicit validation targets.
+
+9. Transient objects still need a hard guard.
+  - `createWithoutRefsUnsafe()` and `setCannotHaveRefs()` remained necessary for objects intentionally created outside the tracked GameObject graph.
+  - `getObjectId()` should enforce that guard, but it should not drive retention.
+
+10. Build integration must be mandatory, not advisory.
+   - The generated registry has to be refreshed before every normal build/test entry point.
+   - Missing generation should fail loudly with a targeted error instead of degrading into runtime lookup failures.
+
+11. Validation needs undo-specific coverage, not just compile success.
+   - The failures surfaced in undo / rollback scenarios first, especially phase snapshot flows.
+   - A reimplementation should always rerun `npm run build-test`, `npm run jasmine-fail-fast`, and the undo scenario coverage before considering the migration safe.
+
 ## Objective
 
 Replace the current runtime metadata-driven `@registerState` snapshot system with generated serializers and deserializers built with `ts-morph`.
