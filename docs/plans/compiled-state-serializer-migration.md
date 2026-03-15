@@ -52,6 +52,22 @@ If this plan needs to be reimplemented later, keep these issues and constraints 
    - The failures surfaced in undo / rollback scenarios first, especially phase snapshot flows.
    - A reimplementation should always rerun `npm run build-test`, `npm run jasmine-parallel-fail-fast`, and the undo scenario coverage before considering the migration safe.
 
+12. Missing compile-time handlers should fail loudly.
+  - A temporary metadata-derived fallback hid real generator coverage gaps and pushed the design back toward the runtime metadata system this migration is removing.
+  - If a `CompileTime` class cannot resolve generated handlers, snapshot serialization should throw a targeted error instead of rebuilding serializer behavior from decorator metadata.
+
+13. Serializer generation scope must stay tied to `@registerState()`.
+  - Generating handlers for every constructible framework class or every wrapped runtime leaf caused mapping counts to explode without improving correctness.
+  - The serializer registration set should be driven by classes explicitly marked with `@registerState()`. If a stateful ancestor needs handlers, derive a empty class from it and flag it as @registerState, see OngoingEffectSource and OngoingEffectSourceBase as an example.
+
+14. Card implementations do not need individual serializers.
+  - Dynamically wrapped card implementations are runtime discovery and dispatch roots, not serializer-definition roots.
+  - Card implementations should resolve to the nearest generated `@registerState()` ancestor in their prototype chain rather than receiving one serializer per implementation.
+
+15. Source-time card discovery must work during generation.
+  - When the generator runs under source / `ts-node`, card discovery may need `.ts` inputs rather than built `.js` outputs.
+  - If source-time discovery is wrong, the generator can appear to have no card coverage and tempt incorrect fixes elsewhere in the serializer mapping logic.
+
 ## Objective
 
 Replace the current runtime metadata-driven `@registerState` snapshot system with generated serializers and deserializers built with `ts-morph`.
@@ -71,6 +87,7 @@ The desired end state is:
 - Do not generate a per-field runtime registry; generate straight-line serializer/deserializer functions for each concrete registered class and only keep minimal dispatch glue.
 - Keep a Runtime escape hatch for unsupported or intentionally opaque classes, with `StateWatcher` as the initial Runtime reference case.
 - Redesign reference tracking instead of keeping the current `getObjectId()` retention model.
+- Only classes explicitly marked with `@registerState()` need generated serializer registrations. Card implementations and other runtime leaf classes should resolve through their nearest generated `@registerState()` ancestor rather than receiving individual serializers.
 
 ## Why This Is Larger Than A Serializer Swap
 
@@ -132,7 +149,13 @@ Do not require live state to be directly snapshot-safe anymore.
 
 ### 2. Generated Serializer Module
 
-Generate a module that emits one serializer function and one deserializer function for each concrete `@registerState()` class (and each dynamically wrapped card class), with ancestor fields expanded directly into the emitted function body.
+Generate a module that emits one serializer function and one deserializer function for each concrete `@registerState()` class, with ancestor fields expanded directly into the emitted function body.
+
+For dynamic card coverage:
+
+- dynamically wrapped card classes are discovery/runtime dispatch roots, not serializer-definition roots
+- do not emit one serializer per card implementation
+- emit handlers only for classes explicitly marked with `@registerState()`; wrapped card implementations should dispatch to the nearest generated ancestor in their prototype chain
 
 The generated output should not rebuild a runtime list of field descriptors and walk them later. The point is to emit the equivalent of handwritten code such as:
 
@@ -165,6 +188,12 @@ The generated module must support:
 - `@registerStateBase()` inheritance chains
 - dynamically wrapped card classes
 - mixin-produced classes that participate in the register-state hierarchy
+
+Generation scope rule:
+
+- `@registerStateBase()` classes do not need generated handlers unless they are intentionally promoted to `@registerState()` because they directly own serialized state
+- do not generate handlers for every runtime descendant of a registered class
+- do not generate handlers for individual card implementations unless a card implementation itself is explicitly `@registerState()`
 
 Mixin discovery strategy: The generator should identify mixin-produced classes by detecting functions that return class expressions extending a parameterized base. If a mixin-produced class cannot be statically resolved by ts-morph, the generator should emit an explicit diagnostic and the class should be assigned to `CopyMode.Runtime` rather than silently skipped. The implementing agent should survey existing mixins early in Phase 2 and treat them as explicit validation targets.
 
@@ -240,9 +269,15 @@ Implement a `ts-morph` generator that:
 2. Finds all register-state participants.
 3. Resolves inherited decorated accessors across `@registerStateBase()` chains.
 4. Detects the state decorator kind for each accessor.
-5. Emits straight-line serializer/deserializer functions for each `CompileTime` class.
+5. Emits straight-line serializer/deserializer functions for each `CompileTime` `@registerState()` class.
 6. Emits explicit Runtime dispatch entries for `Runtime` classes.
 7. Produces actionable diagnostics for unsupported shapes.
+
+Generator scoping requirements:
+
+- the serializer registration set should be driven by explicit `@registerState()` classes, not by every constructible descendant discovered at runtime
+- dynamically wrapped card implementations should be used to validate runtime dispatch coverage, but they should not automatically cause per-implementation serializer emission
+- if a card hierarchy needs generated coverage and the nearest stateful ancestor is only `@registerStateBase()`, If a stateful ancestor needs handlers, derive a empty class from it and flag it as @registerState, see OngoingEffectSource and OngoingEffectSourceBase as an example.
 
 The generator should flatten inheritance at generation time. For a leaf `@registerState()` class, its emitted serializer/deserializer pair should include fields declared on that class and every `@registerStateBase()` ancestor in the correct order, without runtime metadata walking.
 
@@ -419,7 +454,7 @@ Because output is build-only, the coding agent should make editor and CI behavio
 1. Add `ts-morph`.
 2. Build AST discovery for register-state classes and inheritance trees.
 3. Survey existing mixins and mixin-produced classes. Validate that all can be statically resolved or explicitly assign unresolvable ones to `CopyMode.Runtime`.
-4. Emit direct serializer/deserializer functions for discovered compile-time classes with inherited fields flattened into the function body.
+4. Emit direct serializer/deserializer functions for discovered compile-time `@registerState()` classes with inherited fields flattened into the function body.
 5. Emit Runtime dispatch entries for Runtime classes.
 6. Make generation deterministic and fail on unsupported cases.
 7. Begin designing the new reachability model in parallel with generator work. Define root objects, traversal rules, and the sticky reachable UUID set needed to keep objects alive across multiple held snapshots (see Reimplementation Note 2). This is design and scaffolding only — activation happens in Phase 6.
@@ -456,7 +491,8 @@ Because output is build-only, the coding agent should make editor and CI behavio
 
 1. Ensure `buildAutoInitializingCardClass()` attaches or preserves the generated serializer/deserializer handlers on the wrapped constructor.
 2. Validate card implementations and mixin-produced classes resolve the correct concrete serializer behavior.
-3. Preserve runtime safety checks for missing register-state participation.
+3. Keep serializer emission scoped to explicit `@registerState()` classes; card implementations should resolve to their nearest generated ancestor instead of receiving individual serializers.
+4. Preserve runtime safety checks for missing register-state participation.
 
 Note: This phase is independent of wrapper removal and should run before or concurrently with Phase 8 to catch card-wrapping issues earlier.
 
@@ -481,6 +517,7 @@ Minimum required checks:
 2. Build checks
    - `npm run build-test`
    - `npm test`
+  - if the full suite has a known intentional failure unrelated to this migration, record that explicitly and still run the focused serializer/undo regressions that exercise snapshot dispatch and rollback
 
 3. Rollback coverage
    - run the undo integration harness in `test/helpers/IntegrationHelper.js`
