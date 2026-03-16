@@ -240,7 +240,7 @@ export class Lobby {
     }
 
     public get queueFormatKey(): IQueueFormatKey {
-        return { swuFormat: this.format, gamesToWinMode: this.gamesToWinMode };
+        return { format: this.format, cardPool: this.cardPool, gamesToWinMode: this.gamesToWinMode };
     }
 
     private get useActionTimers(): boolean {

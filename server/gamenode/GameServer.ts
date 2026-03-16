@@ -1277,7 +1277,7 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { format, gamesToWinMode, deck } = req.body;
+                const { format, cardPool, gamesToWinMode, deck } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1307,8 +1307,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, false, { format, cardPool: CardPool.Current }, res, () => {
-                    const success = this.enterQueue(format, gamesToWinMode, user, deck);
+                await this.processDeckValidation(deck, false, { format, cardPool }, res, () => {
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1697,7 +1697,7 @@ export class GameServer {
             MatchmakingType.PublicLobby,
             SwuGameFormat.Open,
             GamesToWinMode.BestOfOne,
-            CardPool.Current,
+            CardPool.Unlimited,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1935,9 +1935,16 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, gamesToWinMode: GamesToWinMode, user: User, deck: ISwuDbFormatDecklist): boolean {
+    private enterQueue(
+        format: SwuGameFormat,
+        cardPool: CardPool,
+        gamesToWinMode: GamesToWinMode,
+        user: User,
+        deck: ISwuDbFormatDecklist
+    ): boolean {
         const formatKey: IQueueFormatKey = {
-            swuFormat: format,
+            format,
+            cardPool,
             gamesToWinMode
         };
 
@@ -2023,9 +2030,9 @@ export class GameServer {
         const lobby = new Lobby(
             'Quick Game',
             MatchmakingType.Quick,
-            format.swuFormat,
+            format.format,
             format.gamesToWinMode,
-            CardPool.Current,
+            format.cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
