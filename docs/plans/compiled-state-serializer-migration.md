@@ -75,6 +75,7 @@ Replace the current runtime metadata-driven `@registerState` snapshot system wit
 The desired end state is:
 
 - `CopyMode.CompileTime` uses generated per-class serializer/deserializer functions with inherited fields expanded inline.
+- `CopyMode.CompileTime` serializer output is fully detached from live state, so callers can trust it without a follow-up `structuredClone`.
 - `CopyMode.Runtime` uses `structuredClone` on the state payload for classes that should remain runtime-managed.
 - Runtime decorators become thin property helpers instead of metadata registrars and hydrator builders.
 - Snapshot write and rollback read both flow through generated code instead of assuming the live in-memory state object is already snapshot-safe.
@@ -89,6 +90,7 @@ The desired end state is:
 - Keep a Runtime escape hatch for unsupported or intentionally opaque classes, with `StateWatcher` as the initial Runtime reference case.
 - Redesign reference tracking instead of keeping the current `getObjectId()` retention model.
 - Only classes explicitly marked with `@registerState()` need generated serializer registrations. Card implementations and other runtime leaf classes should resolve through their nearest generated `@registerState()` ancestor rather than receiving individual serializers.
+- Do not rely on `structuredClone` as a compile-time safety net. If a compile-time serializer cannot emit a detached payload using copied values only, generation should fail or the class should stay `Runtime`.
 
 ## Why This Is Larger Than A Serializer Swap
 
@@ -179,7 +181,7 @@ Only a minimal dispatch layer is needed at runtime:
 - resolve which generated function pair belongs to a concrete class
 - identify whether the class is `CompileTime` or `Runtime`
 
-The generated output must be safe for `v8.serialize()` / `v8.deserialize()` round-tripping, since `GameStateManager` uses Node.js v8 binary serialization for snapshot storage. This means generated serializer output must consist only of plain objects, arrays, primitives, `Map`, and `Set` — no class instances, Symbols, or other exotic types.
+The generated output must be safe for `v8.serialize()` / `v8.deserialize()` round-tripping, since `GameStateManager` uses Node.js v8 binary serialization for snapshot storage. This means generated serializer output must consist only of detached plain objects, detached arrays, primitives, detached `Map`, and detached `Set` — no class instances, Symbols, reused live collection references, or other exotic types.
 
 The generated module should be emitted to a predictable path at `server/game/core/generated/stateSerializers.ts` so runtime code can import it without conditional discovery.
 
@@ -304,6 +306,7 @@ Requirements:
 - emit one serializer function and one deserializer function per concrete compile-time class
 - use explicit field assignments for primitives and values
 - inline reference conversion logic per field category
+- emit fresh arrays, maps, sets, records, and nested plain values instead of reusing live references from the gameplay object graph
 - write deserialized values back onto the live `instance.state` shape expected by gameplay code
 - allow a small generated dispatch object or constructor-to-function map, but do not generate per-field metadata arrays or prototype walkers
 
@@ -332,19 +335,19 @@ Deserialize by direct assignment onto `instance.state`.
 
 Serialize directly as snapshot payload data.
 
-For `CompileTime`, generated code can pass values through unchanged unless a later restriction is added.
+For `CompileTime`, generated code must only emit detached values. Reusing a live object, array, `Map`, or `Set` reference is not allowed.
 
 Deserialize by direct assignment unless a class explicitly remains `Runtime`.
 
 Implement `stateValue` this way:
 
-- keep `stateValue` pass-through by default
-- add targeted generator diagnostics only for obviously unsupported shapes such as function-valued declarations or known non-snapshot-safe patterns
-- prefer moving unusual classes to `Runtime` mode over building an expensive deep validator into the generator
+- allow primitives and other explicitly supported copied payload shapes only
+- reject or diagnose `stateValue` usages that would require handing a live mutable reference through the serializer
+- prefer moving unusual classes to `Runtime` mode over preserving pass-through semantics that would force a post-serialization `structuredClone`
 
-This keeps generator complexity down, preserves the current low-overhead behavior for already-safe payloads, and catches clear mistakes without turning the generator into another runtime interpreter.
+This keeps the compile-time contract simple: the serializer itself is responsible for producing a safe snapshot payload, and callers do not need to deep-clone it afterward.
 
-Note: `stateValue` fields in snapshot state are still v8-serialized (and thus deep-copied at the snapshot boundary) even under the new model. This preserves isolation between live state and snapshot state for complex value types without requiring the generator to deep-clone them.
+Note: `v8.serialize()` remains the snapshot storage boundary, but compile-time serializers should already have eliminated live references before that point. The snapshot layer should not be relied on to repair reference-sharing bugs in serializer output.
 
 ### `stateRef`
 
@@ -354,11 +357,16 @@ Deserialize to a direct object reference in live state.
 
 ### `stateRefArray`
 
-Serialize as arrays of `GameObjectId`.
+Serialize as newly allocated arrays of `GameObjectId`.
 
 Deserialize to arrays of object references.
 
 Distinguish readonly versus mutable arrays at generation time.
+
+Decorator contract requirement:
+
+- collection decorators must only serialize primitive payload elements (`GameObjectId`, string, number, boolean, null, undefined) so the emitted collection is always detached and copy-safe
+- if a collection field would need to serialize nested objects or other mutable references, it should use a different representation or remain `Runtime`
 
 Implement `stateRefArray` migration this way:
 
@@ -369,9 +377,15 @@ Removing wrapper and proxy layers is important to the GC/allocation goal of this
 
 ### `stateRefMap` / `stateRefSet` / `stateRefRecord`
 
-Serialize contained GameObject references as IDs.
+Serialize contained GameObject references as IDs in newly allocated collections.
 
 Deserialize back to live collections containing direct object references.
+
+Decorator contract requirement:
+
+- array/map/set/record decorators should be restricted to primitive snapshot payload members only
+- map values, set entries, record values, and array elements must serialize to copied primitive values rather than nested mutable objects
+- any field that cannot meet that rule should be rejected from `CompileTime` generation or explicitly assigned to `Runtime`
 
 Do not reintroduce the current runtime hydration metadata path.
 
@@ -531,6 +545,7 @@ Minimum required checks:
    - card-related case
   - wrapper-dispatch case (`@registerState()` wrapper and `buildAutoInitializingCardClass()`)
    - Runtime `StateWatcher` case
+  - compile-time snapshot isolation case: mutating serializer output or `getStateUnsafe()` output must not mutate live state
 
 5. Memory / GC evaluation
    - compare before and after heap behavior under snapshot-heavy flows
