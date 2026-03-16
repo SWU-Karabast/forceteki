@@ -29,6 +29,7 @@ enum BlockId {
 interface ISwuSet {
     id: SwuSetId;
     released: boolean;
+    mainline: boolean;
 }
 
 interface INonRotatingSet extends ISwuSet {
@@ -44,24 +45,24 @@ const rotationBlocks: IRotationBlock[] = [
     {
         id: BlockId.Zero,
         sets: [
-            { id: SwuSetId.SOR, released: true },
-            { id: SwuSetId.SHD, released: true },
-            { id: SwuSetId.TWI, released: true }
+            { id: SwuSetId.SOR, released: true, mainline: true },
+            { id: SwuSetId.SHD, released: true, mainline: true },
+            { id: SwuSetId.TWI, released: true, mainline: true }
         ]
     },
     {
         id: BlockId.A,
         sets: [
-            { id: SwuSetId.JTL, released: true },
-            { id: SwuSetId.LOF, released: true },
-            { id: SwuSetId.IBH, released: true },
-            { id: SwuSetId.SEC, released: true }
+            { id: SwuSetId.JTL, released: true, mainline: true },
+            { id: SwuSetId.LOF, released: true, mainline: true },
+            { id: SwuSetId.IBH, released: true, mainline: false },
+            { id: SwuSetId.SEC, released: true, mainline: true }
         ]
     },
     {
         id: BlockId.B,
         sets: [
-            { id: SwuSetId.LAW, released: true }
+            { id: SwuSetId.LAW, released: true, mainline: true }
         ]
     },
 ];
@@ -70,7 +71,8 @@ const nonRotatingSets: INonRotatingSet[] = [
     {
         id: SwuSetId.TS26,
         legalFormats: new Set([SwuGameFormat.Eternal]),
-        released: false
+        released: false,
+        mainline: false
     },
 ];
 
@@ -215,20 +217,23 @@ export class DeckValidator {
     }
 
     /**
-     * Returns the legal sets for Limited format based on the card pool.
+     * Returns the legal sets for Limited format based on the card pool. Only mainline sets are legal in Limited.
      */
     private static getLimitedLegalSet(cardPool: CardPool): Set<SwuSetId> {
         const allSets = rotationBlocks.flatMap((block) => block.sets);
 
         if (cardPool === CardPool.Unlimited) {
-            return new Set<SwuSetId>(allSets.map((s) => s.id));
+            return new Set<SwuSetId>(allSets
+                .filter((s) => s.mainline)
+                .map((s) => s.id)
+            );
         }
 
         const targetSet = cardPool === CardPool.Current
-            ? [...allSets].reverse().find((s) => s.released)
-            : allSets.find((s) => !s.released);
+            ? [...allSets].reverse().find((s) => s.released && s.mainline)
+            : allSets.find((s) => !s.released && s.mainline);
 
-        Contract.assertNotNullLike(targetSet, `No ${cardPool === CardPool.Current ? 'released' : 'unreleased'} sets found for Limited format`);
+        Contract.assertNotNullLike(targetSet, `No ${cardPool === CardPool.Current ? 'released' : 'unreleased'} mainline sets found for Limited format`);
 
         return new Set<SwuSetId>([targetSet.id]);
     }
