@@ -16,8 +16,6 @@ export interface ITokenUnitCard extends ITokenCard, INonLeaderUnitCard {}
 
 @registerStateBase()
 export class TokenUnitCard extends TokenUnitParent implements ITokenUnitCard {
-    public declare state: never;
-
     public override isTokenUnit(): this is ITokenUnitCard {
         return true;
     }
@@ -25,8 +23,6 @@ export class TokenUnitCard extends TokenUnitParent implements ITokenUnitCard {
 
 @registerStateBase()
 export class TokenUpgradeCard extends TokenUpgradeParent implements ITokenUpgradeCard {
-    public declare state: never;
-
     public override isTokenUpgrade(): this is ITokenUpgradeCard {
         return true;
     }
@@ -34,5 +30,4 @@ export class TokenUpgradeCard extends TokenUpgradeParent implements ITokenUpgrad
 
 @registerStateBase()
 export class TokenCard extends TokenCardParent implements ITokenCard {
-    public declare state: never;
 }

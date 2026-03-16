@@ -1,9 +1,10 @@
 import type { Game } from './Game';
-import { copyState, registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
+import type { SerializedGameObjectState, SerializerInstance, StateSerializer } from './StateSerializers';
+import { registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
 import * as Contract from './utils/Contract';
 
-export interface IGameObjectBaseState {
-    uuid: string;
+export interface IGameObjectBaseState extends SerializedGameObjectState {
+    _uuid: string;
 }
 
 export interface IGameObjectBase {
@@ -36,11 +37,6 @@ type UnwrapRefProperty<T> = T extends GameObjectId<infer U> ?
 @registerStateBase()
 export abstract class GameObjectBase implements IGameObjectBase {
     public readonly game: Game;
-
-    // The cast "as unknown as IGameObjectBaseState" is a work-around to let us instantiate it as an empty object initially.
-    // While we need to declare the state here, unless manual usage is required, it should never be directly accessed.
-    // If direct access is required, use "declare state: <SomeInterface>;" in the specific class that needs manual access.
-    protected state: IGameObjectBaseState = {} as unknown as IGameObjectBaseState;
 
     private _cannotHaveRefs = false;
     private _hasRef = false;
@@ -106,37 +102,20 @@ export abstract class GameObjectBase implements IGameObjectBase {
         this._cannotHaveRefs = true;
     }
 
-    /** Sets the state.  */
-    public setState(state: IGameObjectBaseState) {
-        const oldState = this.state;
-        this.state = state;
-        copyState(this, this.state);
+    public applySerializedState<TState extends IGameObjectBaseState>(game: Game, serializer: StateSerializer<TState>, state: TState, oldState: TState) {
+        serializer.deserialize(game, this as unknown as SerializerInstance, state);
         this.afterSetState(oldState);
     }
 
-    /**
-     * @deprecated Be ***very*** careful with this function. This returns a direct reference and should only be used for serialization, never keep this reference stored anywhere.
-     */
-    public getStateUnsafe() {
-        return this.state;
-    }
-
-    public getState() {
-        // This *must* return a copy, without any references, hence the use of structuredClone.
-        try {
-            return structuredClone(this.state);
-        } catch (ex) {
-            throw new Error(`Unable to retrieve the copied state for ${this.getGameObjectName()}.\nError: ${ex.toString()}\nCurrent State:\n\n${JSON.stringify(this.state)}\n\n`);
-        }
-    }
-
     /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public afterSetAllState(oldState: IGameObjectBaseState) { }
+    public afterSetAllState(_oldState: IGameObjectBaseState) {
+        void _oldState;
+    }
 
     /** A function for game to call after the state for this object has been rolled back. Intended to be used when a class has state changes that have internal changes, such as caching state. */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected afterSetState(oldState: IGameObjectBaseState) { }
+    protected afterSetState(_oldState: IGameObjectBaseState) {
+        void _oldState;
+    }
 
     /**
      * A function for game to call on all objects if they are being removed from the GameObject list (typically after a rollback to before the object was created).
@@ -144,8 +123,9 @@ export abstract class GameObjectBase implements IGameObjectBase {
      *
      * The most common example is removing event handlers that have been registered on Game.
      */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public cleanupOnRemove(oldState: IGameObjectBaseState) { }
+    public cleanupOnRemove(_oldState: IGameObjectBaseState) {
+        void _oldState;
+    }
 
     private assertInitialized(operation: string) {
         Contract.assertTrue(this._initialized, `Attempting to ${operation} on uninitialized GameObject: ${this.getGameObjectName()} (UUID: ${this.uuid})`);

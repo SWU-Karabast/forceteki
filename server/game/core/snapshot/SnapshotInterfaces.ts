@@ -1,4 +1,5 @@
 import type { Card } from '../card/Card';
+import type { SerializedGameObjectStateMap } from '../StateSerializers';
 import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, SnapshotType } from '../Constants';
 import type { GameObjectId } from '../GameObjectUtils';
 import type { Player } from '../Player';
@@ -126,7 +127,7 @@ export interface IGameSnapshot {
     activePlayerId?: string;
 
     gameState: Buffer;
-    states: Buffer;
+    states: SerializedGameObjectStateMap;
     rngState: IRandomness['rngState'];
 
     requiresConfirmationToRollback: boolean;
