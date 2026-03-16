@@ -1,6 +1,6 @@
 import type { Game } from './Game';
 import { registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
-import { hydrateGameObjectStateFromSnapshot } from './stateSerialization/StateSerialization';
+import { getCurrentGameObjectState, hydrateGameObjectStateFromSnapshot } from './stateSerialization/StateSerialization';
 import * as Contract from './utils/Contract';
 
 export interface IGameObjectBaseState {
@@ -96,25 +96,28 @@ export abstract class GameObjectBase implements IGameObjectBase {
 
     /** Sets the state.  */
     public setState(state: IGameObjectBaseState) {
-        const oldState = this.state;
+        const oldState = getCurrentGameObjectState(this);
         this.state = state;
         hydrateGameObjectStateFromSnapshot(this, this.state);
         this.afterSetState(oldState);
     }
 
     /**
-     * @deprecated Be ***very*** careful with this function. This returns a direct reference and should only be used for serialization, never keep this reference stored anywhere.
+     * @deprecated Be ***very*** careful with this function. This returns the current snapshot-shaped state payload.
+     * Runtime-mode classes return the live state object reference; compile-time classes reconstruct it from decorated fields.
      */
     public getStateUnsafe() {
-        return this.state;
+        return getCurrentGameObjectState(this);
     }
 
     public getState() {
+        const currentState = this.getStateUnsafe();
+
         // This *must* return a copy, without any references, hence the use of structuredClone.
         try {
-            return structuredClone(this.state);
+            return structuredClone(currentState);
         } catch (ex) {
-            throw new Error(`Unable to retrieve the copied state for ${this.getGameObjectName()}.\nError: ${ex.toString()}\nCurrent State:\n\n${JSON.stringify(this.state)}\n\n`);
+            throw new Error(`Unable to retrieve the copied state for ${this.getGameObjectName()}.\nError: ${ex.toString()}\nCurrent State:\n\n${JSON.stringify(currentState)}\n\n`);
         }
     }
 

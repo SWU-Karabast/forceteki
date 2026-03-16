@@ -173,8 +173,9 @@ export class GameStateManager implements IGameObjectRegistrar {
                         throw new Error(`GameObject ${go.getGameObjectName()} (UUID: ${go.uuid}, Type: ${go.constructor.name}) is not initialized during rollback. This should not be possible.`);
                     }
 
-                    // Rollback swaps the entire state object reference, so retaining the previous object here is safe
-                    // and avoids a structuredClone for every updated or removed GameObject.
+                    // Capture the current serialized state before swapping it out.
+                    // Runtime-mode objects can return the live state object here; compile-time objects reconstruct
+                    // the snapshot payload from decorated fields.
                     const oldState = go.getStateUnsafe();
 
                     const updatedState = snapshotStatesByUuid[go.uuid];

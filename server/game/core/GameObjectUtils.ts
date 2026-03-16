@@ -1,5 +1,4 @@
 import type { GameObjectBase, IGameObjectBase } from './GameObjectBase';
-import * as Contract from './utils/Contract';
 
 const stateClassesStr: Record<string, string> = {};
 
@@ -113,7 +112,7 @@ function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterSta
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
 export function registerState<T extends GameObjectBase>(copyModeOrOptions?: CopyMode | RegisterStateOptions) {
-    return function (targetClass: any, context: ClassDecoratorContext) {
+    return function (targetClass: any) {
         const options = normalizeRegisterStateOptions(copyModeOrOptions);
         const parentClass = Object.getPrototypeOf(targetClass);
 
@@ -217,203 +216,86 @@ export function buildAutoInitializingCardClass(targetCardClass: any): any {
     return wrappedClass;
 }
 
+function assertStateAccessorContext<T extends GameObjectBase, TValue>(context: ClassAccessorDecoratorContext<T, TValue>): void {
+    if (context.static || context.private) {
+        throw new Error('Can only serialize public instance members.');
+    }
+    if (typeof context.name === 'symbol') {
+        throw new Error('Cannot serialize symbol-named properties.');
+    }
+}
+
 export function statePrimitive<T extends GameObjectBase, TValue extends string | number | boolean>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, TValue>,
+        _target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
-    ): ClassAccessorDecoratorResult<T, TValue> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-        const name = context.name;
-
-        // No need to use the backing fields, read and write directly to state.
-        return {
-            get(this: T) {
-                return this.state[name];
-            },
-            set(this: T, newValue: TValue) {
-                this.state[name] = newValue;
-            },
-            init(this: T, value: TValue) {
-                this.state[name] = value;
-                // We don't use the internal field and only use the data within state.
-                return undefined;
-            }
-        };
+    ): void {
+        assertStateAccessorContext(context);
     };
 }
 
 // Forces the incoming value to be either a boolean literal, or a constant boolean. This is meant to be used with const generic arguments.
 type ConstantBoolean<T extends boolean> = boolean extends T ? never : T;
+type StateRefArrayValue<TValue, TReadonly extends boolean> = TReadonly extends true ? readonly TValue[] : TValue[];
 
 /**
  * @param readonly If false, returns a mutable array. If true, returns the array as-is and requires it be marked as readonly.
  */
-export function stateRefArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
+export function stateRefArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonlyArray: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
+    void readonlyArray;
+
     return function (
-        target: ClassAccessorDecoratorTarget<T, typeof readonly extends true ? readonly TValue[] : TValue[]>,
-        context: ClassAccessorDecoratorContext<T, typeof readonly extends true ? readonly TValue[] : TValue[]>
-    ): ClassAccessorDecoratorResult<T, typeof readonly extends true ? readonly TValue[] : TValue[]> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-        const name = context.name as string;
-
-        // Use the backing fields as the cache, and write refs to the state.
-        if (readonly) {
-            return {
-                get(this: T) {
-                    return target.get.call(this);
-                },
-                set(this: T, newValue: TValue[]) {
-                    target.set.call(this, newValue);
-                },
-                init(this: T, value: TValue[]) {
-                    return value;
-                }
-            };
-        }
-
-        return {
-            get(this: T) {
-                return target.get.call(this);
-            },
-            set(this: T, newValue: TValue[]) {
-                target.set.call(this, newValue);
-            },
-            init(this: T, value: TValue[]) {
-                return value;
-            }
-        };
+        _target: ClassAccessorDecoratorTarget<T, StateRefArrayValue<TValue, TReadonly>>,
+        context: ClassAccessorDecoratorContext<T, StateRefArrayValue<TValue, TReadonly>>
+    ): void {
+        assertStateAccessorContext(context);
     };
 }
 
 /** Creates a tracked Map reference. */
 export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
+        _target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
         context: ClassAccessorDecoratorContext<T, Map<string, TValue>>
-    ): ClassAccessorDecoratorResult<T, Map<string, TValue>> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-        const name = context.name as string;
-
-        // Use the backing fields as the cache, and write refs to the state.
-        return {
-            get(this) {
-                return target.get.call(this);
-            },
-            set(this: GameObjectBase, newValue) {
-                target.set.call(this, newValue);
-            },
-            init(this: T, value) {
-                return value;
-            },
-        };
+    ): void {
+        assertStateAccessorContext(context);
     };
 }
 
 /** Creates a tracked Set reference. */
 export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, Set<TValue>>,
+        _target: ClassAccessorDecoratorTarget<T, Set<TValue>>,
         context: ClassAccessorDecoratorContext<T, Set<TValue>>
-    ): ClassAccessorDecoratorResult<T, Set<TValue>> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-        const name = context.name as string;
-
-        return {
-            get(this) {
-                return target.get.call(this);
-            },
-            set(this: GameObjectBase, newValue) {
-                target.set.call(this, newValue);
-            },
-            init(this: T, value) {
-                return value;
-            },
-        };
+    ): void {
+        assertStateAccessorContext(context);
     };
 }
 
 /** A simpler alternative to Map. Unless there is a specific reason, prefer stateRefMap over this. */
 export function stateRefRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, Record<string, TValue>>,
+        _target: ClassAccessorDecoratorTarget<T, Record<string, TValue>>,
         context: ClassAccessorDecoratorContext<T, Record<string, TValue>>
-    ): ClassAccessorDecoratorResult<T, Record<string, TValue>> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-        const name = context.name as string;
-
-        // Use the backing fields as the cache, and write refs to the state.
-        return {
-            get(this) {
-                return target.get.call(this);
-            },
-            set(this: GameObjectBase, newValue) {
-                target.set.call(this, newValue);
-            },
-            init(this: T, value) {
-                return value;
-            },
-        };
+    ): void {
+        assertStateAccessorContext(context);
     };
 }
 
 /** Creates a tracked GameObject reference. */
 export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, TValue>,
+        _target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
-    ): ClassAccessorDecoratorResult<T, TValue> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-        const name = context.name as string;
-
-        // Use the backing fields as the cache, and write refs to the state.
-        return {
-            get(this) {
-                return target.get.call(this);
-            },
-            set(this, newValue) {
-                target.set.call(this, newValue);
-            },
-            init(value) {
-                return value;
-            }
-        };
+    ): void {
+        assertStateAccessorContext(context);
     };
 }
 
 /**
  * For any {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm structuredClone}-compatible
  * value that is **not** a primitive and **not** a {@link GameObjectBase}.
- * The value is stored directly in state without any conversion.
+ * The value is serialized directly into snapshot state without any conversion.
  *
  * Use this for complex state values (objects, arrays of plain data, etc.) that don't need
  * GameObjectBase ref resolution but do need to participate in the undo system.
@@ -431,31 +313,10 @@ export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase
  */
 export function stateValue<T extends GameObjectBase, TValue>() {
     return function (
-        target: ClassAccessorDecoratorTarget<T, TValue>,
+        _target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
-    ): ClassAccessorDecoratorResult<T, TValue> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-        const name = context.name;
-
-        // No need to use the backing fields, read and write directly to state.
-        return {
-            get(this: T) {
-                return this.state[name];
-            },
-            set(this: T, newValue: TValue) {
-                this.state[name] = newValue;
-            },
-            init(this: T, value: TValue) {
-                this.state[name] = value;
-                // We don't use the internal field and only use the data within state.
-                return undefined;
-            }
-        };
+    ): void {
+        assertStateAccessorContext(context);
     };
 }
 

@@ -14,13 +14,30 @@ interface ResolvedClassEntryChain {
     entries: GeneratedStateClassEntry[];
 }
 
+export function getCurrentGameObjectState(instance: GameObjectBase): IGameObjectBaseState {
+    const resolvedEntries = resolveStateClassEntryChain(instance);
+    return getCurrentGameObjectStateWithResolvedEntries(instance, resolvedEntries);
+}
+
 export function serializeGameObjectStateForSnapshot(instance: GameObjectBase): IGameObjectBaseState {
     const resolvedEntries = resolveStateClassEntryChain(instance);
 
     if (resolvedEntries.copyMode === 'Runtime') {
-        return structuredClone(instance.getStateUnsafe());
+        return structuredClone(getCurrentGameObjectStateWithResolvedEntries(instance, resolvedEntries));
     }
 
+    return getCurrentGameObjectStateWithResolvedEntries(instance, resolvedEntries);
+}
+
+function getCurrentGameObjectStateWithResolvedEntries(instance: GameObjectBase, resolvedEntries: ResolvedClassEntryChain): IGameObjectBaseState {
+    if (resolvedEntries.copyMode === 'Runtime') {
+        return (instance as unknown as { state: IGameObjectBaseState }).state;
+    }
+
+    return serializeResolvedFieldState(instance, resolvedEntries);
+}
+
+function serializeResolvedFieldState(instance: GameObjectBase, resolvedEntries: ResolvedClassEntryChain): IGameObjectBaseState {
     const snapshotState: Record<string, unknown> = {};
 
     for (const entry of resolvedEntries.entries) {
