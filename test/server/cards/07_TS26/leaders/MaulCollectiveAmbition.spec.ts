@@ -34,33 +34,8 @@ describe('Maul, Collective Ambition', function() {
                     context.tieFighter,
                     context.darthVader
                 ]);
-                context.player1.clickCard(context.hiddenHunters);
-
-                // Hidden Hunters gains an Experience token and takes 1 damage
-                expect(context.maul.exhausted).toBeTrue();
-                expect(context.hiddenHunters.damage).toBe(1);
-                expect(context.hiddenHunters).toHaveExactUpgradeNames(['experience']);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should give an Experience token and deal 1 damage to a friendly unit with more keywords than experience tokens', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'maul#collective-ambition',
-                        resources: 6,
-                        groundArena: ['hidden-hunters'],
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // Use Maul's action ability on friendly Hidden Hunters
-                context.player1.clickCard(context.maul);
 
                 // Hidden Hunters has 1 keyword (Hidden) and 0 experience tokens
-                expect(context.player1).toHavePrompt(abilityPrompt);
-                expect(context.player1).toBeAbleToSelectExactly([context.hiddenHunters]);
                 context.player1.clickCard(context.hiddenHunters);
 
                 // Hidden Hunters gains an Experience token and takes 1 damage
@@ -124,7 +99,7 @@ describe('Maul, Collective Ambition', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not give Experience or deal damage when the unit has equal keywords and experience tokens', async function() {
+            it('should not give Experience or deal damage when the unit has 1 keyword and 1 experience token', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -464,7 +439,7 @@ describe('Maul, Collective Ambition', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // Targeting logic still makes us select a unit, even when none meet the criteria
+            // TODO: Targeting logic still makes us select a unit, even when none meet the criteria
             // it('should automatically pass the ability when no units in play meet the condition', async function() {
             //     await contextRef.setupTestAsync({
             //         phase: 'action',
