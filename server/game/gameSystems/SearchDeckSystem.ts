@@ -10,7 +10,7 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import type { Player } from '../core/Player.js';
 import { Contract } from '../core/utils/Contract.js';
-import * as ChatHelpers from '../core/chat/ChatHelpers.js';
+import { ChatHelpers } from '../core/chat/ChatHelpers.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import type { DeckZone } from '../core/zone/DeckZone.js';

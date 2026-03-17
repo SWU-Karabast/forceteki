@@ -5,8 +5,8 @@ import { EffectName, EventName, GameStateChangeRequired, WildcardCardType, ZoneN
 import type { IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameSystem as GameSystem } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
-import * as EnumHelpers from '../utils/EnumHelpers';
-import * as Helpers from '../utils/Helpers';
+import { EnumHelpers } from '../utils/EnumHelpers';
+import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
 import type { GameObject } from '../GameObject';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';

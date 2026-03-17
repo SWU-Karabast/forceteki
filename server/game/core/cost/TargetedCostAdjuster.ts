@@ -9,7 +9,7 @@ import type { Game } from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
-import * as Helpers from '../utils/Helpers';
+import { Helpers } from '../utils/Helpers';
 import type { ITargetedCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { CostAdjustStage, IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';

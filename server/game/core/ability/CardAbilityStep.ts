@@ -1,7 +1,7 @@
 import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
 import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, PlayType } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
-import * as Helpers from '../utils/Helpers.js';
+import { Helpers } from '../utils/Helpers.js';
 import { Contract } from '../utils/Contract.js';
 import type { Card } from '../card/Card.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
@@ -12,7 +12,7 @@ import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type { Game } from '../Game.js';
 import { GameCardMetric } from '../../../gameStatistics/GameStatisticsTracker.js';
 import type { FormatMessage, MsgArg } from '../chat/GameChat.js';
-import * as ChatHelpers from '../chat/ChatHelpers';
+import { ChatHelpers } from '../chat/ChatHelpers';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { registerState, registerStateBase } from '../GameObjectUtils';
 

@@ -10,7 +10,7 @@ import {
     WildcardCardType,
     ZoneName
 } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { AttackFlow } from '../core/attack/AttackFlow';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
@@ -19,8 +19,8 @@ import { isArray } from 'underscore';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
 import { Contract } from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IOngoingCardEffectGenerator, KeywordNameOrProperties } from '../Interfaces';

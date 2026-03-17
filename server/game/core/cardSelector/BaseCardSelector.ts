@@ -5,8 +5,8 @@ import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, Wil
 import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
-import * as EnumHelpers from '../utils/EnumHelpers';
-import * as Helpers from '../utils/Helpers';
+import { EnumHelpers } from '../utils/EnumHelpers';
+import { Helpers } from '../utils/Helpers';
 
 export interface IBaseCardSelectorProperties<TContext> {
     mode: Extract<TargetMode, TargetMode.AutoSingle | TargetMode.BetweenVariable | TargetMode.Exactly | TargetMode.ExactlyVariable | TargetMode.MaxStat | TargetMode.Single | TargetMode.Unlimited | TargetMode.UpTo | TargetMode.UpToVariable>;

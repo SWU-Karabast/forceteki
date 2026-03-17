@@ -5,9 +5,9 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 import { Contract } from '../core/utils/Contract';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { FormatMessage } from '../core/chat/GameChat';
 

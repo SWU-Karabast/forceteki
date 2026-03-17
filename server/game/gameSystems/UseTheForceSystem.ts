@@ -5,7 +5,7 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { Contract } from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 
 export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends PlayerTargetSystem<TContext, TProperties> {
     public override name = 'useTheForce';

@@ -9,7 +9,7 @@ import {
 import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { Contract } from '../core/utils/Contract';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDetachPilotProperties extends ICardTargetSystemProperties {}

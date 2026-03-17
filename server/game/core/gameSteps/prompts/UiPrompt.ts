@@ -3,7 +3,7 @@ import type { Player } from '../../Player';
 import { BaseStep } from '../BaseStep';
 import { Contract } from '../../utils/Contract';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import * as Helpers from '../../utils/Helpers';
+import { Helpers } from '../../utils/Helpers';
 import type { IButton } from '../PromptInterfaces';
 import type { Game } from '../../Game';
 import type { AllPlayerPrompt } from './AllPlayerPrompt';

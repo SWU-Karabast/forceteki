@@ -7,7 +7,7 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { Contract } from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
-import * as EnumHelpers from '../utils/EnumHelpers';
+import { EnumHelpers } from '../utils/EnumHelpers';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerStateBase, stateRef, statePrimitive, type GameObjectId } from '../GameObjectUtils';

@@ -21,8 +21,8 @@ import {
     ZoneName
 } from './Constants';
 
-import * as EnumHelpers from './utils/EnumHelpers';
-import * as Helpers from './utils/Helpers';
+import { EnumHelpers } from './utils/EnumHelpers';
+import { Helpers } from './utils/Helpers';
 import type { AbilityContext } from './ability/AbilityContext';
 import { HandZone } from './zone/HandZone';
 import { DeckZone } from './zone/DeckZone';

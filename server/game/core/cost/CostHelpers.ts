@@ -1,6 +1,6 @@
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 import { Contract } from '../utils/Contract';
-import * as Helpers from '../utils/Helpers';
+import { Helpers } from '../utils/Helpers';
 import { CostAdjustStage } from './CostInterfaces';
 
 export function getCostAdjustStagesInEvaluationOrder(): CostAdjustStage[] {

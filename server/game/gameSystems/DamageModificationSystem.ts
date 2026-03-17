@@ -7,7 +7,7 @@ import { ReplacementEffectSystem } from './ReplacementEffectSystem';
 import { Contract } from '../core/utils/Contract';
 import { DamageSystem } from './DamageSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 
 export interface IDamageModificationSystemProperties<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends IReplacementEffectSystemProperties<TContext> {
     modificationType: DamageModificationType;

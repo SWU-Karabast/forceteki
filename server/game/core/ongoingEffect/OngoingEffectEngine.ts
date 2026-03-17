@@ -5,7 +5,7 @@ import type { OngoingEffectSourceBase } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type { Game } from '../Game';
 import { Contract } from '../utils/Contract';
-import * as Helpers from '../utils/Helpers';
+import { Helpers } from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';

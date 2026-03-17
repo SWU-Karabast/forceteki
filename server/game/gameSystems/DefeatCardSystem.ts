@@ -9,7 +9,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import { Contract } from '../core/utils/Contract';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../IDamageOrDefeatSource';
 

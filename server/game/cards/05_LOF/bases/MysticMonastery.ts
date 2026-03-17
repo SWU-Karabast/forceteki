@@ -1,6 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { BaseCard } from '../../../core/card/BaseCard';
-import * as ChatHelpers from '../../../core/chat/ChatHelpers';
+import { ChatHelpers } from '../../../core/chat/ChatHelpers';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class MysticMonastery extends BaseCard {

@@ -10,7 +10,7 @@ import type { DistributePromptType, IDistributeAmongTargetsPromptProperties, IDi
 import type { DamageSystem } from './DamageSystem';
 import type { HealSystem } from './HealSystem';
 import { Contract } from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 import type { GiveExperienceSystem } from './GiveExperienceSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
 

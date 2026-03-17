@@ -8,7 +8,7 @@ import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { Player } from '../core/Player';
 import type { Game } from '../core/Game';
 import { Contract } from '../core/utils/Contract';
-import * as ChatHelpers from '../core/chat/ChatHelpers.js';
+import { ChatHelpers } from '../core/chat/ChatHelpers.js';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 

@@ -8,7 +8,7 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import { Contract } from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 
 export enum ViewCardInteractMode {
     ViewOnly = 'viewOnly',

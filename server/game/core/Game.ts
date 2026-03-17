@@ -51,7 +51,7 @@ import { GroundArenaZone } from './zone/GroundArenaZone';
 import { SpaceArenaZone } from './zone/SpaceArenaZone';
 import { AllArenasZone } from './zone/AllArenasZone';
 import type { IAllArenasZoneCardFilterProperties, IAllArenasSpecificTypeCardFilterProperties } from './zone/AllArenasZone';
-import * as EnumHelpers from './utils/EnumHelpers';
+import { EnumHelpers } from './utils/EnumHelpers';
 import { SelectCardPrompt } from './gameSteps/prompts/SelectCardPrompt';
 import { DisplayCardsWithButtonsPrompt } from './gameSteps/prompts/DisplayCardsWithButtonsPrompt';
 import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCardsForSelectionPrompt';
@@ -59,7 +59,7 @@ import { DisplayCardsBasicPrompt } from './gameSteps/prompts/DisplayCardsBasicPr
 import { validateGameConfiguration, validateGameOptions } from './GameInterfaces';
 import type { GameConfiguration, GameOptions, ICurrentlyResolving } from './GameInterfaces';
 import type { GameObjectBase } from './GameObjectBase';
-import * as Helpers from './utils/Helpers';
+import { Helpers } from './utils/Helpers';
 import type { CostAdjuster } from './cost/CostAdjuster';
 import { logger } from '../../logger';
 import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';

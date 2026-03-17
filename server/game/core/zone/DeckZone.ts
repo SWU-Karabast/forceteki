@@ -3,7 +3,7 @@ import type { MoveZoneDestination } from '../Constants';
 import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
-import * as Helpers from '../utils/Helpers';
+import { Helpers } from '../utils/Helpers';
 import type { IAddRemoveZone } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 import type { GameEvent } from '../event/GameEvent';

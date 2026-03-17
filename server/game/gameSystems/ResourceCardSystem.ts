@@ -5,8 +5,8 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import { Contract } from '../core/utils/Contract';
 import type { GameEvent } from '../core/event/GameEvent';
 import { ReadySystem } from './ReadySystem';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
-import * as Helpers from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed

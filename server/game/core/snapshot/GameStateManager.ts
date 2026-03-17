@@ -2,7 +2,7 @@ import type { Game } from '../Game';
 import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
-import * as Helpers from '../utils/Helpers.js';
+import { Helpers } from '../utils/Helpers.js';
 import { to } from '../utils/TypeHelpers';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';

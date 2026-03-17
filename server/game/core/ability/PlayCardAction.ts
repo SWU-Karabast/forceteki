@@ -8,7 +8,7 @@ import type { AbilityContext } from './AbilityContext';
 import { PlayerAction } from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjustType, type CostAdjuster } from '../cost/CostAdjuster';
-import * as Helpers from '../utils/Helpers';
+import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';

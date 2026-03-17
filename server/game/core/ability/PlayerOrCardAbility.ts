@@ -6,7 +6,7 @@ import { Contract } from '../utils/Contract.js';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
 import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetResolver.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import * as Helpers from '../utils/Helpers.js';
+import { Helpers } from '../utils/Helpers.js';
 import { AbilityContext } from './AbilityContext.js';
 import type { Game } from '../Game.js';
 import type { Player } from '../Player.js';

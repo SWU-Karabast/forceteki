@@ -4,7 +4,7 @@ import type { EventName, MetaEventName } from '../Constants';
 import { GameStateChangeRequired, ZoneName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player';
-import * as Helpers from '../utils/Helpers';
+import { Helpers } from '../utils/Helpers';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { Contract } from '../utils/Contract';
 import type { GameObject } from '../GameObject';

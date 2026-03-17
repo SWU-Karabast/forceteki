@@ -8,7 +8,7 @@ import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IOngoingEffectFactory, ITriggeredAbilityProps, WhenType } from '../Interfaces';
 import { Contract } from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
 import type { GameObject } from '../core/GameObject';
 import type { Card } from '../core/card/Card';

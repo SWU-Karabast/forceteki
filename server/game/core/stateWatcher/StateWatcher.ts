@@ -5,7 +5,7 @@ import type { Game } from '../Game';
 import type { IGameObjectBaseState, UnwrapRef } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { Contract } from '../utils/Contract';
-import { isDevelopment } from '../utils/Helpers';
+import { Helpers } from '../utils/Helpers';
 import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
@@ -88,7 +88,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
     }
 
     protected addUpdater(properties: IStateListenerProperties<TState[]>) {
-        if (isDevelopment()) {
+        if (Helpers.isDevelopment()) {
             Object.keys(properties).forEach((prop) => {
                 let value = properties[prop];
                 if (!value) {

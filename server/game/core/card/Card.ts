@@ -16,7 +16,7 @@ import { Contract } from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { ChatObjectType, KeywordName, WildcardRelativePlayer } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
-import * as EnumHelpers from '../utils/EnumHelpers';
+import { EnumHelpers } from '../utils/EnumHelpers';
 import { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';

@@ -4,9 +4,9 @@ import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetS
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Contract } from '../core/utils/Contract';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
-import * as Helpers from '../core/utils/Helpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
 import { AbilityRestriction, CardType, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';

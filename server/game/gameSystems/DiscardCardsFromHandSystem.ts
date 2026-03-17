@@ -6,11 +6,10 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Card } from '../core/card/Card';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import type { Derivable } from '../core/utils/Helpers';
-import { derive } from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { Contract } from '../core/utils/Contract';
 import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
@@ -53,7 +52,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 args: [
                     player === context.player ? 'themself' : player,
                     properties.random ? 'randomly ' : '',
-                    ChatHelpers.pluralize(derive(properties.amount, player), 'a card', 'cards')
+                    ChatHelpers.pluralize(Helpers.derive(properties.amount, player), 'a card', 'cards')
                 ]
             };
         };
@@ -70,7 +69,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 return false;
             }
 
-            if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableHand.length < derive(properties.amount, player)) {
+            if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableHand.length < Helpers.derive(properties.amount, player)) {
                 return false;
             }
 
@@ -87,9 +86,9 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
             const choosingPlayer = player;
 
-            Contract.assertNonNegative(derive(properties.amount, player));
+            Contract.assertNonNegative(Helpers.derive(properties.amount, player));
 
-            const amount = Math.min(availableHand.length, derive(properties.amount, player));
+            const amount = Math.min(availableHand.length, Helpers.derive(properties.amount, player));
             if (amount === 0) {
                 // No event generated here as no discard occured
                 this.sendDiscardMessage([], choosingPlayer, context, properties.random);

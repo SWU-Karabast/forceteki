@@ -5,7 +5,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { Contract } from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ITakeControlOfResourceProperties extends IPlayerTargetSystemProperties {}

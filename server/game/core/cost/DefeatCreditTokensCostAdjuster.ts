@@ -12,7 +12,7 @@ import type { ICostAdjustmentResolutionProperties, ICostAdjustResult, ICostAdjus
 import { CostAdjustStage, ResourceCostType } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 import { Contract } from '../utils/Contract';
-import * as ChatHelpers from '../chat/ChatHelpers';
+import { ChatHelpers } from '../chat/ChatHelpers';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
 import type { FormatMessage } from '../chat/GameChat';
 

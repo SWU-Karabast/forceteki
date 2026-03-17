@@ -3,8 +3,8 @@ import { type MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import { Contract } from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { ISimultaneousOrSequentialSystemProperties } from './SimultaneousOrSequentialSystem';
 import { ResolutionMode, SimultaneousOrSequentialSystem } from './SimultaneousOrSequentialSystem';
 

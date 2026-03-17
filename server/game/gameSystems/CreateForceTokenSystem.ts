@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, GameStateChangeRequired, TokenCardName, ZoneName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 import { Contract } from '../core/utils/Contract';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

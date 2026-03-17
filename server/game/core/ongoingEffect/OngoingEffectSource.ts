@@ -1,5 +1,5 @@
 import { GameObject } from '../GameObject.js';
-import * as Helpers from '../utils/Helpers.js';
+import { Helpers } from '../utils/Helpers.js';
 import { Duration, WildcardZoneName } from '../Constants.js';
 import type { OngoingEffect } from './OngoingEffect';
 import type { Game } from '../Game';

@@ -10,8 +10,8 @@ import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfac
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
-import * as EnumHelpers from '../../utils/EnumHelpers';
-import * as Helpers from '../../utils/Helpers';
+import { EnumHelpers } from '../../utils/EnumHelpers';
+import { Helpers } from '../../utils/Helpers';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import { InitializeCardStateOption, type Card } from '../Card';
 import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRegistration';
