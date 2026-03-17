@@ -13,7 +13,7 @@ const TOKEN_CATEGORIES = [
     {
         names: ['Aggression', 'Command', 'Cunning', 'Heroism', 'Vigilance', 'Villainy'],
         messageId: 'rawAspectName',
-        message: 'Raw aspect name "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Aggression`) or `TextHelper.aspect(Aspect.X)` in a template literal instead.',
+        message: 'Raw aspect name "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Aggression`) or `TextHelper.aspect(Aspect.X)` in a template literal instead, so it can be replaced with an icon on the client side.',
     },
     {
         // Matches "pay(s) N resource(s)", "cost(s) N (resources) more/less", and "play(s) (it/them) for N more/less"
@@ -22,7 +22,7 @@ const TOKEN_CATEGORIES = [
         pattern: 'pays?\\s+\\d+\\s+resources?|costs?\\s+\\d+\\s+(?:resources?\\s+)?(?:more|less)|plays?\\s+(?:(?:it|them)\\s+)?for\\s+\\d+\\s+(?:resources?\\s+)?(?:more|less)',
         flags: 'gi',
         messageId: 'rawResourceCost',
-        message: 'Raw resource cost "{{match}}" in string literal. Use `TextHelper.resource(N)` in a template literal instead.',
+        message: 'Raw resource cost "{{match}}" in string literal. Use `TextHelper.resource(N)` in a template literal instead, so it can be replaced with an icon on the client side.',
     },
     // Add more categories as needed, e.g. traits, keywords, etc.
 ];
