@@ -83,5 +83,31 @@ describe('Quinlan Vos, Dark Disciple', () => {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('Quinlan Vos\'s on attack ability may deal 2 damage to an enemy base if getting modification for his attack', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['hoth-lieutenant'],
+                    groundArena: ['quinlan-vos#dark-disciple'],
+                },
+                player2: {
+                    groundArena: ['consular-security-force'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.hothLieutenant);
+            context.player1.clickCard(context.quinlanVos);
+            context.player1.clickCard(context.consularSecurityForce);
+
+            expect(context.player1).toHavePrompt('Deal 2 damage to an enemy base');
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.consularSecurityForce.damage).toBe(6);
+        });
     });
 });
