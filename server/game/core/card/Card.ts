@@ -155,14 +155,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return false;
     }
 
-    @stateRefArray(false)
-    protected accessor actionAbilities: ActionAbilityBase[] = [];
+    @stateRefArray()
+    protected accessor actionAbilities: readonly ActionAbilityBase[] = [];
 
-    @stateRefArray(false)
-    protected accessor constantAbilities: ConstantAbility[] = [];
+    @stateRefArray()
+    protected accessor constantAbilities: readonly ConstantAbility[] = [];
 
-    @stateRefArray(false)
-    protected accessor triggeredAbilities: TriggeredAbilityBase[] = [];
+    @stateRefArray()
+    protected accessor triggeredAbilities: readonly TriggeredAbilityBase[] = [];
 
     protected get printedType(): CardType {
         if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {

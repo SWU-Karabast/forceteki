@@ -21,7 +21,7 @@ export function WithActionAbilities<TBaseClass extends CardConstructor>(BaseClas
     class WithActionAbilities extends BaseClass {
         private addActionAbility(properties: IActionAbilityProps<this>): ActionAbilityBase {
             const ability = this.createActionAbility({ ...properties, printedAbility: true });
-            this.actionAbilities.push(ability);
+            this.actionAbilities = [...this.actionAbilities, ability];
             return ability;
         }
 
@@ -52,7 +52,7 @@ export function WithActionAbilities<TBaseClass extends CardConstructor>(BaseClas
         */
         public addGainedActionAbility(properties: IActionAbilityProps): string {
             const addedAbility = this.createActionAbility({ ...properties, printedAbility: false });
-            this.actionAbilities.push(addedAbility);
+            this.actionAbilities = [...this.actionAbilities, addedAbility];
 
             return addedAbility.uuid;
         }
