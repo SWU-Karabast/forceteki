@@ -1,36 +1,49 @@
 /**
  * Token categories that should use helper functions instead of raw text.
- * To add a new category, add an entry with:
- *   - names: array of exact words to match (case-sensitive, matched as whole words)
+ *
+ * Each category has:
  *   - messageId: key into the `messages` object below
- *   - helper: the recommended helper call to show in the error message
+ *   - message: the error message shown to the developer (use {{match}} for the matched text)
+ *   - One of:
+ *     - names: array of exact words to match (case-sensitive, matched as whole words via \b)
+ *     - pattern: a regex string to match (wrapped in a capturing group automatically)
+ *     - flags: optional regex flags for pattern-based categories (default: 'gi')
  */
 const TOKEN_CATEGORIES = [
     {
         names: ['Aggression', 'Command', 'Cunning', 'Heroism', 'Vigilance', 'Villainy'],
         messageId: 'rawAspectName',
-        helper: 'TextHelper.{{name}})',
+        message: 'Raw aspect name "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Aggression`) or `TextHelper.aspect(Aspect.X)` in a template literal instead.',
+    },
+    {
+        // Matches "pay(s) N resource(s)", "cost(s) N (resources) more/less", and "play(s) (it/them) for N more/less"
+        // but NOT "costs N or more/less" (references to printed cost)
+        // and NOT "ready/exhaust N resources" (effects that manipulate resources)
+        pattern: 'pays?\\s+\\d+\\s+resources?|costs?\\s+\\d+\\s+(?:resources?\\s+)?(?:more|less)|plays?\\s+(?:(?:it|them)\\s+)?for\\s+\\d+\\s+(?:resources?\\s+)?(?:more|less)',
+        flags: 'gi',
+        messageId: 'rawResourceCost',
+        message: 'Raw resource cost "{{match}}" in string literal. Use `TextHelper.resource(N)` in a template literal instead.',
     },
     // Add more categories as needed, e.g. traits, keywords, etc.
 ];
 
-// Build a single combined regex and a lookup map from name → category
-const nameToCategory = new Map();
-const allNames = [];
-for (const category of TOKEN_CATEGORIES) {
-    for (const name of category.names) {
-        nameToCategory.set(name, category);
-        allNames.push(name);
+// Compile each category into a { regex, messageId } entry
+const compiledCategories = TOKEN_CATEGORIES.map((cat) => {
+    if (cat.names) {
+        return {
+            regex: new RegExp(`\\b(${cat.names.join('|')})\\b`, cat.flags || 'g'),
+            messageId: cat.messageId,
+        };
     }
-}
-const combinedPattern = new RegExp(`\\b(${allNames.join('|')})\\b`, 'g');
+    return {
+        regex: new RegExp(`(${cat.pattern})`, cat.flags || 'gi'),
+        messageId: cat.messageId,
+    };
+});
 
 // Build messages object from categories
 const messages = Object.fromEntries(
-    TOKEN_CATEGORIES.map((cat) => [
-        cat.messageId,
-        `Raw ${cat.messageId.replace('raw', '').replace(/([A-Z])/g, ' $1').trim().toLowerCase()} "{{name}}" found in string literal. Use \`\${${cat.helper}}\` in a template literal, so the text can be rendered correctly on the client side (with icons, styling, etc).`,
-    ])
+    TOKEN_CATEGORIES.map((cat) => [cat.messageId, cat.message])
 );
 
 /** @type {import('eslint').Rule.RuleModule} */
@@ -45,16 +58,16 @@ export default {
     },
     create(context) {
         function checkForTokenText(node, value) {
-            combinedPattern.lastIndex = 0;
-            let match;
-            while ((match = combinedPattern.exec(value)) !== null) {
-                const name = match[1];
-                const category = nameToCategory.get(name);
-                context.report({
-                    node,
-                    messageId: category.messageId,
-                    data: { name },
-                });
+            for (const category of compiledCategories) {
+                category.regex.lastIndex = 0;
+                let match;
+                while ((match = category.regex.exec(value)) !== null) {
+                    context.report({
+                        node,
+                        messageId: category.messageId,
+                        data: { match: match[1] },
+                    });
+                }
             }
         }
 
