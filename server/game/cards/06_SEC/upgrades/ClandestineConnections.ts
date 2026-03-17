@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ClandestineConnections extends UpgradeCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ClandestineConnections extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addGainOnAttackAbilityTargetingAttached({
-            title: 'Pay 2 resources to deal 2 damage to a base',
+            title: `Pay ${TextHelper.resource(2)} to deal 2 damage to a base`,
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 target: context.player,

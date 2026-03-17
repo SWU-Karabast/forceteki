@@ -5,6 +5,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { GameStateChangeRequired, KeywordName, PlayType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import type { ICardTargetResolver } from '../../../TargetInterfaces';
 
@@ -45,7 +46,7 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control.',
+            title: `Play a card using Smuggle. It costs ${TextHelper.resource(2)} less. Defeat a resource you own and control.`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: this.buildSmuggleCardAbility(AbilityHelper),
             then: this.buildDefeatResourceAbility(AbilityHelper)
@@ -54,7 +55,7 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control. Use this ability only once each round',
+            title: `Play a card using Smuggle. It costs ${TextHelper.resource(2)} less. Defeat a resource you own and control. Use this ability only once each round`,
             limit: AbilityHelper.limit.perRound(1),
             targetResolver: this.buildSmuggleCardAbility(AbilityHelper),
             then: this.buildDefeatResourceAbility(AbilityHelper)

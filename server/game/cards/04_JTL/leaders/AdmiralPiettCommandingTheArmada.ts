@@ -3,6 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a Capital Ship unit from your hand. It costs 1 resource less',
+            title: `Play a Capital Ship unit from your hand. It costs ${TextHelper.resource(1)} less`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 activePromptTitle: 'Choose a Capital Ship',
@@ -31,7 +32,7 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each Capital Ship unit you play costs 2 resources less',
+            title: `Each Capital Ship unit you play costs ${TextHelper.resource(2)} less`,
             targetController: RelativePlayer.Self,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 match: (card) => card.hasSomeTrait(Trait.CapitalShip),
