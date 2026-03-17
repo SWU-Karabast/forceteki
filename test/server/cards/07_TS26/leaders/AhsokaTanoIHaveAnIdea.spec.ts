@@ -23,12 +23,12 @@ describe('Ahsoka Tano, I Have an Idea', function () {
                 context.player1.clickCard(context.repair);
                 context.player1.clickCard(context.yoda);
 
-                expect(context.player1).toHavePassAbilityPrompt('Look at the top card of your deck');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust Ahsoka Tano to look at the top card of your deck');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.ahsokaTano.exhausted).toBeTrue();
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.wampa]);
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave on top']);
 
                 context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'play');
 
@@ -131,7 +131,7 @@ describe('Ahsoka Tano, I Have an Idea', function () {
                 context.player1.clickCard(context.ahsokaTano);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 1 less', 'Discard it', 'Leave on top']);
 
                 context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'play');
 
@@ -146,7 +146,7 @@ describe('Ahsoka Tano, I Have an Idea', function () {
                 context.player1.clickCard(context.atst);
 
                 expect(context.ahsokaTano).toBeInZone('base');
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 1 less', 'Discard it', 'Leave on top']);
 
                 context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'play');
 
@@ -214,7 +214,7 @@ describe('Ahsoka Tano, I Have an Idea', function () {
             context.player1.clickCard(context.repair);
             context.player1.clickCard(context.wampa);
 
-            expect(context.player1).toHavePassAbilityPrompt('Look at the top card of your deck');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust Ahsoka Tano to look at the top card of your deck');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();

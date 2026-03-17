@@ -17,7 +17,7 @@ export default class AhsokaTanoIHaveAnIdea extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.addTriggeredAbility({
-            title: 'Look at the top card of your deck',
+            title: 'Exhaust Ahsoka Tano to look at the top card of your deck',
             when: {
                 onCardPlayed: (event, context) => event.card.isEvent() && event.player === context.player
             },
@@ -45,7 +45,7 @@ export default class AhsokaTanoIHaveAnIdea extends LeaderUnitCard {
                                 immediateEffect: abilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
                             },
                             {
-                                text: 'Leave it on top of your deck',
+                                text: 'Leave on top',
                                 arg: 'leave',
                                 immediateEffect: abilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                             }
@@ -66,7 +66,7 @@ export default class AhsokaTanoIHaveAnIdea extends LeaderUnitCard {
                     target: topCardOfDeck,
                     perCardButtons: [
                         {
-                            text: 'Play it',
+                            text: 'Play for 1 less',
                             arg: 'play',
                             immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({
                                 target: topCardOfDeck,
@@ -80,7 +80,7 @@ export default class AhsokaTanoIHaveAnIdea extends LeaderUnitCard {
                             immediateEffect: abilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
                         },
                         {
-                            text: 'Leave it on top of your deck',
+                            text: 'Leave on top',
                             arg: 'leave',
                             immediateEffect: abilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                         }

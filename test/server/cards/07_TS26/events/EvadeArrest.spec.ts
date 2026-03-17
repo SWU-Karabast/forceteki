@@ -34,11 +34,14 @@ describe('Evade Arrest', function() {
                 context.player1.clickCard(context.tieFighter);
                 context.player1.clickPrompt('Done');
 
+                // non-unique units
                 expect(context.atst.exhausted).toBeTrue();
                 expect(context.tieFighter.exhausted).toBeTrue();
+                expect(context.wampa.exhausted).toBeTrue();
+
+                // not selected units or unique units
                 expect(context.battlefieldMarine.exhausted).toBeFalse();
                 expect(context.cartelSpacer.exhausted).toBeFalse();
-                expect(context.wampa.exhausted).toBeTrue();
                 expect(context.yoda.exhausted).toBeFalse();
             });
 
@@ -54,11 +57,14 @@ describe('Evade Arrest', function() {
                 context.player1.clickCard(context.tieFighter);
                 context.player1.clickPrompt('Done');
 
+                // non-unique units
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
                 expect(context.cartelSpacer.exhausted).toBeTrue();
                 expect(context.atst.exhausted).toBeTrue();
                 expect(context.tieFighter.exhausted).toBeTrue();
                 expect(context.wampa.exhausted).toBeTrue();
+
+                // unique unit
                 expect(context.yoda.exhausted).toBeFalse();
             });
 
