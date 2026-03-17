@@ -8,7 +8,7 @@ import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, Wildc
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../IDamageOrDefeatSource';

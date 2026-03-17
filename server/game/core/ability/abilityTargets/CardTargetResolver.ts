@@ -8,7 +8,7 @@ import type { Card } from '../../card/Card';
 import type { RelativePlayer, ZoneFilter, ZoneName } from '../../Constants';
 import { EffectName, GameStateChangeRequired, Stage, TargetMode } from '../../Constants';
 import type { Player } from '../../Player';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
 import * as EnumHelpers from '../../utils/EnumHelpers.js';
 import type { GameSystem } from '../../gameSystem/GameSystem';

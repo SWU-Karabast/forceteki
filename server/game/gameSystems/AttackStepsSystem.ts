@@ -18,7 +18,7 @@ import type { Card } from '../core/card/Card';
 import { isArray } from 'underscore';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { IAttackableCard } from '../core/card/CardInterfaces';

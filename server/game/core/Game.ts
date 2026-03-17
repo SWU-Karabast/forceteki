@@ -19,7 +19,7 @@ import { GameEvent } from './event/GameEvent';
 import { EventWindow, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
-import * as Contract from './utils/Contract';
+import { Contract } from './utils/Contract';
 import { cards } from '../cards/Index';
 
 import {

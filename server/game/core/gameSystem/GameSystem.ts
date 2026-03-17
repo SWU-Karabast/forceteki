@@ -6,7 +6,7 @@ import { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player';
 import * as Helpers from '../utils/Helpers';
 import { TriggerHandlingMode } from '../event/EventWindow';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { GameObject } from '../GameObject';
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 import type { MsgArg } from '../chat/GameChat';

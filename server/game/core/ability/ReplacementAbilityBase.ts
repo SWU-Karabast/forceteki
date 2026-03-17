@@ -6,7 +6,7 @@ import { TriggeredAbilityBase } from './TriggeredAbility';
 import type { Player } from '../Player';
 import { ReplacementEffectContext } from './ReplacementEffectContext';
 import type { AbilityContext } from './AbilityContext';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { isFunction } from 'underscore';

@@ -16,7 +16,7 @@ import { CostAdjustType } from '../../cost/CostAdjuster';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
 import { Card } from '../Card';

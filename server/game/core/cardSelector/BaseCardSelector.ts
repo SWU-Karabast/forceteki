@@ -4,7 +4,7 @@ import type { CardTypeFilter, RelativePlayerFilter, TargetMode, ZoneFilter } fro
 import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, WildcardCardType, CardType } from '../Constants';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
 

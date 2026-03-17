@@ -1,7 +1,7 @@
 /* global describe, beforeEach, jasmine */
 /* eslint camelcase: 0, no-invalid-this: 0 */
 
-const Contract = require('../../server/game/core/utils/Contract.js');
+const { Contract } = require('../../server/game/core/utils/Contract.js');
 const TestSetupError = require('./TestSetupError.js');
 const { formatPrompt } = require('./Util.js');
 

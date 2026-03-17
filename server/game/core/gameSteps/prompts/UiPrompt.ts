@@ -1,7 +1,7 @@
 import { v1 as uuid } from 'uuid';
 import type { Player } from '../../Player';
 import { BaseStep } from '../BaseStep';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Helpers from '../../utils/Helpers';
 import type { IButton } from '../PromptInterfaces';

@@ -1,6 +1,6 @@
 import { AbilityRestriction, EffectName, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
 import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction.js';
-import * as Contract from '../core/utils/Contract.js';
+import { Contract } from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import { AbilityResolver } from '../core/gameSteps/AbilityResolver.js';

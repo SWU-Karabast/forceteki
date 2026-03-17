@@ -7,7 +7,7 @@ import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import { EventName } from '../../Constants';
 import { MetaEventName } from '../../Constants';
 import { RelativePlayer, TargetMode } from '../../Constants';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
 import { isArray } from 'underscore';

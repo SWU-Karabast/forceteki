@@ -9,7 +9,7 @@ import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, Tar
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { Player } from '../../Player';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import * as Helpers from '../../utils/Helpers';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';

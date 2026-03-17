@@ -5,7 +5,7 @@ import type { IDeckListForLoading } from '../../utils/deck/DeckInterfaces';
 import type { CostAdjuster } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
-import * as Contract from './utils/Contract';
+import { Contract } from './utils/Contract';
 import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
 import {
     AlertType,

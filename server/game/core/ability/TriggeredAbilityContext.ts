@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
 import type { TriggeredAbilityBase } from './TriggeredAbility';
 

@@ -7,7 +7,7 @@ import { GameSystem as GameSystem } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { GameObject } from '../GameObject';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { IPlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';

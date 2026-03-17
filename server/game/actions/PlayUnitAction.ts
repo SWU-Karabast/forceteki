@@ -3,7 +3,7 @@ import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction.j
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
-import * as Contract from '../core/utils/Contract.js';
+import { Contract } from '../core/utils/Contract.js';
 import type { Card } from '../core/card/Card.js';
 import type { Game } from '../core/Game';
 import type { FormatMessage } from '../core/chat/GameChat.js';

@@ -4,7 +4,7 @@ import { MetaEventName } from '../core/Constants';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import { DamageSystem } from './DamageSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
 import * as ChatHelpers from '../core/chat/ChatHelpers';

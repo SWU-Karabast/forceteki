@@ -6,7 +6,7 @@ import type { GameObject } from '../core/GameObject';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 
 export interface IReplacementEffectSystemProperties<TContext extends TriggeredAbilityContext> extends IGameSystemProperties {

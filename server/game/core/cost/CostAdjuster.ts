@@ -5,7 +5,7 @@ import type { Aspect, CardTypeFilter } from '../Constants';
 import { CardType, PlayType, Stage, WildcardCardType } from '../Constants';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
-import * as Contract from '../../core/utils/Contract';
+import { Contract } from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IGameObjectBaseState } from '../GameObjectBase';

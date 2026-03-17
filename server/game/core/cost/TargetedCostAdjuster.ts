@@ -8,7 +8,7 @@ import { GameEvent } from '../event/GameEvent';
 import type { Game } from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import type { ITargetedCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';

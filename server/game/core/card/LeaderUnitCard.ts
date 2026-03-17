@@ -7,7 +7,7 @@ import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
 import * as Helpers from '../utils/Helpers';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import { EpicActionLimit } from '../ability/AbilityLimit';
 import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 import type { ActionAbilityBase } from '../ability/ActionAbility';

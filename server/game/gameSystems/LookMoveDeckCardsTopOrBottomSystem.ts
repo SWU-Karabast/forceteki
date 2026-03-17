@@ -5,7 +5,7 @@ import { GameStateChangeRequired } from '../core/Constants';
 import { EventName, DeckZoneDestination } from '../core/Constants';
 import { LookAtSystem } from './LookAtSystem';
 import { MoveCardSystem } from './MoveCardSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';

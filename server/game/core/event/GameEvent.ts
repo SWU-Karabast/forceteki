@@ -1,5 +1,5 @@
 import { EventName, MetaEventName } from '../Constants';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { EventWindow } from './EventWindow';
 import type { AbilityContext } from '../ability/AbilityContext';

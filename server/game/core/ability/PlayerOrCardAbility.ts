@@ -2,7 +2,7 @@ import { CardTargetResolver } from './abilityTargets/CardTargetResolver.js';
 import { SelectTargetResolver } from './abilityTargets/SelectTargetResolver.js';
 import type { RelativePlayerFilter } from '../Constants.js';
 import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck, GameStateChangeRequired } from '../Constants.js';
-import * as Contract from '../utils/Contract.js';
+import { Contract } from '../utils/Contract.js';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
 import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetResolver.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';

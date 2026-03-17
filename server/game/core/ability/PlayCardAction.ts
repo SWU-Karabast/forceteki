@@ -9,7 +9,7 @@ import { PlayerAction } from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjustType, type CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
 import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';

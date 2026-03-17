@@ -9,7 +9,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { DistributePromptType, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults } from '../core/gameSteps/PromptInterfaces';
 import type { DamageSystem } from './DamageSystem';
 import type { HealSystem } from './HealSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 import type { GiveExperienceSystem } from './GiveExperienceSystem';
 import type { FormatMessage } from '../core/chat/GameChat';

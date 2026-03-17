@@ -2,7 +2,7 @@ import type { Player } from '../../Player';
 import type { GameEvent } from '../../event/GameEvent';
 import type { EventWindow } from '../../event/EventWindow';
 import { AbilityType, SubStepCheck } from '../../Constants';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import type { Card } from '../../card/Card';

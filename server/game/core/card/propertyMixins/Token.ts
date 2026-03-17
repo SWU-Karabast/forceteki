@@ -1,5 +1,5 @@
 import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import { ZoneName } from '../../Constants';
 import type { IPlayableCard } from '../baseClasses/PlayableOrDeployableCard';
 import { registerStateBase } from '../../GameObjectUtils';

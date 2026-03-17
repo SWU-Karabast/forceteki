@@ -12,7 +12,7 @@ import { ActionAbility } from '../ability/ActionAbility';
 import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
 import { OngoingEffectSourceBase } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { ChatObjectType, KeywordName, WildcardRelativePlayer } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';

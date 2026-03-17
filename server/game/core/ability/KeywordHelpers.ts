@@ -2,7 +2,7 @@ import type { IKeywordProperties, KeywordNameOrProperties } from '../../Interfac
 import type { Card } from '../card/Card';
 import type { PlayType } from '../Constants';
 import { Aspect, KeywordName } from '../Constants';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';

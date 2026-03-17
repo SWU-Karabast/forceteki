@@ -1,7 +1,7 @@
 import { AllPlayerPrompt } from './AllPlayerPrompt';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import type { Game } from '../../Game';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 import { DeckZoneDestination, EffectName } from '../../Constants';
 import { TriggerHandlingMode } from '../../event/EventWindow';

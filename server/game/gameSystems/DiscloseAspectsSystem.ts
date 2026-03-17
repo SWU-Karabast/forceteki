@@ -7,7 +7,7 @@ import { RevealSystem } from './RevealSystem';
 import { SelectCardSystem } from './SelectCardSystem';
 import { ViewCardInteractMode } from './ViewCardSystem';
 import * as Helpers from '../core/utils/Helpers';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';

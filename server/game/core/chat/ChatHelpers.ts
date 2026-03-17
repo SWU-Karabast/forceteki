@@ -4,7 +4,7 @@ import { ZoneName } from '../Constants';
 import type { IGameSystemProperties } from '../gameSystem/GameSystem';
 import type { FormatMessage, MsgArg } from './GameChat';
 import * as Helpers from '../utils/Helpers';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 
 export function formatWithLength(length: number, prefix: string = ''): string {
     if (length === 0) {

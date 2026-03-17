@@ -2,7 +2,7 @@ import { OngoingEffect } from './OngoingEffect';
 import type { CardTypeFilter, ZoneFilter } from '../Constants';
 import { RelativePlayer, WildcardZoneName, WildcardCardType, EffectName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import type { Game } from '../Game';
 import type { Card } from '../card/Card';

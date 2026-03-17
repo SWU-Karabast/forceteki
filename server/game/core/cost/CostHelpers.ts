@@ -1,5 +1,5 @@
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { CostAdjustStage } from './CostInterfaces';
 

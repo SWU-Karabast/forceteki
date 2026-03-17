@@ -2,7 +2,7 @@ import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
 import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, PlayType } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
-import * as Contract from '../utils/Contract.js';
+import { Contract } from '../utils/Contract.js';
 import type { Card } from '../card/Card.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { GameEvent } from '../event/GameEvent.js';

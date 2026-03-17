@@ -1,7 +1,7 @@
 import type { IActionAbilityProps } from '../../../Interfaces';
 import type { ActionAbilityBase } from '../../ability/ActionAbility';
 import type { Card, CardConstructor } from '../Card';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import { registerStateBase } from '../../GameObjectUtils';
 
 export interface IActionAbilityRegistrar<T extends Card> {

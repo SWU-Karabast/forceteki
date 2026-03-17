@@ -3,7 +3,7 @@ import type { CardTypeFilter } from '../Constants';
 import type { Aspect } from '../Constants';
 import type { IRandomness } from '../Randomness';
 import { CardType, ZoneName } from '../Constants';
-import * as Contract from './Contract';
+import { Contract } from './Contract';
 import * as EnumHelpers from './EnumHelpers';
 import type { Game } from '../Game';
 import type { ISerializationError } from '../../Interfaces';
