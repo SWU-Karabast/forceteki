@@ -69,6 +69,33 @@ describe('Zeb Orrelios, Spectre Four', function () {
 
                 expect(context.atst.damage).toBe(5);
             });
+
+            it('deals 5 damage if you control a enemy Cunning unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['zeb-orrelios#spectre-four'],
+                        spaceArena: ['awing']
+                    },
+                    player2: {
+                        hand: ['galen-erso#destroying-his-creation'],
+                        groundArena: ['atst'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.galenErso);
+                context.player2.clickPrompt('Trigger');
+
+                context.player1.clickCard(context.zebOrrelios);
+                expect(context.player1).toHavePrompt('Deal 5 damage to a ground unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios, context.galenErso, context.atst]);
+                context.player1.clickCard(context.galenErso);
+
+                expect(context.galenErso).toBeInZone('discard', context.player2);
+            });
         });
     });
 });
