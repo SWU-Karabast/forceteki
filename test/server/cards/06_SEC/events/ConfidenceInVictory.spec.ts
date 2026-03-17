@@ -97,8 +97,8 @@ describe('Confidence in Victory', function() {
 
                 // P1 uses Bib Fortuna to play an Event from their hand
                 context.player1.clickCard(context.bibFortuna);
-                expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play an event from your hand. It costs 1 less.']);
-                context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+                expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play an event from your hand. It costs 1 resource less.']);
+                context.player1.clickPrompt('Play an event from your hand. It costs 1 resource less.');
                 expect(context.player1).toHavePrompt('Choose an event');
                 expect(context.player1).toBeAbleToSelectExactly([
                     // Confidence in Victory cannot be played this way

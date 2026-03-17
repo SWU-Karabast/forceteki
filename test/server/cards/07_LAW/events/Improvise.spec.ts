@@ -29,7 +29,7 @@ describe('Improvise', function() {
                 context.player1.clickCard(context.improvise);
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.momentOfPeace]);
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it (it costs 1 less)', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it for 1 resource less', 'Discard it', 'Leave it on top of your deck']);
 
                 // Leave it on top of the deck
                 const beforeActionDeck = context.player1.deck;
@@ -65,7 +65,7 @@ describe('Improvise', function() {
 
                 context.player1.clickCard(context.improvise);
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.momentOfPeace]);
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it (it costs 1 less)', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it for 1 resource less', 'Discard it', 'Leave it on top of your deck']);
 
                 context.player1.clickDisplayCardPromptButton(context.momentOfPeace.uuid, 'discard');
                 expect(context.momentOfPeace).toBeInZone('discard');
@@ -101,7 +101,7 @@ describe('Improvise', function() {
                 context.player1.clickCard(context.improvise);
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.wampa]);
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it (it costs 1 less)', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it for 1 resource less', 'Discard it', 'Leave it on top of your deck']);
                 expect(context.getChatLogs(1)).not.toContain('Wampa');
 
                 context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'play');
