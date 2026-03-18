@@ -54,11 +54,9 @@ export class DeltaTracker {
             this.changedFields.set(go.uuid, goEntry);
         }
 
-        if (!(fieldName in goEntry)) {
-            // @ts-expect-error Overriding state accessibility
-            const currentValue = go.state[fieldName];
-            goEntry[fieldName] = this.snapshotValue(currentValue);
-        }
+        // @ts-expect-error Overriding state accessibility
+        const currentValue = go.state[fieldName];
+        goEntry[fieldName] = this.snapshotValue(currentValue);
     }
 
     public recordObjectCreation(uuid: string): void {
