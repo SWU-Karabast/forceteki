@@ -7,9 +7,9 @@ import type { Game } from '../Game';
 import { CardAbilityStep } from './CardAbilityStep';
 import type { AbilityContext } from './AbilityContext';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
-@registerState()
+@registerStateBase()
 export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;

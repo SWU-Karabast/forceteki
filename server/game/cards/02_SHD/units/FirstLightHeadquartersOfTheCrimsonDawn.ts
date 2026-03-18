@@ -1,5 +1,5 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { PlayUnitAction } from '../../../actions/PlayUnitAction';
+import { PlayUnitActionBase } from '../../../actions/PlayUnitAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
@@ -36,7 +36,7 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
 }
 
 @registerState()
-class FirstLightSmuggleAction extends PlayUnitAction {
+class FirstLightSmuggleAction extends PlayUnitActionBase {
     private abilityHelper: IAbilityHelper;
 
     private static generateProperties(AbilityHelper: IAbilityHelper, properties: IPlayCardActionOverrides = {}): IPlayCardActionProperties {

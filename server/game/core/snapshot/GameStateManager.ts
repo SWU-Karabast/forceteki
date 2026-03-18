@@ -1,5 +1,5 @@
 import type { Game } from '../Game';
-import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
 import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
@@ -8,14 +8,15 @@ import { copyState } from '../GameObjectUtils';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
+import type { GameObjectId } from '../GameObjectUtils';
 
 export interface IGameObjectRegistrar {
     readonly lastGameObjectId: number;
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
-    get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null;
+    get<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null;
 
-    /** Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
-    getUnsafe<T extends GameObjectBase>(uuid: string): T;
+    /** @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
+    getUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T;
 
     /**
      * Creates a {@link GameObjectBase} object that is not allowed to have references.
@@ -46,13 +47,13 @@ export class GameStateManager implements IGameObjectRegistrar {
         this.#game = game;
     }
 
-    public get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null {
-        if (!gameObjectRef?.uuid) {
+    public get<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null {
+        if (!gameObjectId) {
             return null;
         }
 
-        const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
-        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
+        const ref = this.gameObjectMapping.get(gameObjectId);
+        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectId}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
@@ -64,7 +65,7 @@ export class GameStateManager implements IGameObjectRegistrar {
     }
 
     /** Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
-    public getUnsafe<T extends GameObjectBase>(uuid: string): T {
+    public getUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T {
         const ref = this.gameObjectMapping.get(uuid);
         const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
         try {
@@ -162,13 +163,17 @@ export class GameStateManager implements IGameObjectRegistrar {
                         throw new Error(`GameObject ${go.getGameObjectName()} (UUID: ${go.uuid}, Type: ${go.constructor.name}) is not initialized during rollback. This should not be possible.`);
                     }
 
+                    // Rollback swaps the entire state object reference, so retaining the previous object here is safe
+                    // and avoids a structuredClone for every updated or removed GameObject.
+                    const oldState = go.getStateUnsafe();
+
                     const updatedState = snapshotStatesByUuid[go.uuid];
                     if (!updatedState) {
-                        removals.push({ index: i, go, oldState: go.getState() });
+                        removals.push({ index: i, go, oldState });
                         continue;
                     }
 
-                    updates.push({ go, oldState: go.getState() });
+                    updates.push({ go, oldState });
                     go.setState(updatedState);
                 }
 
@@ -198,8 +203,11 @@ export class GameStateManager implements IGameObjectRegistrar {
             }
 
             // Remove GOs that hadn't yet been created by this point.
-            // Use filter for efficient removal instead of multiple splice operations
-            const removalIndexSet = new Set(removals.map((r) => r.index));
+            // Rebuild the list once without allocating an intermediate index list or cloning state objects.
+            const removalIndexSet = new Set<number>();
+            for (const removed of removals) {
+                removalIndexSet.add(removed.index);
+            }
             this.allGameObjects = this.allGameObjects.filter((_, index) => !removalIndexSet.has(index));
 
             for (const removed of removals) {

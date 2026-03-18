@@ -1,6 +1,6 @@
 import { lstatSync, readdirSync } from 'fs';
 import { join, sep } from 'path';
-import { registerStateClassMarker } from '../core/GameObjectUtils';
+import { buildAutoInitializingCardClass } from '../core/GameObjectUtils';
 
 function allJsFiles(path: string): string[] {
     const files = [];
@@ -19,37 +19,6 @@ function allJsFiles(path: string): string[] {
         }
     }
     return files;
-}
-
-/**
- * Mirrors the wrapper pattern used in registerState() in GameObjectUtils.ts.
- * We dynamically import card classes, then return a named subclass wrapper that:
- * 1) preserves the original class name for diagnostics/lookup behavior,
- * 2) guarantees initialize() has run before the instance is used, and
- * 3) marks the runtime constructor with registerStateClassMarker so state-class checks
- *    operate on the constructed wrapper class (not only the original imported class).
- */
-function buildAutoInitializingCardClass(targetCardClass: any): any {
-    const wrappedClass: any = {
-        [targetCardClass.name]: class extends targetCardClass {
-            public constructor(...args: any[]) {
-                super(...args);
-
-                if (!this.initialized) {
-                    this.initialize();
-                }
-            }
-        }
-    }[targetCardClass.name];
-
-    Object.defineProperty(wrappedClass, registerStateClassMarker, {
-        value: true,
-        writable: false,
-        enumerable: false,
-        configurable: false
-    });
-
-    return wrappedClass;
 }
 
 // card.name

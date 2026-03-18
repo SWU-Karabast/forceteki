@@ -1,5 +1,5 @@
 import { EffectName } from '../../Constants';
-import { registerState } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';
@@ -14,7 +14,7 @@ export interface ICardWithPrintedHpProperty extends Card {
  * Note that this _does not_ add the damage property. See {@link WithDamage} for that.
  */
 export function WithPrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    @registerState()
+    @registerStateBase()
     class WithPrintedHp extends BaseClass implements ICardWithPrintedHpProperty {
         public readonly printedHp: number;
 

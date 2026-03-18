@@ -1,5 +1,5 @@
 import type Shield from '../../cards/01_SOR/tokens/Shield';
-import TriggeredAbility from '../../core/ability/TriggeredAbility';
+import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { Attack } from '../../core/attack/Attack';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
@@ -11,7 +11,7 @@ import type { ITriggeredAbilityProps } from '../../Interfaces';
 import { registerState } from '../../core/GameObjectUtils';
 
 @registerState()
-export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
+export class SaboteurDefeatShieldsAbility extends TriggeredAbilityBase {
     public readonly keyword: KeywordName = KeywordName.Saboteur;
 
     public static buildSaboteurAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {

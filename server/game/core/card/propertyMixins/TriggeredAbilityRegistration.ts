@@ -1,13 +1,13 @@
 import type { IDamageModificationAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
-import type TriggeredAbility from '../../ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 import DamageModificationAbility from '../../ability/DamageModificationAbility';
-import { registerState } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 
 export interface ITriggeredAbilityRegistrar<T extends Card> {
-    addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbility;
+    addTriggeredAbility(properties: ITriggeredAbilityProps<T>): TriggeredAbilityBase;
     addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): ReplacementEffectAbility;
     addDamageModificationAbility(properties: IDamageModificationAbilityProps<T>): DamageModificationAbility;
     addGainedTriggeredAbility(properties: ITriggeredAbilityProps<T>): string;
@@ -19,7 +19,7 @@ export interface ICardWithTriggeredAbilities<T extends Card> {
     addGainedTriggeredAbility(properties: ITriggeredAbilityProps<T>): string;
     addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps<T>): string;
     addGainedDamageModificationAbility(properties: IDamageModificationAbilityProps<T>): string;
-    getTriggeredAbilities(): TriggeredAbility[];
+    getTriggeredAbilities(): TriggeredAbilityBase[];
     removeGainedTriggeredAbility(removeAbilityUuid: string): void;
     removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
     removeGainedDamageModificationAbility(removeAbilityUuid: string): void;
@@ -28,28 +28,28 @@ export interface ICardWithTriggeredAbilities<T extends Card> {
 
 /** Mixin function that adds the ability to register triggered abilities to a base card class. */
 export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    @registerState()
+    @registerStateBase()
     class WithTriggeredAbilities extends BaseClass {
         /**
          * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
          * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
          * “When Defeated,” and “On Attack” abilities
          */
-        public getTriggeredAbilities(): TriggeredAbility[] {
+        public getTriggeredAbilities(): TriggeredAbilityBase[] {
             if (this.isFullyBlanked()) {
                 return [];
             }
 
-            return this.triggeredAbilities as TriggeredAbility[];
+            return this.triggeredAbilities as TriggeredAbilityBase[];
         }
 
         public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities<this> {
             return true;
         }
 
-        private addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
+        private addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbilityBase {
             const ability = this.createTriggeredAbility({ ...properties, printedAbility: true });
-            this.triggeredAbilities.push(ability);
+            this.triggeredAbilities = [...this.triggeredAbilities, ability];
             return ability;
         }
 
@@ -73,7 +73,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
             const ability = this.createReplacementEffectAbility({ ...properties, printedAbility: true });
 
             // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
-            this.triggeredAbilities.push(ability);
+            this.triggeredAbilities = [...this.triggeredAbilities, ability];
 
             return ability;
         }
@@ -86,7 +86,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
             const ability = this.createDamageModificationAbility({ ...properties, printedAbility: true });
 
             // for initialization and tracking purposes, a DamageModification is basically a Triggered ability
-            this.triggeredAbilities.push(ability);
+            this.triggeredAbilities = [...this.triggeredAbilities, ability];
 
             return ability;
         }
@@ -103,7 +103,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
          */
         public addGainedTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): string {
             const addedAbility = this.createTriggeredAbility(properties);
-            this.triggeredAbilities.push(addedAbility);
+            this.triggeredAbilities = [...this.triggeredAbilities, addedAbility];
             addedAbility.registerEvents();
 
             return addedAbility.uuid;
@@ -116,7 +116,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
          */
         public addGainedReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): string {
             const addedAbility = this.createReplacementEffectAbility(properties);
-            this.triggeredAbilities.push(addedAbility);
+            this.triggeredAbilities = [...this.triggeredAbilities, addedAbility];
             addedAbility.registerEvents();
 
             return addedAbility.uuid;
@@ -129,7 +129,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
          */
         public addGainedDamageModificationAbility<TSource extends Card = this>(properties: IDamageModificationAbilityProps<TSource>): string {
             const addedAbility = this.createDamageModificationAbility({ ...properties });
-            this.triggeredAbilities.push(addedAbility);
+            this.triggeredAbilities = [...this.triggeredAbilities, addedAbility];
             addedAbility.registerEvents();
 
             return addedAbility.uuid;
@@ -153,8 +153,8 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
         }
 
         public removeTriggeredAbility(removeAbilityUuid: string, printedAbility: boolean): void {
-            let abilityToRemove: TriggeredAbility = null;
-            const remainingAbilities: TriggeredAbility[] = [];
+            let abilityToRemove: TriggeredAbilityBase = null;
+            const remainingAbilities: TriggeredAbilityBase[] = [];
 
             for (const triggeredAbility of this.triggeredAbilities) {
                 if (triggeredAbility.uuid === removeAbilityUuid && triggeredAbility.printedAbility === printedAbility) {

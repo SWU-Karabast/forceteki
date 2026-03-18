@@ -3,6 +3,8 @@ import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import { WithCost } from './propertyMixins/Cost';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityRestriction, CardType, EffectName, WildcardZoneName, ZoneName } from '../Constants';
+import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
+import type { AbilityContext } from '../ability/AbilityContext';
 import * as Contract from '../utils/Contract';
 import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
@@ -20,7 +22,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState, stateRef } from '../GameObjectUtils';
+import { registerStateBase, stateRef } from '../GameObjectUtils';
 
 const EventCardParent = WithCost(WithTriggeredAbilities(WithStandardAbilitySetup(PlayableOrDeployableCard)));
 
@@ -28,7 +30,7 @@ export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeCon
     getEventAbility(): EventAbility;
 }
 
-@registerState()
+@registerStateBase()
 export class EventCard extends EventCardParent implements IEventCard {
     @stateRef() private accessor eventAbility: EventAbility | null = null;
 
@@ -54,6 +56,10 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
         return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayEventAction(this.game, this, properties));
+    }
+
+    protected override getPlayRestriction(player: Player, context: AbilityContext): Restriction | null {
+        return PlayEventAction.getPlayRestriction(player, this, context);
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
@@ -140,7 +146,7 @@ export class EventCard extends EventCardParent implements IEventCard {
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
     private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void {
-        this.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
+        this.constantAbilities = [...this.constantAbilities, this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties))];
     }
 
     private addPlayRestrictionAbility(properties: IPlayRestrictionAbilityProps) {
@@ -154,7 +160,7 @@ export class EventCard extends EventCardParent implements IEventCard {
         });
 
         ability.registeredEffects = this.addEffectToEngine(ability);
-        this.constantAbilities.push(ability);
+        this.constantAbilities = [...this.constantAbilities, ability];
     }
 }
 

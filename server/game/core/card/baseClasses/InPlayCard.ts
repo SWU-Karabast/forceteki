@@ -3,7 +3,7 @@ import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatC
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { IAttachCardContext, IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type TriggeredAbility from '../../ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
@@ -25,7 +25,7 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
-import { registerState, stateRef, statePrimitive } from '../../GameObjectUtils';
+import { registerStateBase, stateRef, statePrimitive } from '../../GameObjectUtils';
 
 const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
@@ -60,7 +60,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 2. Defeat state management
  * 3. Uniqueness management
  */
-@registerState()
+@registerStateBase()
 export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private readonly _printedUpgradeHp: number;
     private readonly _printedUpgradePower: number;
@@ -323,12 +323,12 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         };
     }
 
-    private addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>, registrar: ITriggeredAbilityRegistrar<this>): TriggeredAbility {
+    private addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>, registrar: ITriggeredAbilityRegistrar<this>): TriggeredAbilityBase {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
         return registrar.addTriggeredAbility({ ...properties, when });
     }
 
-    private addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>, registrar: ITriggeredAbilityRegistrar<this>): TriggeredAbility {
+    private addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>, registrar: ITriggeredAbilityRegistrar<this>): TriggeredAbilityBase {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
         const triggeredProperties = Object.assign(properties, { when });
         return registrar.addTriggeredAbility(triggeredProperties);
@@ -375,7 +375,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         }
     }
 
-    protected override validateCardAbilities(abilities: TriggeredAbility[], cardText?: string) {
+    protected override validateCardAbilities(abilities: TriggeredAbilityBase[], cardText?: string) {
         if (!this.hasImplementationFile || cardText == null) {
             return;
         }

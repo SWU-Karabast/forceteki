@@ -34,6 +34,8 @@ describe('Premonition of Doom', function() {
             for (const unit of allUnits) {
                 expect(unit.exhausted).toBeTrue();
             }
+
+            expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Premonition of Doom to exhaust Wampa, AT-ST, The Zillo Beast, Grappling Guardian, and Devastator');
         });
 
         it('does not trigger if the opponent claims, and the effect expires at the end of the phase', function () {

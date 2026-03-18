@@ -7,13 +7,13 @@ import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IDoubleSidedLeaderAbilityRegistrar, ILeaderAbilityRegistrar } from './AbilityRegistrationInterfaces';
-import type { ActionAbility } from '../ability/ActionAbility';
+import type { ActionAbilityBase } from '../ability/ActionAbility';
 import type { Card } from './Card';
-import type TriggeredAbility from '../ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../ability/TriggeredAbility';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState } from '../GameObjectUtils';
+import { registerStateBase } from '../GameObjectUtils';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -22,7 +22,7 @@ export interface IDoubleSidedLeaderCard extends ILeaderCard {
     flipLeader(): void;
 }
 
-@registerState()
+@registerStateBase()
 export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implements IDoubleSidedLeaderCard {
     protected setupLeaderBackSide = false;
 
@@ -35,10 +35,6 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
 
         this.setupLeaderBackSide = true;
         this.setupLeaderBackSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
-    }
-
-    protected override setupDefaultState() {
-        super.setupDefaultState();
     }
 
     public get onStartingSide() {
@@ -96,7 +92,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         return { ...super.getSummary(activePlayer, overrideHidden), onStartingSide: this._onStartingSide };
     }
 
-    public override createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
+    public override createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbilityBase {
         return super.createActionAbility({
             ...properties,
             zoneFilter: ZoneName.Base,
@@ -112,7 +108,7 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         });
     }
 
-    protected override createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
+    protected override createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbilityBase {
         return super.createTriggeredAbility({
             ...properties,
             zoneFilter: ZoneName.Base,

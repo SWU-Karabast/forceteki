@@ -1,5 +1,5 @@
 import type { IKeywordProperties, KeywordNameOrProperties } from '../../../Interfaces';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import * as Helpers from '../../utils/Helpers';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import type { Card } from '../../card/Card';
@@ -9,7 +9,7 @@ import type { FormatMessage } from '../../chat/GameChat';
 import { registerState } from '../../GameObjectUtils';
 
 @registerState()
-export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | IKeywordProperties[]> {
+export class GainKeyword extends OngoingEffectValueWrapperBase<IKeywordProperties | IKeywordProperties[]> {
     public constructor(game: Game, keywordProps: KeywordNameOrProperties | KeywordNameOrProperties[]) {
         const effectDescription: FormatMessage = {
             format: 'give {0}',

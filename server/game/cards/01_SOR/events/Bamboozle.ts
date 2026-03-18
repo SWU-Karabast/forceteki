@@ -2,11 +2,12 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
-import { PlayEventAction } from '../../../actions/PlayEventAction';
+import { PlayEventActionBase } from '../../../actions/PlayEventAction';
 import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 import { registerState } from '../../../core/GameObjectUtils';
 
@@ -51,14 +52,14 @@ export default class Bamboozle extends EventCard {
 }
 
 @registerState()
-class PlayBamboozleAction extends PlayEventAction {
+class PlayBamboozleAction extends PlayEventActionBase {
     private abilityHelper: IAbilityHelper;
 
     private static generateProperties(card: Bamboozle, properties: IPlayCardActionProperties, AbilityHelper: IAbilityHelper) {
         const discardCost = AbilityHelper.costs.discardCardFromOwnHand({ cardCondition: (c) => c !== card && c.hasSomeAspect(Aspect.Cunning) });
 
         return {
-            title: 'Play Bamboozle by discarding a Cunning card',
+            title: `Play Bamboozle by discarding a ${TextHelper.Cunning} card`,
             costAdjusters: [CostAdjusterFactory.create(card.game, card, { costAdjustType: CostAdjustType.Free })],
             additionalCosts: [discardCost],
             ...properties,

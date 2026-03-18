@@ -10,18 +10,18 @@ import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { EpicActionLimit } from '../ability/AbilityLimit';
 import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
-import type { ActionAbility } from '../ability/ActionAbility';
+import type { ActionAbilityBase } from '../ability/ActionAbility';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from './AbilityRegistrationInterfaces';
-import type TriggeredAbility from '../ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../ability/TriggeredAbility';
 import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerState, stateRef } from '../GameObjectUtils';
+import { registerStateBase, stateRef } from '../GameObjectUtils';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
@@ -35,8 +35,8 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
     undeploy(): void;
 }
 
-@registerState()
-export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
+@registerStateBase()
+export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
 
     @stateRef()
@@ -48,7 +48,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         return this._deployEpicActionLimit;
     }
 
-    private deployEpicActions: ActionAbility[] = [];
+    private deployEpicActions: ActionAbilityBase[] = [];
 
     public get deployed() {
         return this._deployed;
@@ -151,7 +151,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 
     protected override getAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
-        const registrar = super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCardInternal>;
+        const registrar = super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCard>;
 
         return {
             ...registrar,
@@ -173,7 +173,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
     }
 
-    private addPilotDeploy(makeAttachedUnitALeader: boolean, registrar: IUnitAbilityRegistrar<LeaderUnitCardInternal>) {
+    private addPilotDeploy(makeAttachedUnitALeader: boolean, registrar: IUnitAbilityRegistrar<LeaderUnitCard>) {
         Contract.assertNotNullLike(this.printedUpgradeHp, `Leader ${this.title} is missing upgrade HP.`);
         Contract.assertNotNullLike(this.printedUpgradePower, `Leader ${this.title} is missing upgrade power.`);
 
@@ -204,7 +204,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         return this.addZoneForSideToAbilityWithType(properties);
     }
 
-    public override createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
+    public override createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbilityBase {
         if (properties.printedAbility) {
             properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
         }
@@ -228,7 +228,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         return super.createReplacementEffectAbility(properties);
     }
 
-    protected override createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
+    protected override createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbilityBase {
         if (properties.printedAbility) {
             properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
         }
@@ -237,7 +237,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 
     /** Generates the right zoneFilter property depending on which leader side we're setting up */
-    private addZoneForSideToAbilityWithType<Properties extends IAbilityPropsWithType<LeaderUnitCardInternal>>(properties: Properties) {
+    private addZoneForSideToAbilityWithType<Properties extends IAbilityPropsWithType<LeaderUnitCard>>(properties: Properties) {
         if (properties.type === AbilityType.Constant) {
             properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
         } else {
@@ -293,10 +293,3 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
             deployed: this.deployed };
     }
 }
-
-// STATE TODO: Once we've fully converted to decorators, this can be removed and LeaderUnitCardInternal can be renamed to LeaderUnitCard
-@registerState()
-export class LeaderUnitCard extends LeaderUnitCardInternal {
-    public declare state: never;
-}
-

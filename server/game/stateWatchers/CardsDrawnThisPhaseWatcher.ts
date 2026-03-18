@@ -5,13 +5,13 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
 import type { Game } from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { UnwrapRef } from '../core/GameObjectBase';
 
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface DrawnCardEntry {
-    player: GameObjectRef<Player>;
-    card: GameObjectRef<Card>;
+    player: GameObjectId<Player>;
+    card: GameObjectId<Card>;
 }
 
 @registerState()
@@ -23,7 +23,7 @@ export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry> {
     }
 
     protected override mapCurrentValue(stateValue: DrawnCardEntry[]): UnwrapRef<DrawnCardEntry[]> {
-        return stateValue.map((x) => ({ player: this.game.getFromRef(x.player), card: this.game.getFromRef(x.card) }));
+        return stateValue.map((x) => ({ player: this.game.getFromId(x.player), card: this.game.getFromId(x.card) }));
     }
 
     /**
@@ -49,14 +49,14 @@ export class CardsDrawnThisPhaseWatcher extends StateWatcher<DrawnCardEntry> {
                 if (event.cards != null && event.cards.length > 0) {
                     for (const card of event.cards) {
                         currentState = currentState.concat({
-                            player: event.player.getRef(),
-                            card: card.getRef(),
+                            player: event.player.getObjectId(),
+                            card: card.getObjectId(),
                         });
                     }
                     return currentState;
                 }
                 if (event.card != null) {
-                    return currentState.concat({ player: event.player.getRef(), card: event.card.getRef() });
+                    return currentState.concat({ player: event.player.getObjectId(), card: event.card.getObjectId() });
                 }
                 return currentState;
             }

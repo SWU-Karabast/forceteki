@@ -1,4 +1,4 @@
-import TriggeredAbility from '../../core/ability/TriggeredAbility';
+import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, PlayType, WildcardCardType, ZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
@@ -10,7 +10,7 @@ import type { ITriggeredAbilityProps } from '../../Interfaces';
 import { registerState } from '../../core/GameObjectUtils';
 
 @registerState()
-export class PlotAbility extends TriggeredAbility {
+export class PlotAbility extends TriggeredAbilityBase {
     public readonly keyword: KeywordName = KeywordName.Plot;
 
     public static buildPlotAbilityProperties<TSource extends Card = Card>(cardTitle: string): ITriggeredAbilityProps<TSource> {

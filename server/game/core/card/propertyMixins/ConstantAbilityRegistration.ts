@@ -4,7 +4,7 @@ import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
-import { registerState } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 
 export interface IConstantAbilityRegistrar<T extends Card> {
     addConstantAbility(properties: IConstantAbilityProps<T>): IConstantAbility;
@@ -19,7 +19,7 @@ export interface ICardWithConstantAbilities<T extends Card> {
 
 /** Mixin function that adds the ability to register constant abilities to a base card class. */
 export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    @registerState()
+    @registerStateBase()
     class WithConstantAbilities extends BaseClass {
         private addConstantAbility(properties: IConstantAbilityProps<this>): ConstantAbility {
             const ability = this.createConstantAbility({ ...properties, printedAbility: true });
@@ -27,7 +27,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseCl
             if (ability.sourceZoneFilter === WildcardZoneName.Any) {
                 ability.registeredEffects = this.addEffectToEngine(ability);
             }
-            this.constantAbilities.push(ability);
+            this.constantAbilities = [...this.constantAbilities, ability];
             return ability;
         }
 
@@ -55,7 +55,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseCl
              */
         public addGainedConstantAbility(properties: IConstantAbilityProps<this>): string {
             const addedAbility = this.createConstantAbility({ ...properties, printedAbility: false });
-            this.constantAbilities.push(addedAbility);
+            this.constantAbilities = [...this.constantAbilities, addedAbility];
             addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
 
             return addedAbility.uuid;

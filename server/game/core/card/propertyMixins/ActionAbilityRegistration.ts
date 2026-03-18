@@ -1,11 +1,11 @@
 import type { IActionAbilityProps } from '../../../Interfaces';
-import type { ActionAbility } from '../../ability/ActionAbility';
+import type { ActionAbilityBase } from '../../ability/ActionAbility';
 import type { Card, CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
-import { registerState } from '../../GameObjectUtils';
+import { registerStateBase } from '../../GameObjectUtils';
 
 export interface IActionAbilityRegistrar<T extends Card> {
-    addActionAbility(properties: IActionAbilityProps<T>): ActionAbility;
+    addActionAbility(properties: IActionAbilityProps<T>): ActionAbilityBase;
     addGainedActionAbility(properties: IActionAbilityProps<T>): string;
 }
 
@@ -17,11 +17,11 @@ export interface ICardWithActionAbilities<T extends Card> {
 
 /** Mixin function that adds the ability to register action abilities to a base card class. */
 export function WithActionAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    @registerState()
+    @registerStateBase()
     class WithActionAbilities extends BaseClass {
-        private addActionAbility(properties: IActionAbilityProps<this>): ActionAbility {
+        private addActionAbility(properties: IActionAbilityProps<this>): ActionAbilityBase {
             const ability = this.createActionAbility({ ...properties, printedAbility: true });
-            this.actionAbilities.push(ability);
+            this.actionAbilities = [...this.actionAbilities, ability];
             return ability;
         }
 
@@ -52,7 +52,7 @@ export function WithActionAbilities<TBaseClass extends CardConstructor>(BaseClas
         */
         public addGainedActionAbility(properties: IActionAbilityProps): string {
             const addedAbility = this.createActionAbility({ ...properties, printedAbility: false });
-            this.actionAbilities.push(addedAbility);
+            this.actionAbilities = [...this.actionAbilities, addedAbility];
 
             return addedAbility.uuid;
         }

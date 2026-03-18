@@ -3,11 +3,11 @@ import type { PhaseName } from '../../Constants';
 import type { Game } from '../../Game';
 import * as Helpers from '../../utils/Helpers';
 import * as Contract from '../../utils/Contract';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { registerState, stateRef, stateValue } from '../../GameObjectUtils';
 
 @registerState()
-export class AdditionalPhaseEffect extends OngoingEffectValueWrapper<AdditionalPhaseEffect> {
+export class AdditionalPhaseEffect extends OngoingEffectValueWrapperBase<AdditionalPhaseEffect> {
     public readonly phase: PhaseName;
 
     @stateValue()

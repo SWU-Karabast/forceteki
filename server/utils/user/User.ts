@@ -1,4 +1,4 @@
-import type { IModerationAction, IUserDataEntity, IUserPreferences } from '../../services/DynamoDBInterfaces';
+import type { IModerationAction, IUserDataEntity, IUserPreferences, ModerationFieldState } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -55,6 +55,10 @@ export abstract class User {
     public abstract toJSON(): Record<string, any>;
 
     public abstract needsUsernameChange(): boolean;
+
+    public abstract mustRequestUsernameChange(): ModerationFieldState | null;
+
+    public abstract reportingDisabled(): ModerationFieldState | null;
 
     /**
      * Gets the user's moderation status
@@ -122,6 +126,14 @@ export class AuthenticatedUser extends User {
         return !!this.userData.needsUsernameChange;
     }
 
+    public mustRequestUsernameChange(): ModerationFieldState | null {
+        return this.userData.mustRequestUsernameChange ?? null;
+    }
+
+    public reportingDisabled(): ModerationFieldState | null {
+        return this.userData.reportingDisabled ?? null;
+    }
+
     public getModeration(): IModerationAction | null {
         return this.userData.moderation ?? null;
     }
@@ -177,6 +189,14 @@ export class AnonymousUser extends User {
 
     public needsUsernameChange(): boolean {
         return false;
+    }
+
+    public mustRequestUsernameChange(): ModerationFieldState | null {
+        return null;
+    }
+
+    public reportingDisabled(): ModerationFieldState | null {
+        return null;
     }
 
     public getUsername(): string {

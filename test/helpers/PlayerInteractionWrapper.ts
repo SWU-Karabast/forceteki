@@ -581,7 +581,7 @@ export class PlayerInteractionWrapper {
             player = this.opponent;
         }
         return player.decklist.allCards.map(
-            (x: any) => this.game.getFromRef(x)
+            (x: any) => this.game.getFromId(x)
         ).filter(condition);
     }
 
