@@ -7,96 +7,7 @@ import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFail
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import * as Contract from '../../game/core/utils/Contract';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
-
-enum SwuSetId {
-    SOR = 'sor',
-    SHD = 'shd',
-    TWI = 'twi',
-    JTL = 'jtl',
-    LOF = 'lof',
-    IBH = 'ibh',
-    SEC = 'sec',
-    LAW = 'law',
-    TS26 = 'ts26'
-}
-
-enum BlockId {
-    Zero = '0',
-    A = 'A',
-    B = 'B'
-}
-
-interface ISwuSet {
-    id: SwuSetId;
-    released: boolean;
-    mainline: boolean;
-}
-
-interface INonRotatingSet extends ISwuSet {
-    legalFormats: Set<SwuGameFormat>;
-}
-
-interface IRotationBlock {
-    id: BlockId;
-    sets: ISwuSet[];
-}
-
-const rotationBlocks: IRotationBlock[] = [
-    {
-        id: BlockId.Zero,
-        sets: [
-            { id: SwuSetId.SOR, released: true, mainline: true },
-            { id: SwuSetId.SHD, released: true, mainline: true },
-            { id: SwuSetId.TWI, released: true, mainline: true }
-        ]
-    },
-    {
-        id: BlockId.A,
-        sets: [
-            { id: SwuSetId.JTL, released: true, mainline: true },
-            { id: SwuSetId.LOF, released: true, mainline: true },
-            { id: SwuSetId.IBH, released: true, mainline: false },
-            { id: SwuSetId.SEC, released: true, mainline: true }
-        ]
-    },
-    {
-        id: BlockId.B,
-        sets: [
-            { id: SwuSetId.LAW, released: true, mainline: true }
-        ]
-    },
-];
-
-const nonRotatingSets: INonRotatingSet[] = [
-    {
-        id: SwuSetId.TS26,
-        legalFormats: new Set([SwuGameFormat.Eternal]),
-        released: false,
-        mainline: false
-    },
-];
-
-interface IFormatRules {
-    minDeckSize: number;
-    maxCardCopies?: number;
-    bannedCards: Map<string, string>;
-    rotationBlockCount?: number;
-}
-
-const bannedPremierCards = new Map([
-    ['4626028465', 'boba-fett#collecting-the-bounty'],
-    ['4002861992', 'dj#blatant-thief'],
-    ['5696041568', 'triple-dark-raid'],
-    ['9155536481', 'jango-fett#concealing-the-conspiracy'],
-    ['1705806419', 'force-throw']
-]);
-
-const formatRules = new Map<SwuGameFormat, IFormatRules>([
-    [SwuGameFormat.Premier, { minDeckSize: 50, maxCardCopies: 3, rotationBlockCount: 2, bannedCards: bannedPremierCards }],
-    [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
-    [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
-    [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map() }],
-]);
+import { formatRules, nonRotatingSets, rotationBlocks, SwuSetId } from './SwuSetData';
 
 const maxCopiesOfCards = new Map([
     ['2177194044', 15], // Swarming Vulture Droid
@@ -287,9 +198,9 @@ export class DeckValidator {
     }
 
     // update this function if anything affects the sideboard count
-    public getMaxSideboardSize(format: SwuGameFormat): number {
-        // sideboard is only restricted in Premier and Eternal
-        if (format === SwuGameFormat.Open || format === SwuGameFormat.Limited) {
+    public getMaxSideboardSize(format: SwuGameFormat, cardPool: CardPool): number {
+        // Sideboard is only restricted in Premier and Eternal. We relax the restriction in Next Set mode.
+        if (format === SwuGameFormat.Open || format === SwuGameFormat.Limited || cardPool === CardPool.NextSet) {
             return -1;
         }
         return 10;
@@ -406,7 +317,7 @@ export class DeckValidator {
                 };
             }
 
-            this.checkMaxSideboardSize(sideboardCardsCount, format, failures);
+            this.checkMaxSideboardSize(sideboardCardsCount, format, cardPool, failures);
 
             // Validate leader.
             const leaderData = this.getCardCheckData(deck.leader.id);
@@ -538,8 +449,8 @@ export class DeckValidator {
         }
     }
 
-    protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        const maxSideboardSize = this.getMaxSideboardSize(format);
+    protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, cardPool: CardPool, failures: IDeckValidationFailures) {
+        const maxSideboardSize = this.getMaxSideboardSize(format, cardPool);
 
         // sideboard is not restricted in all formats (e.g. Open)
         if (maxSideboardSize < 0) {

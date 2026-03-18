@@ -1167,7 +1167,10 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
-                const resolvedCardPool = EnumHelpers.isEnumValue(cardPool, CardPool) ? cardPool : CardPool.Current;
+                if (!EnumHelpers.isEnumValue(cardPool, CardPool)) {
+                    logger.error(`GameServer (create-lobby): Invalid card pool parameter ${cardPool}`);
+                    return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
+                }
 
                 // Check Bo3 access restrictions for anonymous users
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, isPrivate, 'create a public best of three lobby');
@@ -1176,8 +1179,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, true, { format, cardPool: resolvedCardPool }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, resolvedCardPool);
+                await this.processDeckValidation(deck, true, { format, cardPool }, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, cardPool);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
