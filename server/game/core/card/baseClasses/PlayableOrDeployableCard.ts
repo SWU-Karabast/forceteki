@@ -94,7 +94,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             const plotProps = Object.assign(this.buildGeneralAbilityProps('keyword_plot'), PlotAbility.buildPlotAbilityProperties(this.title));
             const plotAbility = this.createTriggeredAbility(plotProps);
             plotAbility.registerEvents();
-            this.triggeredAbilities.push(plotAbility);
+            this.triggeredAbilities = [...this.triggeredAbilities, plotAbility];
         }
     }
 
