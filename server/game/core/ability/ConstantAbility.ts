@@ -50,8 +50,8 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
     public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     public readonly sourceCard: Card;
 
-    @stateRefArray(false)
-    public accessor registeredEffects: OngoingEffect[] = [];
+    @stateRefArray()
+    public accessor registeredEffects: readonly OngoingEffect[] = [];
 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
         super(game);
