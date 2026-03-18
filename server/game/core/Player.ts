@@ -143,7 +143,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this._base;
     }
 
-    @stateRefArray(false) private accessor _costAdjusters: CostAdjuster[] = [];
+    @stateRefArray() private accessor _costAdjusters: readonly CostAdjuster[] = [];
     private get costAdjusters(): readonly CostAdjuster[] {
         return this._costAdjusters;
     }
@@ -773,7 +773,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @param {CostAdjuster} costAdjuster
      */
     public addCostAdjuster(costAdjuster: CostAdjuster) {
-        this._costAdjusters.push(costAdjuster);
+        this._costAdjusters = [...this._costAdjusters, costAdjuster];
     }
 
     /**

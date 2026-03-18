@@ -27,7 +27,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseCl
             if (ability.sourceZoneFilter === WildcardZoneName.Any) {
                 ability.registeredEffects = this.addEffectToEngine(ability);
             }
-            this.constantAbilities.push(ability);
+            this.constantAbilities = [...this.constantAbilities, ability];
             return ability;
         }
 
@@ -55,7 +55,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseCl
              */
         public addGainedConstantAbility(properties: IConstantAbilityProps<this>): string {
             const addedAbility = this.createConstantAbility({ ...properties, printedAbility: false });
-            this.constantAbilities.push(addedAbility);
+            this.constantAbilities = [...this.constantAbilities, addedAbility];
             addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
 
             return addedAbility.uuid;
