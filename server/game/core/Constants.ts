@@ -94,7 +94,7 @@ export enum EffectName {
     CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CloneUnit = 'cloneUnit',
-    CopyWhenPlayedAbilities = 'copyWhenPlayedAbilities',
+    CopyStandardTriggeredAbilities = 'copyStandardTriggeredAbilities',
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',

@@ -38,7 +38,7 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
                 if (effect.impl.effectDescription && filterApplicableEffects(properties.target[i] as any, [effect], context).length > 0) {
                     if (effect.impl.type === EffectName.AbilityRestrictions) {
                         abilityRestrictions.push(effect.impl.effectDescription);
-                    } else if (effect.impl.type === EffectName.CloneUnit) {
+                    } else if (effect.impl.type === EffectName.CloneUnit || effect.impl.type === EffectName.CopyStandardTriggeredAbilities) {
                         cloneEffects.push(effect.impl.effectDescription);
                     } else {
                         otherEffects.push(effect.impl.effectDescription);

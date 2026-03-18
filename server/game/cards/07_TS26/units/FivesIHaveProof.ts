@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Duration, WildcardCardType } from '../../../core/Constants';
+import { Duration, StandardTriggeredAbilityType, WildcardCardType } from '../../../core/Constants';
 
 export default class FivesIHaveProof extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -33,7 +33,7 @@ export default class FivesIHaveProof extends NonLeaderUnitCard {
                     },
                     target: context.source,
                     effect: [
-                        AbilityHelper.ongoingEffects.copyWhenPlayedAbilities(context.target),
+                        AbilityHelper.ongoingEffects.copyStandardTriggeredAbilities(context.target, StandardTriggeredAbilityType.WhenPlayed),
                     ]
                 })),
             },
