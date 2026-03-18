@@ -76,7 +76,7 @@ export abstract class OngoingEffectSourceBase extends GameObject {
         return [this.game.ongoingEffectEngine.add(ongoingEffect(this.game, this, propertiesWithoutEffect))];
     }
 
-    public removeEffectFromEngine(effects: OngoingEffect | OngoingEffect[]) {
+    public removeEffectFromEngine(effects: OngoingEffect | OngoingEffect[] | readonly OngoingEffect[]) {
         this.game.ongoingEffectEngine.unapplyAndRemove((effect) => Helpers.asArray(effects).includes(effect));
     }
 
