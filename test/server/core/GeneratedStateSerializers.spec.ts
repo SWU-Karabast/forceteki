@@ -1,6 +1,6 @@
 import type { Game } from '../../../server/game/core/Game';
 import type { GameObjectBase, IGameObjectBaseState } from '../../../server/game/core/GameObjectBase';
-import type { SerializedGameObjectStateMap, SerializerInstance, StateSerializer } from '../../../server/game/core/StateSerializers';
+import { ensureStateSerializersRegistered, stateSerializerRegistry, type SerializedGameObjectStateMap, type SerializerInstance, type StateSerializer } from '../../../server/game/core/StateSerializers';
 
 interface TestSerializerManager {
     buildGameStateForSnapshot(): SerializedGameObjectStateMap;
@@ -40,6 +40,27 @@ describe('Generated state serializers', function() {
 
             const unitSerializer = manager.getSerializer(context.wampa);
             const unitState = unitSerializer.serialize(context.wampa as unknown as SerializerInstance);
+
+            expect(unitState).toEqual(jasmine.objectContaining({
+                _uuid: context.wampa.uuid,
+                _name: context.wampa.name,
+                _controller: context.player1Object.getObjectId(),
+                _zone: context.wampa.zone.getObjectId(),
+                _attackEnabled: true,
+                _damage: 0,
+                _upgrades: [],
+            }));
+        });
+
+        it('generates inherited fields for concrete mixin-based serializer fragments', function() {
+            const { context } = contextRef;
+
+            ensureStateSerializersRegistered();
+
+            const unitSerializer = stateSerializerRegistry.get('NonLeaderUnitCard');
+            expect(unitSerializer).toBeDefined();
+
+            const unitState = unitSerializer?.serialize(context.wampa as unknown as SerializerInstance);
 
             expect(unitState).toEqual(jasmine.objectContaining({
                 _uuid: context.wampa.uuid,
