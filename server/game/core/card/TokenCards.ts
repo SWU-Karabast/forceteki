@@ -6,6 +6,7 @@ import { UpgradeCard } from './UpgradeCard';
 import type { IUpgradeCard } from './CardInterfaces';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { CardType } from '../Constants';
+import { registerStateBase } from '../GameObjectUtils';
 
 const TokenUnitParent = AsToken(NonLeaderUnitCard);
 const TokenUpgradeParent = AsToken(UpgradeCard);
