@@ -1,61 +1,13 @@
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
-import { CardType, SwuGameFormat } from '../../game/core/Constants';
+import { CardType, CardPool, SwuGameFormat } from '../../game/core/Constants';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import * as Contract from '../../game/core/utils/Contract';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
-import * as Helpers from '../../game/core/utils/Helpers';
-
-enum SwuSet {
-    SOR = 'sor',
-    SHD = 'shd',
-    TWI = 'twi',
-    JTL = 'jtl',
-    LOF = 'lof',
-    IBH = 'ibh',
-    SEC = 'sec',
-    LAW = 'law',
-    TS26 = 'ts26'
-}
-
-enum SwuRotationBlock {
-    Block0,
-    BlockA,
-    BlockB,
-    BlockTS
-}
-
-const rotationBlocks = new Map<SwuRotationBlock, Set<SwuSet>>([
-    [SwuRotationBlock.Block0, new Set([SwuSet.SOR, SwuSet.SHD, SwuSet.TWI])],
-    [SwuRotationBlock.BlockA, new Set([SwuSet.JTL, SwuSet.LOF, SwuSet.IBH, SwuSet.SEC])],
-    [SwuRotationBlock.BlockB, new Set([SwuSet.LAW])],
-    [SwuRotationBlock.BlockTS, new Set([SwuSet.TS26])]
-]);
-
-const legalBlocksForFormat = new Map<SwuGameFormat, Set<SwuRotationBlock>>([
-    [SwuGameFormat.Premier, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
-    [SwuGameFormat.Open, new Set(rotationBlocks.keys())],
-    [SwuGameFormat.NextSetPreview, new Set([SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
-    [SwuGameFormat.Eternal, new Set([SwuRotationBlock.Block0, SwuRotationBlock.BlockA, SwuRotationBlock.BlockB])],
-]);
-
-const bannedPremierCards = new Map([
-    ['4626028465', 'boba-fett#collecting-the-bounty'],
-    ['4002861992', 'dj#blatant-thief'],
-    ['5696041568', 'triple-dark-raid'],
-    ['9155536481', 'jango-fett#concealing-the-conspiracy'],
-    ['1705806419', 'force-throw']
-]);
-
-const bannedCardsPerFormat = new Map<SwuGameFormat, Map<string, string>>([
-    [SwuGameFormat.Premier, bannedPremierCards],
-    [SwuGameFormat.Open, new Map<string, string>()],
-    [SwuGameFormat.NextSetPreview, bannedPremierCards],
-    [SwuGameFormat.Eternal, new Map<string, string>()],
-]);
+import { formatRules, nonRotatingSets, rotationBlocks, SwuSetId } from './SwuSetData';
 
 const maxCopiesOfCards = new Map([
     ['2177194044', 15], // Swarming Vulture Droid
@@ -70,7 +22,7 @@ interface ICardCheckData {
     setId: ISetCode;
     titleAndSubtitle: string;
     type: CardType;
-    legalFormats: Set<SwuGameFormat>;
+    sets: SwuSetId[];
     implemented: boolean;
     minDeckSizeModifier?: number;
     maxCopiesOfCardOverride?: number;
@@ -102,34 +54,104 @@ export class DeckValidator {
         return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
     }
 
-    private static legalFormatsForCard(
-        cardData: ICardDataJson,
-        formatToSetMap: Map<SwuGameFormat, Set<SwuSet>>
-    ): Set<SwuGameFormat> {
-        const legalFormats = new Set<SwuGameFormat>();
-        const sets = cardData.setCodes
-            ? cardData.setCodes.map((code) => EnumHelpers.checkConvertToEnum(code.set, SwuSet)[0])
-            : [EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0]];
+    private static parseSets(cardData: ICardDataJson): SwuSetId[] {
+        if (cardData.setCodes) {
+            return cardData.setCodes.map((code) => EnumHelpers.checkConvertToEnum(code.set, SwuSetId)[0]);
+        }
+        return [EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSetId)[0]];
+    }
 
-        for (const [format, legalSets] of formatToSetMap) {
-            const hasSetCodeFromLegalSet = sets.some((set) => legalSets.has(set));
+    /**
+     * Computes the set of legal {@link SwuSetId}s for a given format and card pool combination.
+     *
+     * For **Open**, all sets are included.
+     *
+     * For **Limited**, only a single set is legal, unless the card pool is Unlimited in which
+     * case all sets are legal. The single legal set is determined by:
+     * - {@link CardPool.Current}: the most recently released set
+     * - {@link CardPool.NextSet}: the most recent unreleased set
+     *
+     * For rotating formats (**Premier**), only released rotation blocks are considered
+     * under {@link CardPool.Current}, whereas {@link CardPool.NextSet} also includes unreleased blocks.
+     * The format's `rotationBlockCount` rule then trims to the latest N blocks.
+     *
+     * Non-rotating sets (e.g. TS26) are added if their `legalFormats` includes the requested format,
+     * subject to the same released/unreleased filtering.
+     */
+    public static getLegalSets(format: SwuGameFormat, cardPool: CardPool): Set<SwuSetId> {
+        // Open or Unlimited pool: everything, always
+        if (format === SwuGameFormat.Open) {
+            const all = new Set<SwuSetId>(rotationBlocks.flatMap((block) => block.sets.map((s) => s.id)));
+            for (const nrs of nonRotatingSets) {
+                all.add(nrs.id);
+            }
+            return all;
+        }
 
-            if (hasSetCodeFromLegalSet) {
-                legalFormats.add(format);
+        // Limited: restrict to a single set
+        if (format === SwuGameFormat.Limited) {
+            return this.getLimitedLegalSet(cardPool);
+        }
+
+        Contract.assertFalse(cardPool === CardPool.Unlimited, `Card pool '${CardPool.Unlimited}' is not supported for format '${format}'`);
+
+        const rules = formatRules.get(format);
+
+        // Determine candidate rotation blocks
+        let candidateBlocks = cardPool === CardPool.Current
+            ? rotationBlocks.filter((block) => block.sets.some((s) => s.released))
+            : [...rotationBlocks];
+
+        // Apply rotation window (take the last N blocks)
+        if (rules.rotationBlockCount != null) {
+            candidateBlocks = candidateBlocks.slice(-rules.rotationBlockCount);
+        }
+
+        const legalSets = new Set<SwuSetId>();
+        for (const block of candidateBlocks) {
+            for (const set of block.sets) {
+                if (cardPool === CardPool.Current && !set.released) {
+                    continue;
+                }
+                legalSets.add(set.id);
             }
         }
 
-        return legalFormats;
+        // Add non-rotating sets that are legal in this format
+        for (const nrs of nonRotatingSets) {
+            if (nrs.legalFormats.has(format) && (cardPool === CardPool.NextSet || nrs.released)) {
+                legalSets.add(nrs.id);
+            }
+        }
+
+        return legalSets;
+    }
+
+    /**
+     * Returns the legal sets for Limited format based on the card pool. Only mainline sets are legal in Limited.
+     */
+    private static getLimitedLegalSet(cardPool: CardPool): Set<SwuSetId> {
+        const allSets = rotationBlocks.flatMap((block) => block.sets);
+
+        if (cardPool === CardPool.Unlimited) {
+            return new Set<SwuSetId>(allSets
+                .filter((s) => s.mainline)
+                .map((s) => s.id)
+            );
+        }
+
+        const targetSet = cardPool === CardPool.Current
+            ? [...allSets].reverse().find((s) => s.released && s.mainline)
+            : allSets.find((s) => !s.released && s.mainline);
+
+        Contract.assertNotNullLike(targetSet, `No ${cardPool === CardPool.Current ? 'released' : 'unreleased'} mainline sets found for Limited format`);
+
+        return new Set<SwuSetId>([targetSet.id]);
     }
 
     private constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
         const implementedCardIds = new Set(cards.keys());
         const overrideNotImplementedCardIds = new Set(overrideNotImplementedCards.keys());
-        const formatToSetsMap = Helpers.mapValues(legalBlocksForFormat, (blocks) =>
-            Helpers.reduceSet(blocks, new Set<SwuSet>(), (acc, block) =>
-                Helpers.setUnion(acc, rotationBlocks.get(block))
-            )
-        );
 
         this.cardData = new Map<string, ICardCheckData>();
         this.setCodeToId = setCodeToId;
@@ -139,7 +161,7 @@ export class DeckValidator {
                 setId: cardData.setId,
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
-                legalFormats: DeckValidator.legalFormatsForCard(cardData, formatToSetsMap),
+                sets: DeckValidator.parseSets(cardData),
                 implemented: !overrideNotImplementedCardIds.has(cardData.id) && (!Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
                 maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
@@ -163,8 +185,10 @@ export class DeckValidator {
         return unimplementedCards;
     }
 
-    public getMinimumSideboardedDeckSize(baseId: string, allow30CardsInMainBoard: boolean): number {
-        const startingDeckSizeValue = allow30CardsInMainBoard ? 30 : 50;
+    public getMinimumSideboardedDeckSize(baseId: string, format: SwuGameFormat): number {
+        const rules = formatRules.get(format);
+        Contract.assertNotNullLike(rules, `No format rules found for format '${format}'`);
+        const startingDeckSizeValue = rules.minDeckSize;
 
         const baseData = this.getCardCheckData(baseId);
         if (!baseData) {
@@ -174,9 +198,9 @@ export class DeckValidator {
     }
 
     // update this function if anything affects the sideboard count
-    public getMaxSideboardSize(format: SwuGameFormat): number {
-        // sideboard is only restricted in Premier and Eternal
-        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
+    public getMaxSideboardSize(format: SwuGameFormat, cardPool: CardPool): number {
+        // Sideboard is only restricted in Premier and Eternal. We relax the restriction in Next Set mode.
+        if (format === SwuGameFormat.Open || format === SwuGameFormat.Limited || cardPool === CardPool.NextSet) {
             return -1;
         }
         return 10;
@@ -218,7 +242,7 @@ export class DeckValidator {
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
         }
-        return this.validateCommonDeck(deck, properties.format, properties.allow30CardsInMainBoard);
+        return this.validateCommonDeck(deck, properties.format, properties.cardPool);
     }
 
     // Validate the ISwuDbDeckList
@@ -231,7 +255,7 @@ export class DeckValidator {
         if (deck.secondleader) {
             return { [DeckValidationFailureReason.TooManyLeaders]: true };
         }
-        return this.validateCommonDeck(deck, properties.format, properties.allow30CardsInMainBoard);
+        return this.validateCommonDeck(deck, properties.format, properties.cardPool);
     }
 
     private normalizeSetCodeId(id: string): string {
@@ -250,10 +274,8 @@ export class DeckValidator {
         }
     }
 
-    private validateCommonDeck(deck: IDecklistInternal | ISwuDbFormatDecklist, format: SwuGameFormat, allow30CardsInMainBoard: boolean): IDeckValidationFailures {
+    private validateCommonDeck(deck: IDecklistInternal | ISwuDbFormatDecklist, format: SwuGameFormat, cardPool: CardPool): IDeckValidationFailures {
         try {
-            Contract.assertFalse(format !== SwuGameFormat.Open && allow30CardsInMainBoard, '30-card setting can only be used in Open format');
-
             // Normalize set code IDs to ensure card numbers are zero-padded (e.g. LAW_3 -> LAW_003)
             deck.leader.id = this.normalizeSetCodeId(deck.leader.id);
             deck.base.id = this.normalizeSetCodeId(deck.base.id);
@@ -269,11 +291,14 @@ export class DeckValidator {
                 [DeckValidationFailureReason.InvalidDecklistLocation]: []
             };
 
+            // Compute the legal sets for this format + card pool
+            const legalSets = DeckValidator.getLegalSets(format, cardPool);
+
             // Combine main deck and sideboard cards.
             const deckCards: ISwuDbFormatCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
 
             const baseData = this.getCardCheckData(deck.base.id);
-            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck.base.id, allow30CardsInMainBoard);
+            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck.base.id, format);
             const decklistCardsCount = this.getTotalCardCount(deckCards);
             const boardedCardsCount = this.getTotalCardCount(deck.deck);
             const sideboardCardsCount = deck.sideboard ? this.getTotalCardCount(deck.sideboard) : 0;
@@ -292,7 +317,7 @@ export class DeckValidator {
                 };
             }
 
-            this.checkMaxSideboardSize(sideboardCardsCount, format, failures);
+            this.checkMaxSideboardSize(sideboardCardsCount, format, cardPool, failures);
 
             // Validate leader.
             const leaderData = this.getCardCheckData(deck.leader.id);
@@ -300,7 +325,7 @@ export class DeckValidator {
                 failures[DeckValidationFailureReason.UnknownCardId].push({ id: deck.leader.id });
             } else {
                 this.checkCardLocation(deck.leader, leaderData, DecklistLocation.Leader, failures);
-                this.checkFormatLegality(leaderData, format, failures);
+                this.checkFormatLegality(leaderData, format, legalSets, failures);
             }
 
             // Validate base.
@@ -308,7 +333,7 @@ export class DeckValidator {
                 failures[DeckValidationFailureReason.UnknownCardId].push({ id: deck.base.id });
             } else {
                 this.checkCardLocation(deck.base, baseData, DecklistLocation.Base, failures);
-                this.checkFormatLegality(baseData, format, failures);
+                this.checkFormatLegality(baseData, format, legalSets, failures);
             }
 
             // Validate each card in the deck (and sideboard).
@@ -321,13 +346,13 @@ export class DeckValidator {
                 }
 
                 this.checkCardLocation(card, cardData, DecklistLocation.Deck, failures);
-                this.checkFormatLegality(cardData, format, failures);
+                this.checkFormatLegality(cardData, format, legalSets, failures);
 
                 if (card.count < 0) {
                     failures[DeckValidationFailureReason.InvalidDeckData] = true;
                 }
 
-                this.checkMaxCopiesOfCard(card, cardData, format, failures, allow30CardsInMainBoard);
+                this.checkMaxCopiesOfCard(card, cardData, format, failures);
             }
 
             // Remove any failure entries that are empty arrays.
@@ -371,10 +396,11 @@ export class DeckValidator {
         }
     }
 
-    protected checkFormatLegality(cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
+    protected checkFormatLegality(cardData: ICardCheckData, format: SwuGameFormat, legalSets: Set<SwuSetId>, failures: IDeckValidationFailures) {
         const setCode = `${cardData.setId.set}_${String(cardData.setId.number).padStart(3, '0')}`;
 
-        if (!cardData.legalFormats.has(format)) {
+        const isLegalInFormat = cardData.sets.some((set) => legalSets.has(set));
+        if (!isLegalInFormat) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
                 name: cardData.titleAndSubtitle
@@ -382,8 +408,8 @@ export class DeckValidator {
             return;
         }
 
-        const bannedCards = bannedCardsPerFormat.get(format);
-        if (bannedCards.has(this.setCodeToId.get(setCode))) {
+        const rules = formatRules.get(format);
+        if (rules?.bannedCards.has(this.setCodeToId.get(setCode))) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
                 name: cardData.titleAndSubtitle
@@ -404,15 +430,15 @@ export class DeckValidator {
         card: ISwuDbFormatCardEntry,
         cardData: ICardCheckData,
         format: SwuGameFormat,
-        failures: IDeckValidationFailures,
-        allow30CardsInMainBoard: boolean
+        failures: IDeckValidationFailures
     ) {
-        // bit of a hack to allow limited formats to work using this setting for now
-        if (allow30CardsInMainBoard) {
+        const rules = formatRules.get(format);
+
+        if (!rules.maxCardCopies) {
             return;
         }
 
-        const maxCount = cardData.maxCopiesOfCardOverride ?? 3;
+        const maxCount = cardData.maxCopiesOfCardOverride ?? rules.maxCardCopies;
 
         if (card.count > maxCount) {
             failures[DeckValidationFailureReason.TooManyCopiesOfCard].push({
@@ -423,8 +449,8 @@ export class DeckValidator {
         }
     }
 
-    protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        const maxSideboardSize = this.getMaxSideboardSize(format);
+    protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, cardPool: CardPool, failures: IDeckValidationFailures) {
+        const maxSideboardSize = this.getMaxSideboardSize(format, cardPool);
 
         // sideboard is not restricted in all formats (e.g. Open)
         if (maxSideboardSize < 0) {

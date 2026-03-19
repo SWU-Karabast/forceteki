@@ -3,6 +3,7 @@ import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import { CardPool } from '../game/core/Constants';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 
@@ -30,7 +31,8 @@ interface QueuedPlayerEntry {
 }
 
 export interface IQueueFormatKey {
-    swuFormat: SwuGameFormat;
+    format: SwuGameFormat;
+    cardPool: CardPool;
     gamesToWinMode: GamesToWinMode;
 }
 
@@ -41,7 +43,7 @@ export interface PreviousMatchEntry {
 }
 
 export class QueueHandler {
-    private readonly queues: Map<SwuGameFormat, Map<GamesToWinMode, QueuedPlayer[]>>;
+    private readonly queues: Map<string, QueuedPlayer[]>;
     private playersWaitingToConnect: QueuedPlayerEntry[] = [];
     private playerPreviousMatch: Map<string, PreviousMatchEntry>;
 
@@ -49,20 +51,20 @@ export class QueueHandler {
     public static readonly COOLDOWN_INTERVAL_SECONDS = 15;
 
     public constructor() {
-        this.queues = new Map<SwuGameFormat, Map<GamesToWinMode, QueuedPlayer[]>>();
+        this.queues = new Map<string, QueuedPlayer[]>();
         this.playerPreviousMatch = new Map<string, PreviousMatchEntry>();
 
         for (const format of Object.values(SwuGameFormat)) {
-            const formatMap = new Map<GamesToWinMode, QueuedPlayer[]>();
-
-            formatMap.set(GamesToWinMode.BestOfOne, []);
-            formatMap.set(GamesToWinMode.BestOfThree, []);
-
-            this.queues.set(format, formatMap);
-
-            // Cleanup previous match entries periodically
-            setInterval(() => this.cleanupPreviousMatchEntries(), 3600000); // 1 hour
+            for (const cardPool of Object.values(CardPool)) {
+                for (const gamesToWinMode of Object.values(GamesToWinMode)) {
+                    const key: IQueueFormatKey = { format, cardPool, gamesToWinMode };
+                    this.queues.set(JSON.stringify(key), []);
+                }
+            }
         }
+
+        // Cleanup previous match entries periodically
+        setInterval(() => this.cleanupPreviousMatchEntries(), 3600000); // 1 hour
     }
 
     /** Adds an entry for a player, but they can't match until they actually connect */
@@ -139,7 +141,8 @@ export class QueueHandler {
         for (const [queueKey, queue] of this.iterateQueues()) {
             const index = queue.findIndex((p) => p.user.getId() === userId);
             if (index !== -1) {
-                logger.info(`QueueHandler: Removing player ${userId} from queue for format ${this.queueKeyToString(queueKey)}. Reason: ${reasonStr}`);
+                const parsedKey: IQueueFormatKey = JSON.parse(queueKey);
+                logger.info(`QueueHandler: Removing player ${userId} from queue for format ${this.queueKeyToString(parsedKey)}. Reason: ${reasonStr}`);
                 queue.splice(index, 1);
                 return;
             }
@@ -203,7 +206,8 @@ export class QueueHandler {
         for (const [queueKey, queue] of this.iterateQueues()) {
             const player = queue.find((p) => p.user.getId() === userId);
             if (player) {
-                return { player, format: queueKey };
+                const parsedKey: IQueueFormatKey = JSON.parse(queueKey);
+                return { player, format: parsedKey };
             }
         }
         return null;
@@ -263,31 +267,26 @@ export class QueueHandler {
         const readyFormats: IQueueFormatKey[] = [];
         for (const [format, queue] of this.iterateQueues()) {
             if (queue.length >= 2) {
-                readyFormats.push(format);
+                const parsedFormat: IQueueFormatKey = JSON.parse(format);
+                readyFormats.push(parsedFormat);
             }
         }
         return readyFormats;
     }
 
-    private *iterateQueues(): IterableIterator<[IQueueFormatKey, QueuedPlayer[]]> {
-        for (const [swuFormat, queueMap] of this.queues.entries()) {
-            for (const [gamesToWinMode, queue] of queueMap.entries()) {
-                yield [{ swuFormat, gamesToWinMode }, queue];
-            }
+    private *iterateQueues(): IterableIterator<[string, QueuedPlayer[]]> {
+        for (const [key, queue] of this.queues.entries()) {
+            yield [key, queue];
         }
     }
 
     private queueKeyToString(key: IQueueFormatKey): string {
-        return `(${key.swuFormat} / ${key.gamesToWinMode})`;
+        return `(${key.format} / ${key.cardPool} / ${key.gamesToWinMode})`;
     }
 
     private getQueueByFormat(key: IQueueFormatKey): QueuedPlayer[] | null {
-        const formatMap = this.queues.get(key.swuFormat);
-        Contract.assertNotNullLike(formatMap, `No queue found for format ${key.swuFormat}`);
-
-        const queue = formatMap.get(key.gamesToWinMode);
+        const queue = this.queues.get(JSON.stringify(key));
         Contract.assertNotNullLike(queue, `No queue found for ${this.queueKeyToString(key)}`);
-
         return queue;
     }
 }
