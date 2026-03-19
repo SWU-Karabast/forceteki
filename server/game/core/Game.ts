@@ -58,7 +58,7 @@ import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCards
 import { DisplayCardsBasicPrompt } from './gameSteps/prompts/DisplayCardsBasicPrompt';
 import { validateGameConfiguration, validateGameOptions } from './GameInterfaces';
 import type { GameConfiguration, GameOptions, ICurrentlyResolving } from './GameInterfaces';
-import type { GameObjectBase, GameObjectRef } from './GameObjectBase';
+import type { GameObjectBase } from './GameObjectBase';
 import * as Helpers from './utils/Helpers';
 import type { CostAdjuster } from './cost/CostAdjuster';
 import { logger } from '../../logger';
@@ -102,6 +102,7 @@ import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
+import type { GameObjectId } from './GameObjectUtils';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -114,11 +115,11 @@ export class Game extends EventEmitter {
     }
 
     public set actionPhaseActivePlayer(value: Player | null) {
-        this.state.actionPhaseActivePlayer = value?.getRef();
+        this.state.actionPhaseActivePlayer = value?.getObjectId();
     }
 
     public get allCards() {
-        return this.state.allCards.map((x) => this.getFromRef(x));
+        return this.state.allCards.map((x) => this.getFromId(x));
     }
 
     public get initialFirstPlayer(): Player | null {
@@ -126,7 +127,7 @@ export class Game extends EventEmitter {
     }
 
     public set initialFirstPlayer(value: Player | null) {
-        this.state.initialFirstPlayer = value?.getRef();
+        this.state.initialFirstPlayer = value?.getObjectId();
     }
 
     public get initiativePlayer(): Player | null {
@@ -134,7 +135,7 @@ export class Game extends EventEmitter {
     }
 
     public set initiativePlayer(value: Player | null) {
-        this.state.initiativePlayer = value?.getRef();
+        this.state.initiativePlayer = value?.getObjectId();
     }
 
     public get isInitiativeClaimed() {
@@ -1087,7 +1088,7 @@ export class Game extends EventEmitter {
     public async initialiseAsync(): Promise<void> {
         await Promise.all(this.getPlayers().map((player) => player.initialiseAsync()));
 
-        this.state.allCards = this.getPlayers().reduce<GameObjectRef<Card>[]>(
+        this.state.allCards = this.getPlayers().reduce<GameObjectId<Card>[]>(
             (cards, player) => {
                 return cards.concat(player.decklist.allCards);
             },
@@ -1481,7 +1482,7 @@ export class Game extends EventEmitter {
     public checkUniqueRule(): void {
         const checkedCards: Card[] = [];
 
-        for (const movedCard of this.state.movedCards.map((ref) => this.getFromRef(ref))) {
+        for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
             if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
                 const existingCard = checkedCards.find((otherCard) =>
                     otherCard.title === movedCard.title &&
@@ -1499,7 +1500,7 @@ export class Game extends EventEmitter {
 
     public resolveGameState(hasChanged = false, events: GameEvent[] = []): void {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
-        for (const movedCard of this.state.movedCards.map((ref) => this.getFromRef(ref))) {
+        for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
             movedCard.resolveAbilitiesForNewZone();
         }
         this.state.movedCards = [];
@@ -1561,10 +1562,9 @@ export class Game extends EventEmitter {
     public generateToken(player: Player, tokenName: TokenName, additionalProperties: any = null): Card {
         const token: ITokenCard = this.tokenFactories[tokenName](player, additionalProperties);
 
-        // TODO: Rework allCards to be GO Refs
-        this.state.allCards.push(token.getRef());
-        player.decklist.tokens.push(token.getRef());
-        player.decklist.allCards.push(token.getRef());
+        this.state.allCards.push(token.getObjectId());
+        player.decklist.tokens.push(token.getObjectId());
+        player.decklist.allCards.push(token.getObjectId());
         player.outsideTheGameZone.addCard(token);
         token.initializeZone(player.outsideTheGameZone);
 
@@ -1587,15 +1587,15 @@ export class Game extends EventEmitter {
      * next call to resolveGameState
      */
     public registerMovedCard(card: Card): void {
-        this.state.movedCards.push(card.getRef());
+        this.state.movedCards.push(card.getObjectId());
     }
 
-    public filterCardFromList(removeCard: Card, list: GameObjectRef[]): void {
+    public filterCardFromList(removeCard: Card, list: GameObjectId<Card>[]): void {
         const indexes: number[] = [];
 
         for (let i = list.length - 1; i >= 0; i--) {
-            const ref = list[i];
-            if (ref.uuid === removeCard.uuid) {
+            const cardId = list[i];
+            if (cardId === removeCard.uuid) {
                 indexes.push(i);
             }
         }
@@ -1605,14 +1605,14 @@ export class Game extends EventEmitter {
         }
     }
 
-    public getFromRef<T extends GameObjectBase>(gameRef: GameObjectRef<T>): T | null {
-        return this.gameObjectManager.get(gameRef);
+    public getFromId<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null {
+        return this.gameObjectManager.get(gameObjectId);
     }
 
     /**
-     * @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly.
+     * @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `getFromId` and may result in runtime errors if used incorrectly.
      */
-    public getFromUuidUnsafe<T extends GameObjectBase>(uuid: string): T | null {
+    public getFromUuidUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T | null {
         return this.gameObjectManager.getUnsafe(uuid);
     }
 

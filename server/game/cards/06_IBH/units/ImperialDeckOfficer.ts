@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ImperialDeckOfficer extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ImperialDeckOfficer extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Heal 2 damage from a Villainy unit',
+            title: `Heal 2 damage from a ${TextHelper.Villainy} unit`,
             cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

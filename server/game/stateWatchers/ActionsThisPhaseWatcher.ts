@@ -1,15 +1,15 @@
 import { StateWatcherName } from '../core/Constants';
 import type { Game } from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { UnwrapRef } from '../core/GameObjectBase';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 
-import { registerState } from '../core/GameObjectUtils';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface ActionEntry {
     actionNumber: number;
-    player: GameObjectRef<Player>;
+    player: GameObjectId<Player>;
 }
 
 @registerState()
@@ -41,7 +41,7 @@ export class ActionsThisPhaseWatcher extends StateWatcher<ActionEntry> {
 
     protected override mapCurrentValue(stateValue: ActionEntry[]): UnwrapRef<ActionEntry>[] {
         return stateValue.map((x) => ({
-            player: this.game.getFromRef(x.player),
+            player: this.game.getFromId(x.player),
             actionNumber: x.actionNumber
         }));
     }
@@ -53,7 +53,7 @@ export class ActionsThisPhaseWatcher extends StateWatcher<ActionEntry> {
             },
             update: (currentState: ActionEntry[], event) =>
                 currentState.concat({
-                    player: event.player.getRef(),
+                    player: event.player.getObjectId(),
                     actionNumber: event.actionNumber
                 })
         });

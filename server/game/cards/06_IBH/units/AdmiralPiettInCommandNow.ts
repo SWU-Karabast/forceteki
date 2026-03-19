@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AdmiralPiettInCommandNow extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class AdmiralPiettInCommandNow extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'If you control a Aggression unit, draw a card',
+            title: `If you control a ${TextHelper.Aggression} unit, draw a card`,
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit({ aspect: Aspect.Aggression }),
                 onTrue: abilityHelper.immediateEffects.draw()

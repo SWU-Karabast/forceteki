@@ -2,7 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { Aspect, TargetMode } from '../../../core/Constants';
-import { aspectString } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,14 +20,15 @@ export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
                 onAttack: true,
             },
             targetResolver: {
+                activePromptTitle: 'Choose an aspect. Each enemy unit with that aspect gets -2/-2 for this phase',
                 mode: TargetMode.Select,
                 choices: () => ({
-                    [aspectString([Aspect.Vigilance])]: LawbringerShadowOverLothal.buildAbility(Aspect.Vigilance, abilityHelper),
-                    [aspectString([Aspect.Command])]: LawbringerShadowOverLothal.buildAbility(Aspect.Command, abilityHelper),
-                    [aspectString([Aspect.Aggression])]: LawbringerShadowOverLothal.buildAbility(Aspect.Aggression, abilityHelper),
-                    [aspectString([Aspect.Cunning])]: LawbringerShadowOverLothal.buildAbility(Aspect.Cunning, abilityHelper),
-                    [aspectString([Aspect.Villainy])]: LawbringerShadowOverLothal.buildAbility(Aspect.Villainy, abilityHelper),
-                    [aspectString([Aspect.Heroism])]: LawbringerShadowOverLothal.buildAbility(Aspect.Heroism, abilityHelper),
+                    [`${TextHelper.Vigilance}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Vigilance, abilityHelper),
+                    [`${TextHelper.Command}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Command, abilityHelper),
+                    [`${TextHelper.Aggression}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Aggression, abilityHelper),
+                    [`${TextHelper.Cunning}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Cunning, abilityHelper),
+                    [`${TextHelper.Villainy}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Villainy, abilityHelper),
+                    [`${TextHelper.Heroism}`]: LawbringerShadowOverLothal.buildAbility(Aspect.Heroism, abilityHelper),
                 })
             }
         });

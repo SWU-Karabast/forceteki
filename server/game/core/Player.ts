@@ -40,7 +40,6 @@ import type {
 import type { IInPlayCard } from './card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty, IPlayableCard } from './card/baseClasses/PlayableOrDeployableCard';
 import type { IPlayerSerializedState, Zone } from '../Interfaces';
-import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
@@ -52,21 +51,21 @@ import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
-import { registerState, stateRefArray, stateRef, stateValue } from './GameObjectUtils';
+import { registerState, stateRefArray, stateRef, stateValue, type GameObjectId } from './GameObjectUtils';
 
 export interface IPlayerState extends IGameObjectState {
-    handZone: GameObjectRef<HandZone>;
-    resourceZone: GameObjectRef<ResourceZone>;
-    discardZone: GameObjectRef<DiscardZone>;
-    outsideTheGameZone: GameObjectRef<OutsideTheGameZone>;
-    baseZone: GameObjectRef<BaseZone> | null;
-    deckZone: GameObjectRef<DeckZone>;
-    leader: GameObjectRef<ILeaderCard>;
-    base: GameObjectRef<IBaseCard>;
+    handZone: GameObjectId<HandZone>;
+    resourceZone: GameObjectId<ResourceZone>;
+    discardZone: GameObjectId<DiscardZone>;
+    outsideTheGameZone: GameObjectId<OutsideTheGameZone>;
+    baseZone: GameObjectId<BaseZone> | null;
+    deckZone: GameObjectId<DeckZone>;
+    leader: GameObjectId<ILeaderCard>;
+    base: GameObjectId<IBaseCard>;
     passedActionPhase: boolean;
-    // IDeckList is made up of arrays and GameObjectRefs, so it's serializable.
+    // IDeckList is made up of arrays and GameObjectIds, so it's serializable.
     decklist: IDeckListForLoading;
-    costAdjusters: GameObjectRef<CostAdjuster>[];
+    costAdjusters: GameObjectId<CostAdjuster>[];
 }
 
 @registerState()
@@ -142,7 +141,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this._base;
     }
 
-    @stateRefArray(false) private accessor _costAdjusters: CostAdjuster[] = [];
+    @stateRefArray() private accessor _costAdjusters: readonly CostAdjuster[] = [];
     private get costAdjusters(): readonly CostAdjuster[] {
         return this._costAdjusters;
     }
@@ -155,11 +154,11 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     public get allCards() {
-        return this._decklist.allCards.map((x) => this.game.getFromRef(x));
+        return this._decklist.allCards.map((x) => this.game.getFromId(x));
     }
 
     public get tokens() {
-        return this._decklist.tokens.map((x) => this.game.getFromRef(x));
+        return this._decklist.tokens.map((x) => this.game.getFromId(x));
     }
 
     public get autoSingleTarget() {
@@ -723,10 +722,10 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     public async prepareDecksAsync() {
         const preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
-        this._base = this.game.getFromRef(preparedDecklist.base);
-        this._leader = this.game.getFromRef(preparedDecklist.leader);
+        this._base = this.game.getFromId(preparedDecklist.base);
+        this._leader = this.game.getFromId(preparedDecklist.leader);
 
-        this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromRef(x)));
+        this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromId(x)));
 
         // set up playable zones now that all relevant zones are created
         // STATE: This _is_ OK for now, as the gameObject references are still kept, but ideally these would also be changed to Refs in the future.
@@ -762,7 +761,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @param {CostAdjuster} costAdjuster
      */
     public addCostAdjuster(costAdjuster: CostAdjuster) {
-        this._costAdjusters.push(costAdjuster);
+        this._costAdjusters = [...this._costAdjusters, costAdjuster];
     }
 
     /**
