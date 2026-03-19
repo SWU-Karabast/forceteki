@@ -128,7 +128,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
 
                 const currentStateValue = this.entries;
                 const updatedStateValue = listener.update(currentStateValue, event);
-                this.game.deltaTracker?.recordFieldChange(this, 'entries');
+                // this.game.deltaTracker?.recordFieldChange(this, 'entries');
                 this.entries = updatedStateValue;
             };
 
