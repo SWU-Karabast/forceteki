@@ -31,6 +31,7 @@ interface IRegisteredClassInfo {
 interface IStateClassInfo {
     className: string;
     declaration: ClassDeclaration;
+    shouldGenerateSerializer: boolean;
     ownFields: IStateFieldWithSource[];
 }
 
@@ -72,6 +73,7 @@ function main() {
 
 function collectRegisteredClasses(project: Project): IRegisteredClassInfo[] {
     const decoratedClasses = new Map<string, IStateClassInfo>();
+    const serializerClassNames = new Set<string>();
     const resolvedClassNodes = new Map<string, IResolvedClassNode>();
 
     for (const sourceFile of project.getSourceFiles('server/**/*.ts')) {
@@ -93,10 +95,21 @@ function collectRegisteredClasses(project: Project): IRegisteredClassInfo[] {
             }
 
             decoratedClasses.set(classInfo.className, classInfo);
+            if (classInfo.shouldGenerateSerializer) {
+                serializerClassNames.add(classInfo.className);
+            }
         }
     }
 
-    return Array.from(decoratedClasses.values())
+    return Array.from(serializerClassNames.values())
+        .map((className) => {
+            const classInfo = decoratedClasses.get(className);
+            if (!classInfo) {
+                throw new Error(`Unable to resolve serializer generation target "${className}"`);
+            }
+
+            return classInfo;
+        })
         .sort((left, right) => left.className.localeCompare(right.className))
         .map((classInfo) => {
             const resolvedNode = resolveClassNode(classInfo, decoratedClasses, resolvedClassNodes);
@@ -118,6 +131,7 @@ function createStateClassInfo(classDeclaration: ClassDeclaration): IStateClassIn
     return {
         className,
         declaration: classDeclaration,
+        shouldGenerateSerializer: hasConcreteRegisterStateDecorator(classDeclaration),
         ownFields: getOwnStateFields(classDeclaration)
     };
 }
@@ -441,6 +455,10 @@ function flattenClassChain(classNode: IResolvedClassNode): IResolvedClassNode[] 
 
 function hasRegisterStateDecorator(classDeclaration: ClassDeclaration): boolean {
     return classDeclaration.getDecorators().some((decorator) => REGISTER_CLASS_DECORATORS.has(decorator.getName()));
+}
+
+function hasConcreteRegisterStateDecorator(classDeclaration: ClassDeclaration): boolean {
+    return classDeclaration.getDecorators().some((decorator) => decorator.getName() === 'registerState');
 }
 
 function getOwnStateFields(classDeclaration: ClassDeclaration): IStateFieldWithSource[] {
