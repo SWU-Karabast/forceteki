@@ -54,8 +54,8 @@ export class DeltaTracker {
             this.changedFields.set(go.uuid, goEntry);
         }
 
-        // @ts-expect-error Overriding state accessibility
-        const currentValue = go.state[fieldName];
+        const currentValue = go[fieldName];
+        // TODO: We need to change this to the GO specific serializer.
         goEntry[fieldName] = this.snapshotValue(currentValue);
     }
 
