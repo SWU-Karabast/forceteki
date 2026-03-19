@@ -1,4 +1,5 @@
 import type { GameObjectBase, IGameObjectBase } from './GameObjectBase';
+import * as Contract from './utils/Contract.js';
 
 const stateClassesStr: Record<string, string> = {};
 
@@ -479,72 +480,6 @@ function CreateUndoArrayProxy<TValue extends GameObjectBase>(undoArr: UndoArray<
     });
 
     return proxiedArray;
-}
-
-export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
-    let baseClass = Object.getPrototypeOf(instance);
-    let isFullCopy = false;
-    if (baseClass.constructor[Symbol.metadata][bulkCopyMetadata]) {
-        isFullCopy = true;
-    }
-    while (baseClass) {
-        const metadata = baseClass.constructor[Symbol.metadata];
-        // Pull out any data provided by @registerState for this class.
-        const metaState = metadata?.[baseClass.constructor.name] as Record<symbol, any>;
-
-        // If there is any state, go through each of the types and do the copy process.
-        if (metaState) {
-            const hydrationMetadata = metaState[stateHydrationMetadata] as Record<string, StateHydrationHandler> | undefined;
-
-            // STATE NOTE: We only need to copy this if we aren't using structuredClone.
-            if (!isFullCopy && metaState[stateSimpleMetadata]) {
-                const metaSimples = metaState[stateSimpleMetadata] as string[];
-                for (const field of metaSimples) {
-                    instance[field] = newState[field];
-                }
-            }
-
-            // STATE TODO: Once objects can be GC'd and we can recreate objects during rollback, this will need to happen *after* the new objects are created.
-            if (metaState[stateArrayMetadata]) {
-                const metaArrays = metaState[stateArrayMetadata] as string[];
-                for (const field of metaArrays) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-            if (metaState[stateMapMetadata]) {
-                const metaMaps = metaState[stateMapMetadata] as string[];
-                for (const field of metaMaps) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-            if (metaState[stateSetMetadata]) {
-                const metaSets = metaState[stateSetMetadata] as string[];
-                for (const field of metaSets) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-            if (metaState[stateRecordMetadata]) {
-                const metaRecords = metaState[stateRecordMetadata] as string[];
-                for (const field of metaRecords) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-            if (metaState[stateObjectMetadata]) {
-                const metaObjects = metaState[stateObjectMetadata] as string[];
-                for (const field of metaObjects) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-        }
-
-        const newBaseClass = Object.getPrototypeOf(baseClass);
-        // Check if there's another parent class and that that class isn't the base Object of every class.
-        if (!newBaseClass || !newBaseClass.constructor.name || newBaseClass === Object.prototype) {
-            break;
-        }
-        // Continue to the next parent class in the prototype chain and check again.
-        baseClass = newBaseClass;
-    }
 }
 
 // A custom class to pass through any values to the underlying state Map.
