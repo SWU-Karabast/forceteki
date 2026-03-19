@@ -1,6 +1,6 @@
 import type { Game } from '../../../server/game/core/Game';
 import type { GameObjectBase, IGameObjectBaseState } from '../../../server/game/core/GameObjectBase';
-import { ensureStateSerializersRegistered, stateSerializerRegistry, type SerializedGameObjectStateMap, type SerializerInstance, type StateSerializer } from '../../../server/game/core/StateSerializers';
+import { ensureStateSerializersRegistered, getStateDeltaSerializer, stateDeltaSerializerRegistry, stateSerializerRegistry, type SerializedGameObjectStateMap, type SerializerInstance, type StateSerializer } from '../../../server/game/core/StateSerializers';
 
 interface TestSerializerManager {
     buildGameStateForSnapshot(): SerializedGameObjectStateMap;
@@ -87,6 +87,62 @@ describe('Generated state serializers', function() {
 
                 expect(serializer.serialize(gameObject as unknown as SerializerInstance)).toEqual(gameObjectState);
             }
+        });
+
+        it('roundtrips representative primitive, value, ref, and refArray delta field serializers', function() {
+            const { context } = contextRef;
+
+            ensureStateSerializersRegistered();
+
+            const unitDeltaSerializer = getStateDeltaSerializer(context.wampa as unknown as GameObjectBase);
+            const serializedDamage = unitDeltaSerializer._damage.serialize(context.wampa.damage);
+            expect(unitDeltaSerializer._damage.deserialize(context.game as Game, serializedDamage)).toBe(context.wampa.damage);
+
+            const serializedController = unitDeltaSerializer._controller.serialize(context.wampa.controller);
+            expect(serializedController).toBe(context.player1Object.getObjectId());
+            expect(unitDeltaSerializer._controller.deserialize(context.game as Game, serializedController)).toBe(context.player1Object);
+
+            const handZoneDeltaSerializer = getStateDeltaSerializer(context.player1Object.handZone as unknown as GameObjectBase);
+            const serializedHandCards = handZoneDeltaSerializer._cards.serialize(context.player1.hand);
+            expect(serializedHandCards).toEqual([context.battlefieldMarine.getObjectId()]);
+            expect(handZoneDeltaSerializer._cards.deserialize(context.game as Game, serializedHandCards)).toEqual([context.battlefieldMarine]);
+
+            const watcherDeltaSerializer = stateDeltaSerializerRegistry.get('ActionsThisPhaseWatcher');
+            expect(watcherDeltaSerializer).toBeDefined();
+
+            const actionEntries = [{ actionName: 'play', nested: { count: 1 } }];
+            const serializedEntries = watcherDeltaSerializer?.entries.serialize(actionEntries) as typeof actionEntries;
+            expect(serializedEntries).toEqual(actionEntries);
+            expect(serializedEntries).not.toBe(actionEntries);
+            expect(serializedEntries[0]).not.toBe(actionEntries[0]);
+
+            const deserializedEntries = watcherDeltaSerializer?.entries.deserialize(context.game as Game, serializedEntries) as typeof actionEntries;
+            expect(deserializedEntries).toEqual(actionEntries);
+            expect(deserializedEntries).not.toBe(serializedEntries);
+            expect(deserializedEntries[0]).not.toBe(serializedEntries[0]);
+        });
+
+        it('uses generated delta serializers during quick rollback for primitive, ref, and refArray state', function() {
+            const { context } = contextRef;
+
+            expect(context.battlefieldMarine).toBeInZone('hand');
+            expect(context.player1.readyResourceCount).toBe(2);
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+            expect(context.player1.readyResourceCount).toBe(0);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.player1.hand).not.toContain(context.battlefieldMarine);
+
+            contextRef.snapshot.quickRollback(context.player1.id);
+
+            expect(context.battlefieldMarine).toBeInZone('hand');
+            expect(context.player1.readyResourceCount).toBe(2);
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+            expect(context.player1.hand).toContain(context.battlefieldMarine);
+            expect(context.player1).toBeActivePlayer();
         });
     });
 });

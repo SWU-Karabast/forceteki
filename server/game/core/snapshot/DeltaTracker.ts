@@ -1,5 +1,6 @@
 import type { Game } from '../Game';
 import type { GameObjectBase } from '../GameObjectBase';
+import { getStateDeltaSerializer } from '../StateSerializers';
 import type { IDeltaSnapshot } from './SnapshotInterfaces';
 import v8 from 'node:v8';
 import * as Contract from '../utils/Contract.js';
@@ -54,9 +55,12 @@ export class DeltaTracker {
             this.changedFields.set(go.uuid, goEntry);
         }
 
-        const currentValue = go[fieldName];
-        // TODO: We need to change this to the GO specific serializer.
-        goEntry[fieldName] = this.snapshotValue(currentValue);
+        const deltaSerializer = getStateDeltaSerializer(go);
+        const fieldSerializer = deltaSerializer[fieldName];
+        Contract.assertNotNullLike(fieldSerializer, `No generated delta serializer found for ${go.constructor.name}.${fieldName}`);
+
+        const currentValue = (go as unknown as Record<string, unknown>)[fieldName];
+        goEntry[fieldName] = fieldSerializer.serialize(currentValue);
     }
 
     public recordObjectCreation(uuid: string): void {
@@ -86,25 +90,5 @@ export class DeltaTracker {
         this.createdObjectUuids = [];
 
         return delta;
-    }
-
-    private snapshotValue(value: unknown): unknown {
-        if (value == null || typeof value !== 'object') {
-            return value;
-        }
-        if (Array.isArray(value)) {
-            return value.concat();
-        }
-        if (value instanceof Map) {
-            return new Map(value);
-        }
-        if (value instanceof Set) {
-            return new Set(value);
-        }
-        if ((value as { isRef?: boolean }).isRef) {
-            return value;
-        }
-
-        return structuredClone(value);
     }
 }

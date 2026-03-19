@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module';
 import type { Game } from './Game';
+import type { GameObjectBase } from './GameObjectBase';
 import type { GameObjectId } from './GameObjectUtils';
 
 const GENERATED_STATE_SERIALIZERS_MODULE_PATH = './generated/GeneratedStateSerializers';
@@ -22,11 +23,31 @@ export interface StateSerializer<TState extends SerializedGameObjectState = Seri
     deserialize(game: Game, instance: SerializerInstance, state: TState): void;
 }
 
+export interface StateDeltaFieldSerializer {
+    serialize(value: unknown): unknown;
+    deserialize(game: Game, value: unknown): unknown;
+}
+
+export type StateDeltaSerializer = Record<string, StateDeltaFieldSerializer>;
+
+interface SerializerConstructor {
+    name: string;
+}
+
 export const stateSerializerRegistry = new Map<string, StateSerializer>();
+export const stateDeltaSerializerRegistry = new Map<string, StateDeltaSerializer>();
+
+const stateDeltaSerializerCache = new Map<SerializerConstructor, StateDeltaSerializer>();
 
 export function registerStateSerializers(entries: Iterable<readonly [string, StateSerializer]>): void {
     for (const [name, serializer] of entries) {
         stateSerializerRegistry.set(name, serializer);
+    }
+}
+
+export function registerStateDeltaSerializers(entries: Iterable<readonly [string, StateDeltaSerializer]>): void {
+    for (const [name, serializer] of entries) {
+        stateDeltaSerializerRegistry.set(name, serializer);
     }
 }
 
@@ -45,6 +66,24 @@ export function ensureStateSerializersRegistered(): void {
 
         throw error;
     }
+}
+
+export function getStateDeltaSerializer(gameObject: GameObjectBase): StateDeltaSerializer {
+    ensureStateSerializersRegistered();
+
+    const constructor = gameObject.constructor as unknown as SerializerConstructor;
+    const cachedSerializer = stateDeltaSerializerCache.get(constructor);
+    if (cachedSerializer) {
+        return cachedSerializer;
+    }
+
+    const serializer = stateDeltaSerializerRegistry.get(constructor.name);
+    if (!serializer) {
+        throw new Error(`No generated delta serializer found for ${gameObject.constructor.name}`);
+    }
+
+    stateDeltaSerializerCache.set(constructor, serializer);
+    return serializer;
 }
 
 export function serializeStateValue<T>(value: T): T {

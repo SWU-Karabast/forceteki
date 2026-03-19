@@ -533,7 +533,9 @@ function buildGeneratedFile(registeredClasses: IRegisteredClassInfo[]): string {
     lines.push('    serializeStateRefRecord,');
     lines.push('    serializeStateRefSet,');
     lines.push('    serializeStateValue,');
+    lines.push('    registerStateDeltaSerializers,');
     lines.push('    registerStateSerializers,');
+    lines.push('    type StateDeltaSerializer,');
     lines.push('    type StateSerializer');
     lines.push('} from \'../StateSerializers\';');
     lines.push('');
@@ -551,11 +553,27 @@ function buildGeneratedFile(registeredClasses: IRegisteredClassInfo[]): string {
         }
         lines.push('};');
         lines.push('');
+
+        lines.push(`export const delta${registeredClass.className}: StateDeltaSerializer = {`);
+        for (const field of registeredClass.fields) {
+            lines.push(`    ${field.name}: {`);
+            lines.push(`        serialize: ${buildDeltaSerializeExpression(field)},`);
+            lines.push(`        deserialize: ${buildDeltaDeserializeExpression(field)},`);
+            lines.push('    },');
+        }
+        lines.push('};');
+        lines.push('');
     }
 
     lines.push('registerStateSerializers([');
     for (const registeredClass of registeredClasses) {
         lines.push(`    ['${registeredClass.className}', { serialize: serialize${registeredClass.className}, deserialize: deserialize${registeredClass.className} }],`);
+    }
+    lines.push(']);');
+    lines.push('');
+    lines.push('registerStateDeltaSerializers([');
+    for (const registeredClass of registeredClasses) {
+        lines.push(`    ['${registeredClass.className}', delta${registeredClass.className}],`);
     }
     lines.push(']);');
 
@@ -601,6 +619,48 @@ function buildDeserializeStatement(field: IStateField): string {
             return `instance.${field.name} = deserializeStateRefRecord(game, state.${field.name} as Record<string, string> | null | undefined);`;
         default:
             return `instance.${field.name} = state.${field.name};`;
+    }
+}
+
+function buildDeltaSerializeExpression(field: IStateField): string {
+    switch (field.kind) {
+        case 'primitive':
+            return '(value) => value';
+        case 'value':
+            return '(value) => serializeStateValue(value)';
+        case 'ref':
+            return '(value) => serializeStateRef(value)';
+        case 'refArray':
+            return '(value) => serializeStateRefArray(value)';
+        case 'refMap':
+            return '(value) => serializeStateRefMap(value)';
+        case 'refSet':
+            return '(value) => serializeStateRefSet(value)';
+        case 'refRecord':
+            return '(value) => serializeStateRefRecord(value)';
+        default:
+            return '(value) => value';
+    }
+}
+
+function buildDeltaDeserializeExpression(field: IStateField): string {
+    switch (field.kind) {
+        case 'primitive':
+            return '(_game, value) => value';
+        case 'value':
+            return '(_game, value) => deserializeStateValue(value)';
+        case 'ref':
+            return '(game, value) => deserializeStateRef(game, value as string | null | undefined)';
+        case 'refArray':
+            return '(game, value) => deserializeStateRefArray(game, value as string[] | null | undefined)';
+        case 'refMap':
+            return '(game, value) => deserializeStateRefMap(game, value as Map<string, string> | null | undefined)';
+        case 'refSet':
+            return '(game, value) => deserializeStateRefSet(game, value as Set<string> | null | undefined)';
+        case 'refRecord':
+            return '(game, value) => deserializeStateRefRecord(game, value as Record<string, string> | null | undefined)';
+        default:
+            return '(_game, value) => value';
     }
 }
 

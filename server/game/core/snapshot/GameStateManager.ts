@@ -1,10 +1,9 @@
 import type { Game } from '../Game';
 import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
-import { ensureStateSerializersRegistered, stateSerializerRegistry, type SerializedGameObjectState, type SerializedGameObjectStateMap, type SerializerInstance, type StateSerializer } from '../StateSerializers';
+import { ensureStateSerializersRegistered, getStateDeltaSerializer, stateSerializerRegistry, type SerializedGameObjectStateMap, type SerializerInstance, type StateSerializer } from '../StateSerializers';
 import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
-import { copyState } from '../GameObjectUtils';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
@@ -180,7 +179,7 @@ export class GameStateManager implements IGameObjectRegistrar {
                     }
 
                     const serializer = this.getSerializer(go);
-                    const oldState = serializer.serialize(go as unknown as SerializerInstance) as IGameObjectBaseState;
+                    const oldState = this.getSerializedState(go);
 
                     const updatedState = snapshotStatesByUuid[go.uuid] as IGameObjectBaseState | undefined;
                     if (!updatedState) {
@@ -258,7 +257,7 @@ export class GameStateManager implements IGameObjectRegistrar {
                     for (const uuid of delta.createdObjectUuids) {
                         const go = this.gameObjectMapping.get(uuid);
                         if (go) {
-                            allRemovals.push({ go, oldState: go.getState() });
+                            allRemovals.push({ go, oldState: this.getSerializedState(go) });
                         }
                     }
 
@@ -274,18 +273,18 @@ export class GameStateManager implements IGameObjectRegistrar {
                             continue;
                         }
 
+                        const deltaSerializer = getStateDeltaSerializer(go);
+
                         if (!seenUpdateUuids.has(go.uuid)) {
                             seenUpdateUuids.add(go.uuid);
-                            allUpdates.push({ go, oldState: go.getState() });
+                            allUpdates.push({ go, oldState: this.getSerializedState(go) });
                         }
 
                         for (const [fieldName, oldValue] of Object.entries(fields)) {
-                            // @ts-expect-error Overriding state accessibility
-                            go.state[fieldName] = oldValue;
+                            const fieldSerializer = deltaSerializer[fieldName];
+                            Contract.assertNotNullLike(fieldSerializer, `No generated delta serializer found for ${go.constructor.name}.${fieldName}`);
+                            (go as unknown as SerializerInstance)[fieldName] = fieldSerializer.deserialize(this.#game, oldValue);
                         }
-
-                        // @ts-expect-error Overriding state accessibility
-                        copyState(go, go.state);
                     }
                 }
 
@@ -305,7 +304,7 @@ export class GameStateManager implements IGameObjectRegistrar {
 
                 const oldStateByUuid = new Map(allUpdates.map((update) => [update.go.uuid, update.oldState]));
                 for (const go of this.allGameObjects) {
-                    go.afterSetAllState(oldStateByUuid.get(go.uuid) ?? go.getState());
+                    go.afterSetAllState(oldStateByUuid.get(go.uuid) ?? this.getSerializedState(go));
                 }
             } catch (error) {
                 if (!beforeRollbackSnapshot) {
@@ -348,35 +347,14 @@ export class GameStateManager implements IGameObjectRegistrar {
             return cachedSerializer;
         }
 
-        const serializerChain: StateSerializer[] = [];
-        let currentConstructor: SerializerConstructor | null = constructor;
-        while (currentConstructor && currentConstructor !== Function.prototype) {
-            const serializer = stateSerializerRegistry.get(currentConstructor.name);
-            if (serializer) {
-                serializerChain.unshift(serializer);
-            }
+        const serializer = stateSerializerRegistry.get(constructor.name);
+        Contract.assertNotNullLike(serializer, `No generated serializer found for ${gameObject.constructor.name}`);
 
-            currentConstructor = Object.getPrototypeOf(currentConstructor) as SerializerConstructor | null;
-        }
+        this.serializerCache.set(constructor, serializer);
+        return serializer;
+    }
 
-        Contract.assertTrue(serializerChain.length > 0, `No generated serializer found for ${gameObject.constructor.name}`);
-
-        const composedSerializer: StateSerializer = {
-            serialize: (instance: SerializerInstance): SerializedGameObjectState => {
-                const state: SerializedGameObjectState = {};
-                for (const serializer of serializerChain) {
-                    Object.assign(state, serializer.serialize(instance));
-                }
-                return state;
-            },
-            deserialize: (game: Game, instance: SerializerInstance, state: SerializedGameObjectState) => {
-                for (const serializer of serializerChain) {
-                    serializer.deserialize(game, instance, state);
-                }
-            }
-        };
-
-        this.serializerCache.set(constructor, composedSerializer);
-        return composedSerializer;
+    private getSerializedState(gameObject: GameObjectBase): IGameObjectBaseState {
+        return this.getSerializer(gameObject).serialize(gameObject as unknown as SerializerInstance) as IGameObjectBaseState;
     }
 }
