@@ -212,7 +212,6 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
             set(this: GameObjectBase, newValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 // The below UndoMap instantiation will also load the state map with all of it's values.
-                // this.state[name] = createIdMap(newValue);
                 target.set.call(this, newValue ? new UndoMap(this, name, newValue.entries()) : newValue);
             },
             init(this: GameObjectBase, value) {
@@ -239,7 +238,6 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
             set(this: GameObjectBase, newValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 // The below UndoSet instantiation will also load the state map with all of its values.
-                // this.state[name] = createIdSet(newValue);
                 target.set.call(this, newValue ? new UndoSet(this, name, newValue.values()) : newValue);
             },
             init(this: GameObjectBase, value) {
@@ -264,13 +262,8 @@ export function stateRefRecord<T extends GameObjectBase, TValue extends GameObje
         return {
             set(this: GameObjectBase, newValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
-                // this.state[name] = createIdRecord(newValue);
-                target.set.call(this, UndoSafeRecord(this, newValue, name));
-            },
-            init(this: GameObjectBase, value) {
-                // this.state[name] = value ? {} : value;
-                return value ? UndoSafeRecord(this, value, name) : value;
-            },
+                target.set.call(this, newValue);
+            }
         };
     };
 }
@@ -286,16 +279,8 @@ export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase
         // Use the backing fields as the cache, and write refs to the state.
         return {
             set(this, newValue) {
-                const gameObject = this as unknown as GameObjectBase;
-                gameObject.game.deltaTracker?.recordFieldChange(gameObject, name);
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                // this.state[name] = newValue?.getObjectId();
+                this.game.deltaTracker?.recordFieldChange(this, name);
                 target.set.call(this, newValue);
-            },
-            init(value) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                // this.state[name] = value?.getObjectId();
-                return value;
             }
         };
     };
@@ -314,7 +299,6 @@ export function stateValue<T extends GameObjectBase, TValue>() {
             set(this: T, newValue: TValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 target.set.call(this, newValue);
-                // this.state[name] = newValue;
             },
         };
     };
@@ -349,41 +333,12 @@ function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>
 
 /** Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
 export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, arr: readonly TValue[], name: string) {
-    // @ts-expect-error these functions can bypass the accessibility safeties.
-    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go.state, name), 'Property ' + name + ' not found on the state of the GameObject');
+    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
 
     const proxiedArray = new Proxy(arr, {
         get(target, prop, receiver) {
-            if (prop === 'pop' || prop === 'splice') {
-                return function (...args) {
-                    Contract.assertTrue(args.length <= 2, 'State Array Splice does not support adding elements to the array.');
-                    const result = Reflect.apply(target[prop], target, args);
-                    // @ts-expect-error Override accessibility and call the same method on the internal state.
-                    Reflect.apply(go.state[name][prop], go.state[name], args);
-
-                    return result;
-                };
-            } else if (prop === 'push' || prop === 'unshift') {
-                return function (...args) {
-                    const result = Reflect.apply(target[prop], target, args);
-                    if (prop === 'push') {
-                        pushIdsOntoStateArray(getStateIdArray(go, name), args);
-                    } else {
-                        unshiftIdsOntoStateArray(getStateIdArray(go, name), args);
-                    }
-
-                    return result;
-                };
-            } else if (prop === 'reverse') {
-                return function (...args) {
-                    const result = Reflect.apply(target[prop], target, args);
-                    // @ts-expect-error Override accessibility and call the same method on the internal state.
-                    Reflect.apply(go.state[name][prop], go.state[name], args);
-
-                    return result;
-                };
-            } else if (prop === 'sort' || prop === 'fill') {
-                throw new Error('function ' + prop + ' is not supported.');
+            if (prop === 'push' || prop === 'unshift' || prop === 'pop' || prop === 'shift' || prop === 'reverse' || prop === 'splice') {
+                go.game.deltaTracker?.recordFieldChange(go, name);
             }
 
             // For other properties, return the original property
@@ -499,26 +454,17 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
         // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            // @ts-expect-error Overriding state accessibility
-            const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
-            stateValue.set(key, value.getObjectId());
         }
         return super.set(key, value);
     }
 
     public override delete(key: string): boolean {
         this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
-        stateValue.delete(key);
         return super.delete(key);
     }
 
     public override clear(): void {
         this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
-        stateValue.clear();
         super.clear();
     }
 }
@@ -540,26 +486,17 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
         // Add is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            // @ts-expect-error Overriding state accessibility
-            const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
-            stateValue.add(value.getObjectId());
         }
         return super.add(value);
     }
 
     public override delete(value: TValue): boolean {
         this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
-        stateValue.delete(value.getObjectId());
         return super.delete(value);
     }
 
     public override clear(): void {
         this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
-        stateValue.clear();
         super.clear();
     }
 }
@@ -577,8 +514,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         this.accessing = true;
         try {
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            // @ts-expect-error Overriding state accessibility
-            pushIdsOntoStateArray(this.go.state[this.prop], items);
             return super.push(...items);
         } finally {
             this.accessing = false;
@@ -589,8 +524,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         this.accessing = true;
         try {
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            // @ts-expect-error Overriding state accessibility
-            unshiftIdsOntoStateArray(this.go.state[this.prop], items);
             return super.unshift(...items);
         } finally {
             this.accessing = false;
@@ -601,8 +534,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         this.accessing = true;
         try {
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectId[]).pop();
             return super.pop();
         } finally {
             this.accessing = false;
@@ -613,8 +544,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         this.accessing = true;
         try {
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectId[]).shift();
             return super.shift();
         } finally {
             this.accessing = false;
@@ -625,8 +554,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         this.accessing = true;
         try {
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectId[]).reverse();
             return super.reverse();
         } finally {
             this.accessing = false;
@@ -644,8 +571,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         this.accessing = true;
         try {
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectId[]).splice(start, deleteCount);
             return super.splice(start, deleteCount);
         } finally {
             this.accessing = false;
