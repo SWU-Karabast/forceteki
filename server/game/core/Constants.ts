@@ -628,9 +628,15 @@ export enum NamedAction {
 
 export enum SwuGameFormat {
     Premier = 'premier',
-    NextSetPreview = 'nextSetPreview',
     Open = 'open',
     Eternal = 'eternal',
+    Limited = 'limited',
+}
+
+export enum CardPool {
+    Current = 'current',
+    NextSet = 'nextSet',
+    Unlimited = 'unlimited',
 }
 
 export enum GamesToWinMode {

@@ -377,7 +377,7 @@ export function statePrimitive<T extends GameObjectBase, TValue extends string |
 type ConstantBoolean<T extends boolean> = boolean extends T ? never : T;
 
 /**
- * @param readonly If false, returns the array wrapped in a Proxy object, which allows the safe use of push, pop, unshift, and splice. If true, returns the array as-is and requires it be marked as readonly.
+ * @param readonly If false, returns the array wrapped in a Proxy object, which allows the safe use of push, pop, unshift, and splice, but cause heavy allocations on the setup. If true, returns the array as-is and requires it be marked as readonly.
  */
 export function stateRefArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
     return function (

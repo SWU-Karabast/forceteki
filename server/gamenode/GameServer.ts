@@ -50,7 +50,7 @@ import {
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
-import { SwuGameFormat } from '../game/core/Constants';
+import { CardPool, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionCache } from '../utils/ModActionCache';
@@ -1155,7 +1155,7 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
+                const { deck, format, isPrivate, gamesToWinMode, lobbyName, cardPool } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1197,6 +1197,11 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
+                if (!EnumHelpers.isEnumValue(cardPool, CardPool)) {
+                    logger.error(`GameServer (create-lobby): Invalid card pool parameter ${cardPool}`);
+                    return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
+                }
+
                 // Check Bo3 access restrictions for anonymous users
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, isPrivate, 'create a public best of three lobby');
                 if (bo3AccessError) {
@@ -1204,8 +1209,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, allow30CardsInMainBoard);
+                await this.processDeckValidation(deck, true, { format, cardPool }, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, cardPool);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1305,7 +1310,7 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { format, gamesToWinMode, deck } = req.body;
+                const { format, cardPool, gamesToWinMode, deck } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1335,8 +1340,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
-                    const success = this.enterQueue(format, gamesToWinMode, user, deck);
+                await this.processDeckValidation(deck, false, { format, cardPool }, res, () => {
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1827,7 +1832,7 @@ export class GameServer {
         format: SwuGameFormat,
         gamesToWinMode: GamesToWinMode,
         isPrivate: boolean,
-        allow30CardsInMainBoard: boolean = false
+        cardPool: CardPool = CardPool.Current
     ) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
@@ -1842,7 +1847,7 @@ export class GameServer {
             isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
             format,
             gamesToWinMode,
-            allow30CardsInMainBoard,
+            cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1861,7 +1866,7 @@ export class GameServer {
             MatchmakingType.PublicLobby,
             SwuGameFormat.Open,
             GamesToWinMode.BestOfOne,
-            false,
+            CardPool.Unlimited,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -2099,9 +2104,16 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, gamesToWinMode: GamesToWinMode, user: User, deck: ISwuDbFormatDecklist): boolean {
+    private enterQueue(
+        format: SwuGameFormat,
+        cardPool: CardPool,
+        gamesToWinMode: GamesToWinMode,
+        user: User,
+        deck: ISwuDbFormatDecklist
+    ): boolean {
         const formatKey: IQueueFormatKey = {
-            swuFormat: format,
+            format,
+            cardPool,
             gamesToWinMode
         };
 
@@ -2187,9 +2199,9 @@ export class GameServer {
         const lobby = new Lobby(
             'Quick Game',
             MatchmakingType.Quick,
-            format.swuFormat,
+            format.format,
             format.gamesToWinMode,
-            false,
+            format.cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
