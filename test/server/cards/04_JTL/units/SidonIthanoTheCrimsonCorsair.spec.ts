@@ -44,5 +44,27 @@ describe('Sidon Ithano, The Crimson Corsair', function () {
                 expect(context.sidonIthano).toBeInZone('groundArena');
             });
         });
+        
+        it('Sidon Ithano triggers When a Pilot upgrade attaches for the correct player', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['sidon-ithano#the-crimson-corsair'],
+                },
+                player2: {
+                    spaceArena: [
+                        'red-leader#form-up'
+                    ],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.sidonIthano);
+            context.player1.clickCard(context.redLeader);
+            const xwing = context.player2.findCardByName('xwing');
+
+            expect(xwing).toBeInZone('spaceArena', context.player2);
+        })
     });
 });
