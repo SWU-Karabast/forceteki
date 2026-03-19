@@ -2,8 +2,8 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, CardType, Duration, EventName, KeywordName } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DiplomaticEnvoy extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class DiplomaticEnvoy extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command];
         registrar.addWhenPlayedAbility({
-            title: `Disclose ${EnumHelpers.aspectString(aspects)} to give Ambush for this phase for the next unit you play this phase`,
+            title: `Disclose ${TextHelper.aspectList(aspects)} to give Ambush for this phase for the next unit you play this phase`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
                 title: 'The next unit you play this phase gains Ambush for this phase',

@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, RelativePlayer, ZoneName } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class _000TranslationAndTorture extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,14 +13,13 @@ export default class _000TranslationAndTorture extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        const aspect = [Aspect.Aggression];
         registrar.addOnAttackAbility({
-            title: `Put an ${EnumHelpers.aspectString(aspect)} card from your discard pile on the bottom of your deck. If you do, deal 1 damage to each enemy base`,
+            title: `Put an ${TextHelper.Aggression} card from your discard pile on the bottom of your deck. If you do, deal 1 damage to each enemy base`,
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card.hasSomeAspect([Aspect.Aggression]),
+                cardCondition: (card) => card.hasSomeAspect(Aspect.Aggression),
                 immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck()
             },
             ifYouDo: {

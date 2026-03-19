@@ -3,7 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, EventName, TargetMode } from '../../../core/Constants';
-import { aspectString, checkConvertToEnum } from '../../../core/utils/EnumHelpers';
+import { checkConvertToEnum } from '../../../core/utils/EnumHelpers';
 
 export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -23,8 +23,8 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Choose an Aspect',
                 mode: TargetMode.DropdownList,
-                options: [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning, Aspect.Villainy, Aspect.Heroism]
-                    .map((a) => aspectString([a]))
+                // eslint-disable-next-line forceteki/no-raw-token-text -- dropdown component only supports raw strings
+                options: ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism']
             },
             then: (outerContext) => ({
                 title: 'Choose a deck to discard from',

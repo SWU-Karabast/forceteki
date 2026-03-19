@@ -36,7 +36,7 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
 }
 
 @registerStateBase()
-export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
+export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
 
     @stateRef()
@@ -151,7 +151,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 
     protected override getAbilityRegistrar(): ILeaderUnitAbilityRegistrar & ILeaderUnitLeaderSideAbilityRegistrar {
-        const registrar = super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCardInternal>;
+        const registrar = super.getAbilityRegistrar() as IUnitAbilityRegistrar<LeaderUnitCard>;
 
         return {
             ...registrar,
@@ -173,7 +173,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
     }
 
-    private addPilotDeploy(makeAttachedUnitALeader: boolean, registrar: IUnitAbilityRegistrar<LeaderUnitCardInternal>) {
+    private addPilotDeploy(makeAttachedUnitALeader: boolean, registrar: IUnitAbilityRegistrar<LeaderUnitCard>) {
         Contract.assertNotNullLike(this.printedUpgradeHp, `Leader ${this.title} is missing upgrade HP.`);
         Contract.assertNotNullLike(this.printedUpgradePower, `Leader ${this.title} is missing upgrade power.`);
 
@@ -237,7 +237,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 
     /** Generates the right zoneFilter property depending on which leader side we're setting up */
-    private addZoneForSideToAbilityWithType<Properties extends IAbilityPropsWithType<LeaderUnitCardInternal>>(properties: Properties) {
+    private addZoneForSideToAbilityWithType<Properties extends IAbilityPropsWithType<LeaderUnitCard>>(properties: Properties) {
         if (properties.type === AbilityType.Constant) {
             properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
         } else {
@@ -293,10 +293,3 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
             deployed: this.deployed };
     }
 }
-
-// STATE TODO: Once we've fully converted to decorators, this can be removed and LeaderUnitCardInternal can be renamed to LeaderUnitCard
-@registerStateBase()
-export class LeaderUnitCard extends LeaderUnitCardInternal {
-    public declare state: never;
-}
-

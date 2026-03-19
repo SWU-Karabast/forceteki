@@ -3,6 +3,7 @@ import type { IDoubleSidedLeaderAbilityRegistrar } from '../../../core/card/Abil
 import { DoubleSidedLeaderCard } from '../../../core/card/DoubleSidedLeaderCard';
 import { Aspect } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
@@ -23,7 +24,7 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
 
     protected override setupLeaderSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'If a friendly Heroism unit was defeated this phase, draw a card, heal 2 damage from your base, then flip this leader.',
+            title: `If a friendly ${TextHelper.Heroism} unit was defeated this phase, draw a card, heal 2 damage from your base, then flip this leader.`,
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.friendlyHeroismCardDefeatedThisPhase(context),
@@ -38,7 +39,7 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
 
     protected override setupLeaderBackSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'If you played a Villainy card this phase, create a Clone Trooper, deal 2 damage to each enemy base, and then flip this leader.',
+            title: `If you played a ${TextHelper.Villainy} card this phase, create a Clone Trooper, deal 2 damage to each enemy base, and then flip this leader.`,
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.villainyCardPlayedThisPhase(context),

@@ -156,8 +156,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._lastPlayerToModifyHp;
         }
 
-        @stateRefArray(false)
-        private accessor _attackKeywordAbilities: ((TriggeredAbilityBase | ConstantAbility)[] | null) = null;
+        @stateRefArray()
+        private accessor _attackKeywordAbilities: (readonly (TriggeredAbilityBase | ConstantAbility)[] | null) = null;
 
         @stateRefArray()
         private accessor _whenCapturedKeywordAbilities: readonly TriggeredAbilityBase[] | null = null;
@@ -165,20 +165,20 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         @stateRefArray()
         private accessor _whenDefeatedKeywordAbilities: (readonly TriggeredAbilityBase[]) | null = null;
 
-        @stateRefArray(false)
-        private accessor _whenPlayedKeywordAbilities: (TriggeredAbilityBase[]) | null = null;
+        @stateRefArray()
+        private accessor _whenPlayedKeywordAbilities: (readonly TriggeredAbilityBase[]) | null = null;
 
-        @stateRefArray(false)
-        private accessor _whileInPlayKeywordAbilities: (ConstantAbility[]) | null = null;
+        @stateRefArray()
+        private accessor _whileInPlayKeywordAbilities: (readonly ConstantAbility[]) | null = null;
 
-        @stateRefArray(false)
-        protected accessor pilotingActionAbilities: ActionAbilityBase[] = [];
+        @stateRefArray()
+        protected accessor pilotingActionAbilities: readonly ActionAbilityBase[] = [];
 
-        @stateRefArray(false)
-        protected accessor pilotingTriggeredAbilities: TriggeredAbilityBase[] = [];
+        @stateRefArray()
+        protected accessor pilotingTriggeredAbilities: readonly TriggeredAbilityBase[] = [];
 
-        @stateRefArray(false)
-        private accessor _pilotingConstantAbilities: ConstantAbility[] = [];
+        @stateRefArray()
+        private accessor _pilotingConstantAbilities: readonly ConstantAbility[] = [];
 
         private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
@@ -198,15 +198,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._captureZone;
         }
 
-        @stateRefArray(false)
-        private accessor _upgrades: IUpgradeCard[] = null;
+        @stateRefArray()
+        private accessor _upgrades: readonly IUpgradeCard[] = null;
 
         @statePrimitive()
         private accessor _expiredLastingEffectChangedRemainingHp: boolean = false;
 
         public get upgrades(): IUpgradeCard[] {
             this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
-            return this._upgrades;
+            return this._upgrades as IUpgradeCard[];
         }
 
         public get defaultArena(): Arena {
@@ -506,16 +506,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             switch (properties.type) {
                 case AbilityType.Action:
-                    this.pilotingActionAbilities.push(this.createActionAbility(properties));
+                    this.pilotingActionAbilities = [...this.pilotingActionAbilities, this.createActionAbility(properties)];
                     break;
                 case AbilityType.Constant:
-                    this._pilotingConstantAbilities.push(this.createConstantAbility(properties));
+                    this._pilotingConstantAbilities = [...this._pilotingConstantAbilities, this.createConstantAbility(properties)];
                     break;
                 case AbilityType.Triggered:
-                    this.pilotingTriggeredAbilities.push(this.createTriggeredAbility(properties));
+                    this.pilotingTriggeredAbilities = [...this.pilotingTriggeredAbilities, this.createTriggeredAbility(properties)];
                     break;
                 case AbilityType.ReplacementEffect:
-                    this.pilotingTriggeredAbilities.push(this.createReplacementEffectAbility(properties));
+                    this.pilotingTriggeredAbilities = [...this.pilotingTriggeredAbilities, this.createReplacementEffectAbility(properties)];
                     break;
                 default:
                     Contract.fail(`Unsupported ability type ${(properties as any).type}`);
@@ -690,7 +690,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
                 coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
 
-                this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
+                this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, coordinateKeywordAbility];
             }
 
             if (this.hasSomeKeyword(KeywordName.Hidden)) {
@@ -705,7 +705,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const hiddenKeywordAbility = this.createConstantAbility(hiddenKeywordAbilityProps);
                 hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility);
 
-                this._whileInPlayKeywordAbilities.push(hiddenKeywordAbility);
+                this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, hiddenKeywordAbility];
             }
         }
 
@@ -743,14 +743,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const ambushProps = Object.assign(this.buildGeneralAbilityProps('keyword_ambush'), AmbushAbility.buildAmbushAbilityProperties());
                 const ambushAbility = this.createTriggeredAbility(ambushProps);
                 ambushAbility.registerEvents();
-                this._whenPlayedKeywordAbilities.push(ambushAbility);
+                this._whenPlayedKeywordAbilities = [...this._whenPlayedKeywordAbilities, ambushAbility];
             }
 
             if (hasShielded) {
                 const shieldedProps = Object.assign(this.buildGeneralAbilityProps('keyword_shielded'), ShieldedAbility.buildShieldedAbilityProperties());
                 const shieldedAbility = this.createTriggeredAbility(shieldedProps);
                 shieldedAbility.registerEvents();
-                this._whenPlayedKeywordAbilities.push(shieldedAbility);
+                this._whenPlayedKeywordAbilities = [...this._whenPlayedKeywordAbilities, shieldedAbility];
             }
 
             event.addCleanupHandler(() => this.unregisterWhenPlayedKeywords());
@@ -784,14 +784,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const restoreProps = Object.assign(this.buildGeneralAbilityProps('keyword_restore'), RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
                 const restoreAbility = this.createTriggeredAbility(restoreProps);
                 restoreAbility.registerEvents();
-                this._attackKeywordAbilities.push(restoreAbility);
+                this._attackKeywordAbilities = [...this._attackKeywordAbilities, restoreAbility];
             }
 
             if (hasSaboteur) {
                 const saboteurProps = Object.assign(this.buildGeneralAbilityProps('keyword_saboteur'), SaboteurDefeatShieldsAbility.buildSaboteurAbilityProperties());
                 const saboteurAbility = this.createTriggeredAbility(saboteurProps);
                 saboteurAbility.registerEvents();
-                this._attackKeywordAbilities.push(saboteurAbility);
+                this._attackKeywordAbilities = [...this._attackKeywordAbilities, saboteurAbility];
             }
 
             event.addCleanupHandler(() => this.unregisterAttackKeywords());
@@ -1088,7 +1088,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             Contract.assertEqual(upgrade.zoneName, this.zoneName);
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
-            this._upgrades.push(upgrade);
+            this._upgrades = [...this._upgrades, upgrade];
 
             if (upgrade.getPrintedHp() !== 0) {
                 this._lastPlayerToModifyHp = upgrade.controller;
