@@ -72,6 +72,7 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
 
 @registerState()
 export class UnlimitedAbilityLimit extends AbilityLimit {
+    // STATE TODO: We need a new mapping for non-ref Maps.
     @stateValue() private accessor useCount: Map<string, number> = new Map();
 
     public clone() {
@@ -88,11 +89,11 @@ export class UnlimitedAbilityLimit extends AbilityLimit {
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.useCount = new Map(this.useCount).set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.useCount.clear();
+        this.useCount = new Map();
     }
 
     public currentForPlayer(player: Player) {
@@ -145,6 +146,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
 export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     public readonly max: number;
 
+    // STATE TODO: We need a new mapping for non-ref Maps.
     @stateValue() private accessor useCount: Map<string, number> = new Map();
 
     public constructor(game: Game, max: number) {
@@ -166,11 +168,11 @@ export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
-        this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.useCount = new Map(this.useCount).set(key, this.currentForPlayer(player) + 1);
     }
 
     public reset(): void {
-        this.useCount.clear();
+        this.useCount = new Map();
     }
 
     public currentForPlayer(player: Player) {

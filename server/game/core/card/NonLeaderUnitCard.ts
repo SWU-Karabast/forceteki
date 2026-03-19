@@ -15,13 +15,13 @@ import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { INonLeaderUnitAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import { type IAbilityHelper } from '../../AbilityHelper';
-import { registerStateBase } from '../GameObjectUtils';
+import { registerState } from '../GameObjectUtils';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
 export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
 
-@registerStateBase()
+@registerState({ autoInitialize: false })
 export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);

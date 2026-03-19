@@ -1292,7 +1292,8 @@ public createRecoverySnapshot(): IGameSnapshot {
 /**
  * Updates the factory's current snapshot metadata after a delta rollback.
  * Ensures getters (currentSnapshotId, currentSnapshottedPhase, etc.) reflect the rolled-back
- * state. Does NOT store full state buffers — just updates the metadata pointers.
+ * state. Does NOT reuse the delta's anchor payload — it invalidates the cached full-state
+ * buffers so the next snapshot read rematerializes from the restored live game state.
  */
 public updateCurrentSnapshotFromDelta(delta: IDeltaSnapshot): void {
     this.currentActionSnapshot = {
@@ -1306,10 +1307,8 @@ public updateCurrentSnapshotFromDelta(delta: IDeltaSnapshot): void {
         activePlayerId: delta.activePlayerId,
         requiresConfirmationToRollback: false,
         nextSnapshotIsSamePlayer: delta.nextSnapshotIsSamePlayer,
-        // gameState/states buffers are stale placeholders — the next moveToNextTimepoint
-        // will overwrite currentActionSnapshot with a fresh snapshot or delta.
-        gameState: delta.gameState,
-        states: Buffer.alloc(0),
+        gameState: Buffer.alloc(0),
+        states: {},
         rngState: delta.rngState,
     };
     this.lastAssignedTimepointNumber = delta.timepointNumber;

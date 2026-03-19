@@ -21,7 +21,7 @@ import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ConstantAbility } from '../ability/ConstantAbility';
-import { registerStateBase, stateRef } from '../GameObjectUtils';
+import { registerState, stateRef } from '../GameObjectUtils';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
@@ -35,7 +35,7 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
     undeploy(): void;
 }
 
-@registerStateBase()
+@registerState({ autoInitialize: false })
 export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
 

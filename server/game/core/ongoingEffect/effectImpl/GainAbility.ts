@@ -24,6 +24,7 @@ export class GainAbility extends OngoingEffectValueWrapperBase<IAbilityPropsWith
     @stateRef() private accessor _gainAbilitySource: Card | null = null;
     @stateRef() private accessor _source: Card | null = null;
     @statePrimitive() private accessor _abilityIdentifier: string = '';
+    // STATE TODO: We need a new mapping for non-ref Maps.
     @stateValue() private accessor _abilityUuidByTargetCard: Map<string, string> = new Map();
 
     public get gainAbilitySource() {
@@ -122,7 +123,7 @@ export class GainAbility extends OngoingEffectValueWrapperBase<IAbilityPropsWith
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
 
-        this._abilityUuidByTargetCard.set(target.uuid, gainedAbilityUuid);
+        this._abilityUuidByTargetCard = new Map(this._abilityUuidByTargetCard).set(target.uuid, gainedAbilityUuid);
     }
 
     public override unapply(target: InPlayCard) {
@@ -153,7 +154,9 @@ export class GainAbility extends OngoingEffectValueWrapperBase<IAbilityPropsWith
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
 
-        this._abilityUuidByTargetCard.delete(target.uuid);
+        const updatedAbilityMap = new Map(this._abilityUuidByTargetCard);
+        updatedAbilityMap.delete(target.uuid);
+        this._abilityUuidByTargetCard = updatedAbilityMap;
     }
 
     public override isGainAbility(): this is GainAbility {

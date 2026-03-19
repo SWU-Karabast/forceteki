@@ -51,6 +51,28 @@ function assertStateAccessorContext<T extends GameObjectBase, TValue>(context: C
     }
 }
 
+function markStateRef(value: GameObjectBase | null | undefined) {
+    value?.getObjectId();
+}
+
+function markStateRefArray(values: readonly (GameObjectBase | null | undefined)[] | null | undefined) {
+    values?.forEach((value) => markStateRef(value));
+}
+
+function markStateRefMap(values: Map<string, GameObjectBase> | null | undefined) {
+    values?.forEach((value) => markStateRef(value));
+}
+
+function markStateRefSet(values: Set<GameObjectBase> | null | undefined) {
+    values?.forEach((value) => markStateRef(value));
+}
+
+function markStateRefRecord(values: Record<string, GameObjectBase> | null | undefined) {
+    if (values) {
+        Object.values(values).forEach((value) => markStateRef(value));
+    }
+}
+
 export function registerState<T extends GameObjectBase>(copyModeOrOptions?: CopyMode | RegisterStateOptions) {
     return function (targetClass: any, context: ClassDecoratorContext) {
         void context;
@@ -179,20 +201,25 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
         if (readonly) {
             return {
                 set(this: T, newValue: TValue[]) {
+                    markStateRefArray(newValue);
                     this.game.deltaTracker?.recordFieldChange(this, name);
                     target.set.call(this, newValue);
+                },
+                init(this: T, value: TValue[]) {
+                    markStateRefArray(value);
+                    return value;
                 }
             };
         }
 
         return {
             set(this: T, newValue: TValue[]) {
+                markStateRefArray(newValue);
                 this.game.deltaTracker?.recordFieldChange(this, name);
-                // this.state[name] = createIdArray(newValue);
                 target.set.call(this, newValue ? CreateUndoArrayInternal(this, name, newValue) : newValue);
             },
             init(this: T, value: TValue[]) {
-                // this.state[name] = createIdArray(value);
+                markStateRefArray(value);
                 return value ? CreateUndoArrayInternal(this, name) : value;
             }
         };
@@ -210,13 +237,13 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
         // Use the backing fields as the cache, and write refs to the state.
         return {
             set(this: GameObjectBase, newValue) {
+                markStateRefMap(newValue);
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 // The below UndoMap instantiation will also load the state map with all of it's values.
                 target.set.call(this, newValue ? new UndoMap(this, name, newValue.entries()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoMap cannot be init with entries');
-                // this.state[name] = value;
                 // If this is not-null, create a equivalent map in the state. Otherwise, leave it as-is.
                 return value ? new UndoMap(this, name) : value;
             },
@@ -236,13 +263,13 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
         // State stores a Set<string> keyed by UUID so that delete can look up by key.
         return {
             set(this: GameObjectBase, newValue) {
+                markStateRefSet(newValue);
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 // The below UndoSet instantiation will also load the state map with all of its values.
                 target.set.call(this, newValue ? new UndoSet(this, name, newValue.values()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoSet cannot be init with entries');
-                // this.state[name] = value ? new Set() : value;
                 // If this is not-null, create an equivalent set in the state. Otherwise, leave it as-is.
                 return value ? new UndoSet(this, name) : value;
             },
@@ -261,8 +288,13 @@ export function stateRefRecord<T extends GameObjectBase, TValue extends GameObje
         // Use the backing fields as the cache, and write refs to the state.
         return {
             set(this: GameObjectBase, newValue) {
+                markStateRefRecord(newValue);
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 target.set.call(this, newValue);
+            },
+            init(this: GameObjectBase, value) {
+                markStateRefRecord(value);
+                return value;
             }
         };
     };
@@ -279,13 +311,19 @@ export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase
         // Use the backing fields as the cache, and write refs to the state.
         return {
             set(this, newValue) {
+                markStateRef(newValue);
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 target.set.call(this, newValue);
+            },
+            init(this, value) {
+                markStateRef(value);
+                return value;
             }
         };
     };
 }
 
+// STATE TODO: We need to split this out into stateMap, stateSet, and stateArray. Right now this only detects on set, but we need a similar pattern to detect in-place mutations as well.
 export function stateValue<T extends GameObjectBase, TValue>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
@@ -313,17 +351,12 @@ function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>
         set(target, prop, newValue, receiver) {
             go.game.deltaTracker?.recordFieldChange(go, name);
             const result = Reflect.set(target, prop, newValue, receiver);
-            // @ts-expect-error Override accessibility and set the same property on the internal state.
-            Reflect.set(go.state[name], prop, newValue?.getObjectId(), go.state[name]);
             return result;
         },
         deleteProperty(target, prop: string) {
             go.game.deltaTracker?.recordFieldChange(go, name);
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete target[prop];
-            // @ts-expect-error Override accessibility and set the same property on the internal state.
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete go.state[name][prop];
             return true;
         },
     });
@@ -331,7 +364,7 @@ function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>
     return proxiedRecord;
 }
 
-/** Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
+/** @deprecated Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
 export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, arr: readonly TValue[], name: string) {
     Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
 
@@ -347,6 +380,89 @@ export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjec
     });
 
     return proxiedArray as TValue[];
+}
+
+export type SafePrimitives = string | number | boolean | GameObjectId | null | undefined;
+
+export function trackArray<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, arr: TValue[], name: string) {
+    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
+    const proxiedArray = new Proxy(arr, {
+        // Unsure if only set would suffice, depends on on things that remove elements work.
+        set(target, prop, newValue, receiver): boolean {
+            go.game.deltaTracker?.recordFieldChange(go, name);
+            return Reflect.set(target, prop, newValue, receiver);
+        },
+        get(target, prop, receiver) {
+            if (prop === 'push' || prop === 'unshift' || prop === 'pop' || prop === 'shift' || prop === 'reverse' || prop === 'splice') {
+                go.game.deltaTracker?.recordFieldChange(go, name);
+            }
+
+            // For other properties, return the original property
+            return Reflect.get(target, prop, receiver);
+        }
+    });
+
+    return proxiedArray;
+}
+
+export function trackRecord<T extends GameObjectBase>(go: T, record: Record<string, unknown>, name: string) {
+    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
+
+    const proxiedRecord = new Proxy(record, {
+        set(target, prop, newValue, receiver) {
+            go.game.deltaTracker?.recordFieldChange(go, name);
+            const result = Reflect.set(target, prop, newValue, receiver);
+            return result;
+        },
+        deleteProperty(target, prop: string) {
+            go.game.deltaTracker?.recordFieldChange(go, name);
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete target[prop];
+            return true;
+        },
+    });
+
+    return proxiedRecord;
+}
+
+// ... Does this actually work?
+export function trackMap<T extends GameObjectBase>(go: T, map: Map<string, unknown>, name: string) {
+    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
+
+    const proxiedMap = new Proxy(map, {
+        set(target, prop, newValue, receiver) {
+            go.game.deltaTracker?.recordFieldChange(go, name);
+            return Reflect.set(target, prop, newValue, receiver);
+        },
+        deleteProperty(target, prop: string) {
+            go.game.deltaTracker?.recordFieldChange(go, name);
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete target[prop];
+            return true;
+        },
+    });
+
+    return proxiedMap;
+}
+
+// ... Does this actually work?
+export function trackSet<T extends GameObjectBase>(go: T, set: Set<unknown>, name: string) {
+    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
+
+    const proxiedSet = new Proxy(set, {
+        set(target, prop, newValue, receiver) {
+            go.game.deltaTracker?.recordFieldChange(go, name);
+            return Reflect.set(target, prop, newValue, receiver);
+        },
+        deleteProperty(target, prop: string) {
+            go.game.deltaTracker?.recordFieldChange(go, name);
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            delete target[prop];
+            return true;
+        },
+    });
+
+    return proxiedSet;
 }
 
 /** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
@@ -375,20 +491,6 @@ function CreateUndoArrayInternal<TValue extends GameObjectBase>(go: GameObjectBa
         for (let i = 0; i < arr.length; i++) {
             undoArr[i] = arr[i];
         }
-    }
-
-    return CreateUndoArrayProxy(undoArr) as TValue[];
-}
-
-function CreateUndoArrayInternalFromIds<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, ids?: readonly GameObjectId<TValue>[] | GameObjectId<TValue>[] | null) {
-    if (ids == null) {
-        return ids as unknown as TValue[] | null | undefined;
-    }
-
-    const undoArr = CreateUndoArrayBase<TValue>(go, prop);
-    undoArr.length = ids.length;
-    for (let i = 0; i < ids.length; i++) {
-        undoArr[i] = go.game.getFromUuidUnsafe(ids[i]);
     }
 
     return CreateUndoArrayProxy(undoArr) as TValue[];
@@ -437,6 +539,10 @@ function CreateUndoArrayProxy<TValue extends GameObjectBase>(undoArr: UndoArray<
     return proxiedArray;
 }
 
+// STATE TODO: These Undo classes no longer need to be GameObjectBase only, instead the decorator can enforce a GameObjectBase version or a primitive only version depending on the needs of the property.
+//              The generator can create the GO specific or generic serializer mapping based on the decorator used.
+
+
 // A custom class to pass through any values to the underlying state Map.
 class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     private go: GameObjectBase;
@@ -453,6 +559,7 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     public override set(key: string, value: TValue): this {
         // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
+            markStateRef(value);
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
         }
         return super.set(key, value);
@@ -485,6 +592,7 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
     public override add(value: TValue): this {
         // Add is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
         if (this.init) {
+            markStateRef(value);
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
         }
         return super.add(value);
@@ -513,6 +621,7 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     public override push(...items: TValue[]): number {
         this.accessing = true;
         try {
+            markStateRefArray(items);
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
             return super.push(...items);
         } finally {
@@ -523,6 +632,7 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     public override unshift(...items: TValue[]): number {
         this.accessing = true;
         try {
+            markStateRefArray(items);
             this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
             return super.unshift(...items);
         } finally {

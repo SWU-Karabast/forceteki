@@ -71,7 +71,6 @@ import { Randomness } from './Randomness';
 import type { IRandomness } from './Randomness';
 import { RollbackEntryPointType, QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type {
-    IGameState,
     IGetSnapshotSettings,
     ICanRollBackResult,
     IRollbackSetupEntryPoint,
@@ -102,6 +101,7 @@ import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
+import { GameState } from './GameState';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 
@@ -112,31 +112,31 @@ export class Game extends EventEmitter {
     // #region ──── State-backed Properties ────────────────────────────────────
 
     public get actionPhaseActivePlayer(): Player | null {
-        return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
+        return this.state.actionPhaseActivePlayer;
     }
 
     public set actionPhaseActivePlayer(value: Player | null) {
-        this.state.actionPhaseActivePlayer = value?.getObjectId();
+        this.state.actionPhaseActivePlayer = value;
     }
 
     public get allCards() {
-        return this.state.allCards.map((x) => this.getFromId(x));
+        return this.state.allCards;
     }
 
     public get initialFirstPlayer(): Player | null {
-        return this.gameObjectManager.get(this.state.initialFirstPlayer);
+        return this.state.initialFirstPlayer;
     }
 
     public set initialFirstPlayer(value: Player | null) {
-        this.state.initialFirstPlayer = value?.getObjectId();
+        this.state.initialFirstPlayer = value;
     }
 
     public get initiativePlayer(): Player | null {
-        return this.gameObjectManager.get(this.state.initiativePlayer);
+        return this.state.initiativePlayer;
     }
 
     public set initiativePlayer(value: Player | null) {
-        this.state.initiativePlayer = value?.getObjectId();
+        this.state.initiativePlayer = value;
     }
 
     public get isInitiativeClaimed() {
@@ -303,7 +303,7 @@ export class Game extends EventEmitter {
     public manualMode: boolean;
     public gameMode: GameMode;
     public currentlyResolving: ICurrentlyResolving;
-    public state: IGameState;
+    public state: GameState;
     public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
     public stateWatcherRegistrar: StateWatcherRegistrar;
     public cardDataGetter: CardDataGetter;
@@ -375,20 +375,7 @@ export class Game extends EventEmitter {
 
         this.initializeCurrentlyResolving();
 
-        this.state = {
-            initialFirstPlayer: null,
-            initiativePlayer: null,
-            actionPhaseActivePlayer: null,
-            roundNumber: 0,
-            isInitiativeClaimed: false,
-            allCards: [],
-            actionNumber: 0,
-            winnerNames: [],
-            lastGameEventId: 0,
-            currentPhase: null,
-            prevActionPhasePlayerPassed: null,
-            movedCards: []
-        };
+        this.state = new GameState(this);
 
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
@@ -810,7 +797,7 @@ export class Game extends EventEmitter {
     public endGame(winnerPlayers: Player[] | Player, reasonCode: GameEndReason): void {
         this.gameEndReason = reasonCode;
 
-        if (this.state.winnerNames.length > 0) {
+        if (this.winnerNames.length > 0) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
@@ -828,10 +815,10 @@ export class Game extends EventEmitter {
          */
         const winners = Helpers.asArray(winnerPlayers);
         if (winners.length > 1) {
-            winners.forEach((w) => this.state.winnerNames.push(w.name));
+            winners.forEach((winner) => this.state.addWinnerName(winner.name));
             this.addMessage('The game ends in a draw');
         } else {
-            this.state.winnerNames.push(winners[0].name);
+            this.state.addWinnerName(winners[0].name);
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
@@ -1077,9 +1064,9 @@ export class Game extends EventEmitter {
     public async initialiseAsync(): Promise<void> {
         await Promise.all(this.getPlayers().map((player) => player.initialiseAsync()));
 
-        this.state.allCards = this.getPlayers().reduce<GameObjectId<Card>[]>(
+        this.state.allCards = this.getPlayers().reduce<Card[]>(
             (cards, player) => {
-                return cards.concat(player.decklist.allCards);
+                return cards.concat(player.allCards);
             },
             []
         );
@@ -1471,7 +1458,7 @@ export class Game extends EventEmitter {
     public checkUniqueRule(): void {
         const checkedCards: Card[] = [];
 
-        for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
+        for (const movedCard of this.state.movedCards) {
             if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
                 const existingCard = checkedCards.find((otherCard) =>
                     otherCard.title === movedCard.title &&
@@ -1489,10 +1476,10 @@ export class Game extends EventEmitter {
 
     public resolveGameState(hasChanged = false, events: GameEvent[] = []): void {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
-        for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
+        for (const movedCard of this.state.movedCards) {
             movedCard.resolveAbilitiesForNewZone();
         }
-        this.state.movedCards = [];
+        this.state.clearMovedCards();
 
         if (events.length > 0) {
             // check for any delayed effects which need to fire
@@ -1551,7 +1538,7 @@ export class Game extends EventEmitter {
     public generateToken(player: Player, tokenName: TokenName, additionalProperties: any = null): Card {
         const token: ITokenCard = this.tokenFactories[tokenName](player, additionalProperties);
 
-        this.state.allCards.push(token.getObjectId());
+        this.state.allCards.push(token);
         player.decklist.tokens.push(token.getObjectId());
         player.decklist.allCards.push(token.getObjectId());
         player.outsideTheGameZone.addCard(token);
@@ -1576,7 +1563,7 @@ export class Game extends EventEmitter {
      * next call to resolveGameState
      */
     public registerMovedCard(card: Card): void {
-        this.state.movedCards.push(card.getObjectId());
+        this.state.movedCards.push(card);
     }
 
     public filterCardFromList(removeCard: Card, list: GameObjectId<Card>[]): void {
@@ -1606,8 +1593,7 @@ export class Game extends EventEmitter {
     }
 
     public getNextGameEventId(): number {
-        this.state.lastGameEventId += 1;
-        return this.state.lastGameEventId;
+        return this.state.incrementLastGameEventId();
     }
 
     /**

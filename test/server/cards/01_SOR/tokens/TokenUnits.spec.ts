@@ -1,6 +1,38 @@
+import type { Game } from '../../../../../server/game/core/Game';
+import type { GameObjectBase } from '../../../../../server/game/core/GameObjectBase';
+import { getStateDeltaSerializer } from '../../../../../server/game/core/StateSerializers';
+
 describe('Token units', function() {
     integration(function(contextRef) {
         describe('Token units', function() {
+            it('should expose generated delta serializers for token units', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battle-droid'],
+                        hasInitiative: true
+                    },
+                    player2: {
+                        groundArena: ['regional-governor']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const tokenDeltaSerializer = getStateDeltaSerializer(context.battleDroid as unknown as GameObjectBase);
+
+                const serializedExhausted = tokenDeltaSerializer._exhausted.serialize(context.battleDroid.exhausted);
+                expect(tokenDeltaSerializer._exhausted.deserialize(context.game as Game, serializedExhausted)).toBeFalse();
+
+                const serializedController = tokenDeltaSerializer._controller.serialize(context.battleDroid.controller);
+                expect(serializedController).toBe(context.player1Object.getObjectId());
+                expect(tokenDeltaSerializer._controller.deserialize(context.game as Game, serializedController)).toBe(context.player1Object);
+
+                const serializedZone = tokenDeltaSerializer._zone.serialize(context.battleDroid.zone);
+                expect(serializedZone).toBe(context.battleDroid.zone.getObjectId());
+                expect(tokenDeltaSerializer._zone.deserialize(context.game as Game, serializedZone)).toBe(context.battleDroid.zone);
+            });
+
             it('should enter exhausted by default and async function in the arena like normal units', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

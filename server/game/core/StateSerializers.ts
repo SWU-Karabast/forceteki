@@ -77,13 +77,36 @@ export function getStateDeltaSerializer(gameObject: GameObjectBase): StateDeltaS
         return cachedSerializer;
     }
 
-    const serializer = stateDeltaSerializerRegistry.get(constructor.name);
+    const serializer = resolveSerializerByConstructor(constructor, stateDeltaSerializerRegistry);
     if (!serializer) {
         throw new Error(`No generated delta serializer found for ${gameObject.constructor.name}`);
     }
 
     stateDeltaSerializerCache.set(constructor, serializer);
     return serializer;
+}
+
+export function getStateSerializerForConstructor(constructor: SerializerConstructor): StateSerializer | undefined {
+    ensureStateSerializersRegistered();
+    return resolveSerializerByConstructor(constructor, stateSerializerRegistry);
+}
+
+function resolveSerializerByConstructor<TSerializer>(
+    constructor: SerializerConstructor,
+    registry: Map<string, TSerializer>
+): TSerializer | undefined {
+    let currentConstructor: SerializerConstructor | null = constructor;
+
+    while (currentConstructor && currentConstructor.name) {
+        const serializer = registry.get(currentConstructor.name);
+        if (serializer) {
+            return serializer;
+        }
+
+        currentConstructor = Object.getPrototypeOf(currentConstructor) as SerializerConstructor | null;
+    }
+
+    return undefined;
 }
 
 export function serializeStateValue<T>(value: T): T {

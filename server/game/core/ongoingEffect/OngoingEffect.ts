@@ -202,8 +202,13 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         };
     }
 
-    public override afterSetAllState(oldState) {
+    public override afterSetAllState(_oldState) {
         this.refreshContext();
+
+        // STATE TODO: Why was this needed? This needs a note explaining.
+        if (this.impl.type === EffectName.DelayedEffect) {
+            this.impl.getValue().limit?.reset();
+        }
     }
 }
 

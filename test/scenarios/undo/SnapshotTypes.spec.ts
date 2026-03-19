@@ -2144,6 +2144,49 @@ describe('Snapshot types', function() {
 
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(0);
             });
+
+            it('manual snapshots taken after a delta-backed action rollback rematerialize the live state', function () {
+                const { context } = contextRef;
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player1.id,
+                    actionOffset: -1
+                });
+                expect(rollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
+                expect(context.player2.groundArena.length).toEqual(3);
+                expect(context.player2.groundArena.map((card) => card.internalName)).toContain('battlefield-marine');
+                expect(context.p1Base.damage).toEqual(0);
+                expect(context.p2Base.damage).toEqual(0);
+
+                const manualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                expect(manualSnapshotId).toEqual(context.p1Action1SnapshotId);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toEqual(2);
+
+                const manualRollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1.id,
+                    snapshotId: manualSnapshotId
+                });
+                expect(manualRollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
+                expect(context.player2.groundArena.length).toEqual(3);
+                expect(context.player2.groundArena.map((card) => card.internalName)).toContain('battlefield-marine');
+                expect(context.p1Base.damage).toEqual(0);
+                expect(context.p2Base.damage).toEqual(0);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toEqual(2);
+            });
         });
 
         describe('During a short action phase after a regroup phase,', function() {

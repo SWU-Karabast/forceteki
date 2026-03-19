@@ -1,8 +1,7 @@
 import type { Game } from '../Game';
 import type { GameObjectBase } from '../GameObjectBase';
 import { getStateDeltaSerializer } from '../StateSerializers';
-import type { IDeltaSnapshot } from './SnapshotInterfaces';
-import v8 from 'node:v8';
+import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 
 export class DeltaTracker {
@@ -12,8 +11,6 @@ export class DeltaTracker {
     private changedFields = new Map<string, Record<string, unknown>>();
     private createdObjectUuids: string[] = [];
 
-    private _windowStartGameState: Buffer | null = null;
-    private _windowStartStates: Buffer | null = null;
     private _windowStartRngState: IDeltaSnapshot['rngState'] | null = null;
     private _windowStartLastGameObjectId = 0;
 
@@ -25,23 +22,39 @@ export class DeltaTracker {
         this.#game = game;
     }
 
-    public startTracking(windowStartStates: Buffer): void {
+    public startTrackingFromSnapshot(windowStartSnapshot: Pick<IGameSnapshot, 'rngState' | 'lastGameObjectId'>): void {
         Contract.assertNotNullLike(this.#game.randomGenerator, 'Attempting to start delta tracking before Randomness is initialized');
         Contract.assertNotNullLike(this.#game.snapshotManager.currentSnapshotId, 'Attempting to start delta tracking before a snapshot anchor exists');
-        Contract.assertNotNullLike(windowStartStates, 'Attempting to start delta tracking without serialized object state');
+        Contract.assertNotNullLike(windowStartSnapshot, 'Attempting to start delta tracking without snapshot baseline data');
+        Contract.assertNotNullLike(windowStartSnapshot.rngState, 'Attempting to start delta tracking without RNG state');
 
         this._tracking = true;
         this.changedFields.clear();
         this.createdObjectUuids = [];
 
-        this._windowStartGameState = v8.serialize(this.#game.state);
-        this._windowStartStates = windowStartStates;
-        this._windowStartRngState = this.#game.randomGenerator.rngState;
-        this._windowStartLastGameObjectId = this.#game.snapshotManager.gameObjectManager.lastGameObjectId;
+        this._windowStartRngState = structuredClone(windowStartSnapshot.rngState);
+        this._windowStartLastGameObjectId = windowStartSnapshot.lastGameObjectId;
+    }
+
+    public startTracking(): void {
+        const currentSnapshot = this.#game.snapshotManager.getCurrentSnapshotIfMaterialized();
+        if (currentSnapshot) {
+            this.startTrackingFromSnapshot(currentSnapshot);
+            return;
+        }
+
+        this.startTrackingFromSnapshot({
+            rngState: this.#game.randomGenerator.rngState,
+            lastGameObjectId: this.#game.snapshotManager.gameObjectManager.lastGameObjectId,
+        });
     }
 
     public stopTracking(): void {
         this._tracking = false;
+    }
+
+    public hasTrackedWindow(): boolean {
+        return this._windowStartRngState != null;
     }
 
     public recordFieldChange(go: GameObjectBase, fieldName: string): void {
@@ -59,6 +72,10 @@ export class DeltaTracker {
         const fieldSerializer = deltaSerializer[fieldName];
         Contract.assertNotNullLike(fieldSerializer, `No generated delta serializer found for ${go.constructor.name}.${fieldName}`);
 
+        if (fieldName in goEntry) {
+            return;
+        }
+
         const currentValue = (go as unknown as Record<string, unknown>)[fieldName];
         goEntry[fieldName] = fieldSerializer.serialize(currentValue);
     }
@@ -71,18 +88,14 @@ export class DeltaTracker {
         this.createdObjectUuids.push(uuid);
     }
 
-    public checkpoint(metadata: Omit<IDeltaSnapshot, 'changedFields' | 'createdObjectUuids' | 'gameState' | 'states' | 'rngState' | 'lastGameObjectId'>): IDeltaSnapshot {
-        Contract.assertNotNullLike(this._windowStartGameState, 'Delta checkpoint requested before startTracking captured game state');
-        Contract.assertNotNullLike(this._windowStartStates, 'Delta checkpoint requested before startTracking captured object states');
+    public checkpoint(metadata: Omit<IDeltaSnapshot, 'changedFields' | 'createdObjectUuids' | 'rngState' | 'lastGameObjectId'>): IDeltaSnapshot {
         Contract.assertNotNullLike(this._windowStartRngState, 'Delta checkpoint requested before startTracking captured RNG state');
 
         const delta: IDeltaSnapshot = {
             ...metadata,
             changedFields: this.changedFields,
             createdObjectUuids: this.createdObjectUuids,
-            gameState: this._windowStartGameState,
-            states: this._windowStartStates,
-            rngState: this._windowStartRngState,
+            rngState: structuredClone(this._windowStartRngState),
             lastGameObjectId: this._windowStartLastGameObjectId,
         };
 
@@ -90,5 +103,39 @@ export class DeltaTracker {
         this.createdObjectUuids = [];
 
         return delta;
+    }
+
+    public createPendingRollbackDelta(): IDeltaSnapshot {
+        Contract.assertNotNullLike(this._windowStartRngState, 'Pending delta requested before startTracking captured RNG state');
+
+        const snapshotId = this.#game.snapshotManager.currentSnapshotId;
+        const roundNumber = this.#game.snapshotManager.currentSnapshottedRound;
+        const actionNumber = this.#game.snapshotManager.currentSnapshottedAction;
+        const phase = this.#game.snapshotManager.currentSnapshottedPhase;
+        const timepoint = this.#game.snapshotManager.currentSnapshottedTimepointType;
+        const timepointNumber = this.#game.snapshotManager.currentSnapshottedTimepointNumber;
+
+        Contract.assertNotNullLike(snapshotId, 'Pending delta requested without an active snapshot id');
+        Contract.assertNotNullLike(roundNumber, 'Pending delta requested without an active round number');
+        Contract.assertNotNullLike(actionNumber, 'Pending delta requested without an active action number');
+        Contract.assertNotNullLike(phase, 'Pending delta requested without an active phase');
+        Contract.assertNotNullLike(timepoint, 'Pending delta requested without an active timepoint');
+        Contract.assertNotNullLike(timepointNumber, 'Pending delta requested without an active timepoint number');
+
+        return {
+            id: snapshotId,
+            changedFields: this.changedFields,
+            createdObjectUuids: this.createdObjectUuids,
+            rngState: structuredClone(this._windowStartRngState),
+            lastGameObjectId: this._windowStartLastGameObjectId,
+            actionNumber,
+            roundNumber,
+            phase,
+            timepoint,
+            timepointNumber,
+            activePlayerId: this.#game.snapshotManager.currentSnapshottedActivePlayer,
+            requiresConfirmationToRollback: false,
+            nextSnapshotIsSamePlayer: undefined,
+        };
     }
 }

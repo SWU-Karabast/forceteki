@@ -1,10 +1,10 @@
 import type { Game } from '../Game';
 import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
-import { ensureStateSerializersRegistered, getStateDeltaSerializer, stateSerializerRegistry, type SerializedGameObjectStateMap, type SerializerInstance, type StateSerializer } from '../StateSerializers';
+import { Card } from '../card/Card';
+import { ensureStateSerializersRegistered, getStateDeltaSerializer, getStateSerializerForConstructor, type SerializedGameObjectStateMap, type SerializerInstance, type StateSerializer } from '../StateSerializers';
 import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
-import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
 import type { GameObjectId } from '../GameObjectUtils';
@@ -167,8 +167,6 @@ export class GameStateManager implements IGameObjectRegistrar {
 
             let rollbackError: Error | null = null;
             try {
-                this.#game.state = v8.deserialize(snapshot.gameState);
-
                 const snapshotStatesByUuid = snapshot.states;
 
                 // Indexes in last to first for the purpose of removal.
@@ -245,12 +243,12 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             const allRemovals: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
             const allUpdates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
+            const updatedCards: { card: Card; previousZoneUuid: string | null | undefined }[] = [];
             const seenUpdateUuids = new Set<string>();
 
             let rollbackError: Error | null = null;
             try {
                 for (const delta of deltas) {
-                    this.#game.state = v8.deserialize(delta.gameState);
                     this.#game.randomGenerator.restore(delta.rngState);
                     this._lastGameObjectId = delta.lastGameObjectId;
 
@@ -278,6 +276,13 @@ export class GameStateManager implements IGameObjectRegistrar {
                         if (!seenUpdateUuids.has(go.uuid)) {
                             seenUpdateUuids.add(go.uuid);
                             allUpdates.push({ go, oldState: this.getSerializedState(go) });
+
+                            if (go instanceof Card) {
+                                updatedCards.push({
+                                    card: go,
+                                    previousZoneUuid: (allUpdates[allUpdates.length - 1].oldState as Record<string, unknown>)._zone as string | null | undefined,
+                                });
+                            }
                         }
 
                         for (const [fieldName, oldValue] of Object.entries(fields)) {
@@ -297,6 +302,8 @@ export class GameStateManager implements IGameObjectRegistrar {
                 for (const uuid of removalUuids) {
                     this.gameObjectMapping.delete(uuid);
                 }
+
+                this.reconcileUpdatedCardZoneMemberships(updatedCards);
 
                 for (const update of allUpdates) {
                     update.go.notifyAfterSetState(update.oldState);
@@ -347,7 +354,7 @@ export class GameStateManager implements IGameObjectRegistrar {
             return cachedSerializer;
         }
 
-        const serializer = stateSerializerRegistry.get(constructor.name);
+        const serializer = getStateSerializerForConstructor(constructor);
         Contract.assertNotNullLike(serializer, `No generated serializer found for ${gameObject.constructor.name}`);
 
         this.serializerCache.set(constructor, serializer);
@@ -356,5 +363,22 @@ export class GameStateManager implements IGameObjectRegistrar {
 
     private getSerializedState(gameObject: GameObjectBase): IGameObjectBaseState {
         return this.getSerializer(gameObject).serialize(gameObject as unknown as SerializerInstance) as IGameObjectBaseState;
+    }
+
+    private reconcileUpdatedCardZoneMemberships(updatedCards: { card: Card; previousZoneUuid: string | null | undefined }[]): void {
+        for (const { card, previousZoneUuid } of updatedCards) {
+            const currentZone = card.zone as { cards?: readonly Card[]; addCard?: (card: Card) => void } | null;
+            const previousZone = previousZoneUuid
+                ? this.gameObjectMapping.get(previousZoneUuid) as { cards?: readonly Card[]; removeCard?: (card: Card) => void } | undefined
+                : null;
+
+            if (previousZone && previousZone !== currentZone && previousZone.cards?.includes(card) && previousZone.removeCard) {
+                previousZone.removeCard(card);
+            }
+
+            if (currentZone && !currentZone.cards?.includes(card) && currentZone.addCard) {
+                currentZone.addCard(card);
+            }
+        }
     }
 }

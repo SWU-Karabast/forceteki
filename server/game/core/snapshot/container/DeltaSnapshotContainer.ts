@@ -158,12 +158,24 @@ export class DeltaSnapshotContainer {
         return this.entries.filter((entry) => entry.type === 'delta' && entry.delta.timepoint === SnapshotTimepoint.Action).length;
     }
 
+    public getActionSnapshotCount(): number {
+        return this.entries.filter((entry) => this.isActionEntry(entry)).length;
+    }
+
     public setRequiresConfirmationOnMostRecentDelta(): void {
         for (let i = this.entries.length - 1; i >= 0; i--) {
             const entry = this.entries[i];
             if (entry.type === 'delta' && entry.delta.timepoint === SnapshotTimepoint.Action) {
                 entry.delta.requiresConfirmationToRollback = true;
                 return;
+            }
+        }
+    }
+
+    public clearRequiresConfirmation(snapshotId: number): void {
+        for (const entry of this.entries) {
+            if (entry.type === 'delta' && entry.delta.id === snapshotId) {
+                entry.delta.requiresConfirmationToRollback = false;
             }
         }
     }

@@ -9,7 +9,6 @@ import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
 import { DeltaSnapshotContainer } from './container/DeltaSnapshotContainer';
-import v8 from 'node:v8';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
@@ -153,9 +152,8 @@ export class SnapshotFactory {
             timepoint,
             timepointNumber: nextTimepointNumber,
             phase: this.game.currentPhase,
-            gameState: v8.serialize(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
-            rngState: this.game.randomGenerator.rngState,
+            rngState: structuredClone(this.game.randomGenerator.rngState),
             requiresConfirmationToRollback: false,
             activePlayerId: this.game.actionPhaseActivePlayer?.id
         };
@@ -166,11 +164,11 @@ export class SnapshotFactory {
         this.currentActionSnapshot = snapshot;
     }
 
-    public createDeltaMetadataForCurrentTimepoint(timepoint: SnapshotTimepoint): Omit<IDeltaSnapshot, 'changedFields' | 'createdObjectUuids' | 'gameState' | 'states' | 'rngState' | 'lastGameObjectId'> {
+    public createDeltaMetadataForCurrentTimepoint(timepoint: SnapshotTimepoint): Omit<IDeltaSnapshot, 'changedFields' | 'createdObjectUuids' | 'rngState' | 'lastGameObjectId'> {
         const nextSnapshotId = this.lastAssignedSnapshotId + 1;
         const nextTimepointNumber = this.lastAssignedTimepointNumber + 1;
 
-        const metadata: Omit<IDeltaSnapshot, 'changedFields' | 'createdObjectUuids' | 'gameState' | 'states' | 'rngState' | 'lastGameObjectId'> = {
+        const metadata: Omit<IDeltaSnapshot, 'changedFields' | 'createdObjectUuids' | 'rngState' | 'lastGameObjectId'> = {
             id: nextSnapshotId,
             actionNumber: this.game.actionNumber,
             roundNumber: this.game.roundNumber,
@@ -193,9 +191,8 @@ export class SnapshotFactory {
             timepoint: metadata.timepoint,
             timepointNumber: metadata.timepointNumber,
             phase: metadata.phase,
-            gameState: Buffer.alloc(0),
-            states: Buffer.alloc(0),
-            rngState: this.game.randomGenerator.rngState,
+            states: {},
+            rngState: structuredClone(this.game.randomGenerator.rngState),
             requiresConfirmationToRollback: metadata.requiresConfirmationToRollback,
             activePlayerId: metadata.activePlayerId,
             nextSnapshotIsSamePlayer: metadata.nextSnapshotIsSamePlayer,
@@ -216,9 +213,11 @@ export class SnapshotFactory {
             activePlayerId: delta.activePlayerId,
             requiresConfirmationToRollback: false,
             nextSnapshotIsSamePlayer: delta.nextSnapshotIsSamePlayer,
-            gameState: delta.gameState,
-            states: delta.states,
-            rngState: delta.rngState,
+            // Delta rollback restores the live game object state in memory. The delta payload itself is only
+            // the tracking-window anchor, so invalidate the cached full snapshot payload and force
+            // later consumers to rematerialize from the restored live state.
+            states: {},
+            rngState: structuredClone(delta.rngState),
         };
         this.lastAssignedTimepointNumber = delta.timepointNumber;
     }
@@ -232,9 +231,8 @@ export class SnapshotFactory {
             timepoint: this.currentActionSnapshot?.timepoint ?? SnapshotTimepoint.Action,
             timepointNumber: this.currentActionSnapshot?.timepointNumber ?? this.lastAssignedTimepointNumber,
             phase: this.game.currentPhase,
-            gameState: v8.serialize(this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
-            rngState: this.game.randomGenerator.rngState,
+            rngState: structuredClone(this.game.randomGenerator.rngState),
             requiresConfirmationToRollback: false,
             activePlayerId: this.game.actionPhaseActivePlayer?.id,
             nextSnapshotIsSamePlayer: this.currentActionSnapshot?.nextSnapshotIsSamePlayer,
@@ -243,6 +241,18 @@ export class SnapshotFactory {
 
     public materializeCurrentSnapshotState(): void {
         this.currentActionSnapshot = this.createRecoverySnapshot();
+    }
+
+    public getMaterializedCurrentSnapshot(): IGameSnapshot {
+        return this.getCurrentActionSnapshot();
+    }
+
+    public getCurrentSnapshotIfMaterialized(): IGameSnapshot | null {
+        if (!this.currentActionSnapshot || Object.keys(this.currentActionSnapshot.states).length === 0) {
+            return null;
+        }
+
+        return this.currentActionSnapshot;
     }
 
     public setNextSnapshotIsSamePlayer(value: boolean) {
@@ -257,8 +267,8 @@ export class SnapshotFactory {
     private getCurrentActionSnapshot(): IGameSnapshot {
         Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read action snapshot before any is set, meaning the game is likely not initialized');
 
-        if (!this.currentActionSnapshot.states || this.currentActionSnapshot.states.length === 0) {
-            return this.createRecoverySnapshot();
+        if (Object.keys(this.currentActionSnapshot.states).length === 0) {
+            this.materializeCurrentSnapshotState();
         }
 
         return this.currentActionSnapshot;

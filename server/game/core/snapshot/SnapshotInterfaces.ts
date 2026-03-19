@@ -1,8 +1,5 @@
-import type { Card } from '../card/Card';
 import type { SerializedGameObjectStateMap } from '../StateSerializers';
 import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, SnapshotType } from '../Constants';
-import type { GameObjectId } from '../GameObjectUtils';
-import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
 
 export interface ISnapshotSettingsBase {
@@ -126,7 +123,6 @@ export interface IGameSnapshot {
     timepointNumber: number;
     activePlayerId?: string;
 
-    gameState: Buffer;
     states: SerializedGameObjectStateMap;
     rngState: IRandomness['rngState'];
 
@@ -137,11 +133,9 @@ export interface IGameSnapshot {
 export interface IDeltaSnapshot {
     id: number;
 
-    changedFields: Map<string, Record<string, any>>;
+    changedFields: Map<string, Record<string, unknown>>;
     createdObjectUuids: string[];
 
-    gameState: Buffer;
-    states: Buffer;
     rngState: IRandomness['rngState'];
     lastGameObjectId: number;
 
@@ -154,22 +148,6 @@ export interface IDeltaSnapshot {
 
     requiresConfirmationToRollback: boolean;
     nextSnapshotIsSamePlayer?: boolean;
-}
-
-// TODO: Move GameState to a GameObject of it's own so it supports delta snapshots and can be rolled back to without needing to roll back the entire game state.
-export interface IGameState {
-    roundNumber: number;
-    initialFirstPlayer: GameObjectId<Player> | null;
-    initiativePlayer: GameObjectId<Player> | null;
-    actionPhaseActivePlayer: GameObjectId<Player> | null;
-    isInitiativeClaimed: boolean;
-    allCards: GameObjectId<Card>[];
-    actionNumber: number;
-    lastGameEventId: number;
-    readonly winnerNames: string[];
-    currentPhase: PhaseName | null;
-    prevActionPhasePlayerPassed: boolean | null;
-    movedCards: GameObjectId<Card>[];
 }
 
 export enum QuickUndoAvailableState {
