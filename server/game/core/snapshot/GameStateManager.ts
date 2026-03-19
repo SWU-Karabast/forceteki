@@ -1,9 +1,9 @@
 import type { Game } from '../Game';
 import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
+import { ensureStateSerializersRegistered, stateSerializerRegistry, type SerializedGameObjectState, type SerializedGameObjectStateMap, type SerializerInstance, type StateSerializer } from '../StateSerializers';
 import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
-import { to } from '../utils/TypeHelpers';
 import { copyState } from '../GameObjectUtils';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
@@ -27,9 +27,14 @@ export interface IGameObjectRegistrar {
     createWithoutRefsUnsafe<T extends GameObjectBase>(handler: () => T): T;
 }
 
+interface SerializerConstructor {
+    name: string;
+}
+
 export class GameStateManager implements IGameObjectRegistrar {
     readonly #game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
+    private readonly serializerCache = new Map<SerializerConstructor, StateSerializer>();
 
     private allGameObjects: GameObjectBase[] = [];
 
@@ -136,11 +141,22 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
     }
 
-    public buildGameStateForSnapshot(): Buffer {
+    public buildGameStateForSnapshot(): SerializedGameObjectStateMap {
+        const states: SerializedGameObjectStateMap = {};
+        for (const gameObject of this.allGameObjects) {
+            states[gameObject.uuid] = this.getSerializer(gameObject).serialize(gameObject as unknown as SerializerInstance);
+        }
+
         this.removeUnusedGameObjects();
 
-        // Return the state of all game objects that are still in the game.
-        return v8.serialize(to.record(this.allGameObjects, (item) => item.uuid, (item) => item.getStateUnsafe()));
+        for (const uuid of Object.keys(states)) {
+            if (!this.gameObjectMapping.has(uuid)) {
+                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                delete states[uuid];
+            }
+        }
+
+        return states;
     }
 
     public rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
@@ -154,7 +170,7 @@ export class GameStateManager implements IGameObjectRegistrar {
             try {
                 this.#game.state = v8.deserialize(snapshot.gameState);
 
-                const snapshotStatesByUuid = v8.deserialize(snapshot.states) as Record<string, IGameObjectBaseState>;
+                const snapshotStatesByUuid = snapshot.states;
 
                 // Indexes in last to first for the purpose of removal.
                 for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
@@ -163,18 +179,17 @@ export class GameStateManager implements IGameObjectRegistrar {
                         throw new Error(`GameObject ${go.getGameObjectName()} (UUID: ${go.uuid}, Type: ${go.constructor.name}) is not initialized during rollback. This should not be possible.`);
                     }
 
-                    // Rollback swaps the entire state object reference, so retaining the previous object here is safe
-                    // and avoids a structuredClone for every updated or removed GameObject.
-                    const oldState = go.getStateUnsafe();
+                    const serializer = this.getSerializer(go);
+                    const oldState = serializer.serialize(go as unknown as SerializerInstance) as IGameObjectBaseState;
 
-                    const updatedState = snapshotStatesByUuid[go.uuid];
+                    const updatedState = snapshotStatesByUuid[go.uuid] as IGameObjectBaseState | undefined;
                     if (!updatedState) {
                         removals.push({ index: i, go, oldState });
                         continue;
                     }
 
                     updates.push({ go, oldState });
-                    go.setState(updatedState);
+                    go.applySerializedState(this.#game, serializer as StateSerializer<IGameObjectBaseState>, updatedState, oldState);
                 }
 
                 for (const removed of removals) {
@@ -322,5 +337,46 @@ export class GameStateManager implements IGameObjectRegistrar {
     private afterTakeSnapshot() {
         // TODO: We want this to be able to go through
         //          and remove any unused OngoingEffects from the list once they are no longer needed by any snapshots.
+    }
+
+    private getSerializer(gameObject: GameObjectBase): StateSerializer {
+        ensureStateSerializersRegistered();
+
+        const constructor = gameObject.constructor as unknown as SerializerConstructor;
+        const cachedSerializer = this.serializerCache.get(constructor);
+        if (cachedSerializer) {
+            return cachedSerializer;
+        }
+
+        const serializerChain: StateSerializer[] = [];
+        let currentConstructor: SerializerConstructor | null = constructor;
+        while (currentConstructor && currentConstructor !== Function.prototype) {
+            const serializer = stateSerializerRegistry.get(currentConstructor.name);
+            if (serializer) {
+                serializerChain.unshift(serializer);
+            }
+
+            currentConstructor = Object.getPrototypeOf(currentConstructor) as SerializerConstructor | null;
+        }
+
+        Contract.assertTrue(serializerChain.length > 0, `No generated serializer found for ${gameObject.constructor.name}`);
+
+        const composedSerializer: StateSerializer = {
+            serialize: (instance: SerializerInstance): SerializedGameObjectState => {
+                const state: SerializedGameObjectState = {};
+                for (const serializer of serializerChain) {
+                    Object.assign(state, serializer.serialize(instance));
+                }
+                return state;
+            },
+            deserialize: (game: Game, instance: SerializerInstance, state: SerializedGameObjectState) => {
+                for (const serializer of serializerChain) {
+                    serializer.deserialize(game, instance, state);
+                }
+            }
+        };
+
+        this.serializerCache.set(constructor, composedSerializer);
+        return composedSerializer;
     }
 }

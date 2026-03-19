@@ -20,6 +20,8 @@ if (!buildAll && !fs.existsSync('./build/test/json')) {
     runCommand('cpy ./test/json/ ./build/');
 }
 
+runCommand('ts-node ./scripts/generate-state-serializers.ts');
+
 if (!buildAll) {
     runCommand('tsc -p ./test/tsconfig.json');
 } else {

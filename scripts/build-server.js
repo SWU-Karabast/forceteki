@@ -9,5 +9,7 @@ function runCommand(command) {
 
 fs.mkdirSync('./build/server', { recursive: true });
 
+runCommand('ts-node ./scripts/generate-state-serializers.ts');
+
 runCommand('tsc');
 runCommand('cpy ./card-data-version.txt ./build/server/');

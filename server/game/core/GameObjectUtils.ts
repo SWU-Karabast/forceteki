@@ -1,40 +1,27 @@
 import type { GameObjectBase, IGameObjectBase } from './GameObjectBase';
-import * as Contract from './utils/Contract';
-
-// @ts-expect-error Symbol.metadata is not yet a standard.
-Symbol.metadata ??= Symbol.for('Symbol.metadata');
-const stateMetadata = Symbol();
-const stateSimpleMetadata = Symbol();
-const stateArrayMetadata = Symbol();
-const stateMapMetadata = Symbol();
-const stateSetMetadata = Symbol();
-const stateRecordMetadata = Symbol();
-const stateObjectMetadata = Symbol();
-const stateHydrationMetadata = Symbol();
-const bulkCopyMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
 export const registerStateClassMarker = Symbol('registerStateClassMarker');
 export const registerStateAutoInitializeMarker = Symbol('registerStateAutoInitializeMarker');
 
-// A generic helper type
 declare const __brand: unique symbol;
 declare const __gameObjectTypeBrand: unique symbol;
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type Brand<B> = { [__brand]: B };
+interface Brand<B> {
+    [__brand]: B;
+}
 type Branded<T, B> = T & Brand<B>;
-// A branded type for GameObject IDs. This is just a string, but the branding prevents it from being accidentally interchanged with other strings.
+
 export type GameObjectId<T extends IGameObjectBase = IGameObjectBase> = Branded<string, 'GameObjectId'> & { readonly [__gameObjectTypeBrand]?: T };
 
 export enum CopyMode {
 
-    /** Copies from the state using only the Metadata fields. */
-    UseMetaDataOnly = 0,
+    /** All serialization logic is resolved at generation time and copied field-by-field. */
+    CompileTime = 0,
 
-    /** Copies from the state using a bulk copy method, and then re-applies any of the map/array/record Metadata fields to recreate the cached values. Inefficient, but safe. */
-    UseBulkCopy = 1
+    /** Reserved fallback for runtime structured cloning of opaque state shapes. */
+    RuntimeClone = 1
 }
 
 export interface RegisterStateOptions {
@@ -42,175 +29,31 @@ export interface RegisterStateOptions {
     autoInitialize?: boolean;
 }
 
-type StateHydrationHandler = (instance: GameObjectBase, rawValue: unknown) => void;
-
-// Registers how a state field should be rebuilt from raw copied state during copyState().
-function registerStateHydrator(metaState: Record<string | symbol, unknown>, fieldName: string, hydrator: StateHydrationHandler) {
-    const hydrationMetadata = (metaState[stateHydrationMetadata] ??= {}) as Record<string, StateHydrationHandler>;
-    hydrationMetadata[fieldName] = hydrator;
-}
-
-function createIdArray<TValue extends IGameObjectBase>(values: readonly TValue[] | TValue[] | null | undefined): GameObjectId<TValue>[] | null | undefined {
-    if (values == null) {
-        return null;
-    }
-
-    const ids = new Array<GameObjectId<TValue>>(values.length);
-    for (let i = 0; i < values.length; i++) {
-        ids[i] = values[i].getObjectId();
-    }
-
-    return ids;
-}
-
-function createIdMap<TValue extends IGameObjectBase>(values: Map<string, TValue> | null | undefined): Map<string, GameObjectId<TValue>> | null | undefined {
-    if (values == null) {
-        return null;
-    }
-
-    const ids = new Map<string, GameObjectId<TValue>>();
-    for (const [key, value] of values) {
-        ids.set(key, value.getObjectId());
-    }
-
-    return ids;
-}
-
-function createIdSet<TValue extends IGameObjectBase>(values: Set<TValue> | null | undefined): Set<GameObjectId<TValue>> | null | undefined {
-    if (values == null) {
-        return null;
-    }
-
-    const ids = new Set<GameObjectId<TValue>>();
-    for (const value of values) {
-        ids.add(value.getObjectId());
-    }
-
-    return ids;
-}
-
-function createIdRecord<TValue extends IGameObjectBase>(values: Record<string, TValue> | null | undefined): Record<string, GameObjectId<TValue>> | null | undefined {
-    if (values == null) {
-        return null;
-    }
-
-    const ids: Record<string, GameObjectId<TValue>> = {};
-    for (const key in values) {
-        if (Object.prototype.hasOwnProperty.call(values, key)) {
-            ids[key] = values[key].getObjectId();
-        }
-    }
-
-    return ids;
-}
-
-function hydrateReadonlyArrayFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: readonly GameObjectId<TValue>[] | GameObjectId<TValue>[] | null | undefined): readonly TValue[] | null | undefined {
-    if (rawValue == null) {
-        return null;
-    }
-
-    const values = new Array<TValue>(rawValue.length);
-    for (let i = 0; i < rawValue.length; i++) {
-        values[i] = instance.game.getFromUuidUnsafe(rawValue[i]);
-    }
-
-    return values;
-}
-
-function hydrateUndoMapFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Map<string, GameObjectId<TValue>> | null | undefined): Map<string, TValue> | null | undefined {
-    if (rawValue == null) {
-        return null;
-    }
-
-    const hydratedMap = new UndoMap<TValue>(instance, prop);
-    for (const [key, valueId] of rawValue) {
-        Map.prototype.set.call(hydratedMap, key, instance.game.getFromUuidUnsafe(valueId));
-    }
-
-    return hydratedMap;
-}
-
-function hydrateUndoSetFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Set<GameObjectId<TValue>> | null | undefined): Set<TValue> | null | undefined {
-    if (rawValue == null) {
-        return null;
-    }
-
-    const hydratedSet = new UndoSet<TValue>(instance, prop);
-    for (const id of rawValue) {
-        Set.prototype.add.call(hydratedSet, instance.game.getFromUuidUnsafe(id));
-    }
-
-    return hydratedSet;
-}
-
-function hydrateUndoRecordFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Record<string, GameObjectId<TValue>> | null | undefined): Record<string, TValue> | null | undefined {
-    if (rawValue == null) {
-        return null;
-    }
-
-    const hydratedRecord: Record<string, TValue> = {};
-    for (const key in rawValue) {
-        if (Object.prototype.hasOwnProperty.call(rawValue, key)) {
-            hydratedRecord[key] = instance.game.getFromUuidUnsafe(rawValue[key]);
-        }
-    }
-
-    return UndoSafeRecord(instance, hydratedRecord, prop);
-}
-
-function hydrateIdFromState<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: GameObjectId<TValue> | null | undefined): TValue | null | undefined {
-    if (rawValue == null) {
-        return null;
-    }
-
-    return instance.game.getFromUuidUnsafe(rawValue);
-}
-
-function pushIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameObjectId<TValue>[], items: TValue[]): number {
-    // eslint-disable-next-line @typescript-eslint/prefer-for-of
-    for (let i = 0; i < items.length; i++) {
-        stateArray.push(items[i].getObjectId());
-    }
-
-    return stateArray.length;
-}
-
-function unshiftIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameObjectId<TValue>[], items: TValue[]): number {
-    for (let i = items.length - 1; i >= 0; i--) {
-        stateArray.unshift(items[i].getObjectId());
-    }
-
-    return stateArray.length;
-}
-
-function getStateIdArray<TValue extends IGameObjectBase>(go: GameObjectBase, name: string): GameObjectId<TValue>[] {
-    return (go as GameObjectBase & { state: Record<string, GameObjectId<TValue>[]> }).state[name];
-}
-
-function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterStateOptions | undefined): Required<RegisterStateOptions> {
+function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterStateOptions | undefined): Required<Pick<RegisterStateOptions, 'autoInitialize'>> {
     if (copyModeOrOptions == null || typeof copyModeOrOptions === 'number') {
-        const copyMode = typeof copyModeOrOptions === 'number' ? copyModeOrOptions : CopyMode.UseMetaDataOnly;
         return {
-            copyMode,
             autoInitialize: true
         };
     }
 
     return {
-        copyMode: copyModeOrOptions.copyMode ?? CopyMode.UseMetaDataOnly,
         autoInitialize: copyModeOrOptions.autoInitialize ?? true
     };
 }
 
-/**
- * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
- * This is meant for classes that are meant to be directly instantiated, they must be non-abstract and leafs.
- * @param copyModeOrOptions If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the state decorators.
- * If options.autoInitialize=false, the class is marked/registered without creating a constructor wrapper.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
+function assertStateAccessorContext<T extends GameObjectBase, TValue>(context: ClassAccessorDecoratorContext<T, TValue>) {
+    if (context.static || context.private) {
+        throw new Error('Can only serialize public instance members.');
+    }
+    if (typeof context.name === 'symbol') {
+        throw new Error('Cannot serialize symbol-named properties.');
+    }
+}
+
 export function registerState<T extends GameObjectBase>(copyModeOrOptions?: CopyMode | RegisterStateOptions) {
     return function (targetClass: any, context: ClassDecoratorContext) {
+        void context;
+
         const options = normalizeRegisterStateOptions(copyModeOrOptions);
         const parentClass = Object.getPrototypeOf(targetClass);
 
@@ -218,24 +61,7 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             throw new Error(`class "${targetClass.name}" cannot extend @registerState class "${parentClass.name}". If a class needs to be both, split the class into a abstract base class and a concrete version (see ExploitCostAdjusterBase and ExploitCostAdjuster).`);
         }
 
-        const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
-        if (options.copyMode === CopyMode.UseBulkCopy) {
-            // this *should* work for derived classes: the context.metadata uses a prototype inheritance of it's own for each derived class, so when a class branches, so should the metadata object.
-            // That means that we're ok with marking the meta data object at *this* prototype as true; other branches off of GameObjectBase won't share it.
-            // NEEDS VERIFICATION.
-            context.metadata[bulkCopyMetadata] = true;
-        }
-        if (metaState) {
-            // Move metadata from the stateMedata symbol to the name of the class, so that we can look it up later in copyStruct.
-            context.metadata[targetClass.name] = metaState;
-            // Delete field to clear for the next derived class, if any.
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete context.metadata[stateMetadata];
-        }
-
-        // Add name to list as a safety check.
         stateClassesStr[targetClass.name] = parentClass.name;
-        // Check to see if parent is missing @registerState. This will happen in order of lowest class to highest class, so we can rely on it checking if it's parent class was registered.
         if (parentClass.name && parentClass !== Object && stateClassesStr[parentClass.name] == null) {
             throw new Error(`class "${parentClass.name}" is missing @registerStateBase`);
         }
@@ -251,7 +77,6 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             return targetClass;
         }
 
-        // Add the auto-initialize marker as a safety check to prevent multiple registrations and to allow for special handling of automatically initialized classes (like implemented Cards).
         Object.defineProperty(targetClass, registerStateAutoInitializeMarker, {
             value: true,
             writable: false,
@@ -259,7 +84,6 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             configurable: false
         });
 
-        // Wrap the decorated class so framework initialization is guaranteed after the full constructor chain finishes.
         const wrappedClass: any = class extends targetClass {
             public constructor(...args: any[]) {
                 super(...args);
@@ -267,10 +91,9 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
                 this.initialize();
             }
         };
-        // Preserve the original class name for diagnostics and metadata lookups (e.g. copyState).
+
         Object.defineProperty(wrappedClass, 'name', { value: targetClass.name });
 
-        // Mark the wrapper too; runtime enforcement checks the constructed class, not just the original targetClass.
         Object.defineProperty(wrappedClass, registerStateClassMarker, {
             value: true,
             writable: false,
@@ -285,39 +108,24 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             configurable: false
         });
 
-        // copyState walks Symbol.metadata on constructors in the prototype chain.
-        // Re-expose the original metadata on the wrapper so state copy behavior is unchanged.
-        Object.defineProperty(wrappedClass, Symbol.metadata, {
-            value: targetClass[Symbol.metadata],
-            writable: false,
-            enumerable: false,
-            configurable: true
-        });
-
         return wrappedClass;
     };
 }
 
-/**
- * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
- *
- * This is meant for base classes that need to be extended by &#64;registerState classes, but should not be directly instantiated themselves, and thus don't need the constructor wrapper that guarantees initialize() is called.
- */
 export function registerStateBase<T extends GameObjectBase>(copyModeOrOptions?: CopyMode | Omit<RegisterStateOptions, 'autoInitialize'>) {
-    const copyMode = typeof copyModeOrOptions === 'number' ? copyModeOrOptions : copyModeOrOptions?.copyMode;
-    return registerState<T>({ copyMode, autoInitialize: false });
+    return registerState<T>({
+        autoInitialize: false,
+        copyMode: typeof copyModeOrOptions === 'number' ? copyModeOrOptions : copyModeOrOptions?.copyMode
+    });
 }
 
-/**
- * Mirrors the wrapper pattern used in registerState() in GameObjectUtils.ts.
- * Used with the dynamically imported Cards to automatically wrap them with a constructor that calls initialize, and to mark them with the appropriate metadata for state copying.
- */
 export function buildAutoInitializingCardClass(targetCardClass: any): any {
     const parentClass = Object.getPrototypeOf(targetCardClass);
 
     if (parentClass?.[registerStateAutoInitializeMarker] === true) {
         throw new Error(`class "${targetCardClass.name}" is a Card Implementation which is automatically registered, and does not need @registerState.`);
     }
+
     const wrappedClass: any = class extends targetCardClass {
         public constructor(...args: any[]) {
             super(...args);
@@ -325,7 +133,7 @@ export function buildAutoInitializingCardClass(targetCardClass: any): any {
             this.initialize();
         }
     };
-    // Preserve the original class name for diagnostics and metadata lookups (e.g. copyState).
+
     Object.defineProperty(wrappedClass, 'name', { value: targetCardClass.name });
 
     Object.defineProperty(wrappedClass, registerStateClassMarker, {
@@ -338,154 +146,77 @@ export function buildAutoInitializingCardClass(targetCardClass: any): any {
     return wrappedClass;
 }
 
-export function statePrimitive<T extends GameObjectBase, TValue extends string | number | boolean>() {
+export function statePrimitive<T extends GameObjectBase, TValue extends string | number | boolean | null | undefined>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
     ): ClassAccessorDecoratorResult<T, TValue> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-
-        // Get or create the state related metadata object.
-        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
-        metaState[stateSimpleMetadata] ??= [];
-        (metaState[stateSimpleMetadata] as string[]).push(context.name);
-        const name = context.name;
+        assertStateAccessorContext(context);
+        const name = context.name as string;
 
         // No need to use the backing fields, read and write directly to state.
         return {
-            get(this: T) {
-                return this.state[name];
-            },
             set(this: T, newValue: TValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
-                this.state[name] = newValue;
-            },
-            init(this: T, value: TValue) {
-                this.state[name] = value;
-                // We don't use the internal field and only use the data within state.
-                return undefined;
+                target.set.call(this, newValue);
             }
         };
     };
 }
 
-// Forces the incoming value to be either a boolean literal, or a constant boolean. This is meant to be used with const generic arguments.
 type ConstantBoolean<T extends boolean> = boolean extends T ? never : T;
 
-/**
- * @param readonly If false, returns the array wrapped in a Proxy object, which allows the safe use of push, pop, unshift, and splice, but cause heavy allocations on the setup. If true, returns the array as-is and requires it be marked as readonly.
- */
 export function stateRefArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
     return function (
         target: ClassAccessorDecoratorTarget<T, typeof readonly extends true ? readonly TValue[] : TValue[]>,
         context: ClassAccessorDecoratorContext<T, typeof readonly extends true ? readonly TValue[] : TValue[]>
     ): ClassAccessorDecoratorResult<T, typeof readonly extends true ? readonly TValue[] : TValue[]> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-
-        // Get or create the state related metadata object.
-        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
-        metaState[stateArrayMetadata] ??= [];
-        (metaState[stateArrayMetadata] as string[]).push(context.name);
+        assertStateAccessorContext(context);
         const name = context.name as string;
-
-        if (readonly) {
-            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue>[] | null | undefined) => {
-                target.set.call(instance as T, hydrateReadonlyArrayFromIds<TValue>(instance, rawValue) as readonly TValue[]);
-            });
-        } else {
-            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue>[] | null | undefined) => {
-                target.set.call(instance as T, CreateUndoArrayInternalFromIds<TValue>(instance, name, rawValue) as TValue[]);
-            });
-        }
 
         // Use the backing fields as the cache, and write refs to the state.
         if (readonly) {
             return {
-                get(this: T) {
-                    return target.get.call(this);
-                },
                 set(this: T, newValue: TValue[]) {
                     this.game.deltaTracker?.recordFieldChange(this, name);
-                    this.state[name] = createIdArray(newValue);
                     target.set.call(this, newValue);
-                },
-                init(this: T, value: TValue[]) {
-                    this.state[name] = createIdArray(value);
-                    return value;
                 }
             };
         }
 
         return {
-            get(this: T) {
-                try {
-                    return target.get.call(this);
-                } catch (error) {
-                    // @ts-ignore
-                    console.error('This: ' + this.constructor.name, this.title ?? this.name ?? this.id);
-                    throw error;
-                }
-            },
             set(this: T, newValue: TValue[]) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
-                this.state[name] = createIdArray(newValue);
+                // this.state[name] = createIdArray(newValue);
                 target.set.call(this, newValue ? CreateUndoArrayInternal(this, name, newValue) : newValue);
             },
             init(this: T, value: TValue[]) {
-                this.state[name] = createIdArray(value);
+                // this.state[name] = createIdArray(value);
                 return value ? CreateUndoArrayInternal(this, name) : value;
             }
         };
     };
 }
 
-/** Creates a undo safe Map object that can be mutated in-place. */
 export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
         context: ClassAccessorDecoratorContext<T, Map<string, TValue>>
     ): ClassAccessorDecoratorResult<T, Map<string, TValue>> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-
-        // Get or create the state related metadata object.
-        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
-        metaState[stateMapMetadata] ??= [];
-        (metaState[stateMapMetadata] as string[]).push(context.name);
+        assertStateAccessorContext(context);
         const name = context.name as string;
-
-        registerStateHydrator(metaState, name, (instance, rawValue: Map<string, GameObjectId<TValue>> | null | undefined) => {
-            target.set.call(instance as T, hydrateUndoMapFromIds<TValue>(instance, name, rawValue) as Map<string, TValue>);
-        });
 
         // Use the backing fields as the cache, and write refs to the state.
         return {
-            get(this) {
-                return target.get.call(this);
-            },
             set(this: GameObjectBase, newValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 // The below UndoMap instantiation will also load the state map with all of it's values.
-                this.state[name] = createIdMap(newValue);
+                // this.state[name] = createIdMap(newValue);
                 target.set.call(this, newValue ? new UndoMap(this, name, newValue.entries()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoMap cannot be init with entries');
-                this.state[name] = value;
+                // this.state[name] = value;
                 // If this is not-null, create a equivalent map in the state. Otherwise, leave it as-is.
                 return value ? new UndoMap(this, name) : value;
             },
@@ -493,44 +224,26 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
     };
 }
 
-/** Creates an undo safe Set object that can be mutated in-place. */
 export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Set<TValue>>,
         context: ClassAccessorDecoratorContext<T, Set<TValue>>
     ): ClassAccessorDecoratorResult<T, Set<TValue>> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-
-        // Get or create the state related metadata object.
-        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
-        metaState[stateSetMetadata] ??= [];
-        (metaState[stateSetMetadata] as string[]).push(context.name);
+        assertStateAccessorContext(context);
         const name = context.name as string;
-
-        registerStateHydrator(metaState, name, (instance, rawValue: Set<GameObjectId<TValue>> | null | undefined) => {
-            target.set.call(instance as T, hydrateUndoSetFromIds<TValue>(instance, name, rawValue) as Set<TValue>);
-        });
 
         // Use the backing fields as the cache, and write refs to the state.
         // State stores a Set<string> keyed by UUID so that delete can look up by key.
         return {
-            get(this) {
-                return target.get.call(this);
-            },
             set(this: GameObjectBase, newValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
                 // The below UndoSet instantiation will also load the state map with all of its values.
-                this.state[name] = createIdSet(newValue);
+                // this.state[name] = createIdSet(newValue);
                 target.set.call(this, newValue ? new UndoSet(this, name, newValue.values()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoSet cannot be init with entries');
-                this.state[name] = value ? new Set() : value;
+                // this.state[name] = value ? new Set() : value;
                 // If this is not-null, create an equivalent set in the state. Otherwise, leave it as-is.
                 return value ? new UndoSet(this, name) : value;
             },
@@ -538,142 +251,70 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
     };
 }
 
-/** A simpler alternative to Map. Unless there is a specific reason, prefer stateRefMap over this. */
 export function stateRefRecord<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, Record<string, TValue>>,
         context: ClassAccessorDecoratorContext<T, Record<string, TValue>>
     ): ClassAccessorDecoratorResult<T, Record<string, TValue>> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-
-        // Get or create the state related metadata object.
-        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
-        metaState[stateRecordMetadata] ??= [];
-        (metaState[stateRecordMetadata] as string[]).push(context.name);
+        assertStateAccessorContext(context);
         const name = context.name as string;
-
-        registerStateHydrator(metaState, name, (instance, rawValue: Record<string, GameObjectId<TValue>> | null | undefined) => {
-            target.set.call(instance as T, hydrateUndoRecordFromIds<TValue>(instance, name, rawValue) as Record<string, TValue>);
-        });
 
         // Use the backing fields as the cache, and write refs to the state.
         return {
-            get(this) {
-                return target.get.call(this);
-            },
             set(this: GameObjectBase, newValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
-                this.state[name] = createIdRecord(newValue);
+                // this.state[name] = createIdRecord(newValue);
                 target.set.call(this, UndoSafeRecord(this, newValue, name));
             },
             init(this: GameObjectBase, value) {
-                this.state[name] = value ? {} : value;
+                // this.state[name] = value ? {} : value;
                 return value ? UndoSafeRecord(this, value, name) : value;
             },
         };
     };
 }
 
-/** Creates a undo safe GameObject reference. */
 export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
     ): ClassAccessorDecoratorResult<T, TValue> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-
-        // Get or create the state related metadata object.
-        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
-        metaState[stateObjectMetadata] ??= [];
-        (metaState[stateObjectMetadata] as string[]).push(context.name);
+        assertStateAccessorContext(context);
         const name = context.name as string;
-
-        registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue> | null | undefined) => {
-            target.set.call(instance as unknown as T, hydrateIdFromState(instance, rawValue) as unknown as TValue);
-        });
 
         // Use the backing fields as the cache, and write refs to the state.
         return {
-            get(this) {
-                return target.get.call(this);
-            },
             set(this, newValue) {
                 const gameObject = this as unknown as GameObjectBase;
-                gameObject.game.deltaTracker?.recordFieldChange(gameObject, context.name as string);
+                gameObject.game.deltaTracker?.recordFieldChange(gameObject, name);
                 // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[name] = newValue?.getObjectId();
+                // this.state[name] = newValue?.getObjectId();
                 target.set.call(this, newValue);
             },
             init(value) {
                 // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[name] = value?.getObjectId();
+                // this.state[name] = value?.getObjectId();
                 return value;
             }
         };
     };
 }
 
-/**
- * For any {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm structuredClone}-compatible
- * value that is **not** a primitive and **not** a {@link GameObjectBase}.
- * The value is stored directly in state without any conversion.
- *
- * Use this for complex state values (objects, arrays of plain data, etc.) that don't need
- * GameObjectBase ref resolution but do need to participate in the undo system.
- *
- * Prefer more specific decorators when applicable:
- * - {@link statePrimitive} for primitives (string, number, boolean)
- * - {@link stateRef} for single GameObjectBase references
- * - {@link stateRefArray} for arrays of GameObjectBase references
- * - {@link stateRefMap} for Map<string, GameObjectBase>
- * - {@link stateRefSet} for Set<GameObjectBase>
- * - Map<string, non-GameObjectBase>, including in-place Map mutations
- *
- * @example
- * ⁣@stateValue() accessor decklist: IDeckListForLoading;
- */
 export function stateValue<T extends GameObjectBase, TValue>() {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
     ): ClassAccessorDecoratorResult<T, TValue> {
-        if (context.static || context.private) {
-            throw new Error('Can only serialize public instance members.');
-        }
-        if (typeof context.name === 'symbol') {
-            throw new Error('Cannot serialize symbol-named properties.');
-        }
-
-        // Get or create the state related metadata object.
-        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
-        metaState[stateSimpleMetadata] ??= [];
-        (metaState[stateSimpleMetadata] as string[]).push(context.name);
-        const name = context.name;
+        assertStateAccessorContext(context);
+        const name = context.name as string;
 
         // No need to use the backing fields, read and write directly to state.
         return {
-            get(this: T) {
-                return this.state[name];
-            },
             set(this: T, newValue: TValue) {
                 this.game.deltaTracker?.recordFieldChange(this, name);
-                this.state[name] = newValue;
+                target.set.call(this, newValue);
+                // this.state[name] = newValue;
             },
-            init(this: T, value: TValue) {
-                this.state[name] = value;
-                // We don't use the internal field and only use the data within state.
-                return undefined;
-            }
         };
     };
 }
