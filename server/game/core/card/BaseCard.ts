@@ -43,6 +43,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     public get capturedUnits() {
+        Contract.assertNotNullLike(this._captureZone, `Attempting to access captured units for card ${this.internalName}, but capture zone is not initialized`);
         return this.captureZone.cards;
     }
 
