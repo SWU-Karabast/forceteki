@@ -1,5 +1,7 @@
 describe('The Stranger, No Survivors', function() {
     integration(function(contextRef) {
+        const abilityPrompt = 'Choose how damage is dealt for this attack';
+
         describe('The Stranger\'s "defender deals damage first" ability', function() {
             beforeEach(async function() {
                 await contextRef.setupTestAsync({
@@ -18,8 +20,6 @@ describe('The Stranger, No Survivors', function() {
                     }
                 });
             });
-
-            const abilityPrompt = 'Choose how damage is dealt for this attack';
 
             it('should not prompt when attacking a base', function() {
                 const { context } = contextRef;
@@ -117,6 +117,26 @@ describe('The Stranger, No Survivors', function() {
                 expect(context.deathStarStormtrooper).toBeInZone('discard');
                 expect(context.theStranger.damage).toBe(0);
             });
+        });
+
+        it('The Stranger\'s ability should not trigger when it is attacking a base', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['the-stranger#no-survivors'],
+                    base: 'crystal-caves'
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Give The Stranger the "deals combat damage first" effect from Shoot First
+            context.player1.clickCard(context.theStranger);
+            context.player1.clickCard(context.p2Base);
+
+            // There should only be one triggered ability in the window (gain the Force), so no trigger prompt
+            expect(context.player1).not.toHavePrompt(abilityPrompt);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

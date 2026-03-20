@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MiningGuildTieFighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,7 +13,7 @@ export default class MiningGuildTieFighter extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Pay 2 resources to draw',
+            title: `Pay ${TextHelper.resource(2)} to draw`,
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 target: context.player,

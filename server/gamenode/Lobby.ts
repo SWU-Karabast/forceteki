@@ -18,6 +18,7 @@ import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
+import type { CardPool } from '../game/core/Constants';
 import {
     AlertType,
     GameEndReason,
@@ -147,7 +148,7 @@ export class Lobby {
     private readonly swuBaseEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
-    private readonly allow30CardsInMainBoard: boolean;
+    private readonly cardPool: CardPool;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -179,7 +180,7 @@ export class Lobby {
         matchmakingType: MatchmakingType,
         gameFormat: SwuGameFormat,
         gamesToWinMode: GamesToWinMode,
-        allow30CardsInMainBoard: boolean,
+        cardPool: CardPool,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         gameServer: GameServer,
@@ -204,7 +205,7 @@ export class Lobby {
         this.server = gameServer;
         this.discordDispatcher = discordDispatcher;
         this.undoMode = matchmakingType === MatchmakingType.PrivateLobby ? UndoMode.Free : UndoMode.Request;
-        this.allow30CardsInMainBoard = allow30CardsInMainBoard;
+        this.cardPool = cardPool;
 
         switch (gamesToWinMode) {
             case GamesToWinMode.BestOfOne:
@@ -239,7 +240,7 @@ export class Lobby {
     }
 
     public get queueFormatKey(): IQueueFormatKey {
-        return { swuFormat: this.format, gamesToWinMode: this.gamesToWinMode };
+        return { format: this.format, cardPool: this.cardPool, gamesToWinMode: this.gamesToWinMode };
     }
 
     private get useActionTimers(): boolean {
@@ -342,7 +343,7 @@ export class Lobby {
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
-            allow30CardsInMainBoard: this.allow30CardsInMainBoard,
+            cardPool: this.cardPool,
             winHistory: this.getWinHistoryForClient(),
             hasConfirmedNextGame: this.gamesToWinMode === GamesToWinMode.BestOfThree && user
                 ? this.bo3NextGameConfirmedBy?.has(user.id) ?? false
@@ -383,8 +384,8 @@ export class Lobby {
             deckErrors: user.deckValidationErrors,
             importDeckErrors: user.importDeckValidationErrors,
             unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
-            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.allow30CardsInMainBoard) : 50,
-            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format),
+            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.format) : 50,
+            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format, this.cardPool),
         } : {
             deck: user.deck?.getLeaderBase(),
         };
@@ -439,7 +440,7 @@ export class Lobby {
             ready: false,
             socket: null,
             deckValidationErrors: deck
-                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard })
+                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, cardPool: this.cardPool })
                 : {},
             deck,
             reportedBugs: 0
@@ -946,7 +947,7 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.getId());
 
         // we check if the deck is valid.
-        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
         activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
 
         // if the deck doesn't have any errors that block import, set it as active
@@ -989,7 +990,7 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
-        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
         user.deckValidationErrors = this.deckValidator.validateInternalDeck(
             userDeck.getDecklist(),
             validationProperties
@@ -1000,6 +1001,11 @@ export class Lobby {
         logger.info(`Lobby: user ${user.username} updating deck`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.updateUserLastActivity(user.id);
+    }
+
+    private typingState(socket: Socket, isTyping: boolean) {
+        const userId = socket.user.getId();
+        this.gameChat.setTypingState(userId, isTyping);
     }
 
     private getUser(id: string) {
@@ -1016,6 +1022,7 @@ export class Lobby {
             }
 
             user.state = 'disconnected';
+            this.gameChat.setTypingState(id, false);
             logger.info(`Lobby: setting user ${user.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
 
@@ -1341,7 +1348,7 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
-            attackRulesVersion: this.format === SwuGameFormat.Premier ? AttackRulesVersion.CR6 : AttackRulesVersion.CR7,
+            attackRulesVersion: AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,

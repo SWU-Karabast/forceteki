@@ -14,7 +14,7 @@ import { registerStateBase, stateRefArray, statePrimitive } from './GameObjectUt
 export interface IGameObjectState extends IGameObjectBaseState {
     // id: string;
     // nameField: string;
-    // ongoingEffects: GameObjectRef<OngoingCardEffect>[];
+    // ongoingEffects: GameObjectId<OngoingCardEffect>[];
 }
 
 export interface IOngoingEffectFilters {

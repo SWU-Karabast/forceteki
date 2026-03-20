@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { PhaseName, Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MazKanataWheresMyBoyfriend extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class MazKanataWheresMyBoyfriend extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenAttackEndsAbility({
-            title: 'If this unit survived, search the top 5 cards of your deck for an Underworld unit and play it. It costs 4 resources less and enters play ready. At the start of the regroup phase, put that unit on the bottom of your deck',
+            title: `If this unit survived, search the top 5 cards of your deck for an Underworld unit and play it. It costs ${TextHelper.resource(4)} less and enters play ready. At the start of the regroup phase, put that unit on the bottom of your deck`,
             attackerMustSurvive: true,
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

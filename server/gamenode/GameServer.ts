@@ -45,7 +45,7 @@ import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { ServerRole } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
-import { SwuGameFormat } from '../game/core/Constants';
+import { CardPool, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 
@@ -440,7 +440,6 @@ export class GameServer {
 
         app.post('/api/get-user', this.buildAuthMiddleware('get-user'), (req, res, next) => {
             try {
-                // const { decks, preferences } = req.body;
                 const user = req.user as User;
                 // We try to sync the decks first
                 // if (decks.length > 0) {
@@ -465,6 +464,8 @@ export class GameServer {
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
                     needsUsernameChange: user.needsUsernameChange(),
+                    mustRequestUsernameChange: user.mustRequestUsernameChange(),
+                    reportingDisabled: user.reportingDisabled(),
                     moderation: user.getModeration(),
                 } });
             } catch (err) {
@@ -487,6 +488,61 @@ export class GameServer {
                 res.status(200).json({ linked: !!linked });
             } catch (err) {
                 logger.error('GameServer (swustatsLink) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swustats/decks', this.buildAuthMiddleware('swustatsDecks'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsDecks): Anonymous user ${user.getId()} is attempting to retrieve swustats decks`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustats decks'
+                    });
+                }
+
+                // Get query parameters
+                const limit = parseInt(req.query.limit as string) || 100;
+                const offset = parseInt(req.query.offset as string) || 0;
+
+                const decksData = await this.swuStatsHandler.fetchUserDecksAsync(user.getId(), this, {
+                    limit,
+                    offset
+                });
+
+                // Transform SWU Stats decks to our format
+                const transformedDecks = decksData.decks.map((deck) => ({
+                    id: deck.id,
+                    name: deck.name || 'Untitled Deck',
+                    description: deck.description || '',
+                    isFavorite: deck.is_favorite,
+                    createdAt: deck.created_at,
+                    updatedAt: deck.updated_at,
+                    deckLink: `https://swustats.net/TCGEngine/Decks/Deck.php?gameName=${deck.id}`,
+                }));
+
+                // Sort favorites to the top, then by name
+                transformedDecks.sort((a, b) => {
+                    if (a.isFavorite && !b.isFavorite) {
+                        return -1;
+                    }
+                    if (!a.isFavorite && b.isFavorite) {
+                        return 1;
+                    }
+                    const nameA = a.name || '';
+                    const nameB = b.name || '';
+                    return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+                });
+
+                return res.status(200).json({
+                    success: true,
+                    decks: transformedDecks,
+                    pagination: decksData.pagination,
+                });
+            } catch (err) {
+                logger.error('GameServer (swustatsDecks) Server Error: ', err);
                 next(err);
             }
         });
@@ -645,6 +701,54 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (set-moderation-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/set-must-request-username-change-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (set-must-request-username-change-seen): Anonymous user ${user.getId()} attempted to set must-request-username-change seen`, { userId: user.getId() });
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                const result = await this.userFactory.setMustRequestUsernameChangeSeenAsync(user.getId());
+
+                return res.status(200).json({
+                    success: result,
+                    message: 'Must-request-username-change seen status updated'
+                });
+            } catch (err) {
+                logger.error('GameServer (set-must-request-username-change-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/set-reporting-disabled-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (set-reporting-disabled-seen): Anonymous user ${user.getId()} attempted to set reporting-disabled seen`, { userId: user.getId() });
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                const result = await this.userFactory.setReportingDisabledSeenAsync(user.getId());
+
+                return res.status(200).json({
+                    success: result,
+                    message: 'Reporting-disabled seen status updated'
+                });
+            } catch (err) {
+                logger.error('GameServer (set-reporting-disabled-seen) Server Error: ', err);
                 next(err);
             }
         });
@@ -1076,7 +1180,7 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
+                const { deck, format, isPrivate, gamesToWinMode, lobbyName, cardPool } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1118,6 +1222,11 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
+                if (!EnumHelpers.isEnumValue(cardPool, CardPool)) {
+                    logger.error(`GameServer (create-lobby): Invalid card pool parameter ${cardPool}`);
+                    return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
+                }
+
                 // Check Bo3 access restrictions for anonymous users
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, isPrivate, 'create a public best of three lobby');
                 if (bo3AccessError) {
@@ -1125,8 +1234,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, allow30CardsInMainBoard);
+                await this.processDeckValidation(deck, true, { format, cardPool }, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, cardPool);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1226,7 +1335,7 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { format, gamesToWinMode, deck } = req.body;
+                const { format, cardPool, gamesToWinMode, deck } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1256,8 +1365,8 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
-                    const success = this.enterQueue(format, gamesToWinMode, user, deck);
+                await this.processDeckValidation(deck, false, { format, cardPool }, res, () => {
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1612,7 +1721,7 @@ export class GameServer {
         format: SwuGameFormat,
         gamesToWinMode: GamesToWinMode,
         isPrivate: boolean,
-        allow30CardsInMainBoard: boolean = false
+        cardPool: CardPool = CardPool.Current
     ) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
@@ -1627,7 +1736,7 @@ export class GameServer {
             isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
             format,
             gamesToWinMode,
-            allow30CardsInMainBoard,
+            cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1646,7 +1755,7 @@ export class GameServer {
             MatchmakingType.PublicLobby,
             SwuGameFormat.Open,
             GamesToWinMode.BestOfOne,
-            false,
+            CardPool.Unlimited,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1884,9 +1993,16 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, gamesToWinMode: GamesToWinMode, user: User, deck: ISwuDbFormatDecklist): boolean {
+    private enterQueue(
+        format: SwuGameFormat,
+        cardPool: CardPool,
+        gamesToWinMode: GamesToWinMode,
+        user: User,
+        deck: ISwuDbFormatDecklist
+    ): boolean {
         const formatKey: IQueueFormatKey = {
-            swuFormat: format,
+            format,
+            cardPool,
             gamesToWinMode
         };
 
@@ -1972,9 +2088,9 @@ export class GameServer {
         const lobby = new Lobby(
             'Quick Game',
             MatchmakingType.Quick,
-            format.swuFormat,
+            format.format,
             format.gamesToWinMode,
-            false,
+            format.cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,

@@ -7,7 +7,7 @@ import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity } from '../../services/DynamoDBInterfaces';
-import { ModerationType } from '../../services/DynamoDBInterfaces';
+import { ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
 
@@ -143,6 +143,14 @@ export class UserFactory {
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
+            if (userProfile.mustRequestUsernameChange) {
+                return {
+                    canChange: false,
+                    message: 'You must submit a ticket to request a username change.',
+                    typeOfMessage: 'green',
+                };
+            }
+
             if (userProfile.needsUsernameChange) {
                 return {
                     canChange: true,
@@ -222,6 +230,15 @@ export class UserFactory {
                     message: 'The new username is the same as your current username.'
                 };
             }
+
+            // Block free username changes if mustRequestUsernameChange is set
+            if (userProfile.mustRequestUsernameChange) {
+                return {
+                    success: false,
+                    message: 'You must submit a ticket to request a username change.'
+                };
+            }
+
             const createdAt = new Date(userProfile.createdAt).getTime();
             const lastChange = userProfile.usernameLastUpdatedAt
                 ? new Date(userProfile.usernameLastUpdatedAt).getTime()
@@ -348,6 +365,8 @@ export class UserFactory {
                 showWelcomeMessage: true,
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
+                mustRequestUsernameChange: null,
+                reportingDisabled: null,
                 swuStatsRefreshToken: null,
                 swubaseRefreshToken: null,
                 moderation: null,
@@ -539,6 +558,56 @@ export class UserFactory {
      * @param userId The user ID
      * @returns True if update was successful
      */
+    public async setMustRequestUsernameChangeSeenAsync(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+
+            if (userProfile.mustRequestUsernameChange === ModerationFieldState.Enabled) {
+                await dbService.updateUserProfileAsync(userId, {
+                    mustRequestUsernameChange: ModerationFieldState.EnabledAndSeen
+                });
+
+                logger.info(`UserFactory: Set mustRequestUsernameChange as seen for user ${userId}`, { userId });
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            logger.error('Error setting mustRequestUsernameChange seen status:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    public async setReportingDisabledSeenAsync(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+
+            if (userProfile.reportingDisabled === ModerationFieldState.Enabled) {
+                await dbService.updateUserProfileAsync(userId, {
+                    reportingDisabled: ModerationFieldState.EnabledAndSeen
+                });
+
+                logger.info(`UserFactory: Set reportingDisabled as seen for user ${userId}`, { userId });
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            logger.error('Error setting reportingDisabled seen status:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
     public async setModerationSeenAsync(userId: string): Promise<boolean> {
         try {
             const dbService = await this.dbServicePromise;
