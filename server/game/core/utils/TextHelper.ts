@@ -1,7 +1,8 @@
 /* eslint-disable @stylistic/lines-around-comment */
 import { Helpers } from './Helpers';
-import { Aspect } from '../Constants';
+import { Aspect, KeywordName } from '../Constants';
 import type { Conjunction } from '../Constants';
+import type { INumericKeywordProperties, NonNumericKeywordName } from '../../Interfaces';
 
 /**
  * Helper functions for generating formatted text or inserting special tokens to be replaced on the client side with icons or special formatting.
@@ -9,7 +10,9 @@ import type { Conjunction } from '../Constants';
  */
 export namespace TextHelper {
 
-    // Quick access to specific aspects
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Aspects
+    // ─────────────────────────────────────────────────────────────────────────────
 
     /** The display representation of the Vigilance aspect, replaced by the icon on the client side */
     export const Vigilance = aspect(Aspect.Vigilance);
@@ -23,6 +26,49 @@ export namespace TextHelper {
     export const Villainy = aspect(Aspect.Villainy);
     /** The display representation of the Heroism aspect, replaced by the icon on the client side */
     export const Heroism = aspect(Aspect.Heroism);
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Keywords
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    /** The display representation of the meta-term Keyword, stylized on the client side */
+    export const Keyword = process.env.NODE_ENV === 'test' ? 'Keyword' : '{keyword:keyword}';
+    /** The display representation of the meta-term Keywords, stylized on the client side */
+    export const Keywords = process.env.NODE_ENV === 'test' ? 'Keywords' : '{keyword:keywords}';
+    /** The display representation of the Ambush keyword, stylized on the client side */
+    export const Ambush = keyword(KeywordName.Ambush);
+    /** The display representation of the Grit keyword, stylized on the client side */
+    export const Grit = keyword(KeywordName.Grit);
+    /** The display representation of the Overwhelm keyword, stylized on the client side */
+    export const Overwhelm = keyword(KeywordName.Overwhelm);
+    /** The display representation of the Saboteur keyword, stylized on the client side */
+    export const Saboteur = keyword(KeywordName.Saboteur);
+    /** The display representation of the Shielded keyword, stylized on the client side */
+    export const Shielded = keyword(KeywordName.Shielded);
+    /** The display representation of the Bounty keyword, stylized on the client side */
+    export const Bounty = keyword(KeywordName.Bounty);
+    /** The display representation of the Smuggle keyword, stylized on the client side */
+    export const Smuggle = keyword(KeywordName.Smuggle);
+    /** The display representation of the Coordinate keyword, stylized on the client side */
+    export const Coordinate = keyword(KeywordName.Coordinate);
+    /** The display representation of the Piloting keyword, stylized on the client side */
+    export const Piloting = keyword(KeywordName.Piloting);
+    /** The display representation of the Hidden keyword, stylized on the client side */
+    export const Hidden = keyword(KeywordName.Hidden);
+    /** The display representation of the Plot keyword, stylized on the client side */
+    export const Plot = keyword(KeywordName.Plot);
+    /** The display representation of the Raid keyword, stylized on the client side */
+    export function Raid(amount: number) {
+        return keyword({ keyword: KeywordName.Raid, amount });
+    }
+    /** The display representation of the Restore keyword, stylized on the client side */
+    export function Restore(amount: number) {
+        return keyword({ keyword: KeywordName.Restore, amount });
+    }
+    /** The display representation of the Exploit keyword, stylized on the client side */
+    export function Exploit(amount: number) {
+        return keyword({ keyword: KeywordName.Exploit, amount });
+    }
 
     /**
      * Returns the display representation of a resource amount. In test environments, this will return a string
@@ -41,6 +87,30 @@ export namespace TextHelper {
         return process.env.NODE_ENV === 'test'
             ? `${amount} resource${amount !== 1 ? 's' : ''}`
             : `{resource:${amount}}`;
+    }
+
+    /**
+     * Returns the display representation of a keyword. In test environments, this will return a human-readable string (e.g. "Restore 2") for readability,
+     * but in production, it returns a token like `{keyword:restore:2}` which the client can replace with stylized text.
+     *
+     * @example
+     * // In tests: "Restore 2"
+     * // Otherwise: "{keyword:restore:2}"
+     * const ex = `${TextHelper.keyword({ keyword: KeywordName.Restore, amount: 2 })}`;
+     *
+     * @param keyword The keyword to display, either as a simple name or with an amount for numeric keywords
+     * @returns A string representing the keyword, either as plain text (in tests) or a replacement token
+     */
+    export function keyword(keyword: NonNumericKeywordName | INumericKeywordProperties): string {
+        if (typeof keyword === 'object') {
+            return process.env.NODE_ENV === 'test'
+                ? `${Helpers.capitalize(keyword.keyword)} ${keyword.amount}`
+                : `{keyword:${keyword.keyword}:${keyword.amount}}`;
+        }
+
+        return process.env.NODE_ENV === 'test'
+            ? Helpers.capitalize(keyword)
+            : `{keyword:${keyword}}`;
     }
 
     /**
