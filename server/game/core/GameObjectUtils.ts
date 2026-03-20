@@ -377,13 +377,13 @@ export function statePrimitive<T extends GameObjectBase, TValue extends string |
 type ConstantBoolean<T extends boolean> = boolean extends T ? never : T;
 
 /**
- * @param readonly If false, returns the array wrapped in a Proxy object, which allows the safe use of push, pop, unshift, and splice, but cause heavy allocations on the setup. If true, returns the array as-is and requires it be marked as readonly.
+ * @param readonly If false, returns a custom but more expensive mutatable array, best used for arrays that change frequently. If true, returns the array as-is and requires it be marked as readonly.
  */
 export function stateRefArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
     return function (
-        target: ClassAccessorDecoratorTarget<T, typeof readonly extends true ? readonly TValue[] : TValue[]>,
-        context: ClassAccessorDecoratorContext<T, typeof readonly extends true ? readonly TValue[] : TValue[]>
-    ): ClassAccessorDecoratorResult<T, typeof readonly extends true ? readonly TValue[] : TValue[]> {
+        target: ClassAccessorDecoratorTarget<T, typeof readonly extends true ? readonly TValue[] : IStateArray<TValue>>,
+        context: ClassAccessorDecoratorContext<T, typeof readonly extends true ? readonly TValue[] : IStateArray<TValue>>
+    ): ClassAccessorDecoratorResult<T, typeof readonly extends true ? readonly TValue[] : IStateArray<TValue>> {
         if (context.static || context.private) {
             throw new Error('Can only serialize public instance members.');
         }
@@ -403,7 +403,7 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
             });
         } else {
             registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue>[] | null | undefined) => {
-                target.set.call(instance as T, CreateUndoArrayInternalFromIds<TValue>(instance, name, rawValue) as TValue[]);
+                target.set.call(instance as T, CreateUndoArrayInternalFromIds<TValue>(instance, name, rawValue));
             });
         }
 
@@ -769,12 +769,12 @@ function CreateUndoArrayInternal<TValue extends GameObjectBase>(go: GameObjectBa
         }
     }
 
-    return CreateUndoArrayProxy(undoArr) as TValue[];
+    return undoArr as IStateArray<TValue>;
 }
 
 function CreateUndoArrayInternalFromIds<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, ids?: readonly GameObjectId<TValue>[] | GameObjectId<TValue>[] | null) {
     if (ids == null) {
-        return ids as unknown as TValue[] | null | undefined;
+        return ids as unknown as IStateArray<TValue> | null | undefined;
     }
 
     const undoArr = CreateUndoArrayBase<TValue>(go, prop);
@@ -783,50 +783,11 @@ function CreateUndoArrayInternalFromIds<TValue extends GameObjectBase>(go: GameO
         undoArr[i] = go.game.getFromUuidUnsafe(ids[i]);
     }
 
-    return CreateUndoArrayProxy(undoArr) as TValue[];
+    return undoArr as IStateArray<TValue>;
 }
 
 function CreateUndoArrayBase<TValue extends GameObjectBase>(go: GameObjectBase, prop: string) {
-    const undoArr = new UndoArray<TValue>();
-    // Keep internal UndoArray bookkeeping properties off enumerable object shape so test equality checks on
-    // arrays only see card entries, not proxy internals.
-    Object.defineProperty(undoArr, 'go', {
-        value: go,
-        writable: true,
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(undoArr, 'prop', {
-        value: prop,
-        writable: true,
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(undoArr, 'accessing', {
-        value: false,
-        writable: true,
-        enumerable: false,
-        configurable: true
-    });
-
-    return undoArr;
-}
-
-function CreateUndoArrayProxy<TValue extends GameObjectBase>(undoArr: UndoArray<TValue>) {
-    const proxiedArray = new Proxy(undoArr, {
-        set(target, prop, newValue, receiver): boolean {
-            // @ts-expect-error overriding accessibility.
-            // setting the "accessing" prop needs to be allowed.
-            // target.accessing is only flagged as true when the mutation functions are called.
-            //      If it's not true then that means this is being modified via an index.
-            if (prop !== 'accessing' && !target.accessing) {
-                throw new Error('Set disallowed for mutating UndoArray');
-            }
-            return Reflect.set(target, prop, newValue, receiver);
-        },
-    });
-
-    return proxiedArray;
+    return new UndoArray<TValue>().init(go, prop);
 }
 
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
@@ -897,22 +858,30 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
 
 // A custom class to pass through any values to the underlying state Map.
 class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
-    private go: GameObjectBase;
-    private prop: string;
-    private init = false;
+    #go: GameObjectBase;
+    #prop: string;
+    #init = false;
+
     public constructor(go: GameObjectBase, prop: string, entries?: Iterable<readonly [string, TValue]> | null) {
         super(entries);
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
-        this.go = go;
-        this.prop = prop;
-        this.init = true;
+        this.#go = go;
+        this.#prop = prop;
+        this.#init = true;
+    }
+
+    public init(go: GameObjectBase, prop: string) {
+        this.#go = go;
+        this.#prop = prop;
+        this.#init = true;
+        return this;
     }
 
     public override set(key: string, value: TValue): this {
         // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
-        if (this.init) {
+        if (this.#init) {
             // @ts-expect-error Overriding state accessibility
-            const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
+            const stateValue = this.#go.state[this.#prop] as Map<string, GameObjectId<TValue>>;
             stateValue.set(key, value.getObjectId());
         }
         return super.set(key, value);
@@ -920,14 +889,14 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
 
     public override delete(key: string): boolean {
         // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
+        const stateValue = this.#go.state[this.#prop] as Map<string, GameObjectId<TValue>>;
         stateValue.delete(key);
         return super.delete(key);
     }
 
     public override clear(): void {
         // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Map<string, GameObjectId<TValue>>;
+        const stateValue = this.#go.state[this.#prop] as Map<string, GameObjectId<TValue>>;
         stateValue.clear();
         super.clear();
     }
@@ -935,22 +904,30 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
 
 // A custom class to pass through any values to the underlying state Set.
 class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
-    private go: GameObjectBase;
-    private prop: string;
-    private init = false;
+    #go: GameObjectBase;
+    #prop: string;
+    #init = false;
+
     public constructor(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
         super(values);
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
-        this.go = go;
-        this.prop = prop;
-        this.init = true;
+        this.#go = go;
+        this.#prop = prop;
+        this.#init = true;
+    }
+
+    public init(go: GameObjectBase, prop: string) {
+        this.#go = go;
+        this.#prop = prop;
+        this.#init = true;
+        return this;
     }
 
     public override add(value: TValue): this {
-        // Add is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
-        if (this.init) {
+        // Add is called during instantiation, but "this.#go" hasn't (and can't) be defined yet.
+        if (this.#init) {
             // @ts-expect-error Overriding state accessibility
-            const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
+            const stateValue = this.#go.state[this.#prop] as Set<GameObjectId<TValue>>;
             stateValue.add(value.getObjectId());
         }
         return super.add(value);
@@ -958,81 +935,68 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
 
     public override delete(value: TValue): boolean {
         // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
+        const stateValue = this.#go.state[this.#prop] as Set<GameObjectId<TValue>>;
         stateValue.delete(value.getObjectId());
         return super.delete(value);
     }
 
     public override clear(): void {
         // @ts-expect-error Overriding state accessibility
-        const stateValue = this.go.state[this.prop] as Set<GameObjectId<TValue>>;
+        const stateValue = this.#go.state[this.#prop] as Set<GameObjectId<TValue>>;
         stateValue.clear();
         super.clear();
     }
 }
 
+/** An interface for stateRefArray decorator, prevents mutating elements directly to ensure the state tracking is used properly. */
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+export interface IStateArray<T> extends Array<T> {
+    readonly [key: number]: T; // Readonly indexer
+}
+
 class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
-    public go: GameObjectBase;
-    public prop: string;
-    private accessing = false;
+    // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
+    #go: GameObjectBase;
+    #prop: string;
 
     public static override get [Symbol.species]() {
         return Array; // Return the native Array constructor
     }
 
+    public init(go: GameObjectBase, prop: string) {
+        this.#go = go;
+        this.#prop = prop;
+        return this;
+    }
+
     public override push(...items: TValue[]): number {
-        this.accessing = true;
-        try {
-            // @ts-expect-error Overriding state accessibility
-            pushIdsOntoStateArray(this.go.state[this.prop], items);
-            return super.push(...items);
-        } finally {
-            this.accessing = false;
-        }
+        // @ts-expect-error Overriding state accessibility
+        pushIdsOntoStateArray(this.#go.state[this.#prop], items);
+        return super.push(...items);
     }
 
     public override unshift(...items: TValue[]): number {
-        this.accessing = true;
-        try {
-            // @ts-expect-error Overriding state accessibility
-            unshiftIdsOntoStateArray(this.go.state[this.prop], items);
-            return super.unshift(...items);
-        } finally {
-            this.accessing = false;
-        }
+        // @ts-expect-error Overriding state accessibility
+        unshiftIdsOntoStateArray(this.#go.state[this.#prop], items);
+        return super.unshift(...items);
     }
 
     public override pop(): TValue {
-        this.accessing = true;
-        try {
-            // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectId[]).pop();
-            return super.pop();
-        } finally {
-            this.accessing = false;
-        }
+        // @ts-expect-error Overriding state accessibility
+        (this.#go.state[this.#prop] as GameObjectId[]).pop();
+        return super.pop();
     }
 
     public override shift(): TValue {
-        this.accessing = true;
-        try {
-            // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectId[]).shift();
-            return super.shift();
-        } finally {
-            this.accessing = false;
-        }
+        // @ts-expect-error Overriding state accessibility
+        (this.#go.state[this.#prop] as GameObjectId[]).shift();
+        return super.shift();
     }
 
     public override reverse(): TValue[] {
-        this.accessing = true;
-        try {
-            // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectId[]).reverse();
-            return super.reverse();
-        } finally {
-            this.accessing = false;
-        }
+        // @ts-expect-error Overriding state accessibility
+        (this.#go.state[this.#prop] as GameObjectId[]).reverse();
+        return super.reverse();
     }
 
     public override sort(): this {
@@ -1043,14 +1007,10 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         if (arguments.length > 2) {
             throw new Error('UndoArray.splice only supports up to two arguments.');
         }
-        this.accessing = true;
-        try {
-            // @ts-expect-error Overriding state accessibility
-            (this.go.state[this.prop] as GameObjectId[]).splice(start, deleteCount);
-            return super.splice(start, deleteCount);
-        } finally {
-            this.accessing = false;
-        }
+
+        // @ts-expect-error Overriding state accessibility
+        (this.#go.state[this.#prop] as GameObjectId[]).splice(start, deleteCount);
+        return super.splice(start, deleteCount);
     }
 
     public override fill(value: TValue, start?: number, end?: number): this {
