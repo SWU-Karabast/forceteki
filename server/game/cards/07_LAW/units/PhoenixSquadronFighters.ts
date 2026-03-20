@@ -1,5 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class PhoenixSquadronFighters extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -11,7 +12,7 @@ export default class PhoenixSquadronFighters extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addDecreaseCostAbility({
-            title: 'This unit costs 1 resource less to play for each friendly damaged unit',
+            title: `This unit costs ${TextHelper.resource(1)} less to play for each friendly damaged unit`,
             amount: (_card, player) => player.getArenaUnits({ condition: (c) => c.isUnit() && c.damage > 0 }).length,
         });
     }

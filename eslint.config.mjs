@@ -248,7 +248,7 @@ export default tseslint.config(
     },
     {
         files: ["server/game/**/*.ts"],
-        ignores: ["server/game/core/utils/TextHelpers.ts"],
+        ignores: ["server/game/core/utils/TextHelper.ts"],
         plugins: {
             forceteki: {
                 rules: {

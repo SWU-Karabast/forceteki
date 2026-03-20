@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SmugglersYT2400 extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,7 +13,7 @@ export default class SmugglersYT2400 extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Pay 1 resource to give this unit +1/+1 for this phase',
+            title: `Pay ${TextHelper.resource(1)} to give this unit +1/+1 for this phase`,
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.payResources((context) => ({ amount: 1, target: context.player })),
             ifYouDo: {

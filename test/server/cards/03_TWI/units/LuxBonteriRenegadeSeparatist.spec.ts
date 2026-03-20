@@ -217,7 +217,7 @@ describe('Lux Bonteri, Renegade Separatist', function () {
 
                 // play a smuggle card with lando ability
                 context.player1.clickCard(context.landoCalrissian);
-                context.player1.clickPrompt('Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control.');
+                context.player1.clickPrompt('Play a card using Smuggle. It costs 2 resources less. Defeat a resource you own and control.');
                 context.player1.clickCard(context.millenniumFalcon);
                 // defeat a resource player 1 own and control
                 context.player1.clickCard(context.pykeSentinel);
