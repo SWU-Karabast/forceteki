@@ -6,6 +6,7 @@ import type { StateWatcherRegistrar } from '../../../../../server/game/core/stat
 import { setIntersection, setUnion } from '../../../../../server/game/core/utils/Helpers';
 import type { AttacksThisPhaseWatcher } from '../../../../../server/game/stateWatchers/AttacksThisPhaseWatcher';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
@@ -56,7 +57,7 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'The next unit you play this phase costs 1 resource less if it shares a Keyword with a friendly unit.',
+            title: `The next unit you play this phase costs ${TextHelper.resource(1)} less if it shares a Keyword with a friendly unit.`,
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,

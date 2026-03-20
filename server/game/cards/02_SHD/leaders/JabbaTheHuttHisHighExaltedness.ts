@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 1 resource less."',
+            title: `Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs ${TextHelper.resource(1)} less."`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -21,7 +22,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                     effect: AbilityHelper.ongoingEffects.gainKeyword({
                         keyword: KeywordName.Bounty,
                         ability: {
-                            title: 'The next unit you play this phase costs 1 resource less',
+                            title: `The next unit you play this phase costs ${TextHelper.resource(1)} less`,
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
@@ -58,7 +59,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         });
 
         registrar.addActionAbility({
-            title: 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 2 resources less."',
+            title: `Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs ${TextHelper.resource(2)} less."`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -66,7 +67,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
                     effect: AbilityHelper.ongoingEffects.gainKeyword({
                         keyword: KeywordName.Bounty,
                         ability: {
-                            title: 'The next unit you play this phase costs 2 resources less',
+                            title: `The next unit you play this phase costs ${TextHelper.resource(2)} less`,
                             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                                     cardTypeFilter: WildcardCardType.Unit,
