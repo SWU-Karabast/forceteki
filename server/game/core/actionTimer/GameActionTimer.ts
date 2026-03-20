@@ -1,5 +1,5 @@
 import { logger } from '../../../logger';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Player } from '../Player';
 import type { IActionTimer } from './IActionTimer';
 import { SimpleActionTimer } from './SimpleActionTimer';

@@ -2,13 +2,16 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
-import type Game from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { Game } from '../core/Game';
+import type { UnwrapRef } from '../core/GameObjectBase';
+
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface DeployedLeaderEntry {
-    card: GameObjectRef<IPlayableCard>;
+    card: GameObjectId<IPlayableCard>;
 }
 
+@registerState()
 export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeaderEntry> {
     public constructor(
         game: Game,
@@ -17,7 +20,7 @@ export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeader
     }
 
     protected override mapCurrentValue(stateValue: DeployedLeaderEntry[]): UnwrapRef<DeployedLeaderEntry>[] {
-        return stateValue.map((x) => ({ card: this.game.getFromRef(x.card) }));
+        return stateValue.map((x) => ({ card: this.game.getFromId(x.card) }));
     }
 
     /**
@@ -41,7 +44,7 @@ export class LeadersDeployedThisPhaseWatcher extends StateWatcher<DeployedLeader
             },
             update: (currentState: DeployedLeaderEntry[], event: any) =>
                 currentState.concat({
-                    card: event.card.getRef(),
+                    card: event.card.getObjectId(),
                 })
         });
     }

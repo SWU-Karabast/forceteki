@@ -1,4 +1,4 @@
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { Card } from '../../card/Card';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
@@ -122,7 +122,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
                 return card ? [card, target.amount] : null;
             })
             .filter((entry): entry is [Card, number] => entry !== null);
-
 
         Contract.assertTrue(results.valueDistribution.length === targetsArray.length, 'Illegal prompt results, some target cards were not found');
         return { type: results.type, valueDistribution: new Map(targetsArray) };

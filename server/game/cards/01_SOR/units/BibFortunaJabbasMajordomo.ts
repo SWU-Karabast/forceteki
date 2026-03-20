@@ -3,6 +3,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BibFortunaJabbasMajordomo extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class BibFortunaJabbasMajordomo extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play an event from your hand. It costs 1 less.',
+            title: `Play an event from your hand. It costs ${TextHelper.resource(1)} less.`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before

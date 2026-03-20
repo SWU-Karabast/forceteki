@@ -5,7 +5,9 @@ import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityType, CardType, ZoneName, WildcardRelativePlayer, StandardTriggeredAbilityType } from '../Constants';
+import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
+import type { AbilityContext } from '../ability/AbilityContext';
 import type { IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationEffectAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../Interfaces';
 import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
@@ -17,9 +19,11 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar, IUpgradeAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import { registerStateBase } from '../GameObjectUtils';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
+@registerStateBase()
 export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPlayableCard {
     public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
@@ -53,6 +57,10 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         return this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayUpgradeAction(this.game, this, properties));
     }
 
+    protected override getPlayRestriction(player: Player, context: AbilityContext): Restriction | null {
+        return PlayUpgradeAction.getPlayRestriction(player, this, context);
+    }
+
     public override getSummary(activePlayer: Player, overrideHidden: boolean = false) {
         return {
             ...super.getSummary(activePlayer, overrideHidden)
@@ -60,7 +68,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination) {
-        Contract.assertTrue(!this.state.parentCard || targetZoneName === this.parentCard.zoneName, `Attempting to move upgrade ${this.internalName} while it is still attached to ${this.state.parentCard ? this.parentCard.internalName : ''}`);
+        Contract.assertTrue(!this._parentCard || targetZoneName === this.parentCard.zoneName, `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard ? this.parentCard.internalName : ''}`);
 
         super.moveTo(targetZoneName);
     }
@@ -116,7 +124,6 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.ReplacementEffect, ...gainedAbilityProperties })
         }, registrar);
     }
-
 
     private addDamageModificationAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;

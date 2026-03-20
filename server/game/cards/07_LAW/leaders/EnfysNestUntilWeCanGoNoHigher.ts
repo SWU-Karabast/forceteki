@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { EventName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class EnfysNestUntilWeCanGoNoHigher extends LeaderUnitCard {
@@ -17,8 +18,8 @@ export default class EnfysNestUntilWeCanGoNoHigher extends LeaderUnitCard {
         AbilityHelper: IAbilityHelper
     ) {
         registrar.addTriggeredAbility({
-            title: 'Pay 2 resources and exhaust Enfys Nest to use the On Attack ability again',
-            contextTitle: (context) => `Pay 2 resources and exhaust ${context.source.title} to use ${context.event.card.title}'s "On Attack" ability again`,
+            title: `Pay ${TextHelper.resource(2)} and exhaust Enfys Nest to use the On Attack ability again`,
+            contextTitle: (context) => `Pay ${TextHelper.resource(2)} and exhaust ${context.source.title} to use ${context.event.card.title}'s "On Attack" ability again`,
             optional: true,
             when: {
                 onCardAbilityInitiated: (event, context) =>

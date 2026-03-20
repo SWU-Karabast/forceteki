@@ -6,7 +6,6 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType } from '../../../core/Constants';
 
-
 export default class LeiaOrganaSomeoneWhoLovesYou extends LeaderUnitCard {
     protected override getImplementationId() {
         return {

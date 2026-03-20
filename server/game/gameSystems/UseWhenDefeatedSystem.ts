@@ -2,7 +2,8 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, GameStateChangeRequired, Stage, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import TriggeredAbility from '../core/ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../core/ability/TriggeredAbility';
+import { TriggeredAbility } from '../core/ability/TriggeredAbility';
 import { DefeatCardSystem } from './DefeatCardSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ITriggeredAbilityProps } from '../Interfaces';
@@ -27,7 +28,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         const whenDefeatedSource = event.whenDefeatedSource;
         const triggerAll = event.triggerAll; // TODO: Will use with Shadow Caster
         const onDefeatEvent = event.onDefeatEvent;
-        const whenDefeatedAbilities: TriggeredAbility[] = onDefeatEvent == null ? event.whenDefeatedAbilities : [event.resolvedAbility];
+        const whenDefeatedAbilities: TriggeredAbilityBase[] = onDefeatEvent == null ? event.whenDefeatedAbilities : [event.resolvedAbility];
 
         if (whenDefeatedAbilities.length === 1 || triggerAll) {
             whenDefeatedAbilities.forEach((whenDefeatedAbility) => {
@@ -58,7 +59,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         }
     }
 
-    private useWhenDefeatedAbility(whenDefeatedAbility: TriggeredAbility, whenDefeatedSource: Card, event, onDefeatEvent = null) {
+    private useWhenDefeatedAbility(whenDefeatedAbility: TriggeredAbilityBase, whenDefeatedSource: Card, event, onDefeatEvent = null) {
         const whenDefeatedProps = { ...(whenDefeatedAbility.properties as ITriggeredAbilityProps), optional: false, target: whenDefeatedSource };
         const ability = event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new TriggeredAbility(event.context.game, whenDefeatedSource, whenDefeatedProps));
 

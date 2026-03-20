@@ -4,8 +4,11 @@ import { PlayerZone } from './PlayerZone';
 import * as Helpers from '../utils/Helpers.js';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
-import type Game from '../Game';
+import type { Game } from '../Game';
 
+import { registerState } from '../GameObjectUtils';
+
+@registerState()
 export class ResourceZone extends PlayerZone<IPlayableCard> {
     public override readonly hiddenForPlayers: RelativePlayer.Opponent;
     public override readonly name: ZoneName.Resource;
@@ -59,12 +62,12 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
         let exhausted = 0;
 
         for (let i = 0; i < this._cards.length; i++) {
+            if (exhausted >= exhaustCount) {
+                break;
+            }
             if (priorityCondition(cards[i])) {
                 cards[i].exhausted = true;
                 exhausted++;
-            }
-            if (exhausted === exhaustCount) {
-                break;
             }
         }
 

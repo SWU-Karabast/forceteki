@@ -4,24 +4,26 @@ import { DamageType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
-import type Game from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { Game } from '../core/Game';
+import type { UnwrapRef } from '../core/GameObjectBase';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../core/card/Card';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
+
 export interface DamageDealtEntry {
     damageType: DamageType;
-    damageSourceCard: GameObjectRef<IPlayableCard>;
+    damageSourceCard: GameObjectId<IPlayableCard>;
     damageSourceInPlayId?: number;
     damageSourceCardType: CardType;
-    damageSourcePlayer: GameObjectRef<Player>;
+    damageSourcePlayer: GameObjectId<Player>;
     damageSourceEventId: number;
-    targets: GameObjectRef<Card>[];
+    targets: GameObjectId<Card>[];
     targetType: CardType;
-    targetController: GameObjectRef<Player>;
+    targetController: GameObjectId<Player>;
     amount: number;
     isIndirect: boolean;
     activeAttackId?: number;
@@ -29,6 +31,7 @@ export interface DamageDealtEntry {
 
 export type IDamageDealtThisPhase = DamageDealtEntry[];
 
+@registerState()
 export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> {
     public constructor(
         game: Game,
@@ -39,10 +42,10 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
     protected override mapCurrentValue(stateValue: DamageDealtEntry[]): UnwrapRef<DamageDealtEntry[]> {
         return stateValue.map((x) => ({
             ...x,
-            damageSourceCard: this.game.getFromRef(x.damageSourceCard),
-            targets: x.targets.map((y) => this.game.getFromRef(y)),
-            targetController: this.game.getFromRef(x.targetController),
-            damageSourcePlayer: this.game.getFromRef(x.damageSourcePlayer)
+            damageSourceCard: this.game.getFromId(x.damageSourceCard),
+            targets: x.targets.map((y) => this.game.getFromId(y)),
+            targetController: this.game.getFromId(x.targetController),
+            damageSourcePlayer: this.game.getFromId(x.damageSourcePlayer)
         }));
     }
 
@@ -81,30 +84,30 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                 onDamageDealt: () => true,
             },
             update: (currentState: IDamageDealtThisPhase, event: any) => {
-                let damageSourceCard: GameObjectRef<IPlayableCard> = undefined;
+                let damageSourceCard: GameObjectId<IPlayableCard> = undefined;
                 let damageSourceCardType: CardType = undefined;
                 let damageSourceInPlayId: number = undefined;
-                let targets: GameObjectRef<Card>[] = [];
+                let targets: GameObjectId<Card>[] = [];
                 let activeAttackId: number = undefined;
 
                 if (event.type === DamageType.Combat) {
-                    damageSourceCard = event.damageSource.attack?.attacker.getRef();
+                    damageSourceCard = event.damageSource.attack?.attacker.getObjectId();
                     damageSourceInPlayId = this.getCardId(event.damageSource.attack?.attacker);
                     damageSourceCardType = event.damageSource.attack?.attacker.type;
-                    targets = event.damageSource.attack?.getAllTargets().map((x) => x.getRef());
+                    targets = event.damageSource.attack?.getAllTargets().map((x) => x.getObjectId());
                     activeAttackId = event.damageSource.attack?.id;
                 } else if (event.type === DamageType.Overwhelm) {
-                    damageSourceCard = event.damageSource.attack?.attacker.getRef();
+                    damageSourceCard = event.damageSource.attack?.attacker.getObjectId();
                     damageSourceCardType = event.damageSource.attack?.attacker.type;
                     damageSourceInPlayId = this.getCardId(event.damageSource.attack?.attacker);
-                    targets = [event.card.getRef()];
+                    targets = [event.card.getObjectId()];
                     activeAttackId = event.damageSource.attack?.id;
                 } else if (event.type === DamageType.Ability) {
-                    damageSourceCard = event.damageSource.card.getRef();
+                    damageSourceCard = event.damageSource.card.getObjectId();
                     damageSourceCardType = event.damageSource.card.type;
                     // TODO FIX EMPTY DECK DAMAGE EVENT
                     damageSourceInPlayId = 'canBeInPlay' in event.damageSource.card && event.damageSource.card.canBeInPlay() ? this.getCardId(event.damageSource.card) : null;
-                    targets = [event.card.getRef()];
+                    targets = [event.card.getObjectId()];
                     activeAttackId = this.game.currentAttack?.id;
                 }
 
@@ -114,10 +117,10 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                     damageSourceInPlayId,
                     damageSourceCardType,
                     targets,
-                    damageSourcePlayer: event.damageSource.player?.getRef(),
+                    damageSourcePlayer: event.damageSource.player?.getObjectId(),
                     damageSourceEventId: event.damageSource.eventId,
                     targetType: event.card.type,
-                    targetController: event.card.controller?.getRef(),
+                    targetController: event.card.controller?.getObjectId(),
                     amount: event.damageDealt,
                     isIndirect: event.isIndirect,
                     activeAttackId,

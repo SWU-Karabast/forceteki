@@ -257,6 +257,12 @@ describe('Jabba the Hutt, Crime Boss', function() {
                 expect(context.player1).toHavePrompt('Use Credit tokens to pay for Nihil Marauder');
                 expect(context.player1).toHaveExactPromptButtons(['Use 1 Credit', 'Pay costs without Credit tokens']);
                 context.player1.clickPrompt('Use 1 Credit');
+                expect(context.getChatLogs(4)).toEqual([
+                    'player1 uses Jabba the Hutt to play Nihil Marauder from their hand and to conditionally give it Ambush for the phase',
+                    'player1 defeats 1 Credit token to pay 1 resource less for Nihil Marauder',
+                    'player1 plays Nihil Marauder',
+                    'player1 uses a delayed effect applied by Jabba the Hutt to give Ambush to Nihil Marauder for this phase',
+                ]);
 
                 // Resolve Ambush
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');

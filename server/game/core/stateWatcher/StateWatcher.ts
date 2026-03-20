@@ -1,13 +1,15 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import type { StateWatcherName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { IGameObjectBaseState, UnwrapRef } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
 import { isDevelopment } from '../utils/Helpers';
 import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
+
+import { CopyMode, registerStateBase } from '../GameObjectUtils';
 
 export interface IStateWatcherState<TState> extends IGameObjectBaseState {
     entries: TState[];
@@ -28,11 +30,14 @@ export interface IStateWatcherState<TState> extends IGameObjectBaseState {
  * - a state reset method that provides an initial state to reset to
  * - a set of event triggers which will update the stored state to keep the history
  */
-export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWatcherState<TState>> {
+@registerStateBase(CopyMode.UseBulkCopy)
+export abstract class StateWatcher<TState = any> extends GameObjectBase {
     private stateUpdaters: IStateListenerProperties<TState[]>[] = [];
     private readonly allUpdaters;
     public readonly name: StateWatcherName;
     private eventNameMapping = new Map<string, (...args: any[]) => void>();
+
+    protected declare state: IStateWatcherState<TState>; // Narrow the type of state for easier access to entries
 
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {
@@ -47,6 +52,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
         registrar: StateWatcherRegistrar
     ) {
         super(game);
+        this.state.entries = [];
         this.name = name;
         Contract.assertFalse(registrar.isRegistered(name), `State Watcher type "${name}" is already registered.`);
 
@@ -58,14 +64,14 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
         this.registerListeners();
     }
 
-    protected override setupDefaultState(): void {
-        this.state.entries = [];
-    }
-
     // This will remain for the life of the game, and will only be remove on rollback in the case of a token. At that point the associated card will also be removed, and it should be GC'd normally.
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     protected override get alwaysTrackState(): boolean {
         return true;
+    }
+
+    public override getGameObjectName(): string {
+        return `StateWatcher_${this.name}`;
     }
 
     // Child classes override this method to perform their addUpdater() calls
@@ -74,7 +80,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
     // Returns the value that the state will be initialized to at the beginning of the phase
     protected abstract getResetValue(): TState[];
 
-    /** A function to map any GameObjectRefs in the stateValue to their game objects. If no GameObjectRefs are used, you can simply return the stateValue as-is. */
+    /** A function to map any GameObjectIds in the stateValue to their game objects. If no GameObjectIds are used, you can simply return the stateValue as-is. */
     protected abstract mapCurrentValue(stateValue: TState[]): UnwrapRef<TState>[];
 
     public getCurrentValue(): UnwrapRef<TState>[] {
@@ -97,7 +103,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
                     value = value[0];
                 }
                 if (value instanceof GameObjectBase) {
-                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is GameObject which is not allowed. Use GameObjectRef instead and call go.getRef() to capture the reference in state.`);
+                    throw new Error(`State Watcher contains invalid state. Property "${prop}" is GameObject which is not allowed. Use GameObjectId instead and call go.getObjectId() to capture the reference in state.`);
                 }
                 if (value instanceof GameEvent) {
                     throw new Error(`State Watcher contains invalid state. Property "${prop}" is a GameEvent which is not allowed.Capture the relevant properties off the GameEvent instead and store them in the watcher state. See DamageDealtThisPhaseWatcher for an example.`);
@@ -143,3 +149,4 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase<IStateWa
         this.unregisterListeners();
     }
 }
+

@@ -3,14 +3,14 @@ import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
 import { CardType, PlayType, Stage, WildcardCardType } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, undoObject, undoState } from '../GameObjectUtils';
+import { registerStateBase, stateRef, statePrimitive, type GameObjectId } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { CostAdjustStage } from './CostInterfaces';
@@ -138,7 +138,7 @@ export interface ICanAdjustProperties {
 }
 
 export interface ICostAdjusterState extends IGameObjectBaseState {
-    source: GameObjectRef<Card>;
+    source: GameObjectId<Card>;
     isCancelled: boolean;
 }
 
@@ -147,14 +147,13 @@ export interface ITriggerStageTargetSelection {
     stage: CostAdjustStage;
 }
 
-
 export enum CostAdjustResolutionMode {
     Evaluate = 'evaluate',
     Trigger = 'trigger'
 }
 
-@registerState()
-export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
+@registerStateBase()
+export abstract class CostAdjuster extends GameObjectBase {
     public readonly costAdjustStage: CostAdjustStage;
     public readonly costAdjustType: CostAdjustType;
 
@@ -168,13 +167,13 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
     private readonly matchAbilityCosts: boolean;
     private readonly matchCardEffectResourcePayments: boolean;
 
-    @undoObject()
+    @stateRef()
     protected accessor sourceCard: Card | null;
 
-    @undoObject()
+    @stateRef()
     protected accessor sourcePlayer: Player;
 
-    @undoState()
+    @statePrimitive()
     protected accessor isCancelled: boolean;
 
     public constructor(
@@ -396,3 +395,5 @@ export abstract class CostAdjuster extends GameObjectBase<ICostAdjusterState> {
         return false;
     }
 }
+
+

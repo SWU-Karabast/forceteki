@@ -2,7 +2,7 @@ import { UiPrompt } from './prompts/UiPrompt.js';
 import { EventName, EffectName, SnapshotType, SubStepCheck } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import type { Player } from '../Player.js';
 import type { Card } from '../card/Card.js';
 import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
@@ -251,7 +251,8 @@ export class ActionWindow extends UiPrompt {
     }
 
     private getSelectableCards() {
-        const allPossibleCards: Card[] = this.game.findAnyCardsInPlay().concat(
+        let allPossibleCards: Card[] = this.game.findAnyCardsInPlay();
+        allPossibleCards = allPossibleCards.concat(
             this.activePlayer.discardZone.cards,
             this.activePlayer.opponent.discardZone.cards,
             this.activePlayer.resourceZone.cards,

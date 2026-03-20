@@ -1,12 +1,15 @@
-import TriggeredAbility from '../../core/ability/TriggeredAbility';
+import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
-import type Game from '../../core/Game';
+import type { Game } from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import * as GameSystemLibrary from '../../gameSystems/GameSystemLibrary';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
-export class RestoreAbility extends TriggeredAbility {
+import { registerState } from '../../core/GameObjectUtils';
+
+@registerState()
+export class RestoreAbility extends TriggeredAbilityBase {
     public readonly keyword: KeywordName = KeywordName.Restore;
 
     public static buildRestoreAbilityProperties<TSource extends Card = Card>(restoreAmount: number): ITriggeredAbilityProps<TSource> {

@@ -1,5 +1,5 @@
-import type Game from '../Game';
-import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
+import type { Game } from '../Game';
+import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
 import type { IGameSnapshot } from './SnapshotInterfaces';
 import * as Contract from '../utils/Contract.js';
 import * as Helpers from '../utils/Helpers.js';
@@ -7,10 +7,14 @@ import { to } from '../utils/TypeHelpers';
 import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
+import type { GameObjectId } from '../GameObjectUtils';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
-    get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null;
+    get<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null;
+
+    /** @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
+    getUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T;
 
     /**
      * Creates a {@link GameObjectBase} object that is not allowed to have references.
@@ -22,7 +26,7 @@ export interface IGameObjectRegistrar {
 }
 
 export class GameStateManager implements IGameObjectRegistrar {
-    private readonly game: Game;
+    readonly #game: Game;
     private readonly gameObjectMapping = new Map<string, GameObjectBase>();
 
     private allGameObjects: GameObjectBase[] = [];
@@ -38,20 +42,34 @@ export class GameStateManager implements IGameObjectRegistrar {
     }
 
     public constructor(game: Game) {
-        this.game = game;
+        this.#game = game;
     }
 
-    public get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null {
-        if (!gameObjectRef?.uuid) {
+    public get<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null {
+        if (!gameObjectId) {
             return null;
         }
 
-        const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
-        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
+        const ref = this.gameObjectMapping.get(gameObjectId);
+        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${gameObjectId}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.game.reportError(error, GameErrorSeverity.SevereHaltGame);
+            this.#game.reportError(error, GameErrorSeverity.SevereHaltGame);
+
+            throw error;
+        }
+        return ref as T;
+    }
+
+    /** Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
+    public getUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T {
+        const ref = this.gameObjectMapping.get(uuid);
+        const errorMessage = `Tried to get a Game Object but the UUID is not registered: ${uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`;
+        try {
+            Contract.assertNotNullLike(ref, errorMessage);
+        } catch (error) {
+            this.#game.reportError(error, GameErrorSeverity.SevereHaltGame);
 
             throw error;
         }
@@ -131,21 +149,28 @@ export class GameStateManager implements IGameObjectRegistrar {
 
             let rollbackError: Error | null = null;
             try {
-                this.game.state = v8.deserialize(snapshot.gameState);
+                this.#game.state = v8.deserialize(snapshot.gameState);
 
                 const snapshotStatesByUuid = v8.deserialize(snapshot.states) as Record<string, IGameObjectBaseState>;
 
                 // Indexes in last to first for the purpose of removal.
                 for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
                     const go = this.allGameObjects[i];
+                    if (!go.initialized) {
+                        throw new Error(`GameObject ${go.getGameObjectName()} (UUID: ${go.uuid}, Type: ${go.constructor.name}) is not initialized during rollback. This should not be possible.`);
+                    }
+
+                    // Rollback swaps the entire state object reference, so retaining the previous object here is safe
+                    // and avoids a structuredClone for every updated or removed GameObject.
+                    const oldState = go.getStateUnsafe();
 
                     const updatedState = snapshotStatesByUuid[go.uuid];
                     if (!updatedState) {
-                        removals.push({ index: i, go, oldState: go.getState() });
+                        removals.push({ index: i, go, oldState });
                         continue;
                     }
 
-                    updates.push({ go, oldState: go.getState() });
+                    updates.push({ go, oldState });
                     go.setState(updatedState);
                 }
 
@@ -154,29 +179,32 @@ export class GameStateManager implements IGameObjectRegistrar {
                 }
             } catch (error) {
                 if (!beforeRollbackSnapshot) {
-                    logger.error('Error during rollback to snapshot and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
-                    this.game.reportSevereRollbackFailure(error);
+                    logger.error('Error during rollback to snapshot and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
                 }
 
                 rollbackError = error;
-                logger.error('Error during rollback to snapshot. Attempting to restore existing state before rollback.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
+                logger.error('Error during rollback to snapshot. Attempting to restore existing state before rollback.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
             }
 
             // if we hit an error during rollback, attempt to restore the original state
             if (rollbackError) {
                 try {
                     this.rollbackToSnapshot(beforeRollbackSnapshot);
-                    this.game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
+                    this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
                     return false;
                 } catch (error) {
-                    logger.error('The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.game.lobbyId });
-                    this.game.reportSevereRollbackFailure(error);
+                    logger.error('The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+                    this.#game.reportSevereRollbackFailure(error);
                 }
             }
 
             // Remove GOs that hadn't yet been created by this point.
-            // Use filter for efficient removal instead of multiple splice operations
-            const removalIndexSet = new Set(removals.map((r) => r.index));
+            // Rebuild the list once without allocating an intermediate index list or cloning state objects.
+            const removalIndexSet = new Set<number>();
+            for (const removed of removals) {
+                removalIndexSet.add(removed.index);
+            }
             this.allGameObjects = this.allGameObjects.filter((_, index) => !removalIndexSet.has(index));
 
             for (const removed of removals) {

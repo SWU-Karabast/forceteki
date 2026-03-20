@@ -5,9 +5,10 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type { Player } from '../core/Player';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
-import type Game from '../core/Game';
-import type { GameObjectRef, UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
+import type { Game } from '../core/Game';
+import type { UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
 import type { IDefeatSource } from '../IDamageOrDefeatSource';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 
 /**
@@ -19,10 +20,10 @@ export interface IDefeatedUnitLKIEntry {
 }
 
 export interface DefeatedUnitEntry {
-    unit: GameObjectRef<IUnitCard>;
+    unit: GameObjectId<IUnitCard>;
     inPlayId: number;
-    controlledBy: GameObjectRef<Player>;
-    defeatedBy?: GameObjectRef<Player>;
+    controlledBy: GameObjectId<Player>;
+    defeatedBy?: GameObjectId<Player>;
     wasDefeatedWhileAttacking: IDefeatSource;
     lastKnownInformation: IDefeatedUnitLKIEntry;
 }
@@ -32,6 +33,7 @@ interface InPlayUnit {
     inPlayId: number;
 }
 
+@registerState()
 export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry> {
     public constructor(
         game: Game,
@@ -42,9 +44,9 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     protected override mapCurrentValue(stateValue: DefeatedUnitEntry[]): UnwrapRefObject<DefeatedUnitEntry>[] {
         return stateValue.map((x) => ({
             inPlayId: x.inPlayId,
-            unit: this.game.getFromRef(x.unit),
-            controlledBy: this.game.getFromRef(x.controlledBy),
-            defeatedBy: this.game.getFromRef(x.defeatedBy),
+            unit: this.game.getFromId(x.unit),
+            controlledBy: this.game.getFromId(x.controlledBy),
+            defeatedBy: this.game.getFromId(x.defeatedBy),
             wasDefeatedWhileAttacking: x.wasDefeatedWhileAttacking,
             lastKnownInformation: { traits: x.lastKnownInformation.traits }
         }));
@@ -101,10 +103,10 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
             },
             update: (currentState: DefeatedUnitEntry[], event: any) =>
                 currentState.concat({
-                    unit: event.card.getRef(),
+                    unit: event.card.getObjectId(),
                     inPlayId: event.card.mostRecentInPlayId,
-                    controlledBy: event.lastKnownInformation.controller.getRef(),
-                    defeatedBy: event.defeatSource.player?.getRef(),
+                    controlledBy: event.lastKnownInformation.controller.getObjectId(),
+                    defeatedBy: event.defeatSource.player?.getObjectId(),
                     wasDefeatedWhileAttacking: event.isDefeatedWhileAttacking,
                     lastKnownInformation: {
                         traits: event.lastKnownInformation.traits

@@ -5,6 +5,7 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -22,7 +23,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'The first Creature unit you play each phase costs 1 resource less',
+            title: `The first Creature unit you play each phase costs ${TextHelper.resource(1)} less`,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             targetZoneFilter: WildcardZoneName.AnyArena,
