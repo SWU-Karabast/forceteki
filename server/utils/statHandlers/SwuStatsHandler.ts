@@ -455,7 +455,6 @@ export class SwuStatsHandler {
         userId: string,
         serverObject: GameServer,
         options?: {
-            favoritesOnly?: boolean;
             limit?: number;
             offset?: number;
         }
@@ -473,10 +472,6 @@ export class SwuStatsHandler {
                 sort: 'name',
                 order: 'asc',
             });
-
-            if (options?.favoritesOnly) {
-                params.set('favorites', 'true');
-            }
 
             const decksUrl = 'https://swustats.net/TCGEngine/APIs/UserAPIs/GetUserDecks.php';
             const response = await fetch(`${decksUrl}?${params.toString()}`, {

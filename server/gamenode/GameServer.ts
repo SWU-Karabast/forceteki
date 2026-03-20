@@ -504,12 +504,10 @@ export class GameServer {
                 }
 
                 // Get query parameters
-                const favoritesOnly = req.query.favorites === 'true';
                 const limit = parseInt(req.query.limit as string) || 100;
                 const offset = parseInt(req.query.offset as string) || 0;
 
                 const decksData = await this.swuStatsHandler.fetchUserDecksAsync(user.getId(), this, {
-                    favoritesOnly,
                     limit,
                     offset
                 });
