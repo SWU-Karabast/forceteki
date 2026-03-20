@@ -16,6 +16,12 @@ const TOKEN_CATEGORIES = [
         message: 'Raw aspect name "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Aggression`) or `TextHelper.aspect(Aspect.X)` in a template literal instead, so it can be replaced with an icon on the client side.',
     },
     {
+        pattern: 'Keywords?|Ambush|Grit|Overwhelm|Raid\\s+\\d+|Restore\\s+\\d+|Saboteur|Sentinel|Shielded|Bounty|Smuggle|Coordinate|Exploit\\s+\\d+|Piloting|Hidden|Plot',
+        flags: 'g',
+        messageId: 'rawKeyword',
+        message: 'Raw keyword "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Ambush`) in a template literal instead, so it can be styled correctly on the client side.',
+    },
+    {
         // Matches "pay(s) N resource(s)", "cost(s) N (resources) more/less", and "play(s) (it/them) for N more/less"
         // but NOT "costs N or more/less" (references to printed cost)
         // and NOT "ready/exhaust N resources" (effects that manipulate resources)

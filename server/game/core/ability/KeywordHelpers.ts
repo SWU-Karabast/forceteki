@@ -79,6 +79,7 @@ export function keywordFromProperties(properties: IKeywordProperties, card: Card
             return new KeywordInstance(properties.keyword, card);
 
         default:
+            // eslint-disable-next-line forceteki/no-raw-token-text
             throw new Error(`Keyword '${(properties as any).keyword}' is not implemented yet`);
     }
 }
@@ -240,6 +241,7 @@ function getRegexForKeyword(keyword: KeywordName) {
         case KeywordName.Smuggle:
             return /(?:\n)?Smuggle\s\[\s*(\d+)\s+resources(?:,\s*|\s+)([\w\s]+)(,.*)?\]/g;
         default:
+            // eslint-disable-next-line forceteki/no-raw-token-text
             throw new Error(`Keyword '${keyword}' is not implemented yet`);
     }
 }
