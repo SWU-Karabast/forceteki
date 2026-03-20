@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class RexNoOtherOption extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class RexNoOtherOption extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addActionAbility({
-            title: 'The next event you play this phase costs 1 resource less',
+            title: `The next event you play this phase costs ${TextHelper.resource(1)} less`,
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.readyEnemyUnit()
@@ -42,7 +43,7 @@ export default class RexNoOtherOption extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.ready()
             },
             ifYouDo: {
-                title: 'The next event you play this phase costs 2 resources less',
+                title: `The next event you play this phase costs ${TextHelper.resource(2)} less`,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                     ongoingEffectDescription: 'discount the next event {0} play',
                     ongoingEffectTargetDescription: 'they',

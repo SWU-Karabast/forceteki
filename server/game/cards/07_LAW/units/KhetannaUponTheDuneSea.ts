@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 
 export default class KhetannaUponTheDuneSea extends NonLeaderUnitCard {
@@ -14,7 +15,7 @@ export default class KhetannaUponTheDuneSea extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'The next Underworld unit you play this phase costs 1 resource less',
+            title: `The next Underworld unit you play this phase costs ${TextHelper.resource(1)} less`,
             when: {
                 whenPlayed: true,
                 onAttack: true,

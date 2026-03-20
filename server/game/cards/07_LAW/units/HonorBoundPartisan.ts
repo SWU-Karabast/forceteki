@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class HonorBoundPartisan extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,7 +21,7 @@ export default class HonorBoundPartisan extends NonLeaderUnitCard {
             }
         });
         registrar.addWhenDefeatedAbility({
-            title: 'The next unit you play this phase costs 1 resource less',
+            title: `The next unit you play this phase costs ${TextHelper.resource(1)} less`,
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 ongoingEffectDescription: 'discount the next unit played by',
                 ongoingEffectTargetDescription: 'them',
