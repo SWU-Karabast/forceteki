@@ -514,13 +514,6 @@ export class GameServer {
                     offset
                 });
 
-                if (!decksData) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'SWU Stats account not linked or token expired'
-                    });
-                }
-
                 // Transform SWU Stats decks to our format
                 const transformedDecks = decksData.decks.map((deck) => ({
                     id: deck.id,
@@ -540,7 +533,9 @@ export class GameServer {
                     if (!a.isFavorite && b.isFavorite) {
                         return 1;
                     }
-                    return (a.name || '').localeCompare(b.name || '');
+                    const nameA = a.name || '';
+                    const nameB = b.name || '';
+                    return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
                 });
 
                 return res.status(200).json({

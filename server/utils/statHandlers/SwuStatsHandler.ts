@@ -488,10 +488,6 @@ export class SwuStatsHandler {
             });
 
             if (!response.ok) {
-                if (response.status === 401) {
-                    logger.warn(`SWUStatsHandler: Access token expired for user ${userId} when fetching decks`);
-                    return null;
-                }
                 const errorText = await response.text();
                 logger.error(`SWUStatsHandler: Failed to fetch decks: ${response.status} - ${errorText}`);
                 return null;
@@ -505,7 +501,7 @@ export class SwuStatsHandler {
                 error: { message: error.message, stack: error.stack },
                 userId
             });
-            return null;
+            throw error;
         }
     }
 }
