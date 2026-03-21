@@ -124,10 +124,10 @@ export = {
     gainDamageModificationAbility: (properties: IDamageModificationEffectAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
-    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties, Card>) => {
+    gainKeyword: <TTarget extends Card>(keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties, TTarget>) => {
         switch (typeof keywordOrKeywordProperties) {
             case 'function':
-                return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
+                return OngoingEffectBuilder.card.dynamic<TTarget, GainKeyword>(EffectName.GainKeyword,
                     (target, context, game) => new GainKeyword(game, keywordOrKeywordProperties(target, context, game)));
             default:
                 return OngoingEffectBuilder.card.static(EffectName.GainKeyword, (game) => new GainKeyword(game, keywordOrKeywordProperties));

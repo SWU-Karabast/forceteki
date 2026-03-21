@@ -31,8 +31,8 @@ export default class FifthBrotherFearHunter extends NonLeaderUnitCard {
 
         registrar.addConstantAbility({
             title: 'This unit gains Raid 1 for each damage on him',
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(
-                (target: this) => ({ keyword: KeywordName.Raid, amount: target.damage })
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword<this>(
+                (target) => ({ keyword: KeywordName.Raid, amount: target.damage })
             )
         });
     }

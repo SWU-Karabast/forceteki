@@ -18,7 +18,7 @@ export default class TechSourceOfInsight extends NonLeaderUnitCard {
             targetZoneFilter: ZoneName.Resource,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Any,
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword((target: ICardWithCostProperty) => ({
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword<ICardWithCostProperty>((target) => ({
                 keyword: KeywordName.Smuggle,
                 cost: target.cost + 2,
                 aspects: target.aspects
