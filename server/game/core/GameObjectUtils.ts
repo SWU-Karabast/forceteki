@@ -694,71 +694,6 @@ function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>
     return proxiedRecord;
 }
 
-/** Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
-export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, arr: readonly TValue[], name: string) {
-    // @ts-expect-error these functions can bypass the accessibility safeties.
-    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go.state, name), 'Property ' + name + ' not found on the state of the GameObject');
-
-    const proxiedArray = new Proxy(arr, {
-        get(target, prop, receiver) {
-            if (prop === 'pop' || prop === 'splice') {
-                return function (...args) {
-                    Contract.assertTrue(args.length <= 2, 'State Array Splice does not support adding elements to the array.');
-                    const result = Reflect.apply(target[prop], target, args);
-                    // @ts-expect-error Override accessibility and call the same method on the internal state.
-                    Reflect.apply(go.state[name][prop], go.state[name], args);
-
-                    return result;
-                };
-            } else if (prop === 'push' || prop === 'unshift') {
-                return function (...args) {
-                    const result = Reflect.apply(target[prop], target, args);
-                    if (prop === 'push') {
-                        pushIdsOntoStateArray(getStateIdArray(go, name), args);
-                    } else {
-                        unshiftIdsOntoStateArray(getStateIdArray(go, name), args);
-                    }
-
-                    return result;
-                };
-            } else if (prop === 'reverse') {
-                return function (...args) {
-                    const result = Reflect.apply(target[prop], target, args);
-                    // @ts-expect-error Override accessibility and call the same method on the internal state.
-                    Reflect.apply(go.state[name][prop], go.state[name], args);
-
-                    return result;
-                };
-            } else if (prop === 'sort' || prop === 'fill') {
-                throw new Error('function ' + prop + ' is not supported.');
-            }
-
-            // For other properties, return the original property
-            return Reflect.get(target, prop, receiver);
-        }
-    });
-
-    return proxiedArray as TValue[];
-}
-
-/** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
-export function UndoArrayInternal<T extends GameObjectBase, TValue extends GameObjectBase>(arr: UndoArray<TValue>) {
-    const proxiedArray = new Proxy(arr, {
-        set(target, prop, newValue, receiver): boolean {
-            // @ts-expect-error overriding accessibility.
-            // setting the "accessing" prop needs to be allowed.
-            // target.accessing is only flagged as true when the mutation functions are called.
-            //      If it's not true then that means this is being modified via an index.
-            if (prop !== 'accessing' && !target.accessing) {
-                throw new Error('Set disallowed for mutating UndoArray');
-            }
-            return Reflect.set(target, prop, newValue, receiver);
-        },
-    });
-
-    return proxiedArray as TValue[];
-}
-
 /** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
 function CreateUndoArrayInternal<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, arr?: TValue[]) {
     const undoArr = CreateUndoArrayBase<TValue>(go, prop);
@@ -949,9 +884,10 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
 }
 
 /** An interface for stateRefArray decorator, prevents mutating elements directly to ensure the state tracking is used properly. */
-// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+
 export interface IStateArray<T> extends Array<T> {
     readonly [key: number]: T; // Readonly indexer
+    readonly length: number;
 }
 
 class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
