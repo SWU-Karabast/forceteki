@@ -2,7 +2,6 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
-import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 
 export default class RadiantVIIAmbassadorsArrival extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -25,7 +24,7 @@ export default class RadiantVIIAmbassadorsArrival extends NonLeaderUnitCard {
             title: 'Each enemy non-leader unit gets –1/–0 for each damage on it',
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,
-            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target: IUnitCard) => ({
+            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: -target.damage,
                 hp: 0
             }))

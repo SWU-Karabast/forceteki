@@ -4,9 +4,11 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 import type { Game } from '../../Game';
 import { registerState, registerStateBase, stateRef } from '../../GameObjectUtils';
+import type { GameObject } from '../../GameObject';
+import type { OngoingEffect } from '../OngoingEffect';
 
 @registerStateBase()
-export abstract class StaticOngoingEffectImplBase<TValue> extends OngoingEffectImpl<TValue> {
+export abstract class StaticOngoingEffectImplBase<TValue, TTarget extends GameObject> extends OngoingEffectImpl<TValue, TTarget> {
     @stateRef()
     private accessor _valueWrapper: OngoingEffectValueWrapperBase<TValue>;
 
@@ -28,21 +30,21 @@ export abstract class StaticOngoingEffectImplBase<TValue> extends OngoingEffectI
         }
     }
 
-    public apply(effect, target) {
+    public apply(effect: OngoingEffect<TTarget>, target: TTarget) {
         target.addOngoingEffect(effect);
         this._valueWrapper.apply(target);
     }
 
-    public unapply(effect, target) {
+    public unapply(effect: OngoingEffect<TTarget>, target: TTarget) {
         target.removeOngoingEffect(effect);
         this._valueWrapper.unapply(target);
     }
 
-    public getValue(target) {
+    public getValue(target: TTarget) {
         return this._valueWrapper.getValue();
     }
 
-    public recalculate(target) {
+    public recalculate(target: TTarget) {
         return false;
     }
 
@@ -57,7 +59,7 @@ export abstract class StaticOngoingEffectImplBase<TValue> extends OngoingEffectI
 }
 
 @registerState()
-export class StaticOngoingEffectImpl<TValue> extends StaticOngoingEffectImplBase<TValue> {
+export class StaticOngoingEffectImpl<TValue, TTarget extends GameObject> extends StaticOngoingEffectImplBase<TValue, TTarget> {
     public override getGameObjectName() {
         return 'StaticOngoingEffectImpl';
     }

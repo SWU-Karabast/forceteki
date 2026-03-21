@@ -34,6 +34,7 @@ import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
 import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/AdditionalPhaseEffect';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -123,16 +124,16 @@ export = {
     gainDamageModificationAbility: (properties: IDamageModificationEffectAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
-    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties>) => {
+    gainKeyword: <TTarget extends Card>(keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties, TTarget>) => {
         switch (typeof keywordOrKeywordProperties) {
             case 'function':
-                return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
+                return OngoingEffectBuilder.card.dynamic<TTarget, GainKeyword>(EffectName.GainKeyword,
                     (target, context, game) => new GainKeyword(game, keywordOrKeywordProperties(target, context, game)));
             default:
                 return OngoingEffectBuilder.card.static(EffectName.GainKeyword, (game) => new GainKeyword(game, keywordOrKeywordProperties));
         }
     },
-    gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
+    gainKeywords: (calculate: (target: Card, context: AbilityContext) => KeywordNameOrProperties[]) =>
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
@@ -174,7 +175,7 @@ export = {
     modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
     modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
-    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => {
+    modifyStats: <TTarget extends IUnitCard>(modifier: StatsModifier | CalculateOngoingEffect<StatsModifier, TTarget>) => {
         switch (typeof modifier) {
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.ModifyStats, modifier);
