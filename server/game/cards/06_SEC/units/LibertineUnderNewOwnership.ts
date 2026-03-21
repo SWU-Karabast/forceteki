@@ -17,7 +17,7 @@ export default class LibertineUnderNewOwnership extends NonLeaderUnitCard {
     ) {
         registrar.addConstantAbility({
             title: 'This unit gets +1/+0 for each captured card it\'s guarding',
-            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target: this) => ({
+            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: target.capturedUnits.length,
                 hp: 0,
             })),

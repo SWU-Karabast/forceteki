@@ -34,6 +34,7 @@ import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
 import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/AdditionalPhaseEffect';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -174,7 +175,7 @@ export = {
     modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
     modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
-    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier, Card>) => {
+    modifyStats: <TTarget extends IUnitCard>(modifier: StatsModifier | CalculateOngoingEffect<StatsModifier, TTarget>) => {
         switch (typeof modifier) {
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.ModifyStats, modifier);

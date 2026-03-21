@@ -13,7 +13,7 @@ export default class AxeWovesAccomplishedWarrior extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'This unit gets +1/+1 for each upgrade on him.',
-            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target: this) => ({
+            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => ({
                 power: target.upgrades.length,
                 hp: target.upgrades.length,
             })),
