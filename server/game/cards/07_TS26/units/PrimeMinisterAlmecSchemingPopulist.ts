@@ -22,7 +22,10 @@ export default class PrimeMinisterAlmecSchemingPopulist extends NonLeaderUnitCar
                         effect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                     }),
                     abilityHelper.immediateEffects.exhaust((context) => ({
-                        target: context.player.opponent.getArenaUnits({ arena: context.target.arena, condition: (c) => c.isUnit() && c.getPower() < context.target.getPower() }),
+                        target: context.player.opponent.getArenaUnits({
+                            arena: context.target.zoneName,
+                            condition: (c) => c.isUnit() && c.getPower() < context.target.getPower()
+                        }),
                     }))
                 ])
             }
