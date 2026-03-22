@@ -52,10 +52,10 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 context.player1.clickCard(context.chancellorPalpatine);
                 context.player1.clickPrompt('Deploy Chancellor Palpatine');
                 expect(context.chancellorPalpatine).toBeInZone('groundArena');
-                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 less.', 'Play Dogmatic Shock Squad using Plot', 'Play Unveiled Might using Plot']);
+                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 resources less.', 'Play Dogmatic Shock Squad using Plot', 'Play Unveiled Might using Plot']);
 
                 // Reduce the next card played using Plot by 3
-                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 less.');
+                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 resources less.');
 
                 // Play Dogmatic for 3
                 context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
@@ -92,7 +92,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 context.player1.clickCard(context.chancellorPalpatineHowLibertyDies);
                 context.player1.clickPrompt('Deploy Chancellor Palpatine');
                 expect(context.chancellorPalpatineHowLibertyDies).toBeInZone('groundArena');
-                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 less.', 'Play Jar Jar Binks using Plot', 'Play Chancellor Palpatine using Plot']);
+                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 resources less.', 'Play Jar Jar Binks using Plot', 'Play Chancellor Palpatine using Plot']);
 
                 // Play Jar Jar Binks for 2
                 context.player1.clickPrompt('Play Jar Jar Binks using Plot');
@@ -102,7 +102,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 context.player1.clickCard(context.chancellorPalpatineHowLibertyDies); // Give Palp +2/+2
 
                 // Reduce the next card played using Plot by 3
-                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 less.');
+                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 resources less.');
 
                 // Play Chancellor Palpatine unit for 0
                 expect(context.player1).toHavePassAbilityPrompt('Play Chancellor Palpatine using Plot');

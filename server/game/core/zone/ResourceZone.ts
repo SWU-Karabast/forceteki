@@ -62,12 +62,12 @@ export class ResourceZone extends PlayerZone<IPlayableCard> {
         let exhausted = 0;
 
         for (let i = 0; i < this._cards.length; i++) {
+            if (exhausted >= exhaustCount) {
+                break;
+            }
             if (priorityCondition(cards[i])) {
                 cards[i].exhausted = true;
                 exhausted++;
-            }
-            if (exhausted === exhaustCount) {
-                break;
             }
         }
 

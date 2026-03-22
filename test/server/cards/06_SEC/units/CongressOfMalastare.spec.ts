@@ -61,7 +61,7 @@ describe('Congress of Malastare', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.wedgeAntilles);
-            context.player1.clickPrompt('Play a card from your hand using Piloting. It costs 1 less.');
+            context.player1.clickPrompt('Play a card from your hand using Piloting. It costs 1 resource less.');
             context.player1.clickCard(context.chewbacca);
             context.player1.clickCard(context.greenSquadronAwing);
 

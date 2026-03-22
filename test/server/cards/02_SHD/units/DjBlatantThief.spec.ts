@@ -202,6 +202,53 @@ describe('DJ, Blatant Thief', function() {
             expect(stolenResource.exhausted).toBeTrue();
         });
 
+        it('does not exhaust enemy resources when they have the Smuggle keyword', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'han-solo#audacious-smuggler',
+                    resources: [
+                        'dj#blatant-thief',
+                        'cantwell-arrestor-cruiser',
+                        'single-reactor-ignition',
+                        'power-from-pain',
+                        'faith-in-your-friends'
+                    ],
+                    groundArena: [
+                        'tech#source-of-insight'
+                    ]
+                },
+                player2: {
+                    resources: [
+                        'atst',
+                        'battlefield-marine',
+                        'wampa',
+                        'consular-security-force'
+                    ],
+                    groundArena: [
+                        'tech#source-of-insight'
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.game.setRandomSeed('DJ test random seed');
+
+            // Play DJ and use his ability to take control of an enemy resource
+            context.player1.clickCard(context.djBlatantThief);
+
+            expect(context.consularSecurityForce).toBeInZone('resource', context.player1);
+
+            expect(context.player1.resources.length).toBe(6);
+            expect(context.player1.readyResourceCount).toBe(1); // The stolen resource
+            expect(context.player1.exhaustedResourceCount).toBe(5); // Cost of smuggling DJ with Tech
+
+            expect(context.player2.resources.length).toBe(3);
+            expect(context.player2.readyResourceCount).toBe(3);
+            expect(context.player2.exhaustedResourceCount).toBe(0);
+        });
+
         // TODO: test with Endless Legions to confirm that DJ doesn't take control of the card back after it's played
         // TODO: test with Endless Legions to confirm that the DJ ability doesn't trigger if he is played
     });

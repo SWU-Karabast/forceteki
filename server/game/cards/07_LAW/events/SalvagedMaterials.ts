@@ -3,6 +3,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { EventCard } from '../../../core/card/EventCard';
 import { PhaseName, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SalvagedMaterials extends EventCard {
     protected override getImplementationId () {
@@ -14,7 +15,7 @@ export default class SalvagedMaterials extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Play an Item upgrade from your discard pile. It costs 3 resources less. At the start of the next regroup phase, defeat it.',
+            title: `Play an Item upgrade from your discard pile. It costs ${TextHelper.resource(3)} less. At the start of the next regroup phase, defeat it.`,
             targetResolver: {
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,

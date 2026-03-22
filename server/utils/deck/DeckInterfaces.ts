@@ -3,8 +3,8 @@ import type { IPlayableCard } from '../../game/core/card/baseClasses/PlayableOrD
 import type { Card } from '../../game/core/card/Card';
 import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
-import type { SwuGameFormat } from '../../game/core/Constants';
 import type { GameObjectId } from '../../game/core/GameObjectUtils';
+import type { CardPool, SwuGameFormat } from '../../game/core/Constants';
 
 export interface ISwuDbFormatCardEntry {
     id: string;
@@ -79,7 +79,7 @@ export interface ICardIdAndName {
 
 export interface IDeckValidationProperties {
     format: SwuGameFormat;
-    allow30CardsInMainBoard: boolean;
+    cardPool: CardPool;
 }
 
 export enum DecklistLocation {

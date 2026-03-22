@@ -3,6 +3,7 @@ import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistr
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class DeathStarPlans extends UpgradeCard {
@@ -39,7 +40,7 @@ export default class DeathStarPlans extends UpgradeCard {
         });
 
         registrar.addGainConstantAbilityTargetingAttached({
-            title: 'The first unit you play each round costs 2 less',
+            title: `The first unit you play each round costs ${TextHelper.resource(2)} less`,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 2,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
