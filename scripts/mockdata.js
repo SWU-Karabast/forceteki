@@ -54,6 +54,25 @@ const mockCards = [
         arena: 'ground',
         internalName: 'general-grievous#crush-them'
     }),
+    buildMockCard({
+        title: 'Prime Minister Almec',
+        subtitle: 'Scheming Populist',
+        cost: 4,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Command', 'Cunning'],
+        types: ['unit'],
+        traits: ['mandalorian', 'official'],
+        keywords: ['saboteur'],
+        setId: {
+            set: 'TS26',
+            number: 28
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'prime-minister-almec#scheming-populist'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
