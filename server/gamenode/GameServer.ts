@@ -44,6 +44,7 @@ import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { IActiveModActionCacheEntry,
     IModerationAction } from '../services/DynamoDBInterfaces';
+import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
     ServerRole
@@ -53,7 +54,7 @@ import { GamesToWinMode } from '../game/core/Constants';
 import { CardPool, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
-import { ModActionCache } from '../utils/ModActionCache';
+import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema } from '../services/DynamoDBInterfaceSchemas';
 
 /**
@@ -130,13 +131,13 @@ export class GameServer {
 
         let cosmeticsService: CosmeticsService | undefined;
         let serverRoleUsersCache: ServerRoleUsersCache | undefined;
-        let modActionCache: ModActionCache | undefined;
+        let modActionCache: ModActionService | undefined;
         const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
         if (shouldInitializeDbCaches) {
             console.log('SETUP: Initializing caches for server roles and customizations.');
             serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
             cosmeticsService = await CosmeticsService.createAsync();
-            modActionCache = await ModActionCache.createAsync();
+            modActionCache = await ModActionService.createAsync();
             console.log('SETUP: Caches for server roles and customizations initialized.');
         }
 
@@ -206,14 +207,14 @@ export class GameServer {
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
-    public readonly modActionCache?: ModActionCache;
+    public readonly modActionCache?: ModActionService;
 
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
         cosmeticsService?: CosmeticsService,
-        modActionCache?: ModActionCache,
+        modActionCache?: ModActionService,
         testGameBuilder?: any
     ) {
         const app = express();
@@ -464,13 +465,13 @@ export class GameServer {
                     const activeActions = this.modActionCache.getActiveActionsForPlayer(userId);
 
                     if (activeActions) {
-                        if (this.modActionCache.playerNeedsRename(userId)) {
+                        if (activeActions.some((action) => action.actionType === ModActionType.Rename)) {
                             needsUsernameChange = true;
                         }
 
                         // Only derive mute from cache if no legacy moderation exists
                         if (!moderation) {
-                            const muteEntry = this.modActionCache.getActiveMuteForPlayer(userId);
+                            const muteEntry = activeActions.find((action) => action.actionType === ModActionType.Mute);
 
                             if (muteEntry) {
                                 // Pending mute — activate it (sets startedAt + expiresAt)

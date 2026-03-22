@@ -128,10 +128,7 @@ export enum ModActionType {
     Rename = 'Rename',
 }
 
-export const ActiveModActionTypes: ReadonlySet<ModActionType> = new Set([
-    ModActionType.Mute,
-    ModActionType.Rename,
-]);
+export type TimedModActionType = ModActionType.Mute | ModActionType.Rename;
 
 export interface IModActionEntity {
     id: string;

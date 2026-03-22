@@ -1,17 +1,28 @@
-// scripts/seedModAction.ts
+/**
+ * Seed script for inserting moderation actions directly into local DynamoDB.
+ * Useful for testing mod features (mutes, warnings, renames) without going through the mod UI.
+ *
+ * Prerequisites:
+ *   - ENVIRONMENT=development and USE_LOCAL_DYNAMODB=true in your env
+ *   - Local DynamoDB Docker container running
+ * Usage:
+ *   1. Set MY_USER_ID to the target user's GUID
+ *   2. Configure ACTION_TYPE, DURATION_DAYS, EXPIRES_IN_MINUTES, and NOTE as needed
+ *   3. From the root of the project run: ts-node scripts/seedModAction.ts
+ */
+
 import { v4 as uuid } from 'uuid';
 import '../server/env';
 import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
+import { ModActionType } from '../server/services/DynamoDBInterfaces';
+import { isTimedModAction } from '../server/game/core/utils/EnumHelpers';
 
 const MY_USER_ID: string | null = ''; // guid of the target user to apply the action to
-const ACTION_TYPE: 'Mute' | 'Warning' | 'Rename' = 'Mute';
+const ACTION_TYPE: ModActionType = ModActionType.Mute;
 const DURATION_DAYS: number | null = 1; // only needed for Mute
 const EXPIRES_IN_MINUTES: number | null = 2; // set to pre-activate mute with custom expiry, null for pending mute
 const NOTE = 'Test action from seed script';
 
-const ACTIVE_ACTION_TYPES = new Set(['Mute', 'Rename']);
-
-// to run this script run on root folder: ts-node scripts/seedModAction.ts
 async function run() {
     if (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB !== 'true') {
         throw new Error('Environmental variables ENVIRONMENT and USE_LOCAL_DYNAMODB need to be set.');
@@ -57,7 +68,7 @@ async function run() {
     }
 
     // Active action types get indexed via the sparse GSI
-    if (ACTIVE_ACTION_TYPES.has(ACTION_TYPE)) {
+    if (isTimedModAction(ACTION_TYPE)) {
         item.GSI_PK = 'ACTIVE_MODACTION';
     }
 

@@ -14,9 +14,6 @@ import type {
     IModActionEntity
 } from './DynamoDBInterfaces';
 import {
-    ActiveModActionTypes
-} from './DynamoDBInterfaces';
-import {
     type IDeckDataEntity,
     type IDeckStatsEntity,
     type IUserProfileDataEntity,
@@ -27,6 +24,7 @@ import { z } from 'zod';
 import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import { isTimedModAction } from '../game/core/utils/EnumHelpers';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -811,7 +809,7 @@ class DynamoDBService {
             };
 
             // Active action types (Mute, Rename) get indexed via the sparse GSI
-            if (ActiveModActionTypes.has(modAction.actionType) && !modAction.cancelledAt) {
+            if (isTimedModAction(modAction.actionType) && !modAction.cancelledAt) {
                 item.GSI_PK = 'ACTIVE_MODACTION';
             }
 

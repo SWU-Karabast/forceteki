@@ -1,10 +1,8 @@
 import { logger } from '../logger';
 import { TimedCache } from './TimedCache';
 import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
-import { ModActionType, ActiveModActionTypes, type IActiveModActionCacheEntry, type IModActionEntity } from '../services/DynamoDBInterfaces';
-
-/** Resolved DynamoDB service type */
-type DynamoDBService = NonNullable<Awaited<ReturnType<typeof getDynamoDbServiceAsync>>>;
+import { ModActionType, type IActiveModActionCacheEntry, type IModActionEntity } from '../services/DynamoDBInterfaces';
+import { isTimedModAction } from '../game/core/utils/EnumHelpers';
 
 /**
  * Cache structure: Map<playerId, Map<ModActionType, IActiveModActionCacheEntry>>
@@ -31,33 +29,30 @@ type ModActionCacheMap = Map<string, Map<ModActionType, IActiveModActionCacheEnt
  * 4. Mute activation on user login:
  *    - Pending mute found → set startedAt + expiresAt in DB and cache
  */
-export class ModActionCache {
-    private readonly cache: TimedCache<ModActionCacheMap>;
-    private readonly db: DynamoDBService;
+export class ModActionService {
+    private cache: TimedCache<ModActionCacheMap>;
+    private dbServicePromise = getDynamoDbServiceAsync();
     private static readonly REFRESH_INTERVAL_MINUTES = 24 * 60; // 24 hours
     private static readonly MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-    public static async createAsync(): Promise<ModActionCache> {
-        const db = await getDynamoDbServiceAsync();
+    public static async createAsync(): Promise<ModActionService> {
+        const modActionCacheInstance = new ModActionService();
 
+        const db = await modActionCacheInstance.dbServicePromise;
         if (!db) {
             throw new Error('ModActionCache: DynamoDB service is required but unavailable');
         }
 
         const cache = new TimedCache<ModActionCacheMap>(
-            ModActionCache.REFRESH_INTERVAL_MINUTES,
-            () => ModActionCache.fetchAndCleanupAsync(db),
+            ModActionService.REFRESH_INTERVAL_MINUTES,
+            () => modActionCacheInstance.fetchAndCleanupAsync(),
             'ModActionCache'
         );
 
         await cache.initializeAsync();
+        modActionCacheInstance.cache = cache;
 
-        return new ModActionCache(cache, db);
-    }
-
-    private constructor(cache: TimedCache<ModActionCacheMap>, db: DynamoDBService) {
-        this.cache = cache;
-        this.db = db;
+        return modActionCacheInstance;
     }
 
     /**
@@ -67,7 +62,8 @@ export class ModActionCache {
      * 2. Cleans up expired entries in DB (removes GSI_PK)
      * 3. Builds and returns the cache map
      */
-    private static async fetchAndCleanupAsync(db: DynamoDBService): Promise<ModActionCacheMap> {
+    private async fetchAndCleanupAsync(): Promise<ModActionCacheMap> {
+        const db = await this.dbServicePromise;
         const newCache: ModActionCacheMap = new Map();
         const activeActions = await db.getModActionsAsync();
         const now = new Date();
@@ -96,7 +92,7 @@ export class ModActionCache {
 
             const shouldUpdate = !existing ||
               action.actionType === ModActionType.Rename ||
-              ModActionCache.compareMutePriority(action, existing);
+              ModActionService.compareMutePriority(action, existing);
 
             if (shouldUpdate) {
                 playerActions.set(action.actionType, {
@@ -134,13 +130,13 @@ export class ModActionCache {
 
         // Incoming is pending, existing is active: compare potential expiresAt
         if (!incoming.expiresAt && existing.expiresAt) {
-            const incomingPotentialExpiry = Date.now() + (incoming.durationDays ?? 0) * ModActionCache.MS_PER_DAY;
+            const incomingPotentialExpiry = Date.now() + (incoming.durationDays ?? 0) * ModActionService.MS_PER_DAY;
             return incomingPotentialExpiry > new Date(existing.expiresAt).getTime();
         }
 
         // Incoming is active, existing is pending: compare potential expiresAt
         if (incoming.expiresAt && !existing.expiresAt) {
-            const existingPotentialExpiry = Date.now() + (existing.durationDays ?? 0) * ModActionCache.MS_PER_DAY;
+            const existingPotentialExpiry = Date.now() + (existing.durationDays ?? 0) * ModActionService.MS_PER_DAY;
             return new Date(incoming.expiresAt).getTime() > existingPotentialExpiry;
         }
 
@@ -265,6 +261,7 @@ export class ModActionCache {
      * @returns The updated cache entry with startedAt and expiresAt set, or null if no pending mute.
      */
     public async activatePendingMuteAsync(playerId: string): Promise<IActiveModActionCacheEntry | null> {
+        const db = await this.dbServicePromise;
         const muteEntry = this.getActiveMuteForPlayer(playerId);
         if (!muteEntry) {
             return null;
@@ -277,11 +274,11 @@ export class ModActionCache {
 
         const now = new Date();
         const startedAt = now.toISOString();
-        const expiresAt = new Date(now.getTime() + (muteEntry.durationDays ?? 0) * ModActionCache.MS_PER_DAY).toISOString();
+        const expiresAt = new Date(now.getTime() + (muteEntry.durationDays ?? 0) * ModActionService.MS_PER_DAY).toISOString();
 
         // Update DB
         try {
-            await this.db.activateMuteAsync(playerId, muteEntry.modActionId, startedAt, expiresAt);
+            await db.activateMuteAsync(playerId, muteEntry.modActionId, startedAt, expiresAt);
         } catch (error) {
             logger.error(`ModActionCache: Failed to activate mute ${muteEntry.modActionId} in DB`, {
                 error: { message: error.message, stack: error.stack }
@@ -310,7 +307,7 @@ export class ModActionCache {
      * stays active and the shorter one is deactivated in DB (GSI_PK removed).
      */
     public async onActionSubmitted(playerId: string, modAction: IModActionEntity): Promise<void> {
-        if (!ActiveModActionTypes.has(modAction.actionType)) {
+        if (!isTimedModAction(modAction.actionType)) {
             return;
         }
 
@@ -331,7 +328,7 @@ export class ModActionCache {
             const incomingEntry = { expiresAt: modAction.expiresAt, durationDays: modAction.durationDays };
             const existingEntry = { expiresAt: existing.expiresAt, durationDays: existing.durationDays };
 
-            if (ModActionCache.compareMutePriority(incomingEntry, existingEntry)) {
+            if (ModActionService.compareMutePriority(incomingEntry, existingEntry)) {
                 // New mute is longer — deactivate the old one in DB
                 await this.deactivateModActionInDb(playerId, existing.modActionId);
             } else {
@@ -385,8 +382,9 @@ export class ModActionCache {
      * Remove GSI_PK from a mod action in DynamoDB, deactivating it from the sparse index.
      */
     private async deactivateModActionInDb(playerId: string, modActionId: string): Promise<void> {
+        const db = await this.dbServicePromise;
         try {
-            await this.db.removeModActionFromActiveIndexAsync(playerId, modActionId);
+            await db.removeModActionFromActiveIndexAsync(playerId, modActionId);
         } catch (error) {
             logger.error(`ModActionCache: Failed to deactivate mod action ${modActionId} in DB`, {
                 error: { message: error.message, stack: error.stack }
