@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EffectName, TargetMode, WildcardZoneName } from '../../../core/Constants';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MillenniumFalconPieceOfJunk extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,14 +21,14 @@ export default class MillenniumFalconPieceOfJunk extends NonLeaderUnitCard {
         });
 
         registrar.addTriggeredAbility({
-            title: 'Either pay 1 resource or return this unit to her owner\'s hand',
+            title: `Either pay ${TextHelper.resource(1)} or return this unit to her owner\'s hand`,
             when: {
                 onRegroupPhaseReadyCards: (event) => event.resolutionStatus === 'created'
             },
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: (context) => ({
-                    ['Pay 1 resource']: AbilityHelper.immediateEffects.payResources({
+                    [`Pay ${TextHelper.resource(1)}`]: AbilityHelper.immediateEffects.payResources({
                         target: context.player,
                         amount: 1
                     }),

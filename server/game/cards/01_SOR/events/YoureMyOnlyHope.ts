@@ -3,6 +3,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class YoureMyOnlyHope extends EventCard {
     protected override getImplementationId() {
@@ -34,7 +35,7 @@ export default class YoureMyOnlyHope extends EventCard {
                         })
                     };
                     const playForDiscountButton = {
-                        text: 'Play for 5 less',
+                        text: `Play for ${TextHelper.resource(5)} less`,
                         arg: 'play-discount',
                         immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                             target: topCardOfDeck,

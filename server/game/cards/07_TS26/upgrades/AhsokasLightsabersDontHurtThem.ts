@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AhsokasLightsabersDontHurtThem extends UpgradeCard {
     protected override getImplementationId() {
@@ -17,7 +18,7 @@ export default class AhsokasLightsabersDontHurtThem extends UpgradeCard {
         registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainTriggeredAbilityTargetingAttached({
-            title: 'Give a Shield token to an enemy unit. If you do, the next event you play this phase costs 2 resources less.',
+            title: `Give a Shield token to an enemy unit. If you do, the next event you play this phase costs ${TextHelper.resource(2)} less.`,
             when: {
                 onAttack: true,
                 whenDefeated: true,
@@ -29,7 +30,7 @@ export default class AhsokasLightsabersDontHurtThem extends UpgradeCard {
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()
             },
             ifYouDo: {
-                title: 'The next event you play this phase costs 2 resources less',
+                title: `The next event you play this phase costs ${TextHelper.resource(2)} less`,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                     effect: AbilityHelper.ongoingEffects.decreaseCost({
                         cardTypeFilter: CardType.Event,

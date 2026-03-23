@@ -5,6 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class CongressOfMalastare extends NonLeaderUnitCard {
@@ -23,7 +24,7 @@ export default class CongressOfMalastare extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'The first Upgrade you play each phase costs 1 resource less',
+            title: `The first Upgrade you play each phase costs ${TextHelper.resource(1)} less`,
             targetController: RelativePlayer.Self,
             targetZoneFilter: WildcardZoneName.AnyArena,
             ongoingEffect: abilityHelper.ongoingEffects.decreaseCost({
