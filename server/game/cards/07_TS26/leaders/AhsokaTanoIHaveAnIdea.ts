@@ -6,6 +6,7 @@ import type {
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AhsokaTanoIHaveAnIdea extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -58,7 +59,7 @@ export default class AhsokaTanoIHaveAnIdea extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.addWhenAttackEndsAbility({
-            title: 'Look at the top card of your deck. If you play it, it costs 1 resource less',
+            title: `Look at the top card of your deck. If you play it, it costs ${TextHelper.resource(1)} less`,
             immediateEffect: abilityHelper.immediateEffects.lookAtAndChooseOption((context) => {
                 const topCardOfDeck = context.player.getTopCardOfDeck();
                 return {
@@ -66,7 +67,7 @@ export default class AhsokaTanoIHaveAnIdea extends LeaderUnitCard {
                     target: topCardOfDeck,
                     perCardButtons: [
                         {
-                            text: 'Play for 1 less',
+                            text: `Play for ${TextHelper.resource(1)} less`,
                             arg: 'play',
                             immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({
                                 target: topCardOfDeck,
