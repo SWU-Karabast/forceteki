@@ -131,7 +131,7 @@ describe('Ahsoka Tano, I Have an Idea', function () {
                 context.player1.clickCard(context.ahsokaTano);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 1 less', 'Discard it', 'Leave on top']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 1 resource less', 'Discard it', 'Leave on top']);
 
                 context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'play');
 
@@ -146,7 +146,7 @@ describe('Ahsoka Tano, I Have an Idea', function () {
                 context.player1.clickCard(context.atst);
 
                 expect(context.ahsokaTano).toBeInZone('base');
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 1 less', 'Discard it', 'Leave on top']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 1 resource less', 'Discard it', 'Leave on top']);
 
                 context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'play');
 

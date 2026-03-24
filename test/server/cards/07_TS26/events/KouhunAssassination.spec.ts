@@ -21,13 +21,9 @@ describe('Kouhun Assassination', function() {
 
                 context.player1.clickCard(context.kouhunAssassination);
 
-                expect(context.player2).toHavePassAbilityPrompt('player2 discards a card from hand. If they do, player1 give a non-Vehicle unit -8/-8 for this phase');
-                context.player2.clickPrompt('Trigger');
-
                 expect(context.player2).toHavePrompt('Choose a card to discard for Kouhun Assassination\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.vanquish]);
-                expect(context.player2).not.toHaveChooseNothingButton();
-                expect(context.player2).not.toHavePassAbilityButton();
+                expect(context.player2).toHaveChooseNothingButton();
 
                 context.player2.clickCard(context.vanquish);
 
@@ -48,9 +44,7 @@ describe('Kouhun Assassination', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kouhunAssassination);
-
-                expect(context.player2).toHavePassAbilityPrompt('player2 discards a card from hand. If they do, player1 give a non-Vehicle unit -8/-8 for this phase');
-                context.player2.clickPrompt('Pass');
+                context.player2.clickPrompt('Choose nothing');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.wampa.getPower()).toBe(4);
@@ -103,8 +97,6 @@ describe('Kouhun Assassination', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.kouhunAssassination);
-            expect(context.player2).toHavePassAbilityPrompt('player2 discards a card from hand. If they do, player1 give a non-Vehicle unit -8/-8 for this phase');
-            context.player2.clickPrompt('Trigger');
             context.player2.clickCard(context.vanquish);
 
             expect(context.player2).toBeActivePlayer();
