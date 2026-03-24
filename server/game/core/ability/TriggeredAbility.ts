@@ -184,7 +184,14 @@ export abstract class TriggeredAbilityBase extends CardAbility {
         if (context.event.card === context.source && context.event.lastKnownInformation) {
             controller = context.event.lastKnownInformation.controller;
         } else if ('newController' in context.event) {
-            controller = context.event.newController;
+            // Only override the controller if the source is actually the card whose controller is changing.
+            const upgradeCard = context.event.upgradeCard;
+            const sourceIsCardChangingController = upgradeCard != null
+                ? upgradeCard === context.source
+                : context.event.card === context.source;
+            if (sourceIsCardChangingController) {
+                controller = context.event.newController;
+            }
         }
 
         switch (this.canBeTriggeredBy) {

@@ -29,8 +29,8 @@ describe('Bib Fortuna', function() {
                 // CASE 1: Controller plays an event with 1 discount
                 context.player1.clickCard(context.bibFortuna);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play an event from your hand. It costs 1 less.']);
-                context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+                expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play an event from your hand. It costs 1 resource less.']);
+                context.player1.clickPrompt('Play an event from your hand. It costs 1 resource less.');
 
                 expect(context.player1).toHavePrompt('Choose an event');
                 expect(context.player1).toBeAbleToSelectExactly([context.repair, context.confiscate, context.surpriseStrike]);
@@ -55,7 +55,7 @@ describe('Bib Fortuna', function() {
                 // CASE 2: Controller skips playing an event, discount should not be applied
                 context.player1.clickCard(context.bibFortuna);
 
-                context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+                context.player1.clickPrompt('Play an event from your hand. It costs 1 resource less.');
                 context.player1.clickPrompt('Choose nothing');
 
                 expect(context.bibFortuna.exhausted).toBe(true);
@@ -77,7 +77,7 @@ describe('Bib Fortuna', function() {
 
                 context.player1.clickCard(context.bibFortuna);
 
-                context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+                context.player1.clickPrompt('Play an event from your hand. It costs 1 resource less.');
                 expect(context.player1).toBeAbleToSelectExactly([context.repair, context.confiscate]);
                 context.player1.clickCard(context.repair);
                 // selects target for repair
