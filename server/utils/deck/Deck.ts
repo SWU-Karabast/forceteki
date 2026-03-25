@@ -92,6 +92,8 @@ export class Deck {
                 return DeckSource.SWUBase;
             } else if (deckLink.includes('swucardhub.fr')) {
                 return DeckSource.SWUCardHub;
+            } else if (deckLink.includes('swuforge.com')) {
+                return DeckSource.SwuForge;
             }
         }
 

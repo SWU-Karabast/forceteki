@@ -14,7 +14,8 @@ export enum StatsSaveStatus {
 export enum StatsSource {
     Karabast = 'Karabast',
     SwuStats = 'SWUStats',
-    SwuBase = 'SWUBase'
+    SwuBase = 'SWUBase',
+    SwuForge = 'SWUForge'
 }
 
 export enum StatsMessageKey {
@@ -27,6 +28,7 @@ export enum StatsMessageKey {
     LoggedInOnly = 'LoggedInOnly',
     Success = 'Success',
     SwuBaseSuccess = 'SwuBaseSuccess',
+    SwuForgeSuccess = 'SwuForgeSuccess',
     SwustatsSuccess = 'SwustatsSuccess',
     SwustatsDrawsNotSupported = 'SwustatsDrawsNotSupported',
 }
@@ -41,6 +43,7 @@ export const StatsMessageText: Record<StatsMessageKey, Omit<IStatsMessageFormat,
     [StatsMessageKey.LoggedInOnly]: { message: 'deck stats can only be saved for logged-in users', type: StatsSaveStatus.Warning },
     [StatsMessageKey.Success]: { message: 'deck stats successfully updated', type: StatsSaveStatus.Success },
     [StatsMessageKey.SwuBaseSuccess]: { message: 'successfully sent game result to SWUBase', type: StatsSaveStatus.Success },
+    [StatsMessageKey.SwuForgeSuccess]: { message: 'successfully sent game result to SWU Forge', type: StatsSaveStatus.Success },
     [StatsMessageKey.SwustatsSuccess]: { message: 'successfully sent game result to SWUStats', type: StatsSaveStatus.Success },
     [StatsMessageKey.SwustatsDrawsNotSupported]: { message: 'draws are currently not supported by SWUStats', type: StatsSaveStatus.Warning },
 };

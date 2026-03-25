@@ -35,6 +35,7 @@ const refreshTokenFieldMap: Record<RefreshTokenSource, {
 }[keyof IUserDataEntity]> = {
     [RefreshTokenSource.SWUStats]: 'swuStatsRefreshToken',
     [RefreshTokenSource.SWUBase]: 'swubaseRefreshToken',
+    [RefreshTokenSource.SwuForge]: 'swuforgeRefreshToken',
 };
 
 
@@ -369,6 +370,7 @@ export class UserFactory {
                 reportingDisabled: null,
                 swuStatsRefreshToken: null,
                 swubaseRefreshToken: null,
+                swuforgeRefreshToken: null,
                 moderation: null,
                 undoPopupSeenDate: null,
             };

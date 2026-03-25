@@ -146,6 +146,7 @@ export class Lobby {
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
     private readonly swuBaseEnabled: boolean = true;
+    private readonly swuForgeEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
     private readonly cardPool: CardPool;
@@ -1703,6 +1704,31 @@ export class Lobby {
         }
     }
 
+
+    /**
+     * Private method to update a players SWU Forge stats
+     * @param game
+     * @param player1
+     * @param player2
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
+     */
+    private async updatePlayerSwuForgeAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1StatsMessageKey: StatsMessageKey | null; player2StatsMessageKey: StatsMessageKey | null }> {
+        try {
+            const [p1statsMessageKey, p2statsMessageKey] = await this.server.swuForgeHandler.sendGameResultAsync(game, player1, player2, this.id, this.server, sequenceNumber ?? 1, this.format);
+            logger.info(`Lobby ${this.id}: Successfully updated deck SWU Forge stats for game ${game.id}`, { lobbyId: this.id });
+            return {
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SwuForge ? p1statsMessageKey : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SwuForge ? p2statsMessageKey : null
+            };
+        } catch (error) {
+            logger.error(`Lobby ${this.id}: An error occurred while sending stats to SWU Forge in ${game.id}`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            return {
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SwuForge ? StatsMessageKey.DefaultErrorSendingStats : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SwuForge ? StatsMessageKey.DefaultErrorSendingStats : null
+            };
+        }
+    }
+
     /**
      * Updates deck statistics when a game ends
      * @param game The game that has ended
@@ -1746,6 +1772,14 @@ export class Lobby {
             ? createStatsMessage(StatsSource.SwuBase)
             : null;
 
+        // SWU Forge
+        const player1SwuForgeStatus = player1.lobbyDeck?.deckSource === DeckSource.SwuForge
+            ? createStatsMessage(StatsSource.SwuForge)
+            : null;
+        const player2SwuForgeStatus = player2.lobbyDeck?.deckSource === DeckSource.SwuForge
+            ? createStatsMessage(StatsSource.SwuForge)
+            : null;
+
         try {
             // Determine the winner and loser
             let winner, loser;
@@ -1778,6 +1812,8 @@ export class Lobby {
                 updateStatsMessage(player2SwuStatsStatus, StatsMessageKey.NotUpdatedBeforeRound2);
                 updateStatsMessage(player1SwuBaseStatus, StatsMessageKey.NotUpdatedBeforeRound2);
                 updateStatsMessage(player2SwuBaseStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player1SwuForgeStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player2SwuForgeStatus, StatsMessageKey.NotUpdatedBeforeRound2);
                 logger.info('stats not updated due to game ending before round 2', { lobbyId: this.id });
                 return;
             }
@@ -1819,6 +1855,22 @@ export class Lobby {
                     updateStatsMessage(player2SwuBaseStatus, StatsMessageKey.NonPremierNotSupported);
                 }
             }
+
+            // Send to SWU Forge if handler is available
+            if (this.swuForgeEnabled && (player1SwuForgeStatus || player2SwuForgeStatus)) {
+                if (this.format === SwuGameFormat.Premier) {
+                    const {
+                        player1StatsMessageKey,
+                        player2StatsMessageKey
+                    } = await this.updatePlayerSwuForgeAsync(game, player1, player2, sequenceNumber ?? 1);
+
+                    updateStatsMessage(player1SwuForgeStatus, player1StatsMessageKey);
+                    updateStatsMessage(player2SwuForgeStatus, player2StatsMessageKey);
+                } else {
+                    updateStatsMessage(player1SwuForgeStatus, StatsMessageKey.NonPremierNotSupported);
+                    updateStatsMessage(player2SwuForgeStatus, StatsMessageKey.NonPremierNotSupported);
+                }
+            }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
         } finally {
             this.sendStatsMessageToUser(player1.id, player1KarabastStatus);
@@ -1830,6 +1882,10 @@ export class Lobby {
             if (this.swuBaseEnabled) {
                 this.sendStatsMessageToUser(player1.id, player1SwuBaseStatus);
                 this.sendStatsMessageToUser(player2.id, player2SwuBaseStatus);
+            }
+            if (this.swuForgeEnabled) {
+                this.sendStatsMessageToUser(player1.id, player1SwuForgeStatus);
+                this.sendStatsMessageToUser(player2.id, player2SwuForgeStatus);
             }
         }
     }

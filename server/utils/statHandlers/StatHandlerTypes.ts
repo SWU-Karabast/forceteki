@@ -17,4 +17,5 @@ export interface ICardMetrics {
 export enum RefreshTokenSource {
     SWUStats = 'SWUStats',
     SWUBase = 'SWUBase',
+    SwuForge = 'SwuForge',
 }

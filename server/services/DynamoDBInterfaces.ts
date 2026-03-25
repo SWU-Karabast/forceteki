@@ -21,6 +21,7 @@ export interface IUserDataEntity {
     preferences?: IUserPreferences;
     swuStatsRefreshToken?: string;
     swubaseRefreshToken?: string;
+    swuforgeRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
     mustRequestUsernameChange?: ModerationFieldState;

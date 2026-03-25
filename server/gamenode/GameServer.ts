@@ -47,6 +47,7 @@ import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
 import { CardPool, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
+import { SwuForgeHandler } from '../utils/statHandlers/SwuForgeHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 
 /**
@@ -161,6 +162,7 @@ export class GameServer {
     private readonly dailyActiveUserIds = new Set<string>();
     public swuStatsTokenMapping = new Map<string, IToken>();
     public swuBaseTokenMapping = new Map<string, IToken>();
+    public swuForgeTokenMapping = new Map<string, IToken>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -193,6 +195,7 @@ export class GameServer {
     public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
     public readonly swuBaseHandler: SwuBaseHandler;
+    public readonly swuForgeHandler: SwuForgeHandler;
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
@@ -347,6 +350,7 @@ export class GameServer {
         this.deckValidator = deckValidator;
         this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
         this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
+        this.swuForgeHandler = new SwuForgeHandler(this.userFactory);
 
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
@@ -561,6 +565,24 @@ export class GameServer {
                 res.status(200).json({ linked: !!linked });
             } catch (err) {
                 logger.error('GameServer (swubaseLink) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swuforgeLink', this.buildAuthMiddleware('swuforgeLink'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swuforgeLink): Anonymous user ${user.getId()} is attempting to retrieve swuforgeLink`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swuforgeLink'
+                    });
+                }
+                const linked = await this.swuForgeHandler.getAccessTokenAsync(user.getId(), this);
+                res.status(200).json({ linked: !!linked });
+            } catch (err) {
+                logger.error('GameServer (swuforgeLink) Server Error: ', err);
                 next(err);
             }
         });
@@ -852,6 +874,62 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (unlink-swubase) Server error:', err);
+                next(err);
+            }
+        });
+
+        // SWUFORGE
+        // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
+        app.post('/api/link-swuforge', async (req, res, next) => {
+            try {
+                const { userId, code, redirectUri, internalApiKey } = req.body;
+                if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
+                    throw new Error('Environment variable INTRASERVICE_SECRET not set');
+                }
+                if (internalApiKey !== process.env.INTRASERVICE_SECRET) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Forbidden'
+                    });
+                }
+                const newToken = await this.swuForgeHandler.linkAccountAsync(code, redirectUri);
+                if (!newToken) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Failed to exchange authorization code'
+                    });
+                }
+                await this.userFactory.addRefreshTokenAsync(userId, newToken.refreshToken, RefreshTokenSource.SwuForge);
+                this.swuForgeTokenMapping.set(userId, newToken);
+                return res.status(200).json({
+                    success: true,
+                    message: 'SWU Forge linked successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (link-swuforge) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/unlink-swuforge', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (unlink-swuforge): Anonymous user ${user.getId()} attempted to change swuforge setting in dynamodb`);
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Error attempting to unlink swu-forge'
+                    });
+                }
+                await this.swuForgeHandler.unlinkAccountAsync(user.getId());
+                await this.userFactory.unlinkRefreshTokenAsync(user.getId(), RefreshTokenSource.SwuForge);
+                this.swuForgeTokenMapping.delete(user.getId());
+                return res.status(200).json({
+                    success: true,
+                    message: 'SWU Forge unlinked successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (unlink-swuforge) Server error:', err);
                 next(err);
             }
         });
@@ -2379,6 +2457,14 @@ export class GameServer {
             }
             // Replace the old map with the new one
             this.swuStatsTokenMapping = newTokenMapping;
+
+            const newForgeTokenMapping = new Map<string, IToken>();
+            for (const [userId, token] of this.swuForgeTokenMapping.entries()) {
+                if (this.swuForgeHandler.isTokenValid(token)) {
+                    newForgeTokenMapping.set(userId, token);
+                }
+            }
+            this.swuForgeTokenMapping = newForgeTokenMapping;
         } catch (error) {
             logger.error('GameServer: Error during token cleanup:', {
                 error: { message: error.message, stack: error.stack }

@@ -28,6 +28,7 @@ export enum DeckSource {
     SWUnlimitedDB = 'swUnlimitedDb',
     SWUBase = 'swuBase',
     SWUCardHub = 'swuCardHub',
+    SwuForge = 'swuForge',
     Unknown = 'unknown'
 }
 

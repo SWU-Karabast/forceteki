@@ -24,6 +24,9 @@ const parsedEnv = z
         SWUSTATS_CLIENT_SECRET: z.string().optional(),
         SWUBASE_CLIENT_ID: z.string().optional(),
         SWUBASE_CLIENT_SECRET: z.string().optional(),
+        SWUFORGE_CLIENT_ID: z.string().optional(),
+        SWUFORGE_CLIENT_SECRET: z.string().optional(),
+        SWUFORGE_API_URL: z.string().optional(),
         INTRASERVICE_SECRET: z.string().optional(),
         PROFILE_CAPTURE_SECRET: z.string().optional(),
     })
@@ -99,6 +102,9 @@ export const SWUSTATS_CLIENT_ID = parsedEnv.data.SWUSTATS_CLIENT_ID;
 export const SWUSTATS_CLIENT_SECRET = parsedEnv.data.SWUSTATS_CLIENT_SECRET;
 export const SWUBASE_CLIENT_ID = parsedEnv.data.SWUBASE_CLIENT_ID;
 export const SWUBASE_CLIENT_SECRET = parsedEnv.data.SWUBASE_CLIENT_SECRET;
+export const SWUFORGE_CLIENT_ID = parsedEnv.data.SWUFORGE_CLIENT_ID;
+export const SWUFORGE_CLIENT_SECRET = parsedEnv.data.SWUFORGE_CLIENT_SECRET;
+export const SWUFORGE_API_URL = parsedEnv.data.SWUFORGE_API_URL;
 export const INTRASERVICE_SECRET = parsedEnv.data.INTRASERVICE_SECRET;
 export const PROFILE_CAPTURE_SECRET = parsedEnv.data.PROFILE_CAPTURE_SECRET;
 
