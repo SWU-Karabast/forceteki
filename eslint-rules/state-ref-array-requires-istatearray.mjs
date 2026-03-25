@@ -139,35 +139,9 @@ export default {
                     return;
                 }
 
-                const replacementText = getIStateArrayReplacementText(declaredType, sourceCode);
                 context.report({
                     node: node.typeAnnotation,
-                    messageId: 'requireIStateArray',
-                    fix: replacementText == null ? null : (fixer) => {
-                        const fixes = [fixer.replaceText(declaredType, replacementText)];
-
-                        if (!hasTopLevelIStateArrayBinding(sourceCode.ast.body)) {
-                            const stateRefArrayImport = findStateRefArrayImport(sourceCode.ast.body);
-                            if (stateRefArrayImport) {
-                                const typeOnlyImport = findTypeOnlyImportForSource(sourceCode.ast.body, stateRefArrayImport.source.value);
-                                if (typeOnlyImport && !hasNamedImport(typeOnlyImport, 'IStateArray')) {
-                                    const lastSpecifier = typeOnlyImport.specifiers[typeOnlyImport.specifiers.length - 1];
-                                    if (lastSpecifier) {
-                                        fixes.push(fixer.insertTextAfter(lastSpecifier, ', IStateArray'));
-                                    }
-                                } else if (!typeOnlyImport) {
-                                    fixes.push(
-                                        fixer.insertTextAfter(
-                                            stateRefArrayImport,
-                                            `\nimport type { IStateArray } from ${sourceCode.getText(stateRefArrayImport.source)};`
-                                        )
-                                    );
-                                }
-                            }
-                        }
-
-                        return fixes;
-                    },
+                    messageId: 'requireIStateArray'
                 });
             },
         };
