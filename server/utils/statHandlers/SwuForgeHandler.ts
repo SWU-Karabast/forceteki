@@ -107,70 +107,78 @@ export class SwuForgeHandler {
     }
 
     private buildPlayerData(player: Player, accessToken: string | null) {
-        const { name, base, leader, deckSource, deckLink } = player.lobbyDeck;
+        const { deckLink } = player.lobbyDeck;
 
         // Deck Links in the form: https://swuforge.com/decks/${deckId}
         const match = deckLink?.match(/\/decks\/([^/]+)\/?$/);
         const deckId = match ? match[1] : null;
 
         return {
-            id: player.id,
             accessToken: accessToken,
-            leader: player.leader?.id,
-            base: player.base?.id,
-            deck: {
-                id: accessToken ? deckId : 'unknown',
-                name,
-                base,
-                leader,
-                deckSource,
-            },
-            isWinner: player.game.winnerNames.includes(player.name)
+            leader: this.toCardKey(player.leader?.setId),
+            base: this.toCardKey(player.base?.setId),
+            deckId: accessToken ? deckId : null,
+            winner: player.game.winnerNames.includes(player.name)
         };
     }
 
+    private toCardKey(setId: { set: string; number: number } | undefined): string | null {
+        if (!setId) return null;
+        return `${setId.set}_${setId.number}`;
+    }
+
     private buildCardMetricsForPlayer(player: Player, cardMetrics: IGameStatisticsTracker['cardMetrics']) {
-        const cardResultsByTrackingId = {} satisfies Record<string, ICardMetrics>;
+        // Map tracking IDs to cardKeys ({set}_{number})
+        const trackingIdToCardKey = new Map<string, string>();
+        const cardResultsByCardKey: Record<string, ICardMetrics> = {};
+
         for (const card of player.allCards) {
-            if (cardResultsByTrackingId[card.trackingId]) {
+            if (trackingIdToCardKey.has(card.trackingId)) {
                 continue;
             }
+            const cardKey = this.toCardKey(card.setId);
+            if (!cardKey) continue;
 
-            cardResultsByTrackingId[card.trackingId] = {
-                played: 0,
-                resourced: 0,
-                activated: 0,
-                drawn: 0,
-                discarded: 0,
-            };
+            trackingIdToCardKey.set(card.trackingId, cardKey);
+            if (!cardResultsByCardKey[cardKey]) {
+                cardResultsByCardKey[cardKey] = {
+                    played: 0,
+                    resourced: 0,
+                    activated: 0,
+                    drawn: 0,
+                    discarded: 0,
+                };
+            }
         }
 
         cardMetrics.forEach((cardMetric) => {
-            if (cardMetric.player === player.trackingId && cardResultsByTrackingId[cardMetric.card]) {
-                const cardResult = cardResultsByTrackingId[cardMetric.card];
-                switch (cardMetric.metric) {
-                    case GameCardMetric.Activated:
-                        cardResult.activated += 1;
-                        break;
-                    case GameCardMetric.Discarded:
-                        cardResult.discarded += 1;
-                        break;
-                    case GameCardMetric.Drawn:
-                        cardResult.drawn += 1;
-                        break;
-                    case GameCardMetric.Played:
-                        cardResult.played += 1;
-                        break;
-                    case GameCardMetric.Resourced:
-                        cardResult.resourced += 1;
-                        break;
-                    default:
-                        break;
-                }
+            if (cardMetric.player !== player.trackingId) return;
+            const cardKey = trackingIdToCardKey.get(cardMetric.card);
+            if (!cardKey || !cardResultsByCardKey[cardKey]) return;
+
+            const cardResult = cardResultsByCardKey[cardKey];
+            switch (cardMetric.metric) {
+                case GameCardMetric.Activated:
+                    cardResult.activated += 1;
+                    break;
+                case GameCardMetric.Discarded:
+                    cardResult.discarded += 1;
+                    break;
+                case GameCardMetric.Drawn:
+                    cardResult.drawn += 1;
+                    break;
+                case GameCardMetric.Played:
+                    cardResult.played += 1;
+                    break;
+                case GameCardMetric.Resourced:
+                    cardResult.resourced += 1;
+                    break;
+                default:
+                    break;
             }
         });
 
-        return cardResultsByTrackingId;
+        return cardResultsByCardKey;
     }
 
     /**
