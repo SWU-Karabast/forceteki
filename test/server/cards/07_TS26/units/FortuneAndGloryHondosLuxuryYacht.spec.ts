@@ -73,7 +73,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 expect(context.player2).toHavePassAbilityButton();
                 context.player2.clickCard(context.wampa);
 
-                expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine]);
+                expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine, context.awing]);
                 expect(context.player2).toHavePassAbilityButton();
                 context.player2.clickCard(context.greenSquadronAwing);
 
@@ -110,7 +110,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 expect(context.player2).toHavePassAbilityButton();
                 context.player2.clickCard(context.wampa);
 
-                expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine]);
+                expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine, context.awing]);
                 expect(context.player2).toHavePassAbilityButton();
                 context.player2.clickPrompt('Pass');
 
@@ -132,7 +132,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine]);
                 context.player1.clickCard(context.greenSquadronAwing);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.awing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.awing, context.battlefieldMarine]);
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player1).toBeActivePlayer();
