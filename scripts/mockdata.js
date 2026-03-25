@@ -54,6 +54,81 @@ const mockCards = [
         arena: 'ground',
         internalName: 'general-grievous#crush-them'
     }),
+    buildMockCard({
+        title: 'Moralo Eval',
+        subtitle: 'Infamous Murderer',
+        cost: 3,
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning', 'Villainy'],
+        types: ['unit'],
+        traits: ['underworld'],
+        keywords: ['shielded'],
+        setId: {
+            set: 'TS26',
+            number: 73
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'moralo-eval#infamous-murderer',
+    }),
+    buildMockCard({
+        title: 'Fortune and Glory',
+        subtitle: 'Hondo\'s Luxury Yacht',
+        cost: 4,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Command', 'Cunning'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        keywords: ['bounty'],
+        setId: {
+            set: 'TS26',
+            number: 27
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'fortune-and-glory#hondos-luxury-yacht',
+    }),
+    buildMockCard({
+        title: 'King Katuunko',
+        subtitle: 'Great King of Toydaria',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Command'],
+        types: ['unit'],
+        traits: ['official'],
+        setId: {
+            set: 'TS26',
+            number: 16
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'king-katuunko#great-king-of-toydaria',
+    }),
+    buildMockCard({
+        title: 'Coleman Trebor',
+        subtitle: 'Jedi Rescuer',
+        cost: 1,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Aggression', 'Heroism'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        keywords: ['hidden'],
+        setId: {
+            set: 'TS26',
+            number: 19
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'coleman-trebor#jedi-rescuer',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
