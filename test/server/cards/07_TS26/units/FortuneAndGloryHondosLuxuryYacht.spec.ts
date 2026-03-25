@@ -1,6 +1,6 @@
 describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
     integration(function(contextRef) {
-        describe('Fortune and Glory\'s ability', function() {
+        describe('Fortune and Glory\'s when played ability', function() {
             beforeEach(function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -16,7 +16,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 });
             });
 
-            it('', function () {
+            it('should capture an opponent non-leader unit when played', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.fortuneAndGlory);
 
@@ -30,7 +30,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 expect(context.awing).toBeCapturedBy(context.fortuneAndGlory);
             });
 
-            it('', function () {
+            it('should be able to capture a friendly non-leader unit when played', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.fortuneAndGlory);
 
@@ -45,7 +45,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
             });
         });
 
-        describe('Fortune and Glory\'s ability', function() {
+        describe('Fortune and Glory\'s bounty ability', function() {
             beforeEach(function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -63,7 +63,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 });
             });
 
-            it('', function () {
+            it('should allow a friendly unit to capture a non-leader unit when bounty is collected', function () {
                 const { context } = contextRef;
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.fortuneAndGlory);
@@ -81,7 +81,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 expect(context.greenSquadronAwing).toBeCapturedBy(context.wampa);
             });
 
-            it('', function () {
+            it('should be optional when bounty is collected', function () {
                 const { context } = contextRef;
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.fortuneAndGlory);
@@ -100,7 +100,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 expect(context.wampa).toBeInZone('groundArena');
             });
 
-            it('', function () {
+            it('should allow passing after selecting the friendly unit', function () {
                 const { context } = contextRef;
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.fortuneAndGlory);
@@ -123,7 +123,7 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 expect(context.wampa).toBeInZone('groundArena');
             });
 
-            it('', function () {
+            it('should allow a friendly unit to capture a non-leader unit when bounty is collected (No Glory Only Results)', function () {
                 const { context } = contextRef;
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.fortuneAndGlory);

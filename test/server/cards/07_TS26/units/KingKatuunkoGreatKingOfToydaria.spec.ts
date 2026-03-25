@@ -18,7 +18,7 @@ describe('King Katuunko, Great King of Toydaria', function() {
                 });
             });
 
-            it('', function () {
+            it('should give all units Restore 1 for the phase (opponent space unit)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.kingKatuunko);
 
@@ -29,7 +29,7 @@ describe('King Katuunko, Great King of Toydaria', function() {
                 expect(context.p2Base.damage).toBe(9);
             });
 
-            it('', function () {
+            it('should give all units Restore 1 for the phase (opponent ground unit)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.kingKatuunko);
 
@@ -40,7 +40,7 @@ describe('King Katuunko, Great King of Toydaria', function() {
                 expect(context.p2Base.damage).toBe(9);
             });
 
-            it('', function () {
+            it('should give all units Restore 1 for the phase (friendly ground unit)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.kingKatuunko);
 
@@ -53,7 +53,7 @@ describe('King Katuunko, Great King of Toydaria', function() {
                 expect(context.p1Base.damage).toBe(9);
             });
 
-            it('', function () {
+            it('should give all units Restore 1 for the phase (friendly space unit)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.kingKatuunko);
 
@@ -66,7 +66,7 @@ describe('King Katuunko, Great King of Toydaria', function() {
                 expect(context.p1Base.damage).toBe(9);
             });
 
-            it('', function () {
+            it('should give all units Restore 1 for the phase (King Katuunko)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.kingKatuunko);
 
@@ -84,7 +84,7 @@ describe('King Katuunko, Great King of Toydaria', function() {
                 expect(context.p1Base.damage).toBe(9);
             });
 
-            it('', function () {
+            it('should only last for the phase it was played', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.kingKatuunko);
                 context.moveToNextActionPhase();
@@ -96,7 +96,7 @@ describe('King Katuunko, Great King of Toydaria', function() {
                 expect(context.p1Base.damage).toBe(10);
             });
 
-            it('', function () {
+            it('should give all units Restore 1 for the phase (multiple attacks)', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.kingKatuunko);
 
