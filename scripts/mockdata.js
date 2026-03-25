@@ -55,6 +55,25 @@ const mockCards = [
         internalName: 'general-grievous#crush-them'
     }),
     buildMockCard({
+        title: 'Prime Minister Almec',
+        subtitle: 'Scheming Populist',
+        cost: 4,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Command', 'Cunning'],
+        types: ['unit'],
+        traits: ['mandalorian', 'official'],
+        keywords: ['saboteur'],
+        setId: {
+            set: 'TS26',
+            number: 28
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'prime-minister-almec#scheming-populist'
+    }),
+    buildMockCard({
         title: 'Mother Talzin',
         subtitle: 'Stealing the Spirit',
         cost: 5,
