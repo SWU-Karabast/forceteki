@@ -74,6 +74,57 @@ const mockCards = [
         internalName: 'prime-minister-almec#scheming-populist'
     }),
     buildMockCard({
+        title: 'Mother Talzin',
+        subtitle: 'Stealing the Spirit',
+        cost: 5,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Command', 'Cunning', 'Villainy'],
+        types: ['unit'],
+        traits: ['force', 'night'],
+        keywords: ['sentinel'],
+        setId: {
+            set: 'TS26',
+            number: 26
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mother-talzin#stealing-the-spirit'
+    }),
+    buildMockCard({
+        title: 'Sundari Gauntlet',
+        cost: 5,
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Command', 'Aggression'],
+        types: ['unit'],
+        traits: ['mandalorian', 'vehicle', 'transport'],
+        keywords: ['sentinel'],
+        setId: {
+            set: 'TS26',
+            number: 24
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'sundari-gauntlet'
+    }),
+    buildMockCard({
+        title: 'Chaotic Diversion',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression', 'Cunning'],
+        types: ['event'],
+        traits: ['tactic', 'trick'],
+        setId: {
+            set: 'TS26',
+            number: 31
+        },
+        unique: false,
+        internalName: 'chaotic-diversion',
+    }),
+    buildMockCard({
         title: 'Moralo Eval',
         subtitle: 'Infamous Murderer',
         cost: 3,
