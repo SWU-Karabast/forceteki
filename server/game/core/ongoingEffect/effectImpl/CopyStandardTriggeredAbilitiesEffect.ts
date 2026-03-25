@@ -36,8 +36,8 @@ export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrap
             args: [sourceUnit]
         };
 
-        Contract.assertTrue(sourceUnit.isUnit(), 'Only units can have their triggered abilities copied');
-        Contract.assertTrue(sourceUnit.hasStandardAbilitySetup(), 'Only units with standard ability setup can have their triggered abilities copied');
+        Contract.assertTrue(sourceUnit.isUnit(), `Only units can have their triggered abilities copied, attempted to copy from ${sourceUnit.internalName}`);
+        Contract.assertTrue(sourceUnit.hasStandardAbilitySetup(), `Only units with standard ability setup can have their triggered abilities copied, attempted to copy from ${sourceUnit.internalName}`);
 
         super(game, sourceUnit, effectDescription);
 
@@ -146,6 +146,8 @@ export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrap
                 return ['onAttack'];
             case StandardTriggeredAbilityType.OnDefense:
                 return ['onDefense'];
+            default:
+                Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
     }
 }

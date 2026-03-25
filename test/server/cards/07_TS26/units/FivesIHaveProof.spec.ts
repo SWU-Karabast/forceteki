@@ -254,6 +254,117 @@ describe('Fives, I Have Proof!', function() {
                 expect(context.wampa.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should not be able to target a unit whose abilities have been blanked', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: 'dagobah-swamp',
+                        hand: ['fives#i-have-proof'],
+                        groundArena: ['emissaries-from-ryloth'],
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use Kazuda's ability to blank Emissaries (removes all abilities for this round)
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
+                context.player1.clickCard(context.emissariesFromRyloth);
+
+                // With the extra action from Kazuda, play Fives
+                // Emissaries is blanked so it has no When Played abilities - no valid targets
+                context.player1.clickCard(context.fives);
+
+                // Fives enters play without copying anything (ability auto-skips)
+                expect(context.fives).toBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should retain a copied "for this phase" lasting effect even after Fives is defeated', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: 'dagobah-swamp',
+                        hand: ['fives#i-have-proof'],
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        groundArena: ['emissaries-from-ryloth', 'wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Fives, copying Emissaries' "When Played: Give a unit -3/-0 for this phase"
+                context.player1.clickCard(context.fives);
+                context.player1.clickCard(context.emissariesFromRyloth);
+
+                // When Played triggers: give Wampa -3/-0
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.getPower()).toBe(1); // 4 - 3 = 1
+                expect(context.wampa.getHp()).toBe(5);
+
+                // Player 2 defeats Fives with Vanquish
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.fives);
+
+                expect(context.fives).toBeInZone('discard');
+
+                // The -3/-0 effect persists for this phase even though Fives was defeated
+                expect(context.wampa.getPower()).toBe(1);
+                expect(context.wampa.getHp()).toBe(5);
+
+                // Move to next action phase to verify the effect ends as normal
+                context.moveToNextActionPhase();
+
+                expect(context.wampa.getPower()).toBe(4);
+                expect(context.wampa.getHp()).toBe(5);
+            });
+
+            it('should end a copied "while this unit is in play" lasting effect when Fives is defeated', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: 'dagobah-swamp',
+                        hand: ['fives#i-have-proof'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        groundArena: ['huyang#enduring-instructor'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Fives, copying Huyang's "When Played: Choose another friendly unit. While this unit is in play, the chosen unit gets +2/+2."
+                context.player1.clickCard(context.fives);
+                context.player1.clickCard(context.huyang);
+
+                // When Played triggers: choose Battlefield Marine for +2/+2
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine.getPower()).toBe(5); // 3 + 2 = 5
+                expect(context.battlefieldMarine.getHp()).toBe(5);   // 3 + 2 = 5
+
+                // Player 2 defeats Fives with Vanquish
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.fives);
+
+                expect(context.fives).toBeInZone('discard');
+
+                // The +2/+2 effect ends because Fives (the source) left play
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
+            });
         });
     });
 });
