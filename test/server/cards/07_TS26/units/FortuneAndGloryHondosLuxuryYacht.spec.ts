@@ -68,36 +68,76 @@ describe('Fortune and Glory, Hondo\'s Luxury Yacht', function() {
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.fortuneAndGlory);
 
-                expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: A friendly unit captures a non-leader unit');
-                context.player2.clickPrompt('Trigger');
-
+                expect(context.player2).toHavePrompt('Collect Bounty: A friendly unit captures a non-leader unit');
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.awing, context.chewbacca]);
+                expect(context.player2).toHavePassAbilityButton();
                 context.player2.clickCard(context.wampa);
-                //
-                // expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine]);
-                // context.player2.clickCard(context.greenSquadronAwing);
-                //
-                // expect(context.player1).toBeActivePlayer();
-                // expect(context.greenSquadronAwing).toBeCapturedBy(context.wampa);
+
+                expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine]);
+                expect(context.player2).toHavePassAbilityButton();
+                context.player2.clickCard(context.greenSquadronAwing);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.greenSquadronAwing).toBeCapturedBy(context.wampa);
             });
 
-            // it('', function () {
-            //     const { context } = contextRef;
-            //     context.player2.clickCard(context.noGloryOnlyResults);
-            //     context.player2.clickCard(context.fortuneAndGlory);
-            //
-            //     expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: A friendly unit captures a non-leader unit');
-            //     context.player1.clickPrompt('Trigger');
-            //
-            //     expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine]);
-            //     context.player1.clickCard(context.greenSquadronAwing);
-            //
-            //     expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.awing]);
-            //     context.player1.clickCard(context.wampa);
-            //
-            //     expect(context.player1).toBeActivePlayer();
-            //     expect(context.wampa).toBeCapturedBy(context.greenSquadronAwing);
-            // });
+            it('', function () {
+                const { context } = contextRef;
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.fortuneAndGlory);
+
+                expect(context.player2).toHavePrompt('Collect Bounty: A friendly unit captures a non-leader unit');
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.awing, context.chewbacca]);
+                expect(context.player2).toHavePassAbilityButton();
+                context.player2.clickPrompt('Pass');
+
+                expect(context.player1).toBeActivePlayer();
+
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+
+                expect(context.awing).toBeInZone('spaceArena');
+                expect(context.wampa).toBeInZone('groundArena');
+            });
+
+            it('', function () {
+                const { context } = contextRef;
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.fortuneAndGlory);
+
+                expect(context.player2).toHavePrompt('Collect Bounty: A friendly unit captures a non-leader unit');
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.awing, context.chewbacca]);
+                expect(context.player2).toHavePassAbilityButton();
+                context.player2.clickCard(context.wampa);
+
+                expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine]);
+                expect(context.player2).toHavePassAbilityButton();
+                context.player2.clickPrompt('Pass');
+
+                expect(context.player1).toBeActivePlayer();
+
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+
+                expect(context.awing).toBeInZone('spaceArena');
+                expect(context.wampa).toBeInZone('groundArena');
+            });
+
+            it('', function () {
+                const { context } = contextRef;
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.fortuneAndGlory);
+
+                expect(context.player1).toHavePrompt('Collect Bounty: A friendly unit captures a non-leader unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine]);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.awing]);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.wampa).toBeCapturedBy(context.greenSquadronAwing);
+            });
         });
     });
 });

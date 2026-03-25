@@ -35,7 +35,7 @@ export default class FortuneAndGloryHondosLuxuryYacht extends NonLeaderUnitCard 
                     dependsOn: 'friendlyUnit',
                     controller: RelativePlayer.Opponent,
                     zoneFilter: WildcardZoneName.AnyArena,
-                    cardTypeFilter: WildcardCardType.NonUnit,
+                    cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     immediateEffect: abilityHelper.immediateEffects.capture((context) => ({
                         captor: context.targets.friendlyUnit
                     }))
