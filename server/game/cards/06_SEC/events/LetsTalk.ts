@@ -1,6 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import * as Contract from '../../../core/utils/Contract';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { Contract } from '../../../core/utils/Contract';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 import { ZoneName } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';

@@ -3,9 +3,9 @@ import type { FormatMessage } from '../../core/chat/GameChat';
 import { Duration, EffectName } from '../../core/Constants';
 import type { ILastingEffectPropertiesBase } from '../../core/gameSystem/LastingEffectPropertiesBase';
 import type { IOngoingCardOrPlayerEffect, IOngoingCardOrPlayerEffectGenerator, IOngoingCardOrPlayerEffectProps } from '../../Interfaces';
-import * as ChatHelpers from '../../core/chat/ChatHelpers';
-import * as Contract from '../../core/utils/Contract';
-import * as Helpers from '../../core/utils/Helpers';
+import { ChatHelpers } from '../../core/chat/ChatHelpers';
+import { Contract } from '../../core/utils/Contract';
+import { Helpers } from '../../core/utils/Helpers';
 import type { GameSystem, IGameSystemProperties } from '../../core/gameSystem/GameSystem';
 
 type Flatten<A> = A extends readonly (infer T)[] ? T : A;

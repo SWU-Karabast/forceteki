@@ -4,7 +4,7 @@ import { EventName } from '../Constants';
 import type { Game } from '../Game';
 import type { IExhaustUnitsCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode, CostAdjustType } from './CostAdjuster';
-import * as Contract from '../utils/Contract.js';
+import { Contract } from '../utils/Contract.js';
 import type { IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 import { TargetedCostAdjuster } from './TargetedCostAdjuster';

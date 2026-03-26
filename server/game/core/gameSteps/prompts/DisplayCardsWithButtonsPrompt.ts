@@ -1,7 +1,7 @@
 import type { Card } from '../../card/Card';
 import type { Game } from '../../Game';
 import type { Player } from '../../Player';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IDisplayCard } from '../PromptInterfaces';
 import { DisplayCardSelectionState, type IButton, type IDisplayCardsWithButtonsPromptProperties, SelectCardMode } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';

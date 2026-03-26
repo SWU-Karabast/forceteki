@@ -7,7 +7,7 @@ import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { ITargetResult } from '../ability/abilityTargets/TargetResolver.js';
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { Player } from '../Player.js';
-import * as Helpers from '../utils/Helpers.js';
+import { Helpers } from '../utils/Helpers.js';
 
 export interface IPassAbilityHandler {
     buttonText: string;

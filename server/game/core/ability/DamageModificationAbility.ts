@@ -2,7 +2,7 @@ import { DamageModificationSystem } from '../../gameSystems/DamageModificationSy
 import type { IDamageModificationAbilityProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
-import * as EnumHelpers from '../utils/EnumHelpers';
+import { EnumHelpers } from '../utils/EnumHelpers';
 import ReplacementAbilityBase from './ReplacementAbilityBase';
 import { registerState } from '../GameObjectUtils';
 

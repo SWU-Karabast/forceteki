@@ -1,4 +1,4 @@
-const Contract = require('../../server/game/core/utils/Contract');
+const { Contract } = require('../../server/game/core/utils/Contract');
 const { SwuGameFormat } = require('../../server/game/core/Constants.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');

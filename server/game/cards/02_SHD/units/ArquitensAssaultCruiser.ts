@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class ArquitensAssaultCruiser extends NonLeaderUnitCard {
     protected override getImplementationId() {
