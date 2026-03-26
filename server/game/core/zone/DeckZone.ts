@@ -10,6 +10,7 @@ import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type { Game } from '../Game';
 import type { IRandomness } from '../Randomness';
+import type { IStateArray } from '../GameObjectUtils';
 import { registerState, stateRefArray } from '../GameObjectUtils';
 
 @registerState()
@@ -19,10 +20,10 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
     public override readonly name: ZoneName.Deck;
 
     @stateRefArray(false)
-    private accessor _deck: IPlayableCard[] = [];
+    private accessor _deck: IStateArray<IPlayableCard> = [];
 
     @stateRefArray(false)
-    private accessor _searchingCards: IPlayableCard[] = [];
+    private accessor _searchingCards: IStateArray<IPlayableCard> = [];
 
     public override get cards(): IPlayableCard[] {
         return this._deck.concat(this._searchingCards);
