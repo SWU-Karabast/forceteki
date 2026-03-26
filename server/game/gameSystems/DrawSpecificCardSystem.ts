@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EffectName, EventName, WildcardCardType, ZoneName } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
-import * as Helpers from '../core/utils/Helpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem';
 

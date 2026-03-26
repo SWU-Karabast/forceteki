@@ -1,5 +1,5 @@
 import type { GameObjectBase, IGameObjectBase } from './GameObjectBase';
-import * as Contract from './utils/Contract';
+import { Contract } from './utils/Contract';
 
 // @ts-expect-error Symbol.metadata is not yet a standard.
 Symbol.metadata ??= Symbol.for('Symbol.metadata');

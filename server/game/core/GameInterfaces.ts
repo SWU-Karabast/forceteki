@@ -9,7 +9,7 @@ import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
 import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
 import type { UndoMode } from './snapshot/SnapshotManager';
-import * as Contract from './utils/Contract';
+import { Contract } from './utils/Contract';
 
 export interface GameConfiguration {
     id: string;

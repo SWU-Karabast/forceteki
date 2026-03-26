@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { DeployType, EventName, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import { GameEvent } from '../core/event/GameEvent';
 import type { ILeaderUnitCard } from '../core/card/LeaderUnitCard';
 

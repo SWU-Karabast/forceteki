@@ -6,7 +6,7 @@ import { RelativePlayer } from '../core/Constants';
 import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { IInPlayCard, InPlayCard } from '../core/card/baseClasses/InPlayCard';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {

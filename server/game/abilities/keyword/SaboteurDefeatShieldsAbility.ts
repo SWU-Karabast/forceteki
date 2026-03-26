@@ -4,7 +4,7 @@ import type { Attack } from '../../core/attack/Attack';
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
-import * as Contract from '../../core/utils/Contract';
+import { Contract } from '../../core/utils/Contract';
 import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 

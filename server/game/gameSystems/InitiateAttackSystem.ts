@@ -3,7 +3,7 @@ import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { IAttackProperties } from './AttackStepsSystem';
 import { MetaEventName } from '../core/Constants';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
