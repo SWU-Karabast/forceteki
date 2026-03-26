@@ -123,7 +123,9 @@ export class SwuForgeHandler {
     }
 
     private toCardKey(setId: { set: string; number: number } | undefined): string | null {
-        if (!setId) return null;
+        if (!setId) {
+            return null;
+        }
         return `${setId.set}_${setId.number}`;
     }
 
@@ -137,7 +139,9 @@ export class SwuForgeHandler {
                 continue;
             }
             const cardKey = this.toCardKey(card.setId);
-            if (!cardKey) continue;
+            if (!cardKey) {
+                continue;
+            }
 
             trackingIdToCardKey.set(card.trackingId, cardKey);
             if (!cardResultsByCardKey[cardKey]) {
@@ -152,9 +156,13 @@ export class SwuForgeHandler {
         }
 
         cardMetrics.forEach((cardMetric) => {
-            if (cardMetric.player !== player.trackingId) return;
+            if (cardMetric.player !== player.trackingId) {
+                return;
+            }
             const cardKey = trackingIdToCardKey.get(cardMetric.card);
-            if (!cardKey || !cardResultsByCardKey[cardKey]) return;
+            if (!cardKey || !cardResultsByCardKey[cardKey]) {
+                return;
+            }
 
             const cardResult = cardResultsByCardKey[cardKey];
             switch (cardMetric.metric) {
@@ -239,7 +247,7 @@ export class SwuForgeHandler {
      * @param userId
      * @returns Promise that resolves to a new IToken, or null if refresh failed
      */
-    public async refreshTokensAsync(refreshToken: string, userId?: string): Promise<IToken> {
+    public async refreshTokensAsync(refreshToken: string, _userId?: string): Promise<IToken> {
         try {
             if (!this.clientId || !this.clientSecret) {
                 logger.warn('SwuForgeHandler: Cannot refresh token - OAuth credentials not configured');
