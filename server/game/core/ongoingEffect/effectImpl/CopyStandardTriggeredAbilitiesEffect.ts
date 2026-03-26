@@ -1,5 +1,5 @@
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { Card } from '../../card/Card';
 import type { FormatMessage } from '../../chat/GameChat';
 import { StandardTriggeredAbilityType } from '../../Constants';
