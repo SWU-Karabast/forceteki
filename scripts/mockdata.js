@@ -306,6 +306,8 @@ const mockCards = [
     buildMockCard({
         title: 'Abandoned the Order',
         cost: 4,
+        hp: 0,
+        power: 0,
         upgradePower: 1,
         upgradeHp: 1,
         hasNonKeywordAbility: true,
