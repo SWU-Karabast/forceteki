@@ -281,6 +281,7 @@ AbilityHelper.immediateEffects.ready()
 AbilityHelper.immediateEffects.drawCard({ amount: 1 })
 AbilityHelper.immediateEffects.giveShield()
 AbilityHelper.immediateEffects.playCardFromHand()
+AbilityHelper.immediateEffects.returnToHand()
 AbilityHelper.immediateEffects.cardLastingEffect({ ... })
 AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: ... })
 AbilityHelper.immediateEffects.useWhenPlayedAbility()
@@ -377,6 +378,104 @@ myNewEffect: (param: ParamType) =>
 
 ## Patterns & Recipes
 
+### State Watchers
+
+State watchers track game state changes over time (e.g., cards played this phase, units defeated this round). Register them in `setupStateWatchers` and store as instance properties for use in any ability:
+
+```typescript
+import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+
+private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+
+protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper) {
+    this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
+}
+```
+
+Once registered, the watcher is available in any ability callback — cost reduction, triggered abilities, conditions, etc. Browse `AbilityHelper.stateWatchers` and `server/game/stateWatchers/` for available watchers.
+
+See also: `VanguardAce`
+
+### Cost Reduction (Decrease Cost Abilities)
+
+Use `addDecreaseCostAbility` to reduce a card's own play cost. The `amount` can be a static number or a dynamic function `(card, player) => number`:
+
+```typescript
+registrar.addDecreaseCostAbility({
+    title: 'Description of cost reduction',
+    amount: 2,                              // Static reduction
+    condition: (context) => /* bool */,      // Optional: only active when true
+});
+
+registrar.addDecreaseCostAbility({
+    title: 'Description of cost reduction',
+    amount: (_card, player) => /* number */, // Dynamic reduction based on game state
+});
+```
+
+See also: `ResoluteUnderAnakinsCommand`
+
+### Lasting Effects (Scoped by Duration)
+
+Lasting effects apply an ongoing effect for a limited duration. Each variant scopes to a different timeframe:
+
+| Immediate Effect | Duration | Typical Use |
+|---|---|---|
+| `forThisPhaseCardEffect` | Until end of phase | Stat buffs/debuffs, granting keywords |
+| `forThisRoundCardEffect` | Until end of round | Preventing ready, removing abilities |
+| `forThisAttackCardEffect` | Until end of attack | Combat-only stat modifications |
+| `forThisPhasePlayerEffect` | Until end of phase | Player-level effects (e.g., cost reduction) |
+
+**Card-targeting lasting effects** (`forThisPhaseCardEffect`, `forThisRoundCardEffect`, `forThisAttackCardEffect`) can be used in two forms:
+
+Static form — target comes from the enclosing `targetResolver`:
+```typescript
+targetResolver: {
+    cardTypeFilter: WildcardCardType.Unit,
+    controller: RelativePlayer.Opponent,
+    immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+        effect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 })
+    })
+}
+```
+
+Callback form — target specified explicitly:
+```typescript
+immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+    effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
+    target: context.game.getArenaUnits({ otherThan: context.source })
+}))
+```
+
+**Player-targeting lasting effects** (`forThisPhasePlayerEffect`) apply to a player, not a card. When no `target` is specified, it defaults to the controller:
+```typescript
+immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+    effect: AbilityHelper.ongoingEffects.decreaseCost({
+        cardTypeFilter: WildcardCardType.Unit,
+        amount: 1
+    })
+})
+```
+
+HP modifications via lasting effects are purely temporary — stats fully restore when the duration ends. Units reduced to 0 HP are defeated immediately.
+
+See also: `Disarm`, `RallyingCry`, `NoGoodToMeDead`, `SithTrooper`, `GNKPowerDroid`
+
+### Targeting Multiple Units
+
+To apply an effect to many units at once, use the callback form of a lasting effect with an explicit `target` array. Gather targets with `getArenaUnits()`:
+
+| Call | Scope |
+|---|---|
+| `context.player.getArenaUnits()` | All friendly units |
+| `context.player.getArenaUnits({ trait: Trait.X })` | Friendly units with a trait |
+| `context.player.opponent.getArenaUnits()` | All enemy units |
+| `context.game.getArenaUnits()` | All units (both players) |
+| `context.game.getArenaUnits({ otherThan: context.source })` | All units except source |
+
+This pattern works with any lasting effect variant.
+
 ### Copying Abilities from Another Card
 
 Two existing mechanisms:
@@ -440,3 +539,5 @@ registrar.addWhenPlayedAbility({
 5. **Card data JSON**: Card data files live in `test/json/Card/` as `{internalName}.json`. These are generated by `npm run get-cards` — do not create or edit them manually.
 
 6. **Test requirement**: Every new card must have at least one test file. See the card-tests instructions for testing conventions.
+
+7. **Mock card data**: For unreleased cards, add entries to `scripts/mockdata.js` using `buildMockCard()`, bump the version in `card-data-version.txt`, and run `npm run get-cards` to regenerate JSON. Upgrade mocks must set `hp: 0` and `power: 0` (not omitted) — the `UpgradeCard` constructor asserts these are non-null.

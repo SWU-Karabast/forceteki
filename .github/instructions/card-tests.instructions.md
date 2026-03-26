@@ -193,6 +193,23 @@ expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
 context.player1.clickPrompt('Choose nothing');  // Decline to select
 ```
 
+### Optional When Played with Target Resolver
+
+When a When Played ability has `optional: true` **and** uses a `targetResolver`, there is no separate Trigger/Pass prompt. Instead, the player goes straight to target selection with a "Pass" button to decline:
+
+```typescript
+// Play the card
+context.player1.clickCard(context.someCard);
+
+// Goes directly to target selection — Pass to decline
+expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.consularSecurityForce]);
+context.player1.clickCard(context.wampa);           // Select a target
+// OR
+context.player1.clickPrompt('Pass');                 // Decline the ability
+```
+
+This differs from optional triggered abilities without a target resolver, which show a Trigger/Pass prompt via `toHavePassAbilityPrompt()`.
+
 ### Multi-Player Target Selection ("Each player chooses...")
 
 When an ability uses multiple `targetResolvers` with different `choosingPlayer` values (e.g., `selfChoice` and `opponentChoice`), all targets are evaluated together before any are resolved. This means:
@@ -217,6 +234,15 @@ context.player2.clickCard(context.atst);
 ```typescript
 context.player1.clickCard(context.attacker);
 context.player1.clickCard(context.defender);  // Or context.p2Base for base attack
+```
+
+**Important**: Clicking an in-play unit in the action phase initiates an **attack**, not a play. To test an opponent playing a card, the card must be in their `hand`.
+
+### Selectability Assertions
+
+```typescript
+// Assert a card is not selectable by a player (e.g., unplayable upgrade with no valid targets)
+expect(context.card).not.toBeSelectableBy(context.player1);
 ```
 
 ## Important Test Considerations
