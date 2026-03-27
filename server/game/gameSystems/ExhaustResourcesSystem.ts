@@ -3,8 +3,8 @@ import { EventName, GameStateChangeRequired } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { TextHelper } from '../core/utils/TextHelper';
 
 export interface IExhaustResourcesProperties extends IPlayerTargetSystemProperties {

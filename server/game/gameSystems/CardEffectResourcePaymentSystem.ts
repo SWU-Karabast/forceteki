@@ -6,7 +6,7 @@ import type { Player } from '../core/Player';
 import { CardEffectResourcePayment } from '../costs/CardEffectResourcePayment';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ICostResult } from '../core/cost/ICost';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 import { TextHelper } from '../core/utils/TextHelper';
 
 export interface ICardEffectResourcePaymentProperties extends IPlayerTargetSystemProperties {

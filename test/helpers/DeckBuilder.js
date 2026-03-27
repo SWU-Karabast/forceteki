@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
-const Contract = require('../../server/game/core/utils/Contract.js');
+const { Contract } = require('../../server/game/core/utils/Contract.js');
 const { setCodeToString } = require('../../server/Util.js');
 const { Deck } = require('../../server/utils/deck/Deck.js');
 

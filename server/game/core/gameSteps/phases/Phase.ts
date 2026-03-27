@@ -5,7 +5,7 @@ import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
 import { SimpleStep } from '../SimpleStep';
 import type { IStep } from '../IStep';
 import { TriggerHandlingMode } from '../../event/EventWindow';
-import * as Helpers from '../../utils/Helpers';
+import { Helpers } from '../../utils/Helpers';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 import type { FormatMessage } from '../../chat/GameChat';

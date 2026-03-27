@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import * as Contract from '../../game/core/utils/Contract';
+import { Contract } from '../../game/core/utils/Contract';
 import type { ITokenCardsData } from './CardDataGetter';
 import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';

@@ -3,7 +3,7 @@ import { EventName, GameStateChangeRequired } from '../core/Constants';
 import type { Player } from '../core/Player.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
-import * as ChatHelpers from '../core/chat/ChatHelpers.js';
+import { ChatHelpers } from '../core/chat/ChatHelpers.js';
 
 export interface IReadyResourcesSystemProperties extends IPlayerTargetSystemProperties {
     amount: number;

@@ -2,7 +2,7 @@ import type { IDamageModificationAbilityProps, IReplacementEffectAbilityProps, I
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import type { Card, CardConstructor } from '../Card';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import DamageModificationAbility from '../../ability/DamageModificationAbility';
 import { registerStateBase } from '../../GameObjectUtils';
 

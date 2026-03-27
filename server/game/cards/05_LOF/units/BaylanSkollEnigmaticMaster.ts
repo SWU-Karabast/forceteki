@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class BaylanSkollEnigmaticMaster extends NonLeaderUnitCard {
     protected override getImplementationId() {

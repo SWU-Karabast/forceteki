@@ -1,7 +1,7 @@
 import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
 import { LocalFolderCardDataGetter } from './LocalFolderCardDataGetter';
-import * as Contract from '../../game/core/utils/Contract';
+import { Contract } from '../../game/core/utils/Contract';
 import fs from 'fs';
 import path from 'path';
 import type { ISynchronousCardDataGetter } from './ISynchronousCardDataGetter';

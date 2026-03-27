@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { Card } from '../../../core/card/Card';
-import * as Contract from '../../../core/utils/Contract';
+import { Contract } from '../../../core/utils/Contract';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class L337RadicalInstigator extends NonLeaderUnitCard {

@@ -4,10 +4,10 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DamageSystem } from './DamageSystem';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { GameEvent } from '../core/event/GameEvent';
-import * as Contract from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
+import { Contract } from '../core/utils/Contract';
+import { Helpers } from '../core/utils/Helpers';
 import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {

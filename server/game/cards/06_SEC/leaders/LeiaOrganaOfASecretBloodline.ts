@@ -3,7 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, Conjunction, EventName, WildcardCardType } from '../../../core/Constants';
 import { DiscloseMode } from '../../../gameSystems/DiscloseAspectsSystem';
-import * as Contract from '../../../core/utils/Contract';
+import { Contract } from '../../../core/utils/Contract';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import { TextHelper } from '../../../core/utils/TextHelper';
