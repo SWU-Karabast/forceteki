@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, Trait } from '../../../core/Constants';
+import { Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class DarthMalakCovetousApprentice extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -18,7 +18,7 @@ export default class DarthMalakCovetousApprentice extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaCard({
                     trait: Trait.Sith,
-                    type: CardType.LeaderUnit
+                    type: WildcardCardType.LeaderUnit
                 }),
                 onTrue: AbilityHelper.immediateEffects.ready()
             })

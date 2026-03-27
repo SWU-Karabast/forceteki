@@ -200,6 +200,80 @@ const mockCards = [
         internalName: 'coleman-trebor#jedi-rescuer',
     }),
     buildMockCard({
+        title: '501st Veteran',
+        cost: 2,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Aggression'],
+        types: ['unit'],
+        traits: ['republic', 'clone', 'trooper'],
+        keywords: ['grit', 'raid 1'],
+        setId: {
+            set: 'TS26',
+            number: 20
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: '501st-veteran',
+    }),
+    buildMockCard({
+        title: 'Take Cover',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'TS26',
+            number: 47
+        },
+        unique: false,
+        internalName: 'take-cover',
+    }),
+    buildMockCard({
+        title: 'Take Charge',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Command'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'TS26',
+            number: 60
+        },
+        unique: false,
+        internalName: 'take-charge',
+    }),
+    buildMockCard({
+        title: 'Take Action',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'TS26',
+            number: 71
+        },
+        unique: false,
+        internalName: 'take-action',
+    }),
+    buildMockCard({
+        title: 'Take Aim',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'TS26',
+            number: 83
+        },
+        unique: false,
+        internalName: 'take-aim',
+    }),
+    buildMockCard({
         title: 'Remove the Chip',
         cost: 2,
         hasNonKeywordAbility: true,
