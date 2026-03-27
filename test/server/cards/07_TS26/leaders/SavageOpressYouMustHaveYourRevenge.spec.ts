@@ -14,8 +14,11 @@ describe('Savage Opress, You Must Have Your Revenge', function() {
                 });
                 const { context } = contextRef;
 
+                // Only highest power unit gets Overwhelm
                 expect(context.echoBaseDefender.hasSomeKeyword('overwhelm')).toBeTrue();
                 expect(context.battlefieldMarine.hasSomeKeyword('overwhelm')).toBeFalse();
+
+                // Overwhelm not given to opponent's units
                 expect(context.reinforcementWalker.hasSomeKeyword('overwhelm')).toBeFalse();
                 expect(context.craftySmuggler.hasSomeKeyword('overwhelm')).toBeFalse();
 
@@ -90,10 +93,13 @@ describe('Savage Opress, You Must Have Your Revenge', function() {
                 });
                 const { context } = contextRef;
 
+                // All friendly units should gain Overwhelm
                 expect(context.echoBaseDefender.hasSomeKeyword('overwhelm')).toBeTrue();
                 expect(context.escortSkiff.hasSomeKeyword('overwhelm')).toBeTrue();
                 expect(context.battlefieldMarine.hasSomeKeyword('overwhelm')).toBeTrue();
                 expect(context.cartelSpacer.hasSomeKeyword('overwhelm')).toBeTrue();
+
+                // Opponent's units should not gain Overwhelm
                 expect(context.reinforcementWalker.hasSomeKeyword('overwhelm')).toBeFalse();
                 expect(context.craftySmuggler.hasSomeKeyword('overwhelm')).toBeFalse();
                 expect(context.secretiveSage.hasSomeKeyword('overwhelm')).toBeFalse();
