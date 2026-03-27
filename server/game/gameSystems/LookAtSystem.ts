@@ -3,8 +3,8 @@ import { EventName, ZoneName } from '../core/Constants';
 import type { Player } from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
 import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { FormatMessage } from '../core/chat/GameChat';
 
 export type ILookAtProperties = IViewCardProperties;

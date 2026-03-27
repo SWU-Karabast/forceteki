@@ -1,6 +1,6 @@
 import type { Game } from '../Game';
 import type { Card } from '../card/Card';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import { AbilityRestriction, EffectName, KeywordName } from '../Constants';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';

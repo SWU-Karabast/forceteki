@@ -11,8 +11,8 @@ import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { ICostAdjustmentResolutionProperties, ICostAdjustResult, ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage, ResourceCostType } from './CostInterfaces';
 import type { ICostResult } from './ICost';
-import * as Contract from '../utils/Contract';
-import * as ChatHelpers from '../chat/ChatHelpers';
+import { Contract } from '../utils/Contract';
+import { ChatHelpers } from '../chat/ChatHelpers';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
 import type { FormatMessage } from '../chat/GameChat';
 

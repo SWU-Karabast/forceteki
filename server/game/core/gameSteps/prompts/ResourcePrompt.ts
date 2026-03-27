@@ -2,7 +2,7 @@ import type { Card } from '../../card/Card';
 import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
 import { PromptType, SelectCardMode } from '../PromptInterfaces';
 import { GameCardMetric } from '../../../../gameStatistics/GameStatisticsTracker';

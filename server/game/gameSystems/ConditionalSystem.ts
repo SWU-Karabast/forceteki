@@ -4,7 +4,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import { NoActionSystem } from './NoActionSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { Player } from '../core/Player';
 import { StaticAbilityHelper } from '../AbilityHelper';
 

@@ -1,6 +1,6 @@
 import type { GameObject } from '../GameObject';
 import type { ISerializedMessage } from '../../Interfaces';
-import * as ChatHelpers from './ChatHelpers';
+import { ChatHelpers } from './ChatHelpers';
 
 export type MsgArg = string | number | FormatMessage | GameObject | MsgArg[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
 export interface FormatMessage {

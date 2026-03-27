@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, NamedAction, TargetMode, WildcardCardType } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SyrilKarnWhereIsHe extends NonLeaderUnitCard {

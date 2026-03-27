@@ -17,7 +17,7 @@ import type { IBetweenVariableXYCardSelectorProperties } from './BetweenVariable
 import { BetweenVariableXYCardSelector } from './BetweenVariableXYCardSelector';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { BaseCardSelector } from './BaseCardSelector';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { ICardTargetResolver } from '../../TargetInterfaces';
 
 export function create<TContext extends AbilityContext>(

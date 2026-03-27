@@ -4,7 +4,7 @@ import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '
 import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
-import * as Contract from '../../utils/Contract.js';
+import { Contract } from '../../utils/Contract.js';
 
 /**
  * @deprecated This is implemented but not currently used or tested

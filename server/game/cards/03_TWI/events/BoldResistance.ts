@@ -3,7 +3,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
-import * as Helpers from '../../../core/utils/Helpers';
+import { Helpers } from '../../../core/utils/Helpers';
 
 export default class BoldResistance extends EventCard {
     protected override getImplementationId() {

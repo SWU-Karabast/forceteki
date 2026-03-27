@@ -5,7 +5,7 @@ import type { IActionAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type { Game } from '../Game.js';
 import type { ITargetResult } from './abilityTargets/TargetResolver.js';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 
 import { registerState, registerStateBase } from '../GameObjectUtils';
 

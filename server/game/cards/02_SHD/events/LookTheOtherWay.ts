@@ -1,5 +1,5 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NamedAction, TargetMode, WildcardCardType } from '../../../core/Constants';

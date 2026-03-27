@@ -1,7 +1,7 @@
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { IStep } from './IStep';
 import type { IStatefulPromptResults } from './PromptInterfaces';
 

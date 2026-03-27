@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { TargetMode } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class Watchful extends UpgradeCard {
     protected override getImplementationId () {
