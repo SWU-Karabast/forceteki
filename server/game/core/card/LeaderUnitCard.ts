@@ -58,7 +58,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
         if (this.canBeUpgrade && this.isAttached()) {
             return CardType.LeaderUpgrade;
         }
-        return this._deployed ? CardType.LeaderUnit : CardType.Leader;
+        return this._deployed ? CardType.NonTokenLeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: ICardDataJson) {
