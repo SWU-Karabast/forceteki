@@ -2,7 +2,7 @@ import type { Player } from '../Player';
 import { WithPrintedHp } from './propertyMixins/PrintedHp';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityType, CardType, ZoneName, WildcardRelativePlayer, StandardTriggeredAbilityType } from '../Constants';
 import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';

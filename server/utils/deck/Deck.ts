@@ -1,7 +1,7 @@
 import type { Card } from '../../game/core/card/Card';
 import type { Player } from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
-import * as Contract from '../../game/core/utils/Contract';
+import { Contract } from '../../game/core/utils/Contract';
 import type { ISwuDbFormatCardEntry, IDecklistInternal, IInternalCardEntry, ILeaderBaseInternal, IDeckListForLoading, ISwuDbFormatDecklist } from './DeckInterfaces';
 import { DeckSource } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';

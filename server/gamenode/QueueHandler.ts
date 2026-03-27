@@ -1,7 +1,7 @@
 import type Socket from '../socket';
 import { logger } from '../logger';
 import type { User } from '../utils/user/User';
-import * as Contract from '../game/core/utils/Contract';
+import { Contract } from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { CardPool } from '../game/core/Constants';
 import { GamesToWinMode } from '../game/core/Constants';

@@ -3,7 +3,7 @@ import type { Card } from '../core/card/Card';
 import { DeployType } from '../core/Constants';
 import { CardType, EventName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import { GameEvent } from '../core/event/GameEvent';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

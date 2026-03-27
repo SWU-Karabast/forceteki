@@ -5,14 +5,14 @@ import { GameStateChangeRequired } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
-import * as Helpers from '../core/utils/Helpers';
+import { type DistributiveOmit, Helpers } from '../core/utils/Helpers';
 import type { Player } from '../core/Player';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import type { ICardTargetResolver } from '../TargetInterfaces';
 import type { MsgArg } from '../core/chat/GameChat';
 
 export type ISelectCardProperties<TContext extends AbilityContext = AbilityContext> = ICardTargetSystemProperties
-  & Helpers.DistributiveOmit<ICardTargetResolver<TContext>, 'immediateEffect'>
+  & DistributiveOmit<ICardTargetResolver<TContext>, 'immediateEffect'>
   & Required<Pick<ICardTargetResolver<TContext>, 'immediateEffect'>>
   & {
       player?: RelativePlayer;

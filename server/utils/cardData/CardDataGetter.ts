@@ -1,6 +1,6 @@
 import type { TokenName } from '../../game/core/Constants';
 import { TokenCardName, TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
-import * as Contract from '../../game/core/utils/Contract';
+import { Contract } from '../../game/core/utils/Contract';
 import type { ICardDataJson, ICardMap, ICardMapEntry, ICardMapJson } from './CardDataInterfaces';
 
 export type ITokenCardsData = {

@@ -2,7 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
 import type { Game } from '../Game';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties } from './CostAdjuster';
 import { CostAdjuster, CostAdjustType } from './CostAdjuster';
 import type { ICostAdjustmentResolutionProperties, ICostAdjustTriggerResult } from './CostInterfaces';

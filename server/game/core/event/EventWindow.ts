@@ -4,7 +4,7 @@ import { ReplacementEffectWindow } from '../gameSteps/abilityWindow/ReplacementE
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 
 export enum TriggerHandlingMode {
 

@@ -6,7 +6,7 @@ import type { Game } from '../game/core/Game';
 import { GameObjectBase } from '../game/core/GameObjectBase';
 import { registerState, stateRefArray } from '../game/core/GameObjectUtils';
 import type { Player } from '../game/core/Player';
-import * as Helpers from '../game/core/utils/Helpers';
+import { Helpers } from '../game/core/utils/Helpers';
 
 export enum GameCardMetric {
     Played,

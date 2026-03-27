@@ -5,7 +5,7 @@ import type { IUnitCard } from '../../core/card/propertyMixins/UnitProperties';
 import { EventName, KeywordName, RelativePlayer, SubStepCheck, WildcardZoneName } from '../../core/Constants';
 import { GameEvent } from '../../core/event/GameEvent';
 import type { Game } from '../../core/Game';
-import * as Contract from '../../core/utils/Contract';
+import { Contract } from '../../core/utils/Contract';
 import type { ITriggeredAbilityBaseProps } from '../../Interfaces';
 
 import { registerState } from '../../core/GameObjectUtils';

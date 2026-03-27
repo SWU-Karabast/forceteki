@@ -2,7 +2,7 @@ import type { ICardCanChangeControllers } from '../../../core/card/CardInterface
 import { TokenCard } from '../../../core/card/TokenCards';
 import { ZoneName } from '../../../core/Constants';
 import type { Player } from '../../../core/Player';
-import * as Contract from '../../../core/utils/Contract';
+import { Contract } from '../../../core/utils/Contract';
 
 export default class CreditToken extends TokenCard implements ICardCanChangeControllers {
     protected override getImplementationId() {

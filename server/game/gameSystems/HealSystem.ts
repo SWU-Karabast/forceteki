@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 

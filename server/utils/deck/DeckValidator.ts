@@ -5,8 +5,8 @@ import { CardType, CardPool, SwuGameFormat } from '../../game/core/Constants';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
-import * as Contract from '../../game/core/utils/Contract';
-import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
+import { Contract } from '../../game/core/utils/Contract';
+import { EnumHelpers } from '../../game/core/utils/EnumHelpers';
 import { formatRules, nonRotatingSets, rotationBlocks, SwuSetId } from './SwuSetData';
 
 const maxCopiesOfCards = new Map([

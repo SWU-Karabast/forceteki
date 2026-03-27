@@ -273,6 +273,20 @@ const mockCards = [
         unique: false,
         internalName: 'take-aim',
     }),
+    buildMockCard({
+        title: 'Remove the Chip',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['event'],
+        traits: ['modification'],
+        setId: {
+            set: 'TS26',
+            number: 69
+        },
+        unique: false,
+        internalName: 'remove-the-chip',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

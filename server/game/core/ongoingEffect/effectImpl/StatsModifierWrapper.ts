@@ -1,7 +1,7 @@
 import type { Card } from '../../card/Card';
 import type { CardType } from '../../Constants';
 import type { StatsModifier } from './StatsModifier';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { OngoingCardEffect } from '../OngoingCardEffect';
 
 /**

@@ -1,7 +1,7 @@
 import { logger } from '../../logger';
 import type { Game } from '../../game/core/Game';
 import type { Player } from '../../game/core/Player';
-import * as Contract from '../../game/core/utils/Contract';
+import { Contract } from '../../game/core/utils/Contract';
 import type { IDecklistInternal } from '../deck/DeckInterfaces';
 import { DeckSource } from '../deck/DeckInterfaces';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
