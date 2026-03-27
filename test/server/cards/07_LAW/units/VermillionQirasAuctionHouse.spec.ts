@@ -25,8 +25,8 @@ describe('Vermillion, Qi\'ra\'s Auction House', () => {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            const choosePlayerPrompt = (title: string, cost: number) => `Choose a player. That player may play ${title} for free. If they do, the other player creates ${cost} Credit tokens.`;
-            const playRevealedCardPrompt = (title: string, cost: number) => `Play ${title} for free. If you do, your opponent creates ${cost} Credit tokens.`;
+            const choosePlayerPrompt = (title, cost) => `Choose a player. That player may play ${title} for free. If they do, the other player creates ${cost} Credit tokens.`;
+            const playRevealedCardPrompt = (title, cost) => `Play ${title} for free. If you do, your opponent creates ${cost} Credit tokens.`;
 
             describe('Standard Cases', function() {
                 beforeEach(async function() {
