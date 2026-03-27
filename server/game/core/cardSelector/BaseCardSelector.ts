@@ -4,9 +4,9 @@ import type { CardTypeFilter, RelativePlayerFilter, TargetMode, ZoneFilter } fro
 import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, WildcardCardType, CardType } from '../Constants';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
-import * as EnumHelpers from '../utils/EnumHelpers';
-import * as Helpers from '../utils/Helpers';
+import { Contract } from '../utils/Contract';
+import { EnumHelpers } from '../utils/EnumHelpers';
+import { Helpers } from '../utils/Helpers';
 
 export interface IBaseCardSelectorProperties<TContext> {
     mode: Extract<TargetMode, TargetMode.AutoSingle | TargetMode.BetweenVariable | TargetMode.Exactly | TargetMode.ExactlyVariable | TargetMode.MaxStat | TargetMode.Single | TargetMode.Unlimited | TargetMode.UpTo | TargetMode.UpToVariable>;

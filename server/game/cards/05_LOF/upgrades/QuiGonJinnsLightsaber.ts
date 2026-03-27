@@ -3,7 +3,7 @@ import type { Card } from '../../../core/card/Card';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { TargetMode, Trait } from '../../../core/Constants';
-import * as Contract from '../../../core/utils/Contract';
+import { Contract } from '../../../core/utils/Contract';
 
 export default class QuiGonJinnsLightsaber extends UpgradeCard {
     protected override getImplementationId() {

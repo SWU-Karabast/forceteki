@@ -3,6 +3,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TheyHateThatShip extends EventCard {
     protected override getImplementationId() {
@@ -21,7 +22,7 @@ export default class TheyHateThatShip extends EventCard {
                 target: context.player.opponent
             })),
             then: {
-                title: 'Play a Vehicle unit from your hand. It costs 3 resources less',
+                title: `Play a Vehicle unit from your hand. It costs ${TextHelper.resource(3)} less`,
                 targetResolver: {
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,

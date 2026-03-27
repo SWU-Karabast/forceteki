@@ -3,6 +3,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { PhaseName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SneakAttack extends EventCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class SneakAttack extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Play a unit from your hand. It costs 3 less and enters play ready. At the start of the regroup phase, defeat it.',
+            title: `Play a unit from your hand. It costs ${TextHelper.resource(3)} less and enters play ready. At the start of the regroup phase, defeat it.`,
             cannotTargetFirst: true,
             targetResolver: {
                 zoneFilter: ZoneName.Hand,

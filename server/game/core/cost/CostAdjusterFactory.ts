@@ -1,6 +1,6 @@
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { ICostAdjusterProperties } from './CostAdjuster';
 import type { CostAdjuster } from './CostAdjuster';
 import { CostAdjustType } from './CostAdjuster';

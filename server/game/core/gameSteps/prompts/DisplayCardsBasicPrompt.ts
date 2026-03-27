@@ -3,7 +3,7 @@ import type { Card } from '../../card/Card';
 import type { Game } from '../../Game';
 import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IDisplayCard, IDisplayCardsBasicPromptProperties } from '../PromptInterfaces';
 import { DisplayCardSelectionState, type IButton } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';

@@ -5,6 +5,7 @@ import { PhaseName, RelativePlayer, WildcardCardType, ZoneName } from '../../../
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class UnnaturalLife extends EventCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
@@ -22,7 +23,7 @@ export default class UnnaturalLife extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Choose a unit to play that was defeated this phase from your discard pile. It costs 2 less and enters play ready.',
+            title: `Choose a unit to play that was defeated this phase from your discard pile. It costs ${TextHelper.resource(2)} less and enters play ready.`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Discard,

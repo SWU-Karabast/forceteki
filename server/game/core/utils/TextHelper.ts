@@ -1,5 +1,5 @@
 /* eslint-disable @stylistic/lines-around-comment */
-import * as Helpers from './Helpers';
+import { Helpers } from './Helpers';
 import { Aspect } from '../Constants';
 import type { Conjunction } from '../Constants';
 
@@ -23,6 +23,25 @@ export namespace TextHelper {
     export const Villainy = aspect(Aspect.Villainy);
     /** The display representation of the Heroism aspect, replaced by the icon on the client side */
     export const Heroism = aspect(Aspect.Heroism);
+
+    /**
+     * Returns the display representation of a resource amount. In test environments, this will return a string
+     * like "2 resources" for readability, but in production, it returns a token like `{resource:2}` which the
+     * client can replace with an icon.
+     *
+     * @example
+     * // In tests: "You may pay 2 resources"
+     * // Otherwise: "You may pay {resource:2}"
+     * const ex = `You may pay ${TextHelper.resource(2)}`;
+     *
+     * @param amount The amount of resources to display
+     * @returns A string representing the resource amount, either as plain text (in tests) or a replacement token
+     */
+    export function resource(amount: number): string {
+        return process.env.NODE_ENV === 'test'
+            ? `${amount} resource${amount !== 1 ? 's' : ''}`
+            : `{resource:${amount}}`;
+    }
 
     /**
      * Returns the display representation of an aspect name for use in string interpolation.

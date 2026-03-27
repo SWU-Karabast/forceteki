@@ -4,7 +4,7 @@ import { AbilityType } from '../Constants';
 import type { Game } from '../Game';
 import type { AbilityContext } from './AbilityContext';
 import { CardAbility } from './CardAbility';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import { registerState } from '../GameObjectUtils';
 
 @registerState()

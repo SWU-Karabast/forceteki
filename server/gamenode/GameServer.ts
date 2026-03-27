@@ -24,13 +24,13 @@ import * as env from '../env';
 import { requireEnvVars } from '../env';
 import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
-import * as Contract from '../game/core/utils/Contract';
+import { Contract } from '../game/core/utils/Contract';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
-import * as Helpers from '../game/core/utils/Helpers';
+import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { UserFactory } from '../utils/user/UserFactory';
@@ -38,7 +38,7 @@ import { DeckService } from '../utils/deck/DeckService';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
-import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
@@ -488,6 +488,61 @@ export class GameServer {
                 res.status(200).json({ linked: !!linked });
             } catch (err) {
                 logger.error('GameServer (swustatsLink) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swustats/decks', this.buildAuthMiddleware('swustatsDecks'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsDecks): Anonymous user ${user.getId()} is attempting to retrieve swustats decks`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustats decks'
+                    });
+                }
+
+                // Get query parameters
+                const limit = parseInt(req.query.limit as string) || 100;
+                const offset = parseInt(req.query.offset as string) || 0;
+
+                const decksData = await this.swuStatsHandler.fetchUserDecksAsync(user.getId(), this, {
+                    limit,
+                    offset
+                });
+
+                // Transform SWU Stats decks to our format
+                const transformedDecks = decksData.decks.map((deck) => ({
+                    id: deck.id,
+                    name: deck.name || 'Untitled Deck',
+                    description: deck.description || '',
+                    isFavorite: deck.is_favorite,
+                    createdAt: deck.created_at,
+                    updatedAt: deck.updated_at,
+                    deckLink: `https://swustats.net/TCGEngine/Decks/Deck.php?gameName=${deck.id}`,
+                }));
+
+                // Sort favorites to the top, then by name
+                transformedDecks.sort((a, b) => {
+                    if (a.isFavorite && !b.isFavorite) {
+                        return -1;
+                    }
+                    if (!a.isFavorite && b.isFavorite) {
+                        return 1;
+                    }
+                    const nameA = a.name || '';
+                    const nameB = b.name || '';
+                    return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+                });
+
+                return res.status(200).json({
+                    success: true,
+                    decks: transformedDecks,
+                    pagination: decksData.pagination,
+                });
+            } catch (err) {
+                logger.error('GameServer (swustatsDecks) Server Error: ', err);
                 next(err);
             }
         });

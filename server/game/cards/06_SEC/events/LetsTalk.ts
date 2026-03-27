@@ -1,6 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import * as Contract from '../../../core/utils/Contract';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { Contract } from '../../../core/utils/Contract';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 import { ZoneName } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
@@ -9,6 +9,7 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import { EventCard } from '../../../core/card/EventCard';
 import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class LetsTalk extends EventCard {
     private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
@@ -26,7 +27,7 @@ export default class LetsTalk extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: 'If a friendly unit left play this phase, this event costs 3 resources less to play',
+            title: `If a friendly unit left play this phase, this event costs ${TextHelper.resource(3)} less to play`,
             amount: 3,
             condition: (context) => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player })
         });

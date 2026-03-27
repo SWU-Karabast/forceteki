@@ -3,9 +3,10 @@ import { LeaderUnitCard } from '../../../../../server/game/core/card/LeaderUnitC
 import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../../../server/game/core/Constants';
 import { CostAdjustType } from '../../../../../server/game/core/cost/CostAdjuster';
 import type { StateWatcherRegistrar } from '../../../../../server/game/core/stateWatcher/StateWatcherRegistrar';
-import { setIntersection, setUnion } from '../../../../../server/game/core/utils/Helpers';
+import { Helpers } from '../../../../../server/game/core/utils/Helpers';
 import type { AttacksThisPhaseWatcher } from '../../../../../server/game/stateWatchers/AttacksThisPhaseWatcher';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
@@ -43,7 +44,7 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
                         const cardKeywords = new Set(card.keywords.map((keyword) => keyword.name));
                         const targetKeywords = new Set(context.targets.friendlyUnit.keywords.map((keyword) => keyword.name));
 
-                        return setIntersection(cardKeywords, targetKeywords).size > 0;
+                        return Helpers.setIntersection(cardKeywords, targetKeywords).size > 0;
                     },
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
@@ -56,7 +57,7 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'The next unit you play this phase costs 1 resource less if it shares a Keyword with a friendly unit.',
+            title: `The next unit you play this phase costs ${TextHelper.resource(1)} less if it shares a Keyword with a friendly unit.`,
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
@@ -66,10 +67,10 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
                         const inPlayKeywords = player.getArenaUnits()
                             .reduce((keywords, unit) => {
                                 const unitKeywords = new Set(unit.keywords.map((keyword) => keyword.name));
-                                return setUnion(keywords, unitKeywords);
+                                return Helpers.setUnion(keywords, unitKeywords);
                             }, new Set<string>());
 
-                        return setIntersection(cardKeywords, inPlayKeywords).size > 0 ? 1 : 0;
+                        return Helpers.setIntersection(cardKeywords, inPlayKeywords).size > 0 ? 1 : 0;
                     },
                 })
             })
