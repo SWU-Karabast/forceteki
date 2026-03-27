@@ -286,6 +286,8 @@ const mockCards = [
         },
         unique: false,
         internalName: 'remove-the-chip',
+    }),
+    buildMockCard({
         title: 'Tribunal',
         subtitle: 'Grave of the 332nd',
         cost: 10,
