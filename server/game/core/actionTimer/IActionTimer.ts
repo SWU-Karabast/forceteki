@@ -12,8 +12,11 @@ export type IActionTimerHandler = (updateTimerStatus?: (newStatus: PlayerTimeRem
 
 export interface IActionTimer {
     get isRunning(): boolean;
+    get isPaused(): boolean;
     get timeRemainingSeconds(): number | null;
     start(overrideTimeLimitSeconds?: number): void;
     restartIfRunning(): void;
+    pause(): void;
+    resume(): void;
     stop(): void;
 }

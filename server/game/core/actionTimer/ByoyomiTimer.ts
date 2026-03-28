@@ -7,7 +7,7 @@ import type { IByoyomiTimer } from './IByoyomiTimer';
  * Two-stage "byoyomi" style timer that wraps two GameActionTimer instances.
  *
  * - Turn timer: Short timer (default 20s) that resets on each new prompt
- * - Main timer: Buffer time (default 150s) that starts ticking when turn timer expires
+ * - Main timer: Buffer time (default 120s) that starts ticking when turn timer expires
  *
  * When the turn timer expires, the main timer becomes active (starts or resumes).
  * When the main timer expires, the onTimeout callback is invoked.
@@ -24,14 +24,17 @@ export class ByoyomiTimer implements IByoyomiTimer {
     private readonly onTimeout: () => void;
     private readonly sendUpdatedGameState: () => void;
 
-    /** Tracks whether the main timer has ever been started */
-    private mainTimerHasStarted = false;
-
     /** Tracks whether we're currently on the main timer (vs turn timer) */
     private isOnMainTimer = false;
 
+    private _isPaused = false;
+
     public get isRunning(): boolean {
         return this.turnTimer.isRunning || this.mainTimer.isRunning;
+    }
+
+    public get isPaused(): boolean {
+        return this._isPaused;
     }
 
     public get timeRemainingSeconds(): number | null {
@@ -89,6 +92,8 @@ export class ByoyomiTimer implements IByoyomiTimer {
      * when the turn timer expires again.
      */
     public start(): void {
+        this._isPaused = false;
+
         // Pause main timer if it's running (preserve remaining time)
         if (this.mainTimer.isRunning) {
             this.mainTimer.pause();
@@ -102,6 +107,7 @@ export class ByoyomiTimer implements IByoyomiTimer {
      * Resets back to turn timer, pausing main timer to preserve its elapsed time.
      */
     public restartIfRunning(): void {
+        this._isPaused = false;
         if (!this.isRunning) {
             return;
         }
@@ -118,10 +124,29 @@ export class ByoyomiTimer implements IByoyomiTimer {
      * Stops the turn timer and pauses the main timer (preserving its remaining time).
      */
     public stop(): void {
+        this._isPaused = false;
         this.turnTimer.stop();
         // Pause main timer instead of stopping to preserve remaining time
         if (this.mainTimer.isRunning) {
             this.mainTimer.pause();
+        }
+    }
+
+    public resume(): void {
+        this._isPaused = false;
+        if (this.isOnMainTimer) {
+            this.mainTimer.resume();
+        } else {
+            this.turnTimer.resume();
+        }
+    }
+
+    public pause(): void {
+        this._isPaused = true;
+        if (this.isOnMainTimer) {
+            this.mainTimer.pause();
+        } else {
+            this.turnTimer.pause();
         }
     }
 

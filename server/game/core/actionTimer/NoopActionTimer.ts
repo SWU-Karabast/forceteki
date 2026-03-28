@@ -11,6 +11,10 @@ export class NoopActionTimer implements IByoyomiTimer {
         return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get isPaused(): boolean {
+        return false;
+    }
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public get timeRemainingSeconds(): number | null {
@@ -41,6 +45,14 @@ export class NoopActionTimer implements IByoyomiTimer {
     }
 
     public stop() {
+        return;
+    }
+
+    public pause() {
+        return;
+    }
+
+    public resume() {
         return;
     }
 }
