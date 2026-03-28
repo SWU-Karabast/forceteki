@@ -1,6 +1,6 @@
 import type { ZoneName } from '../../Constants';
 import { CardType } from '../../Constants';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { Player } from '../../Player';
 import type { PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';

@@ -3,7 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, EventName, TargetMode } from '../../../core/Constants';
-import { checkConvertToEnum } from '../../../core/utils/EnumHelpers';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -67,7 +67,7 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
     }
 
     private hasChosenAspect(aspectStr: string, context: AbilityContext): boolean {
-        const chosenAspect = checkConvertToEnum(aspectStr.toLowerCase(), Aspect)[0];
+        const chosenAspect = EnumHelpers.checkConvertToEnum(aspectStr.toLowerCase(), Aspect)[0];
         const discardedCards = context.events
             .filter((e) => e.name === EventName.OnCardDiscarded)
             .map((e) => e.card);

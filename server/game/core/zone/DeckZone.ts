@@ -2,14 +2,15 @@ import type { Card } from '../card/Card';
 import type { MoveZoneDestination } from '../Constants';
 import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
-import * as Helpers from '../utils/Helpers';
+import { Contract } from '../utils/Contract';
+import { Helpers } from '../utils/Helpers';
 import type { IAddRemoveZone } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 import type { GameEvent } from '../event/GameEvent';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type { Game } from '../Game';
 import type { IRandomness } from '../Randomness';
+import type { IStateArray } from '../GameObjectUtils';
 import { registerState, stateRefArray } from '../GameObjectUtils';
 
 @registerState()
@@ -19,10 +20,10 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
     public override readonly name: ZoneName.Deck;
 
     @stateRefArray(false)
-    private accessor _deck: IPlayableCard[] = [];
+    private accessor _deck: IStateArray<IPlayableCard> = [];
 
     @stateRefArray(false)
-    private accessor _searchingCards: IPlayableCard[] = [];
+    private accessor _searchingCards: IStateArray<IPlayableCard> = [];
 
     public override get cards(): IPlayableCard[] {
         return this._deck.concat(this._searchingCards);

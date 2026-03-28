@@ -5,8 +5,8 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import type { ITriggeredAbilityBaseProps } from '../Interfaces';
 import { BountyAbility } from '../abilities/keyword/BountyAbility';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
-import * as Contract from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
+import { Contract } from '../core/utils/Contract';
+import { Helpers } from '../core/utils/Helpers';
 
 export interface ICollectBountyProperties extends ICardTargetSystemProperties {
     bountyProperties: ITriggeredAbilityBaseProps | ITriggeredAbilityBaseProps[];

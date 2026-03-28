@@ -5,7 +5,7 @@ import type { IDeckListForLoading } from '../../utils/deck/DeckInterfaces';
 import type { CostAdjuster } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
-import * as Contract from './utils/Contract';
+import { Contract } from './utils/Contract';
 import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
 import {
     AlertType,
@@ -21,8 +21,8 @@ import {
     ZoneName
 } from './Constants';
 
-import * as EnumHelpers from './utils/EnumHelpers';
-import * as Helpers from './utils/Helpers';
+import { EnumHelpers } from './utils/EnumHelpers';
+import { Helpers } from './utils/Helpers';
 import type { AbilityContext } from './ability/AbilityContext';
 import { HandZone } from './zone/HandZone';
 import { DeckZone } from './zone/DeckZone';

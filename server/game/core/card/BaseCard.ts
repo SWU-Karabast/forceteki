@@ -1,7 +1,7 @@
 import type { Player } from '../Player';
 import { Card } from './Card';
 import { CardType } from '../Constants';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
 import type { ActionAbilityBase } from '../ability/ActionAbility';

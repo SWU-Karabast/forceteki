@@ -3,7 +3,7 @@ import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { Game } from '../core/Game';
 import type { UnwrapRef } from '../core/GameObjectBase';
 

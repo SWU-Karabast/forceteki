@@ -5,7 +5,7 @@ import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, 
     MessageText, PlayerReportType } from '../Interfaces';
 import { ReportType } from '../Interfaces';
 import { logger } from '../../logger';
-import * as Helpers from './utils/Helpers';
+import { Helpers } from './utils/Helpers';
 import type { MatchmakingType } from '../../gamenode/Lobby';
 import type { SwuGameFormat } from './Constants';
 

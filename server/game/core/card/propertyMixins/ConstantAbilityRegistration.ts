@@ -2,7 +2,7 @@ import type { IConstantAbilityProps } from '../../../Interfaces';
 import { WildcardZoneName } from '../../Constants';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { Card, CardConstructor } from '../Card';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import { registerStateBase } from '../../GameObjectUtils';
 

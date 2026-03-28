@@ -4,7 +4,7 @@ import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ICardLastingEffectProperties } from './CardLastingEffectSystem';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
 import type { Card } from '../core/card/Card';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { GameEvent } from '../core/event/GameEvent';
 
 export type ICardAttackLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration'>;

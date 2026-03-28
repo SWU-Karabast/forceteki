@@ -1,7 +1,7 @@
 import type { ZoneFilter } from '../Constants';
 import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
-import * as Contract from '../utils/Contract';
-import * as EnumHelpers from '../utils/EnumHelpers';
+import { Contract } from '../utils/Contract';
+import { EnumHelpers } from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
 import { CardAbilityStep } from './CardAbilityStep';

@@ -8,7 +8,7 @@ import type {
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import type { User } from '../user/User';
-import * as Contract from '../../game/core/utils/Contract';
+import { Contract } from '../../game/core/utils/Contract';
 import { ScoreType } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';

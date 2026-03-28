@@ -4,7 +4,7 @@ import { CostAdjuster } from './CostAdjuster';
 import type { ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 import * as CostHelpers from './CostHelpers';
-import * as Contract from '../../core/utils/Contract';
+import { Contract } from '../../core/utils/Contract';
 
 import { registerStateBase } from '../GameObjectUtils';
 

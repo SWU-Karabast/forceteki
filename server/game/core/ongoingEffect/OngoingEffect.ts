@@ -7,7 +7,7 @@ import type { Game } from '../Game';
 import type { GameObject } from '../GameObject';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 import { registerStateBase, stateRefArray, type GameObjectId } from '../GameObjectUtils';
 import type { Player } from '../Player';

@@ -1,5 +1,5 @@
 import type { Attack } from '../../attack/Attack';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';
 import type { Player } from '../../Player';
 import type { ICardWithPrintedHpProperty } from './PrintedHp';
