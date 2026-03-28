@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, RelativePlayer } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class AdmiralMottiChainOfCommand extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class AdmiralMottiChainOfCommand extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: 'Friendly leader units get +2/+2',
             targetController: RelativePlayer.Self,
-            targetCardTypeFilter: CardType.LeaderUnit,
+            targetCardTypeFilter: WildcardCardType.LeaderUnit,
             ongoingEffect: [
                 abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
             ]
