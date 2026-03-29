@@ -485,5 +485,11 @@ export class SnapshotManager {
         for (const playerSnapshots of this.manualSnapshots.values()) {
             playerSnapshots.clearAllSnapshots();
         }
+
+        for (const quickSnapshotArray of this.quickSnapshots.values()) {
+            quickSnapshotArray.clearAllEntries();
+        }
+        this.quickSnapshots.clear();
+        this.manualSnapshots.clear();
     }
 }

@@ -96,6 +96,10 @@ export class MetaSnapshotArray {
         });
     }
 
+    public clearAllEntries(): void {
+        this.entries = [];
+    }
+
     private clearNewerSnapshots(snapshotId: number): void {
         this.entries = this.entries.filter((entry) => entry.snapshotId <= snapshotId);
     }

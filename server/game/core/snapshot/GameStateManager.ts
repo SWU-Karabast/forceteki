@@ -110,6 +110,17 @@ export class GameStateManager implements IGameObjectRegistrar {
             }
         }
 
+        // NOTE: Known memory leak — `hasRef` is set permanently the first time `getObjectId()` is called on a GO
+        // (via the @stateRef* decorator set callbacks → createIdArray/createIdMap/createIdSet). Once a transient GO
+        // (e.g. OngoingEffect) is added to any state-tracked collection, `hasRef` becomes true and is never reset,
+        // meaning the GO can never be removed here even after it expires. As a result, `allGameObjects` and
+        // `gameObjectMapping` grow monotonically throughout the game.
+        //
+        // The correct fix is snapshot-aware reference counting: track a refCount on each GO that increments when
+        // the GO is stored in a state-tracked collection and decrements when it is removed. Allow removal here
+        // when refCount reaches 0, BUT only after all live snapshots that captured the GO have been evicted
+        // (since rollback restores from the allGameObjects registry, missing GOs cannot be reconstructed).
+        // This requires coordination with SnapshotHistoryMap eviction and is intentionally deferred.
         this.allGameObjects = this.allGameObjects.filter((_, index) => !removalIndexes.has(index));
 
         for (const removeUuid of removalUuids) {
@@ -223,7 +234,19 @@ export class GameStateManager implements IGameObjectRegistrar {
     }
 
     private afterTakeSnapshot() {
-        // TODO: We want this to be able to go through
-        //          and remove any unused OngoingEffects from the list once they are no longer needed by any snapshots.
+        // TODO: Implement snapshot-aware GO cleanup here.
+        //
+        // The intent of this method is to remove expired GOs (e.g. OngoingEffects) from `allGameObjects` and
+        // `gameObjectMapping` once they are no longer referenced by any live snapshot. Currently it is a no-op
+        // because `hasRef` is irreversible (see NOTE in `removeUnusedGameObjects`), so calling
+        // `removeUnusedGameObjects()` here would not reclaim any expired GOs.
+        //
+        // Correct implementation requires:
+        // 1. Replace the `hasRef` boolean on GameObjectBase with a reference count that increments/decrements
+        //    as GOs enter/leave state-tracked collections (UndoArray, UndoMap, UndoSet set/delete callbacks).
+        // 2. Track the minimum `lastGameObjectId` across all live snapshots in SnapshotHistoryMap.
+        // 3. After evicting old snapshots, remove GOs from `allGameObjects` whose refCount is 0 AND whose
+        //    id is older than the minimum live snapshot's `lastGameObjectId` (so rollback can still find them).
+        // 4. Call this method (currently unused) after each snapshot is taken and after old snapshots are evicted.
     }
 }

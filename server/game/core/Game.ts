@@ -832,6 +832,10 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
+
+        // Free snapshot memory now that the game is over and undo is no longer possible.
+        this._snapshotManager.clearAllSnapshots();
+
         this._router.handleGameEnd();
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
