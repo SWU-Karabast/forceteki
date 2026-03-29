@@ -77,48 +77,23 @@ Use the following example as a template for your entry:
 
 ```javascript
 buildMockCard({
-        title: 'Yoda',
-        subtitle: 'Begun, the Clone War Has',
-        cost: 5,
-        power: 4,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['Vigilance', 'Command', 'Heroism'],
-        types: ['unit'],
-        traits: ['force', 'jedi', 'republic'],
-        setId: {
-            set: 'TS26',
-            number: 14
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'yoda#begun-the-clone-war-has'
-    })
-```
-
-If a card is missing from `test/json/_cardMap.json` after running npm run get-cards, it likely indicates that FFG has not yet added the card to their official database. To resolve this, you must manually define the card in `scripts/mockdata.js`.
-
-Use the following example as a template for your entry:
-
-```javascript
-buildMockCard({
-        title: 'Yoda',
-        subtitle: 'Begun, the Clone War Has',
-        cost: 5,
-        power: 4,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['Vigilance', 'Command', 'Heroism'],
-        types: ['unit'],
-        traits: ['force', 'jedi', 'republic'],
-        setId: {
-            set: 'TS26',
-            number: 14
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'yoda#begun-the-clone-war-has'
-    })
+    title: 'Yoda',
+    subtitle: 'Begun, the Clone War Has',
+    cost: 5,
+    power: 4,
+    hp: 4,
+    hasNonKeywordAbility: true,
+    aspects: ['Vigilance', 'Command', 'Heroism'],
+    types: ['unit'],
+    traits: ['force', 'jedi', 'republic'],
+    setId: {
+        set: 'TS26',
+        number: 14
+    },
+    unique: true,
+    arena: 'ground',
+    internalName: 'yoda#begun-the-clone-war-has'
+})
 ```
 
 ## Implement card abilities (quickstart)

@@ -15,23 +15,22 @@ export default class RecklessLanding extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.setEventAbility({
-            title: `Play a unit from your hand. It costs ${TextHelper.resource(4)}. Deal 4 damage to it.`,
+            title: `Play a unit from your hand. It costs ${TextHelper.resource(4)} less. Deal 4 damage to it.`,
             cannotTargetFirst: true,
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 4 },
-                    playAsType: WildcardCardType.Unit
-                }),
+                canChooseNoCards: true,
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
+                    AbilityHelper.immediateEffects.playCardFromHand({
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 4 },
+                        playAsType: WildcardCardType.Unit
+                    }),
+                    AbilityHelper.immediateEffects.damage({
+                        amount: 4,
+                    })
+                ]),
             },
-            ifYouDo: (ifYouDoContext) => ({
-                title: 'Deal 4 damage to it.',
-                immediateEffect: AbilityHelper.immediateEffects.damage({
-                    amount: 4,
-                    target: ifYouDoContext.events[0].card
-                })
-            }),
         });
     }
 }
