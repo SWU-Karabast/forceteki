@@ -5,7 +5,7 @@ import type { MoveZoneDestination } from '../Constants';
 import { AbilityRestriction, CardType, EffectName, WildcardZoneName, ZoneName } from '../Constants';
 import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../ability/AbilityContext';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { IEventAbilityProps, IPlayRestrictionAbilityProps } from '../../Interfaces';

@@ -3,7 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers.js';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers.js';
 
 export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;

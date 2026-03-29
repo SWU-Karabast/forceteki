@@ -6,8 +6,8 @@ import type { Player } from '../core/Player';
 import { CardEffectResourcePayment } from '../costs/CardEffectResourcePayment';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ICostResult } from '../core/cost/ICost';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
+import { TextHelper } from '../core/utils/TextHelper';
 
 export interface ICardEffectResourcePaymentProperties extends IPlayerTargetSystemProperties {
     amount: number;
@@ -24,10 +24,10 @@ export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = A
         const properties = this.generatePropertiesFromContext(context);
 
         if (Helpers.asArray(properties.target).length === 1 && Helpers.asArray(properties.target)[0] === context.player) {
-            return ['pay {0}', [ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
+            return ['pay {0}', [TextHelper.resource(properties.amount)]];
         }
 
-        return ['make {0} pay {1}', [this.getTargetMessage(properties.target, context), ChatHelpers.pluralize(properties.amount, '1 resource', 'resources')]];
+        return ['make {0} pay {1}', [this.getTargetMessage(properties.target, context), TextHelper.resource(properties.amount)]];
     }
 
     public override canAffectInternal(

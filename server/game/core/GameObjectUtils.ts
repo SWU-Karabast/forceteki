@@ -1,5 +1,17 @@
 import type { GameObjectBase, IGameObjectBase } from './GameObjectBase';
-import * as Contract from './utils/Contract.js';
+import { Contract } from './utils/Contract';
+
+// @ts-expect-error Symbol.metadata is not yet a standard.
+Symbol.metadata ??= Symbol.for('Symbol.metadata');
+const stateMetadata = Symbol();
+const stateSimpleMetadata = Symbol();
+const stateArrayMetadata = Symbol();
+const stateMapMetadata = Symbol();
+const stateSetMetadata = Symbol();
+const stateRecordMetadata = Symbol();
+const stateObjectMetadata = Symbol();
+const stateHydrationMetadata = Symbol();
+const bulkCopyMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
@@ -189,12 +201,25 @@ export function statePrimitive<T extends GameObjectBase, TValue extends string |
 
 type ConstantBoolean<T extends boolean> = boolean extends T ? never : T;
 
+/**
+ * @param readonly If false, returns a custom but more expensive mutatable array, best used for arrays that change frequently. If true, returns the array as-is and requires it be marked as readonly.
+ */
 export function stateRefArray<T extends GameObjectBase, TValue extends GameObjectBase, const TReadonly extends boolean>(readonly: ConstantBoolean<TReadonly> = (true as ConstantBoolean<TReadonly>)) {
     return function (
-        target: ClassAccessorDecoratorTarget<T, typeof readonly extends true ? readonly TValue[] : TValue[]>,
-        context: ClassAccessorDecoratorContext<T, typeof readonly extends true ? readonly TValue[] : TValue[]>
-    ): ClassAccessorDecoratorResult<T, typeof readonly extends true ? readonly TValue[] : TValue[]> {
-        assertStateAccessorContext(context);
+        target: ClassAccessorDecoratorTarget<T, typeof readonly extends true ? readonly TValue[] : IStateArray<TValue>>,
+        context: ClassAccessorDecoratorContext<T, typeof readonly extends true ? readonly TValue[] : IStateArray<TValue>>
+    ): ClassAccessorDecoratorResult<T, typeof readonly extends true ? readonly TValue[] : IStateArray<TValue>> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        // Get or create the state related metadata object.
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateArrayMetadata] ??= [];
+        (metaState[stateArrayMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
         // Use the backing fields as the cache, and write refs to the state.
@@ -364,107 +389,6 @@ function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>
     return proxiedRecord;
 }
 
-/** @deprecated Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
-export function UndoSafeArray<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, arr: readonly TValue[], name: string) {
-    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
-
-    const proxiedArray = new Proxy(arr, {
-        get(target, prop, receiver) {
-            if (prop === 'push' || prop === 'unshift' || prop === 'pop' || prop === 'shift' || prop === 'reverse' || prop === 'splice') {
-                go.game.deltaTracker?.recordFieldChange(go, name);
-            }
-
-            // For other properties, return the original property
-            return Reflect.get(target, prop, receiver);
-        }
-    });
-
-    return proxiedArray as TValue[];
-}
-
-export type SafePrimitives = string | number | boolean | GameObjectId | null | undefined;
-
-export function trackArray<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, arr: TValue[], name: string) {
-    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
-    const proxiedArray = new Proxy(arr, {
-        // Unsure if only set would suffice, depends on on things that remove elements work.
-        set(target, prop, newValue, receiver): boolean {
-            go.game.deltaTracker?.recordFieldChange(go, name);
-            return Reflect.set(target, prop, newValue, receiver);
-        },
-        get(target, prop, receiver) {
-            if (prop === 'push' || prop === 'unshift' || prop === 'pop' || prop === 'shift' || prop === 'reverse' || prop === 'splice') {
-                go.game.deltaTracker?.recordFieldChange(go, name);
-            }
-
-            // For other properties, return the original property
-            return Reflect.get(target, prop, receiver);
-        }
-    });
-
-    return proxiedArray;
-}
-
-export function trackRecord<T extends GameObjectBase>(go: T, record: Record<string, unknown>, name: string) {
-    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
-
-    const proxiedRecord = new Proxy(record, {
-        set(target, prop, newValue, receiver) {
-            go.game.deltaTracker?.recordFieldChange(go, name);
-            const result = Reflect.set(target, prop, newValue, receiver);
-            return result;
-        },
-        deleteProperty(target, prop: string) {
-            go.game.deltaTracker?.recordFieldChange(go, name);
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete target[prop];
-            return true;
-        },
-    });
-
-    return proxiedRecord;
-}
-
-// ... Does this actually work?
-export function trackMap<T extends GameObjectBase>(go: T, map: Map<string, unknown>, name: string) {
-    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
-
-    const proxiedMap = new Proxy(map, {
-        set(target, prop, newValue, receiver) {
-            go.game.deltaTracker?.recordFieldChange(go, name);
-            return Reflect.set(target, prop, newValue, receiver);
-        },
-        deleteProperty(target, prop: string) {
-            go.game.deltaTracker?.recordFieldChange(go, name);
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete target[prop];
-            return true;
-        },
-    });
-
-    return proxiedMap;
-}
-
-// ... Does this actually work?
-export function trackSet<T extends GameObjectBase>(go: T, set: Set<unknown>, name: string) {
-    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go, name), 'Property ' + name + ' not found on the state of the GameObject');
-
-    const proxiedSet = new Proxy(set, {
-        set(target, prop, newValue, receiver) {
-            go.game.deltaTracker?.recordFieldChange(go, name);
-            return Reflect.set(target, prop, newValue, receiver);
-        },
-        deleteProperty(target, prop: string) {
-            go.game.deltaTracker?.recordFieldChange(go, name);
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete target[prop];
-            return true;
-        },
-    });
-
-    return proxiedSet;
-}
-
 /** A proxy wrapper for UndoArray to prevent directly setting elements via the indexes of an array. */
 export function UndoArrayInternal<T extends GameObjectBase, TValue extends GameObjectBase>(arr: UndoArray<TValue>) {
     const proxiedArray = new Proxy(arr, {
@@ -493,50 +417,11 @@ function CreateUndoArrayInternal<TValue extends GameObjectBase>(go: GameObjectBa
         }
     }
 
-    return CreateUndoArrayProxy(undoArr) as TValue[];
+    return undoArr as IStateArray<TValue>;
 }
 
 function CreateUndoArrayBase<TValue extends GameObjectBase>(go: GameObjectBase, prop: string) {
-    const undoArr = new UndoArray<TValue>();
-    // Keep internal UndoArray bookkeeping properties off enumerable object shape so test equality checks on
-    // arrays only see card entries, not proxy internals.
-    Object.defineProperty(undoArr, 'go', {
-        value: go,
-        writable: true,
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(undoArr, 'prop', {
-        value: prop,
-        writable: true,
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(undoArr, 'accessing', {
-        value: false,
-        writable: true,
-        enumerable: false,
-        configurable: true
-    });
-
-    return undoArr;
-}
-
-function CreateUndoArrayProxy<TValue extends GameObjectBase>(undoArr: UndoArray<TValue>) {
-    const proxiedArray = new Proxy(undoArr, {
-        set(target, prop, newValue, receiver): boolean {
-            // @ts-expect-error overriding accessibility.
-            // setting the "accessing" prop needs to be allowed.
-            // target.accessing is only flagged as true when the mutation functions are called.
-            //      If it's not true then that means this is being modified via an index.
-            if (prop !== 'accessing' && !target.accessing) {
-                throw new Error('Set disallowed for mutating UndoArray');
-            }
-            return Reflect.set(target, prop, newValue, receiver);
-        },
-    });
-
-    return proxiedArray;
+    return new UndoArray<TValue>().init(go, prop);
 }
 
 // STATE TODO: These Undo classes no longer need to be GameObjectBase only, instead the decorator can enforce a GameObjectBase version or a primitive only version depending on the needs of the property.
@@ -545,129 +430,133 @@ function CreateUndoArrayProxy<TValue extends GameObjectBase>(undoArr: UndoArray<
 
 // A custom class to pass through any values to the underlying state Map.
 class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
-    private go: GameObjectBase;
-    private prop: string;
-    private init = false;
+    #go: GameObjectBase;
+    #prop: string;
+    #init = false;
+
     public constructor(go: GameObjectBase, prop: string, entries?: Iterable<readonly [string, TValue]> | null) {
         super(entries);
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
-        this.go = go;
-        this.prop = prop;
-        this.init = true;
+        this.#go = go;
+        this.#prop = prop;
+        this.#init = true;
+    }
+
+    public init(go: GameObjectBase, prop: string) {
+        this.#go = go;
+        this.#prop = prop;
+        this.#init = true;
+        return this;
     }
 
     public override set(key: string, value: TValue): this {
         // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
-        if (this.init) {
+        if (this.#init) {
             markStateRef(value);
-            this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
+            this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
         }
         return super.set(key, value);
     }
 
     public override delete(key: string): boolean {
-        this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
         return super.delete(key);
     }
 
     public override clear(): void {
-        this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
         super.clear();
     }
 }
 
 // A custom class to pass through any values to the underlying state Set.
 class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
-    private go: GameObjectBase;
-    private prop: string;
-    private init = false;
+    #go: GameObjectBase;
+    #prop: string;
+    #init = false;
+
     public constructor(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
         super(values);
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
-        this.go = go;
-        this.prop = prop;
-        this.init = true;
+        this.#go = go;
+        this.#prop = prop;
+        this.#init = true;
+    }
+
+    public init(go: GameObjectBase, prop: string) {
+        this.#go = go;
+        this.#prop = prop;
+        this.#init = true;
+        return this;
     }
 
     public override add(value: TValue): this {
-        // Add is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
-        if (this.init) {
+        // Add is called during instantiation, but "this.#go" hasn't (and can't) be defined yet.
+        if (this.#init) {
             markStateRef(value);
-            this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
+            this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
         }
         return super.add(value);
     }
 
     public override delete(value: TValue): boolean {
-        this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
         return super.delete(value);
     }
 
     public override clear(): void {
-        this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
         super.clear();
     }
 }
 
+/** An interface for stateRefArray decorator, prevents mutating elements directly to ensure the state tracking is used properly. */
+
+export interface IStateArray<T> extends Array<T> {
+    readonly [key: number]: T; // Readonly indexer
+    readonly length: number;
+}
+
 class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
-    public go: GameObjectBase;
-    public prop: string;
-    private accessing = false;
+    // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
+    #go: GameObjectBase;
+    #prop: string;
 
     public static override get [Symbol.species]() {
         return Array; // Return the native Array constructor
     }
 
+    public init(go: GameObjectBase, prop: string) {
+        this.#go = go;
+        this.#prop = prop;
+        return this;
+    }
+
     public override push(...items: TValue[]): number {
-        this.accessing = true;
-        try {
-            markStateRefArray(items);
-            this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            return super.push(...items);
-        } finally {
-            this.accessing = false;
-        }
+        markStateRefArray(items);
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
+        return super.push(...items);
     }
 
     public override unshift(...items: TValue[]): number {
-        this.accessing = true;
-        try {
-            markStateRefArray(items);
-            this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            return super.unshift(...items);
-        } finally {
-            this.accessing = false;
-        }
+        markStateRefArray(items);
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
+        return super.unshift(...items);
     }
 
     public override pop(): TValue {
-        this.accessing = true;
-        try {
-            this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            return super.pop();
-        } finally {
-            this.accessing = false;
-        }
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
+        return super.pop();
     }
 
     public override shift(): TValue {
-        this.accessing = true;
-        try {
-            this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            return super.shift();
-        } finally {
-            this.accessing = false;
-        }
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
+        return super.shift();
     }
 
     public override reverse(): TValue[] {
-        this.accessing = true;
-        try {
-            this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            return super.reverse();
-        } finally {
-            this.accessing = false;
-        }
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
+        return super.reverse();
     }
 
     public override sort(): this {
@@ -678,13 +567,8 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         if (arguments.length > 2) {
             throw new Error('UndoArray.splice only supports up to two arguments.');
         }
-        this.accessing = true;
-        try {
-            this.go.game.deltaTracker?.recordFieldChange(this.go, this.prop);
-            return super.splice(start, deleteCount);
-        } finally {
-            this.accessing = false;
-        }
+        this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
+        return super.splice(start, deleteCount);
     }
 
     public override fill(value: TValue, start?: number, end?: number): this {

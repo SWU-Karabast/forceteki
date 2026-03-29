@@ -6,7 +6,7 @@ import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 import { GiveExperienceSystem } from './GiveExperienceSystem';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { FormatMessage } from '../core/chat/GameChat';
 
 export type IDistributeExperienceSystemProperties<TContext extends AbilityContext = AbilityContext> = IDistributeAmongTargetsSystemProperties<TContext>;

@@ -2,7 +2,7 @@ import type { Game } from '../Game';
 import type { GameStateManager } from './GameStateManager';
 import type { IDeltaSnapshot, IGameSnapshot } from './SnapshotInterfaces';
 import { SnapshotTimepoint } from './SnapshotInterfaces';
-import * as Contract from '../utils/Contract.js';
+import { Contract } from '../utils/Contract.js';
 import { SnapshotArray } from './container/SnapshotArray';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler } from './container/SnapshotContainerBase';
 import { SnapshotMap } from './container/SnapshotMap';

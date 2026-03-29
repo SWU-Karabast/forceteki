@@ -6,12 +6,11 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Card } from '../core/card/Card';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import type { Derivable } from '../core/utils/Helpers';
-import { derive } from '../core/utils/Helpers';
-import * as Contract from '../core/utils/Contract';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
+import { Contract } from '../core/utils/Contract';
 import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -20,6 +19,7 @@ import type { FormatMessage } from '../core/chat/GameChat';
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: Derivable<number, Player>;
     random?: boolean;
+    optional?: boolean;
 
     /* TODO: Add a reveal system to flip over the cards if discarding from an opponent, also in the future
     this may be necessary for a player discarding from their own hands if a card condition or filter exits to keep them honest */
@@ -31,6 +31,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
     protected override defaultProperties: IDiscardCardsFromHandProperties = {
         amount: 1,
         random: false,
+        optional: false,
         cardTypeFilter: WildcardCardType.Any,
         cardCondition: () => true,
     };
@@ -51,7 +52,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 args: [
                     player === context.player ? 'themself' : player,
                     properties.random ? 'randomly ' : '',
-                    ChatHelpers.pluralize(derive(properties.amount, player), 'a card', 'cards')
+                    ChatHelpers.pluralize(Helpers.derive(properties.amount, player), 'a card', 'cards')
                 ]
             };
         };
@@ -68,7 +69,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 return false;
             }
 
-            if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableHand.length < derive(properties.amount, player)) {
+            if ((properties.isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && availableHand.length < Helpers.derive(properties.amount, player)) {
                 return false;
             }
 
@@ -85,9 +86,9 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
             const choosingPlayer = player;
 
-            Contract.assertNonNegative(derive(properties.amount, player));
+            Contract.assertNonNegative(Helpers.derive(properties.amount, player));
 
-            const amount = Math.min(availableHand.length, derive(properties.amount, player));
+            const amount = Math.min(availableHand.length, Helpers.derive(properties.amount, player));
             if (amount === 0) {
                 // No event generated here as no discard occured
                 this.sendDiscardMessage([], choosingPlayer, context, properties.random);
@@ -115,6 +116,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 mode: TargetMode.Exactly,
                 numCards: amount,
                 zoneFilter: ZoneName.Hand,
+                optional: properties.optional,
                 controller: EnumHelpers.asRelativePlayer(player, context.player),
                 cardCondition: (card) => properties.cardCondition(card, context)
             });
@@ -127,10 +129,13 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 isOpponentEffect: choosingPlayer !== context.player,
                 selectCardMode: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
                 onSelect: (cards) => {
-                    this.generateEventsForCards(Helpers.asArray(cards), context, events, additionalProperties);
-                    this.sendDiscardMessage(Helpers.asArray(cards), choosingPlayer, context);
+                    const cardsArray = Helpers.asArray(cards);
+                    this.sendDiscardMessage(cardsArray, choosingPlayer, context);
+                    if (cardsArray.length > 0) {
+                        this.generateEventsForCards(cardsArray, context, events, additionalProperties);
+                    }
                     return true;
-                }
+                },
             });
         }
     }
@@ -161,10 +166,10 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
     }
 
     private generateEventsForCards(cards: Card[], context: TContext, events: any[], additionalProperties: Partial<IDiscardCardsFromHandProperties>): void {
-        cards.forEach((card) => {
+        for (const card of cards) {
             const specificDiscardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
             events.push(specificDiscardEvent);
-        });
+        }
         // TODO: Update this to include partial resolution once added for discards that could not be done to fullest extent.
 
         // Add a final event to convey overall event resolution status.

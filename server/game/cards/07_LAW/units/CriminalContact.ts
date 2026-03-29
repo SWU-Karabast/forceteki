@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CriminalContact extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,7 +13,7 @@ export default class CriminalContact extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Pay 2 resources to create a Credit token',
+            title: `Pay ${TextHelper.resource(2)} to create a Credit token`,
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.payResources((context) => ({ amount: 2, target: context.player })),
             ifYouDo: {

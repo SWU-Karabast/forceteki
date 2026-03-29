@@ -6,7 +6,7 @@ import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectS
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IButton, ISelectCardPromptProperties } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 

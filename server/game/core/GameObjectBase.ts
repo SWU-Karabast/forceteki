@@ -1,7 +1,7 @@
 import type { Game } from './Game';
 import type { SerializedGameObjectState, SerializerInstance, StateSerializer } from './StateSerializers';
 import { registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
-import * as Contract from './utils/Contract';
+import { Contract } from './utils/Contract';
 
 export interface IGameObjectBaseState extends SerializedGameObjectState {
     _uuid: string;

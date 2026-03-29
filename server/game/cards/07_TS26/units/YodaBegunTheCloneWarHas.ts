@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class YodaBegunTheCloneWarHas extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class YodaBegunTheCloneWarHas extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: 'If you control 7 or more resources, this unit costs 2 resources less to play',
+            title: `If you control 7 or more resources, this unit costs ${TextHelper.resource(2)} less to play`,
             condition: (context) => context.player.resources.length >= 7,
             amount: 2
         });

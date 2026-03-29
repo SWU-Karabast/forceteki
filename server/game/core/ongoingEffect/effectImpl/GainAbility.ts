@@ -5,7 +5,7 @@ import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityType } from '../../Constants';
 import type { Game } from '../../Game';
 import type { IGameObjectBaseState } from '../../GameObjectBase';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { registerState, stateRef, stateValue, statePrimitive, type GameObjectId } from '../../GameObjectUtils';
 

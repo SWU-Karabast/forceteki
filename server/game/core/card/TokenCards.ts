@@ -5,6 +5,7 @@ import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import { UpgradeCard } from './UpgradeCard';
 import type { IUpgradeCard } from './CardInterfaces';
 import { InPlayCard } from './baseClasses/InPlayCard';
+import { CardType } from '../Constants';
 import { registerState } from '../GameObjectUtils';
 
 const TokenUnitParent = AsToken(NonLeaderUnitCard);
@@ -18,6 +19,13 @@ export interface ITokenUnitCard extends ITokenCard, INonLeaderUnitCard {}
 export class TokenUnitCard extends TokenUnitParent implements ITokenUnitCard {
     public override isTokenUnit(): this is ITokenUnitCard {
         return true;
+    }
+
+    protected override getType(): CardType {
+        if (this.isLeaderAttachedToThis()) {
+            return CardType.TokenLeaderUnit;
+        }
+        return super.getType();
     }
 }
 

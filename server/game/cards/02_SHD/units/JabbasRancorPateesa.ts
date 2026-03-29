@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class JabbasRancorPateesa extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: 'If you control Jabba the Hutt, this unit costs 1 resource less to play',
+            title: `If you control Jabba the Hutt, this unit costs ${TextHelper.resource(1)} less to play`,
             condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Jabba the Hutt'),
             amount: 1
         });

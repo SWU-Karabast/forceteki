@@ -4,8 +4,8 @@ import type { CardTypeFilter, TokenUpgradeName } from '../core/Constants';
 import { EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import * as Contract from '../core/utils/Contract';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Contract } from '../core/utils/Contract';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 import type { Player } from '../core/Player';
 

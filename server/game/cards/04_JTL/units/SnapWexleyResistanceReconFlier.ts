@@ -2,6 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'The next Resistance card you play this phase costs 1 resource less',
+            title: `The next Resistance card you play this phase costs ${TextHelper.resource(1)} less`,
             when: {
                 whenPlayed: true,
                 onAttack: true,

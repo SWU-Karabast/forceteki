@@ -4,9 +4,9 @@ import type { CardTypeFilter, RelativePlayerFilter, TargetMode, ZoneFilter } fro
 import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, WildcardCardType, CardType } from '../Constants';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
-import * as EnumHelpers from '../utils/EnumHelpers';
-import * as Helpers from '../utils/Helpers';
+import { Contract } from '../utils/Contract';
+import { EnumHelpers } from '../utils/EnumHelpers';
+import { Helpers } from '../utils/Helpers';
 
 export interface IBaseCardSelectorProperties<TContext> {
     mode: Extract<TargetMode, TargetMode.AutoSingle | TargetMode.BetweenVariable | TargetMode.Exactly | TargetMode.ExactlyVariable | TargetMode.MaxStat | TargetMode.Single | TargetMode.Unlimited | TargetMode.UpTo | TargetMode.UpToVariable>;
@@ -59,6 +59,12 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
                 case WildcardCardType.NonLeaderUpgrade:
                     filters.push(plural ? 'non-leader upgrades' : 'non-leader upgrade');
                     break;
+                case WildcardCardType.NonTokenUnit:
+                    filters.push(plural ? 'non-token units' : 'non-token unit');
+                    break;
+                case WildcardCardType.LeaderUnit:
+                    filters.push(plural ? 'leader units' : 'leader unit');
+                    break;
                 case WildcardCardType.NonUnit:
                     filters.push(plural ? 'non-units' : 'non-unit');
                     break;
@@ -77,8 +83,11 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
                 case CardType.Leader:
                     filters.push(plural ? 'leaders' : 'leader');
                     break;
-                case CardType.LeaderUnit:
-                    filters.push(plural ? 'leader units' : 'leader unit');
+                case CardType.NonTokenLeaderUnit:
+                    filters.push(plural ? 'non-token leader units' : 'non-token leader unit');
+                    break;
+                case CardType.TokenLeaderUnit:
+                    filters.push(plural ? 'token leader units' : 'token leader unit');
                     break;
                 default:
                     return fallback;

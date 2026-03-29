@@ -7,7 +7,7 @@ import { GameStateManager } from './GameStateManager';
 import type { ICanRollBackResult, IDeltaSnapshot, IGameSnapshot, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
 import { SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
-import * as Contract from '../utils/Contract.js';
+import { Contract } from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { SnapshotMap } from './container/SnapshotMap';

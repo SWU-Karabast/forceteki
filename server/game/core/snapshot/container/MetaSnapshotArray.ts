@@ -1,6 +1,6 @@
 import type { SnapshotHistoryMap } from './SnapshotHistoryMap';
 import type { SnapshotMap } from './SnapshotMap';
-import * as Contract from '../../utils/Contract.js';
+import { Contract } from '../../utils/Contract.js';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import type { ISnapshotProperties } from '../SnapshotInterfaces';
 

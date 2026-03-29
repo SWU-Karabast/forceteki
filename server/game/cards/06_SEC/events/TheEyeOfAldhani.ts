@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { PhaseName, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TheEyeOfAldhani extends EventCard {
     protected override getImplementationId () {
@@ -13,9 +14,9 @@ export default class TheEyeOfAldhani extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'At the start of the next action phase, for each enemy unit, its controller must pay 1 Resource or exhaust that unit.',
+            title: `At the start of the next action phase, for each enemy unit, its controller must pay ${TextHelper.resource(1)} or exhaust that unit.`,
             immediateEffect: abilityHelper.immediateEffects.delayedPlayerEffect((delayedContext) => ({
-                title: 'For each enemy unit, its controller must pay 1 Resource or exhaust that unit',
+                title: `For each enemy unit, its controller must pay ${TextHelper.resource(1)} or exhaust that unit`,
                 target: delayedContext.player.opponent,
                 when: {
                     onPhaseStarted: (context) => context.phase === PhaseName.Action
@@ -27,7 +28,7 @@ export default class TheEyeOfAldhani extends EventCard {
                     controller: RelativePlayer.Self,
                     activePromptTitle: (context) => {
                         const upUnits = Math.min(context.player.resources.length, context.player.getArenaUnits().length);
-                        return `Select up to ${upUnits} units and pay 1 resource for each of them to keep them ready`;
+                        return `Select up to ${upUnits} units and pay ${TextHelper.resource(1)} for each of them to keep them ready`;
                     },
                     numCardsFunc: (context) => Math.min(context.player.resources.length, context.player.getArenaUnits().length),
                     immediateEffect: abilityHelper.immediateEffects.simultaneous([

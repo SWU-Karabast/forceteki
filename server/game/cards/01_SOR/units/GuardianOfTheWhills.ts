@@ -4,7 +4,8 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import * as Contract from '../../../core/utils/Contract';
+import { Contract } from '../../../core/utils/Contract';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GuardianOfTheWhills extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -32,7 +33,7 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'The first upgrade you play on this unit each round costs 1 resource less.',
+            title: `The first upgrade you play on this unit each round costs ${TextHelper.resource(1)} less.`,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,
                 match: (card, adjusterSource) => card.isUpgrade() && this.isFirstUpgradePlayedOnThisCopy(card, adjusterSource),

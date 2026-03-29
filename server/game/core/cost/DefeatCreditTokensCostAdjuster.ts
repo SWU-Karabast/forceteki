@@ -11,12 +11,13 @@ import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { ICostAdjustmentResolutionProperties, ICostAdjustResult, ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage, ResourceCostType } from './CostInterfaces';
 import type { ICostResult } from './ICost';
-import * as Contract from '../utils/Contract';
-import * as ChatHelpers from '../chat/ChatHelpers';
+import { Contract } from '../utils/Contract';
+import { ChatHelpers } from '../chat/ChatHelpers';
 import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
 import type { FormatMessage } from '../chat/GameChat';
 
 import { registerState } from '../GameObjectUtils';
+import { TextHelper } from '../utils/TextHelper';
 
 @registerState()
 export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
@@ -226,7 +227,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
             '{0} defeats {1} to pay {2} less for {3}',
             this.sourcePlayer,
             ChatHelpers.pluralize(creditTokenCount, '1 Credit token', 'Credit tokens'),
-            ChatHelpers.pluralize(creditTokenCount, '1 resource', 'resources'),
+            TextHelper.resource(creditTokenCount),
             sourceDescription
         );
     }
