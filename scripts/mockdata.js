@@ -1,6 +1,18 @@
 const mockCards = [
     // Add mock cards here
     buildMockCard({
+        title: 'Reckless Landing',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        types: ['event'],
+        setId: {
+            set: 'TS26',
+            number: 32
+        },
+        unique: false,
+        internalName: 'reckless-landing'
+    }),
+    buildMockCard({
         title: 'Yoda',
         subtitle: 'Begun, the Clone War Has',
         cost: 5,
