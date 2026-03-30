@@ -332,7 +332,7 @@ export class Lobby {
                 id: s.id,
                 username: s.username,
             })),
-            gameOngoing: !!this.game,
+            gameOngoing: this.hasOngoingGame(),
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
@@ -761,7 +761,7 @@ export class Lobby {
 
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
-        this.game = null;
+        this.destroyCurrentGame();
         if (this.matchmakingType === MatchmakingType.Quick) {
             this.matchmakingType = MatchmakingType.PublicLobby;
         }
@@ -1037,10 +1037,30 @@ export class Lobby {
         }
     }
 
-    // TODO: right now "this.game === null" has a special meaning that this lobby already had a game and is either rematching or being
-    // cleaned up. we need to refactor so that "null" doesn't have a special meaning separate from "undefined".
     public hasOngoingGame(): boolean {
-        return this.game !== undefined;
+        return this.game != null && this.game.finishedAt == null;
+    }
+
+    public cleanupFinishedGame(game: Game): void {
+        if (this.game !== game || game.finishedAt == null || this.shouldRetainFinishedGame()) {
+            return;
+        }
+
+        this.destroyCurrentGame();
+        this.sendLobbyState();
+    }
+
+    private destroyCurrentGame(): void {
+        if (!this.game) {
+            return;
+        }
+
+        this.game.destroy();
+        this.game = undefined;
+    }
+
+    private shouldRetainFinishedGame(): boolean {
+        return this.gamesToWinMode === GamesToWinMode.BestOfThree && !this.isBo3SetComplete();
     }
 
     public setLobbyOwner(id: string): void {
@@ -1122,12 +1142,14 @@ export class Lobby {
         logger.info(`Lobby: removing user ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         if (this.game) {
-            this.game.addMessage('{0} has left the game', this.game.getPlayerById(id));
+            const currentGame = this.game;
+            currentGame.addMessage('{0} has left the game', currentGame.getPlayerById(id));
             const otherPlayer = this.users.find((u) => u.id !== id);
             if (otherPlayer) {
-                this.game.endGame(this.game.getPlayerById(otherPlayer.id), GameEndReason.PlayerLeft);
+                currentGame.endGame(currentGame.getPlayerById(otherPlayer.id), GameEndReason.PlayerLeft);
+            } else {
+                this.sendGameState(currentGame);
             }
-            this.sendGameState(this.game);
         }
 
         if (!this.game) {
@@ -1174,10 +1196,12 @@ export class Lobby {
     public cleanLobby(): void {
         this.clearBo3TransitionTimer();
         this.bo3LobbyReadyTimer?.stop();
-        this.game = null;
+        this.destroyCurrentGame();
         this.users = [];
         this.spectators = [];
-        logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
+        if (process.env.NODE_ENV !== 'test') {
+            logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
+        }
     }
 
     public async startTestGameAsync(filename: string) {
@@ -1890,6 +1914,8 @@ export class Lobby {
     }
 
     public handleGameEnd(): void {
+        let shouldSendLobbyState = true;
+
         // Record winner based on game mode
         this.recordGameResult(this.gamesToWinMode);
 
@@ -1897,23 +1923,27 @@ export class Lobby {
         switch (this.gamesToWinMode) {
             case GamesToWinMode.BestOfOne:
                 this.updateEndGameStatsIfNeeded();
+                shouldSendLobbyState = false;
                 break;
             case GamesToWinMode.BestOfThree: {
                 const bo3History = this.winHistory as IBestOfThreeHistory;
                 this.updateEndGameStatsIfNeeded(bo3History.currentGameNumber);
 
                 // Start a 30s timer to auto-transition if the set is not complete
-                if (this.useActionTimers && !this.isBo3SetComplete()) {
+                if (this.useActionTimers && this.shouldRetainFinishedGame()) {
                     this.startBo3TransitionTimer();
                 }
+                shouldSendLobbyState = this.shouldRetainFinishedGame();
                 break;
             }
             default:
                 Contract.fail(`Unknown games to win mode: ${this.gamesToWinMode}`);
         }
 
-        // Send updated lobby state so clients see the new score immediately
-        this.sendLobbyState();
+        if (shouldSendLobbyState) {
+            // Send updated lobby state so clients see the new score immediately
+            this.sendLobbyState();
+        }
     }
 
     /**
@@ -2013,7 +2043,7 @@ export class Lobby {
         this.winHistory.currentGameNumber++;
 
         // Reset for next game (winner was already recorded in handleGameEnd)
-        this.game = null;
+        this.destroyCurrentGame();
         this.bo3NextGameConfirmedBy?.clear();
 
         // Clear the 'ready' state for all users

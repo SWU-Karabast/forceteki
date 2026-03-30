@@ -25,7 +25,7 @@ export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
  * snapshot containers to clear any snapshots that are newer than the given snapshot ID.
  */
 export class SnapshotFactory {
-    private readonly clearNewerSnapshotsHandlers: IClearNewerSnapshotsHandler[] = [];
+    private clearNewerSnapshotsHandlers: IClearNewerSnapshotsHandler[] = [];
     private readonly game: Game;
     private readonly gameStateManager: GameStateManager;
 
@@ -119,6 +119,13 @@ export class SnapshotFactory {
 
     public clearCurrentSnapshot(): void {
         this.currentActionSnapshot = null;
+    }
+
+    public destroy(): void {
+        this.clearCurrentSnapshot();
+        this.clearNewerSnapshotsHandlers = [];
+        this.lastAssignedSnapshotId = -1;
+        this.lastAssignedTimepointNumber = -1;
     }
 
     /**
