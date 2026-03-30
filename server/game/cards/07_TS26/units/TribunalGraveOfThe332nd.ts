@@ -24,7 +24,7 @@ export default class TribunalGraveOfThe332nd extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
             title: `This unit costs ${TextHelper.resource(2)} less to play for each other card you played this phase`,
-            amount: (_card, player) => 2 * this.numCardsPlayedByPlayerThisPhase(_card, player)
+            amount: (card, player) => 2 * this.numCardsPlayedByPlayerThisPhase(card, player)
         });
 
         registrar.addWhenPlayedAbility({

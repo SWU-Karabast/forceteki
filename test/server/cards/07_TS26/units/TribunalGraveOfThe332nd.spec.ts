@@ -7,7 +7,6 @@ describe('Tribunal, Grave of the 332nd', function() {
                     player1: {
                         leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
                         base: 'dagobah-swamp',
-                        resources: 15,
                         hand: ['tribunal#grave-of-the-332nd', 'porg', 'porg'],
                     },
                     player2: {
@@ -83,8 +82,6 @@ describe('Tribunal, Grave of the 332nd', function() {
                         hand: ['tribunal#grave-of-the-332nd'],
                         groundArena: ['wampa'],
                         leader: { card: 'kazuda-xiono#best-pilot-in-the-galaxy', deployed: true },
-                        base: 'dagobah-swamp',
-                        resources: 15,
                     },
                     player2: {
                         groundArena: ['consular-security-force'],
