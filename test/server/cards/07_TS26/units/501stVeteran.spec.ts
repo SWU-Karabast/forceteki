@@ -1,6 +1,6 @@
 describe('501st Veteran', function() {
     integration(function(contextRef) {
-        it('501st Veteran\'s while undamaged, it gains Sentinel', async function () {
+        it('501st Veteran\'s ability gains Sentinel while undamaged', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
