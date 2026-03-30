@@ -5,7 +5,7 @@ const mockCards = [
         cost: 2,
         hasNonKeywordAbility: true,
         types: ['event'],
-        aspects: ['Vigilance', 'Cunning'],
+        aspects: ['Aggression', 'Cunning'],
         traits: ['gambit'],
         setId: {
             set: 'TS26',

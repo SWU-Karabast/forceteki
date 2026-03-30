@@ -5,7 +5,7 @@ describe('Reckless Landing', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['reckless-landing', 'rebel-blockade-runner'],
+                        hand: ['reckless-landing', 'rebel-blockade-runner', 'beguile', 'sudden-ferocity'],
                         resources: 2,
                         leader: 'admiral-ackbar#its-a-trap',
                         base: 'catacombs-of-cadera'
