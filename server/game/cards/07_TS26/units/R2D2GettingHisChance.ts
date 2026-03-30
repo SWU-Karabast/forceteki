@@ -14,6 +14,7 @@ export default class R2D2GettingHisChance extends NonLeaderUnitCard {
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Deal 2 damage to a base. If you do, that base\'s controller draws a card',
+            optional: true,
             targetResolver: {
                 cardTypeFilter: CardType.Base,
                 immediateEffect: abilityHelper.immediateEffects.damage({ amount: 2 })

@@ -25,6 +25,34 @@ describe('R2-D2, Getting His Chance', function() {
             expect(context.player2.hand.length).toBe(1);
         });
 
+        it('can be skipped', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['r2d2#getting-his-chance'],
+                },
+                player2: {
+                    hand: [],
+                    deck: ['wampa', 'atst'],
+                    base: { card: 'echo-base', damage: 3 }
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.r2d2);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p1Base.damage).toBe(0);
+            expect(context.p2Base.damage).toBe(3);
+            expect(context.player1.hand.length).toBe(0);
+            expect(context.player2.hand.length).toBe(0);
+        });
+
         it('should allow targeting your own base and you draw a card', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
