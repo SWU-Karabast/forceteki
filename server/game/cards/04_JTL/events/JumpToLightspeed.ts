@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { CardType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
-import * as Helper from '../../../core/utils/Helpers';
+import { Helpers } from '../../../core/utils/Helpers';
 
 export default class JumpToLightspeed extends EventCard {
     protected override getImplementationId() {
@@ -43,7 +43,7 @@ export default class JumpToLightspeed extends EventCard {
                     effect: AbilityHelper.ongoingEffects.forFree({
                         cardTypeFilter: CardType.BasicUnit,
                         match: (card) => {
-                            const selectedCard = Helper.asArray(ifYouDoContext.targets.friendlySpaceUnit)[0];
+                            const selectedCard = Helpers.asArray(ifYouDoContext.targets.friendlySpaceUnit)[0];
                             return selectedCard.title === card.title && selectedCard.subtitle === card.subtitle;
                         },
                         limit: AbilityHelper.limit.perPlayerPerGame(1)

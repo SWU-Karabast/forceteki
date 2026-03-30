@@ -1,8 +1,8 @@
 import { Game } from '../game/core/Game';
 import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
-import * as Contract from '../game/core/utils/Contract';
-import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { Contract } from '../game/core/utils/Contract';
+import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';

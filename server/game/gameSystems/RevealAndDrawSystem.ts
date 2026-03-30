@@ -7,8 +7,8 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { DrawSpecificCardSystem } from './DrawSpecificCardSystem';
 import { RevealSystem, type IRevealProperties } from './RevealSystem';
 import { SimultaneousSystem } from './SimultaneousSystem';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { FormatMessage } from '../core/chat/GameChat';
 import type { ResolutionMode } from './SimultaneousOrSequentialSystem';
 

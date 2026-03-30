@@ -6,7 +6,7 @@ import type { IEventRegistration, ITriggeredAbilityProps, WhenType, WhenTypeOrSt
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import type { Player } from '../Player';

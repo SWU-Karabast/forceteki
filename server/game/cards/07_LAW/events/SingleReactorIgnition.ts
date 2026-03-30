@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventName } from '../../../core/Constants';
-import { isUnit } from '../../../core/utils/EnumHelpers';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 
 export default class SingleReactorIgnition extends EventCard {
@@ -32,7 +32,7 @@ export default class SingleReactorIgnition extends EventCard {
 
     private getOpponentBaseDamage(context: AbilityContext): number {
         return context.events.reduce((damage, event) => {
-            if (!event.isCancelled && event.name === EventName.OnCardDefeated && event.lastKnownInformation.controller === context.player.opponent && isUnit(event.lastKnownInformation.type)) {
+            if (!event.isCancelled && event.name === EventName.OnCardDefeated && event.lastKnownInformation.controller === context.player.opponent && EnumHelpers.isUnit(event.lastKnownInformation.type)) {
                 return damage + 1;
             }
             return damage;

@@ -3,7 +3,7 @@ import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { AbilityType, EventName, Trait } from '../../../core/Constants';
-import * as Contract from '../../../core/utils/Contract';
+import { Contract } from '../../../core/utils/Contract';
 
 export default class TrenchRun extends EventCard {
     protected override getImplementationId() {

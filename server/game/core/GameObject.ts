@@ -9,6 +9,7 @@ import { GameObjectBase } from './GameObjectBase';
 import type { Restriction } from './ongoingEffect/effectImpl/Restriction';
 import type { OngoingCardEffect } from './ongoingEffect/OngoingCardEffect';
 import { registerStateBase, stateRefArray, statePrimitive } from './GameObjectUtils';
+import type { IStateArray } from './GameObjectUtils';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IGameObjectState extends IGameObjectBaseState {
@@ -27,7 +28,7 @@ export interface IOngoingEffectFilters {
 @registerStateBase()
 export abstract class GameObject extends GameObjectBase {
     @stateRefArray(false)
-    private accessor _ongoingEffects: OngoingCardEffect[] = [];
+    private accessor _ongoingEffects: IStateArray<OngoingCardEffect> = [];
 
     @statePrimitive()
     private accessor _name: string;
