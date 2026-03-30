@@ -337,6 +337,57 @@ const mockCards = [
         unique: false,
         internalName: 'abandoned-the-order'
     }),
+    buildMockCard({
+        title: 'Twilight',
+        subtitle: 'Escaping Malevolence',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Heroism'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'transport'],
+        setId: {
+            set: 'TS26',
+            number: 41
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'twilight#escaping-malevolence',
+    }),
+    buildMockCard({
+        title: 'R2-D2',
+        subtitle: 'Getting His Chance',
+        cost: 2,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression', 'Heroism'],
+        types: ['unit'],
+        traits: ['republic', 'droid'],
+        keywords: ['raid 2'],
+        setId: {
+            set: 'TS26',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'r2d2#getting-his-chance',
+    }),
+    buildMockCard({
+        title: 'Urgent Mission',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression', 'Heroism'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'TS26',
+            number: 64
+        },
+        unique: false,
+        internalName: 'urgent-mission',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
