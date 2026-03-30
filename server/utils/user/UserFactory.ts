@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, ModActionType } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity } from '../../services/DynamoDBInterfaces';
 import { ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
@@ -502,6 +502,7 @@ export class UserFactory {
     }
 
     /**
+     * TODO remove this function after 1 month of new mod actions since its legacy
      * Processes moderation logic for a user
      * @param userData User data from database
      * @returns Updated user data with moderation processed
@@ -693,81 +694,6 @@ export class UserFactory {
             logger.error('Error getting mod action history:', {
                 error: { message: error.message, stack: error.stack },
                 userId
-            });
-            throw error;
-        }
-    }
-
-    /**
-     * Submit a new mod action against a player.
-     * Verifies the target player exists, builds the entity, and saves to DynamoDB.
-     * @returns The saved mod action entity.
-     * @throws Error if the target player is not found.
-     */
-    public async submitModActionAsync(
-        playerId: string,
-        actionType: ModActionType,
-        moderatorId: string,
-        note: string,
-        durationDays?: number,
-    ): Promise<IModActionEntity> {
-        try {
-            const dbService = await this.dbServicePromise;
-
-            // Verify target player exists
-            const playerProfile = await dbService.getUserProfileAsync(playerId);
-            Contract.assertNotNullLike(playerProfile, `Target player not found: ${playerId}`);
-
-            const modAction: IModActionEntity = {
-                id: uuid(),
-                playerId,
-                actionType,
-                durationDays,
-                note,
-                moderatorId,
-                createdAt: new Date().toISOString(),
-            };
-
-            await dbService.saveModActionAsync(modAction);
-
-            logger.info(`UserFactory: Moderator ${moderatorId} issued ${actionType} on player ${playerId}`, {
-                moderatorId,
-                playerId,
-                actionType,
-                modActionId: modAction.id,
-                durationDays: durationDays ?? null,
-            });
-
-            return modAction;
-        } catch (error) {
-            logger.error('Error submitting mod action:', {
-                error: { message: error.message, stack: error.stack },
-                userId: playerId,
-                actionType,
-            });
-            throw error;
-        }
-    }
-
-    /**
-     * Cancel a mod action.
-     * Sets cancelledAt/cancelledBy and removes it from the active index.
-     * @throws Error if the mod action is not found.
-     */
-    public async cancelModActionAsync(playerId: string, modActionId: string, cancelledBy: string): Promise<void> {
-        try {
-            const dbService = await this.dbServicePromise;
-            const result = await dbService.cancelModActionAsync(playerId, modActionId, cancelledBy);
-            Contract.assertNotNullLike(result.Attributes, `Mod action not found: ${modActionId}`);
-
-            logger.info(`UserFactory: Moderator ${cancelledBy} cancelled action ${modActionId} on player ${playerId}`, {
-                moderatorId: cancelledBy,
-                userId: playerId,
-            });
-        } catch (error) {
-            logger.error('Error cancelling mod action:', {
-                error: { message: error.message, stack: error.stack },
-                userId: playerId,
             });
             throw error;
         }

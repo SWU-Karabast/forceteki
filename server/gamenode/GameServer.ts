@@ -207,7 +207,7 @@ export class GameServer {
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
-    public readonly modActionCache?: ModActionService;
+    public readonly modActionService?: ModActionService;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -223,7 +223,7 @@ export class GameServer {
 
         this.serverRoleUsersCache = serverRoleUsersCache;
         this.cosmeticsService = cosmeticsService;
-        this.modActionCache = modActionCache;
+        this.modActionService = modActionCache;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -462,7 +462,7 @@ export class GameServer {
 
                 if (user.isAuthenticatedUser()) {
                     const userId = user.getId();
-                    const activeActions = this.modActionCache.getActiveActionsForPlayer(userId);
+                    const activeActions = this.modActionService.getActiveActionsForPlayer(userId);
 
                     if (activeActions) {
                         if (activeActions.some((action) => action.actionType === ModActionType.Rename)) {
@@ -476,7 +476,7 @@ export class GameServer {
                             if (muteEntry) {
                                 // Pending mute — activate it (sets startedAt + expiresAt)
                                 if (!muteEntry.startedAt) {
-                                    const activated = await this.modActionCache.activatePendingMuteAsync(userId);
+                                    const activated = await this.modActionService.activatePendingMuteAsync(userId);
                                     moderation = this.buildModerationFromCacheEntry(activated, false);
                                 } else if (muteEntry.expiresAt) {
                                     // Already active — just build the moderation object
@@ -694,7 +694,7 @@ export class GameServer {
                 // Call the changeUsername method
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername);
                 if (result.success) {
-                    await this.modActionCache.onRenameCompleted(user.getId());
+                    await this.modActionService.onRenameCompleted(user.getId());
                     return res.status(200).json({
                         succeess: true,
                         message: 'Username successfully changed',
@@ -1546,8 +1546,8 @@ export class GameServer {
                     username: profile.username,
                     createdAt: profile.createdAt,
                     lastLogin: profile.lastLogin,
-                    isMuted: this.modActionCache?.isPlayerMuted(profile.id) ?? false,
-                    needsRename: this.modActionCache?.playerNeedsRename(profile.id) ?? false,
+                    isMuted: this.modActionService?.isPlayerMuted(profile.id) ?? false,
+                    needsRename: this.modActionService?.playerNeedsRename(profile.id) ?? false,
                 }));
 
                 // If single match, include mod actions directly
@@ -1581,18 +1581,18 @@ export class GameServer {
                 const { playerId, actionType, durationDays, note } = parseResult.data;
                 const moderatorId = req.user.getId();
 
-                const modAction = await this.userFactory.submitModActionAsync(
+                if (!this.modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                // Write-through to cache
+                const modAction = await this.modActionService.onActionSubmitted(
                     playerId,
                     actionType,
                     moderatorId,
                     note,
                     durationDays ?? undefined,
                 );
-
-                // Write-through to cache
-                if (this.modActionCache) {
-                    await this.modActionCache.onActionSubmitted(playerId, modAction);
-                }
 
                 return res.status(200).json({
                     success: true,
@@ -1619,11 +1619,9 @@ export class GameServer {
                 const { modActionId, playerId } = parseResult.data;
                 const cancelledBy = req.user.getId();
 
-                await this.userFactory.cancelModActionAsync(playerId, modActionId, cancelledBy);
-
                 // Write-through to cache
-                if (this.modActionCache) {
-                    this.modActionCache.onActionCancelled(playerId, modActionId);
+                if (this.modActionService) {
+                    await this.modActionService.onActionCancelled(playerId, modActionId, cancelledBy);
                 }
 
                 return res.status(200).json({

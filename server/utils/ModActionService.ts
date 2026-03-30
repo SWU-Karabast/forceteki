@@ -1,8 +1,10 @@
 import { logger } from '../logger';
 import { TimedCache } from './TimedCache';
 import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
-import { ModActionType, type IActiveModActionCacheEntry, type IModActionEntity } from '../services/DynamoDBInterfaces';
+import { type IActiveModActionCacheEntry, type IModActionEntity, ModActionType } from '../services/DynamoDBInterfaces';
 import { isTimedModAction } from '../game/core/utils/EnumHelpers';
+import * as Contract from '../game/core/utils/Contract';
+import { v4 as uuid } from 'uuid';
 
 /**
  * Cache structure: Map<playerId, Map<ModActionType, IActiveModActionCacheEntry>>
@@ -64,6 +66,9 @@ export class ModActionService {
      */
     private async fetchAndCleanupAsync(): Promise<ModActionCacheMap> {
         const db = await this.dbServicePromise;
+
+        // Full resync: build a fresh cache entirely from the ACTIVE_MODACTION GSI.
+        // The old cache is discarded — TimedCache replaces it with the returned map.
         const newCache: ModActionCacheMap = new Map();
         const activeActions = await db.getModActionsAsync();
         const now = new Date();
@@ -76,7 +81,7 @@ export class ModActionService {
                     await db.removeModActionFromActiveIndexAsync(action.playerId, action.id);
                     cleanedCount++;
                 } catch (error) {
-                    logger.error(`ModActionCache: Failed to clean up expired action ${action.id}`, {
+                    logger.error(`ModActionService: Failed to clean up expired action ${action.id}`, {
                         error: { message: error.message, stack: error.stack }
                     });
                 }
@@ -86,101 +91,143 @@ export class ModActionService {
             if (!newCache.has(action.playerId)) {
                 newCache.set(action.playerId, new Map());
             }
-            const playerActions = newCache.get(action.playerId);
 
-            const existing = playerActions.get(action.actionType);
-
-            const shouldUpdate = !existing ||
-              action.actionType === ModActionType.Rename ||
-              ModActionService.compareMutePriority(action, existing);
-
-            if (shouldUpdate) {
-                playerActions.set(action.actionType, {
-                    id: action.id,
-                    actionType: action.actionType,
-                    durationDays: action.durationDays,
-                    startedAt: action.startedAt,
-                    expiresAt: action.expiresAt,
-                    modActionId: action.id,
-                });
-            }
+            newCache.get(action.playerId).set(action.actionType, {
+                id: action.id,
+                actionType: action.actionType,
+                durationDays: action.durationDays,
+                startedAt: action.startedAt,
+                expiresAt: action.expiresAt,
+                modActionId: action.id,
+            });
         }
 
         if (cleanedCount > 0) {
-            logger.info(`ModActionCache: Cleaned up ${cleanedCount} expired mod actions from DB`);
+            logger.info(`ModActionService: Cleaned up ${cleanedCount} expired mod actions from DB`);
         }
 
         return newCache;
-    }
-
-    /**
-     * Compare which mute should take priority.
-     * Active mutes (with expiresAt) are compared by expiresAt.
-     * Pending mutes (no expiresAt) are compared by durationDays.
-     * A pending mute with longer durationDays beats an active mute only if it would expire later.
-     */
-    private static compareMutePriority(
-        incoming: Pick<IActiveModActionCacheEntry, 'expiresAt' | 'durationDays'>,
-        existing: Pick<IActiveModActionCacheEntry, 'expiresAt' | 'durationDays'>
-    ): boolean {
-        // Both active: compare expiresAt
-        if (incoming.expiresAt && existing.expiresAt) {
-            return new Date(incoming.expiresAt) > new Date(existing.expiresAt);
-        }
-
-        // Incoming is pending, existing is active: compare potential expiresAt
-        if (!incoming.expiresAt && existing.expiresAt) {
-            const incomingPotentialExpiry = Date.now() + (incoming.durationDays ?? 0) * ModActionService.MS_PER_DAY;
-            return incomingPotentialExpiry > new Date(existing.expiresAt).getTime();
-        }
-
-        // Incoming is active, existing is pending: compare potential expiresAt
-        if (incoming.expiresAt && !existing.expiresAt) {
-            const existingPotentialExpiry = Date.now() + (existing.durationDays ?? 0) * ModActionService.MS_PER_DAY;
-            return new Date(incoming.expiresAt).getTime() > existingPotentialExpiry;
-        }
-
-        // Both pending: compare durationDays
-        return (incoming.durationDays ?? 0) > (existing.durationDays ?? 0);
     }
 
     // ==================== Private Helpers ====================
 
     private getPlayerActions(playerId: string): Map<ModActionType, IActiveModActionCacheEntry> | null {
         const cacheMap = this.cache.getValue();
-        if (!cacheMap) {
+        return cacheMap?.get(playerId);
+    }
+
+    /**
+     * Cancel a mod action.
+     * Sets cancelledAt/cancelledBy and removes it from the active index.
+     * @throws Error if the mod action is not found.
+     */
+    private async cancelModActionAsync(playerId: string, modActionId: string, cancelledBy: string): Promise<void> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const result = await dbService.cancelModActionAsync(playerId, modActionId, cancelledBy);
+            Contract.assertNotNullLike(result.Attributes, `Mod action not found: ${modActionId}`);
+
+            logger.info(`ModActionService: Moderator ${cancelledBy} cancelled action ${modActionId} on player ${playerId}`, {
+                moderatorId: cancelledBy,
+                userId: playerId,
+            });
+        } catch (error) {
+            logger.error('Error cancelling mod action:', {
+                error: { message: error.message, stack: error.stack },
+                userId: playerId,
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Submit a new mod action against a player.
+     * Verifies the target player exists, builds the entity, and saves to DynamoDB.
+     * @returns The saved mod action entity.
+     * @throws Error if the target player is not found.
+     */
+    private async submitModActionAsync(
+        playerId: string,
+        actionType: ModActionType,
+        moderatorId: string,
+        note: string,
+        durationDays?: number,
+    ): Promise<IModActionEntity> {
+        try {
+            const dbService = await this.dbServicePromise;
+
+            // Verify target player exists
+            const playerProfile = await dbService.getUserProfileAsync(playerId);
+            Contract.assertNotNullLike(playerProfile, `Target player not found: ${playerId}`);
+
+            const modAction: IModActionEntity = {
+                id: uuid(),
+                playerId,
+                actionType,
+                durationDays,
+                note,
+                moderatorId,
+                createdAt: new Date().toISOString(),
+            };
+
+            await dbService.saveModActionAsync(modAction);
+
+            logger.info(`ModActionService: Moderator ${moderatorId} issued ${actionType} on player ${playerId}`, {
+                moderatorId,
+                playerId,
+                actionType,
+                modActionId: modAction.id,
+                durationDays: durationDays ?? null,
+            });
+
+            return modAction;
+        } catch (error) {
+            logger.error('Error submitting mod action:', {
+                error: { message: error.message, stack: error.stack },
+                userId: playerId,
+                actionType,
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Removes a specific action type entry from the cache for a player.
+     * If the player has no remaining active actions after removal, their entire cache entry is cleaned up.
+     * @returns The removed cache entry, or null if not found.
+     */
+    private removeFromCache(playerId: string, actionType: ModActionType): IActiveModActionCacheEntry | null {
+        const playerActions = this.getPlayerActions(playerId);
+        if (!playerActions) {
             return null;
         }
 
-        return cacheMap.get(playerId) ?? null;
+        const entry = playerActions.get(actionType) ?? null;
+        playerActions.delete(actionType);
+
+        if (playerActions.size === 0) {
+            this.cache.getValue()?.delete(playerId);
+        }
+
+        return entry;
     }
 
     /**
      * Check if a Mute entry has expired, and remove it if so.
      * Pending mutes (no expiresAt) are never expired.
      */
-    private validateMuteExpiry(playerId: string, entry: IActiveModActionCacheEntry): boolean {
-        if (entry.actionType !== ModActionType.Mute) {
-            return true;
-        }
+    private validateMuteExpiry(entry: IActiveModActionCacheEntry): boolean {
+        Contract.assertTrue(
+            entry.actionType === ModActionType.Mute,
+            `validateMuteExpiry called with non-Mute action type: ${entry.actionType}`
+        );
 
-        // Pending mutes haven't started yet — they're valid
+        // Pending mutes haven't started yet they're valid
         if (!entry.expiresAt) {
             return true;
         }
 
-        if (new Date(entry.expiresAt) <= new Date()) {
-            const playerActions = this.getPlayerActions(playerId);
-            if (playerActions) {
-                playerActions.delete(ModActionType.Mute);
-                if (playerActions.size === 0) {
-                    this.cache.getValue()?.delete(playerId);
-                }
-            }
-            return false;
-        }
-
-        return true;
+        return new Date(entry.expiresAt) > new Date();
     }
 
     // ==================== Public Query Methods ====================
@@ -197,7 +244,13 @@ export class ModActionService {
         const activeEntries: IActiveModActionCacheEntry[] = [];
 
         for (const entry of playerActions.values()) {
-            if (this.validateMuteExpiry(playerId, entry)) {
+            if (entry.actionType === ModActionType.Mute) {
+                if (this.validateMuteExpiry(entry)) {
+                    activeEntries.push(entry);
+                } else {
+                    this.removeFromCache(playerId, ModActionType.Mute);
+                }
+            } else {
                 activeEntries.push(entry);
             }
         }
@@ -219,7 +272,7 @@ export class ModActionService {
             return false;
         }
 
-        return this.validateMuteExpiry(playerId, muteEntry);
+        return this.validateMuteExpiry(muteEntry);
     }
 
     /**
@@ -249,7 +302,7 @@ export class ModActionService {
             return null;
         }
 
-        return this.validateMuteExpiry(playerId, muteEntry) ? muteEntry : null;
+        return this.validateMuteExpiry(muteEntry) ? muteEntry : null;
     }
 
     // ==================== Mute Activation ====================
@@ -274,7 +327,10 @@ export class ModActionService {
 
         const now = new Date();
         const startedAt = now.toISOString();
-        const expiresAt = new Date(now.getTime() + (muteEntry.durationDays ?? 0) * ModActionService.MS_PER_DAY).toISOString();
+
+        Contract.assertNotNullLike(muteEntry.durationDays, `Cannot activate mute ${muteEntry.modActionId}: durationDays is missing`);
+
+        const expiresAt = new Date(now.getTime() + muteEntry.durationDays * ModActionService.MS_PER_DAY).toISOString();
 
         // Update DB
         try {
@@ -306,14 +362,26 @@ export class ModActionService {
      * For Mute: if an existing Mute is in cache, the one with the longer effective duration
      * stays active and the shorter one is deactivated in DB (GSI_PK removed).
      */
-    public async onActionSubmitted(playerId: string, modAction: IModActionEntity): Promise<void> {
+    public async onActionSubmitted(playerId: string, actionType: ModActionType,
+        moderatorId: string,
+        note: string,
+        durationDays?: number
+    ): Promise<{ success: boolean; message: string }> {
+        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, note, durationDays);
+
         if (!isTimedModAction(modAction.actionType)) {
-            return;
+            return {
+                success: true,
+                message: `${modAction.actionType} submitted successfully for player ${playerId}.`,
+            };
         }
 
         const cacheMap = this.cache.getValue();
         if (!cacheMap) {
-            return;
+            return {
+                success: false,
+                message: 'Mod action service is not initialized.',
+            };
         }
 
         if (!cacheMap.has(playerId)) {
@@ -321,22 +389,13 @@ export class ModActionService {
         }
         const playerActions = cacheMap.get(playerId);
 
-        const existing = playerActions.get(modAction.actionType);
-
         // For Mute: determine which one stays active and deactivate the shorter one in DB
-        if (modAction.actionType === ModActionType.Mute && existing) {
-            const incomingEntry = { expiresAt: modAction.expiresAt, durationDays: modAction.durationDays };
-            const existingEntry = { expiresAt: existing.expiresAt, durationDays: existing.durationDays };
-
-            if (ModActionService.compareMutePriority(incomingEntry, existingEntry)) {
-                // New mute is longer — deactivate the old one in DB
-                await this.deactivateModActionInDb(playerId, existing.modActionId);
-            } else {
-                // Existing mute is longer — deactivate the new one in DB, keep existing in cache
-                await this.deactivateModActionInDb(playerId, modAction.id);
-                logger.info(`ModActionCache: New mute for player ${playerId} is shorter than existing, deactivated new action ${modAction.id}`);
-                return;
-            }
+        const existing = playerActions.get(modAction.actionType);
+        if (existing) {
+            return {
+                success: false,
+                message: `Player already has an active ${modAction.actionType}. Cancel it before issuing a new one.`,
+            };
         }
 
         playerActions.set(modAction.actionType, {
@@ -351,6 +410,11 @@ export class ModActionService {
         logger.info(`ModActionCache: Updated cache for player ${playerId} (${modAction.actionType})`, {
             userId: playerId,
         });
+
+        return {
+            success: true,
+            message: `${modAction.actionType} submitted successfully for player ${playerId}.`,
+        };
     }
 
     /**
@@ -358,21 +422,20 @@ export class ModActionService {
      * Removes the entry only if the cancelled action was the one in cache.
      * If there are other active actions of the same type, the next refresh will pick them up.
      */
-    public onActionCancelled(playerId: string, cancelledModActionId: string): void {
+    public async onActionCancelled(playerId: string, cancelledModActionId: string, cancelledBy: string): Promise<void> {
         const playerActions = this.getPlayerActions(playerId);
+        // DB cancellation
+        await this.cancelModActionAsync(playerId, cancelledModActionId, cancelledBy);
+
+        // Cache cancellation
         if (!playerActions) {
             return;
         }
 
         for (const [actionType, entry] of playerActions) {
             if (entry.modActionId === cancelledModActionId) {
-                playerActions.delete(actionType);
-                logger.info(`ModActionCache: Removed ${actionType} entry for player ${playerId} (action ${cancelledModActionId} cancelled)`);
-
-                // Clean up player entry if no more active actions
-                if (playerActions.size === 0) {
-                    this.cache.getValue()?.delete(playerId);
-                }
+                this.removeFromCache(playerId, actionType);
+                logger.info(`ModActionService: Cancelled ${actionType} for player ${playerId} (action ${cancelledModActionId})`);
                 break;
             }
         }
@@ -397,26 +460,14 @@ export class ModActionService {
      * Removes the Rename entry from cache and deactivates it in DB.
      */
     public async onRenameCompleted(playerId: string): Promise<void> {
-        const playerActions = this.getPlayerActions(playerId);
-        if (!playerActions) {
+        const removedEntry = this.removeFromCache(playerId, ModActionType.Rename);
+        if (!removedEntry) {
             return;
         }
 
-        const renameEntry = playerActions.get(ModActionType.Rename);
-        if (!renameEntry) {
-            return;
-        }
+        await this.deactivateModActionInDb(playerId, removedEntry.modActionId);
 
-        // Remove from cache
-        playerActions.delete(ModActionType.Rename);
-        if (playerActions.size === 0) {
-            this.cache.getValue()?.delete(playerId);
-        }
-
-        // Deactivate in DB (remove GSI_PK)
-        await this.deactivateModActionInDb(playerId, renameEntry.modActionId);
-
-        logger.info(`ModActionCache: Rename completed for player ${playerId}, deactivated action ${renameEntry.modActionId}`, {
+        logger.info(`ModActionService: Rename completed for player ${playerId}, deactivated action ${removedEntry.modActionId}`, {
             userId: playerId,
         });
     }
