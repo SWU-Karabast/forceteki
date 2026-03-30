@@ -287,6 +287,42 @@ const mockCards = [
         unique: false,
         internalName: 'remove-the-chip',
     }),
+    buildMockCard({
+        title: 'Tribunal',
+        subtitle: 'Grave of the 332nd',
+        cost: 10,
+        power: 6,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning', 'Vigilance'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'TS26',
+            number: 36
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'tribunal#grave-of-the-332nd'
+    }),
+    buildMockCard({
+        title: 'Abandoned the Order',
+        cost: 4,
+        hp: 0,
+        power: 0,
+        upgradePower: 1,
+        upgradeHp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning', 'Vigilance'],
+        types: ['upgrade'],
+        traits: ['learned'],
+        setId: {
+            set: 'TS26',
+            number: 37
+        },
+        unique: false,
+        internalName: 'abandoned-the-order'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
