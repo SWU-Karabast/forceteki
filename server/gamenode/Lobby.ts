@@ -358,10 +358,10 @@ export class Lobby {
 
     private isUserChatDisabled(user: LobbyUserWrapper): boolean {
         const isModerationMuted = user.socket?.user.getModeration()?.moderationType === ModerationType.Mute;
-        const hasSessionMute = user.id === this.userWhoMutedChat;
-        const hasSetChatMuted = user.socket?.user.getPreferences()?.gameOptions?.muteChat === true;
+        const lobbyChatMuted = user.id === this.userWhoMutedChat;
+        const playerAccountChatSettingDisabled = user.socket?.user.getPreferences()?.gameOptions?.muteChat === true;
 
-        return isModerationMuted || hasSessionMute || hasSetChatMuted;
+        return isModerationMuted || lobbyChatMuted || playerAccountChatSettingDisabled;
     }
 
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
