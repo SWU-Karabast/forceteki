@@ -26,10 +26,12 @@ export default class PadmeAmidalaFollowMyLead extends LeaderUnitCard {
             cost: abilityHelper.costs.exhaustSelf(),
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => this.friendlyUnitsThatEnteredPlayThisPhase(context).length >= 2,
-                onTrue: abilityHelper.immediateEffects.attack({
-                    attackerCondition: (card, context) => card.isUnit() && this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
-                    targetCondition: (target) => target.isUnit(),
-                    allowExhaustedAttacker: true,
+                onTrue: abilityHelper.immediateEffects.selectCard({
+                    cardCondition: (card, context) => card.isUnit() && this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
+                    immediateEffect: abilityHelper.immediateEffects.attack({
+                        targetCondition: (target) => target.isUnit(),
+                        allowExhaustedAttacker: true,
+                    })
                 })
             }),
         });
@@ -39,11 +41,15 @@ export default class PadmeAmidalaFollowMyLead extends LeaderUnitCard {
         registrar.addWhenAttackEndsAbility({
             title: 'Attack with a friendly unit that entered play this phase even if it\'s exhausted. It can\'t attack bases for this attack',
             optional: true,
-            immediateEffect: abilityHelper.immediateEffects.attack({
-                attackerCondition: (card, context) => card.isUnit() && this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
-                targetCondition: (target) => target.isUnit(),
-                allowExhaustedAttacker: true,
-            })
+            targetResolver: {
+                cardCondition: (card, context) =>
+                    card.isUnit() && card !== context.source &&
+                    this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
+                immediateEffect: abilityHelper.immediateEffects.attack({
+                    targetCondition: (target) => target.isUnit(),
+                    allowExhaustedAttacker: true,
+                })
+            }
         });
     }
 
