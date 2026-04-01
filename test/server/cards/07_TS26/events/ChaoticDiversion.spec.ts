@@ -98,7 +98,6 @@ describe('Chaotic Diversion', function() {
             // No exhausted enemy units, so skip straight to the shield step
             expect(context.player1).toHavePrompt(friendlyUnitPrompt);
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-            context.player1.clickCardNonChecking(context.battlefieldMarine);
             context.player1.clickCard(context.battlefieldMarine);
 
             // Verify Wampa is still exhausted and Battlefield Marine has a shield

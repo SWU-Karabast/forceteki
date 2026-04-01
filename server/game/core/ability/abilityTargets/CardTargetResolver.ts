@@ -91,7 +91,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return contextCopy;
     }
 
-    protected override setTargetResult(context: AbilityContext, target: Card | Card[]): void {
+    protected override setTargetResult(context: AbilityContext, target: Card | Card[] | null): void {
         super.setTargetResult(context, this.targetMode === TargetMode.Single ? target : Helpers.asArray(target));
     }
 
@@ -159,6 +159,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
             if (!effectiveTargetFound) {
                 targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || false;
+                this.setTargetResult(context, null);
                 return;
             }
         }
@@ -284,9 +285,14 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     public override checkTarget(context: AbilityContext): boolean {
-        if (!context.targets[this.name]) {
+        if (!(this.name in context.targets)) {
             return false;
-        } else if (context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
+        }
+        // null means the resolver resolved but found no effective targets — this is valid
+        if (context.targets[this.name] === null) {
+            return true;
+        }
+        if (context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
             return false;
         }
         const cards: Card[] = Helpers.asArray(context.targets[this.name]);
