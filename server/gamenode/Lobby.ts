@@ -1154,6 +1154,10 @@ export class Lobby {
         return this.users.length === 0;
     }
 
+    public hasNoParticipants(): boolean {
+        return this.users.length === 0 && this.spectators.length === 0;
+    }
+
     /**
      * Records a matchmaking entry if this is a quick match, to prevent immediate rematches.
      * Uses the current time as the entry timestamp.
