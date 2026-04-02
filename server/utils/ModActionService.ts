@@ -1,9 +1,13 @@
 import { logger } from '../logger';
 import { TimedCache } from './TimedCache';
 import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
-import { type IActiveModActionCacheEntry, type IModActionEntity, ModActionType } from '../services/DynamoDBInterfaces';
+import {
+    type IActiveModActionCacheEntry,
+    type IModActionEntity,
+    ModActionType
+} from '../services/DynamoDBInterfaces';
 import { isTimedModAction } from '../game/core/utils/EnumHelpers';
-import * as Contract from '../game/core/utils/Contract';
+import { Contract } from '../game/core/utils/Contract';
 import { v4 as uuid } from 'uuid';
 
 /**
@@ -87,19 +91,7 @@ export class ModActionService {
                 }
                 continue;
             }
-
-            if (!newCache.has(action.playerId)) {
-                newCache.set(action.playerId, new Map());
-            }
-
-            newCache.get(action.playerId).set(action.actionType, {
-                id: action.id,
-                actionType: action.actionType,
-                durationDays: action.durationDays,
-                startedAt: action.startedAt,
-                expiresAt: action.expiresAt,
-                modActionId: action.id,
-            });
+            this.setOrAddUserAction(action.playerId, action, newCache);
         }
 
         if (cleanedCount > 0) {
@@ -114,6 +106,25 @@ export class ModActionService {
     private getPlayerActions(playerId: string): Map<ModActionType, IActiveModActionCacheEntry> | null {
         const cacheMap = this.cache.getValue();
         return cacheMap?.get(playerId);
+    }
+
+    /**
+     * Adds or updates a mod action entry in the cache for a player.
+     * Initializes the player's action map if it doesn't exist.
+     */
+    private setOrAddUserAction(playerId: string, modAction: IModActionEntity, cacheMap: ModActionCacheMap): void {
+        if (!cacheMap.has(playerId)) {
+            cacheMap.set(playerId, new Map());
+        }
+
+        cacheMap.get(playerId).set(modAction.actionType, {
+            id: modAction.id,
+            actionType: modAction.actionType,
+            durationDays: modAction.durationDays,
+            startedAt: modAction.startedAt,
+            expiresAt: modAction.expiresAt,
+            modActionId: modAction.id,
+        });
     }
 
     /**
@@ -384,28 +395,15 @@ export class ModActionService {
             };
         }
 
-        if (!cacheMap.has(playerId)) {
-            cacheMap.set(playerId, new Map());
-        }
-        const playerActions = cacheMap.get(playerId);
-
         // For Mute: determine which one stays active and deactivate the shorter one in DB
-        const existing = playerActions.get(modAction.actionType);
+        const existing = this.getPlayerActions(playerId)?.get(modAction.actionType);
         if (existing) {
             return {
                 success: false,
                 message: `Player already has an active ${modAction.actionType}. Cancel it before issuing a new one.`,
             };
         }
-
-        playerActions.set(modAction.actionType, {
-            id: modAction.id,
-            actionType: modAction.actionType,
-            durationDays: modAction.durationDays,
-            startedAt: modAction.startedAt,
-            expiresAt: modAction.expiresAt,
-            modActionId: modAction.id,
-        });
+        this.setOrAddUserAction(playerId, modAction, cacheMap);
 
         logger.info(`ModActionCache: Updated cache for player ${playerId} (${modAction.actionType})`, {
             userId: playerId,
