@@ -388,6 +388,20 @@ const mockCards = [
         unique: false,
         internalName: 'urgent-mission',
     }),
+    buildMockCard({
+        title: 'Vanquish the Legion',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'TS26',
+            number: 48
+        },
+        unique: false,
+        internalName: 'vanquish-the-legion',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
