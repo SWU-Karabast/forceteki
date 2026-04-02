@@ -1586,7 +1586,7 @@ export class GameServer {
                 }
 
                 // Write-through to cache
-                const modAction = await this.modActionService.onActionSubmitted(
+                const modActionResult = await this.modActionService.onActionSubmitted(
                     playerId,
                     actionType,
                     moderatorId,
@@ -1595,9 +1595,8 @@ export class GameServer {
                 );
 
                 return res.status(200).json({
-                    success: true,
-                    message: `${actionType} action submitted successfully`,
-                    modAction,
+                    success: modActionResult.success,
+                    message: modActionResult.message,
                 });
             } catch (err) {
                 logger.error('GameServer (mod-submit-action) Server error:', err);

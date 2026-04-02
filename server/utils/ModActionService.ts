@@ -38,7 +38,7 @@ type ModActionCacheMap = Map<string, Map<ModActionType, IActiveModActionCacheEnt
 export class ModActionService {
     private cache: TimedCache<ModActionCacheMap>;
     private dbServicePromise = getDynamoDbServiceAsync();
-    private static readonly REFRESH_INTERVAL_MINUTES = 24 * 60; // 24 hours
+    private static readonly REFRESH_INTERVAL_MINUTES = 10; // 24 * 60; // 24 hours
     private static readonly MS_PER_DAY = 24 * 60 * 60 * 1000;
 
     public static async createAsync(): Promise<ModActionService> {
@@ -57,6 +57,13 @@ export class ModActionService {
 
         await cache.initializeAsync();
         modActionCacheInstance.cache = cache;
+
+        // Debug logging in development prints cache contents every minute
+        if (process.env.ENVIRONMENT === 'development' && process.env.DEBUG_MOD_ACTION_CACHE) {
+            setInterval(() => {
+                modActionCacheInstance.logCacheContents();
+            }, 60 * 1000);
+        }
 
         return modActionCacheInstance;
     }
@@ -125,6 +132,29 @@ export class ModActionService {
             expiresAt: modAction.expiresAt,
             modActionId: modAction.id,
         });
+    }
+
+    private logCacheContents(): void {
+        const cacheMap = this.cache.getValue();
+        if (cacheMap.size === 0) {
+            logger.info('ModActionService [DEBUG]: Cache is empty');
+            return;
+        }
+
+        const summary: Record<string, Record<string, unknown>> = {};
+        for (const [playerId, actions] of cacheMap) {
+            summary[playerId] = {};
+            for (const [actionType, entry] of actions) {
+                summary[playerId][actionType] = {
+                    modActionId: entry.modActionId,
+                    durationDays: entry.durationDays,
+                    startedAt: entry.startedAt ?? 'pending',
+                    expiresAt: entry.expiresAt ?? 'none',
+                };
+            }
+        }
+
+        logger.info(`ModActionService [DEBUG]: Cache contents (${cacheMap.size} players)`, { cache: summary });
     }
 
     /**
@@ -370,7 +400,7 @@ export class ModActionService {
      * Called after a new mod action is submitted.
      * Upserts the cache entry for the relevant action type.
      *
-     * For Mute: if an existing Mute is in cache, the one with the longer effective duration
+     * For Mute: if an existing Mute is in cache it prevents the user from submitting a new one.
      * stays active and the shorter one is deactivated in DB (GSI_PK removed).
      */
     public async onActionSubmitted(playerId: string, actionType: ModActionType,
@@ -378,6 +408,14 @@ export class ModActionService {
         note: string,
         durationDays?: number
     ): Promise<{ success: boolean; message: string }> {
+        const existing = this.getPlayerActions(playerId)?.get(actionType);
+        if (existing) {
+            return {
+                success: false,
+                message: `Player already has an active ${actionType}. Cancel it before issuing a new one.`,
+            };
+        }
+
         const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, note, durationDays);
 
         if (!isTimedModAction(modAction.actionType)) {
@@ -395,14 +433,6 @@ export class ModActionService {
             };
         }
 
-        // For Mute: determine which one stays active and deactivate the shorter one in DB
-        const existing = this.getPlayerActions(playerId)?.get(modAction.actionType);
-        if (existing) {
-            return {
-                success: false,
-                message: `Player already has an active ${modAction.actionType}. Cancel it before issuing a new one.`,
-            };
-        }
         this.setOrAddUserAction(playerId, modAction, cacheMap);
 
         logger.info(`ModActionCache: Updated cache for player ${playerId} (${modAction.actionType})`, {
