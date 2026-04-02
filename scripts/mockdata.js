@@ -388,6 +388,25 @@ const mockCards = [
         unique: false,
         internalName: 'urgent-mission',
     }),
+    buildMockCard({
+        title: 'Pre Vizsla',
+        subtitle: 'For Mandalore!',
+        cost: 3,
+        power: 4,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['Cunning', 'Villainy'],
+        types: ['unit'],
+        traits: ['mandalorian', 'trooper'],
+        keywords: ['hidden', 'saboteur'],
+        setId: {
+            set: 'TS26',
+            number: 74
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'pre-vizsla#for-mandalore',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
