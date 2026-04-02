@@ -393,7 +393,7 @@ const mockCards = [
         subtitle: 'One Last Lesson',
         cost: 4,
         power: 5,
-        hp: 6,
+        hp: 4,
         hasNonKeywordAbility: true,
         aspects: ['Aggression', 'Cunning'],
         types: ['unit'],
