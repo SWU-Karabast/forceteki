@@ -1,5 +1,5 @@
 /* eslint-disable @stylistic/lines-around-comment */
-import * as Helpers from './Helpers';
+import { Helpers } from './Helpers';
 import { Aspect } from '../Constants';
 import type { Conjunction } from '../Constants';
 

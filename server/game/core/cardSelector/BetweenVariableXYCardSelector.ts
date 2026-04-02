@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { Card } from '../card/Card.js';
 import type { TargetMode } from '../Constants.js';
-import * as Contract from '../utils/Contract.js';
+import { Contract } from '../utils/Contract.js';
 import type { IBaseCardSelectorProperties } from './BaseCardSelector.js';
 import { BaseCardSelector } from './BaseCardSelector.js';
 

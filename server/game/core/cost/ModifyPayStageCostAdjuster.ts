@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { IModifyPayStageCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustResolutionMode } from './CostAdjuster';
 import { CostAdjuster } from './CostAdjuster';

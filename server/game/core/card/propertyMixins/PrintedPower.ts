@@ -1,7 +1,7 @@
 import { EffectName } from '../../Constants';
 import { registerStateBase } from '../../GameObjectUtils';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';
 
 export interface ICardWithPrintedPowerProperty extends Card {

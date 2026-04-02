@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { Aspect, CardTypeFilter, KeywordName, MoveZoneDestination, Trait } from '../Constants';
 import { ZoneAbstract } from './ZoneAbstract';
 import { registerStateBase, stateRefArray } from '../GameObjectUtils';

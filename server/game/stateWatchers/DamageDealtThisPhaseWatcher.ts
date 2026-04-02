@@ -8,7 +8,7 @@ import type { Game } from '../core/Game';
 import type { UnwrapRef } from '../core/GameObjectBase';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../core/card/Card';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 

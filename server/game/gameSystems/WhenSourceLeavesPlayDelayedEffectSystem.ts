@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { Duration } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { IDelayedEffectProperties } from './DelayedEffectSystem';
 import { DelayedEffectSystem } from './DelayedEffectSystem';
 

@@ -1,4 +1,4 @@
-import * as EnumHelpers from '../core/utils/EnumHelpers.js';
+import { EnumHelpers } from '../core/utils/EnumHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { EffectName, EventName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';

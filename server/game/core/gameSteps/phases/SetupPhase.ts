@@ -1,4 +1,4 @@
-import { randomItem } from '../../utils/Helpers';
+import { Helpers } from '../../utils/Helpers';
 import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -65,7 +65,7 @@ export class SetupPhase extends Phase {
             activePromptTitle = 'You lost the previous game. Choose the player to start with initiative:';
         } else {
             // Random selection (coin flip)
-            firstPlayer = randomItem(this.game.getPlayers(), this.game.randomGenerator);
+            firstPlayer = Helpers.randomItem(this.game.getPlayers(), this.game.randomGenerator);
             activePromptTitle = 'You won the flip. Choose the player to start with initiative:';
         }
 

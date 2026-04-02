@@ -65,6 +65,9 @@ export interface IUserPreferences {
         cardback?: string;
         background?: string;
     };
+    gameOptions?: {
+        muteChat?: boolean;
+    };
 }
 
 // Define user interface

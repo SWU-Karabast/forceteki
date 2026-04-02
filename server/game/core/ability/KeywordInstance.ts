@@ -1,8 +1,8 @@
 import type { IAbilityPropsWithType, ITriggeredAbilityBaseProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import { RelativePlayer, type Aspect, type KeywordName } from '../Constants';
-import * as Contract from '../utils/Contract';
-import * as EnumHelpers from '../utils/EnumHelpers';
+import { Contract } from '../utils/Contract';
+import { EnumHelpers } from '../utils/EnumHelpers';
 
 export class KeywordInstance {
     public readonly name: KeywordName;

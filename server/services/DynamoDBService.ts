@@ -9,7 +9,7 @@ import {
     UpdateCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
-import * as Contract from '../game/core/utils/Contract';
+import { Contract } from '../game/core/utils/Contract';
 import type {
     IModActionEntity
 } from './DynamoDBInterfaces';

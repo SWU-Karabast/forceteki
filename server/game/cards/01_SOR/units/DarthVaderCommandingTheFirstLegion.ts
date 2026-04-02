@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
-import * as Contract from '../../../core/utils/Contract';
+import { Contract } from '../../../core/utils/Contract';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DarthVaderCommandingTheFirstLegion extends NonLeaderUnitCard {

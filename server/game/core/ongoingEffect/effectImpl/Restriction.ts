@@ -5,8 +5,8 @@ import type { EffectName } from '../../Constants';
 import { AbilityRestriction } from '../../Constants';
 import type { Card } from '../../card/Card';
 import type { Game } from '../../Game';
-import * as Contract from '../../utils/Contract';
-import * as Helpers from '../../utils/Helpers';
+import { Contract } from '../../utils/Contract';
+import { Helpers } from '../../utils/Helpers';
 
 import { registerState } from '../../GameObjectUtils';
 

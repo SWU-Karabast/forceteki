@@ -1,6 +1,6 @@
 import type { ITargetResolverBase } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import { RelativePlayer, Stage } from '../../Constants';
