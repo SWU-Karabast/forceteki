@@ -388,6 +388,42 @@ const mockCards = [
         unique: false,
         internalName: 'urgent-mission',
     }),
+    buildMockCard({
+        title: 'Ruping Rider',
+        cost: 4,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['unit'],
+        traits: ['creature', 'trooper'],
+        keywords: ['grit'],
+        setId: {
+            set: 'TS26',
+            number: 67
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ruping-rider',
+    }),
+    buildMockCard({
+        title: 'Deployed Droideka',
+        cost: 4,
+        power: 4,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning'],
+        types: ['unit'],
+        traits: ['separatist', 'droid'],
+        keywords: ['ambush'],
+        setId: {
+            set: 'TS26',
+            number: 77
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'deployed-droideka',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
