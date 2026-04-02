@@ -409,9 +409,9 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Jedi General',
-        cost: 4,
-        power: 1,
-        hp: 5,
+        cost: 5,
+        power: 2,
+        hp: 3,
         hasNonKeywordAbility: true,
         aspects: ['Command'],
         types: ['unit'],
@@ -435,7 +435,7 @@ const mockCards = [
         keywords: ['plot'],
         setId: {
             set: 'TS26',
-            number: 48
+            number: 46
         },
         unique: false,
         internalName: 'secret-marriage',
