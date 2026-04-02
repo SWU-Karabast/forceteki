@@ -79,6 +79,7 @@ function createServer(): GameServer {
 }
 
 function setLobbyMapping(server: GameServer, userId: string, lobbyId: string, role: string): void {
+    // Bypass typescript's private modifier to set up the test scenario
     const userLobbyMap = server['userLobbyMap'] as unknown as Map<string, { lobbyId: string; role: string }>;
     userLobbyMap.set(userId, { lobbyId, role });
 }
