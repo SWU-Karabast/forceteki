@@ -388,6 +388,25 @@ const mockCards = [
         unique: false,
         internalName: 'urgent-mission',
     }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'One Last Lesson',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression', 'Cunning'],
+        types: ['unit'],
+        traits: ['force', 'underworld'],
+        keywords: ['sentinel'],
+        setId: {
+            set: 'TS26',
+            number: 30
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#one-last-lesson',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
