@@ -440,6 +440,37 @@ const mockCards = [
         unique: false,
         internalName: 'secret-marriage',
     }),
+    buildMockCard({
+        title: 'Fervor',
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['event'],
+        traits: ['innate'],
+        setId: {
+            set: 'TS26',
+            number: 72
+        },
+        unique: false,
+        internalName: 'fervor',
+    }),
+    buildMockCard({
+        title: 'Wartime Refugee',
+        cost: 1,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['unit'],
+        traits: ['twi\'lek'],
+        setId: {
+            set: 'TS26',
+            number: 43
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'wartime-refugee',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
