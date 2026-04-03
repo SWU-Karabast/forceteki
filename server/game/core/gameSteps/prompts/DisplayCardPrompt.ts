@@ -3,7 +3,7 @@ import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectS
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import { DisplayCardSelectionState, PromptType, type SelectCardMode, type IDisplayCard, type IDisplayCardPromptPropertiesBase } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 

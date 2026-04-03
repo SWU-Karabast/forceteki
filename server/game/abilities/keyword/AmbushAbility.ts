@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilit
 import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
-import * as Contract from '../../core/utils/Contract';
+import { Contract } from '../../core/utils/Contract';
 import { ConditionalSystem } from '../../gameSystems/ConditionalSystem';
 import { InitiateAttackSystem } from '../../gameSystems/InitiateAttackSystem';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';

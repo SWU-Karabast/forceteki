@@ -14,10 +14,10 @@ import { ExhaustSystem } from '../gameSystems/ExhaustSystem';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import { AbilityResourceCost } from './AbilityResourceCost';
 import { UseTheForceSystem } from '../gameSystems/UseTheForceSystem';
-import type { DistributiveOmit } from '../core/utils/Helpers';
 import { DiscardCardsFromHandSystem } from '../gameSystems/DiscardCardsFromHandSystem';
 import type { Player } from '../core/Player';
 import { DiscardFromDeckSystem } from '../gameSystems/DiscardFromDeckSystem';
+import { type DistributiveOmit } from '../core/utils/Helpers';
 import { ReadySystem } from '../gameSystems/ReadySystem';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = DistributiveOmit<ISelectCardProperties<TContext>, 'immediateEffect'>;

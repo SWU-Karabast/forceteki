@@ -1,8 +1,8 @@
 import type { Card } from '../../card/Card';
 import type { PhaseName } from '../../Constants';
 import type { Game } from '../../Game';
-import * as Helpers from '../../utils/Helpers';
-import * as Contract from '../../utils/Contract';
+import { Helpers } from '../../utils/Helpers';
+import { Contract } from '../../utils/Contract';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { registerState, stateRef, stateValue } from '../../GameObjectUtils';
 

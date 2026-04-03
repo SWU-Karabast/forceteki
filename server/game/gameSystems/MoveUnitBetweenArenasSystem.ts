@@ -8,7 +8,7 @@ import {
 } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 
 export enum MoveArenaType {
     SpaceToGround = 'spaceToGround',

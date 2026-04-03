@@ -5,7 +5,7 @@ import { ZoneName } from '../Constants';
 import type { Game } from '../Game';
 import { registerState, stateRefArray, stateRef } from '../GameObjectUtils';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import { ZoneAbstract } from './ZoneAbstract';
 
 type IBaseZoneCard = ILeaderCard | IBaseCard | ITokenCard;

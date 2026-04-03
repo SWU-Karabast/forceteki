@@ -1,6 +1,6 @@
 import type { IKeywordProperties, KeywordNameOrProperties } from '../../../Interfaces';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
-import * as Helpers from '../../utils/Helpers';
+import { Helpers } from '../../utils/Helpers';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import type { Card } from '../../card/Card';
 import type { Game } from '../../Game';

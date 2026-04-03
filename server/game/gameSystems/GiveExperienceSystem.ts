@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUpgradeName } from '../core/Constants';
 import type { IGiveTokenUpgradeProperties } from './GiveTokenUpgradeSystem';
 import { GiveTokenUpgradeSystem } from './GiveTokenUpgradeSystem';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 
 export type IGiveExperienceProperties = Omit<IGiveTokenUpgradeProperties, 'tokenType'>;
 

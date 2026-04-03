@@ -4,7 +4,7 @@ import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
-import * as Contract from '../../game/core/utils/Contract';
+import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity } from '../../services/DynamoDBInterfaces';
 import { ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';

@@ -1,4 +1,4 @@
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { IActionTimerHandler } from './IActionTimer';
 import { PlayerTimeRemainingStatus } from './IActionTimer';
 

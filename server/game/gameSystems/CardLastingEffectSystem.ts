@@ -5,9 +5,8 @@ import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetS
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
 import type { OngoingCardEffect } from '../core/ongoingEffect/OngoingCardEffect';
-import * as Helpers from '../core/utils/Helpers';
+import { type DistributiveOmit, Helpers } from '../core/utils/Helpers';
 import * as LastingEffectSystemHelpers from './helpers/LastingEffectSystemHelpers';
-import type { DistributiveOmit } from '../core/utils/Helpers';
 import type { IOngoingCardEffectGenerator, IOngoingCardEffectProps } from '../Interfaces';
 
 export type ICardLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target' | 'effect'> & Pick<ICardTargetSystemProperties, 'target'> & {

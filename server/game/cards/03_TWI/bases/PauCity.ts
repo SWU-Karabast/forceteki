@@ -1,6 +1,6 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { CardType, RelativePlayer } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
 export default class PauCity extends BaseCard {
@@ -15,7 +15,7 @@ export default class PauCity extends BaseCard {
         registrar.addConstantAbility({
             title: 'Each leader unit you control gets +0/+1',
             targetController: RelativePlayer.Self,
-            targetCardTypeFilter: CardType.LeaderUnit,
+            targetCardTypeFilter: WildcardCardType.LeaderUnit,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 1 })
         });
     }

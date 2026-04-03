@@ -3,7 +3,7 @@ import type { ZoneName } from '../Constants';
 import type { Player } from '../Player';
 import { SimpleZone } from './SimpleZone';
 import type { IAddRemoveZone } from './ZoneAbstract';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import { registerStateBase } from '../GameObjectUtils';
 
 /**

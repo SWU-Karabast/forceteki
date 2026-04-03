@@ -3,7 +3,7 @@ import { Duration, EventName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ICardLastingEffectProperties } from './CardLastingEffectSystem';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { Card } from '../core/card/Card';
 
 export type ICardWhileSourceInPlayLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration'>;
