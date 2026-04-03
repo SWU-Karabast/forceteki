@@ -389,6 +389,20 @@ const mockCards = [
         internalName: 'urgent-mission',
     }),
     buildMockCard({
+        title: 'Vanquish the Legion',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'TS26',
+            number: 48
+        },
+        unique: false,
+        internalName: 'vanquish-the-legion',
+    }),
+    buildMockCard({
         title: 'Pre Vizsla',
         subtitle: 'For Mandalore!',
         cost: 3,
