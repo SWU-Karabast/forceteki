@@ -407,6 +407,77 @@ const mockCards = [
         arena: 'ground',
         internalName: 'pre-vizsla#for-mandalore',
     }),
+    buildMockCard({
+        title: 'Jendirian Valley',
+        subtitle: 'Refugee Freighter',
+        cost: 4,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Command'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'transport'],
+        keywords: ['restore 1'],
+        setId: {
+            set: 'TS26',
+            number: 18
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'jenridian-valley#refugee-freighter',
+    }),
+    buildMockCard({
+        title: 'Jedi General',
+        cost: 5,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Command'],
+        types: ['unit'],
+        traits: ['force', 'republic', 'jedi'],
+        keywords: ['ambush'],
+        setId: {
+            set: 'TS26',
+            number: 55
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'jedi-general',
+    }),
+    buildMockCard({
+        title: 'Secret Marriage',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['event'],
+        traits: ['plan'],
+        keywords: ['plot'],
+        setId: {
+            set: 'TS26',
+            number: 46
+        },
+        unique: false,
+        internalName: 'secret-marriage',
+    }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'One Last Lesson',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression', 'Cunning'],
+        types: ['unit'],
+        traits: ['force', 'underworld'],
+        keywords: ['sentinel'],
+        setId: {
+            set: 'TS26',
+            number: 30
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#one-last-lesson',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
