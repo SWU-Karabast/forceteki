@@ -528,6 +528,25 @@ const mockCards = [
         arena: 'ground',
         internalName: 'maul#one-last-lesson',
     }),
+    buildMockCard({
+        title: 'Captain Vaughn',
+        subtitle: 'Search The Tunnels',
+        cost: 3,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Heroism'],
+        types: ['unit'],
+        traits: ['republic', 'clone', 'trooper'],
+        keywords: ['grit'],
+        setId: {
+            set: 'TS26',
+            number: 39
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-vaughn#search-the-tunnels',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
