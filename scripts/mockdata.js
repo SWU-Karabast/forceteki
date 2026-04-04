@@ -1,6 +1,20 @@
 const mockCards = [
     // Add mock cards here
     buildMockCard({
+        title: 'Reckless Landing',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        types: ['event'],
+        aspects: ['Aggression', 'Cunning'],
+        traits: ['gambit'],
+        setId: {
+            set: 'TS26',
+            number: 32
+        },
+        unique: false,
+        internalName: 'reckless-landing'
+    }),
+    buildMockCard({
         title: 'Yoda',
         subtitle: 'Begun, the Clone War Has',
         cost: 5,
@@ -286,6 +300,164 @@ const mockCards = [
         },
         unique: false,
         internalName: 'remove-the-chip',
+    }),
+    buildMockCard({
+        title: 'Tribunal',
+        subtitle: 'Grave of the 332nd',
+        cost: 10,
+        power: 6,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning', 'Vigilance'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'TS26',
+            number: 36
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'tribunal#grave-of-the-332nd'
+    }),
+    buildMockCard({
+        title: 'Abandoned the Order',
+        cost: 4,
+        hp: 0,
+        power: 0,
+        upgradePower: 1,
+        upgradeHp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning', 'Vigilance'],
+        types: ['upgrade'],
+        traits: ['learned'],
+        setId: {
+            set: 'TS26',
+            number: 37
+        },
+        unique: false,
+        internalName: 'abandoned-the-order'
+    }),
+    buildMockCard({
+        title: 'Twilight',
+        subtitle: 'Escaping Malevolence',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Heroism'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'transport'],
+        setId: {
+            set: 'TS26',
+            number: 41
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'twilight#escaping-malevolence',
+    }),
+    buildMockCard({
+        title: 'R2-D2',
+        subtitle: 'Getting His Chance',
+        cost: 2,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression', 'Heroism'],
+        types: ['unit'],
+        traits: ['republic', 'droid'],
+        keywords: ['raid 2'],
+        setId: {
+            set: 'TS26',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'r2d2#getting-his-chance',
+    }),
+    buildMockCard({
+        title: 'Urgent Mission',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression', 'Heroism'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'TS26',
+            number: 64
+        },
+        unique: false,
+        internalName: 'urgent-mission',
+    }),
+    buildMockCard({
+        title: 'Jendirian Valley',
+        subtitle: 'Refugee Freighter',
+        cost: 4,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance', 'Command'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'transport'],
+        keywords: ['restore 1'],
+        setId: {
+            set: 'TS26',
+            number: 18
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'jenridian-valley#refugee-freighter',
+    }),
+    buildMockCard({
+        title: 'Jedi General',
+        cost: 5,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Command'],
+        types: ['unit'],
+        traits: ['force', 'republic', 'jedi'],
+        keywords: ['ambush'],
+        setId: {
+            set: 'TS26',
+            number: 55
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'jedi-general',
+    }),
+    buildMockCard({
+        title: 'Secret Marriage',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['event'],
+        traits: ['plan'],
+        keywords: ['plot'],
+        setId: {
+            set: 'TS26',
+            number: 46
+        },
+        unique: false,
+        internalName: 'secret-marriage',
+    }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'One Last Lesson',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression', 'Cunning'],
+        types: ['unit'],
+        traits: ['force', 'underworld'],
+        keywords: ['sentinel'],
+        setId: {
+            set: 'TS26',
+            number: 30
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#one-last-lesson',
     }),
 ];
 
