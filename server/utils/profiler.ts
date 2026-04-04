@@ -1,4 +1,9 @@
 import inspector from 'inspector';
+import os from 'os';
+import path from 'path';
+import type { ReadStream } from 'fs';
+import { openSync, writeSync, closeSync } from 'fs';
+import { unlink } from 'fs/promises';
 import * as env from '../env';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
@@ -16,6 +21,7 @@ export class RuntimeProfiler {
     private session: inspector.Session;
     private cpuActive = false;
     private samplingActive = false;
+    private heapSnapshotActive = false;
 
     /**
      * Private constructor for singleton pattern
@@ -69,7 +75,7 @@ export class RuntimeProfiler {
         if (!this.cpuActive) {
             return null;
         }
-        const { profile } = await this.post('Profiler.stop') as { profile: any };
+        const { profile } = await this.post('Profiler.stop') as { profile: unknown };
         this.cpuActive = false;
         await this.post('Profiler.disable');
         const filename = `${label}.${ts()}.cpuprofile`;
@@ -112,12 +118,63 @@ export class RuntimeProfiler {
         if (!this.samplingActive) {
             return null;
         }
-        const { profile } = await this.post('HeapProfiler.stopSampling') as { profile: any };
+        const { profile } = await this.post('HeapProfiler.stopSampling') as { profile: unknown };
         this.samplingActive = false;
         await this.post('HeapProfiler.disable');
         const filename = `${label}.${ts()}.heapprofile`;
         const buffer = Buffer.from(JSON.stringify(profile), 'utf-8');
         return { buffer, filename };
+    }
+
+    /**
+     * Capture a full heap snapshot and write it to a temp file.
+     * NOTE: This can briefly pause the process while the snapshot is generated.
+     * @param label - Label to use in the generated filename (default: 'heap-dump')
+     * @returns Object containing the snapshot file path and filename, or null if a heap snapshot is already active
+     */
+    public async takeHeapSnapshotToFile(label = 'heap-dump'): Promise<{ filePath: string; filename: string } | null> {
+        if (this.heapSnapshotActive) {
+            return null;
+        }
+
+        this.heapSnapshotActive = true;
+        const filename = `${label}.${ts()}.heapsnapshot`;
+        const filePath = path.join(os.tmpdir(), filename);
+
+        // Use synchronous file writes so each chunk is flushed to disk immediately.
+        // The inspector fires all addHeapSnapshotChunk events synchronously during
+        // takeHeapSnapshot — an async writeStream buffers them all in memory first.
+        let fd: number | null = null;
+
+        const onChunk = (message: { params?: { chunk?: string } }) => {
+            const chunk = message?.params?.chunk;
+            if (chunk && fd !== null) {
+                writeSync(fd, chunk);
+            }
+        };
+
+        this.session.on('HeapProfiler.addHeapSnapshotChunk', onChunk);
+
+        try {
+            fd = openSync(filePath, 'w');
+            await this.post('HeapProfiler.enable');
+            await this.post('HeapProfiler.takeHeapSnapshot', {
+                reportProgress: false,
+                captureNumericValue: true
+            });
+
+            return { filePath, filename };
+        } catch (error) {
+            await unlink(filePath).catch(() => undefined);
+            throw error;
+        } finally {
+            if (fd !== null) {
+                closeSync(fd);
+            }
+            this.session.off('HeapProfiler.addHeapSnapshotChunk', onChunk);
+            await this.post('HeapProfiler.disable').catch(() => undefined);
+            this.heapSnapshotActive = false;
+        }
     }
 
     /**
@@ -133,23 +190,23 @@ export class RuntimeProfiler {
     }
 
     /**
-     * Upload a profile buffer to S3
-     * Creates an S3 client on-demand, uploads the file, and properly cleans up resources.
-     * @param buffer - The profile data as a Buffer
+     * Upload a profile to S3
+     * Creates an S3 client on-demand, uploads the data, and properly cleans up resources.
+     * @param body - The profile data as a Buffer or a ReadStream from a file on disk
      * @param filename - The filename for the profile
      * @param devMode - Whether the server is running in development mode
      * @returns The S3 key where the file was uploaded
      * @throws Error if AWS credentials or PROFILE_S3_BUCKET are not configured
      */
-    public async uploadProfileToS3(buffer: Buffer, filename: string, devMode: boolean): Promise<string> {
+    public async uploadProfileToS3(body: Buffer | ReadStream, filename: string, devMode: boolean): Promise<string> {
         // Validate input parameters
-        if (!buffer) {
-            throw new Error('Buffer is required for S3 upload');
+        if (!body) {
+            throw new Error('Body is required for S3 upload');
         }
         if (!filename || filename.trim() === '') {
             throw new Error('Filename is required for S3 upload');
         }
-        if (buffer.length === 0) {
+        if (Buffer.isBuffer(body) && body.length === 0) {
             throw new Error('Buffer is empty, cannot upload to S3');
         }
 
@@ -177,15 +234,15 @@ export class RuntimeProfiler {
             const key = `${environment}/${datePrefix}/${filename}`;
 
             // Validate file extension - both .cpuprofile and .heapprofile are JSON format
-            if (!filename.endsWith('.cpuprofile') && !filename.endsWith('.heapprofile')) {
-                throw new Error(`Invalid profile file extension. Expected .cpuprofile or .heapprofile, got: ${filename}`);
+            if (!filename.endsWith('.cpuprofile') && !filename.endsWith('.heapprofile') && !filename.endsWith('.heapsnapshot')) {
+                throw new Error(`Invalid profile file extension. Expected .cpuprofile, .heapprofile, or .heapsnapshot, got: ${filename}`);
             }
             const contentType = 'application/json';
 
             const command = new PutObjectCommand({
                 Bucket: 'karabast-profiling-dumps',
                 Key: key,
-                Body: buffer,
+                Body: body,
                 ContentType: contentType,
                 ServerSideEncryption: 'AES256'
             });
