@@ -594,30 +594,80 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Builds the decklist object for one player, grouping non-token cards by set+number.
+     * Resolves a set code (e.g. "SOR_095") to a display name using the card map.
+     */
+    private resolveCardName(setCode: string): string {
+        const cardMap = this.cardDataGetter.cardMap;
+        const setCodeMap = this.cardDataGetter.setCodeMap;
+        const internalId = setCodeMap.get(setCode);
+        if (internalId) {
+            const entry = cardMap.get(internalId);
+            if (entry) {
+                return SwuPgn.formatCardName(entry.title, entry.subtitle);
+            }
+        }
+        return setCode;
+    }
+
+    /**
+     * Converts an array of deck entries (from Deck.getDecklist()) to PGN card index entries.
+     */
+    private buildCardEntries(entries: { id: string; count: number }[]): IPgnCardIndexEntry[] {
+        const result: IPgnCardIndexEntry[] = [];
+        for (const entry of entries) {
+            if (entry.count === 0) {
+                continue;
+            }
+            const setIdParts = entry.id.split('_');
+            const setId = setIdParts.length === 2
+                ? SwuPgn.formatSetId(setIdParts[0], Number(setIdParts[1]))
+                : entry.id;
+            result.push({
+                name: this.resolveCardName(entry.id),
+                setId,
+                count: entry.count,
+            });
+        }
+        return result;
+    }
+
+    /**
+     * Builds the decklist object for one player using the lobby Deck for accurate counts and sideboard.
      */
     private buildPlayerDecklist(player: Player): IPgnPlayerDecklist {
         const leaderSetId = SwuPgn.formatSetId(player.leader.setId.set, player.leader.setId.number);
         const baseSetId = SwuPgn.formatSetId(player.base.setId.set, player.base.setId.number);
 
-        const deckMap = new Map<string, IPgnCardIndexEntry>();
+        const lobbyDeck = player.lobbyDeck;
+        let deck: IPgnCardIndexEntry[] = [];
+        let sideboard: IPgnCardIndexEntry[] | undefined;
 
-        for (const card of player.allCards) {
-            if (card.isLeader() || card.isBase() || card.isToken()) {
-                continue;
+        if (lobbyDeck) {
+            const decklistData = lobbyDeck.getDecklist();
+            deck = this.buildCardEntries(decklistData.deck);
+            if (decklistData.sideboard && decklistData.sideboard.length > 0) {
+                sideboard = this.buildCardEntries(decklistData.sideboard);
             }
-
-            const cardSetId = SwuPgn.formatSetId(card.setId.set, card.setId.number);
-            const existing = deckMap.get(cardSetId);
-            if (existing) {
-                existing.count++;
-            } else {
-                deckMap.set(cardSetId, {
-                    name: SwuPgn.formatCardName(card.title, card.subtitle),
-                    setId: cardSetId,
-                    count: 1,
-                });
+        } else {
+            // Fallback: use allCards if lobby deck is unavailable
+            const deckMap = new Map<string, IPgnCardIndexEntry>();
+            for (const card of player.allCards) {
+                if (card.isLeader() || card.isBase() || card.isToken()) {
+                    continue;
+                }
+                const cardSetId = SwuPgn.formatSetId(card.setId.set, card.setId.number);
+                const existing = deckMap.get(cardSetId);
+                if (existing) {
+                    existing.count++;
+                } else {
+                    deckMap.set(cardSetId, {
+                        name: SwuPgn.formatCardName(card.title, card.subtitle),
+                        setId: cardSetId,
+                        count: 1,
+                    });
+                }
             }
+            deck = Array.from(deckMap.values());
         }
 
         return {
@@ -631,7 +681,8 @@ export class Game extends EventEmitter {
                 setId: baseSetId,
                 count: 1,
             },
-            deck: Array.from(deckMap.values()),
+            deck,
+            sideboard,
         };
     }
 

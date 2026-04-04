@@ -293,6 +293,16 @@ describe('SwuPgn', function () {
             expect(SwuPgn.flattenMessage(card)).toBe('Wampa');
         });
 
+        it('converts card short summary (name + subtitle) to full card name', function () {
+            const card = { name: 'Karis Nemik', subtitle: 'Freedom is a Pure Idea', id: '123', uuid: 'abc', setId: { set: 'SEC', number: 148 }, type: 'card', printedType: 'Unit' };
+            expect(SwuPgn.flattenMessage(card)).toBe('Karis Nemik, Freedom is a Pure Idea');
+        });
+
+        it('converts card short summary without subtitle to just name', function () {
+            const card = { name: 'TIE Bomber', id: '456', uuid: 'def', setId: { set: 'JTL', number: 237 }, type: 'card', printedType: 'Unit' };
+            expect(SwuPgn.flattenMessage(card)).toBe('TIE Bomber');
+        });
+
         it('converts object with name property to the name', function () {
             const player = { name: 'player1' };
             expect(SwuPgn.flattenMessage(player)).toBe('player1');

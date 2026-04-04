@@ -147,12 +147,17 @@ export class SwuPgn {
                 return SwuPgn.flattenMessage(message.alert.message);
             }
 
-            // Card object with title
+            // Card object with title (direct card reference)
             if ('title' in message && message.title != null) {
                 return SwuPgn.formatCardName(message.title, message.subtitle);
             }
 
-            // Player/named object
+            // Card short summary object (from getShortSummary): has name + subtitle
+            if ('name' in message && message.name != null && 'subtitle' in message && message.subtitle) {
+                return SwuPgn.formatCardName(message.name, message.subtitle);
+            }
+
+            // Player or other named object (no subtitle)
             if ('name' in message && message.name != null) {
                 return String(message.name);
             }
@@ -177,17 +182,21 @@ export class SwuPgn {
 
     /**
      * Iterates game messages, skips player chat, flattens each to text, anonymizes, and joins with newlines.
+     * Messages are ISerializedMessage objects with { date, message } structure.
      */
     public static generateHumanNotation(messages: any[], player1Name: string, player2Name: string): string {
         const lines: string[] = [];
 
-        for (const message of messages) {
+        for (const entry of messages) {
+            // Unwrap the message content from the { date, message } wrapper
+            const messageContent = entry?.message ?? entry;
+
             // Skip player chat messages: first element has type === 'playerChat'
-            if (Array.isArray(message) && message.length > 0 && message[0]?.type === 'playerChat') {
+            if (Array.isArray(messageContent) && messageContent.length > 0 && messageContent[0]?.type === 'playerChat') {
                 continue;
             }
 
-            const text = SwuPgn.flattenMessage(message);
+            const text = SwuPgn.flattenMessage(messageContent);
             if (text) {
                 lines.push(SwuPgn.anonymizePlayers(text, player1Name, player2Name));
             }
