@@ -510,6 +510,37 @@ const mockCards = [
         internalName: 'secret-marriage',
     }),
     buildMockCard({
+        title: 'Fervor',
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['event'],
+        traits: ['innate'],
+        setId: {
+            set: 'TS26',
+            number: 72
+        },
+        unique: false,
+        internalName: 'fervor',
+    }),
+    buildMockCard({
+        title: 'Wartime Refugee',
+        cost: 1,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['unit'],
+        traits: ['twi\'lek'],
+        setId: {
+            set: 'TS26',
+            number: 43
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'wartime-refugee',
+    }),
+    buildMockCard({
         title: 'Maul',
         subtitle: 'One Last Lesson',
         cost: 4,
