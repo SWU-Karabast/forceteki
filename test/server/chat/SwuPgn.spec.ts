@@ -222,14 +222,24 @@ describe('SwuPgn', function () {
 
         const humanNotation = 'Round 1 started\nP1 played Wampa';
 
-        it('starts with HUMAN READABLE marker', function () {
+        it('starts with header (game metadata)', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
-            expect(output.startsWith('=== FREEFORM ===')).toBe(true);
+            expect(output.startsWith('[Game')).toBe(true);
         });
 
         it('contains header section', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
             expect(output).toContain('[Game "Star Wars: Unlimited"]');
+        });
+
+        it('contains card index section', function () {
+            const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
+            expect(output).toContain('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
+        });
+
+        it('contains freeform marker before game log', function () {
+            const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
+            expect(output).toContain('=== FREEFORM ===');
         });
 
         it('contains human notation section', function () {
@@ -238,25 +248,22 @@ describe('SwuPgn', function () {
             expect(output).toContain('P1 played Wampa');
         });
 
-        it('contains card index section', function () {
-            const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
-            expect(output).toContain('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
-        });
-
         it('contains replay data section', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
             expect(output).toContain('=== PARSEABLE ===');
         });
 
-        it('has sections in correct order: header, notation, card index, replay data', function () {
+        it('has sections in correct order: header, card index, freeform, parseable', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
             const headerPos = output.indexOf('[Game');
-            const notationPos = output.indexOf('Round 1 started');
             const cardIndexPos = output.indexOf('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
+            const freeformPos = output.indexOf('=== FREEFORM ===');
+            const notationPos = output.indexOf('Round 1 started');
             const replayPos = output.indexOf('=== PARSEABLE ===');
-            expect(headerPos).toBeLessThan(notationPos);
-            expect(notationPos).toBeLessThan(cardIndexPos);
-            expect(cardIndexPos).toBeLessThan(replayPos);
+            expect(headerPos).toBeLessThan(cardIndexPos);
+            expect(cardIndexPos).toBeLessThan(freeformPos);
+            expect(freeformPos).toBeLessThan(notationPos);
+            expect(notationPos).toBeLessThan(replayPos);
         });
 
         it('separates sections with blank lines', function () {

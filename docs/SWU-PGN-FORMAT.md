@@ -11,7 +11,7 @@ SWU-PGN is a file format for recording complete Star Wars Unlimited games. Think
 - **Analyze decisions** -- since all hidden information (resourced cards, hand reveals, search results) is recorded after the fact
 - **Share games** in a compact, portable text file
 
-Every `.swupgn` file has two layers in one file: a **Freeform** section that humans can read naturally, and a **Parseable** section with structured JSON data that computers can process.
+Every `.swupgn` file has four sections: general game data (header), decklists (card index), a **Freeform** game log that humans can read naturally, and a **Parseable** section with structured JSON data that computers can process.
 
 ---
 
@@ -20,27 +20,25 @@ Every `.swupgn` file has two layers in one file: a **Freeform** section that hum
 A `.swupgn` file is a plain text file (UTF-8) with this structure:
 
 ```
-=== FREEFORM ===        <-- Start of the human-readable layer
 [Header]                    Game metadata (date, players, leaders, result)
-[Game Notation]             Round-by-round account of every action
 [Card Index]                Full decklists with card set IDs
 
-=== PARSEABLE ===       <-- Start of the computer-readable layer
+=== FREEFORM ===        <-- Start of the human-readable game log
+[Game Notation]             Round-by-round account of every action
+
+=== PARSEABLE ===       <-- Start of the computer-readable replay data
 [JSON Replay Data]          One JSON object per line, every game event
 ```
 
-The `=== FREEFORM ===` and `=== PARSEABLE ===` lines are the only two required structural markers in the file. Everything between `=== FREEFORM ===` and `=== PARSEABLE ===` is meant for humans. Everything after `=== PARSEABLE ===` is meant for computers.
+The file starts with the game metadata header and full decklists for both players. The `=== FREEFORM ===` marker signals the start of the human-readable game log. The `=== PARSEABLE ===` marker signals the start of the machine-readable JSON replay data.
 
 ---
 
-## The Freeform Layer (For Humans)
-
-### 1. Header
+## Header
 
 The file starts with metadata about the game, using chess-PGN-style tags:
 
 ```
-=== FREEFORM ===
 [Game "SWU-PGN v1.0"]
 [Date "2026.04.04"]
 [Player1 "Player 1"]
@@ -63,9 +61,46 @@ Each line is `[TagName "Value"]`. The header tells you who played, what they pla
 
 **Player anonymization:** Players are always labeled "Player 1" and "Player 2" -- real usernames are never stored.
 
-### 2. Game Notation
+---
 
-After the header, the game notation records every round, organized by phase.
+## Card Index (Decklists)
+
+After the header, the Card Index lists both players' complete decklists. Every card name used in the notation is mapped to its unique set ID (`SET#NUM`).
+
+```
+═══ CARD INDEX ═══
+
+── P1 Decklist ──
+Leader: Darth Vader, Commanding the First Legion = SOR#010
+Base: Command Center = SOR#028
+Deck:
+  2x Admiral Ozzel, Overconfident = SOR#087
+  3x Cell Block Guard = SOR#095
+  1x Force Choke = SOR#138
+  3x Vanquish = SOR#142
+  2x Viper Probe Droid = SOR#108
+
+── P2 Decklist ──
+Leader: Luke Skywalker, Faithful Friend = SOR#005
+Base: Echo Base = SOR#020
+Deck:
+  2x Rebel Pathfinder = SOR#045
+  3x Wing Leader = SOR#042
+  ...
+```
+
+**Format rules:**
+- Leader and Base listed first
+- Deck cards listed alphabetically under `Deck:`
+- Each entry: `Nx Card Name = SET#NUM` (e.g., `3x Vanquish = SOR#142`)
+- Set codes: `SOR` (Spark of Rebellion), `SHD` (Shadows of the Galaxy), `JTL` (Jump to Lightspeed), `LOF` (Lure of the Dark Side), `TWI` (Twilight of the Republic), etc.
+- Card numbers are zero-padded to 3 digits: `#005`, `#042`, `#176`
+
+---
+
+## The Freeform Game Log
+
+After the decklists, the `=== FREEFORM ===` marker signals the start of the human-readable game log. This records every round, organized by phase.
 
 #### Rounds and Phases
 
@@ -215,39 +250,6 @@ Here are the sentence patterns you'll see in the notation:
   3d. Viper Probe Droid is defeated
 ```
 
-### 3. Card Index
-
-After the final round, the Card Index lists both players' complete decklists. Every card name used in the notation is mapped to its unique set ID (`SET#NUM`).
-
-```
-═══ CARD INDEX ═══
-
-── P1 Decklist ──
-Leader: Darth Vader, Commanding the First Legion = SOR#010
-Base: Command Center = SOR#028
-Deck:
-  2x Admiral Ozzel, Overconfident = SOR#087
-  3x Cell Block Guard = SOR#095
-  1x Force Choke = SOR#138
-  3x Vanquish = SOR#142
-  2x Viper Probe Droid = SOR#108
-
-── P2 Decklist ──
-Leader: Luke Skywalker, Faithful Friend = SOR#005
-Base: Echo Base = SOR#020
-Deck:
-  2x Rebel Pathfinder = SOR#045
-  3x Wing Leader = SOR#042
-  ...
-```
-
-**Format rules:**
-- Leader and Base listed first
-- Deck cards listed alphabetically under `Deck:`
-- Each entry: `Nx Card Name = SET#NUM` (e.g., `3x Vanquish = SOR#142`)
-- Set codes: `SOR` (Spark of Rebellion), `SHD` (Shadows of the Galaxy), `JTL` (Jump to Lightspeed), `LOF` (Lure of the Dark Side), `TWI` (Twilight of the Republic), etc.
-- Card numbers are zero-padded to 3 digits: `#005`, `#042`, `#176`
-
 ---
 
 ## The Parseable Layer (For Computers)
@@ -358,10 +360,10 @@ When multiple copies of the same card are in play, a suffix distinguishes them:
 
 | Marker | Meaning |
 |--------|---------|
-| `=== FREEFORM ===` | Start of human-readable content |
-| `═══ ROUND N ═══` | Round boundary |
-| `─── Phase Name ───` | Phase boundary (Setup, Action, Regroup) |
-| `═══ CARD INDEX ═══` | Start of decklists |
+| `═══ CARD INDEX ═══` | Start of decklists (after header) |
+| `=== FREEFORM ===` | Start of human-readable game log |
+| `═══ ROUND N ═══` | Round boundary (within freeform) |
+| `─── Phase Name ───` | Phase boundary (within freeform) |
 | `=== PARSEABLE ===` | Start of computer-readable JSON data |
 
 ### Notation Numbering

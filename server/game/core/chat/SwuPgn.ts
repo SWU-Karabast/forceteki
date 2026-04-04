@@ -97,7 +97,7 @@ export class SwuPgn {
 
     /**
      * Combines all sections into a complete .swupgn file string.
-     * Section order: header, human notation, card index, replay data.
+     * Section order: header, card index, freeform game log, parseable replay data.
      */
     public static formatFile(
         header: IPgnHeader,
@@ -107,10 +107,10 @@ export class SwuPgn {
         replayData: IPgnReplayRecord[]
     ): string {
         const sections = [
-            '=== FREEFORM ===',
             SwuPgn.formatHeader(header),
-            humanNotation,
             SwuPgn.formatCardIndex(p1Decklist, p2Decklist),
+            '=== FREEFORM ===',
+            humanNotation,
             SwuPgn.formatReplayData(replayData),
         ];
         return sections.join('\n\n');

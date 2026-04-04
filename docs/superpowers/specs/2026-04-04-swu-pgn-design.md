@@ -15,18 +15,18 @@ Players are anonymized as P1 and P2.
 
 ## File Structure
 
-A `.swupgn` file has four sections in this order, divided into two clearly marked layers:
+A `.swupgn` file has four sections in this order:
 
 ```
-=== FREEFORM ===
-[Header Block]
-[Human Notation]
-[Card Index]
-=== PARSEABLE ===
+[Header Block]              General game metadata
+[Card Index]                Full decklists for both players
+=== FREEFORM ===            Human-readable game log
+[Game Notation]
+=== PARSEABLE ===           Machine-readable replay data
 [JSON-lines Replay Log]
 ```
 
-The `=== FREEFORM ===` marker opens the file and signals the start of the human-oriented sections (header, game notation, and card index). The `=== PARSEABLE ===` marker signals the transition to the machine-parseable JSON-lines replay data. These markers serve as both visual separators for humans and reliable delimiters for parsers.
+The file starts with the header and card index (general game data and decklists). The `=== FREEFORM ===` marker signals the start of the human-readable game log. The `=== PARSEABLE ===` marker signals the start of the machine-parseable JSON-lines replay data.
 
 ---
 
@@ -59,7 +59,6 @@ Chess PGN-style metadata tags. Each tag is on its own line in the format `[TagNa
 ### Example
 
 ```
-=== FREEFORM ===
 [Game "SWU-PGN v1.0"]
 [Date "2026.04.04"]
 [Player1 "Player 1"]
@@ -614,7 +613,6 @@ Instance numbers are assigned in the order cards enter play. This suffix is used
 ## Complete Example
 
 ```
-=== FREEFORM ===
 [Game "SWU-PGN v1.0"]
 [Date "2026.04.04"]
 [Player1 "Player 1"]
@@ -627,6 +625,32 @@ Instance numbers are assigned in the order cards enter play. This suffix is used
 [Reason "Base Destroyed"]
 [Format "Premier"]
 [Rounds "2"]
+
+═══ CARD INDEX ═══
+
+── P1 Decklist ──
+Leader: Darth Vader, Commanding the First Legion = SOR#010
+Base: Command Center = SOR#028
+Deck:
+  2x Admiral Ozzel, Overconfident = SOR#087
+  3x Cell Block Guard = SOR#095
+  1x Force Choke = SOR#138
+  3x Vanquish = SOR#142
+  2x Viper Probe Droid = SOR#108
+
+── P2 Decklist ──
+Leader: Luke Skywalker, Faithful Friend = SOR#005
+Base: Echo Base = SOR#020
+Deck:
+  2x Asteroid Sanctuary = SHD#062
+  1x Jedha City = SOR#176
+  2x Moment of Peace = SOR#165
+  3x Rebel Pathfinder = SOR#045
+  1x Snowspeeder = SOR#039
+  2x Surprise Strike = SOR#150
+  3x Wing Leader = SOR#042
+
+=== FREEFORM ===
 
 ═══ ROUND 1 ═══
 
@@ -676,30 +700,6 @@ All cards readied
   2b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
   2c. Rebel Pathfinder is defeated
   2d. Cell Block Guard is exhausted
-
-═══ CARD INDEX ═══
-
-── P1 Decklist ──
-Leader: Darth Vader, Commanding the First Legion = SOR#010
-Base: Command Center = SOR#028
-Deck:
-  2x Admiral Ozzel, Overconfident = SOR#087
-  3x Cell Block Guard = SOR#095
-  1x Force Choke = SOR#138
-  3x Vanquish = SOR#142
-  2x Viper Probe Droid = SOR#108
-
-── P2 Decklist ──
-Leader: Luke Skywalker, Faithful Friend = SOR#005
-Base: Echo Base = SOR#020
-Deck:
-  2x Asteroid Sanctuary = SHD#062
-  1x Jedha City = SOR#176
-  2x Moment of Peace = SOR#165
-  3x Rebel Pathfinder = SOR#045
-  1x Snowspeeder = SOR#039
-  2x Surprise Strike = SOR#150
-  3x Wing Leader = SOR#042
 
 === PARSEABLE ===
 {"seq":"R1.S.1","type":"DRAW","player":"P1","count":6}
@@ -784,16 +784,23 @@ UTF-8. The box-drawing characters (`═`, `─`) are standard Unicode and render
 
 ## Parser Guidance
 
-### Reading the Human Layer
+### Reading the Header and Card Index
 
-A parser targeting only the human-readable portion should:
-1. Verify the file starts with `=== FREEFORM ===`
-2. Parse header tags with regex: `\[(\w+) "(.+)"\]`
-3. Detect round boundaries with: `═══ ROUND (\d+) ═══`
-4. Detect phase boundaries with: `─── (.+) Phase ───`
-5. Parse numbered actions with: `(\d+)\. (P[12]) (.+)`
-6. Parse sub-events with: `  (\d+)([a-z](?:-[ivx]+)?)\. (.+)`
-7. Stop at `═══ CARD INDEX ═══` or `=== PARSEABLE ===`
+1. Parse header tags at the start of the file with regex: `\[(\w+) "(.+)"\]`
+2. Scan for `═══ CARD INDEX ═══` to find decklists
+3. Parse player sections with `── P[12] Decklist ──`
+4. Parse leader/base: `(Leader|Base): (.+) = ([A-Z]+#\d{3})`
+5. Parse deck entries: `  (\d+)x (.+) = ([A-Z]+#\d{3})`
+
+### Reading the Freeform Game Log
+
+A parser targeting the human-readable game log should:
+1. Scan forward to `=== FREEFORM ===`
+2. Detect round boundaries with: `═══ ROUND (\d+) ═══`
+3. Detect phase boundaries with: `─── (.+) Phase ───`
+4. Parse numbered actions with: `(\d+)\. (P[12]) (.+)`
+5. Parse sub-events with: `  (\d+)([a-z](?:-[ivx]+)?)\. (.+)`
+6. Stop at `=== PARSEABLE ===`
 
 ### Reading the Replay Layer
 
@@ -803,9 +810,3 @@ A parser targeting the machine-readable portion should:
 3. Use the `type` field to dispatch to type-specific handlers
 4. Use `seq` for ordering and structural context
 
-### Reading the Card Index
-
-1. Scan for `═══ CARD INDEX ═══`
-2. Parse player sections with `── P[12] Decklist ──`
-3. Parse leader/base: `(Leader|Base): (.+) = ([A-Z]+#\d{3})`
-4. Parse deck entries: `  (\d+)x (.+) = ([A-Z]+#\d{3})`
