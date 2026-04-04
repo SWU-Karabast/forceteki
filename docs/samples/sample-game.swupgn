@@ -1,4 +1,4 @@
-=== HUMAN READABLE ===
+=== FREEFORM ===
 [Game "SWU-PGN v1.0"]
 [Date "2026.04.04"]
 [Player1 "Player 1"]
@@ -228,7 +228,7 @@ Deck:
   3x Wing Leader = SOR#042
   2x Yoda, Old Master = SOR#057
 
-=== COMPUTER READABLE ===
+=== PARSEABLE ===
 {"seq":"R1.S.1","type":"DRAW","player":"P1","count":6}
 {"seq":"R1.S.2","type":"KEEP_HAND","player":"P1"}
 {"seq":"R1.S.3","type":"DRAW","player":"P2","count":6}

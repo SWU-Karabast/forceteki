@@ -91,7 +91,7 @@ export class SwuPgn {
      * Formats the machine-readable replay data section as JSON-lines.
      */
     public static formatReplayData(records: IPgnReplayRecord[]): string {
-        const lines = ['=== COMPUTER READABLE ===', ...records.map((r) => JSON.stringify(r))];
+        const lines = ['=== PARSEABLE ===', ...records.map((r) => JSON.stringify(r))];
         return lines.join('\n');
     }
 
@@ -107,7 +107,7 @@ export class SwuPgn {
         replayData: IPgnReplayRecord[]
     ): string {
         const sections = [
-            '=== HUMAN READABLE ===',
+            '=== FREEFORM ===',
             SwuPgn.formatHeader(header),
             humanNotation,
             SwuPgn.formatCardIndex(p1Decklist, p2Decklist),

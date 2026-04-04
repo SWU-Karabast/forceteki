@@ -173,7 +173,7 @@ describe('SwuPgn', function () {
 
         it('includes the REPLAY DATA section header', function () {
             const output = SwuPgn.formatReplayData(records);
-            expect(output).toContain('=== COMPUTER READABLE ===');
+            expect(output).toContain('=== PARSEABLE ===');
         });
 
         it('serializes each record as a JSON line', function () {
@@ -224,7 +224,7 @@ describe('SwuPgn', function () {
 
         it('starts with HUMAN READABLE marker', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
-            expect(output.startsWith('=== HUMAN READABLE ===')).toBe(true);
+            expect(output.startsWith('=== FREEFORM ===')).toBe(true);
         });
 
         it('contains header section', function () {
@@ -245,7 +245,7 @@ describe('SwuPgn', function () {
 
         it('contains replay data section', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
-            expect(output).toContain('=== COMPUTER READABLE ===');
+            expect(output).toContain('=== PARSEABLE ===');
         });
 
         it('has sections in correct order: header, notation, card index, replay data', function () {
@@ -253,7 +253,7 @@ describe('SwuPgn', function () {
             const headerPos = output.indexOf('[Game');
             const notationPos = output.indexOf('Round 1 started');
             const cardIndexPos = output.indexOf('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
-            const replayPos = output.indexOf('=== COMPUTER READABLE ===');
+            const replayPos = output.indexOf('=== PARSEABLE ===');
             expect(headerPos).toBeLessThan(notationPos);
             expect(notationPos).toBeLessThan(cardIndexPos);
             expect(cardIndexPos).toBeLessThan(replayPos);
