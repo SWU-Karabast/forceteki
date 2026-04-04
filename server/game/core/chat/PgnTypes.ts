@@ -85,3 +85,12 @@ export interface ISwuPgnData {
     cardIndex: { p1: IPgnPlayerDecklist; p2: IPgnPlayerDecklist };
     replayData: IPgnReplayRecord[];
 }
+
+export interface IStructureMarker {
+    messageIndex: number;
+    type: 'round' | 'phase' | 'action' | 'subEvent';
+    round?: number;
+    phase?: string;
+    actionNumber?: number;
+    subEventLetter?: string;
+}
