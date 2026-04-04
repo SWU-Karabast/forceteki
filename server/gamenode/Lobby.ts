@@ -2327,4 +2327,27 @@ export class Lobby {
             });
         }
     }
+
+    public getGameLog(socket: any, callback: (data: { rawLog: string; swuPgn: string } | { error: string }) => void): void {
+        if (!this.game) {
+            if (typeof callback === 'function') {
+                callback({ error: 'No active game' });
+            }
+            return;
+        }
+
+        try {
+            const rawLog = this.game.getRawGameLog();
+            const swuPgn = this.game.generateSwuPgn();
+
+            if (typeof callback === 'function') {
+                callback({ rawLog, swuPgn });
+            }
+        } catch (e) {
+            logger.error(`Error generating game log: ${e}`);
+            if (typeof callback === 'function') {
+                callback({ error: 'Failed to generate game log' });
+            }
+        }
+    }
 }
