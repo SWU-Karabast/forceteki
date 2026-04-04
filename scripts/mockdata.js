@@ -389,6 +389,42 @@ const mockCards = [
         internalName: 'urgent-mission',
     }),
     buildMockCard({
+        title: 'Ruping Rider',
+        cost: 4,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['unit'],
+        traits: ['creature', 'trooper'],
+        keywords: ['grit'],
+        setId: {
+            set: 'TS26',
+            number: 67
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ruping-rider',
+    }),
+    buildMockCard({
+        title: 'Deployed Droideka',
+        cost: 4,
+        power: 4,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning'],
+        types: ['unit'],
+        traits: ['separatist', 'droid'],
+        keywords: ['ambush'],
+        setId: {
+            set: 'TS26',
+            number: 77
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'deployed-droideka',
+    }),
+    buildMockCard({
         title: 'Vanquish the Legion',
         cost: 4,
         hasNonKeywordAbility: true,
