@@ -156,20 +156,28 @@ This hierarchy makes it clear which effects belong to which action. A single att
 ```
 ─── Setup Phase ───
 P1 draws 6 cards in starting hand
+  [Cards Drawn] P1: Viper Probe Droid, Cell Block Guard, Vanquish, Force Choke, Admiral Ozzel, Overconfident, Open Fire
 P1 will keep their hand
 P2 draws 6 cards in starting hand
+  [Cards Drawn] P2: Rebel Pathfinder, Wing Leader, Moment of Peace, Snowspeeder, Jedha City, Surprise Strike
 P2 will mulligan
 P2 shuffles their deck
 P2 draws 6 cards in starting hand
+  [Cards Drawn] P2: Rebel Pathfinder, Echo Base Defender, Moment of Peace, Wing Leader, Alliance X-Wing, Repair
 P1 resources 1 card from hand: Vanquish
+  [Card Resourced] P1: Vanquish
 P2 resources 1 card from hand: Asteroid Sanctuary
+  [Card Resourced] P2: Asteroid Sanctuary
 ```
 
 ```
 ─── Regroup Phase ───
 P1 draws 2 cards
+  [Cards Drawn] P1: Superlaser Technician, Relentless, Konstantine's Folly
 P2 draws 2 cards
+  [Cards Drawn] P2: Luke Skywalker, Jedi Knight, Recruit
 P1 resources 1 card from hand: Admiral Ozzel, Overconfident
+  [Card Resourced] P1: Admiral Ozzel, Overconfident
 P2 resources 0 cards
 All cards readied
 ```
@@ -219,6 +227,8 @@ Here are the sentence patterns you'll see in the notation:
 | Token created | `  Na. Token Name enters Zone (X/Y)` |
 | Overwhelm | `  Na. X Overwhelm damage dealt to P2's Base (Y remaining HP)` |
 | Base status | `  [Base Status] P1: 25/30 HP \| P2: 18/30 HP` |
+| Cards drawn | `  [Cards Drawn] P1: Card A, Card B` |
+| Card resourced | `  [Card Resourced] P1: Card Name, Subtitle` |
 | Search | `  Na. P1 searches their deck` / `  Nb. P1 finds Card and puts it into Zone` |
 
 #### Combat Examples
@@ -346,9 +356,14 @@ Each `type` value tells the computer what kind of event this is:
 {"seq":"R2.A.1b","type":"CREATE_TOKEN","player":"P2","token":"X-Wing","zone":"Space","power":2,"hp":3}
 ```
 
-**Resourcing a card:**
+**Drawing cards** (includes the actual cards drawn):
 ```json
-{"seq":"R1.S.7","type":"RESOURCE","player":"P1","card":"SOR#142","count":1}
+{"seq":"R1.S.1","type":"DRAW","player":"P1","count":6,"cards":["SOR#108","SOR#095","SOR#142","SOR#138","SOR#087","SOR#148"]}
+```
+
+**Resourcing a card** (includes the card name):
+```json
+{"seq":"R1.S.7","type":"RESOURCE","player":"P1","card":"SOR#142","cardName":"Vanquish"}
 ```
 
 **Hand reveal:**

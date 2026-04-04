@@ -243,11 +243,17 @@ export class SwuPgn {
 
             lines.push(line);
 
-            // Inject base status lines after the current message if any baseStatus markers point here
+            // Inject supplemental lines after the current message
             if (markers) {
                 for (const marker of markers) {
                     if (marker.type === 'baseStatus' && marker.p1BaseHp != null && marker.p2BaseHp != null) {
                         lines.push(`  [Base Status] P1: ${marker.p1BaseHp}/${marker.p1BaseMaxHp} HP | P2: ${marker.p2BaseHp}/${marker.p2BaseMaxHp} HP`);
+                    }
+                    if (marker.type === 'drawnCards' && marker.drawnCards && marker.drawnCards.length > 0) {
+                        lines.push(`  [Cards Drawn] ${marker.player}: ${marker.drawnCards.join(', ')}`);
+                    }
+                    if (marker.type === 'resourcedCard' && marker.resourcedCard) {
+                        lines.push(`  [Card Resourced] ${marker.player}: ${marker.resourcedCard}`);
                     }
                 }
             }

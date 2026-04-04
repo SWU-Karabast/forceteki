@@ -89,14 +89,20 @@ export interface ISwuPgnData {
 
 export interface IStructureMarker {
     messageIndex: number;
-    type: 'round' | 'phase' | 'action' | 'subEvent' | 'baseStatus';
+    type: 'round' | 'phase' | 'action' | 'subEvent' | 'baseStatus' | 'drawnCards' | 'resourcedCard';
     round?: number;
     phase?: string;
     actionNumber?: number;
     subEventLetter?: string;
+    /** Player label: 'P1' or 'P2' */
+    player?: string;
     /** Base HP snapshot: present when type is 'baseStatus' */
     p1BaseHp?: number;
     p1BaseMaxHp?: number;
     p2BaseHp?: number;
     p2BaseMaxHp?: number;
+    /** Cards drawn: present when type is 'drawnCards' */
+    drawnCards?: string[];
+    /** Card resourced: present when type is 'resourcedCard' */
+    resourcedCard?: string;
 }

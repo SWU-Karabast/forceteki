@@ -454,14 +454,27 @@ export class PgnReplayRecorder {
         this.game.on(EventName.OnCardsDrawn, (event: any) => {
             try {
                 const player = event?.player;
-                const count: number = event?.amount ?? event?.cards?.length ?? 0;
+                const cards: any[] = event?.cards ?? [];
+                const count: number = event?.amount ?? cards.length ?? 0;
+                const cardIds = cards.map((c: any) => this.cardId(c)).filter((id: string) => id !== 'unknown');
+                const cardNames = cards.map((c: any) => SwuPgn.formatCardName(c?.title, c?.subtitle)).filter(Boolean);
                 const seq = this.nextSeq(false);
                 this.push({
                     seq,
                     type: PgnActionType.Draw,
                     player: this.anonymizePlayer(player),
                     count,
+                    cards: cardIds.length > 0 ? cardIds : undefined,
                 });
+                // Add structure marker with card names for freeform display
+                if (cardNames.length > 0) {
+                    this.structureMarkers.push({
+                        messageIndex: this.game.gameChat.messages.length,
+                        type: 'drawnCards',
+                        drawnCards: cardNames,
+                        player: this.anonymizePlayer(player),
+                    } as any);
+                }
             } catch (err) {
                 // Recording error — do not crash gameplay
             }
@@ -471,13 +484,24 @@ export class PgnReplayRecorder {
             try {
                 const card = event?.card;
                 const player = event?.resourceControllingPlayer ?? card?.owner;
+                const cardName = card ? SwuPgn.formatCardName(card.title, card.subtitle) : undefined;
                 const seq = this.nextSeq(false);
                 this.push({
                     seq,
                     type: PgnActionType.Resource,
                     player: this.anonymizePlayer(player),
                     card: this.cardId(card),
+                    cardName,
                 });
+                // Add structure marker with card name for freeform display
+                if (cardName) {
+                    this.structureMarkers.push({
+                        messageIndex: this.game.gameChat.messages.length,
+                        type: 'resourcedCard',
+                        resourcedCard: cardName,
+                        player: this.anonymizePlayer(player),
+                    } as any);
+                }
             } catch (err) {
                 // Recording error — do not crash gameplay
             }
