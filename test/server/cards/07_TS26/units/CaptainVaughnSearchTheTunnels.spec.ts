@@ -5,7 +5,7 @@ describe('Captain Vaughn, Search the Tunnels', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['captain-vaughn#seatch-the-tunnels'],
+                        groundArena: ['captain-vaughn#search-the-tunnels'],
                         hand: ['pyke-sentinel'],
                         deck: ['batch-brothers', 'perilous-position', 'battlefield-marine', 'wampa']
                     },
@@ -70,7 +70,7 @@ describe('Captain Vaughn, Search the Tunnels', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['captain-vaughn#seatch-the-tunnels'],
+                    groundArena: ['captain-vaughn#search-the-tunnels'],
                     hand: ['pyke-sentinel'],
                     deck: ['batch-brothers', 'perilous-position']
                 },
@@ -106,7 +106,7 @@ describe('Captain Vaughn, Search the Tunnels', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['captain-vaughn#seatch-the-tunnels'],
+                    groundArena: ['captain-vaughn#search-the-tunnels'],
                     hand: ['pyke-sentinel'],
                     deck: []
                 },
