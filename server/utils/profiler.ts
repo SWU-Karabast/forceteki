@@ -129,10 +129,10 @@ export class RuntimeProfiler {
     /**
      * Capture a full heap snapshot and write it to a temp file.
      * NOTE: This can briefly pause the process while the snapshot is generated.
-     * @param label - Label to use in the generated filename (default: 'heap-dump')
+     * @param label - Label to use in the generated filename (default: 'full-heap-snapshot')
      * @returns Object containing the snapshot file path and filename, or null if a heap snapshot is already active
      */
-    public async takeHeapSnapshotToFile(label = 'heap-dump'): Promise<{ filePath: string; filename: string } | null> {
+    public async takeFullHeapSnapshotToFile(label = 'full-heap-snapshot'): Promise<{ filePath: string; filename: string } | null> {
         if (this.heapSnapshotActive) {
             return null;
         }
