@@ -389,6 +389,39 @@ const mockCards = [
         internalName: 'urgent-mission',
     }),
     buildMockCard({
+        title: 'Vanquish the Legion',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'TS26',
+            number: 48
+        },
+        unique: false,
+        internalName: 'vanquish-the-legion',
+    }),
+    buildMockCard({
+        title: 'Pre Vizsla',
+        subtitle: 'For Mandalore!',
+        cost: 3,
+        power: 4,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['Cunning', 'Villainy'],
+        types: ['unit'],
+        traits: ['mandalorian', 'trooper'],
+        keywords: ['hidden', 'saboteur'],
+        setId: {
+            set: 'TS26',
+            number: 74
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'pre-vizsla#for-mandalore',
+    }),
+    buildMockCard({
         title: 'Jendirian Valley',
         subtitle: 'Refugee Freighter',
         cost: 4,
