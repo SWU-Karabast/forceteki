@@ -218,6 +218,7 @@ Here are the sentence patterns you'll see in the notation:
 | Shield used | `  Na. Card's Shield token is defeated to prevent damage` |
 | Token created | `  Na. Token Name enters Zone (X/Y)` |
 | Overwhelm | `  Na. X Overwhelm damage dealt to P2's Base (Y remaining HP)` |
+| Base status | `  [Base Status] P1: 25/30 HP \| P2: 18/30 HP` |
 | Search | `  Na. P1 searches their deck` / `  Nb. P1 finds Card and puts it into Zone` |
 
 #### Combat Examples
@@ -231,14 +232,23 @@ Here are the sentence patterns you'll see in the notation:
   3d. Cell Block Guard is exhausted
 ```
 
-**Overwhelm** (excess damage hits the base):
+**Overwhelm** (excess damage hits the base — note the base status snapshot):
 ```
 3. P1 attacks with AT-AT against Rebel Pathfinder
   3a. AT-AT deals 6 damage to Rebel Pathfinder (0 remaining HP)
   3b. Rebel Pathfinder is defeated
   3c. 4 Overwhelm damage dealt to P2's Echo Base (16 remaining HP)
+  [Base Status] P1: 25/30 HP | P2: 16/30 HP
   3d. Rebel Pathfinder deals 2 damage to AT-AT (6 remaining HP)
   3e. AT-AT is exhausted
+```
+
+**Base attack** (base status appears after every hit to a base):
+```
+5. P1 attacks with Viper Probe Droid against P2's Base
+  5a. Viper Probe Droid deals 2 damage to Echo Base (28 remaining HP)
+  [Base Status] P1: 30/30 HP | P2: 28/30 HP
+  5b. Viper Probe Droid is exhausted
 ```
 
 **Sentinel** (attack redirected):
@@ -296,6 +306,9 @@ Each `type` value tells the computer what kind of event this is:
 **Game structure:**
 `PHASE_START`, `PHASE_END`, `ROUND_START`, `ROUND_END`, `GAME_END`
 
+**Status tracking:**
+`BASE_STATUS` (emitted after any damage or heal to a base, shows both bases' HP)
+
 ### Example Records
 
 **Playing a card:**
@@ -311,6 +324,11 @@ Each `type` value tells the computer what kind of event this is:
 **Dealing damage:**
 ```json
 {"seq":"R1.A.5a","type":"DAMAGE","source":"SOR#108","target":"SOR#020","amount":2,"damageType":"combat","remainingHp":28}
+```
+
+**Base status snapshot** (emitted after any damage/heal to a base):
+```json
+{"seq":"R1.A.5b","type":"BASE_STATUS","p1Base":"SOR#028","p1Hp":30,"p1MaxHp":30,"p2Base":"SOR#020","p2Hp":28,"p2MaxHp":30}
 ```
 
 **Triggered ability:**

@@ -242,6 +242,15 @@ export class SwuPgn {
             }
 
             lines.push(line);
+
+            // Inject base status lines after the current message if any baseStatus markers point here
+            if (markers) {
+                for (const marker of markers) {
+                    if (marker.type === 'baseStatus' && marker.p1BaseHp != null && marker.p2BaseHp != null) {
+                        lines.push(`  [Base Status] P1: ${marker.p1BaseHp}/${marker.p1BaseMaxHp} HP | P2: ${marker.p2BaseHp}/${marker.p2BaseMaxHp} HP`);
+                    }
+                }
+            }
         }
 
         return lines.join('\n');

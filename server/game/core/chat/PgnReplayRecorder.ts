@@ -160,6 +160,61 @@ export class PgnReplayRecorder {
         this.structureMarkers.push(marker);
     }
 
+    /**
+     * Emit a BASE_STATUS record and structure marker showing both bases' current HP.
+     * Called after any event that alters a base's HP (damage or heal).
+     */
+    private emitBaseStatus(): void {
+        try {
+            const players = this.game.getPlayers();
+            if (players.length < 2) return;
+
+            const p1Base = players[0].base;
+            const p2Base = players[1].base;
+            if (!p1Base || !p2Base) return;
+
+            const p1Hp = p1Base.remainingHp ?? 0;
+            const p1MaxHp = p1Base.getPrintedHp?.() ?? 30;
+            const p2Hp = p2Base.remainingHp ?? 0;
+            const p2MaxHp = p2Base.getPrintedHp?.() ?? 30;
+
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                type: PgnActionType.BaseStatus,
+                p1Base: this.cardId(p1Base),
+                p1Hp,
+                p1MaxHp,
+                p2Base: this.cardId(p2Base),
+                p2Hp,
+                p2MaxHp,
+            });
+
+            // Add structure marker so freeform layer can inject the status line
+            this.structureMarkers.push({
+                messageIndex: this.game.gameChat.messages.length,
+                type: 'baseStatus',
+                p1BaseHp: p1Hp,
+                p1BaseMaxHp: p1MaxHp,
+                p2BaseHp: p2Hp,
+                p2BaseMaxHp: p2MaxHp,
+            });
+        } catch {
+            // Recording error — do not crash gameplay
+        }
+    }
+
+    /**
+     * Returns true if the given card is a base.
+     */
+    private isBase(card: any): boolean {
+        try {
+            return card?.isBase?.() === true || card?.printedType === 'base';
+        } catch {
+            return false;
+        }
+    }
+
     // ── Map PhaseName → abbreviation ─────────────────────────────────────────
 
     private phaseAbbr(phase: string): string {
@@ -363,6 +418,10 @@ export class PgnReplayRecorder {
                     damageType: event?.type ?? '',
                     remainingHp: card?.remainingHp ?? 0,
                 });
+                // Emit base status snapshot after damage to a base
+                if (this.isBase(card)) {
+                    this.emitBaseStatus();
+                }
             } catch (err) {
                 // Recording error — do not crash gameplay
             }
@@ -463,6 +522,10 @@ export class PgnReplayRecorder {
                     amount: event?.damageHealed ?? event?.amount ?? 0,
                     remainingHp: card?.remainingHp ?? 0,
                 });
+                // Emit base status snapshot after healing a base
+                if (this.isBase(card)) {
+                    this.emitBaseStatus();
+                }
             } catch (err) {
                 // Recording error — do not crash gameplay
             }

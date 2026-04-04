@@ -34,6 +34,7 @@ export enum PgnActionType {
     ModalChoice = 'MODAL_CHOICE',
     AbilityActivate = 'ABILITY_ACTIVATE',
     Overwhelm = 'OVERWHELM',
+    BaseStatus = 'BASE_STATUS',
     GameEnd = 'GAME_END',
     PhaseStart = 'PHASE_START',
     PhaseEnd = 'PHASE_END',
@@ -88,9 +89,14 @@ export interface ISwuPgnData {
 
 export interface IStructureMarker {
     messageIndex: number;
-    type: 'round' | 'phase' | 'action' | 'subEvent';
+    type: 'round' | 'phase' | 'action' | 'subEvent' | 'baseStatus';
     round?: number;
     phase?: string;
     actionNumber?: number;
     subEventLetter?: string;
+    /** Base HP snapshot: present when type is 'baseStatus' */
+    p1BaseHp?: number;
+    p1BaseMaxHp?: number;
+    p2BaseHp?: number;
+    p2BaseMaxHp?: number;
 }
