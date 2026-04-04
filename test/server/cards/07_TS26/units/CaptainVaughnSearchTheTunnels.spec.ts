@@ -24,6 +24,8 @@ describe('Captain Vaughn, Search the Tunnels', function() {
                 context.player2.clickCard(context.captainVaughn);
 
                 // Search the top 3 cards and draw one
+                expect(context.player1).toHavePrompt('Select a card');
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.batchBrothers, context.perilousPosition, context.battlefieldMarine]
                 });
@@ -32,6 +34,7 @@ describe('Captain Vaughn, Search the Tunnels', function() {
                 expect(context.battlefieldMarine).toBeInZone('hand', context.player1);
 
                 // Then put a card from hand on top of deck
+                expect(context.player1).toHavePrompt('Put a card from your hand on top of your deck');
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.battlefieldMarine]);
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.pykeSentinel).toBeInZone('deck', context.player1);

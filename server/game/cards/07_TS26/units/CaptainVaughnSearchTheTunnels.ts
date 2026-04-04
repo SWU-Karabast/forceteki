@@ -6,8 +6,8 @@ import { RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class CaptainVaughnSearchTheTunnels extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'captain-vaughn#seatch-the-tunnels-id',
-            internalName: 'captain-vaughn#seatch-the-tunnels'
+            id: 'captain-vaughn#search-the-tunnels-id',
+            internalName: 'captain-vaughn#search-the-tunnels'
         };
     }
 

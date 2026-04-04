@@ -461,7 +461,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Captain Vaughn',
-        subtitle: 'Seatch The Tunnels',
+        subtitle: 'Search The Tunnels',
         cost: 3,
         power: 2,
         hp: 5,
@@ -476,7 +476,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'captain-vaughn#seatch-the-tunnels',
+        internalName: 'captain-vaughn#search-the-tunnels',
     }),
 ];
 
