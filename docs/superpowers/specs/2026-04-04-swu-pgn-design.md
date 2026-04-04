@@ -15,15 +15,18 @@ Players are anonymized as P1 and P2.
 
 ## File Structure
 
-A `.swupgn` file has four sections in this order:
+A `.swupgn` file has four sections in this order, divided into two clearly marked layers:
 
 ```
+=== HUMAN READABLE ===
 [Header Block]
 [Human Notation]
 [Card Index]
-=== REPLAY DATA ===
+=== COMPUTER READABLE ===
 [JSON-lines Replay Log]
 ```
+
+The `=== HUMAN READABLE ===` marker opens the file and signals the start of the human-oriented sections (header, game notation, and card index). The `=== COMPUTER READABLE ===` marker signals the transition to the machine-parseable JSON-lines replay data. These markers serve as both visual separators for humans and reliable delimiters for parsers.
 
 ---
 
@@ -56,6 +59,7 @@ Chess PGN-style metadata tags. Each tag is on its own line in the format `[TagNa
 ### Example
 
 ```
+=== HUMAN READABLE ===
 [Game "SWU-PGN v1.0"]
 [Date "2026.04.04"]
 [Player1 "Player 1"]
@@ -398,10 +402,10 @@ Deck:
 
 ### Separator
 
-The replay data section begins with a separator line on its own:
+The computer-readable section begins with a separator line on its own:
 
 ```
-=== REPLAY DATA ===
+=== COMPUTER READABLE ===
 ```
 
 ### Format
@@ -610,6 +614,7 @@ Instance numbers are assigned in the order cards enter play. This suffix is used
 ## Complete Example
 
 ```
+=== HUMAN READABLE ===
 [Game "SWU-PGN v1.0"]
 [Date "2026.04.04"]
 [Player1 "Player 1"]
@@ -696,7 +701,7 @@ Deck:
   2x Surprise Strike = SOR#150
   3x Wing Leader = SOR#042
 
-=== REPLAY DATA ===
+=== COMPUTER READABLE ===
 {"seq":"R1.S.1","type":"DRAW","player":"P1","count":6}
 {"seq":"R1.S.2","type":"KEEP_HAND","player":"P1"}
 {"seq":"R1.S.3","type":"DRAW","player":"P2","count":6}
@@ -782,17 +787,18 @@ UTF-8. The box-drawing characters (`═`, `─`) are standard Unicode and render
 ### Reading the Human Layer
 
 A parser targeting only the human-readable portion should:
-1. Parse header tags with regex: `\[(\w+) "(.+)"\]`
-2. Detect round boundaries with: `═══ ROUND (\d+) ═══`
-3. Detect phase boundaries with: `─── (.+) Phase ───`
-4. Parse numbered actions with: `(\d+)\. (P[12]) (.+)`
-5. Parse sub-events with: `  (\d+)([a-z](?:-[ivx]+)?)\. (.+)`
-6. Stop at `═══ CARD INDEX ═══`
+1. Verify the file starts with `=== HUMAN READABLE ===`
+2. Parse header tags with regex: `\[(\w+) "(.+)"\]`
+3. Detect round boundaries with: `═══ ROUND (\d+) ═══`
+4. Detect phase boundaries with: `─── (.+) Phase ───`
+5. Parse numbered actions with: `(\d+)\. (P[12]) (.+)`
+6. Parse sub-events with: `  (\d+)([a-z](?:-[ivx]+)?)\. (.+)`
+7. Stop at `═══ CARD INDEX ═══` or `=== COMPUTER READABLE ===`
 
 ### Reading the Replay Layer
 
 A parser targeting the machine-readable portion should:
-1. Scan forward to the line `=== REPLAY DATA ===`
+1. Scan forward to the line `=== COMPUTER READABLE ===`
 2. Read each subsequent line as a JSON object
 3. Use the `type` field to dispatch to type-specific handlers
 4. Use `seq` for ordering and structural context

@@ -63,6 +63,7 @@ export class SwuPgn {
             `\u2500\u2500 ${label} \u2500\u2500`,
             `Leader: ${decklist.leader.name} = ${decklist.leader.setId}`,
             `Base: ${decklist.base.name} = ${decklist.base.setId}`,
+            'Deck:',
             ...SwuPgn.formatDeckCards(decklist.deck),
         ];
 
@@ -90,7 +91,7 @@ export class SwuPgn {
      * Formats the machine-readable replay data section as JSON-lines.
      */
     public static formatReplayData(records: IPgnReplayRecord[]): string {
-        const lines = ['=== REPLAY DATA ===', ...records.map((r) => JSON.stringify(r))];
+        const lines = ['=== COMPUTER READABLE ===', ...records.map((r) => JSON.stringify(r))];
         return lines.join('\n');
     }
 
@@ -106,6 +107,7 @@ export class SwuPgn {
         replayData: IPgnReplayRecord[]
     ): string {
         const sections = [
+            '=== HUMAN READABLE ===',
             SwuPgn.formatHeader(header),
             humanNotation,
             SwuPgn.formatCardIndex(p1Decklist, p2Decklist),

@@ -173,7 +173,7 @@ describe('SwuPgn', function () {
 
         it('includes the REPLAY DATA section header', function () {
             const output = SwuPgn.formatReplayData(records);
-            expect(output).toContain('=== REPLAY DATA ===');
+            expect(output).toContain('=== COMPUTER READABLE ===');
         });
 
         it('serializes each record as a JSON line', function () {
@@ -222,6 +222,11 @@ describe('SwuPgn', function () {
 
         const humanNotation = 'Round 1 started\nP1 played Wampa';
 
+        it('starts with HUMAN READABLE marker', function () {
+            const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
+            expect(output.startsWith('=== HUMAN READABLE ===')).toBe(true);
+        });
+
         it('contains header section', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
             expect(output).toContain('[Game "Star Wars: Unlimited"]');
@@ -240,7 +245,7 @@ describe('SwuPgn', function () {
 
         it('contains replay data section', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
-            expect(output).toContain('=== REPLAY DATA ===');
+            expect(output).toContain('=== COMPUTER READABLE ===');
         });
 
         it('has sections in correct order: header, notation, card index, replay data', function () {
@@ -248,7 +253,7 @@ describe('SwuPgn', function () {
             const headerPos = output.indexOf('[Game');
             const notationPos = output.indexOf('Round 1 started');
             const cardIndexPos = output.indexOf('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
-            const replayPos = output.indexOf('=== REPLAY DATA ===');
+            const replayPos = output.indexOf('=== COMPUTER READABLE ===');
             expect(headerPos).toBeLessThan(notationPos);
             expect(notationPos).toBeLessThan(cardIndexPos);
             expect(cardIndexPos).toBeLessThan(replayPos);

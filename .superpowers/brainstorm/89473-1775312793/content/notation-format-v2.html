@@ -1,0 +1,108 @@
+<h2>SWU Portable Game Notation — Updated with Title, Subtitle</h2>
+<p class="subtitle">Cards with subtitles now show "Title, Subtitle". Cards without subtitles (events, bases, etc.) show just the title.</p>
+
+<div class="mockup">
+  <div class="mockup-header">SWU-PGN Format — Title, Subtitle Convention</div>
+  <div class="mockup-body" style="font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; text-align: left; padding: 20px; background: #1a1a2e; color: #e0e0e0;">
+<span style="color: #ffd700; font-weight: bold;">═══ ROUND 1 ═══</span>
+
+<span style="color: #c0c0c0; font-style: italic;">─── Setup Phase ───</span>
+P1 draws 6 cards in starting hand
+P1 will keep their hand
+P2 draws 6 cards in starting hand
+P2 will mulligan
+P2 shuffles their deck
+P2 draws 6 cards in starting hand
+P1 resources 1 card from hand: <span style="color: #ff9966;">Vanquish</span>
+P2 resources 1 card from hand: <span style="color: #ff9966;">Asteroid Sanctuary</span>
+
+<span style="color: #c0c0c0; font-style: italic;">─── Action Phase ───</span>
+<span style="color: #66ccff;">1. P1 plays <span style="color: #fff;">Viper Probe Droid</span> to Ground Arena (cost 2)</span>
+  <span style="color: #aaa;">1a. P1's Viper Probe Droid triggers When Played: looks at P2's hand</span>
+  <span style="color: #aaa;">1b. P2's hand revealed: <span style="color: #ddd;">Rebel Pathfinder</span>, <span style="color: #ddd;">Wing Leader</span>, <span style="color: #ddd;">Moment of Peace</span>, <span style="color: #ddd;">Surprise Strike</span>, <span style="color: #ddd;">Jedha City</span></span>
+<span style="color: #66ccff;">2. P2 plays <span style="color: #fff;">Rebel Pathfinder</span> to Ground Arena (cost 2)</span>
+  <span style="color: #aaa;">2a. P2's Rebel Pathfinder triggers When Played: P2 searches deck</span>
+  <span style="color: #aaa;">2b. P2 finds <span style="color: #ddd;">Snowspeeder</span> and puts it into hand</span>
+  <span style="color: #aaa;">2c. P2 shuffles their deck</span>
+<span style="color: #66ccff;">3. P1 plays <span style="color: #fff;">Cell Block Guard</span> to Ground Arena (cost 3)</span>
+  <span style="color: #aaa;">3a. P1 triggers <span style="color: #ddd;">Darth Vader, Commanding the First Legion</span> leader ability: deals 1 damage to P1's Base</span>
+  <span style="color: #aaa;">3b. P1's <span style="color: #ddd;">Command Center</span> takes 1 damage (29 remaining HP)</span>
+  <span style="color: #aaa;">3c. P1 draws 1 card due to <span style="color: #ddd;">Darth Vader, Commanding the First Legion</span> ability</span>
+<span style="color: #66ccff;">4. P2 passes</span>
+<span style="color: #66ccff;">5. P1 attacks with <span style="color: #fff;">Viper Probe Droid</span> against P2's Base</span>
+  <span style="color: #aaa;">5a. Viper Probe Droid deals 2 damage to <span style="color: #ddd;">Echo Base</span></span>
+  <span style="color: #aaa;">5b. Echo Base takes 2 damage (28 remaining HP)</span>
+  <span style="color: #aaa;">5c. Viper Probe Droid is exhausted</span>
+<span style="color: #66ccff;">6. P2 claims initiative and passes</span>
+
+<span style="color: #c0c0c0; font-style: italic;">─── Regroup Phase ───</span>
+P1 draws 2 cards
+P2 draws 2 cards
+P1 resources 1 card from hand: <span style="color: #ff9966;">Admiral Ozzel, Overconfident</span>
+P2 resources 0 cards
+All cards readied
+
+<span style="color: #ffd700; font-weight: bold;">═══ ROUND 2 ═══</span>
+
+<span style="color: #c0c0c0; font-style: italic;">─── Action Phase ───</span>
+<span style="color: #66ccff;">1. P2 plays <span style="color: #fff;">Wing Leader</span> to Space Arena (cost 3)</span>
+  <span style="color: #aaa;">1a. P2's Wing Leader triggers When Played: creates X-Wing token</span>
+  <span style="color: #aaa;">1b. X-Wing token enters Space Arena (2/3)</span>
+<span style="color: #66ccff;">2. P1 attacks with <span style="color: #fff;">Cell Block Guard</span> against <span style="color: #fff;">Rebel Pathfinder</span></span>
+  <span style="color: #aaa;">2a. Cell Block Guard deals 3 damage to Rebel Pathfinder</span>
+  <span style="color: #aaa;">2b. Rebel Pathfinder deals 2 damage to Cell Block Guard</span>
+  <span style="color: #aaa;">2c. Rebel Pathfinder is defeated (0 remaining HP)</span>
+  <span style="color: #aaa;">2d. Cell Block Guard exhausted (1/3 remaining)</span>
+  </div>
+</div>
+
+<div style="margin-top: 24px;">
+  <h3>Naming Convention</h3>
+  <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+    <thead>
+      <tr style="border-bottom: 2px solid rgba(255,255,255,0.2);">
+        <th style="text-align: left; padding: 8px;">Card Type</th>
+        <th style="text-align: left; padding: 8px;">Has Subtitle?</th>
+        <th style="text-align: left; padding: 8px;">Notation Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <td style="padding: 8px;">Named Unit</td>
+        <td style="padding: 8px;">✓ Yes</td>
+        <td style="padding: 8px; font-family: monospace;">Admiral Ozzel, Overconfident</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <td style="padding: 8px;">Generic Unit</td>
+        <td style="padding: 8px;">✗ No</td>
+        <td style="padding: 8px; font-family: monospace;">Cell Block Guard</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <td style="padding: 8px;">Leader</td>
+        <td style="padding: 8px;">✓ Yes</td>
+        <td style="padding: 8px; font-family: monospace;">Darth Vader, Commanding the First Legion</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <td style="padding: 8px;">Event</td>
+        <td style="padding: 8px;">✗ No</td>
+        <td style="padding: 8px; font-family: monospace;">Vanquish</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <td style="padding: 8px;">Upgrade</td>
+        <td style="padding: 8px;">Sometimes</td>
+        <td style="padding: 8px; font-family: monospace;">Experience Token <em>or</em> Darksaber, Ancient Weapon</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <td style="padding: 8px;">Base</td>
+        <td style="padding: 8px;">✗ No</td>
+        <td style="padding: 8px; font-family: monospace;">Echo Base</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px;">Token Unit</td>
+        <td style="padding: 8px;">✗ No</td>
+        <td style="padding: 8px; font-family: monospace;">X-Wing token</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="color: #aaa; margin-top: 12px; font-size: 13px;">Rule: Always use <strong>"Title, Subtitle"</strong> when a subtitle exists. Use just <strong>"Title"</strong> when there is no subtitle. This applies everywhere — notation body and card index.</p>
+</div>

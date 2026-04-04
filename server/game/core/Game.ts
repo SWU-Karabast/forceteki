@@ -318,6 +318,8 @@ export class Game extends EventEmitter {
     public startedAt?: Date;
     public finishedAt?: Date;
     public gameEndReason?: GameEndReason;
+    private _cachedSwuPgn?: string;
+    private _cachedRawGameLog?: string;
     private _actionsSinceLastUndo?: number;
 
     // #endregion
@@ -949,6 +951,14 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
+
+        try {
+            this._cachedRawGameLog = this.getRawGameLog();
+            this._cachedSwuPgn = this.generateSwuPgn();
+        } catch (e) {
+            logger.error(`Error caching game log at end of game: ${e}`);
+        }
+
         this._router.handleGameEnd();
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
@@ -1782,6 +1792,8 @@ export class Game extends EventEmitter {
                     gameMode: this.gameMode,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
+                    swuPgn: this._cachedSwuPgn,
+                    rawGameLog: this._cachedRawGameLog,
                 };
 
                 // Advance the offset for this participant
