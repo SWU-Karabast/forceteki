@@ -1,0 +1,196 @@
+import type { IPgnHeader, IPgnPlayerDecklist, IPgnReplayRecord } from './PgnTypes';
+
+export class SwuPgn {
+    /**
+     * Formats a SET#NUM identifier: uppercases the set and zero-pads the number to 3 digits.
+     */
+    public static formatSetId(set: string, number: number): string {
+        return `${set.toUpperCase()}#${String(number).padStart(3, '0')}`;
+    }
+
+    /**
+     * Returns "Title, Subtitle" when subtitle is provided, or just "Title".
+     */
+    public static formatCardName(title: string, subtitle?: string): string {
+        if (subtitle) {
+            return `${title}, ${subtitle}`;
+        }
+        return title;
+    }
+
+    /**
+     * Formats the PGN header block as chess-style [Tag "Value"] lines.
+     * Required tags are always emitted; optional tags (format, rounds) are omitted when absent.
+     */
+    public static formatHeader(header: IPgnHeader): string {
+        const lines: string[] = [
+            `[Game "${header.game}"]`,
+            `[Date "${header.date}"]`,
+            `[Player1 "${header.player1}"]`,
+            `[Player2 "${header.player2}"]`,
+            `[P1Leader "${header.p1Leader}"]`,
+            `[P1Base "${header.p1Base}"]`,
+            `[P2Leader "${header.p2Leader}"]`,
+            `[P2Base "${header.p2Base}"]`,
+            `[Result "${header.result}"]`,
+            `[Reason "${header.reason}"]`,
+        ];
+
+        if (header.format != null) {
+            lines.push(`[Format "${header.format}"]`);
+        }
+
+        if (header.rounds != null) {
+            lines.push(`[Rounds "${header.rounds}"]`);
+        }
+
+        return lines.join('\n');
+    }
+
+    /**
+     * Formats deck cards sorted alphabetically with count prefix.
+     */
+    private static formatDeckCards(deck: IPgnPlayerDecklist['deck']): string[] {
+        const sorted = [...deck].sort((a, b) => a.name.localeCompare(b.name));
+        return sorted.map((entry) => `  ${entry.count}x ${entry.name} = ${entry.setId}`);
+    }
+
+    /**
+     * Formats one player's decklist subsection.
+     */
+    private static formatPlayerDecklist(label: string, decklist: IPgnPlayerDecklist): string {
+        const lines: string[] = [
+            `\u2500\u2500 ${label} \u2500\u2500`,
+            `Leader: ${decklist.leader.name} = ${decklist.leader.setId}`,
+            `Base: ${decklist.base.name} = ${decklist.base.setId}`,
+            ...SwuPgn.formatDeckCards(decklist.deck),
+        ];
+
+        if (decklist.sideboard && decklist.sideboard.length > 0) {
+            lines.push('Sideboard:');
+            lines.push(...SwuPgn.formatDeckCards(decklist.sideboard));
+        }
+
+        return lines.join('\n');
+    }
+
+    /**
+     * Formats both player decklists under an ═══ CARD INDEX ═══ heading.
+     */
+    public static formatCardIndex(p1Decklist: IPgnPlayerDecklist, p2Decklist: IPgnPlayerDecklist): string {
+        const sections: string[] = [
+            '\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550',
+            SwuPgn.formatPlayerDecklist('P1 Decklist', p1Decklist),
+            SwuPgn.formatPlayerDecklist('P2 Decklist', p2Decklist),
+        ];
+        return sections.join('\n');
+    }
+
+    /**
+     * Formats the machine-readable replay data section as JSON-lines.
+     */
+    public static formatReplayData(records: IPgnReplayRecord[]): string {
+        const lines = ['=== REPLAY DATA ===', ...records.map((r) => JSON.stringify(r))];
+        return lines.join('\n');
+    }
+
+    /**
+     * Combines all sections into a complete .swupgn file string.
+     * Section order: header, human notation, card index, replay data.
+     */
+    public static formatFile(
+        header: IPgnHeader,
+        humanNotation: string,
+        p1Decklist: IPgnPlayerDecklist,
+        p2Decklist: IPgnPlayerDecklist,
+        replayData: IPgnReplayRecord[]
+    ): string {
+        const sections = [
+            SwuPgn.formatHeader(header),
+            humanNotation,
+            SwuPgn.formatCardIndex(p1Decklist, p2Decklist),
+            SwuPgn.formatReplayData(replayData),
+        ];
+        return sections.join('\n\n');
+    }
+
+    /**
+     * Flattens a serialized game message (mixed array of strings/numbers/objects) into plain text.
+     * - plain strings and numbers are converted directly
+     * - objects with title/subtitle become card names
+     * - objects with name become the name
+     * - alert objects { alert: { type, message } } recurse into message
+     * - arrays are flattened recursively and concatenated
+     */
+    public static flattenMessage(message: any): string {
+        if (message == null) {
+            return '';
+        }
+
+        if (typeof message === 'string') {
+            return message;
+        }
+
+        if (typeof message === 'number') {
+            return String(message);
+        }
+
+        if (Array.isArray(message)) {
+            return message.map((part) => SwuPgn.flattenMessage(part)).join('');
+        }
+
+        if (typeof message === 'object') {
+            // Alert object
+            if ('alert' in message && message.alert != null) {
+                return SwuPgn.flattenMessage(message.alert.message);
+            }
+
+            // Card object with title
+            if ('title' in message && message.title != null) {
+                return SwuPgn.formatCardName(message.title, message.subtitle);
+            }
+
+            // Player/named object
+            if ('name' in message && message.name != null) {
+                return String(message.name);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Replaces real player names with P1/P2 in text.
+     * Possessive forms (Player's) are replaced before plain names to avoid double substitution.
+     */
+    public static anonymizePlayers(text: string, player1Name: string, player2Name: string): string {
+        const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        let result = text;
+        result = result.replace(new RegExp(`${escapeRegex(player1Name)}'s`, 'g'), "P1's");
+        result = result.replace(new RegExp(`${escapeRegex(player2Name)}'s`, 'g'), "P2's");
+        result = result.replace(new RegExp(escapeRegex(player1Name), 'g'), 'P1');
+        result = result.replace(new RegExp(escapeRegex(player2Name), 'g'), 'P2');
+        return result;
+    }
+
+    /**
+     * Iterates game messages, skips player chat, flattens each to text, anonymizes, and joins with newlines.
+     */
+    public static generateHumanNotation(messages: any[], player1Name: string, player2Name: string): string {
+        const lines: string[] = [];
+
+        for (const message of messages) {
+            // Skip player chat messages: first element has type === 'playerChat'
+            if (Array.isArray(message) && message.length > 0 && message[0]?.type === 'playerChat') {
+                continue;
+            }
+
+            const text = SwuPgn.flattenMessage(message);
+            if (text) {
+                lines.push(SwuPgn.anonymizePlayers(text, player1Name, player2Name));
+            }
+        }
+
+        return lines.join('\n');
+    }
+}
