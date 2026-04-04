@@ -1,5 +1,5 @@
 import { SwuPgn } from '../../../server/game/core/chat/SwuPgn';
-import type { IPgnHeader, IPgnPlayerDecklist, IPgnReplayRecord } from '../../../server/game/core/chat/PgnTypes';
+import type { IPgnHeader, IPgnPlayerDecklist, IPgnReplayRecord, IStructureMarker } from '../../../server/game/core/chat/PgnTypes';
 import { PgnActionType } from '../../../server/game/core/chat/PgnTypes';
 
 describe('SwuPgn', function () {
@@ -416,6 +416,41 @@ describe('SwuPgn', function () {
             ];
             const result = SwuPgn.generateHumanNotation(messages, 'Alice', 'Bob');
             expect(result).toBe('P1 attacked');
+        });
+
+        it('injects round and phase markers when structureMarkers provided', function () {
+            const messages = [
+                { date: new Date(), message: ['Player1 draws 6 cards'] },
+                { date: new Date(), message: ['Player1 plays Wampa'] },
+                { date: new Date(), message: ['Player2 passes'] },
+            ];
+            const markers: IStructureMarker[] = [
+                { messageIndex: 0, type: 'round', round: 1 },
+                { messageIndex: 0, type: 'phase', phase: 'Setup Phase' },
+                { messageIndex: 1, type: 'phase', phase: 'Action Phase' },
+                { messageIndex: 1, type: 'action', actionNumber: 1 },
+                { messageIndex: 2, type: 'action', actionNumber: 2 },
+            ];
+            const output = SwuPgn.generateHumanNotation(messages, 'Player1', 'Player2', markers);
+            expect(output).toContain('\u2550\u2550\u2550 ROUND 1 \u2550\u2550\u2550');
+            expect(output).toContain('\u2500\u2500\u2500 Setup Phase \u2500\u2500\u2500');
+            expect(output).toContain('\u2500\u2500\u2500 Action Phase \u2500\u2500\u2500');
+            expect(output).toContain('1. P1 plays Wampa');
+            expect(output).toContain('2. P2 passes');
+        });
+
+        it('injects sub-event indentation', function () {
+            const messages = [
+                { date: new Date(), message: ['Player1 plays Wampa'] },
+                { date: new Date(), message: ['Wampa deals 4 damage'] },
+            ];
+            const markers: IStructureMarker[] = [
+                { messageIndex: 0, type: 'action', actionNumber: 1 },
+                { messageIndex: 1, type: 'subEvent', actionNumber: 1, subEventLetter: 'a' },
+            ];
+            const output = SwuPgn.generateHumanNotation(messages, 'Player1', 'Player2', markers);
+            expect(output).toContain('1. P1 plays Wampa');
+            expect(output).toContain('  1a. Wampa deals 4 damage');
         });
     });
 });

@@ -1,4 +1,4 @@
-import type { IPgnHeader, IPgnPlayerDecklist, IPgnReplayRecord } from './PgnTypes';
+import type { IPgnHeader, IPgnPlayerDecklist, IPgnReplayRecord, IStructureMarker } from './PgnTypes';
 
 export class SwuPgn {
     /**
@@ -183,23 +183,65 @@ export class SwuPgn {
     /**
      * Iterates game messages, skips player chat, flattens each to text, anonymizes, and joins with newlines.
      * Messages are ISerializedMessage objects with { date, message } structure.
+     * When structureMarkers are provided, injects round/phase headers and action numbering.
      */
-    public static generateHumanNotation(messages: any[], player1Name: string, player2Name: string): string {
+    public static generateHumanNotation(
+        messages: any[],
+        player1Name: string,
+        player2Name: string,
+        structureMarkers: IStructureMarker[] = []
+    ): string {
         const lines: string[] = [];
 
-        for (const entry of messages) {
-            // Unwrap the message content from the { date, message } wrapper
+        // Build map of messageIndex -> markers
+        const markersByIndex = new Map<number, IStructureMarker[]>();
+        for (const marker of structureMarkers) {
+            const existing = markersByIndex.get(marker.messageIndex) ?? [];
+            existing.push(marker);
+            markersByIndex.set(marker.messageIndex, existing);
+        }
+
+        for (let i = 0; i < messages.length; i++) {
+            const markers = markersByIndex.get(i);
+            if (markers) {
+                for (const marker of markers) {
+                    if (marker.type === 'round') {
+                        if (lines.length > 0) lines.push('');
+                        lines.push(`\u2550\u2550\u2550 ROUND ${marker.round} \u2550\u2550\u2550`);
+                        lines.push('');
+                    } else if (marker.type === 'phase') {
+                        if (lines.length > 0 && lines[lines.length - 1] !== '') lines.push('');
+                        lines.push(`\u2500\u2500\u2500 ${marker.phase} \u2500\u2500\u2500`);
+                    }
+                }
+            }
+
+            const entry = messages[i];
             const messageContent = entry?.message ?? entry;
 
-            // Skip player chat messages: first element has type === 'playerChat'
+            // Skip player chat messages
             if (Array.isArray(messageContent) && messageContent.length > 0 && messageContent[0]?.type === 'playerChat') {
                 continue;
             }
 
             const text = SwuPgn.flattenMessage(messageContent);
-            if (text) {
-                lines.push(SwuPgn.anonymizePlayers(text, player1Name, player2Name));
+            if (!text) continue;
+
+            let line = SwuPgn.anonymizePlayers(text, player1Name, player2Name);
+
+            // Apply action numbering from markers
+            if (markers) {
+                const subEventMarker = markers.find((m) => m.type === 'subEvent');
+                const actionMarker = markers.find((m) => m.type === 'action');
+
+                if (subEventMarker && subEventMarker.actionNumber && subEventMarker.subEventLetter) {
+                    line = `  ${subEventMarker.actionNumber}${subEventMarker.subEventLetter}. ${line}`;
+                } else if (actionMarker && actionMarker.actionNumber) {
+                    line = `${actionMarker.actionNumber}. ${line}`;
+                }
             }
+
+            lines.push(line);
         }
 
         return lines.join('\n');

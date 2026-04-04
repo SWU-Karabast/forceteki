@@ -105,6 +105,8 @@ import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 import { SwuPgn } from './chat/SwuPgn';
 import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IPgnReplayRecord } from './chat/PgnTypes';
+import { PgnActionType } from './chat/PgnTypes';
+import { PgnReplayRecorder } from './chat/PgnReplayRecorder';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -321,6 +323,7 @@ export class Game extends EventEmitter {
     private _cachedSwuPgn?: string;
     private _cachedRawGameLog?: string;
     private _actionsSinceLastUndo?: number;
+    private _replayRecorder: PgnReplayRecorder;
 
     // #endregion
 
@@ -343,6 +346,7 @@ export class Game extends EventEmitter {
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
+        this._replayRecorder = new PgnReplayRecorder(this);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
@@ -527,7 +531,10 @@ export class Game extends EventEmitter {
         const players = this.getPlayers();
         const player1Name = players[0].name;
         const player2Name = players[1].name;
-        return SwuPgn.generateHumanNotation(this.gameChat.messages, player1Name, player2Name);
+        const structureMarkers = this._replayRecorder.getStructureMarkers();
+        return SwuPgn.generateHumanNotation(
+            this.gameChat.messages, player1Name, player2Name, structureMarkers
+        );
     }
 
     /**
@@ -538,10 +545,13 @@ export class Game extends EventEmitter {
         const player1 = players[0];
         const player2 = players[1];
         const header = this.buildPgnHeader(player1, player2);
-        const humanNotation = this.getRawGameLog();
+        const structureMarkers = this._replayRecorder.getStructureMarkers();
+        const humanNotation = SwuPgn.generateHumanNotation(
+            this.gameChat.messages, player1.name, player2.name, structureMarkers
+        );
         const p1Decklist = this.buildPlayerDecklist(player1);
         const p2Decklist = this.buildPlayerDecklist(player2);
-        const replayData: IPgnReplayRecord[] = [];
+        const replayData = this._replayRecorder.getRecords();
         return SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
     }
 
@@ -1002,6 +1012,20 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
+
+        // Record game end in replay data
+        const endPlayer = winners.length === 1
+            ? (winners[0] === this.getPlayers()[0] ? 'P1' : 'P2')
+            : undefined;
+        const endReason = reasonCode === GameEndReason.Concede ? 'Concession'
+            : reasonCode === GameEndReason.PlayerLeft ? 'Disconnection'
+                : 'Base Destroyed';
+        this._replayRecorder.getRecords().push({
+            seq: `R${this.roundNumber}.A.end`,
+            type: PgnActionType.GameEnd,
+            winner: endPlayer ?? 'Draw',
+            reason: endReason,
+        });
 
         try {
             this._cachedRawGameLog = this.getRawGameLog();
