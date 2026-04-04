@@ -103,6 +103,8 @@ import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import { SwuPgn } from './chat/SwuPgn';
+import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IPgnReplayRecord } from './chat/PgnTypes';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -514,6 +516,121 @@ export class Game extends EventEmitter {
         }
 
         return filteredMessages;
+    }
+
+    /**
+     * Returns the raw human-readable game log with player names anonymized.
+     */
+    public getRawGameLog(): string {
+        const players = this.getPlayers();
+        const player1Name = players[0].name;
+        const player2Name = players[1].name;
+        return SwuPgn.generateHumanNotation(this.gameChat.messages, player1Name, player2Name);
+    }
+
+    /**
+     * Generates a complete .swupgn file string for the current game.
+     */
+    public generateSwuPgn(): string {
+        const players = this.getPlayers();
+        const player1 = players[0];
+        const player2 = players[1];
+        const header = this.buildPgnHeader(player1, player2);
+        const humanNotation = this.getRawGameLog();
+        const p1Decklist = this.buildPlayerDecklist(player1);
+        const p2Decklist = this.buildPlayerDecklist(player2);
+        const replayData: IPgnReplayRecord[] = [];
+        return SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
+    }
+
+    /**
+     * Builds the PGN header from game state and player info.
+     */
+    private buildPgnHeader(player1: Player, player2: Player): IPgnHeader {
+        const now = new Date();
+        const date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+
+        let result: string;
+        if (this.winnerNames.length === 0) {
+            result = 'Incomplete';
+        } else if (this.winnerNames.length > 1) {
+            result = 'Draw';
+        } else if (this.winnerNames[0] === player1.name) {
+            result = 'P1 Win';
+        } else {
+            result = 'P2 Win';
+        }
+
+        let reason: string;
+        switch (this.gameEndReason) {
+            case GameEndReason.Concede:
+                reason = 'Concession';
+                break;
+            case GameEndReason.PlayerLeft:
+                reason = 'Disconnection';
+                break;
+            case GameEndReason.GameRules:
+                reason = 'Base Destroyed';
+                break;
+            default:
+                reason = 'Unknown';
+        }
+
+        return {
+            game: 'SWU-PGN v1.0',
+            date,
+            player1: 'Player 1',
+            player2: 'Player 2',
+            p1Leader: SwuPgn.formatCardName(player1.leader.title, player1.leader.subtitle),
+            p1Base: SwuPgn.formatCardName(player1.base.title, player1.base.subtitle),
+            p2Leader: SwuPgn.formatCardName(player2.leader.title, player2.leader.subtitle),
+            p2Base: SwuPgn.formatCardName(player2.base.title, player2.base.subtitle),
+            result,
+            reason,
+            rounds: String(this.roundNumber),
+        };
+    }
+
+    /**
+     * Builds the decklist object for one player, grouping non-token cards by set+number.
+     */
+    private buildPlayerDecklist(player: Player): IPgnPlayerDecklist {
+        const leaderSetId = SwuPgn.formatSetId(player.leader.setId.set, player.leader.setId.number);
+        const baseSetId = SwuPgn.formatSetId(player.base.setId.set, player.base.setId.number);
+
+        const deckMap = new Map<string, IPgnCardIndexEntry>();
+
+        for (const card of player.allCards) {
+            if (card.isLeader() || card.isBase() || card.isToken()) {
+                continue;
+            }
+
+            const cardSetId = SwuPgn.formatSetId(card.setId.set, card.setId.number);
+            const existing = deckMap.get(cardSetId);
+            if (existing) {
+                existing.count++;
+            } else {
+                deckMap.set(cardSetId, {
+                    name: SwuPgn.formatCardName(card.title, card.subtitle),
+                    setId: cardSetId,
+                    count: 1,
+                });
+            }
+        }
+
+        return {
+            leader: {
+                name: SwuPgn.formatCardName(player.leader.title, player.leader.subtitle),
+                setId: leaderSetId,
+                count: 1,
+            },
+            base: {
+                name: SwuPgn.formatCardName(player.base.title, player.base.subtitle),
+                setId: baseSetId,
+                count: 1,
+            },
+            deck: Array.from(deckMap.values()),
+        };
     }
 
     /**
