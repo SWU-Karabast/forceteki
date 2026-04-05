@@ -302,6 +302,10 @@ Examples:
 - `R1.A.5` -- Round 1, Action Phase, 5th action
 - `R1.A.5a` -- First sub-event of that action
 - `R2.G.3` -- Round 2, Regroup Phase, third event
+- `R1.start` -- ROUND_START for Round 1
+- `R1.end` -- ROUND_END for Round 1
+- `R1.A.start` -- PHASE_START for Action Phase of Round 1
+- `R1.A.end` -- PHASE_END for Action Phase of Round 1
 
 ### Action Types
 
@@ -323,7 +327,7 @@ Each `type` value tells the computer what kind of event this is:
 
 **Playing a card:**
 ```json
-{"seq":"R1.A.1","type":"PLAY","player":"P1","card":"SOR#108","zone":"Ground","cost":2,"playType":"playFromHand"}
+{"seq":"R1.A.1","type":"PLAY","player":"P1","card":"SOR#108","zone":"Ground","playType":"playFromHand"}
 ```
 
 **Attacking:**
@@ -343,7 +347,7 @@ Each `type` value tells the computer what kind of event this is:
 
 **Triggered ability:**
 ```json
-{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","abilityType":"whenPlayed","description":"looks at opponent hand"}
+{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","player":"P1"}
 ```
 
 **Defeating a unit:**

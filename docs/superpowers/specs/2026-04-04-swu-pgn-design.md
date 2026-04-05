@@ -352,7 +352,7 @@ When Overwhelm applies:
 
 ## Section 3: Card Index
 
-The card index appears after the final round's notation and before the replay data separator. It contains full decklists for both players.
+The card index appears immediately after the header block and before the freeform notation. It contains full decklists for both players.
 
 ### Format
 
@@ -436,6 +436,10 @@ Examples:
 - `"R1.A.3"` -- third action in round 1 action phase
 - `"R1.A.3b"` -- second sub-event of third action
 - `"R1.G.2"` -- second regroup entry
+- `"R1.start"` -- ROUND_START for round 1
+- `"R1.end"` -- ROUND_END for round 1
+- `"R1.A.start"` -- PHASE_START for Action Phase of round 1
+- `"R1.A.end"` -- PHASE_END for Action Phase of round 1
 
 ### Action Type Enum
 
@@ -479,7 +483,10 @@ PHASE_START     -- Phase begins
 PHASE_END       -- Phase ends
 ROUND_START     -- Round begins
 ROUND_END       -- Round ends
+GAME_STATE      -- Full game state snapshot (emitted after every completed player action)
 ```
+
+> **Note:** The following enum values are defined for future use but are not yet emitted by the recorder: `MOVE`, `SEARCH`, `OVERWHELM`, `MODAL_CHOICE`, `EXPERIENCE_GAIN`, `STATUS_TOKEN`, `REVEAL`.
 
 ### Action-Specific Fields
 
@@ -487,13 +494,12 @@ Beyond the common fields, each action type includes relevant data fields:
 
 **PLAY / PLAY_SMUGGLE / PLAY_UPGRADE / PLAY_EVENT / DEPLOY_LEADER:**
 ```json
-{"seq":"R1.A.1","type":"PLAY","player":"P1","card":"SOR#095","zone":"Ground","cost":3,"playType":"playFromHand"}
+{"seq":"R1.A.1","type":"PLAY","player":"P1","card":"SOR#095","zone":"Ground","playType":"playFromHand"}
 ```
 | Field | Type | Description |
 |-------|------|-------------|
 | `card` | string | Card ID (`SET#NUM`) |
 | `zone` | string | Destination zone (`Ground`, `Space`, `Base`) |
-| `cost` | number | Resources spent |
 | `playType` | string | `playFromHand`, `smuggle`, `piloting`, `plot`, `playFromOutOfPlay` |
 | `target` | string | (PLAY_UPGRADE only) Card ID of attachment target |
 
@@ -531,22 +537,22 @@ Beyond the common fields, each action type includes relevant data fields:
 
 **TRIGGER:**
 ```json
-{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","abilityType":"whenPlayed","description":"looks at opponent hand"}
+{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","player":"P1"}
 ```
 | Field | Type | Description |
 |-------|------|-------------|
 | `card` | string | Card whose ability triggered |
-| `abilityType` | string | `whenPlayed`, `whenDefeated`, `onAttack`, `onDefense`, `bounty`, `action`, `constant` |
-| `description` | string | Human-readable effect summary |
+| `player` | string | Player who controls the triggering card |
 
 **DRAW:**
 ```json
-{"seq":"R1.G.1","type":"DRAW","player":"P1","count":2}
+{"seq":"R1.G.1","type":"DRAW","player":"P1","count":2,"cards":["SOR#108","SOR#095"]}
 ```
+The `cards` field is an optional array of `SET#NUM` IDs for the cards actually drawn.
 
 **RESOURCE:**
 ```json
-{"seq":"R1.S.7","type":"RESOURCE","player":"P1","card":"SOR#142","count":1}
+{"seq":"R1.S.7","type":"RESOURCE","player":"P1","card":"SOR#142","cardName":"Vanquish"}
 ```
 
 **MULLIGAN / KEEP_HAND:**
@@ -589,7 +595,9 @@ Beyond the common fields, each action type includes relevant data fields:
 
 **PHASE_START / PHASE_END / ROUND_START / ROUND_END:**
 ```json
-{"seq":"R1.A.0","type":"PHASE_START","phase":"Action","round":1}
+{"seq":"R1.start","type":"ROUND_START","round":1}
+{"seq":"R1.end","type":"ROUND_END","round":1}
+{"seq":"R1.A.start","type":"PHASE_START","phase":"Action","round":1}
 {"seq":"R1.A.end","type":"PHASE_END","phase":"Action","round":1}
 ```
 
@@ -702,42 +710,42 @@ All cards readied
   2d. Cell Block Guard is exhausted
 
 === PARSEABLE ===
-{"seq":"R1.S.1","type":"DRAW","player":"P1","count":6}
+{"seq":"R1.S.1","type":"DRAW","player":"P1","count":6,"cards":["SOR#108","SOR#095","SOR#142","SOR#138","SOR#087","SOR#148"]}
 {"seq":"R1.S.2","type":"KEEP_HAND","player":"P1"}
-{"seq":"R1.S.3","type":"DRAW","player":"P2","count":6}
+{"seq":"R1.S.3","type":"DRAW","player":"P2","count":6,"cards":["SOR#045","SOR#042","SOR#165","SOR#150","SOR#176","SOR#039"]}
 {"seq":"R1.S.4","type":"MULLIGAN","player":"P2"}
 {"seq":"R1.S.5","type":"SHUFFLE","player":"P2"}
-{"seq":"R1.S.6","type":"DRAW","player":"P2","count":6}
-{"seq":"R1.S.7","type":"RESOURCE","player":"P1","card":"SOR#142","count":1}
-{"seq":"R1.S.8","type":"RESOURCE","player":"P2","card":"SHD#062","count":1}
-{"seq":"R1.A.0","type":"PHASE_START","phase":"Action","round":1}
-{"seq":"R1.A.1","type":"PLAY","player":"P1","card":"SOR#108","zone":"Ground","cost":2,"playType":"playFromHand"}
-{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","abilityType":"whenPlayed","description":"looks at opponent hand"}
+{"seq":"R1.S.6","type":"DRAW","player":"P2","count":6,"cards":["SOR#045","SOR#020","SOR#165","SOR#042","SOR#039","SOR#150"]}
+{"seq":"R1.S.7","type":"RESOURCE","player":"P1","card":"SOR#142","cardName":"Vanquish"}
+{"seq":"R1.S.8","type":"RESOURCE","player":"P2","card":"SHD#062","cardName":"Asteroid Sanctuary"}
+{"seq":"R1.A.start","type":"PHASE_START","phase":"Action","round":1}
+{"seq":"R1.A.1","type":"PLAY","player":"P1","card":"SOR#108","zone":"Ground","playType":"playFromHand"}
+{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","player":"P1"}
 {"seq":"R1.A.1b","type":"REVEAL","player":"P2","zone":"Hand","cards":["SOR#045","SOR#042","SOR#165","SOR#150","SOR#176"]}
-{"seq":"R1.A.2","type":"PLAY","player":"P2","card":"SOR#045","zone":"Ground","cost":2,"playType":"playFromHand"}
-{"seq":"R1.A.2a","type":"TRIGGER","card":"SOR#045","abilityType":"whenPlayed","description":"search deck"}
+{"seq":"R1.A.2","type":"PLAY","player":"P2","card":"SOR#045","zone":"Ground","playType":"playFromHand"}
+{"seq":"R1.A.2a","type":"TRIGGER","card":"SOR#045","player":"P2"}
 {"seq":"R1.A.2b","type":"SEARCH","player":"P2","zone":"Deck","found":"SOR#039","destination":"Hand"}
 {"seq":"R1.A.2c","type":"SHUFFLE","player":"P2"}
-{"seq":"R1.A.3","type":"PLAY","player":"P1","card":"SOR#095","zone":"Ground","cost":3,"playType":"playFromHand"}
+{"seq":"R1.A.3","type":"PLAY","player":"P1","card":"SOR#095","zone":"Ground","playType":"playFromHand"}
 {"seq":"R1.A.3a","type":"ABILITY_ACTIVATE","player":"P1","card":"SOR#010","abilityType":"action","description":"deals 1 damage to own base"}
 {"seq":"R1.A.3b","type":"DAMAGE","source":"SOR#010","target":"SOR#028","amount":1,"damageType":"ability","remainingHp":29}
-{"seq":"R1.A.3c","type":"DRAW","player":"P1","count":1}
+{"seq":"R1.A.3c","type":"DRAW","player":"P1","count":1,"cards":["SOR#087"]}
 {"seq":"R1.A.4","type":"PASS","player":"P2"}
 {"seq":"R1.A.5","type":"ATTACK","player":"P1","attacker":"SOR#108","defender":"SOR#020","defenderType":"base"}
 {"seq":"R1.A.5a","type":"DAMAGE","source":"SOR#108","target":"SOR#020","amount":2,"damageType":"combat","remainingHp":28}
 {"seq":"R1.A.5b","type":"EXHAUST","card":"SOR#108"}
 {"seq":"R1.A.6","type":"CLAIM_INITIATIVE","player":"P2"}
 {"seq":"R1.A.end","type":"PHASE_END","phase":"Action","round":1}
-{"seq":"R1.G.0","type":"PHASE_START","phase":"Regroup","round":1}
-{"seq":"R1.G.1","type":"DRAW","player":"P1","count":2}
-{"seq":"R1.G.2","type":"DRAW","player":"P2","count":2}
-{"seq":"R1.G.3","type":"RESOURCE","player":"P1","card":"SOR#087","count":1}
-{"seq":"R1.G.4","type":"RESOURCE","player":"P2","card":null,"count":0}
+{"seq":"R1.G.start","type":"PHASE_START","phase":"Regroup","round":1}
+{"seq":"R1.G.1","type":"DRAW","player":"P1","count":2,"cards":["SOR#087","SOR#095"]}
+{"seq":"R1.G.2","type":"DRAW","player":"P2","count":2,"cards":["SOR#005","SOR#042"]}
+{"seq":"R1.G.3","type":"RESOURCE","player":"P1","card":"SOR#087","cardName":"Admiral Ozzel, Overconfident"}
+{"seq":"R1.G.4","type":"RESOURCE","player":"P2","card":null,"cardName":null}
 {"seq":"R1.G.5","type":"READY","card":"all"}
 {"seq":"R1.G.end","type":"PHASE_END","phase":"Regroup","round":1}
-{"seq":"R2.A.0","type":"PHASE_START","phase":"Action","round":2}
-{"seq":"R2.A.1","type":"PLAY","player":"P2","card":"SOR#042","zone":"Space","cost":3,"playType":"playFromHand"}
-{"seq":"R2.A.1a","type":"TRIGGER","card":"SOR#042","abilityType":"whenPlayed","description":"creates X-Wing token"}
+{"seq":"R2.A.start","type":"PHASE_START","phase":"Action","round":2}
+{"seq":"R2.A.1","type":"PLAY","player":"P2","card":"SOR#042","zone":"Space","playType":"playFromHand"}
+{"seq":"R2.A.1a","type":"TRIGGER","card":"SOR#042","player":"P2"}
 {"seq":"R2.A.1b","type":"CREATE_TOKEN","player":"P2","token":"X-Wing","zone":"Space","power":2,"hp":3}
 {"seq":"R2.A.2","type":"ATTACK","player":"P1","attacker":"SOR#095","defender":"SOR#045","defenderType":"unit"}
 {"seq":"R2.A.2a","type":"DAMAGE","source":"SOR#095","target":"SOR#045","amount":3,"damageType":"combat","remainingHp":0}
