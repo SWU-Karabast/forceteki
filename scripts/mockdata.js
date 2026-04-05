@@ -578,6 +578,96 @@ const mockCards = [
         arena: 'ground',
         internalName: 'captain-vaughn#search-the-tunnels',
     }),
+    buildMockCard({
+        title: 'Relief Frigate',
+        cost: 5,
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'TS26',
+            number: 42
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'relief-frigate',
+    }),
+    buildMockCard({
+        title: 'Wartime Profiteer',
+        cost: 2,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'TS26',
+            number: 76
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'wartime-profiteer',
+    }),
+    buildMockCard({
+        title: 'Mechanize',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['Command'],
+        types: ['event'],
+        traits: ['supply'],
+        setId: {
+            set: 'TS26',
+            number: 57
+        },
+        unique: false,
+        internalName: 'mechanize',
+    }),
+    buildMockCard({
+        title: 'Backed by Black Sun',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['event'],
+        traits: ['supply'],
+        setId: {
+            set: 'TS26',
+            number: 70
+        },
+        unique: false,
+        internalName: 'backed-by-black-sun',
+    }),
+    buildMockCard({
+        title: 'Reveal Intentions',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning'],
+        types: ['event'],
+        traits: ['gambit'],
+        setId: {
+            set: 'TS26',
+            number: 80
+        },
+        unique: false,
+        internalName: 'reveal-intentions',
+    }),
+    buildMockCard({
+        title: 'Reveal Intentions',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning'],
+        types: ['event'],
+        traits: ['gambit'],
+        setId: {
+            set: 'TS26',
+            number: 80
+        },
+        unique: false,
+        internalName: 'reveal-intentions',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
