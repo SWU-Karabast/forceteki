@@ -91,13 +91,51 @@ export class SwuPgn {
      * Formats the machine-readable replay data section as JSON-lines.
      */
     public static formatReplayData(records: IPgnReplayRecord[]): string {
-        const lines = ['=== PARSEABLE ===', ...records.map((r) => JSON.stringify(r))];
+        const lines = ['=== REPLAY ===', ...records.map((r) => JSON.stringify(r))];
         return lines.join('\n');
     }
 
     /**
+     * Formats the human-readable .swupgn file with: header, card index, freeform marker, human notation.
+     * No replay data.
+     */
+    public static formatHumanFile(
+        header: IPgnHeader,
+        humanNotation: string,
+        p1Decklist: IPgnPlayerDecklist,
+        p2Decklist: IPgnPlayerDecklist
+    ): string {
+        const sections = [
+            SwuPgn.formatHeader(header),
+            SwuPgn.formatCardIndex(p1Decklist, p2Decklist),
+            '=== FREEFORM ===',
+            humanNotation,
+        ];
+        return sections.join('\n\n');
+    }
+
+    /**
+     * Formats the .swureplay file with: header, card index, replay marker + JSON-lines replay data.
+     * No human notation.
+     */
+    public static formatReplayFile(
+        header: IPgnHeader,
+        p1Decklist: IPgnPlayerDecklist,
+        p2Decklist: IPgnPlayerDecklist,
+        replayData: IPgnReplayRecord[]
+    ): string {
+        const replayLines = replayData.map((r) => JSON.stringify(r));
+        const sections = [
+            SwuPgn.formatHeader(header),
+            SwuPgn.formatCardIndex(p1Decklist, p2Decklist),
+            '=== REPLAY ===\n' + replayLines.join('\n'),
+        ];
+        return sections.join('\n\n');
+    }
+
+    /**
      * Combines all sections into a complete .swupgn file string.
-     * Section order: header, freeform game log, card index, parseable replay data.
+     * Section order: header, card index, freeform, replay.
      */
     public static formatFile(
         header: IPgnHeader,
@@ -108,9 +146,9 @@ export class SwuPgn {
     ): string {
         const sections = [
             SwuPgn.formatHeader(header),
+            SwuPgn.formatCardIndex(p1Decklist, p2Decklist),
             '=== FREEFORM ===',
             humanNotation,
-            SwuPgn.formatCardIndex(p1Decklist, p2Decklist),
             SwuPgn.formatReplayData(replayData),
         ];
         return sections.join('\n\n');

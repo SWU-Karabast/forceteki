@@ -173,7 +173,7 @@ describe('SwuPgn', function () {
 
         it('includes the REPLAY DATA section header', function () {
             const output = SwuPgn.formatReplayData(records);
-            expect(output).toContain('=== PARSEABLE ===');
+            expect(output).toContain('=== REPLAY ===');
         });
 
         it('serializes each record as a JSON line', function () {
@@ -250,25 +250,162 @@ describe('SwuPgn', function () {
 
         it('contains replay data section', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
-            expect(output).toContain('=== PARSEABLE ===');
+            expect(output).toContain('=== REPLAY ===');
         });
 
-        it('has sections in correct order: header, freeform, card index, parseable', function () {
+        it('has sections in correct order: header, card index, freeform, replay', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
             const headerPos = output.indexOf('[Game');
+            const cardIndexPos = output.indexOf('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
             const freeformPos = output.indexOf('=== FREEFORM ===');
             const notationPos = output.indexOf('Round 1 started');
-            const cardIndexPos = output.indexOf('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
-            const replayPos = output.indexOf('=== PARSEABLE ===');
-            expect(headerPos).toBeLessThan(freeformPos);
+            const replayPos = output.indexOf('=== REPLAY ===');
+            expect(headerPos).toBeLessThan(cardIndexPos);
+            expect(cardIndexPos).toBeLessThan(freeformPos);
             expect(freeformPos).toBeLessThan(notationPos);
-            expect(notationPos).toBeLessThan(cardIndexPos);
-            expect(cardIndexPos).toBeLessThan(replayPos);
+            expect(notationPos).toBeLessThan(replayPos);
         });
 
         it('separates sections with blank lines', function () {
             const output = SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
             expect(output).toContain('\n\n');
+        });
+    });
+
+    // ── formatHumanFile ──────────────────────────────────────────────────────
+    describe('formatHumanFile', function () {
+        const header: IPgnHeader = {
+            game: 'Star Wars: Unlimited',
+            date: '2026.04.04',
+            player1: 'P1',
+            player2: 'P2',
+            p1Leader: 'Luke Skywalker, Faithful Friend',
+            p1Base: 'Echo Base',
+            p2Leader: 'Darth Vader, Dark Lord of the Sith',
+            p2Base: 'Command Center',
+            result: 'P1',
+            reason: 'Base Destroyed',
+        };
+
+        const p1Decklist: IPgnPlayerDecklist = {
+            leader: { name: 'Luke Skywalker, Faithful Friend', setId: 'SOR#005', count: 1 },
+            base: { name: 'Echo Base', setId: 'SOR#012', count: 1 },
+            deck: [{ name: 'Wampa', setId: 'SOR#101', count: 2 }],
+        };
+
+        const p2Decklist: IPgnPlayerDecklist = {
+            leader: { name: 'Darth Vader, Dark Lord of the Sith', setId: 'SOR#001', count: 1 },
+            base: { name: 'Command Center', setId: 'SOR#020', count: 1 },
+            deck: [{ name: 'Death Trooper', setId: 'SOR#201', count: 3 }],
+        };
+
+        const humanNotation = 'Round 1 started\nP1 played Wampa';
+
+        it('contains header section', function () {
+            const output = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
+            expect(output).toContain('[Game "Star Wars: Unlimited"]');
+        });
+
+        it('contains card index section', function () {
+            const output = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
+            expect(output).toContain('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
+        });
+
+        it('contains FREEFORM marker', function () {
+            const output = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
+            expect(output).toContain('=== FREEFORM ===');
+        });
+
+        it('contains human notation', function () {
+            const output = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
+            expect(output).toContain('Round 1 started');
+            expect(output).toContain('P1 played Wampa');
+        });
+
+        it('does not contain PARSEABLE or REPLAY markers', function () {
+            const output = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
+            expect(output).not.toContain('=== PARSEABLE ===');
+            expect(output).not.toContain('=== REPLAY ===');
+        });
+
+        it('has correct section order: header, card index, freeform, notation', function () {
+            const output = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
+            const headerPos = output.indexOf('[Game');
+            const cardIndexPos = output.indexOf('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
+            const freeformPos = output.indexOf('=== FREEFORM ===');
+            const notationPos = output.indexOf('Round 1 started');
+            expect(headerPos).toBeLessThan(cardIndexPos);
+            expect(cardIndexPos).toBeLessThan(freeformPos);
+            expect(freeformPos).toBeLessThan(notationPos);
+        });
+    });
+
+    // ── formatReplayFile ────────────────────────────────────────────────────
+    describe('formatReplayFile', function () {
+        const header: IPgnHeader = {
+            game: 'Star Wars: Unlimited',
+            date: '2026.04.04',
+            player1: 'P1',
+            player2: 'P2',
+            p1Leader: 'Luke Skywalker, Faithful Friend',
+            p1Base: 'Echo Base',
+            p2Leader: 'Darth Vader, Dark Lord of the Sith',
+            p2Base: 'Command Center',
+            result: 'P1',
+            reason: 'Base Destroyed',
+        };
+
+        const p1Decklist: IPgnPlayerDecklist = {
+            leader: { name: 'Luke Skywalker, Faithful Friend', setId: 'SOR#005', count: 1 },
+            base: { name: 'Echo Base', setId: 'SOR#012', count: 1 },
+            deck: [{ name: 'Wampa', setId: 'SOR#101', count: 2 }],
+        };
+
+        const p2Decklist: IPgnPlayerDecklist = {
+            leader: { name: 'Darth Vader, Dark Lord of the Sith', setId: 'SOR#001', count: 1 },
+            base: { name: 'Command Center', setId: 'SOR#020', count: 1 },
+            deck: [{ name: 'Death Trooper', setId: 'SOR#201', count: 3 }],
+        };
+
+        const replayData: IPgnReplayRecord[] = [
+            { seq: '001', type: PgnActionType.RoundStart },
+            { seq: '002', type: PgnActionType.Play, player: 'P1', card: 'SOR#055' },
+        ];
+
+        it('contains header section', function () {
+            const output = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, replayData);
+            expect(output).toContain('[Game "Star Wars: Unlimited"]');
+        });
+
+        it('contains card index section', function () {
+            const output = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, replayData);
+            expect(output).toContain('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
+        });
+
+        it('contains REPLAY marker and not PARSEABLE', function () {
+            const output = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, replayData);
+            expect(output).toContain('=== REPLAY ===');
+            expect(output).not.toContain('=== PARSEABLE ===');
+        });
+
+        it('contains JSON replay records', function () {
+            const output = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, replayData);
+            expect(output).toContain(JSON.stringify(replayData[0]));
+            expect(output).toContain(JSON.stringify(replayData[1]));
+        });
+
+        it('does not contain FREEFORM marker', function () {
+            const output = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, replayData);
+            expect(output).not.toContain('=== FREEFORM ===');
+        });
+
+        it('has correct section order: header, card index, replay', function () {
+            const output = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, replayData);
+            const headerPos = output.indexOf('[Game');
+            const cardIndexPos = output.indexOf('\u2550\u2550\u2550 CARD INDEX \u2550\u2550\u2550');
+            const replayPos = output.indexOf('=== REPLAY ===');
+            expect(headerPos).toBeLessThan(cardIndexPos);
+            expect(cardIndexPos).toBeLessThan(replayPos);
         });
     });
 
