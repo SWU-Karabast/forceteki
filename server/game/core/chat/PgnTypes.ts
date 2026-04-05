@@ -49,7 +49,7 @@ export interface IPgnReplayRecordBase {
 }
 
 export interface IPgnReplayRecord extends IPgnReplayRecordBase {
-    [key: string]: string | number | boolean | string[] | undefined;
+    [key: string]: string | number | boolean | string[] | Record<string, any> | undefined;
 }
 
 export interface IPgnCardIndexEntry {
@@ -123,4 +123,12 @@ export interface IPgnPlayerStateSnapshot {
 export interface IPgnGameStateSnapshot {
     p1: IPgnPlayerStateSnapshot;
     p2: IPgnPlayerStateSnapshot;
+}
+
+/** Return type for game file generation — both human-readable and replay files */
+export interface IGameFiles {
+    /** Human-readable .swupgn file content */
+    swuPgn: string;
+    /** Machine-replay .swureplay file content */
+    swuReplay: string;
 }
