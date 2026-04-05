@@ -162,6 +162,25 @@ describe('SwuPgn', function () {
             expect(output).toContain('Leader: Darth Vader, Dark Lord of the Sith = SOR#001');
             expect(output).toContain('Base: Command Center = SOR#020');
         });
+
+        it('renders sideboard section when sideboard entries are present', function () {
+            const p1DecklistWithSideboard: IPgnPlayerDecklist = {
+                ...p1Decklist,
+                sideboard: [{ name: 'Surprise Strike', setId: 'SOR#200', count: 1 }],
+            };
+            const output = SwuPgn.formatCardIndex(p1DecklistWithSideboard, p2Decklist);
+            expect(output).toContain('Sideboard:');
+            expect(output).toContain('1x Surprise Strike = SOR#200');
+        });
+
+        it('renders Deck: header even when deck array is empty', function () {
+            const p1DecklistEmptyDeck: IPgnPlayerDecklist = {
+                ...p1Decklist,
+                deck: [],
+            };
+            const output = SwuPgn.formatCardIndex(p1DecklistEmptyDeck, p2Decklist);
+            expect(output).toContain('Deck:');
+        });
     });
 
     // ── formatReplayData ─────────────────────────────────────────────────────
@@ -186,6 +205,13 @@ describe('SwuPgn', function () {
             const output = SwuPgn.formatReplayData(records);
             const lines = output.split('\n').filter((l) => l.startsWith('{'));
             expect(lines.length).toBe(2);
+        });
+
+        it('includes the REPLAY section header but has no JSON lines for an empty records array', function () {
+            const output = SwuPgn.formatReplayData([]);
+            expect(output).toContain('=== REPLAY ===');
+            const jsonLines = output.split('\n').filter((l) => l.startsWith('{'));
+            expect(jsonLines.length).toBe(0);
         });
     });
 
@@ -509,6 +535,17 @@ describe('SwuPgn', function () {
             const result = SwuPgn.anonymizePlayers("Alice's attack hit Bob", 'Alice', 'Bob');
             expect(result).toBe("Player 1's attack hit Player 2");
         });
+
+        it('treats dot in player name as literal character, not regex wildcard', function () {
+            const result = SwuPgn.anonymizePlayers('R2XD2 played', 'R2.D2', 'Bob');
+            expect(result).not.toBe('Player 1 played');
+            expect(result).toBe('R2XD2 played');
+        });
+
+        it('replaces player name containing a literal dot', function () {
+            const result = SwuPgn.anonymizePlayers('R2.D2 played', 'R2.D2', 'Bob');
+            expect(result).toBe('Player 1 played');
+        });
     });
 
     // ── generateHumanNotation ─────────────────────────────────────────────────
@@ -595,6 +632,58 @@ describe('SwuPgn', function () {
             const output = SwuPgn.generateHumanNotation(messages, 'Player1', 'Player2', markers);
             expect(output).toContain('1. Player 1 plays Wampa');
             expect(output).toContain('  1a. Wampa deals 4 damage');
+        });
+
+        it('injects game state snapshot after an action message', function () {
+            const messages = [
+                { date: new Date(), message: ['Player1 attacks'] },
+            ];
+            const markers: IStructureMarker[] = [
+                {
+                    messageIndex: 0,
+                    type: 'gameState',
+                    gameState: {
+                        p1: { baseHp: 25, baseMaxHp: 30, handSize: 6, resourcesReady: 3, resourcesExhausted: 1, resourcesTotal: 4, credits: 4, hasForce: false, hasInitiative: true, groundUnits: 2, spaceUnits: 1 },
+                        p2: { baseHp: 20, baseMaxHp: 30, handSize: 5, resourcesReady: 2, resourcesExhausted: 2, resourcesTotal: 4, credits: 4, hasForce: false, hasInitiative: false, groundUnits: 1, spaceUnits: 0 },
+                    },
+                },
+            ];
+            const output = SwuPgn.generateHumanNotation(messages, 'Player1', 'Player2', markers);
+            expect(output).toContain('[Game State]');
+            expect(output).toContain('25/30 HP');
+            expect(output).toContain('20/30 HP');
+        });
+
+        it('injects drawn cards list after an action message', function () {
+            const messages = [
+                { date: new Date(), message: ['Player1 draws cards'] },
+            ];
+            const markers: IStructureMarker[] = [
+                {
+                    messageIndex: 0,
+                    type: 'drawnCards',
+                    player: 'Player 1',
+                    drawnCards: ['Wampa', 'X-Wing'],
+                },
+            ];
+            const output = SwuPgn.generateHumanNotation(messages, 'Player1', 'Player2', markers);
+            expect(output).toContain('[Cards Drawn] Player 1: Wampa, X-Wing');
+        });
+
+        it('injects resourced card after an action message', function () {
+            const messages = [
+                { date: new Date(), message: ['Player1 resources a card'] },
+            ];
+            const markers: IStructureMarker[] = [
+                {
+                    messageIndex: 0,
+                    type: 'resourcedCard',
+                    player: 'Player 1',
+                    resourcedCard: 'Vanquish',
+                },
+            ];
+            const output = SwuPgn.generateHumanNotation(messages, 'Player1', 'Player2', markers);
+            expect(output).toContain('[Card Resourced] Player 1: Vanquish');
         });
     });
 });
