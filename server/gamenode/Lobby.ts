@@ -2328,7 +2328,7 @@ export class Lobby {
         }
     }
 
-    public getGameLog(socket: any, callback: (data: { rawLog: string; swuPgn: string } | { error: string }) => void): void {
+    public getGameLog(socket: any, callback: (data: { rawLog: string; swuPgn: string; swuReplay: string } | { error: string }) => void): void {
         if (!this.game) {
             if (typeof callback === 'function') {
                 callback({ error: 'No active game' });
@@ -2338,10 +2338,12 @@ export class Lobby {
 
         try {
             const rawLog = this.game.cachedRawGameLog ?? this.game.getRawGameLog();
-            const swuPgn = this.game.cachedSwuPgn ?? this.game.generateSwuPgn();
+            const gameFiles = this.game.cachedSwuPgn && this.game.cachedSwuReplay
+                ? { swuPgn: this.game.cachedSwuPgn, swuReplay: this.game.cachedSwuReplay }
+                : this.game.generateGameFiles();
 
             if (typeof callback === 'function') {
-                callback({ rawLog, swuPgn });
+                callback({ rawLog, swuPgn: gameFiles.swuPgn, swuReplay: gameFiles.swuReplay });
             }
         } catch (e) {
             logger.error(`Error generating game log: ${e}`);
