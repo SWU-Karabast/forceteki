@@ -104,7 +104,7 @@ import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 import { SwuPgn } from './chat/SwuPgn';
-import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IPgnReplayRecord } from './chat/PgnTypes';
+import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IPgnReplayRecord, IGameFiles } from './chat/PgnTypes';
 import { PgnActionType } from './chat/PgnTypes';
 import { PgnReplayRecorder } from './chat/PgnReplayRecorder';
 
@@ -321,6 +321,7 @@ export class Game extends EventEmitter {
     public finishedAt?: Date;
     public gameEndReason?: GameEndReason;
     private _cachedSwuPgn?: string;
+    private _cachedSwuReplay?: string;
     private _cachedRawGameLog?: string;
     private _actionsSinceLastUndo?: number;
     private _replayRecorder: PgnReplayRecorder;
@@ -346,7 +347,7 @@ export class Game extends EventEmitter {
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
-        this._replayRecorder = new PgnReplayRecorder(this);
+        this._replayRecorder = new PgnReplayRecorder(this, () => this.captureAnonymizedState());
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
@@ -541,6 +542,13 @@ export class Game extends EventEmitter {
      * Generates a complete .swupgn file string for the current game.
      */
     public generateSwuPgn(): string {
+        return this.generateGameFiles().swuPgn;
+    }
+
+    /**
+     * Generates both game files: human-readable .swupgn and machine-replay .swureplay.
+     */
+    public generateGameFiles(): IGameFiles {
         const players = this.getPlayers();
         const player1 = players[0];
         const player2 = players[1];
@@ -551,8 +559,50 @@ export class Game extends EventEmitter {
         );
         const p1Decklist = this.buildPlayerDecklist(player1);
         const p2Decklist = this.buildPlayerDecklist(player2);
-        const replayData = this._replayRecorder.getRecords();
-        return SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
+
+        const swuPgn = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
+        const swuReplay = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, this._replayRecorder.getReplayRecords());
+
+        return { swuPgn, swuReplay };
+    }
+
+    /**
+     * Captures the full game state as an anonymous spectator would see it,
+     * with player names/IDs anonymized to Player 1/Player 2.
+     */
+    private captureAnonymizedState(): Record<string, any> {
+        const state = this.getState('__replay_spectator__');
+        if (!state) {
+            return {};
+        }
+
+        // Anonymize player data
+        const players = this.getPlayers();
+        const anonymizedPlayers: Record<string, any> = {};
+        for (let i = 0; i < players.length; i++) {
+            const playerLabel = `Player ${i + 1}`;
+            const playerState = state.players?.[players[i].id];
+            if (playerState) {
+                anonymizedPlayers[playerLabel] = {
+                    ...playerState,
+                    id: playerLabel,
+                    name: playerLabel,
+                    user: { username: playerLabel },
+                };
+            }
+        }
+
+        return {
+            ...state,
+            players: anonymizedPlayers,
+            // Strip messages from snapshot (they're in the freeform file)
+            newMessages: undefined,
+            messageOffset: undefined,
+            totalMessages: undefined,
+            // Strip PGN data from snapshot (circular reference)
+            swuPgn: undefined,
+            rawGameLog: undefined,
+        };
     }
 
     public get cachedRawGameLog(): string | undefined {
@@ -561,6 +611,10 @@ export class Game extends EventEmitter {
 
     public get cachedSwuPgn(): string | undefined {
         return this._cachedSwuPgn;
+    }
+
+    public get cachedSwuReplay(): string | undefined {
+        return this._cachedSwuReplay;
     }
 
     /**
@@ -1032,7 +1086,9 @@ export class Game extends EventEmitter {
 
         try {
             this._cachedRawGameLog = this.getRawGameLog();
-            this._cachedSwuPgn = this.generateSwuPgn();
+            const gameFiles = this.generateGameFiles();
+            this._cachedSwuPgn = gameFiles.swuPgn;
+            this._cachedSwuReplay = gameFiles.swuReplay;
         } catch (e) {
             logger.error(`Error caching game log at end of game: ${e}`);
         }
@@ -1871,6 +1927,7 @@ export class Game extends EventEmitter {
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                     swuPgn: this._cachedSwuPgn,
+                    swuReplay: this._cachedSwuReplay,
                     rawGameLog: this._cachedRawGameLog,
                 };
 
