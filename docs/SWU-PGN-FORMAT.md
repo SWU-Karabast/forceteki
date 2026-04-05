@@ -1,41 +1,40 @@
 # SWU-PGN: Portable Game Notation for Star Wars Unlimited
 
-**Version 1.0**
+**Version 1.1**
 
 ## What Is SWU-PGN?
 
-SWU-PGN is a file format for recording complete Star Wars Unlimited games. Think of it like chess PGN notation, but designed for SWU. A single `.swupgn` file captures everything that happened in a game so you can:
+SWU-PGN is a file format for recording complete Star Wars Unlimited games. Think of it like chess PGN notation, but designed for SWU. A game produces two files, packaged together as a zip download:
 
-- **Read through a game** like a story, following every play, attack, and ability trigger
-- **Replay a game on a computer** using the structured data layer
-- **Analyze decisions** -- since all hidden information (resourced cards, hand reveals, search results) is recorded after the fact
-- **Share games** in a compact, portable text file
+- **`.swupgn`** -- The **human-readable** file. Read through a game like a story, following every play, attack, and ability trigger.
+- **`.swureplay`** -- The **machine-replay** file. Contains structured JSON data with full game state snapshots for computer-driven replay.
 
-Every `.swupgn` file has four sections: general game data (header), a **Freeform** game log that humans can read naturally, decklists (card index), and a **Parseable** section with structured JSON data that computers can process.
+Both files are self-contained (each includes the header and card index), so either can be shared or opened independently.
+
+### What You Can Do
+
+- **Read through a game** -- the `.swupgn` file tells the story of every round
+- **Replay a game on a computer** -- the `.swureplay` file contains full board state snapshots after every action
+- **Analyze decisions** -- all hidden information (resourced cards, hand reveals, search results) is recorded
+- **Share games** -- compact, portable text files
+
+### Zip Package
+
+When downloaded, both files are bundled together:
+
+```
+game-2026-04-04-abc123.zip
+  game.swupgn       # Human-readable
+  game.swureplay    # Machine replay
+```
 
 ---
 
-## File Layout
+## Shared Sections
 
-A `.swupgn` file is a plain text file (UTF-8) with this structure:
+Both `.swupgn` and `.swureplay` files start with the same two sections: the **Header** and the **Card Index**.
 
-```
-[Header]                    Game metadata (date, players, leaders, result)
-
-=== FREEFORM ===        <-- Start of the human-readable game log
-[Game Notation]             Round-by-round account of every action
-
-[Card Index]                Full decklists with card set IDs
-
-=== PARSEABLE ===       <-- Start of the computer-readable replay data
-[JSON Replay Data]          One JSON object per line, every game event
-```
-
-The file starts with the game metadata header. The `=== FREEFORM ===` marker signals the start of the human-readable game log. The Card Index (decklists) appears after the game log and before the `=== PARSEABLE ===` marker, which signals the start of the machine-readable JSON replay data.
-
----
-
-## Header
+### Header
 
 The file starts with metadata about the game, using chess-PGN-style tags:
 
@@ -62,11 +61,9 @@ Each line is `[TagName "Value"]`. The header tells you who played, what they pla
 
 **Player anonymization:** Players are always labeled "Player 1" and "Player 2" -- real usernames are never stored.
 
----
+### Card Index (Decklists)
 
-## Card Index (Decklists)
-
-After the game log and before the `=== PARSEABLE ===` marker, the Card Index lists both players' complete decklists. Every card name used in the notation is mapped to its unique set ID (`SET#NUM`).
+Both files include the Card Index, which lists both players' complete decklists. Every card name used in the notation is mapped to its unique set ID (`SET#NUM`).
 
 ```
 ═══ CARD INDEX ═══
@@ -99,9 +96,20 @@ Deck:
 
 ---
 
-## The Freeform Game Log
+## The `.swupgn` File (Human-Readable)
 
-After the header, the `=== FREEFORM ===` marker signals the start of the human-readable game log. This records every round, organized by phase.
+### File Layout
+
+```
+[Header]                    Game metadata
+═══ CARD INDEX ═══          Full decklists
+=== FREEFORM ===        <-- Start of the human-readable game log
+[Game Notation]             Round-by-round account of every action
+```
+
+### The Freeform Game Log
+
+After the `=== FREEFORM ===` marker, the game log records every round, organized by phase.
 
 #### Rounds and Phases
 
@@ -273,19 +281,52 @@ Here are the sentence patterns you'll see in the notation:
 
 ---
 
-## The Parseable Layer (For Computers)
+## The `.swureplay` File (Machine Replay)
 
-After `=== PARSEABLE ===`, each line is a standalone JSON object representing one game event. A computer reads these line by line to reconstruct or replay the game.
+### File Layout
 
-### Every Record Has These Fields
+```
+[Header]                    Game metadata (same as .swupgn)
+═══ CARD INDEX ═══          Full decklists (same as .swupgn)
+=== REPLAY ===          <-- Start of the machine-readable replay data
+[JSON Replay Data]          One JSON object per line: events + full state snapshots
+```
+
+### Replay Data Format
+
+After `=== REPLAY ===`, each line is a standalone JSON object representing one game event. A computer reads these line by line to reconstruct or replay the game.
+
+The replay data contains two types of records interleaved:
+
+1. **Granular event records** -- individual game actions (PLAY, ATTACK, DAMAGE, etc.)
+2. **Full state snapshot records** -- complete serialized game state after each top-level action
+
+#### Granular Event Records
+
+Every event record has these fields:
 
 | Field | What It Is | Example |
 |-------|-----------|---------|
 | `seq` | Position in the game | `"R1.A.3b"` |
 | `type` | What happened | `"PLAY"`, `"ATTACK"`, `"DAMAGE"` |
-| `player` | Who did it | `"P1"` or `"P2"` |
+| `player` | Who did it | `"Player 1"` or `"Player 2"` |
 
-### The Sequence ID (`seq`)
+#### Full State Snapshot Records
+
+After each top-level action, a `GAME_STATE` record with a `snapshot` field contains the complete serialized game state -- the same data structure the spectator UI uses to render the game board. This includes:
+
+- Per-player: full card state for every zone (ground arena, space arena, resources, discard, hand size, base, leader), individual card damage, upgrades, exhausted status, tokens
+- Game-level: phase, initiative, round number, game mode
+
+```json
+{"seq":"R1.A.1b-snapshot","type":"GAME_STATE","snapshot":{ ... full getState() object ... }}
+```
+
+The snapshot `seq` uses a `-snapshot` suffix to distinguish it from the summary GAME_STATE records.
+
+Player names and IDs within snapshots are anonymized to "Player 1"/"Player 2", matching the rest of the file.
+
+#### The Sequence ID (`seq`)
 
 The `seq` field tells you exactly where this event sits in the game:
 
@@ -307,6 +348,7 @@ Examples:
 - `R1.end` -- ROUND_END for Round 1
 - `R1.A.start` -- PHASE_START for Action Phase of Round 1
 - `R1.A.end` -- PHASE_END for Action Phase of Round 1
+- `R1.A.5a-snapshot` -- Full state snapshot after action 5's sub-events
 
 ### Action Types
 
@@ -322,18 +364,20 @@ Each `type` value tells the computer what kind of event this is:
 `PHASE_START`, `PHASE_END`, `ROUND_START`, `ROUND_END`, `GAME_END`
 
 **Status tracking:**
-`GAME_STATE` (emitted after every completed player action — full snapshot of both players' state including base HP, hand size, resources, credits, force, initiative, and unit counts)
+`GAME_STATE` -- Two variants:
+- **Summary** (flat fields): emitted after every completed player action with aggregate counts
+- **Snapshot** (`snapshot` field, seq ends in `-snapshot`): full serialized game state for replay
 
 ### Example Records
 
 **Playing a card:**
 ```json
-{"seq":"R1.A.1","type":"PLAY","player":"P1","card":"SOR#108","zone":"Ground","playType":"playFromHand"}
+{"seq":"R1.A.1","type":"PLAY","player":"Player 1","card":"SOR#108","zone":"Ground","playType":"playFromHand"}
 ```
 
 **Attacking:**
 ```json
-{"seq":"R1.A.5","type":"ATTACK","player":"P1","attacker":"SOR#108","defender":"SOR#020","defenderType":"base"}
+{"seq":"R1.A.5","type":"ATTACK","player":"Player 1","attacker":"SOR#108","defender":"SOR#020","defenderType":"base"}
 ```
 
 **Dealing damage:**
@@ -341,14 +385,19 @@ Each `type` value tells the computer what kind of event this is:
 {"seq":"R1.A.5a","type":"DAMAGE","source":"SOR#108","target":"SOR#020","amount":2,"damageType":"combat","remainingHp":28}
 ```
 
-**Game state snapshot** (emitted after every completed player action):
+**Summary game state** (emitted after every completed player action):
 ```json
 {"seq":"R1.A.5c","type":"GAME_STATE","p1BaseHp":30,"p1BaseMaxHp":30,"p1HandSize":5,"p1ResourcesReady":4,"p1ResourcesExhausted":2,"p1Credits":0,"p1HasForce":false,"p1HasInitiative":true,"p1GroundUnits":1,"p1SpaceUnits":0,"p2BaseHp":28,"p2BaseMaxHp":30,"p2HandSize":5,"p2ResourcesReady":4,"p2ResourcesExhausted":1,"p2Credits":0,"p2HasForce":true,"p2HasInitiative":false,"p2GroundUnits":0,"p2SpaceUnits":0}
 ```
 
+**Full state snapshot** (for replay viewer, emitted after the summary):
+```json
+{"seq":"R1.A.5c-snapshot","type":"GAME_STATE","snapshot":{"players":{"Player 1":{...},"Player 2":{...}},"phase":"action","initiativeClaimed":false,...}}
+```
+
 **Triggered ability:**
 ```json
-{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","player":"P1"}
+{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","player":"Player 1"}
 ```
 
 **Defeating a unit:**
@@ -358,22 +407,22 @@ Each `type` value tells the computer what kind of event this is:
 
 **Creating a token:**
 ```json
-{"seq":"R2.A.1b","type":"CREATE_TOKEN","player":"P2","token":"X-Wing","zone":"Space","power":2,"hp":3}
+{"seq":"R2.A.1b","type":"CREATE_TOKEN","player":"Player 2","token":"X-Wing","zone":"Space","power":2,"hp":3}
 ```
 
 **Drawing cards** (includes the actual cards drawn):
 ```json
-{"seq":"R1.S.1","type":"DRAW","player":"P1","count":6,"cards":["SOR#108","SOR#095","SOR#142","SOR#138","SOR#087","SOR#148"]}
+{"seq":"R1.S.1","type":"DRAW","player":"Player 1","count":6,"cards":["SOR#108","SOR#095","SOR#142","SOR#138","SOR#087","SOR#148"]}
 ```
 
 **Resourcing a card** (includes the card name):
 ```json
-{"seq":"R1.S.7","type":"RESOURCE","player":"P1","card":"SOR#142","cardName":"Vanquish"}
+{"seq":"R1.S.7","type":"RESOURCE","player":"Player 1","card":"SOR#142","cardName":"Vanquish"}
 ```
 
 **Hand reveal:**
 ```json
-{"seq":"R1.A.1b","type":"REVEAL","player":"P2","zone":"Hand","cards":["SOR#045","SOR#042","SOR#165","SOR#150","SOR#176"]}
+{"seq":"R1.A.1b","type":"REVEAL","player":"Player 2","zone":"Hand","cards":["SOR#045","SOR#042","SOR#165","SOR#150","SOR#176"]}
 ```
 
 **Game ending:**
@@ -394,15 +443,22 @@ When multiple copies of the same card are in play, a suffix distinguishes them:
 
 ## Quick Reference
 
+### File Types
+
+| Extension | Purpose | Contains |
+|-----------|---------|----------|
+| `.swupgn` | Human-readable game record | Header + Card Index + Freeform notation |
+| `.swureplay` | Machine-replay data | Header + Card Index + JSON events + full state snapshots |
+
 ### File Markers
 
-| Marker | Meaning |
-|--------|---------|
-| `=== FREEFORM ===` | Start of human-readable game log (after header) |
-| `═══ ROUND N ═══` | Round boundary (within freeform) |
-| `─── Phase Name ───` | Phase boundary (within freeform) |
-| `═══ CARD INDEX ═══` | Start of decklists (after game log, before parseable) |
-| `=== PARSEABLE ===` | Start of computer-readable JSON data |
+| Marker | Appears In | Meaning |
+|--------|-----------|---------|
+| `=== FREEFORM ===` | `.swupgn` | Start of human-readable game log |
+| `=== REPLAY ===` | `.swureplay` | Start of computer-readable JSON data |
+| `═══ ROUND N ═══` | `.swupgn` | Round boundary (within freeform) |
+| `─── Phase Name ───` | `.swupgn` | Phase boundary (within freeform) |
+| `═══ CARD INDEX ═══` | Both | Start of decklists |
 
 ### Notation Numbering
 
