@@ -11,60 +11,6 @@
 [Format "Premier"]
 [Rounds "4"]
 
-═══ CARD INDEX ═══
-
-── P1 Decklist ──
-Leader: Darth Vader, Commanding the First Legion = SOR#010
-Base: Command Center = SOR#028
-Deck:
-  3x Admiral Piett, Captain of the Executor = SOR#080
-  2x Admiral Ozzel, Overconfident = SOR#087
-  2x Blizzard Assault AT-AT = SOR#092
-  2x Cell Block Guard = SOR#095
-  3x Death Star Stormtrooper = SOR#093
-  3x Emperor's Royal Guard = SOR#096
-  2x First Legion Snowtrooper = SOR#097
-  2x Force Choke = SOR#138
-  2x Force Lightning = SOR#139
-  3x General Veers, Blizzard Force Commander = SOR#086
-  1x Grand Inquisitor, Hunting the Jedi = SOR#012
-  1x Grand Moff Tarkin, Oversector Governor = SOR#084
-  3x 97th Legion, Keeping the Peace on Sullust = SOR#091
-  1x Open Fire = SOR#148
-  2x Overwhelming Barrage = SOR#136
-  3x Recruit = SOR#173
-  1x Relentless, Konstantine's Folly = SOR#118
-  1x Resupply = SOR#146
-  2x Ruthless Raider = SOR#120
-  1x Superlaser Blast = SOR#141
-  3x Superlaser Technician = SOR#102
-  2x The Emperor's Legion = SOR#137
-  3x Vanquish = SOR#142
-  2x Viper Probe Droid = SOR#108
-
-── P2 Decklist ──
-Leader: Luke Skywalker, Faithful Friend = SOR#005
-Base: Echo Base = SOR#020
-Deck:
-  2x Alliance X-Wing = SOR#038
-  2x Asteroid Sanctuary = SHD#062
-  2x Bright Hope, The Last Transport = SOR#040
-  2x C-3PO, Protocol Droid = SOR#050
-  3x Echo Base Defender = SOR#034
-  3x Jedha City = SOR#176
-  2x Luke Skywalker, Jedi Knight = SOR#051
-  3x Moment of Peace = SOR#165
-  2x R2-D2, Ignoring Protocol = SOR#054
-  3x Rebel Pathfinder = SOR#045
-  3x Recruit = SOR#173
-  2x Repair = SOR#172
-  1x Resourceful Pursuit = SOR#170
-  1x Snowspeeder = SOR#039
-  2x Surprise Strike = SOR#150
-  2x Wedge Antilles, Star of the Rebellion = SOR#043
-  3x Wing Leader = SOR#042
-  2x Yoda, Old Master = SOR#057
-
 === FREEFORM ===
 
 ═══ ROUND 1 ═══
@@ -227,6 +173,60 @@ All cards readied
   14e. Deals 10 damage to Echo Base (0 remaining HP)
   14f. Echo Base is destroyed
   14g. P1 wins the game
+
+═══ CARD INDEX ═══
+
+── P1 Decklist ──
+Leader: Darth Vader, Commanding the First Legion = SOR#010
+Base: Command Center = SOR#028
+Deck:
+  3x Admiral Piett, Captain of the Executor = SOR#080
+  2x Admiral Ozzel, Overconfident = SOR#087
+  2x Blizzard Assault AT-AT = SOR#092
+  2x Cell Block Guard = SOR#095
+  3x Death Star Stormtrooper = SOR#093
+  3x Emperor's Royal Guard = SOR#096
+  2x First Legion Snowtrooper = SOR#097
+  2x Force Choke = SOR#138
+  2x Force Lightning = SOR#139
+  3x General Veers, Blizzard Force Commander = SOR#086
+  1x Grand Inquisitor, Hunting the Jedi = SOR#012
+  1x Grand Moff Tarkin, Oversector Governor = SOR#084
+  3x 97th Legion, Keeping the Peace on Sullust = SOR#091
+  1x Open Fire = SOR#148
+  2x Overwhelming Barrage = SOR#136
+  3x Recruit = SOR#173
+  1x Relentless, Konstantine's Folly = SOR#118
+  1x Resupply = SOR#146
+  2x Ruthless Raider = SOR#120
+  1x Superlaser Blast = SOR#141
+  3x Superlaser Technician = SOR#102
+  2x The Emperor's Legion = SOR#137
+  3x Vanquish = SOR#142
+  2x Viper Probe Droid = SOR#108
+
+── P2 Decklist ──
+Leader: Luke Skywalker, Faithful Friend = SOR#005
+Base: Echo Base = SOR#020
+Deck:
+  2x Alliance X-Wing = SOR#038
+  2x Asteroid Sanctuary = SHD#062
+  2x Bright Hope, The Last Transport = SOR#040
+  2x C-3PO, Protocol Droid = SOR#050
+  3x Echo Base Defender = SOR#034
+  3x Jedha City = SOR#176
+  2x Luke Skywalker, Jedi Knight = SOR#051
+  3x Moment of Peace = SOR#165
+  2x R2-D2, Ignoring Protocol = SOR#054
+  3x Rebel Pathfinder = SOR#045
+  3x Recruit = SOR#173
+  2x Repair = SOR#172
+  1x Resourceful Pursuit = SOR#170
+  1x Snowspeeder = SOR#039
+  2x Surprise Strike = SOR#150
+  2x Wedge Antilles, Star of the Rebellion = SOR#043
+  3x Wing Leader = SOR#042
+  2x Yoda, Old Master = SOR#057
 
 === PARSEABLE ===
 {"seq":"R1.S.1","type":"DRAW","player":"P1","count":6}
