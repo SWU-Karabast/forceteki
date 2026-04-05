@@ -15,6 +15,12 @@ export class PgnReplayRecorder {
     private readonly records: IPgnReplayRecord[] = [];
     private readonly structureMarkers: IStructureMarker[] = [];
 
+    /** Callback to capture full game state for replay snapshots */
+    private readonly getStateSnapshot: (() => Record<string, any>) | null;
+
+    /** Replay records with full snapshots (used for .swureplay file) */
+    private readonly replayRecords: IPgnReplayRecord[] = [];
+
     /** Map from player.id → 'Player 1' | 'Player 2' */
     private playerMap: Map<string, string> = new Map();
 
@@ -42,8 +48,9 @@ export class PgnReplayRecorder {
     /** Incremented for sub-events within an action; reset when actionCounter increments */
     private subEventCounter: number = 0;
 
-    public constructor(game: Game) {
+    public constructor(game: Game, getStateSnapshot?: () => Record<string, any>) {
         this.game = game;
+        this.getStateSnapshot = getStateSnapshot ?? null;
         this.registerListeners();
     }
 
@@ -51,6 +58,10 @@ export class PgnReplayRecorder {
 
     public getRecords(): IPgnReplayRecord[] {
         return this.records;
+    }
+
+    public getReplayRecords(): IPgnReplayRecord[] {
+        return this.replayRecords;
     }
 
     public addGameEndRecord(winner: string, reason: string): void {
@@ -172,9 +183,10 @@ export class PgnReplayRecorder {
         return this.buildSeq(false);
     }
 
-    /** Push a record into the records array. */
+    /** Push a record into both the records and replayRecords arrays. */
     private push(record: IPgnReplayRecord): void {
         this.records.push(record);
+        this.replayRecords.push(record);
     }
 
     /** Add a structure marker at the current message log position. */
@@ -256,6 +268,20 @@ export class PgnReplayRecorder {
                 p2GroundUnits: p2State.groundUnits,
                 p2SpaceUnits: p2State.spaceUnits,
             });
+
+            // Emit full snapshot for replay file
+            if (this.getStateSnapshot) {
+                try {
+                    const fullSnapshot = this.getStateSnapshot();
+                    this.replayRecords.push({
+                        seq: `${seq}-snapshot`,
+                        type: PgnActionType.GameState,
+                        snapshot: fullSnapshot,
+                    } as IPgnReplayRecord);
+                } catch {
+                    // Snapshot capture error — do not crash gameplay
+                }
+            }
 
             // Add structure marker for freeform display
             this.structureMarkers.push({
