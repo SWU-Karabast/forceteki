@@ -563,7 +563,7 @@ export class Game extends EventEmitter {
      * with player names/IDs anonymized to Player 1/Player 2.
      */
     private captureAnonymizedState(): Record<string, any> {
-        const state = this.getState('__replay_spectator__');
+        const state = this.getState('__replay_spectator__', true);
         if (!state) {
             return {};
         }
@@ -1862,7 +1862,7 @@ export class Game extends EventEmitter {
      * Returns the serialized game state for a specific player/spectator.
      * Tracks message offsets internally per player/spectator for incremental message sync.
      */
-    public getState(notInactivePlayerId: string) {
+    public getState(notInactivePlayerId: string, omniscient: boolean = false) {
         const lastMessageOffset = this.chatMessageOffsets.get(notInactivePlayerId) ?? 0;
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
@@ -1887,7 +1887,7 @@ export class Game extends EventEmitter {
             const playerState: Record<string, any> = {};
             if (this.started) {
                 for (const player of this.getPlayers()) {
-                    playerState[player.id] = player.getStateSummary(activePlayer);
+                    playerState[player.id] = player.getStateSummary(activePlayer, omniscient);
                 }
 
                 const allMessages = this.gameChat.messages;

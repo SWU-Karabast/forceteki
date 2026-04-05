@@ -1094,11 +1094,11 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @param {ZoneName} zone
      * @param {Player} activePlayer
      */
-    public getSummaryForZone(zone: ZoneName, activePlayer: Player) {
+    public getSummaryForZone(zone: ZoneName, activePlayer: Player, omniscient: boolean = false) {
         Contract.assertFalse(zone === ZoneName.Deck, 'getSummaryForZone should not be called for the deck as it is not used in the UI');
 
         return this.getCardsInZone(zone)?.map((card) => {
-            return card.getSummary(activePlayer);
+            return card.getSummary(activePlayer, omniscient);
         }) ?? [];
     }
 
@@ -1164,7 +1164,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     //  * This information is passed to the UI
     //  * @param {Player} activePlayer
     //  */
-    public getStateSummary(activePlayer) {
+    public getStateSummary(activePlayer, omniscient: boolean = false) {
         const isActivePlayer = activePlayer === this;
         const promptState = isActivePlayer ? this._promptState.getState() : {};
         const { ...safeUser } = this.user;
@@ -1176,21 +1176,21 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
         const summary = {
             cardPiles: {
-                hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
-                outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer),
-                capturedZone: this.getSummaryForZone(ZoneName.Capture, activePlayer),
-                resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
-                groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
-                spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer),
-                discard: this.getSummaryForZone(ZoneName.Discard, activePlayer),
+                hand: this.getSummaryForZone(ZoneName.Hand, activePlayer, omniscient),
+                outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer, omniscient),
+                capturedZone: this.getSummaryForZone(ZoneName.Capture, activePlayer, omniscient),
+                resources: this.getSummaryForZone(ZoneName.Resource, activePlayer, omniscient),
+                groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer, omniscient),
+                spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer, omniscient),
+                discard: this.getSummaryForZone(ZoneName.Discard, activePlayer, omniscient),
                 credits: this.getCreditsSummary(activePlayer),
                 // we don't get the deck summary here, as it is not needed in the UI
             },
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.leader?.getSummary(activePlayer),
-            base: this.base?.getSummary(activePlayer),
+            leader: this.leader?.getSummary(activePlayer, omniscient),
+            base: this.base?.getSummary(activePlayer, omniscient),
             id: this.id,
             left: this.left,
             name: this.name,
