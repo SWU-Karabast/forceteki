@@ -34,7 +34,7 @@ export enum PgnActionType {
     ModalChoice = 'MODAL_CHOICE',
     AbilityActivate = 'ABILITY_ACTIVATE',
     Overwhelm = 'OVERWHELM',
-    BaseStatus = 'BASE_STATUS',
+    GameState = 'GAME_STATE',
     GameEnd = 'GAME_END',
     PhaseStart = 'PHASE_START',
     PhaseEnd = 'PHASE_END',
@@ -89,20 +89,38 @@ export interface ISwuPgnData {
 
 export interface IStructureMarker {
     messageIndex: number;
-    type: 'round' | 'phase' | 'action' | 'subEvent' | 'baseStatus' | 'drawnCards' | 'resourcedCard';
+    type: 'round' | 'phase' | 'action' | 'subEvent' | 'gameState' | 'drawnCards' | 'resourcedCard';
     round?: number;
     phase?: string;
     actionNumber?: number;
     subEventLetter?: string;
     /** Player label: 'P1' or 'P2' */
     player?: string;
-    /** Base HP snapshot: present when type is 'baseStatus' */
-    p1BaseHp?: number;
-    p1BaseMaxHp?: number;
-    p2BaseHp?: number;
-    p2BaseMaxHp?: number;
+    /** Game state snapshot: present when type is 'gameState' */
+    gameState?: IPgnGameStateSnapshot;
     /** Cards drawn: present when type is 'drawnCards' */
     drawnCards?: string[];
     /** Card resourced: present when type is 'resourcedCard' */
     resourcedCard?: string;
+}
+
+/** Snapshot of one player's state at a point in time */
+export interface IPgnPlayerStateSnapshot {
+    baseHp: number;
+    baseMaxHp: number;
+    handSize: number;
+    resourcesReady: number;
+    resourcesExhausted: number;
+    resourcesTotal: number;
+    credits: number;
+    hasForce: boolean;
+    hasInitiative: boolean;
+    groundUnits: number;
+    spaceUnits: number;
+}
+
+/** Snapshot of the full game state after an action */
+export interface IPgnGameStateSnapshot {
+    p1: IPgnPlayerStateSnapshot;
+    p2: IPgnPlayerStateSnapshot;
 }

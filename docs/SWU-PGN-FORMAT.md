@@ -226,7 +226,7 @@ Here are the sentence patterns you'll see in the notation:
 | Shield used | `  Na. Card's Shield token is defeated to prevent damage` |
 | Token created | `  Na. Token Name enters Zone (X/Y)` |
 | Overwhelm | `  Na. X Overwhelm damage dealt to P2's Base (Y remaining HP)` |
-| Base status | `  [Base Status] P1: 25/30 HP \| P2: 18/30 HP` |
+| Game state | `  [Game State] P1: 25/30 HP, 4 cards, ... \| P2: 18/30 HP, 3 cards, ...` |
 | Cards drawn | `  [Cards Drawn] P1: Card A, Card B` |
 | Card resourced | `  [Card Resourced] P1: Card Name, Subtitle` |
 | Search | `  Na. P1 searches their deck` / `  Nb. P1 finds Card and puts it into Zone` |
@@ -242,23 +242,23 @@ Here are the sentence patterns you'll see in the notation:
   3d. Cell Block Guard is exhausted
 ```
 
-**Overwhelm** (excess damage hits the base — note the base status snapshot):
+**Overwhelm** (excess damage hits the base):
 ```
 3. P1 attacks with AT-AT against Rebel Pathfinder
   3a. AT-AT deals 6 damage to Rebel Pathfinder (0 remaining HP)
   3b. Rebel Pathfinder is defeated
   3c. 4 Overwhelm damage dealt to P2's Echo Base (16 remaining HP)
-  [Base Status] P1: 25/30 HP | P2: 16/30 HP
   3d. Rebel Pathfinder deals 2 damage to AT-AT (6 remaining HP)
   3e. AT-AT is exhausted
+  [Game State] P1: 25/30 HP, 3 cards, 2/6 resources, 0 credits | P2: 16/30 HP, 4 cards, 3/5 resources, 0 credits, Force, 1 ground/2 space
 ```
 
-**Base attack** (base status appears after every hit to a base):
+**Base attack** (game state snapshot appears after every completed action):
 ```
 5. P1 attacks with Viper Probe Droid against P2's Base
   5a. Viper Probe Droid deals 2 damage to Echo Base (28 remaining HP)
-  [Base Status] P1: 30/30 HP | P2: 28/30 HP
   5b. Viper Probe Droid is exhausted
+  [Game State] P1: 30/30 HP, 5 cards, 4/6 resources, 0 credits, Initiative | P2: 28/30 HP, 5 cards, 4/5 resources, 0 credits, Force, 0 ground/0 space
 ```
 
 **Sentinel** (attack redirected):
@@ -317,7 +317,7 @@ Each `type` value tells the computer what kind of event this is:
 `PHASE_START`, `PHASE_END`, `ROUND_START`, `ROUND_END`, `GAME_END`
 
 **Status tracking:**
-`BASE_STATUS` (emitted after any damage or heal to a base, shows both bases' HP)
+`GAME_STATE` (emitted after every completed player action — full snapshot of both players' state including base HP, hand size, resources, credits, force, initiative, and unit counts)
 
 ### Example Records
 
@@ -336,9 +336,9 @@ Each `type` value tells the computer what kind of event this is:
 {"seq":"R1.A.5a","type":"DAMAGE","source":"SOR#108","target":"SOR#020","amount":2,"damageType":"combat","remainingHp":28}
 ```
 
-**Base status snapshot** (emitted after any damage/heal to a base):
+**Game state snapshot** (emitted after every completed player action):
 ```json
-{"seq":"R1.A.5b","type":"BASE_STATUS","p1Base":"SOR#028","p1Hp":30,"p1MaxHp":30,"p2Base":"SOR#020","p2Hp":28,"p2MaxHp":30}
+{"seq":"R1.A.5c","type":"GAME_STATE","p1BaseHp":30,"p1BaseMaxHp":30,"p1HandSize":5,"p1ResourcesReady":4,"p1ResourcesExhausted":2,"p1Credits":0,"p1HasForce":false,"p1HasInitiative":true,"p1GroundUnits":1,"p1SpaceUnits":0,"p2BaseHp":28,"p2BaseMaxHp":30,"p2HandSize":5,"p2ResourcesReady":4,"p2ResourcesExhausted":1,"p2Credits":0,"p2HasForce":true,"p2HasInitiative":false,"p2GroundUnits":0,"p2SpaceUnits":0}
 ```
 
 **Triggered ability:**

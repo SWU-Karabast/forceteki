@@ -246,8 +246,9 @@ export class SwuPgn {
             // Inject supplemental lines after the current message
             if (markers) {
                 for (const marker of markers) {
-                    if (marker.type === 'baseStatus' && marker.p1BaseHp != null && marker.p2BaseHp != null) {
-                        lines.push(`  [Base Status] P1: ${marker.p1BaseHp}/${marker.p1BaseMaxHp} HP | P2: ${marker.p2BaseHp}/${marker.p2BaseMaxHp} HP`);
+                    if (marker.type === 'gameState' && marker.gameState) {
+                        const s = marker.gameState;
+                        lines.push(`  [Game State] P1: ${s.p1.baseHp}/${s.p1.baseMaxHp} HP, ${s.p1.handSize} cards, ${s.p1.resourcesReady}/${s.p1.resourcesTotal} resources, ${s.p1.credits} credits${s.p1.hasForce ? ', Force' : ''}${s.p1.hasInitiative ? ', Initiative' : ''}, ${s.p1.groundUnits} ground/${s.p1.spaceUnits} space | P2: ${s.p2.baseHp}/${s.p2.baseMaxHp} HP, ${s.p2.handSize} cards, ${s.p2.resourcesReady}/${s.p2.resourcesTotal} resources, ${s.p2.credits} credits${s.p2.hasForce ? ', Force' : ''}${s.p2.hasInitiative ? ', Initiative' : ''}, ${s.p2.groundUnits} ground/${s.p2.spaceUnits} space`);
                     }
                     if (marker.type === 'drawnCards' && marker.drawnCards && marker.drawnCards.length > 0) {
                         lines.push(`  [Cards Drawn] ${marker.player}: ${marker.drawnCards.join(', ')}`);

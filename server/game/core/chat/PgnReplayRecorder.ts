@@ -1,10 +1,10 @@
 import type { Game } from '../Game';
 import type { Player } from '../Player';
-import { EventName, PhaseName } from '../Constants';
+import { EventName, PhaseName, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { SwuPgn } from './SwuPgn';
 import { PgnActionType } from './PgnTypes';
-import type { IPgnReplayRecord, IStructureMarker } from './PgnTypes';
+import type { IPgnReplayRecord, IStructureMarker, IPgnGameStateSnapshot, IPgnPlayerStateSnapshot } from './PgnTypes';
 
 /**
  * Records structured JSON replay data by listening to game events.
@@ -89,8 +89,12 @@ export class PgnReplayRecorder {
         return card.title ?? card.name ?? 'unknown';
     }
 
-    /** Increment the action counter and reset sub-event counter. */
+    /** Increment the action counter and reset sub-event counter. Emits game state for the previous action. */
     private incrementAction(): void {
+        // Emit game state snapshot for the previous action (if there was one)
+        if (this.actionCounter > 0) {
+            this.emitGameState();
+        }
         this.actionCounter++;
         this.subEventCounter = 0;
         this.addStructureMarker('action');
@@ -161,57 +165,72 @@ export class PgnReplayRecorder {
     }
 
     /**
-     * Emit a BASE_STATUS record and structure marker showing both bases' current HP.
-     * Called after any event that alters a base's HP (damage or heal).
+     * Capture a single player's state snapshot.
      */
-    private emitBaseStatus(): void {
+    private capturePlayerState(player: Player): IPgnPlayerStateSnapshot {
+        const base = player.base;
+        return {
+            baseHp: base?.remainingHp ?? 0,
+            baseMaxHp: base?.getPrintedHp?.() ?? 30,
+            handSize: player.hand?.length ?? 0,
+            resourcesReady: player.readyResourceCount ?? 0,
+            resourcesExhausted: player.exhaustedResourceCount ?? 0,
+            resourcesTotal: (player.readyResourceCount ?? 0) + (player.exhaustedResourceCount ?? 0),
+            credits: player.creditTokenCount ?? 0,
+            hasForce: player.hasTheForce ?? false,
+            hasInitiative: player.hasInitiative?.() ?? false,
+            groundUnits: player.getCardsInZone?.(ZoneName.GroundArena)?.length ?? 0,
+            spaceUnits: player.getCardsInZone?.(ZoneName.SpaceArena)?.length ?? 0,
+        };
+    }
+
+    /**
+     * Emit a GAME_STATE record and structure marker with full game state snapshot.
+     * Called after every top-level player action completes (all sub-events resolved).
+     */
+    private emitGameState(): void {
         try {
             const players = this.game.getPlayers();
             if (players.length < 2) return;
 
-            const p1Base = players[0].base;
-            const p2Base = players[1].base;
-            if (!p1Base || !p2Base) return;
-
-            const p1Hp = p1Base.remainingHp ?? 0;
-            const p1MaxHp = p1Base.getPrintedHp?.() ?? 30;
-            const p2Hp = p2Base.remainingHp ?? 0;
-            const p2MaxHp = p2Base.getPrintedHp?.() ?? 30;
+            const p1State = this.capturePlayerState(players[0]);
+            const p2State = this.capturePlayerState(players[1]);
+            const snapshot: IPgnGameStateSnapshot = { p1: p1State, p2: p2State };
 
             const seq = this.nextSeq(false);
             this.push({
                 seq,
-                type: PgnActionType.BaseStatus,
-                p1Base: this.cardId(p1Base),
-                p1Hp,
-                p1MaxHp,
-                p2Base: this.cardId(p2Base),
-                p2Hp,
-                p2MaxHp,
+                type: PgnActionType.GameState,
+                p1BaseHp: p1State.baseHp,
+                p1BaseMaxHp: p1State.baseMaxHp,
+                p1HandSize: p1State.handSize,
+                p1ResourcesReady: p1State.resourcesReady,
+                p1ResourcesExhausted: p1State.resourcesExhausted,
+                p1Credits: p1State.credits,
+                p1HasForce: p1State.hasForce,
+                p1HasInitiative: p1State.hasInitiative,
+                p1GroundUnits: p1State.groundUnits,
+                p1SpaceUnits: p1State.spaceUnits,
+                p2BaseHp: p2State.baseHp,
+                p2BaseMaxHp: p2State.baseMaxHp,
+                p2HandSize: p2State.handSize,
+                p2ResourcesReady: p2State.resourcesReady,
+                p2ResourcesExhausted: p2State.resourcesExhausted,
+                p2Credits: p2State.credits,
+                p2HasForce: p2State.hasForce,
+                p2HasInitiative: p2State.hasInitiative,
+                p2GroundUnits: p2State.groundUnits,
+                p2SpaceUnits: p2State.spaceUnits,
             });
 
-            // Add structure marker so freeform layer can inject the status line
+            // Add structure marker for freeform display
             this.structureMarkers.push({
                 messageIndex: this.game.gameChat.messages.length,
-                type: 'baseStatus',
-                p1BaseHp: p1Hp,
-                p1BaseMaxHp: p1MaxHp,
-                p2BaseHp: p2Hp,
-                p2BaseMaxHp: p2MaxHp,
+                type: 'gameState',
+                gameState: snapshot,
             });
         } catch {
             // Recording error — do not crash gameplay
-        }
-    }
-
-    /**
-     * Returns true if the given card is a base.
-     */
-    private isBase(card: any): boolean {
-        try {
-            return card?.isBase?.() === true || card?.printedType === 'base';
-        } catch {
-            return false;
         }
     }
 
@@ -287,6 +306,10 @@ export class PgnReplayRecorder {
 
         this.game.on(EventName.OnPhaseEnded, (event: any) => {
             try {
+                // Emit game state for the last action of the phase
+                if (this.actionCounter > 0 || this.phaseEventCounter > 0) {
+                    this.emitGameState();
+                }
                 const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
                 const phaseAbbr = this.phaseAbbr(phaseName);
                 this.push({
@@ -418,10 +441,6 @@ export class PgnReplayRecorder {
                     damageType: event?.type ?? '',
                     remainingHp: card?.remainingHp ?? 0,
                 });
-                // Emit base status snapshot after damage to a base
-                if (this.isBase(card)) {
-                    this.emitBaseStatus();
-                }
             } catch (err) {
                 // Recording error — do not crash gameplay
             }
@@ -546,10 +565,6 @@ export class PgnReplayRecorder {
                     amount: event?.damageHealed ?? event?.amount ?? 0,
                     remainingHp: card?.remainingHp ?? 0,
                 });
-                // Emit base status snapshot after healing a base
-                if (this.isBase(card)) {
-                    this.emitBaseStatus();
-                }
             } catch (err) {
                 // Recording error — do not crash gameplay
             }
