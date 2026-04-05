@@ -9,7 +9,7 @@ SWU-PGN is a dual-layer file format (`.swupgn`) for recording complete Star Wars
 
 The format captures the full cascade of every game action: player choices, triggered abilities, damage resolution, token creation, card movement, and all state changes. Nothing is hidden -- resourced cards, searched cards, and hand contents are all recorded since this is a post-game artifact.
 
-Players are anonymized as P1 and P2.
+Players are anonymized as "Player 1" and "Player 2".
 
 ---
 
@@ -19,14 +19,14 @@ A `.swupgn` file has four sections in this order:
 
 ```
 [Header Block]              General game metadata
-[Card Index]                Full decklists for both players
 === FREEFORM ===            Human-readable game log
 [Game Notation]
+[Card Index]                Full decklists for both players
 === PARSEABLE ===           Machine-readable replay data
 [JSON-lines Replay Log]
 ```
 
-The file starts with the header and card index (general game data and decklists). The `=== FREEFORM ===` marker signals the start of the human-readable game log. The `=== PARSEABLE ===` marker signals the start of the machine-parseable JSON-lines replay data.
+The file starts with the header block (general game metadata). The `=== FREEFORM ===` marker signals the start of the human-readable game log. The Card Index (decklists) appears after the game log and before the `=== PARSEABLE ===` marker, which signals the start of the machine-parseable JSON-lines replay data.
 
 ---
 
@@ -125,7 +125,7 @@ The Card Index (Section 3) maps every card name to its unique set ID (`SET#NUM`)
 
 ### Player References
 
-Players are always referred to as `P1` and `P2`. Possessive form: `P1's`, `P2's`.
+Players are always referred to as `Player 1` and `Player 2`. Possessive form: `Player 1's`, `Player 2's`.
 
 ### Action Sentence Patterns
 
@@ -135,54 +135,54 @@ The notation uses consistent natural language patterns. Each pattern corresponds
 
 **Play a card from hand:**
 ```
-N. P1 plays Card Name to Zone (cost X)
+N. Player 1 plays Card Name to Zone (cost X)
 ```
 
 **Play a card via Smuggle:**
 ```
-N. P1 plays Card Name to Zone using Smuggle from their resource row (cost X)
+N. Player 1 plays Card Name to Zone using Smuggle from their resource row (cost X)
 ```
 
 **Play an upgrade:**
 ```
-N. P1 plays Upgrade Name, attaching it to Target Unit (cost X)
+N. Player 1 plays Upgrade Name, attaching it to Target Unit (cost X)
 ```
 
 **Play an event:**
 ```
-N. P1 plays Event Name (cost X)
+N. Player 1 plays Event Name (cost X)
 ```
 
 **Deploy leader:**
 ```
-N. P1 deploys Leader Name, Subtitle to Zone (cost X)
+N. Player 1 deploys Leader Name, Subtitle to Zone (cost X)
 ```
 
 **Attack a unit:**
 ```
-N. P1 attacks with Attacker Name against P2's Defender Name
+N. Player 1 attacks with Attacker Name against Player 2's Defender Name
 ```
 
 **Attack a base:**
 ```
-N. P1 attacks with Attacker Name against P2's Base
+N. Player 1 attacks with Attacker Name against Player 2's Base
 ```
 
 **Pass:**
 ```
-N. P1 passes
+N. Player 1 passes
 ```
 
 **Claim initiative:**
 ```
-N. P1 claims initiative and passes
+N. Player 1 claims initiative and passes
 ```
 
 #### Sub-events (Lettered, indented with 2 spaces)
 
 **Triggered ability:**
 ```
-  Na. P1's Card Name triggers Ability Type: description of effect
+  Na. Player 1's Card Name triggers Ability Type: description of effect
 ```
 Where Ability Type is one of: `When Played`, `When Defeated`, `On Attack`, `On Defense`, `Bounty`.
 
@@ -208,12 +208,12 @@ Where Ability Type is one of: `When Played`, `When Defeated`, `On Attack`, `On D
 
 **Draw cards:**
 ```
-  Na. P1 draws X card(s)
+  Na. Player 1 draws X card(s)
 ```
 
 **Discard cards:**
 ```
-  Na. P1 discards Card Name from hand
+  Na. Player 1 discards Card Name from hand
 ```
 
 **Card captured:**
@@ -223,7 +223,7 @@ Where Ability Type is one of: `When Played`, `When Defeated`, `On Attack`, `On D
 
 **Card rescued:**
 ```
-  Na. P1 rescues Card Name
+  Na. Player 1 rescues Card Name
 ```
 
 **Token created:**
@@ -249,15 +249,15 @@ Where X/Y are power/HP.
 
 **Search deck:**
 ```
-  Na. P1 searches their deck
-  Nb. P1 finds Card Name and puts it into Zone
-  Nc. P1 shuffles their deck
+  Na. Player 1 searches their deck
+  Nb. Player 1 finds Card Name and puts it into Zone
+  Nc. Player 1 shuffles their deck
 ```
 
 **Look at cards:**
 ```
-  Na. P1 looks at P2's hand
-  Nb. P2's hand revealed: Card A, Card B, Card C
+  Na. Player 1 looks at Player 2's hand
+  Nb. Player 2's hand revealed: Card A, Card B, Card C
 ```
 
 **Card moved between zones:**
@@ -267,7 +267,7 @@ Where X/Y are power/HP.
 
 **Take control:**
 ```
-  Na. P1 takes control of Card Name
+  Na. Player 1 takes control of Card Name
 ```
 
 **Heal damage:**
@@ -277,12 +277,12 @@ Where X/Y are power/HP.
 
 **Leader ability (action):**
 ```
-  Na. P1 activates Leader Name, Subtitle ability: description
+  Na. Player 1 activates Leader Name, Subtitle ability: description
 ```
 
 **Overwhelm damage:**
 ```
-  Na. X Overwhelm damage dealt to P2's Base
+  Na. X Overwhelm damage dealt to Player 2's Base
 ```
 
 **Ongoing effect applied:**
@@ -292,28 +292,28 @@ Where X/Y are power/HP.
 
 **Modal choice:**
 ```
-  Na. P1 chooses "Option text" on Card Name
+  Na. Player 1 chooses "Option text" on Card Name
 ```
 
 #### Setup Phase Entries (Unnumbered)
 
 ```
-P1 draws 6 cards in starting hand
-P1 will keep their hand
-P1 will mulligan
-P1 shuffles their deck
-P1 draws 6 cards in starting hand
-P1 resources 1 card from hand: Card Name, Subtitle
-P2 resources 1 card from hand: Card Name
+Player 1 draws 6 cards in starting hand
+Player 1 will keep their hand
+Player 1 will mulligan
+Player 1 shuffles their deck
+Player 1 draws 6 cards in starting hand
+Player 1 resources 1 card from hand: Card Name, Subtitle
+Player 2 resources 1 card from hand: Card Name
 ```
 
 #### Regroup Phase Entries (Unnumbered)
 
 ```
-P1 draws 2 cards
-P2 draws 2 cards
-P1 resources 1 card from hand: Card Name, Subtitle
-P2 resources 0 cards
+Player 1 draws 2 cards
+Player 2 draws 2 cards
+Player 1 resources 1 card from hand: Card Name, Subtitle
+Player 2 resources 0 cards
 All cards readied
 ```
 
@@ -322,7 +322,7 @@ All cards readied
 Combat is recorded as a sequence of sub-events under the attack action:
 
 ```
-3. P1 attacks with Cell Block Guard against P2's Rebel Pathfinder
+3. Player 1 attacks with Cell Block Guard against Player 2's Rebel Pathfinder
   3a. Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
   3b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
   3c. Rebel Pathfinder is defeated
@@ -331,7 +331,7 @@ Combat is recorded as a sequence of sub-events under the attack action:
 
 When Sentinel is involved:
 ```
-3. P1 attacks with Viper Probe Droid against P2's Base
+3. Player 1 attacks with Viper Probe Droid against Player 2's Base
   3a. Attack redirected to Snowtrooper Lieutenant (Sentinel)
   3b. Viper Probe Droid deals 2 damage to Snowtrooper Lieutenant (1 remaining HP)
   3c. Snowtrooper Lieutenant deals 2 damage to Viper Probe Droid (0 remaining HP)
@@ -340,10 +340,10 @@ When Sentinel is involved:
 
 When Overwhelm applies:
 ```
-3. P1 attacks with AT-AT against Rebel Pathfinder
+3. Player 1 attacks with AT-AT against Rebel Pathfinder
   3a. AT-AT deals 6 damage to Rebel Pathfinder (0 remaining HP)
   3b. Rebel Pathfinder is defeated
-  3c. 4 Overwhelm damage dealt to P2's Echo Base (16 remaining HP)
+  3c. 4 Overwhelm damage dealt to Player 2's Echo Base (16 remaining HP)
   3d. Rebel Pathfinder deals 2 damage to AT-AT (6 remaining HP)
   3e. AT-AT is exhausted
 ```
@@ -352,7 +352,7 @@ When Overwhelm applies:
 
 ## Section 3: Card Index
 
-The card index appears immediately after the header block and before the freeform notation. It contains full decklists for both players.
+The card index appears after the freeform game log and before the `=== PARSEABLE ===` marker. It contains full decklists for both players.
 
 ### Format
 
@@ -634,6 +634,57 @@ Instance numbers are assigned in the order cards enter play. This suffix is used
 [Format "Premier"]
 [Rounds "2"]
 
+=== FREEFORM ===
+
+═══ ROUND 1 ═══
+
+─── Setup Phase ───
+Player 1 draws 6 cards in starting hand
+Player 1 will keep their hand
+Player 2 draws 6 cards in starting hand
+Player 2 will mulligan
+Player 2 shuffles their deck
+Player 2 draws 6 cards in starting hand
+Player 1 resources 1 card from hand: Vanquish
+Player 2 resources 1 card from hand: Asteroid Sanctuary
+
+─── Action Phase ───
+1. Player 1 plays Viper Probe Droid to Ground Arena (cost 2)
+  1a. Player 1's Viper Probe Droid triggers When Played: looks at Player 2's hand
+  1b. Player 2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace, Surprise Strike, Jedha City
+2. Player 2 plays Rebel Pathfinder to Ground Arena (cost 2)
+  2a. Player 2's Rebel Pathfinder triggers When Played: Player 2 searches deck
+  2b. Player 2 finds Snowspeeder and puts it into hand
+  2c. Player 2 shuffles their deck
+3. Player 1 plays Cell Block Guard to Ground Arena (cost 3)
+  3a. Player 1 activates Darth Vader, Commanding the First Legion ability: deals 1 damage to Player 1's Base
+  3b. Command Center takes 1 damage (29 remaining HP)
+  3c. Player 1 draws 1 card
+4. Player 2 passes
+5. Player 1 attacks with Viper Probe Droid against Player 2's Base
+  5a. Viper Probe Droid deals 2 damage to Echo Base (28 remaining HP)
+  5b. Viper Probe Droid is exhausted
+6. Player 2 claims initiative and passes
+
+─── Regroup Phase ───
+Player 1 draws 2 cards
+Player 2 draws 2 cards
+Player 1 resources 1 card from hand: Admiral Ozzel, Overconfident
+Player 2 resources 0 cards
+All cards readied
+
+═══ ROUND 2 ═══
+
+─── Action Phase ───
+1. Player 2 plays Wing Leader to Space Arena (cost 3)
+  1a. Player 2's Wing Leader triggers When Played: creates X-Wing token
+  1b. X-Wing token enters Space Arena (2/3)
+2. Player 1 attacks with Cell Block Guard against Player 2's Rebel Pathfinder
+  2a. Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
+  2b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
+  2c. Rebel Pathfinder is defeated
+  2d. Cell Block Guard is exhausted
+
 ═══ CARD INDEX ═══
 
 ── P1 Decklist ──
@@ -657,57 +708,6 @@ Deck:
   1x Snowspeeder = SOR#039
   2x Surprise Strike = SOR#150
   3x Wing Leader = SOR#042
-
-=== FREEFORM ===
-
-═══ ROUND 1 ═══
-
-─── Setup Phase ───
-P1 draws 6 cards in starting hand
-P1 will keep their hand
-P2 draws 6 cards in starting hand
-P2 will mulligan
-P2 shuffles their deck
-P2 draws 6 cards in starting hand
-P1 resources 1 card from hand: Vanquish
-P2 resources 1 card from hand: Asteroid Sanctuary
-
-─── Action Phase ───
-1. P1 plays Viper Probe Droid to Ground Arena (cost 2)
-  1a. P1's Viper Probe Droid triggers When Played: looks at P2's hand
-  1b. P2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace, Surprise Strike, Jedha City
-2. P2 plays Rebel Pathfinder to Ground Arena (cost 2)
-  2a. P2's Rebel Pathfinder triggers When Played: P2 searches deck
-  2b. P2 finds Snowspeeder and puts it into hand
-  2c. P2 shuffles their deck
-3. P1 plays Cell Block Guard to Ground Arena (cost 3)
-  3a. P1 activates Darth Vader, Commanding the First Legion ability: deals 1 damage to P1's Base
-  3b. Command Center takes 1 damage (29 remaining HP)
-  3c. P1 draws 1 card
-4. P2 passes
-5. P1 attacks with Viper Probe Droid against P2's Base
-  5a. Viper Probe Droid deals 2 damage to Echo Base (28 remaining HP)
-  5b. Viper Probe Droid is exhausted
-6. P2 claims initiative and passes
-
-─── Regroup Phase ───
-P1 draws 2 cards
-P2 draws 2 cards
-P1 resources 1 card from hand: Admiral Ozzel, Overconfident
-P2 resources 0 cards
-All cards readied
-
-═══ ROUND 2 ═══
-
-─── Action Phase ───
-1. P2 plays Wing Leader to Space Arena (cost 3)
-  1a. P2's Wing Leader triggers When Played: creates X-Wing token
-  1b. X-Wing token enters Space Arena (2/3)
-2. P1 attacks with Cell Block Guard against P2's Rebel Pathfinder
-  2a. Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
-  2b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
-  2c. Rebel Pathfinder is defeated
-  2d. Cell Block Guard is exhausted
 
 === PARSEABLE ===
 {"seq":"R1.S.1","type":"DRAW","player":"P1","count":6,"cards":["SOR#108","SOR#095","SOR#142","SOR#138","SOR#087","SOR#148"]}
@@ -792,13 +792,10 @@ UTF-8. The box-drawing characters (`═`, `─`) are standard Unicode and render
 
 ## Parser Guidance
 
-### Reading the Header and Card Index
+### Reading the Header
 
 1. Parse header tags at the start of the file with regex: `\[(\w+) "(.+)"\]`
-2. Scan for `═══ CARD INDEX ═══` to find decklists
-3. Parse player sections with `── P[12] Decklist ──`
-4. Parse leader/base: `(Leader|Base): (.+) = ([A-Z]+#\d{3})`
-5. Parse deck entries: `  (\d+)x (.+) = ([A-Z]+#\d{3})`
+2. Stop when a non-tag line is encountered (e.g., `=== FREEFORM ===`)
 
 ### Reading the Freeform Game Log
 
@@ -806,9 +803,17 @@ A parser targeting the human-readable game log should:
 1. Scan forward to `=== FREEFORM ===`
 2. Detect round boundaries with: `═══ ROUND (\d+) ═══`
 3. Detect phase boundaries with: `─── (.+) Phase ───`
-4. Parse numbered actions with: `(\d+)\. (P[12]) (.+)`
+4. Parse numbered actions with: `(\d+)\. (Player [12]) (.+)`
 5. Parse sub-events with: `  (\d+)([a-z](?:-[ivx]+)?)\. (.+)`
-6. Stop at `=== PARSEABLE ===`
+6. Stop at `═══ CARD INDEX ═══`
+
+### Reading the Card Index
+
+1. Scan for `═══ CARD INDEX ═══` (appears after the freeform game log)
+2. Parse player sections with `── P[12] Decklist ──`
+3. Parse leader/base: `(Leader|Base): (.+) = ([A-Z]+#\d{3})`
+4. Parse deck entries: `  (\d+)x (.+) = ([A-Z]+#\d{3})`
+5. Stop at `=== PARSEABLE ===`
 
 ### Reading the Replay Layer
 

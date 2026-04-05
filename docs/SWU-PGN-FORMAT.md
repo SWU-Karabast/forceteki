@@ -11,7 +11,7 @@ SWU-PGN is a file format for recording complete Star Wars Unlimited games. Think
 - **Analyze decisions** -- since all hidden information (resourced cards, hand reveals, search results) is recorded after the fact
 - **Share games** in a compact, portable text file
 
-Every `.swupgn` file has four sections: general game data (header), decklists (card index), a **Freeform** game log that humans can read naturally, and a **Parseable** section with structured JSON data that computers can process.
+Every `.swupgn` file has four sections: general game data (header), a **Freeform** game log that humans can read naturally, decklists (card index), and a **Parseable** section with structured JSON data that computers can process.
 
 ---
 
@@ -21,16 +21,17 @@ A `.swupgn` file is a plain text file (UTF-8) with this structure:
 
 ```
 [Header]                    Game metadata (date, players, leaders, result)
-[Card Index]                Full decklists with card set IDs
 
 === FREEFORM ===        <-- Start of the human-readable game log
 [Game Notation]             Round-by-round account of every action
+
+[Card Index]                Full decklists with card set IDs
 
 === PARSEABLE ===       <-- Start of the computer-readable replay data
 [JSON Replay Data]          One JSON object per line, every game event
 ```
 
-The file starts with the game metadata header and full decklists for both players. The `=== FREEFORM ===` marker signals the start of the human-readable game log. The `=== PARSEABLE ===` marker signals the start of the machine-readable JSON replay data.
+The file starts with the game metadata header. The `=== FREEFORM ===` marker signals the start of the human-readable game log. The Card Index (decklists) appears after the game log and before the `=== PARSEABLE ===` marker, which signals the start of the machine-readable JSON replay data.
 
 ---
 
@@ -65,7 +66,7 @@ Each line is `[TagName "Value"]`. The header tells you who played, what they pla
 
 ## Card Index (Decklists)
 
-After the header, the Card Index lists both players' complete decklists. Every card name used in the notation is mapped to its unique set ID (`SET#NUM`).
+After the game log and before the `=== PARSEABLE ===` marker, the Card Index lists both players' complete decklists. Every card name used in the notation is mapped to its unique set ID (`SET#NUM`).
 
 ```
 ═══ CARD INDEX ═══
@@ -100,7 +101,7 @@ Deck:
 
 ## The Freeform Game Log
 
-After the decklists, the `=== FREEFORM ===` marker signals the start of the human-readable game log. This records every round, organized by phase.
+After the header, the `=== FREEFORM ===` marker signals the start of the human-readable game log. This records every round, organized by phase.
 
 #### Rounds and Phases
 
@@ -126,25 +127,25 @@ The Setup Phase only appears in Round 1. Subsequent rounds go straight to the Ac
 **Player actions** in the Action Phase are numbered. The number resets each round:
 
 ```
-1. P1 plays Viper Probe Droid to Ground Arena (cost 2)
-2. P2 plays Rebel Pathfinder to Ground Arena (cost 2)
-3. P1 attacks with Cell Block Guard against P2's Rebel Pathfinder
-4. P2 passes
-5. P1 claims initiative and passes
+1. Player 1 plays Viper Probe Droid to Ground Arena (cost 2)
+2. Player 2 plays Rebel Pathfinder to Ground Arena (cost 2)
+3. Player 1 attacks with Cell Block Guard against Player 2's Rebel Pathfinder
+4. Player 2 passes
+5. Player 1 claims initiative and passes
 ```
 
 **Sub-events** -- triggered abilities, damage, defeats -- are indented and lettered under the action that caused them:
 
 ```
-1. P1 plays Viper Probe Droid to Ground Arena (cost 2)
-  1a. P1's Viper Probe Droid triggers When Played: looks at P2's hand
-  1b. P2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace
+1. Player 1 plays Viper Probe Droid to Ground Arena (cost 2)
+  1a. Player 1's Viper Probe Droid triggers When Played: looks at Player 2's hand
+  1b. Player 2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace
 ```
 
 This hierarchy makes it clear which effects belong to which action. A single attack might generate several sub-events:
 
 ```
-3. P1 attacks with Cell Block Guard against P2's Rebel Pathfinder
+3. Player 1 attacks with Cell Block Guard against Player 2's Rebel Pathfinder
   3a. Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
   3b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
   3c. Rebel Pathfinder is defeated
@@ -155,30 +156,30 @@ This hierarchy makes it clear which effects belong to which action. A single att
 
 ```
 ─── Setup Phase ───
-P1 draws 6 cards in starting hand
-  [Cards Drawn] P1: Viper Probe Droid, Cell Block Guard, Vanquish, Force Choke, Admiral Ozzel, Overconfident, Open Fire
-P1 will keep their hand
-P2 draws 6 cards in starting hand
-  [Cards Drawn] P2: Rebel Pathfinder, Wing Leader, Moment of Peace, Snowspeeder, Jedha City, Surprise Strike
-P2 will mulligan
-P2 shuffles their deck
-P2 draws 6 cards in starting hand
-  [Cards Drawn] P2: Rebel Pathfinder, Echo Base Defender, Moment of Peace, Wing Leader, Alliance X-Wing, Repair
-P1 resources 1 card from hand: Vanquish
-  [Card Resourced] P1: Vanquish
-P2 resources 1 card from hand: Asteroid Sanctuary
-  [Card Resourced] P2: Asteroid Sanctuary
+Player 1 draws 6 cards in starting hand
+  [Cards Drawn] Player 1: Viper Probe Droid, Cell Block Guard, Vanquish, Force Choke, Admiral Ozzel, Overconfident, Open Fire
+Player 1 will keep their hand
+Player 2 draws 6 cards in starting hand
+  [Cards Drawn] Player 2: Rebel Pathfinder, Wing Leader, Moment of Peace, Snowspeeder, Jedha City, Surprise Strike
+Player 2 will mulligan
+Player 2 shuffles their deck
+Player 2 draws 6 cards in starting hand
+  [Cards Drawn] Player 2: Rebel Pathfinder, Echo Base Defender, Moment of Peace, Wing Leader, Alliance X-Wing, Repair
+Player 1 resources 1 card from hand: Vanquish
+  [Card Resourced] Player 1: Vanquish
+Player 2 resources 1 card from hand: Asteroid Sanctuary
+  [Card Resourced] Player 2: Asteroid Sanctuary
 ```
 
 ```
 ─── Regroup Phase ───
-P1 draws 2 cards
-  [Cards Drawn] P1: Superlaser Technician, Relentless, Konstantine's Folly
-P2 draws 2 cards
-  [Cards Drawn] P2: Luke Skywalker, Jedi Knight, Recruit
-P1 resources 1 card from hand: Admiral Ozzel, Overconfident
-  [Card Resourced] P1: Admiral Ozzel, Overconfident
-P2 resources 0 cards
+Player 1 draws 2 cards
+  [Cards Drawn] Player 1: Superlaser Technician, Relentless, Konstantine's Folly
+Player 2 draws 2 cards
+  [Cards Drawn] Player 2: Luke Skywalker, Jedi Knight, Recruit
+Player 1 resources 1 card from hand: Admiral Ozzel, Overconfident
+  [Card Resourced] Player 1: Admiral Ozzel, Overconfident
+Player 2 resources 0 cards
 All cards readied
 ```
 
@@ -190,19 +191,19 @@ Cards are always written using their printed name:
 - **Cards without a subtitle:** `Title` only (e.g., `Cell Block Guard`, `Vanquish`)
 - **Token units:** `Title token` (e.g., `X-Wing token`)
 
-This matches how players talk about cards. The Card Index at the bottom maps every name to its unique set ID, so there's never ambiguity about which printing is meant.
+This matches how players talk about cards. The Card Index maps every name to its unique set ID, so there's never ambiguity about which printing is meant.
 
 #### How Players Are Named
 
-Players are always `P1` and `P2`. Possessive: `P1's`, `P2's`.
+Players are always `Player 1` and `Player 2`. Possessive: `Player 1's`, `Player 2's`.
 
 #### All Hidden Information Is Revealed
 
 Since this is a post-game record, nothing is hidden:
 
-- **Resourced cards** are named: `P1 resources 1 card from hand: Vanquish`
-- **Hand reveals** show all cards: `P2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace`
-- **Search results** show what was found: `P2 finds Snowspeeder and puts it into hand`
+- **Resourced cards** are named: `Player 1 resources 1 card from hand: Vanquish`
+- **Hand reveals** show all cards: `Player 2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace`
+- **Search results** show what was found: `Player 2 finds Snowspeeder and puts it into hand`
 
 #### Common Action Patterns
 
@@ -210,14 +211,14 @@ Here are the sentence patterns you'll see in the notation:
 
 | Action | Pattern |
 |--------|---------|
-| Play a unit/upgrade | `N. P1 plays Card Name to Zone (cost X)` |
-| Play an event | `N. P1 plays Event Name (cost X)` |
-| Deploy a leader | `N. P1 deploys Leader Name, Subtitle to Zone (cost X)` |
-| Attack a unit | `N. P1 attacks with Attacker against P2's Defender` |
-| Attack a base | `N. P1 attacks with Attacker against P2's Base` |
-| Pass | `N. P1 passes` |
-| Claim initiative | `N. P1 claims initiative and passes` |
-| Triggered ability | `  Na. P1's Card triggers Type: effect description` |
+| Play a unit/upgrade | `N. Player 1 plays Card Name to Zone (cost X)` |
+| Play an event | `N. Player 1 plays Event Name (cost X)` |
+| Deploy a leader | `N. Player 1 deploys Leader Name, Subtitle to Zone (cost X)` |
+| Attack a unit | `N. Player 1 attacks with Attacker against Player 2's Defender` |
+| Attack a base | `N. Player 1 attacks with Attacker against Player 2's Base` |
+| Pass | `N. Player 1 passes` |
+| Claim initiative | `N. Player 1 claims initiative and passes` |
+| Triggered ability | `  Na. Player 1's Card triggers Type: effect description` |
 | Damage dealt | `  Na. Card deals X damage to Target (Y remaining HP)` |
 | Card defeated | `  Na. Card is defeated` |
 | Card exhausted | `  Na. Card is exhausted` |
@@ -225,17 +226,17 @@ Here are the sentence patterns you'll see in the notation:
 | Shield gained | `  Na. Card gains a Shield token` |
 | Shield used | `  Na. Card's Shield token is defeated to prevent damage` |
 | Token created | `  Na. Token Name enters Zone (X/Y)` |
-| Overwhelm | `  Na. X Overwhelm damage dealt to P2's Base (Y remaining HP)` |
-| Game state | `  [Game State] P1: 25/30 HP, 4 cards, ... \| P2: 18/30 HP, 3 cards, ...` |
-| Cards drawn | `  [Cards Drawn] P1: Card A, Card B` |
-| Card resourced | `  [Card Resourced] P1: Card Name, Subtitle` |
-| Search | `  Na. P1 searches their deck` / `  Nb. P1 finds Card and puts it into Zone` |
+| Overwhelm | `  Na. X Overwhelm damage dealt to Player 2's Base (Y remaining HP)` |
+| Game state | `  [Game State] Player 1: 25/30 HP, 4 cards, ... \| Player 2: 18/30 HP, 3 cards, ...` |
+| Cards drawn | `  [Cards Drawn] Player 1: Card A, Card B` |
+| Card resourced | `  [Card Resourced] Player 1: Card Name, Subtitle` |
+| Search | `  Na. Player 1 searches their deck` / `  Nb. Player 1 finds Card and puts it into Zone` |
 
 #### Combat Examples
 
 **Basic combat** (unit vs. unit):
 ```
-3. P1 attacks with Cell Block Guard against P2's Rebel Pathfinder
+3. Player 1 attacks with Cell Block Guard against Player 2's Rebel Pathfinder
   3a. Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
   3b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
   3c. Rebel Pathfinder is defeated
@@ -244,26 +245,26 @@ Here are the sentence patterns you'll see in the notation:
 
 **Overwhelm** (excess damage hits the base):
 ```
-3. P1 attacks with AT-AT against Rebel Pathfinder
+3. Player 1 attacks with AT-AT against Rebel Pathfinder
   3a. AT-AT deals 6 damage to Rebel Pathfinder (0 remaining HP)
   3b. Rebel Pathfinder is defeated
-  3c. 4 Overwhelm damage dealt to P2's Echo Base (16 remaining HP)
+  3c. 4 Overwhelm damage dealt to Player 2's Echo Base (16 remaining HP)
   3d. Rebel Pathfinder deals 2 damage to AT-AT (6 remaining HP)
   3e. AT-AT is exhausted
-  [Game State] P1: 25/30 HP, 3 cards, 2/6 resources, 0 credits | P2: 16/30 HP, 4 cards, 3/5 resources, 0 credits, Force, 1 ground/2 space
+  [Game State] Player 1: 25/30 HP, 3 cards, 2/6 resources, 0 credits | Player 2: 16/30 HP, 4 cards, 3/5 resources, 0 credits, Force, 1 ground/2 space
 ```
 
 **Base attack** (game state snapshot appears after every completed action):
 ```
-5. P1 attacks with Viper Probe Droid against P2's Base
+5. Player 1 attacks with Viper Probe Droid against Player 2's Base
   5a. Viper Probe Droid deals 2 damage to Echo Base (28 remaining HP)
   5b. Viper Probe Droid is exhausted
-  [Game State] P1: 30/30 HP, 5 cards, 4/6 resources, 0 credits, Initiative | P2: 28/30 HP, 5 cards, 4/5 resources, 0 credits, Force, 0 ground/0 space
+  [Game State] Player 1: 30/30 HP, 5 cards, 4/6 resources, 0 credits, Initiative | Player 2: 28/30 HP, 5 cards, 4/5 resources, 0 credits, Force, 0 ground/0 space
 ```
 
 **Sentinel** (attack redirected):
 ```
-3. P1 attacks with Viper Probe Droid against P2's Base
+3. Player 1 attacks with Viper Probe Droid against Player 2's Base
   3a. Attack redirected to Snowtrooper Lieutenant (Sentinel)
   3b. Viper Probe Droid deals 2 damage to Snowtrooper Lieutenant (1 remaining HP)
   3c. Snowtrooper Lieutenant deals 2 damage to Viper Probe Droid (0 remaining HP)
@@ -382,7 +383,7 @@ Each `type` value tells the computer what kind of event this is:
 
 ### Card References
 
-Cards are identified by `SET#NUM` in the parseable layer (e.g., `SOR#108`). The Card Index in the freeform layer maps these to human-readable names.
+Cards are identified by `SET#NUM` in the parseable layer (e.g., `SOR#108`). The Card Index maps these to human-readable names.
 
 When multiple copies of the same card are in play, a suffix distinguishes them:
 - First copy: `SOR#095`
@@ -397,20 +398,20 @@ When multiple copies of the same card are in play, a suffix distinguishes them:
 
 | Marker | Meaning |
 |--------|---------|
-| `═══ CARD INDEX ═══` | Start of decklists (after header) |
-| `=== FREEFORM ===` | Start of human-readable game log |
+| `=== FREEFORM ===` | Start of human-readable game log (after header) |
 | `═══ ROUND N ═══` | Round boundary (within freeform) |
 | `─── Phase Name ───` | Phase boundary (within freeform) |
+| `═══ CARD INDEX ═══` | Start of decklists (after game log, before parseable) |
 | `=== PARSEABLE ===` | Start of computer-readable JSON data |
 
 ### Notation Numbering
 
 | Format | Meaning | Example |
 |--------|---------|---------|
-| `N.` | Top-level player action | `3. P1 attacks with...` |
+| `N.` | Top-level player action | `3. Player 1 attacks with...` |
 | `Na.` | Sub-event of action N | `3a. Cell Block Guard deals...` |
 | `Na-i.` | Nested sub-event | `3a-i. Triggers another ability...` |
-| (no number) | Setup/Regroup phase entry | `P1 draws 2 cards` |
+| (no number) | Setup/Regroup phase entry | `Player 1 draws 2 cards` |
 
 ### Card Name Format
 
