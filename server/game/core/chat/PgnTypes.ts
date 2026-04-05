@@ -80,13 +80,6 @@ export interface IPgnHeader {
     rounds?: string;
 }
 
-export interface ISwuPgnData {
-    header: IPgnHeader;
-    humanNotation: string;
-    cardIndex: { p1: IPgnPlayerDecklist; p2: IPgnPlayerDecklist };
-    replayData: IPgnReplayRecord[];
-}
-
 export interface IStructureMarker {
     messageIndex: number;
     type: 'round' | 'phase' | 'action' | 'subEvent' | 'gameState' | 'drawnCards' | 'resourcedCard';

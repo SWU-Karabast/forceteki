@@ -104,8 +104,7 @@ import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 import { SwuPgn } from './chat/SwuPgn';
-import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IPgnReplayRecord, IGameFiles } from './chat/PgnTypes';
-import { PgnActionType } from './chat/PgnTypes';
+import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IGameFiles } from './chat/PgnTypes';
 import { PgnReplayRecorder } from './chat/PgnReplayRecorder';
 
 export class Game extends EventEmitter {
@@ -635,21 +634,6 @@ export class Game extends EventEmitter {
             result = 'P2 Win';
         }
 
-        let reason: string;
-        switch (this.gameEndReason) {
-            case GameEndReason.Concede:
-                reason = 'Concession';
-                break;
-            case GameEndReason.PlayerLeft:
-                reason = 'Disconnection';
-                break;
-            case GameEndReason.GameRules:
-                reason = 'Base Destroyed';
-                break;
-            default:
-                reason = 'Unknown';
-        }
-
         return {
             game: 'SWU-PGN v1.0',
             date,
@@ -660,9 +644,25 @@ export class Game extends EventEmitter {
             p2Leader: SwuPgn.formatCardName(player2.leader.title, player2.leader.subtitle),
             p2Base: SwuPgn.formatCardName(player2.base.title, player2.base.subtitle),
             result,
-            reason,
+            reason: this.gameEndReasonString(this.gameEndReason),
             rounds: String(this.roundNumber),
         };
+    }
+
+    /**
+     * Maps a GameEndReason to a human-readable string for PGN output.
+     */
+    private gameEndReasonString(reasonCode: GameEndReason | undefined): string {
+        switch (reasonCode) {
+            case GameEndReason.Concede:
+                return 'Concession';
+            case GameEndReason.PlayerLeft:
+                return 'Disconnection';
+            case GameEndReason.GameRules:
+                return 'Base Destroyed';
+            default:
+                return 'Unknown';
+        }
     }
 
     /**
@@ -1077,12 +1077,9 @@ export class Game extends EventEmitter {
 
         // Record game end in replay data
         const endPlayer = winners.length === 1
-            ? (winners[0] === this.getPlayers()[0] ? 'P1' : 'P2')
+            ? (winners[0] === this.getPlayers()[0] ? 'Player 1' : 'Player 2')
             : undefined;
-        const endReason = reasonCode === GameEndReason.Concede ? 'Concession'
-            : reasonCode === GameEndReason.PlayerLeft ? 'Disconnection'
-                : 'Base Destroyed';
-        this._replayRecorder.addGameEndRecord(endPlayer ?? 'Draw', endReason);
+        this._replayRecorder.addGameEndRecord(endPlayer ?? 'Draw', this.gameEndReasonString(reasonCode));
 
         try {
             this._cachedRawGameLog = this.getRawGameLog();

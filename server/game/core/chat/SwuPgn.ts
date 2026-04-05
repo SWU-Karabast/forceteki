@@ -124,11 +124,10 @@ export class SwuPgn {
         p2Decklist: IPgnPlayerDecklist,
         replayData: IPgnReplayRecord[]
     ): string {
-        const replayLines = replayData.map((r) => JSON.stringify(r));
         const sections = [
             SwuPgn.formatHeader(header),
             SwuPgn.formatCardIndex(p1Decklist, p2Decklist),
-            '=== REPLAY ===\n' + replayLines.join('\n'),
+            SwuPgn.formatReplayData(replayData),
         ];
         return sections.join('\n\n');
     }

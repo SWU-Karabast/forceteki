@@ -22,10 +22,10 @@ export class PgnReplayRecorder {
     private readonly replayRecords: IPgnReplayRecord[] = [];
 
     /** Map from player.id → 'Player 1' | 'Player 2' */
-    private playerMap: Map<string, string> = new Map();
+    private readonly playerMap: Map<string, string> = new Map();
 
     /** Map from player.name → 'Player 1' | 'Player 2' (fallback) */
-    private playerNameMap: Map<string, string> = new Map();
+    private readonly playerNameMap: Map<string, string> = new Map();
 
     /** Current round number */
     private currentRound: number = 0;
@@ -328,7 +328,7 @@ export class PgnReplayRecorder {
                     type: PgnActionType.RoundStart,
                     round: this.currentRound,
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -340,7 +340,7 @@ export class PgnReplayRecorder {
                     type: PgnActionType.RoundEnd,
                     round: this.currentRound,
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -361,7 +361,7 @@ export class PgnReplayRecorder {
                     phase: this.currentPhase,
                     round: this.currentRound,
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -380,7 +380,7 @@ export class PgnReplayRecorder {
                     phase: phaseAbbr,
                     round: this.currentRound,
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -410,7 +410,7 @@ export class PgnReplayRecorder {
                     zone: card?.zoneName ?? '',
                     playType,
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -427,7 +427,7 @@ export class PgnReplayRecorder {
                     card: this.cardId(card),
                     zone: card?.zoneName ?? '',
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -449,7 +449,7 @@ export class PgnReplayRecorder {
                     defender: this.cardId(defender),
                     defenderType,
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -463,7 +463,7 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Pass,
                     player: this.anonymizePlayer(player),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -477,7 +477,7 @@ export class PgnReplayRecorder {
                     type: PgnActionType.ClaimInitiative,
                     player: this.anonymizePlayer(player),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -503,7 +503,7 @@ export class PgnReplayRecorder {
                     damageType: event?.type ?? '',
                     remainingHp: card?.remainingHp ?? 0,
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -527,7 +527,7 @@ export class PgnReplayRecorder {
                     reason,
                     defeatedBy: this.cardId(defeatedBy),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -556,7 +556,7 @@ export class PgnReplayRecorder {
                         player: this.anonymizePlayer(player),
                     });
                 }
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -583,7 +583,7 @@ export class PgnReplayRecorder {
                         player: this.anonymizePlayer(player),
                     });
                 }
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -597,7 +597,7 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Exhaust,
                     card: this.cardId(card),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -611,7 +611,7 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Ready,
                     card: this.cardId(card),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -627,7 +627,7 @@ export class PgnReplayRecorder {
                     amount: event?.damageHealed ?? event?.amount ?? 0,
                     remainingHp: card?.remainingHp ?? 0,
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -646,7 +646,7 @@ export class PgnReplayRecorder {
                         zone: token?.zoneName ?? '',
                     });
                 }
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -660,7 +660,7 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Capture,
                     card: this.cardId(card),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -676,7 +676,7 @@ export class PgnReplayRecorder {
                     player: this.anonymizePlayer(player),
                     card: this.cardId(card),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -692,7 +692,7 @@ export class PgnReplayRecorder {
                     card: this.cardId(card),
                     player: this.anonymizePlayer(player),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -708,7 +708,7 @@ export class PgnReplayRecorder {
                     card: this.cardId(card),
                     player: this.anonymizePlayer(player),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -722,7 +722,7 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Shuffle,
                     player: this.anonymizePlayer(player),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
@@ -738,7 +738,7 @@ export class PgnReplayRecorder {
                     card: this.cardId(card),
                     player: this.anonymizePlayer(player),
                 });
-            } catch (err) {
+            } catch {
                 // Recording error — do not crash gameplay
             }
         });
