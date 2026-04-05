@@ -173,10 +173,10 @@ export class SwuPgn {
     public static anonymizePlayers(text: string, player1Name: string, player2Name: string): string {
         const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         let result = text;
-        result = result.replace(new RegExp(`${escapeRegex(player1Name)}'s`, 'g'), "P1's");
-        result = result.replace(new RegExp(`${escapeRegex(player2Name)}'s`, 'g'), "P2's");
-        result = result.replace(new RegExp(escapeRegex(player1Name), 'g'), 'P1');
-        result = result.replace(new RegExp(escapeRegex(player2Name), 'g'), 'P2');
+        result = result.replace(new RegExp(`${escapeRegex(player1Name)}'s`, 'g'), "Player 1's");
+        result = result.replace(new RegExp(`${escapeRegex(player2Name)}'s`, 'g'), "Player 2's");
+        result = result.replace(new RegExp(escapeRegex(player1Name), 'g'), 'Player 1');
+        result = result.replace(new RegExp(escapeRegex(player2Name), 'g'), 'Player 2');
         return result;
     }
 
@@ -248,7 +248,7 @@ export class SwuPgn {
                 for (const marker of markers) {
                     if (marker.type === 'gameState' && marker.gameState) {
                         const s = marker.gameState;
-                        lines.push(`  [Game State] P1: ${s.p1.baseHp}/${s.p1.baseMaxHp} HP, ${s.p1.handSize} cards, ${s.p1.resourcesReady}/${s.p1.resourcesTotal} resources, ${s.p1.credits} credits${s.p1.hasForce ? ', Force' : ''}${s.p1.hasInitiative ? ', Initiative' : ''}, ${s.p1.groundUnits} ground/${s.p1.spaceUnits} space | P2: ${s.p2.baseHp}/${s.p2.baseMaxHp} HP, ${s.p2.handSize} cards, ${s.p2.resourcesReady}/${s.p2.resourcesTotal} resources, ${s.p2.credits} credits${s.p2.hasForce ? ', Force' : ''}${s.p2.hasInitiative ? ', Initiative' : ''}, ${s.p2.groundUnits} ground/${s.p2.spaceUnits} space`);
+                        lines.push(`  [Game State] Player 1: ${s.p1.baseHp}/${s.p1.baseMaxHp} HP, ${s.p1.handSize} cards, ${s.p1.resourcesReady}/${s.p1.resourcesTotal} resources, ${s.p1.credits} credits${s.p1.hasForce ? ', Force' : ''}${s.p1.hasInitiative ? ', Initiative' : ''}, ${s.p1.groundUnits} ground/${s.p1.spaceUnits} space | Player 2: ${s.p2.baseHp}/${s.p2.baseMaxHp} HP, ${s.p2.handSize} cards, ${s.p2.resourcesReady}/${s.p2.resourcesTotal} resources, ${s.p2.credits} credits${s.p2.hasForce ? ', Force' : ''}${s.p2.hasInitiative ? ', Initiative' : ''}, ${s.p2.groundUnits} ground/${s.p2.spaceUnits} space`);
                     }
                     if (marker.type === 'drawnCards' && marker.drawnCards && marker.drawnCards.length > 0) {
                         lines.push(`  [Cards Drawn] ${marker.player}: ${marker.drawnCards.join(', ')}`);

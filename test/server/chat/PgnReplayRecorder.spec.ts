@@ -189,7 +189,7 @@ describe('PgnReplayRecorder', () => {
             const playRecord = records.find((r) => r.type === PgnActionType.Play);
             expect(playRecord).toBeDefined();
             expect(playRecord?.card).toBe('SOR#010');
-            expect(playRecord?.player).toBe('P1');
+            expect(playRecord?.player).toBe('Player 1');
         });
 
         it('emits PLAY_EVENT for event card type', () => {
@@ -265,7 +265,7 @@ describe('PgnReplayRecorder', () => {
             expect(attackRecord).toBeDefined();
             expect(attackRecord?.attacker).toBe('SOR#001');
             expect(attackRecord?.defender).toBe('SOR#002');
-            expect(attackRecord?.player).toBe('P1');
+            expect(attackRecord?.player).toBe('Player 1');
         });
     });
 
@@ -285,7 +285,7 @@ describe('PgnReplayRecorder', () => {
             const records = recorder.getRecords();
             const passRecord = records.find((r) => r.type === PgnActionType.Pass);
             expect(passRecord).toBeDefined();
-            expect(passRecord?.player).toBe('P2');
+            expect(passRecord?.player).toBe('Player 2');
         });
     });
 
@@ -347,7 +347,7 @@ describe('PgnReplayRecorder', () => {
             const drawRecord = records.find((r) => r.type === PgnActionType.Draw);
             expect(drawRecord).toBeDefined();
             expect(drawRecord?.count).toBe(2);
-            expect(drawRecord?.player).toBe('P1');
+            expect(drawRecord?.player).toBe('Player 1');
         });
     });
 
@@ -385,7 +385,7 @@ describe('PgnReplayRecorder', () => {
             const records = recorder.getRecords();
             const shuffleRecord = records.find((r) => r.type === PgnActionType.Shuffle);
             expect(shuffleRecord).toBeDefined();
-            expect(shuffleRecord?.player).toBe('P1');
+            expect(shuffleRecord?.player).toBe('Player 1');
         });
     });
 
@@ -406,7 +406,7 @@ describe('PgnReplayRecorder', () => {
             const records = recorder.getRecords();
             const tcRecord = records.find((r) => r.type === PgnActionType.TakeControl);
             expect(tcRecord).toBeDefined();
-            expect(tcRecord?.player).toBe('P2');
+            expect(tcRecord?.player).toBe('Player 2');
         });
     });
 

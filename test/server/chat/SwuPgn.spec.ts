@@ -338,39 +338,39 @@ describe('SwuPgn', function () {
 
     // ── anonymizePlayers ─────────────────────────────────────────────────────
     describe('anonymizePlayers', function () {
-        it('replaces player1 name with P1', function () {
+        it('replaces player1 name with Player 1', function () {
             const result = SwuPgn.anonymizePlayers('Alice played a card', 'Alice', 'Bob');
-            expect(result).toBe('P1 played a card');
+            expect(result).toBe('Player 1 played a card');
         });
 
-        it('replaces player2 name with P2', function () {
+        it('replaces player2 name with Player 2', function () {
             const result = SwuPgn.anonymizePlayers('Bob passed', 'Alice', 'Bob');
-            expect(result).toBe('P2 passed');
+            expect(result).toBe('Player 2 passed');
         });
 
         it('replaces possessive form of player1 name', function () {
             const result = SwuPgn.anonymizePlayers("Alice's turn", 'Alice', 'Bob');
-            expect(result).toBe("P1's turn");
+            expect(result).toBe("Player 1's turn");
         });
 
         it('replaces possessive form of player2 name', function () {
             const result = SwuPgn.anonymizePlayers("Bob's base took damage", 'Alice', 'Bob');
-            expect(result).toBe("P2's base took damage");
+            expect(result).toBe("Player 2's base took damage");
         });
 
         it('replaces multiple occurrences', function () {
             const result = SwuPgn.anonymizePlayers('Alice vs Alice', 'Alice', 'Bob');
-            expect(result).toBe('P1 vs P1');
+            expect(result).toBe('Player 1 vs Player 1');
         });
 
         it('replaces both players in same text', function () {
             const result = SwuPgn.anonymizePlayers('Alice attacked Bob', 'Alice', 'Bob');
-            expect(result).toBe('P1 attacked P2');
+            expect(result).toBe('Player 1 attacked Player 2');
         });
 
         it('handles possessive before plain replacement to avoid double replacement', function () {
             const result = SwuPgn.anonymizePlayers("Alice's attack hit Bob", 'Alice', 'Bob');
-            expect(result).toBe("P1's attack hit P2");
+            expect(result).toBe("Player 1's attack hit Player 2");
         });
     });
 
@@ -381,7 +381,7 @@ describe('SwuPgn', function () {
                 ['Alice', ' played ', { title: 'Wampa' }],
             ];
             const result = SwuPgn.generateHumanNotation(messages, 'Alice', 'Bob');
-            expect(result).toBe('P1 played Wampa');
+            expect(result).toBe('Player 1 played Wampa');
         });
 
         it('skips player chat messages (first element has type === playerChat)', function () {
@@ -390,7 +390,7 @@ describe('SwuPgn', function () {
                 ['Alice', ' played ', { title: 'Wampa' }],
             ];
             const result = SwuPgn.generateHumanNotation(messages, 'Alice', 'Bob');
-            expect(result).toBe('P1 played Wampa');
+            expect(result).toBe('Player 1 played Wampa');
         });
 
         it('joins multiple messages with newlines', function () {
@@ -399,7 +399,7 @@ describe('SwuPgn', function () {
                 ['Bob', ' passed'],
             ];
             const result = SwuPgn.generateHumanNotation(messages, 'Alice', 'Bob');
-            expect(result).toBe('P1 played Wampa\nP2 passed');
+            expect(result).toBe('Player 1 played Wampa\nPlayer 2 passed');
         });
 
         it('handles alert messages', function () {
@@ -422,7 +422,7 @@ describe('SwuPgn', function () {
                 ['Alice', ' attacked'],
             ];
             const result = SwuPgn.generateHumanNotation(messages, 'Alice', 'Bob');
-            expect(result).toBe('P1 attacked');
+            expect(result).toBe('Player 1 attacked');
         });
 
         it('injects round and phase markers when structureMarkers provided', function () {
@@ -442,8 +442,8 @@ describe('SwuPgn', function () {
             expect(output).toContain('\u2550\u2550\u2550 ROUND 1 \u2550\u2550\u2550');
             expect(output).toContain('\u2500\u2500\u2500 Setup Phase \u2500\u2500\u2500');
             expect(output).toContain('\u2500\u2500\u2500 Action Phase \u2500\u2500\u2500');
-            expect(output).toContain('1. P1 plays Wampa');
-            expect(output).toContain('2. P2 passes');
+            expect(output).toContain('1. Player 1 plays Wampa');
+            expect(output).toContain('2. Player 2 passes');
         });
 
         it('injects sub-event indentation', function () {
@@ -456,7 +456,7 @@ describe('SwuPgn', function () {
                 { messageIndex: 1, type: 'subEvent', actionNumber: 1, subEventLetter: 'a' },
             ];
             const output = SwuPgn.generateHumanNotation(messages, 'Player1', 'Player2', markers);
-            expect(output).toContain('1. P1 plays Wampa');
+            expect(output).toContain('1. Player 1 plays Wampa');
             expect(output).toContain('  1a. Wampa deals 4 damage');
         });
     });

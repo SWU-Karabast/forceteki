@@ -15,14 +15,20 @@ export class PgnReplayRecorder {
     private readonly records: IPgnReplayRecord[] = [];
     private readonly structureMarkers: IStructureMarker[] = [];
 
-    /** Map from player.id → 'P1' | 'P2' */
+    /** Map from player.id → 'Player 1' | 'Player 2' */
     private playerMap: Map<string, string> = new Map();
+
+    /** Map from player.name → 'Player 1' | 'Player 2' (fallback) */
+    private playerNameMap: Map<string, string> = new Map();
 
     /** Current round number */
     private currentRound: number = 0;
 
     /** Current phase abbreviation: 'S', 'A', or 'G' */
     private currentPhase: string = 'S';
+
+    /** Current phase display name for freeform output */
+    private currentPhaseDisplayName: string = 'Setup Phase';
 
     /** Incremented for top-level player actions during Action Phase */
     private actionCounter: number = 0;
@@ -48,25 +54,30 @@ export class PgnReplayRecorder {
         return this.structureMarkers;
     }
 
-    /** Initialize the P1/P2 player map from game.getPlayers() order. */
+    /** Initialize the Player 1/Player 2 player map from game.getPlayers() order. */
     public initPlayerMap(): void {
         const players = this.game.getPlayers();
         if (players.length >= 1) {
-            this.playerMap.set(players[0].id, 'P1');
+            this.playerMap.set(players[0].id, 'Player 1');
+            this.playerNameMap.set(players[0].name, 'Player 1');
         }
         if (players.length >= 2) {
-            this.playerMap.set(players[1].id, 'P2');
+            this.playerMap.set(players[1].id, 'Player 2');
+            this.playerNameMap.set(players[1].name, 'Player 2');
         }
     }
 
     // ── Sequence helpers ─────────────────────────────────────────────────────
 
-    /** Returns 'P1' or 'P2' for a player, falling back to the player name. */
+    /** Returns 'Player 1' or 'Player 2' for a player, with eager map init and name fallback. */
     private anonymizePlayer(player: Player | null | undefined): string {
         if (!player) {
             return 'unknown';
         }
-        return this.playerMap.get(player.id) ?? player.name;
+        if (this.playerMap.size === 0) {
+            this.initPlayerMap();
+        }
+        return this.playerMap.get(player.id) ?? this.playerNameMap.get(player.name) ?? 'Player 1';
     }
 
     /**
@@ -156,7 +167,7 @@ export class PgnReplayRecorder {
             messageIndex: this.game.gameChat.messages.length,
             type,
             round: this.currentRound,
-            phase: this.currentPhase,
+            phase: type === 'phase' ? this.currentPhaseDisplayName : this.currentPhase,
         };
         if (type === 'action') {
             marker.actionNumber = this.actionCounter;
@@ -197,6 +208,22 @@ export class PgnReplayRecorder {
             const p2State = this.capturePlayerState(players[1]);
             const snapshot: IPgnGameStateSnapshot = { p1: p1State, p2: p2State };
 
+            // Deduplicate: skip if identical to last GAME_STATE
+            const lastGameState = this.findLastRecord(PgnActionType.GameState);
+            if (lastGameState &&
+                lastGameState.p1BaseHp === p1State.baseHp && lastGameState.p1HandSize === p1State.handSize &&
+                lastGameState.p1ResourcesReady === p1State.resourcesReady && lastGameState.p1ResourcesExhausted === p1State.resourcesExhausted &&
+                lastGameState.p1Credits === p1State.credits && lastGameState.p1HasForce === p1State.hasForce &&
+                lastGameState.p1HasInitiative === p1State.hasInitiative && lastGameState.p1GroundUnits === p1State.groundUnits &&
+                lastGameState.p1SpaceUnits === p1State.spaceUnits &&
+                lastGameState.p2BaseHp === p2State.baseHp && lastGameState.p2HandSize === p2State.handSize &&
+                lastGameState.p2ResourcesReady === p2State.resourcesReady && lastGameState.p2ResourcesExhausted === p2State.resourcesExhausted &&
+                lastGameState.p2Credits === p2State.credits && lastGameState.p2HasForce === p2State.hasForce &&
+                lastGameState.p2HasInitiative === p2State.hasInitiative && lastGameState.p2GroundUnits === p2State.groundUnits &&
+                lastGameState.p2SpaceUnits === p2State.spaceUnits) {
+                return; // Skip duplicate
+            }
+
             const seq = this.nextSeq(false);
             this.push({
                 seq,
@@ -234,6 +261,16 @@ export class PgnReplayRecorder {
         }
     }
 
+    /** Find the last record of the given type in the records array. */
+    private findLastRecord(type: PgnActionType): IPgnReplayRecord | undefined {
+        for (let i = this.records.length - 1; i >= 0; i--) {
+            if (this.records[i].type === type) {
+                return this.records[i];
+            }
+        }
+        return undefined;
+    }
+
     // ── Map PhaseName → abbreviation ─────────────────────────────────────────
 
     private phaseAbbr(phase: string): string {
@@ -255,7 +292,7 @@ export class PgnReplayRecorder {
         // Structural events
         this.game.on(EventName.OnBeginRound, (event: any) => {
             try {
-                this.currentRound = this.game.roundNumber;
+                this.currentRound = this.game.roundNumber || (this.currentRound + 1);
                 if (this.playerMap.size === 0) {
                     this.initPlayerMap();
                 }
@@ -289,6 +326,8 @@ export class PgnReplayRecorder {
             try {
                 const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
                 this.currentPhase = this.phaseAbbr(phaseName);
+                this.currentPhaseDisplayName = phaseName === PhaseName.Setup ? 'Setup Phase'
+                    : phaseName === PhaseName.Action ? 'Action Phase' : 'Regroup Phase';
                 this.phaseEventCounter = 0;
                 this.actionCounter = 0;
                 this.subEventCounter = 0;
