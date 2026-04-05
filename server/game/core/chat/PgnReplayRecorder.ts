@@ -210,7 +210,7 @@ export class PgnReplayRecorder {
         const base = player.base;
         return {
             baseHp: base?.remainingHp ?? 0,
-            baseMaxHp: base?.getPrintedHp?.() ?? 30,
+            baseMaxHp: base?.getPrintedHp?.() ?? 30, // 30 is the standard base HP; fallback for when getter is unavailable
             handSize: player.hand?.length ?? 0,
             resourcesReady: player.readyResourceCount ?? 0,
             resourcesExhausted: player.exhaustedResourceCount ?? 0,

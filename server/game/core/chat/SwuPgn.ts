@@ -133,27 +133,6 @@ export class SwuPgn {
     }
 
     /**
-     * @deprecated Use formatHumanFile() and formatReplayFile() instead.
-     * Combines all sections into a single file string (legacy combined format).
-     */
-    public static formatFile(
-        header: IPgnHeader,
-        humanNotation: string,
-        p1Decklist: IPgnPlayerDecklist,
-        p2Decklist: IPgnPlayerDecklist,
-        replayData: IPgnReplayRecord[]
-    ): string {
-        const sections = [
-            SwuPgn.formatHeader(header),
-            SwuPgn.formatCardIndex(p1Decklist, p2Decklist),
-            '=== FREEFORM ===',
-            humanNotation,
-            SwuPgn.formatReplayData(replayData),
-        ];
-        return sections.join('\n\n');
-    }
-
-    /**
      * Flattens a serialized game message (mixed array of strings/numbers/objects) into plain text.
      * - plain strings and numbers are converted directly
      * - objects with title/subtitle become card names

@@ -538,13 +538,6 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Generates a complete .swupgn file string for the current game.
-     */
-    public generateSwuPgn(): string {
-        return this.generateGameFiles().swuPgn;
-    }
-
-    /**
      * Generates both game files: human-readable .swupgn and machine-replay .swureplay.
      */
     public generateGameFiles(): IGameFiles {

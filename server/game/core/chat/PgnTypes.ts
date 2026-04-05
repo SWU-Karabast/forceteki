@@ -1,5 +1,13 @@
-/** Action types for the machine-readable replay data */
+/**
+ * Action types for the machine-readable replay data.
+ *
+ * Values marked "active" have event listeners in PgnReplayRecorder.
+ * Values marked "reserved" are defined for the format spec but do not yet
+ * have listeners — they will be wired up as the corresponding game events
+ * become available or are needed for replay fidelity.
+ */
 export enum PgnActionType {
+    // Active — emitted by PgnReplayRecorder event listeners
     Play = 'PLAY',
     PlaySmuggle = 'PLAY_SMUGGLE',
     PlayUpgrade = 'PLAY_UPGRADE',
@@ -16,15 +24,23 @@ export enum PgnActionType {
     Draw = 'DRAW',
     Discard = 'DISCARD',
     Resource = 'RESOURCE',
-    Search = 'SEARCH',
     Shuffle = 'SHUFFLE',
     CreateToken = 'CREATE_TOKEN',
     Capture = 'CAPTURE',
     Rescue = 'RESCUE',
     Heal = 'HEAL',
+    TakeControl = 'TAKE_CONTROL',
+    GameState = 'GAME_STATE',
+    GameEnd = 'GAME_END',
+    PhaseStart = 'PHASE_START',
+    PhaseEnd = 'PHASE_END',
+    RoundStart = 'ROUND_START',
+    RoundEnd = 'ROUND_END',
+
+    // Reserved — defined in format spec, listeners to be added
+    Search = 'SEARCH',
     Reveal = 'REVEAL',
     Move = 'MOVE',
-    TakeControl = 'TAKE_CONTROL',
     ShieldGain = 'SHIELD_GAIN',
     ShieldUse = 'SHIELD_USE',
     ExperienceGain = 'EXPERIENCE_GAIN',
@@ -34,12 +50,6 @@ export enum PgnActionType {
     ModalChoice = 'MODAL_CHOICE',
     AbilityActivate = 'ABILITY_ACTIVATE',
     Overwhelm = 'OVERWHELM',
-    GameState = 'GAME_STATE',
-    GameEnd = 'GAME_END',
-    PhaseStart = 'PHASE_START',
-    PhaseEnd = 'PHASE_END',
-    RoundStart = 'ROUND_START',
-    RoundEnd = 'ROUND_END',
 }
 
 export interface IPgnReplayRecordBase {
