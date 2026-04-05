@@ -189,10 +189,13 @@ export class SwuPgn {
     public static anonymizePlayers(text: string, player1Name: string, player2Name: string): string {
         const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         let result = text;
+        // Possessive forms first (the 's suffix acts as a natural word boundary)
         result = result.replace(new RegExp(`${escapeRegex(player1Name)}'s`, 'g'), "Player 1's");
         result = result.replace(new RegExp(`${escapeRegex(player2Name)}'s`, 'g'), "Player 2's");
-        result = result.replace(new RegExp(escapeRegex(player1Name), 'g'), 'Player 1');
-        result = result.replace(new RegExp(escapeRegex(player2Name), 'g'), 'Player 2');
+        // Plain names with word boundary check to avoid corrupting card names
+        // (e.g., player "Luke" must not rewrite "Luke Skywalker" into "Player 1 Skywalker")
+        result = result.replace(new RegExp(`(?<![\\w])${escapeRegex(player1Name)}(?![\\w])`, 'g'), 'Player 1');
+        result = result.replace(new RegExp(`(?<![\\w])${escapeRegex(player2Name)}(?![\\w])`, 'g'), 'Player 2');
         return result;
     }
 

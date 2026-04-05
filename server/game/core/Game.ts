@@ -568,7 +568,7 @@ export class Game extends EventEmitter {
             return {};
         }
 
-        // Anonymize player data
+        // Anonymize player data: remap top-level player keys
         const players = this.getPlayers();
         const anonymizedPlayers: Record<string, any> = {};
         for (let i = 0; i < players.length; i++) {
@@ -584,7 +584,7 @@ export class Game extends EventEmitter {
             }
         }
 
-        return {
+        const result = {
             ...state,
             players: anonymizedPlayers,
             // Strip messages from snapshot (they're in the freeform file)
@@ -595,6 +595,19 @@ export class Game extends EventEmitter {
             swuPgn: undefined,
             rawGameLog: undefined,
         };
+
+        // Deep-replace real player IDs (controllerId, ownerId, etc.) throughout
+        // the entire snapshot by serializing, replacing, and deserializing.
+        try {
+            let json = JSON.stringify(result);
+            for (let i = 0; i < players.length; i++) {
+                const escapedId = players[i].id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                json = json.replace(new RegExp(escapedId, 'g'), `Player ${i + 1}`);
+            }
+            return JSON.parse(json);
+        } catch {
+            return result; // Fall back to partially-anonymized state if serialization fails
+        }
     }
 
     public get cachedRawGameLog(): string | undefined {

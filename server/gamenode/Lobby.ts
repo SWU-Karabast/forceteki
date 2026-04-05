@@ -2336,6 +2336,15 @@ export class Lobby {
             return;
         }
 
+        // Only serve game files after the game has ended to prevent leaking
+        // omniscient replay snapshots (which include hidden card data) mid-game
+        if (!this.game.finishedAt) {
+            if (typeof callback === 'function') {
+                callback({ error: 'Game is still in progress' });
+            }
+            return;
+        }
+
         try {
             const rawLog = this.game.cachedRawGameLog ?? this.game.getRawGameLog();
             const gameFiles = this.game.cachedSwuPgn && this.game.cachedSwuReplay

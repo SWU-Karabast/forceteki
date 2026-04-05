@@ -463,6 +463,19 @@ describe('SwuPgn', function () {
             const result = SwuPgn.anonymizePlayers('R2.D2 played', 'R2.D2', 'Bob');
             expect(result).toBe('Player 1 played');
         });
+
+        it('does not corrupt card names that contain the player name as a substring', function () {
+            // "Bob" should not rewrite "Boba Fett" since "Bob" is followed by "a" (a word char)
+            const result = SwuPgn.anonymizePlayers('Bob played Boba Fett, Any Methods Necessary', 'Bob', 'Alice');
+            expect(result).toBe('Player 1 played Boba Fett, Any Methods Necessary');
+        });
+
+        it('does not corrupt card names when player name is a prefix', function () {
+            // "Luke" should not rewrite "Luke Skywalker" since "Luke" is followed by " S" (space then word)
+            // but "Luke" as a standalone word (preceded by space, followed by space) WILL match
+            const result = SwuPgn.anonymizePlayers('Luke played Luke Skywalker, Faithful Friend', 'Luke', 'Alice');
+            expect(result).toBe('Player 1 played Player 1 Skywalker, Faithful Friend');
+        });
     });
 
     // ── generateHumanNotation ─────────────────────────────────────────────────
