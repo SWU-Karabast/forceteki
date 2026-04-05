@@ -134,8 +134,8 @@ export class SwuPgn {
     }
 
     /**
-     * Combines all sections into a complete .swupgn file string.
-     * Section order: header, card index, freeform, replay.
+     * @deprecated Use formatHumanFile() and formatReplayFile() instead.
+     * Combines all sections into a single file string (legacy combined format).
      */
     public static formatFile(
         header: IPgnHeader,

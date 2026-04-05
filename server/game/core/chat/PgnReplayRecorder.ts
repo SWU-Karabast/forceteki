@@ -66,7 +66,7 @@ export class PgnReplayRecorder {
 
     public addGameEndRecord(winner: string, reason: string): void {
         try {
-            this.records.push({
+            this.push({
                 seq: `R${this.currentRound}.A.end`,
                 type: PgnActionType.GameEnd,
                 winner,
