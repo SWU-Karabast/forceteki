@@ -20,30 +20,30 @@ function makeGame(players: { id: string; name: string }[] = []): any {
     return game;
 }
 
-describe('PgnReplayRecorder', () => {
+describe('PgnReplayRecorder', function() {
     // ── Importable and constructable ─────────────────────────────────────────
 
-    it('can be imported and instantiated without throwing', () => {
+    it('can be imported and instantiated without throwing', function() {
         const game = makeGame();
         expect(() => new PgnReplayRecorder(game)).not.toThrow();
     });
 
     // ── getRecords ───────────────────────────────────────────────────────────
 
-    describe('getRecords()', () => {
-        it('returns an array', () => {
+    describe('getRecords()', function() {
+        it('returns an array', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             expect(Array.isArray(recorder.getRecords())).toBe(true);
         });
 
-        it('starts empty', () => {
+        it('starts empty', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             expect(recorder.getRecords().length).toBe(0);
         });
 
-        it('returns IPgnReplayRecord objects with seq and type after events', () => {
+        it('returns IPgnReplayRecord objects with seq and type after events', function() {
             const game = makeGame([
                 { id: 'p1-id', name: 'Alice' },
                 { id: 'p2-id', name: 'Bob' },
@@ -64,20 +64,20 @@ describe('PgnReplayRecorder', () => {
 
     // ── getStructureMarkers ──────────────────────────────────────────────────
 
-    describe('getStructureMarkers()', () => {
-        it('returns an array', () => {
+    describe('getStructureMarkers()', function() {
+        it('returns an array', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             expect(Array.isArray(recorder.getStructureMarkers())).toBe(true);
         });
 
-        it('starts empty', () => {
+        it('starts empty', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             expect(recorder.getStructureMarkers().length).toBe(0);
         });
 
-        it('adds a round marker on OnBeginRound', () => {
+        it('adds a round marker on OnBeginRound', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnBeginRound, {});
@@ -88,7 +88,7 @@ describe('PgnReplayRecorder', () => {
             expect(typeof (roundMarker as IStructureMarker).messageIndex).toBe('number');
         });
 
-        it('adds a phase marker on OnPhaseStarted', () => {
+        it('adds a phase marker on OnPhaseStarted', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -101,8 +101,8 @@ describe('PgnReplayRecorder', () => {
 
     // ── initPlayerMap ────────────────────────────────────────────────────────
 
-    describe('initPlayerMap()', () => {
-        it('can be called without throwing', () => {
+    describe('initPlayerMap()', function() {
+        it('can be called without throwing', function() {
             const game = makeGame([
                 { id: 'p1-id', name: 'Alice' },
                 { id: 'p2-id', name: 'Bob' },
@@ -114,8 +114,8 @@ describe('PgnReplayRecorder', () => {
 
     // ── Structural records ───────────────────────────────────────────────────
 
-    describe('OnBeginRound', () => {
-        it('emits a ROUND_START record', () => {
+    describe('OnBeginRound', function() {
+        it('emits a ROUND_START record', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnBeginRound, {});
@@ -126,8 +126,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnRoundEnded', () => {
-        it('emits a ROUND_END record', () => {
+    describe('OnRoundEnded', function() {
+        it('emits a ROUND_END record', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnBeginRound, {});
@@ -139,8 +139,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnPhaseStarted', () => {
-        it('emits a PHASE_START record', () => {
+    describe('OnPhaseStarted', function() {
+        it('emits a PHASE_START record', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Setup });
@@ -151,8 +151,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnPhaseEnded', () => {
-        it('emits a PHASE_END record', () => {
+    describe('OnPhaseEnded', function() {
+        it('emits a PHASE_END record', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseEnded, { phase: PhaseName.Action });
@@ -165,8 +165,8 @@ describe('PgnReplayRecorder', () => {
 
     // ── Player action records ────────────────────────────────────────────────
 
-    describe('OnCardPlayed', () => {
-        it('emits a PLAY record', () => {
+    describe('OnCardPlayed', function() {
+        it('emits a PLAY record', function() {
             const game = makeGame([
                 { id: 'p1-id', name: 'Alice' },
                 { id: 'p2-id', name: 'Bob' },
@@ -192,7 +192,7 @@ describe('PgnReplayRecorder', () => {
             expect(playRecord?.player).toBe('Player 1');
         });
 
-        it('emits PLAY_EVENT for event card type', () => {
+        it('emits PLAY_EVENT for event card type', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -211,7 +211,7 @@ describe('PgnReplayRecorder', () => {
             expect(eventRecord).toBeDefined();
         });
 
-        it('emits PLAY_SMUGGLE for smuggle play type', () => {
+        it('emits PLAY_SMUGGLE for smuggle play type', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -231,8 +231,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnAttackDeclared', () => {
-        it('emits an ATTACK record', () => {
+    describe('OnAttackDeclared', function() {
+        it('emits an ATTACK record', function() {
             const game = makeGame([
                 { id: 'p1-id', name: 'Alice' },
             ]);
@@ -269,8 +269,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnPassActionPhasePriority', () => {
-        it('emits a PASS record', () => {
+    describe('OnPassActionPhasePriority', function() {
+        it('emits a PASS record', function() {
             const game = makeGame([
                 { id: 'p1-id', name: 'Alice' },
                 { id: 'p2-id', name: 'Bob' },
@@ -289,8 +289,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnClaimInitiative', () => {
-        it('emits a CLAIM_INITIATIVE record', () => {
+    describe('OnClaimInitiative', function() {
+        it('emits a CLAIM_INITIATIVE record', function() {
             const game = makeGame([{ id: 'p1-id', name: 'Alice' }]);
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -306,8 +306,8 @@ describe('PgnReplayRecorder', () => {
 
     // ── Sub-event records ────────────────────────────────────────────────────
 
-    describe('OnDamageDealt', () => {
-        it('emits a DAMAGE record with lettered seq after a top-level action', () => {
+    describe('OnDamageDealt', function() {
+        it('emits a DAMAGE record with lettered seq after a top-level action', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -333,8 +333,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnCardsDrawn', () => {
-        it('emits a DRAW record', () => {
+    describe('OnCardsDrawn', function() {
+        it('emits a DRAW record', function() {
             const game = makeGame([{ id: 'p1-id', name: 'Alice' }]);
             const recorder = new PgnReplayRecorder(game);
             recorder.initPlayerMap();
@@ -351,8 +351,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnCardDefeated', () => {
-        it('emits a DEFEAT record', () => {
+    describe('OnCardDefeated', function() {
+        it('emits a DEFEAT record', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -372,8 +372,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnDeckShuffled', () => {
-        it('emits a SHUFFLE record', () => {
+    describe('OnDeckShuffled', function() {
+        it('emits a SHUFFLE record', function() {
             const game = makeGame([{ id: 'p1-id', name: 'Alice' }]);
             const recorder = new PgnReplayRecorder(game);
             recorder.initPlayerMap();
@@ -389,8 +389,8 @@ describe('PgnReplayRecorder', () => {
         });
     });
 
-    describe('OnTakeControl', () => {
-        it('emits a TAKE_CONTROL record', () => {
+    describe('OnTakeControl', function() {
+        it('emits a TAKE_CONTROL record', function() {
             const game = makeGame([
                 { id: 'p1-id', name: 'Alice' },
                 { id: 'p2-id', name: 'Bob' },
@@ -412,8 +412,8 @@ describe('PgnReplayRecorder', () => {
 
     // ── Token card ID ────────────────────────────────────────────────────────
 
-    describe('token card ID', () => {
-        it('formats token cards as TOKEN:{name}', () => {
+    describe('token card ID', function() {
+        it('formats token cards as TOKEN:{name}', function() {
             const game = makeGame([{ id: 'p1-id', name: 'Alice' }]);
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -443,8 +443,8 @@ describe('PgnReplayRecorder', () => {
 
     // ── Error resilience ─────────────────────────────────────────────────────
 
-    describe('error resilience', () => {
-        it('does not throw when event has null/undefined fields', () => {
+    describe('error resilience', function() {
+        it('does not throw when event has null/undefined fields', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -456,7 +456,7 @@ describe('PgnReplayRecorder', () => {
             expect(() => game.emit(EventName.OnCardDefeated, {})).not.toThrow();
         });
 
-        it('continues recording after a bad event', () => {
+        it('continues recording after a bad event', function() {
             const game = makeGame([{ id: 'p1-id', name: 'Alice' }]);
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -476,8 +476,8 @@ describe('PgnReplayRecorder', () => {
 
     // ── Seq numbering ────────────────────────────────────────────────────────
 
-    describe('seq numbering', () => {
-        it('assigns incrementing action numbers in Action Phase', () => {
+    describe('seq numbering', function() {
+        it('assigns incrementing action numbers in Action Phase', function() {
             const game = makeGame([
                 { id: 'p1-id', name: 'Alice' },
                 { id: 'p2-id', name: 'Bob' },
@@ -498,7 +498,7 @@ describe('PgnReplayRecorder', () => {
             expect(records[1].seq).toBe('R1.A.2');
         });
 
-        it('resets action counter on phase transition', () => {
+        it('resets action counter on phase transition', function() {
             const game = makeGame([{ id: 'p1-id', name: 'Alice' }]);
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnBeginRound, {});

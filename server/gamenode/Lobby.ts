@@ -2337,8 +2337,8 @@ export class Lobby {
         }
 
         try {
-            const rawLog = this.game.getRawGameLog();
-            const swuPgn = this.game.generateSwuPgn();
+            const rawLog = this.game.cachedRawGameLog ?? this.game.getRawGameLog();
+            const swuPgn = this.game.cachedSwuPgn ?? this.game.generateSwuPgn();
 
             if (typeof callback === 'function') {
                 callback({ rawLog, swuPgn });

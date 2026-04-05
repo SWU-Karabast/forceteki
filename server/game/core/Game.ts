@@ -555,6 +555,14 @@ export class Game extends EventEmitter {
         return SwuPgn.formatFile(header, humanNotation, p1Decklist, p2Decklist, replayData);
     }
 
+    public get cachedRawGameLog(): string | undefined {
+        return this._cachedRawGameLog;
+    }
+
+    public get cachedSwuPgn(): string | undefined {
+        return this._cachedSwuPgn;
+    }
+
     /**
      * Builds the PGN header from game state and player info.
      */
@@ -1020,12 +1028,7 @@ export class Game extends EventEmitter {
         const endReason = reasonCode === GameEndReason.Concede ? 'Concession'
             : reasonCode === GameEndReason.PlayerLeft ? 'Disconnection'
                 : 'Base Destroyed';
-        this._replayRecorder.getRecords().push({
-            seq: `R${this.roundNumber}.A.end`,
-            type: PgnActionType.GameEnd,
-            winner: endPlayer ?? 'Draw',
-            reason: endReason,
-        });
+        this._replayRecorder.addGameEndRecord(endPlayer ?? 'Draw', endReason);
 
         try {
             this._cachedRawGameLog = this.getRawGameLog();

@@ -30,6 +30,9 @@ export class PgnReplayRecorder {
     /** Current phase display name for freeform output */
     private currentPhaseDisplayName: string = 'Setup Phase';
 
+    /** Last emitted game state as a JSON string, used for deduplication */
+    private lastGameStateStr = '';
+
     /** Incremented for top-level player actions during Action Phase */
     private actionCounter: number = 0;
 
@@ -48,6 +51,19 @@ export class PgnReplayRecorder {
 
     public getRecords(): IPgnReplayRecord[] {
         return this.records;
+    }
+
+    public addGameEndRecord(winner: string, reason: string): void {
+        try {
+            this.records.push({
+                seq: `R${this.currentRound}.A.end`,
+                type: PgnActionType.GameEnd,
+                winner,
+                reason,
+            });
+        } catch {
+            // Recording error — do not crash gameplay
+        }
     }
 
     public getStructureMarkers(): IStructureMarker[] {
@@ -77,7 +93,7 @@ export class PgnReplayRecorder {
         if (this.playerMap.size === 0) {
             this.initPlayerMap();
         }
-        return this.playerMap.get(player.id) ?? this.playerNameMap.get(player.name) ?? 'Player 1';
+        return this.playerMap.get(player.id) ?? this.playerNameMap.get(player.name) ?? 'unknown';
     }
 
     /**
@@ -209,20 +225,11 @@ export class PgnReplayRecorder {
             const snapshot: IPgnGameStateSnapshot = { p1: p1State, p2: p2State };
 
             // Deduplicate: skip if identical to last GAME_STATE
-            const lastGameState = this.findLastRecord(PgnActionType.GameState);
-            if (lastGameState &&
-                lastGameState.p1BaseHp === p1State.baseHp && lastGameState.p1HandSize === p1State.handSize &&
-                lastGameState.p1ResourcesReady === p1State.resourcesReady && lastGameState.p1ResourcesExhausted === p1State.resourcesExhausted &&
-                lastGameState.p1Credits === p1State.credits && lastGameState.p1HasForce === p1State.hasForce &&
-                lastGameState.p1HasInitiative === p1State.hasInitiative && lastGameState.p1GroundUnits === p1State.groundUnits &&
-                lastGameState.p1SpaceUnits === p1State.spaceUnits &&
-                lastGameState.p2BaseHp === p2State.baseHp && lastGameState.p2HandSize === p2State.handSize &&
-                lastGameState.p2ResourcesReady === p2State.resourcesReady && lastGameState.p2ResourcesExhausted === p2State.resourcesExhausted &&
-                lastGameState.p2Credits === p2State.credits && lastGameState.p2HasForce === p2State.hasForce &&
-                lastGameState.p2HasInitiative === p2State.hasInitiative && lastGameState.p2GroundUnits === p2State.groundUnits &&
-                lastGameState.p2SpaceUnits === p2State.spaceUnits) {
+            const snapshotStr = JSON.stringify(snapshot);
+            if (snapshotStr === this.lastGameStateStr) {
                 return; // Skip duplicate
             }
+            this.lastGameStateStr = snapshotStr;
 
             const seq = this.nextSeq(false);
             this.push({
@@ -259,16 +266,6 @@ export class PgnReplayRecorder {
         } catch {
             // Recording error — do not crash gameplay
         }
-    }
-
-    /** Find the last record of the given type in the records array. */
-    private findLastRecord(type: PgnActionType): IPgnReplayRecord | undefined {
-        for (let i = this.records.length - 1; i >= 0; i--) {
-            if (this.records[i].type === type) {
-                return this.records[i];
-            }
-        }
-        return undefined;
     }
 
     // ── Map PhaseName → abbreviation ─────────────────────────────────────────
@@ -531,7 +528,7 @@ export class PgnReplayRecorder {
                         type: 'drawnCards',
                         drawnCards: cardNames,
                         player: this.anonymizePlayer(player),
-                    } as any);
+                    });
                 }
             } catch (err) {
                 // Recording error — do not crash gameplay
@@ -558,7 +555,7 @@ export class PgnReplayRecorder {
                         type: 'resourcedCard',
                         resourcedCard: cardName,
                         player: this.anonymizePlayer(player),
-                    } as any);
+                    });
                 }
             } catch (err) {
                 // Recording error — do not crash gameplay
