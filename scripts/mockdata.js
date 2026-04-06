@@ -654,20 +654,6 @@ const mockCards = [
         unique: false,
         internalName: 'reveal-intentions',
     }),
-    buildMockCard({
-        title: 'Reveal Intentions',
-        cost: 1,
-        hasNonKeywordAbility: true,
-        aspects: ['Cunning'],
-        types: ['event'],
-        traits: ['gambit'],
-        setId: {
-            set: 'TS26',
-            number: 80
-        },
-        unique: false,
-        internalName: 'reveal-intentions',
-    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
