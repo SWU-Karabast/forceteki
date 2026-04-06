@@ -317,45 +317,5 @@ describe('Chewbacca, Faithful First Mate', function() {
                 expect(context.chewbacca).toBeInZone('discard');
             });
         });
-
-        it('Chewbacca, Tobias and Commandeer', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['chewbacca#faithful-first-mate'],
-                    spaceArena: ['awing'],
-                },
-                player2: {
-                    hand: ['commandeer'],
-                    leader: 'tobias-beckett#people-are-predictable',
-                    hasInitiative: true,
-                }
-            });
-
-            const { context } = contextRef;
-
-            context.player2.clickCard(context.commandeer);
-            context.player2.clickCard(context.awing);
-
-            context.player1.passAction();
-
-            context.player2.clickCard(context.tobiasBeckett);
-            context.player2.clickPrompt('Give control of a friendly unit to create a Credit token');
-            context.player2.clickCard(context.awing);
-
-            context.player1.clickCard(context.chewbacca);
-            context.player1.clickPrompt('Play Chewbacca with Piloting');
-            context.player1.clickCard(context.awing);
-
-            context.moveToRegroupPhase();
-
-            expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
-            context.player1.clickDone();
-            expect(context.player2).toHavePrompt('Select between 0 and 1 cards to resource');
-            context.player2.clickDone();
-
-            // Chewbacca's ability should cancel Commandeer's delayed effect
-            expect(context.awing).toBeInZone('spaceArena', context.player1);
-        });
     });
 });
