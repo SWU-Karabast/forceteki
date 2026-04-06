@@ -289,7 +289,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             return false;
         }
         // null means the resolver resolved but found no effective targets — this is valid
-        if (context.targets[this.name] === null) {
+        if (context.targets[this.name] == null) {
             return true;
         }
         if (context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
