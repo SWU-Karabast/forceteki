@@ -584,13 +584,14 @@ describe('PgnReplayRecorder', function() {
     // ── getReplayRecords and snapshot callback ──────────────────────────────
 
     describe('getReplayRecords() and snapshot callback', function() {
-        it('contains a snapshot record and calls the callback after two sequential actions', function() {
+        it('captures a snapshot at phase boundary (not per-action)', function() {
             const p1 = makeFullPlayer({ id: 'p1-id', name: 'Alice', baseHp: 25, handSize: 4 });
             const p2 = makeFullPlayer({ id: 'p2-id', name: 'Bob', baseHp: 20, handSize: 3 });
-            const snapshotSpy = jasmine.createSpy('getStateSnapshot').and.returnValue({ test: 'snapshot' });
+            let snapshotCallCount = 0;
+            const snapshotFn = () => { snapshotCallCount++; return { test: 'snapshot' }; };
 
             const game = makeGame([], { getPlayers: () => [p1, p2] });
-            const recorder = new PgnReplayRecorder(game, snapshotSpy);
+            const recorder = new PgnReplayRecorder(game, snapshotFn);
             recorder.initPlayerMap();
             game.emit(EventName.OnBeginRound, {});
             game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
@@ -599,15 +600,19 @@ describe('PgnReplayRecorder', function() {
             const card1 = { setId: { set: 'SOR', number: 10 }, printedType: 'basicUnit', zoneName: 'groundArena', isToken: () => false, title: 'Card1' };
             const card2 = { setId: { set: 'SOR', number: 11 }, printedType: 'basicUnit', zoneName: 'groundArena', isToken: () => false, title: 'Card2' };
 
-            // First action
+            // Play two cards — snapshot should NOT fire per-action
             game.emit(EventName.OnCardPlayed, { card: card1, player, playType: 'playFromHand' });
-            // Second action triggers emitGameState for the first action
             game.emit(EventName.OnCardPlayed, { card: card2, player, playType: 'playFromHand' });
+            expect(snapshotCallCount).toBe(0);
+
+            // End the phase — snapshot fires once at the boundary
+            game.emit(EventName.OnPhaseEnded, { phase: PhaseName.Action });
+            expect(snapshotCallCount).toBe(1);
 
             const replayRecords = recorder.getReplayRecords();
-            const snapshotRecord = replayRecords.find((r) => typeof r.seq === 'string' && r.seq.endsWith('-snapshot'));
+            const snapshotRecord = replayRecords.find((r) => typeof r.seq === 'string' && r.seq.endsWith('.snapshot'));
             expect(snapshotRecord).toBeDefined();
-            expect(snapshotSpy).toHaveBeenCalled();
+            expect(snapshotRecord?.snapshot).toEqual({ test: 'snapshot' });
         });
     });
 

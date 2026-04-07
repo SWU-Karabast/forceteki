@@ -471,10 +471,42 @@ describe('SwuPgn', function () {
         });
 
         it('does not corrupt card names when player name is a prefix', function () {
-            // "Luke" should not rewrite "Luke Skywalker" since "Luke" is followed by " S" (space then word)
-            // but "Luke" as a standalone word (preceded by space, followed by space) WILL match
+            // "Luke" as a standalone word still matches in anonymizePlayers (text-level),
+            // but generateHumanNotation uses anonymizeMessage at the structure level first
+            // to protect card title objects. This test documents the text-level behavior.
             const result = SwuPgn.anonymizePlayers('Luke played Luke Skywalker, Faithful Friend', 'Luke', 'Alice');
             expect(result).toBe('Player 1 played Player 1 Skywalker, Faithful Friend');
+        });
+    });
+
+    // ── anonymizeMessage ───────────────────────────────────────────────────────
+    describe('anonymizeMessage', function () {
+        it('preserves card title objects while anonymizing player strings', function () {
+            const message = ['Luke', ' played ', { title: 'Luke Skywalker', subtitle: 'Faithful Friend' }];
+            const result = SwuPgn.anonymizeMessage(message, 'Luke', 'Alice');
+            const flat = SwuPgn.flattenMessage(result);
+            expect(flat).toBe('Player 1 played Luke Skywalker, Faithful Friend');
+        });
+
+        it('preserves card short summary objects (name + subtitle)', function () {
+            const message = [{ name: 'Luke' }, ' defeated ', { name: 'Luke Skywalker', subtitle: 'Faithful Friend' }];
+            const result = SwuPgn.anonymizeMessage(message, 'Luke', 'Alice');
+            const flat = SwuPgn.flattenMessage(result);
+            expect(flat).toBe('Player 1 defeated Luke Skywalker, Faithful Friend');
+        });
+
+        it('anonymizes player name objects without subtitle', function () {
+            const message = [{ name: 'Alice' }, ' draws 2 cards'];
+            const result = SwuPgn.anonymizeMessage(message, 'Bob', 'Alice');
+            const flat = SwuPgn.flattenMessage(result);
+            expect(flat).toBe('Player 2 draws 2 cards');
+        });
+
+        it('recurses into alert messages', function () {
+            const message = { alert: { type: 'info', message: ['Alice', ' won'] } };
+            const result = SwuPgn.anonymizeMessage(message, 'Alice', 'Bob');
+            const flat = SwuPgn.flattenMessage(result);
+            expect(flat).toBe('Player 1 won');
         });
     });
 
@@ -486,6 +518,14 @@ describe('SwuPgn', function () {
             ];
             const result = SwuPgn.generateHumanNotation(messages, 'Alice', 'Bob');
             expect(result).toBe('Player 1 played Wampa');
+        });
+
+        it('preserves card names when player name is a prefix of a card name', function () {
+            const messages = [
+                ['Luke', ' played ', { title: 'Luke Skywalker', subtitle: 'Faithful Friend' }],
+            ];
+            const result = SwuPgn.generateHumanNotation(messages, 'Luke', 'Alice');
+            expect(result).toBe('Player 1 played Luke Skywalker, Faithful Friend');
         });
 
         it('skips player chat messages (first element has type === playerChat)', function () {

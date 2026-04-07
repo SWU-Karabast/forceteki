@@ -200,6 +200,65 @@ export class SwuPgn {
     }
 
     /**
+     * Anonymize player names within a structured message, preserving card name objects.
+     * Walks the message tree and replaces player names only in string parts and player-name
+     * objects, leaving card objects (those with title or name+subtitle) untouched.
+     */
+    public static anonymizeMessage(message: any, player1Name: string, player2Name: string): any {
+        if (message == null) {
+            return message;
+        }
+
+        if (typeof message === 'string') {
+            return SwuPgn.anonymizePlayers(message, player1Name, player2Name);
+        }
+
+        if (typeof message === 'number') {
+            return message;
+        }
+
+        if (Array.isArray(message)) {
+            return message.map((part) => SwuPgn.anonymizeMessage(part, player1Name, player2Name));
+        }
+
+        if (typeof message === 'object') {
+            // Card objects with title — preserve card names
+            if ('title' in message && message.title != null) {
+                return message;
+            }
+
+            // Card short summary (name + subtitle) — preserve card names
+            if ('name' in message && message.name != null && 'subtitle' in message && message.subtitle) {
+                return message;
+            }
+
+            // Alert object — recurse into inner message
+            if ('alert' in message && message.alert != null) {
+                return {
+                    ...message,
+                    alert: {
+                        ...message.alert,
+                        message: SwuPgn.anonymizeMessage(message.alert.message, player1Name, player2Name),
+                    },
+                };
+            }
+
+            // Player or other named object (no subtitle) — anonymize the name
+            if ('name' in message && message.name != null) {
+                const name = String(message.name);
+                if (name === player1Name) {
+                    return { ...message, name: 'Player 1' };
+                }
+                if (name === player2Name) {
+                    return { ...message, name: 'Player 2' };
+                }
+            }
+        }
+
+        return message;
+    }
+
+    /**
      * Iterates game messages, skips player chat, flattens each to text, anonymizes, and joins with newlines.
      * Messages are ISerializedMessage objects with { date, message } structure.
      * When structureMarkers are provided, injects round/phase headers and action numbering.
@@ -243,10 +302,14 @@ export class SwuPgn {
                 continue;
             }
 
-            const text = SwuPgn.flattenMessage(messageContent);
+            // Anonymize at the structured message level (preserves card title objects),
+            // then flatten to text. No text-level pass needed — structured pass covers
+            // all player name sources without corrupting card names.
+            const anonymized = SwuPgn.anonymizeMessage(messageContent, player1Name, player2Name);
+            const text = SwuPgn.flattenMessage(anonymized);
             if (!text) continue;
 
-            let line = SwuPgn.anonymizePlayers(text, player1Name, player2Name);
+            let line = text;
 
             // Apply action numbering from markers
             if (markers) {

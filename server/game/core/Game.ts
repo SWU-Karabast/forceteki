@@ -564,6 +564,8 @@ export class Game extends EventEmitter {
      */
     private captureAnonymizedState(): Record<string, any> {
         const state = this.getState('__replay_spectator__', true);
+        // Remove the synthetic spectator's message offset so it doesn't accumulate
+        this.chatMessageOffsets.delete('__replay_spectator__');
         if (!state) {
             return {};
         }
@@ -598,11 +600,17 @@ export class Game extends EventEmitter {
 
         // Deep-replace real player IDs (controllerId, ownerId, etc.) throughout
         // the entire snapshot by serializing, replacing, and deserializing.
+        // Use literal string replacement (not regex) to avoid corruption when
+        // player IDs are short or contain regex-special characters.
         try {
             let json = JSON.stringify(result);
             for (let i = 0; i < players.length; i++) {
-                const escapedId = players[i].id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                json = json.replace(new RegExp(escapedId, 'g'), `Player ${i + 1}`);
+                const playerId = players[i].id;
+                // Skip IDs shorter than 8 chars to avoid corrupting unrelated JSON values
+                if (playerId.length < 8) {
+                    continue;
+                }
+                json = json.split(playerId).join(`Player ${i + 1}`);
             }
             return JSON.parse(json);
         } catch {
@@ -1929,9 +1937,6 @@ export class Game extends EventEmitter {
                     gameMode: this.gameMode,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
-                    swuPgn: this._cachedSwuPgn,
-                    swuReplay: this._cachedSwuReplay,
-                    rawGameLog: this._cachedRawGameLog,
                 };
 
                 // Advance the offset for this participant
@@ -2171,6 +2176,12 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
+        // Clear stale replay/PGN state so rolled-back actions don't persist
+        this._replayRecorder.reset();
+        this._cachedSwuPgn = undefined;
+        this._cachedSwuReplay = undefined;
+        this._cachedRawGameLog = undefined;
+
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {

@@ -81,6 +81,20 @@ export class PgnReplayRecorder {
         return this.structureMarkers;
     }
 
+    /** Reset all recorded data. Called on undo/rollback to discard stale replay state. */
+    public reset(): void {
+        this.records.length = 0;
+        this.replayRecords.length = 0;
+        this.structureMarkers.length = 0;
+        this.currentRound = 0;
+        this.currentPhase = 'S';
+        this.currentPhaseDisplayName = 'Setup Phase';
+        this.lastGameStateStr = '';
+        this.actionCounter = 0;
+        this.phaseEventCounter = 0;
+        this.subEventCounter = 0;
+    }
+
     /** Initialize the Player 1/Player 2 player map from game.getPlayers() order. */
     public initPlayerMap(): void {
         const players = this.game.getPlayers();
@@ -269,19 +283,8 @@ export class PgnReplayRecorder {
                 p2SpaceUnits: p2State.spaceUnits,
             });
 
-            // Emit full snapshot for replay file
-            if (this.getStateSnapshot) {
-                try {
-                    const fullSnapshot = this.getStateSnapshot();
-                    this.replayRecords.push({
-                        seq: `${seq}-snapshot`,
-                        type: PgnActionType.GameState,
-                        snapshot: fullSnapshot,
-                    } as IPgnReplayRecord);
-                } catch {
-                    // Snapshot capture error — do not crash gameplay
-                }
-            }
+            // Full state snapshots are deferred to phase boundaries (emitPhaseSnapshot)
+            // to avoid serializing the entire game state on every action.
 
             // Add structure marker for freeform display
             this.structureMarkers.push({
@@ -291,6 +294,26 @@ export class PgnReplayRecorder {
             });
         } catch {
             // Recording error — do not crash gameplay
+        }
+    }
+
+    /**
+     * Capture a full state snapshot at phase boundaries for the replay file.
+     * Called once per phase end instead of every action to reduce serialization cost.
+     */
+    private emitPhaseSnapshot(): void {
+        if (!this.getStateSnapshot) {
+            return;
+        }
+        try {
+            const fullSnapshot = this.getStateSnapshot();
+            this.replayRecords.push({
+                seq: `R${this.currentRound}.${this.currentPhase}.snapshot`,
+                type: PgnActionType.GameState,
+                snapshot: fullSnapshot,
+            } as IPgnReplayRecord);
+        } catch {
+            // Snapshot capture error — do not crash gameplay
         }
     }
 
@@ -372,6 +395,11 @@ export class PgnReplayRecorder {
                 if (this.actionCounter > 0 || this.phaseEventCounter > 0) {
                     this.emitGameState();
                 }
+
+                // Capture full state snapshot at phase boundary (not every action)
+                // to keep serialization cost proportional to phases, not actions
+                this.emitPhaseSnapshot();
+
                 const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
                 const phaseAbbr = this.phaseAbbr(phaseName);
                 this.push({
