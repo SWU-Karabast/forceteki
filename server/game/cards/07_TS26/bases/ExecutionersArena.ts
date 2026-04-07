@@ -13,7 +13,7 @@ export default class ExecutionersArena extends BaseCard {
 
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEpicActionAbility({
-            title: 'For each friendly leader unit, give an Experience token to a unit',
+            title: 'For each friendly leader unit, deal 2 damage to a unit',
             immediateEffect: abilityHelper.immediateEffects.sequential((context) => (
                 context.player.getArenaUnits({ condition: (c) => c.isLeaderUnit() }).map((_) =>
                     abilityHelper.immediateEffects.selectCard({

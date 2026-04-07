@@ -3,11 +3,11 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { GameStateChangeRequired, PhaseName, RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
 import { BaseCard } from '../../../core/card/BaseCard';
 
-export default class FirstBattleMemorial extends BaseCard {
+export default class SundariPalace extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'first-battle-memorial-id',
-            internalName: 'first-battle-memorial',
+            id: 'sundari-palace-id',
+            internalName: 'sundari-palace',
         };
     }
 
@@ -21,24 +21,26 @@ export default class FirstBattleMemorial extends BaseCard {
                 canChooseNoCards: true,
                 immediateEffect: abilityHelper.immediateEffects.resourceCard()
             },
-            ifYouDo: (ifYouDoContext) => ({
-                title: 'Defeat that many friendly resources at the start of the regroup phase',
-                immediateEffect: abilityHelper.immediateEffects.delayedPlayerEffect({
-                    title: 'Defeat a resource for each card resourced with Sundari Palace\'s Epic Action',
-                    when: {
-                        onPhaseStarted: (context) => context.phase === PhaseName.Regroup,
-                    },
-                    immediateEffect: abilityHelper.immediateEffects.selectCard({
-                        activePromptTitle: () => `Defeat ${ifYouDoContext.targets.length} resources`,
-                        mode: TargetMode.ExactlyVariable,
-                        numCardsFunc: ifYouDoContext.targets.length,
-                        controller: RelativePlayer.Self,
-                        zoneFilter: ZoneName.Resource,
-                        mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
-                        immediateEffect: abilityHelper.immediateEffects.defeat()
+            ifYouDo: (ifYouDoContext) => {
+                return ({
+                    title: 'Defeat that many friendly resources at the start of the regroup phase',
+                    immediateEffect: abilityHelper.immediateEffects.delayedPlayerEffect({
+                        title: 'Defeat a resource for each card resourced with Sundari Palace\'s Epic Action',
+                        when: {
+                            onPhaseStarted: (context) => context.phase === PhaseName.Regroup,
+                        },
+                        immediateEffect: abilityHelper.immediateEffects.selectCard({
+                            activePromptTitle: () => `Defeat ${ifYouDoContext.targets.target.length} resources`,
+                            mode: TargetMode.ExactlyVariable,
+                            numCardsFunc: () => ifYouDoContext.targets.target.length,
+                            controller: RelativePlayer.Self,
+                            zoneFilter: ZoneName.Resource,
+                            mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
+                            immediateEffect: abilityHelper.immediateEffects.defeat()
+                        })
                     })
-                })
-            })
+                });
+            }
         });
     }
 }
