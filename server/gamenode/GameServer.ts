@@ -931,41 +931,49 @@ export class GameServer {
                 }
 
                 // Validate type parameter
-                if (!type || (type !== 'cpu' && type !== 'heap')) {
+                if (!type || (type !== 'cpu' && type !== 'heap' && type !== 'full-heap-snapshot')) {
                     return res.status(400).json({
                         success: false,
-                        message: 'Invalid type parameter. Must be "cpu" or "heap"'
-                    });
-                }
-
-                // Parse and validate duration parameter between 1 second and 10 minutes
-                if (!durationSeconds) {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'durationSeconds parameter is required'
-                    });
-                }
-
-                const profileDurationSeconds = parseInt(durationSeconds as string);
-                if (profileDurationSeconds <= 0) {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Invalid durationSeconds parameter. Must be greater than 0 seconds'
+                        message: 'Invalid type parameter. Must be "cpu", "heap", or "full-heap-snapshot"'
                     });
                 }
 
                 // Start the appropriate profiling type using existing methods
-                if (type === 'cpu') {
-                    await this.startCpuProfilingDump(profileDurationSeconds);
-                } else {
-                    await this.startAllocProfilingDump(profileDurationSeconds);
-                }
+                if (type === 'cpu' || type === 'heap') {
+                    if (!durationSeconds) {
+                        return res.status(400).json({
+                            success: false,
+                            message: `durationSeconds parameter is required for ${type} profiling`
+                        });
+                    }
 
+                    const profileDurationSeconds = parseInt(durationSeconds as string);
+                    if (profileDurationSeconds <= 0) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Invalid durationSeconds parameter. Must be greater than 0 seconds'
+                        });
+                    }
+
+                    if (type === 'cpu') {
+                        await this.startCpuProfilingDump(profileDurationSeconds);
+                    } else {
+                        await this.startAllocProfilingDump(profileDurationSeconds);
+                    }
+                    return res.json({
+                        success: true,
+                        type,
+                        duration: profileDurationSeconds,
+                        message: `${type.toUpperCase()} profiling started. Will automatically stop and upload in ${profileDurationSeconds} seconds.`
+                    });
+                }
+                // type === 'full-heap-snapshot'
+                // Enqueeue the snapshot work so the response can be sent immediately
+                setImmediate(() => this.startFullHeapSnapshotDump());
                 return res.json({
                     success: true,
                     type,
-                    duration: profileDurationSeconds,
-                    message: `${type.toUpperCase()} profiling started. Will automatically stop and upload in ${profileDurationSeconds} seconds.`
+                    message: 'FULL-HEAP-SNAPSHOT capture started. Snapshot will be uploaded when complete.'
                 });
             } catch (err) {
                 logger.error('GameServer (run-profile) Server error:', err);
@@ -2498,6 +2506,38 @@ export class GameServer {
             }, durationSeconds * 1000);
         } catch (error) {
             logger.error(`[GameServer] Error starting allocation profiling test: ${error}`);
+        }
+    }
+
+    private async startFullHeapSnapshotDump(): Promise<void> {
+        let snapshotFilePath: string | null = null;
+        try {
+            const profiler = RuntimeProfiler.getInstance();
+            logger.info('[GameServer] Starting full heap snapshot capture...');
+
+            const startTime = Date.now();
+            const result = await profiler.takeFullHeapSnapshotToFile('gameserver-full-heap-snapshot');
+            const captureMs = Date.now() - startTime;
+            if (!result) {
+                logger.warn('[GameServer] Full heap snapshot capture is already active, cannot start new session');
+                return;
+            }
+            snapshotFilePath = result.filePath;
+
+            const snapshotStats = await fs.promises.stat(result.filePath);
+            const snapshotSizeMB = (snapshotStats.size / (1024 * 1024)).toFixed(1);
+            logger.info(`[GameServer] Full heap snapshot file ready: ${result.filename} (${snapshotSizeMB}MB, ${snapshotStats.size} bytes) — captured in ${captureMs}ms`);
+
+            logger.info(`[GameServer] Uploading ${result.filename} to S3...`);
+            const isDevMode = env.environment === 'development';
+            await profiler.uploadProfileToS3(fs.createReadStream(result.filePath), result.filename, isDevMode);
+            logger.info(`[GameServer] FULL-HEAP-SNAPSHOT profile uploaded successfully: ${result.filename}`);
+        } catch (error) {
+            logger.error(`[GameServer] Error capturing full heap snapshot: ${error}`);
+        } finally {
+            if (snapshotFilePath) {
+                await fs.promises.unlink(snapshotFilePath).catch(() => undefined);
+            }
         }
     }
 
