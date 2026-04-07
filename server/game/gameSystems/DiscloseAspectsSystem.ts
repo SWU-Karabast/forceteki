@@ -13,6 +13,7 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { TextHelper } from '../core/utils/TextHelper';
+import { PromptType } from '../core/gameSteps/PromptInterfaces';
 
 export enum DiscloseMode {
     Any = 'any',
@@ -48,8 +49,27 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                 // Create new context with the targeted player so the RelativePlayer
                 // is resolved correctly in the SelectCardSystem
                 const newContext = context.copy({ player: target }) as TContext;
-                this.generateSelectCardSystem(newContext, additionalProperties, generatedEvents)
-                    .queueGenerateEventGameSteps(events, newContext);
+                const selectCardSystem = this.generateSelectCardSystem(newContext, additionalProperties, generatedEvents);
+
+                if (!selectCardSystem.hasLegalTarget(newContext)) {
+                    // Hand cannot satisfy the disclose — queue a mock delay prompt so the opponent
+                    // cannot infer hand composition by timing the auto-skip.
+                    const properties = this.generatePropertiesFromContext(context, additionalProperties);
+                    const delayMs = Math.floor(Math.random() * 1500) + 500;
+                    context.game.queueSimpleStep(() => {
+                        context.game.promptWithHandlerMenu(target as Player, {
+                            activePromptTitle: 'Good job, Phil Ivey — they bought your bluff! (Pass to continue)',
+                            promptTitle: properties.activePromptTitle ?? 'Disclose',
+                            promptType: PromptType.DiscloseMockDelay,
+                            delayMs,
+                            source: context.source,
+                            choices: ['Pass'],
+                            handlers: [() => { /* auto-pass: no effect, disclose is skipped */ }],
+                        });
+                    }, 'Queue disclose mock delay prompt');
+                } else {
+                    selectCardSystem.queueGenerateEventGameSteps(events, newContext);
+                }
             }
         }
     }
@@ -67,6 +87,13 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         const newContext = context.copy({ player }) as TContext;
         const selectCardSystem = this.generateSelectCardSystem(newContext, additionalProperties);
         return selectCardSystem.hasLegalTarget(newContext, null, mustChangeGameState);
+    }
+
+    // Always report a legal target so the mock delay prompt fires even when the
+    // hand cannot satisfy the disclose. The real hand-check happens in
+    // queueGenerateEventGameSteps where we branch between the real prompt and the bluff.
+    public override hasLegalTarget(): boolean {
+        return true;
     }
 
     // Private helpers
