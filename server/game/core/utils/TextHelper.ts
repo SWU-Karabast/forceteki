@@ -2,7 +2,7 @@
 import { Helpers } from './Helpers';
 import { Aspect, KeywordName } from '../Constants';
 import type { Conjunction } from '../Constants';
-import type { INumericKeywordProperties, NonNumericKeywordName } from '../../Interfaces';
+import type { INumericKeywordProperties, KeywordNameOrProperties } from '../../Interfaces';
 
 /**
  * Helper functions for generating formatted text or inserting special tokens to be replaced on the client side with icons or special formatting.
@@ -43,6 +43,8 @@ export namespace TextHelper {
     export const Overwhelm = keyword(KeywordName.Overwhelm);
     /** The display representation of the Saboteur keyword, stylized on the client side */
     export const Saboteur = keyword(KeywordName.Saboteur);
+    /** The display representation of the Sentinel keyword, stylized on the client side */
+    export const Sentinel = keyword(KeywordName.Sentinel);
     /** The display representation of the Shielded keyword, stylized on the client side */
     export const Shielded = keyword(KeywordName.Shielded);
     /** The display representation of the Bounty keyword, stylized on the client side */
@@ -93,19 +95,28 @@ export namespace TextHelper {
      * Returns the display representation of a keyword. In test environments, this will return a human-readable string (e.g. "Restore 2") for readability,
      * but in production, it returns a token like `{keyword:restore:2}` which the client can replace with stylized text.
      *
+     * Accepts any {@link KeywordNameOrProperties} value — a bare keyword name string or any keyword properties object.
+     * For numeric keywords (those with an `amount`), the amount is included in the output.
+     *
      * @example
      * // In tests: "Restore 2"
      * // Otherwise: "{keyword:restore:2}"
      * const ex = `${TextHelper.keyword({ keyword: KeywordName.Restore, amount: 2 })}`;
      *
-     * @param keyword The keyword to display, either as a simple name or with an amount for numeric keywords
+     * @param keyword The keyword to display — a keyword name, or a keyword properties object (numeric or otherwise)
      * @returns A string representing the keyword, either as plain text (in tests) or a replacement token
      */
-    export function keyword(keyword: NonNumericKeywordName | INumericKeywordProperties): string {
+    export function keyword(keyword: KeywordNameOrProperties | KeywordName | INumericKeywordProperties): string {
         if (typeof keyword === 'object') {
+            if ('amount' in keyword) {
+                return process.env.NODE_ENV === 'test'
+                    ? `${Helpers.capitalize(keyword.keyword)} ${keyword.amount}`
+                    : `{keyword:${keyword.keyword}:${keyword.amount}}`;
+            }
+
             return process.env.NODE_ENV === 'test'
-                ? `${Helpers.capitalize(keyword.keyword)} ${keyword.amount}`
-                : `{keyword:${keyword.keyword}:${keyword.amount}}`;
+                ? Helpers.capitalize(keyword.keyword)
+                : `{keyword:${keyword.keyword}}`;
         }
 
         return process.env.NODE_ENV === 'test'
