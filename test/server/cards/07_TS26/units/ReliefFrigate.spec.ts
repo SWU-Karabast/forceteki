@@ -1,6 +1,6 @@
 describe('Relief Frigate', function () {
     integration(function (contextRef) {
-        it('Relief Frigate\'s ability should heal 3 damage from a base', async function () {
+        it('Relief Frigate\'s ability should heal 3 damage from each other base than the chosen one (no damage on others bases)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -18,10 +18,11 @@ describe('Relief Frigate', function () {
             context.player1.clickCard(context.p1Base);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.p1Base.damage).toBe(7);
+            expect(context.p1Base.damage).toBe(10);
+            expect(context.p2Base.damage).toBe(0);
         });
 
-        it('Relief Frigate\'s ability should heal 3 damage from a base (opponent base)', async function () {
+        it('Relief Frigate\'s ability should heal 3 damage from each other base than the chosen one', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -42,7 +43,8 @@ describe('Relief Frigate', function () {
             context.player1.clickCard(context.p2Base);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.p2Base.damage).toBe(7);
+            expect(context.p1Base.damage).toBe(7);
+            expect(context.p2Base.damage).toBe(10);
         });
     });
 });

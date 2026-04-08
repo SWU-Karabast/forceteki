@@ -13,12 +13,13 @@ export default class ReliefFrigate extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Heal 3 damage from a base',
+            title: 'Choose a base. Heal 3 damage from each other base',
             targetResolver: {
                 cardTypeFilter: CardType.Base,
                 immediateEffect: abilityHelper.immediateEffects.heal((context) => ({
-                    amount: 3 * context.game.getPlayers().map((x) => x.base)
-                        .filter((x) => x !== context.target).length
+                    amount: 3,
+                    target: context.game.getPlayers().map((x) => x.base)
+                        .filter((x) => x !== context.target)
                 }))
             }
         });
