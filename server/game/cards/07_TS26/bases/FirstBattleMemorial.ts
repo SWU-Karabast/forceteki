@@ -14,7 +14,7 @@ export default class FirstBattleMemorial extends BaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEpicActionAbility({
             title: 'For each friendly leader unit, give an Experience token to a unit',
-            immediateEffect: abilityHelper.immediateEffects.sequential((context) => (
+            immediateEffect: abilityHelper.immediateEffects.simultaneous((context) => (
                 context.player.getArenaUnits({ condition: (c) => c.isLeaderUnit() }).map((_) =>
                     abilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
