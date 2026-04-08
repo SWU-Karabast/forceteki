@@ -61,6 +61,14 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return choice.hasLegalTarget(contextCopy);
     }
 
+    private handleSelection(context: AbilityContext, choice: string) {
+        if (this.properties.logSelection) {
+            context.game.addMessage('{0} chooses {1}', context.player, choice);
+        }
+
+        this.setTargetResult(context, choice);
+    }
+
     protected override setTargetResult(context, choice) {
         context.selects[this.name] = new SelectChoice(choice);
         if (this.name === 'target') {
@@ -107,7 +115,7 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
 
         const handlers = legalChoices.map((choice) => {
             return () => {
-                this.setTargetResult(context, choice);
+                this.handleSelection(context, choice);
             };
         });
 
