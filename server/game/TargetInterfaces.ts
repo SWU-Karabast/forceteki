@@ -158,5 +158,4 @@ interface ISelectTargetResolverBase<TContext extends AbilityContext> extends ITa
     checkTarget?: boolean;
     showUnresolvable?: boolean;
     highlightCards?: Card | Card[] | ((context: TContext) => (Card | Card[]));
-    logSelection?: boolean;
 }

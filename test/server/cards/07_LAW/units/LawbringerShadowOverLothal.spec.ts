@@ -38,10 +38,9 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
 
-                expect(context.getChatLogs(3)).toEqual([
+                expect(context.getChatLogs(2)).toEqual([
                     'player1 plays Lawbringer',
-                    'player1 chooses Villainy',
-                    'player1 uses Lawbringer to give -2/-2 to AT-ST and Pyke Sentinel for this phase',
+                    'player1 uses Lawbringer to choose Villainy and to give -2/-2 to AT-ST and Pyke Sentinel for this phase',
                 ]);
 
                 expect(context.player2).toBeActivePlayer();
@@ -78,10 +77,9 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 expect(context.atst.getPower()).toBe(6);
                 expect(context.atst.getHp()).toBe(7);
 
-                expect(context.getChatLogs(3)).toEqual([
+                expect(context.getChatLogs(2)).toEqual([
                     'player1 attacks player2\'s base with Lawbringer',
-                    'player1 chooses Command',
-                    'player1 uses Lawbringer to give -2/-2 to Battlefield Marine for this phase',
+                    'player1 uses Lawbringer to choose Command and to give -2/-2 to Battlefield Marine for this phase',
                 ]);
 
                 expect(context.player2).toBeActivePlayer();
@@ -129,10 +127,9 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 expect(context.consularSecurityForce.getPower()).toBe(3);
                 expect(context.consularSecurityForce.getHp()).toBe(7);
 
-                expect(context.getChatLogs(3)).toEqual([
+                expect(context.getChatLogs(2)).toEqual([
                     'player1 plays Lawbringer',
-                    'player1 chooses Command',
-                    'player1 uses Lawbringer to give -2/-2 to Battlefield Marine for this phase',
+                    'player1 uses Lawbringer to choose Command and to give -2/-2 to Battlefield Marine for this phase',
                 ]);
 
                 expect(context.player2).toBeActivePlayer();
@@ -194,6 +191,41 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 // battlefield-marine should be unaffected
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should allow choosing an aspect to no effect', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['lawbringer#shadow-over-lothal']
+                    },
+                    player2: {
+                        groundArena: ['atst', 'battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.lawbringer);
+
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(choices);
+                context.player1.clickPrompt('Aggression');
+
+                // AT-ST is unaffected
+                expect(context.atst.getPower()).toBe(6);
+                expect(context.atst.getHp()).toBe(7);
+
+                // Battlefield Marine is unaffected
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
+
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Lawbringer',
+                    'player1 uses Lawbringer to choose Aggression'
+                ]);
 
                 expect(context.player2).toBeActivePlayer();
             });
