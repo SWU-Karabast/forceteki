@@ -3,11 +3,11 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 
-export default class EmissarysSheathipede extends NonLeaderUnitCard {
+export default class WartimeProfiteer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '2511177657',
-            internalName: 'emissarys-sheathipede',
+            id: 'wartime-profiteer-id',
+            internalName: 'wartime-profiteer',
         };
     }
 
