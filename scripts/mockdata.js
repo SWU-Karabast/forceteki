@@ -654,6 +654,41 @@ const mockCards = [
         unique: false,
         internalName: 'reveal-intentions',
     }),
+    // Mandalorian
+    buildMockCard({
+        title: 'Mandalorian',
+        cost: 0,
+        hp: 2,
+        power: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['Vigilance'],
+        types: ['token', 'unit'],
+        traits: ['mandalorian'],
+        keywords: ['shielded'],
+        setId: {
+            set: 'ASH'
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'mandalorian',
+    }),
+    // Advantage
+    buildMockCard({
+        title: 'Advantage',
+        cost: 0,
+        hp: 0,
+        power: 0,
+        upgradePower: 1,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        types: ['token', 'upgrade'],
+        traits: ['innate'],
+        setId: {
+            set: 'ASH'
+        },
+        unique: false,
+        internalName: 'advantage'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
@@ -680,7 +715,7 @@ function buildMockCard(cardData) {
         text = abilityText;
     }
 
-    return {
+    const data = {
         title: cardData.title,
         subtitle: cardData.subtitle || '',
         cost: cardData.cost ?? null,
@@ -699,10 +734,16 @@ function buildMockCard(cardData) {
         keywords,
         types: cardData.types,
         setId: cardData.setId,
-        setCodes: [cardData.setId],
         internalName: cardData.internalName,
         arena: cardData.arena || null,
     };
+
+    if (!data.types.includes('token')) {
+        // Don't set this property for tokens
+        data.setCodes = [cardData.setId];
+    }
+
+    return data;
 }
 
 function buildSetStr(card) {
