@@ -777,7 +777,7 @@ const mockCards = [
         aspects: ['vigilance', 'heroism'],
         types: ['unit'],
         traits: ['rebel', 'official'],
-        keywords: ['support'],
+        // TODO: Add this back when support exists keywords: ['support'],
         setId: {
             set: 'ASH',
             number: 59
@@ -895,7 +895,7 @@ const mockCards = [
         aspects: ['aggression', 'heroism'],
         types: ['unit'],
         traits: ['droid'],
-        keywords: ['support'],
+        // TODO: Add this back when support exists keywords: ['support'],
         setId: {
             set: 'ASH',
             number: 156
@@ -973,7 +973,7 @@ const mockCards = [
         aspects: ['cunning', 'heroism'],
         types: ['unit'],
         traits: ['force', 'jedi', 'spectre'],
-        keywords: ['support'],
+        // TODO: Add this back when support exists keywords: ['support'],
         setId: {
             set: 'ASH',
             number: 209
