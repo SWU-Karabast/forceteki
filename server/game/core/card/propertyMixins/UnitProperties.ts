@@ -20,6 +20,7 @@ import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
+import { SupportAbility } from '../../../abilities/keyword/SupportAbility';
 import type { Game } from '../../Game';
 import type { GameEvent } from '../../event/GameEvent';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
@@ -727,8 +728,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public checkRegisterWhenPlayedKeywordAbilities(event: GameEvent) {
             const hasAmbush = this.hasSomeKeyword(KeywordName.Ambush);
             const hasShielded = this.hasSomeKeyword(KeywordName.Shielded);
+            const hasSupport = this.hasSomeKeyword(KeywordName.Support);
 
-            if (!hasAmbush && !hasShielded) {
+            if (!hasAmbush && !hasShielded && !hasSupport) {
                 return;
             }
 
@@ -751,6 +753,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const shieldedAbility = this.createTriggeredAbility(shieldedProps);
                 shieldedAbility.registerEvents();
                 this._whenPlayedKeywordAbilities = [...this._whenPlayedKeywordAbilities, shieldedAbility];
+            }
+
+            if (hasSupport) {
+                const supportProps = Object.assign(this.buildGeneralAbilityProps('keyword_support'), SupportAbility.buildSupportAbilityProperties(this));
+                const supportAbility = this.createTriggeredAbility(supportProps);
+                supportAbility.registerEvents();
+                this._whenPlayedKeywordAbilities = [...this._whenPlayedKeywordAbilities, supportAbility];
             }
 
             event.addCleanupHandler(() => this.unregisterWhenPlayedKeywords());
