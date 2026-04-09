@@ -1087,7 +1087,7 @@ const mockCards = [
         internalName: 'fearless-attack',
     }),
     buildMockCard({
-        title: 'Underestimate',
+        title: 'Underestimated',
         cost: 1,
         power: 0,
         hp: 0,
@@ -1102,7 +1102,7 @@ const mockCards = [
             number: 79
         },
         unique: false,
-        internalName: 'underestimate',
+        internalName: 'underestimated',
     }),
     buildMockCard({
         title: 'Jango Fett',
