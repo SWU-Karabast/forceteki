@@ -654,6 +654,58 @@ const mockCards = [
         unique: false,
         internalName: 'reveal-intentions',
     }),
+    buildMockCard({
+        title: 'First Battle Memorial',
+        hp: 27,
+        hasNonKeywordAbility: true,
+        aspects: ['Vigilance'],
+        types: ['base'],
+        setId: {
+            set: 'TS26',
+            number: 9
+        },
+        unique: false,
+        internalName: 'first-battle-memorial',
+    }),
+    buildMockCard({
+        title: 'Dooku\'s Palace',
+        hp: 27,
+        hasNonKeywordAbility: true,
+        aspects: ['Command'],
+        types: ['base'],
+        setId: {
+            set: 'TS26',
+            number: 10
+        },
+        unique: false,
+        internalName: 'dookus-palace',
+    }),
+    buildMockCard({
+        title: 'Executioner\'s Arena',
+        hp: 27,
+        hasNonKeywordAbility: true,
+        aspects: ['Aggression'],
+        types: ['base'],
+        setId: {
+            set: 'TS26',
+            number: 11
+        },
+        unique: false,
+        internalName: 'executioners-arena',
+    }),
+    buildMockCard({
+        title: 'Sundari Palace',
+        hp: 27,
+        hasNonKeywordAbility: true,
+        aspects: ['Cunning'],
+        types: ['base'],
+        setId: {
+            set: 'TS26',
+            number: 12
+        },
+        unique: false,
+        internalName: 'sundari-palace',
+    }),
     // Mandalorian
     buildMockCard({
         title: 'Mandalorian',
