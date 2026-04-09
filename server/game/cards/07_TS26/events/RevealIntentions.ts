@@ -12,21 +12,22 @@ export default class RevealIntentions extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.setEventAbility({
-            title: 'Play a non-Vehicle unit from your discard pile and give an Experience token to it',
+            title: 'Each player reveals their hand and discard a card from it. Then, each player draws a card',
             immediateEffect: abilityHelper.immediateEffects.sequential([
                 abilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
+                    activePromptTitle: 'Discard a card from opponent\'s hand',
                     target: context.player.opponent.hand,
                     canChooseFewer: false,
                     immediateEffect: abilityHelper.immediateEffects.discardSpecificCard(),
                 })),
                 abilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
+                    activePromptTitle: 'Discard a card from opponent\'s hand',
                     target: context.player.hand,
                     player: context.player.opponent,
                     canChooseFewer: false,
                     immediateEffect: abilityHelper.immediateEffects.discardSpecificCard()
                 })),
-                abilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
-                abilityHelper.immediateEffects.draw((context) => ({ target: context.player.opponent })),
+                abilityHelper.immediateEffects.draw((context) => ({ target: [context.player, context.player.opponent] })),
             ])
         });
     }

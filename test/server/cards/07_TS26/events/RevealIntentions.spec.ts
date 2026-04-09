@@ -14,10 +14,12 @@ describe('Reveal Intentions', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.revealIntentions);
+            expect(context.player1).toHavePrompt('Discard a card from opponent\'s hand');
             expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst, context.wampa]);
             expect(context.player1).not.toHaveEnabledPromptButton('Take nothing');
             context.player1.clickCardInDisplayCardPrompt(context.wampa);
 
+            expect(context.player2).toHavePrompt('Discard a card from opponent\'s hand');
             expect(context.player2).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine, context.greenSquadronAwing]);
             expect(context.player2).not.toHaveEnabledPromptButton('Take nothing');
             context.player2.clickCardInDisplayCardPrompt(context.battlefieldMarine);
