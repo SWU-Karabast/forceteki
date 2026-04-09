@@ -76,6 +76,7 @@ export function keywordFromProperties(properties: IKeywordProperties, card: Card
         case KeywordName.Saboteur:
         case KeywordName.Sentinel:
         case KeywordName.Shielded:
+        case KeywordName.Support:
             return new KeywordInstance(properties.keyword, card);
 
         default:
@@ -98,7 +99,8 @@ export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Saboteur]: false,
     [KeywordName.Sentinel]: false,
     [KeywordName.Shielded]: false,
-    [KeywordName.Smuggle]: false
+    [KeywordName.Smuggle]: false,
+    [KeywordName.Support]: false
 };
 
 export const hasWhileInPlayAbility: Record<KeywordName, boolean> = {
@@ -116,7 +118,8 @@ export const hasWhileInPlayAbility: Record<KeywordName, boolean> = {
     [KeywordName.Saboteur]: false,
     [KeywordName.Sentinel]: false,
     [KeywordName.Shielded]: false,
-    [KeywordName.Smuggle]: false
+    [KeywordName.Smuggle]: false,
+    [KeywordName.Support]: false
 };
 
 /**
@@ -239,6 +242,8 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Shielded/g;
         case KeywordName.Smuggle:
             return /(?:\n)?Smuggle\s\[\s*(\d+)\s+resources(?:,\s*|\s+)([\w\s]+)(,.*)?\]/g;
+        case KeywordName.Support:
+            return /(?:^|(?:\n))Support/g;
         default:
             throw new Error(`Keyword '${keyword}' is not implemented yet`);
     }

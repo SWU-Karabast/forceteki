@@ -267,7 +267,8 @@ export type IKeywordProperties =
   | ISaboteurKeywordProperties
   | ISentinelKeywordProperties
   | IShieldedKeywordProperties
-  | ISmuggleKeywordProperties;
+  | ISmuggleKeywordProperties
+  | ISupportKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
 
@@ -571,6 +572,10 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
+interface ISupportKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Support;
+}
+
 /** List of keywords that don't have any additional parameters */
 export type NonParameterKeywordName =
   | KeywordName.Ambush
@@ -579,7 +584,8 @@ export type NonParameterKeywordName =
   | KeywordName.Overwhelm
   | KeywordName.Saboteur
   | KeywordName.Sentinel
-  | KeywordName.Shielded;
+  | KeywordName.Shielded
+  | KeywordName.Support;
 
 export type NumericKeywordName =
   | KeywordName.Raid

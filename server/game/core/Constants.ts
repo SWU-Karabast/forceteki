@@ -390,6 +390,7 @@ export enum KeywordName {
     Sentinel = 'sentinel',
     Shielded = 'shielded',
     Smuggle = 'smuggle',
+    Support = 'support',
 }
 
 export enum Trait {
