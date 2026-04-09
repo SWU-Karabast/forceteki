@@ -730,7 +730,7 @@ const mockCards = [
     // Shin Hati, Going Somewhere
     buildMockCard({
         title: 'Shin Hati',
-        subtitle: 'Going Somewhere',
+        subtitle: 'Going Somewhere?',
         power: 6,
         hp: 6,
         cost: 5,
@@ -750,8 +750,8 @@ const mockCards = [
     buildMockCard({
         title: 'Blade of Talzin',
         subtitle: 'A Gift of Shadows',
-        power: 2,
-        hp: 1,
+        power: 0,
+        hp: 0,
         upgradePower: 2,
         upgradeHp: 1,
         cost: 2,
@@ -810,8 +810,8 @@ const mockCards = [
     buildMockCard({
         title: 'Luke\'s Jedi Lightsaber',
         subtitle: 'Constructed by Hand',
-        power: 3,
-        hp: 3,
+        power: 0,
+        hp: 0,
         upgradePower: 3,
         upgradeHp: 3,
         cost: 3,
@@ -902,7 +902,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'r5-d4#built-for-adventure',
+        internalName: 'r5d4#built-for-adventure',
     }),
     // Han Solo, It'll Work
     buildMockCard({
@@ -946,8 +946,8 @@ const mockCards = [
     // There Is No Conflict
     buildMockCard({
         title: 'There Is No Conflict',
-        power: 2,
-        hp: 2,
+        power: 0,
+        hp: 0,
         upgradePower: 2,
         upgradeHp: 2,
         cost: 2,
@@ -980,7 +980,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'ezra_bridger#the-force-is-all-i-need',
+        internalName: 'ezra-bridger#the-force-is-all-i-need',
     }),
     // Helix Starfighter
     buildMockCard({
@@ -1005,7 +1005,7 @@ const mockCards = [
         title: 'Darth Vader',
         subtitle: 'Meet Your Destiny',
         power: 4,
-        hp: 5,
+        hp: 6,
         cost: 5,
         hasNonKeywordAbility: true,
         aspects: ['villainy'],
