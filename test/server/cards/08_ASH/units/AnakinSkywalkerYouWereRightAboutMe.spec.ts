@@ -15,10 +15,10 @@ describe('Anakin Skywalker, You Were Right About Me', function() {
 
             const { context } = contextRef;
 
-            // Play Val
+            // Play Ani
             context.player1.clickCard(context.anakinSkywalker);
 
-            // Should be able to select another friendly unit (not Vader Himself)
+            // Should be able to select another friendly unit (not Ani Himself)
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.rebelPathfinder, context.awing]);
             expect(context.player1).not.toHavePassAbilityButton();
             expect(context.player1).not.toHaveChooseNothingButton();
