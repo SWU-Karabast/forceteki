@@ -336,17 +336,17 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
     private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
-        return registrar.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
+        return registrar.addConstantAbility(this.generateDecreaseCostAbilityProps(properties));
     }
 
     /** Add a constant ability on the card that ignores all aspect penalties under the given condition */
     private addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
-        return registrar.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
+        return registrar.addConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties));
     }
 
     /** Add a constant ability on the card that ignores specific aspect penalties under the given condition */
     private addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
-        return registrar.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
+        return registrar.addConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties));
     }
 
     public override registerMove(movedFromZone: ZoneName): void {

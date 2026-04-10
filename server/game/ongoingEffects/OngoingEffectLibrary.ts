@@ -33,7 +33,7 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
-import { GainNonKeywordAbilitiesFromUnitEffect } from '../core/ongoingEffect/effectImpl/CopyNonKeywordAbilitiesFromUnitEffect';
+import { GainNonKeywordAbilitiesFromUnitEffect } from '../core/ongoingEffect/effectImpl/GainNonKeywordAbilitiesFromUnitEffect';
 import { CopyStandardTriggeredAbilitiesEffect } from '../core/ongoingEffect/effectImpl/CopyStandardTriggeredAbilitiesEffect';
 import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/AdditionalPhaseEffect';
 

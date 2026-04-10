@@ -193,6 +193,9 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     abilityIdentifier?: string;
     printedAbility?: boolean;
+
+    /** If this is a gained ability, gives the source card that is giving the ability */
+    gainAbilitySource?: Card;
 }
 
 export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {

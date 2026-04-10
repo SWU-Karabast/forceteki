@@ -689,7 +689,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 };
 
                 const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
-                coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
+                coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility.buildEffectFactoryProps());
 
                 this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, coordinateKeywordAbility];
             }
@@ -704,7 +704,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 };
 
                 const hiddenKeywordAbility = this.createConstantAbility(hiddenKeywordAbilityProps);
-                hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility);
+                hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility.buildEffectFactoryProps());
 
                 this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, hiddenKeywordAbility];
             }
