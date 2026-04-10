@@ -33,7 +33,7 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
-import { CopyNonKeywordAbilitiesFromUnitEffect } from '../core/ongoingEffect/effectImpl/CopyNonKeywordAbilitiesFromUnitEffect';
+import { GainNonKeywordAbilitiesFromUnitEffect } from '../core/ongoingEffect/effectImpl/CopyNonKeywordAbilitiesFromUnitEffect';
 import { CopyStandardTriggeredAbilitiesEffect } from '../core/ongoingEffect/effectImpl/CopyStandardTriggeredAbilitiesEffect';
 import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/AdditionalPhaseEffect';
 
@@ -119,7 +119,7 @@ export = {
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
     cloneUnit: (target: Card) => OngoingEffectBuilder.card.static(EffectName.CloneUnit, (game) => new CloneUnitEffect(game, target)),
-    copyNonKeywordAbilitiesFromUnit: (sourceUnit: Card) => OngoingEffectBuilder.card.static(EffectName.CopyNonKeywordAbilitiesFromUnit, (game) => new CopyNonKeywordAbilitiesFromUnitEffect(game, sourceUnit)),
+    gainNonKeywordAbilitiesFromUnit: (sourceUnit: Card) => OngoingEffectBuilder.card.static(EffectName.GainNonKeywordAbilitiesFromUnit, (game) => new GainNonKeywordAbilitiesFromUnitEffect(game, sourceUnit)),
     copyStandardTriggeredAbilities: (target: Card, abilityType: StandardTriggeredAbilityType) => OngoingEffectBuilder.card.static(EffectName.CopyStandardTriggeredAbilities, (game) => new CopyStandardTriggeredAbilitiesEffect(game, target, abilityType)),
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>

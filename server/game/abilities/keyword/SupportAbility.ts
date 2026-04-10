@@ -25,8 +25,15 @@ export class SupportAbility extends TriggeredAbilityBase {
                 immediateEffect: new InitiateAttackSystem((context) => ({
                     attackerCondition: (card) => card !== context.source,
                     attackerLastingEffects: {
-                        effect: context.game.abilityHelper.ongoingEffects
-                            .copyNonKeywordAbilitiesFromUnit(context.source)
+                        effect: [
+                            context.game.abilityHelper.ongoingEffects
+                                .gainNonKeywordAbilitiesFromUnit(context.source),
+                            context.game.abilityHelper.ongoingEffects.gainKeywords(() =>
+                                context.source.keywords
+                                    .filter((instance) => instance.name !== KeywordName.Support)
+                                    .map((keyword) => keyword.toProperties())
+                            )
+                        ]
                     }
                 }))
             }

@@ -102,6 +102,7 @@ export enum EffectName {
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
+    GainNonKeywordAbilitiesFromUnit = 'gainNonKeywordAbilitiesFromUnit',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
@@ -132,7 +133,6 @@ export enum EffectName {
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotAttackBase = 'cannotAttackBase',
     CannotAttack = 'cannotAttack',
-    CopyNonKeywordAbilitiesFromUnit = 'copyNonKeywordAbilitiesFromUnit',
 }
 
 export enum Duration {

@@ -257,6 +257,7 @@ export type IKeywordProperties =
   | IAmbushKeywordProperties
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
+  | IExploitKeywordProperties
   | IGritKeywordProperties
   | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
@@ -528,6 +529,10 @@ interface ICoordinateKeywordProperties<TSource extends IUnitCard = IUnitCard> ex
     ability: IAbilityPropsWithType<TSource>;
 }
 
+interface IExploitKeywordProperties extends INumericKeywordProperties {
+    keyword: KeywordName.Exploit;
+}
+
 interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
@@ -582,6 +587,7 @@ export type NonParameterKeywordName =
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm
+  | KeywordName.Plot
   | KeywordName.Saboteur
   | KeywordName.Sentinel
   | KeywordName.Shielded
@@ -591,6 +597,14 @@ export type NumericKeywordName =
   | KeywordName.Raid
   | KeywordName.Restore
   | KeywordName.Exploit;
+
+export type CostKeywordName =
+  | KeywordName.Smuggle
+  | KeywordName.Piloting;
+
+export type AbilityDefinitionKeywordName =
+  | KeywordName.Bounty
+  | KeywordName.Coordinate;
 
 export interface ICardAttributes {
     // TODO: Add more attributes as needed

@@ -9,14 +9,12 @@ import type { ITriggeredAbilityProps } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 
 /**
- * Copies all non-keyword abilities from a source unit to a target unit.
- * This copies printed abilities via setupCardAbilities.
+ * A target unit gains all non-keyword abilities from a source unit.
  *
- * Keywords are NOT handled by this effect — they should be granted
- * separately using gainKeywords.
+ * Keywords can be handled separately using the {@link GainKeyword} effect if needed.
  */
 @registerState()
-export class CopyNonKeywordAbilitiesFromUnitEffect extends OngoingEffectValueWrapperBase<IUnitCard> {
+export class GainNonKeywordAbilitiesFromUnitEffect extends OngoingEffectValueWrapperBase<IUnitCard> {
     @stateValue() private accessor _abilityUuidsByTargetCard: Map<string, string[]> = new Map();
 
     private get sourceUnit(): IUnitCard {
