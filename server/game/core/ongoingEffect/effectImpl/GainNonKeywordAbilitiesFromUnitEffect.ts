@@ -7,7 +7,6 @@ import type { Game } from '../../Game';
 import { registerState, stateValue } from '../../GameObjectUtils';
 import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
-import { AbilityType } from '../../Constants';
 
 /**
  * A target unit gains all non-keyword abilities from a source unit.
@@ -16,7 +15,9 @@ import { AbilityType } from '../../Constants';
  */
 @registerState()
 export class GainNonKeywordAbilitiesFromUnitEffect extends OngoingEffectValueWrapperBase<IUnitCard> {
-    @stateValue() private accessor _abilityUuidsByTargetCard: Map<string, Map<AbilityType, string[]>> = new Map();
+    @stateValue() private accessor _triggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateValue() private accessor _actionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateValue() private accessor _constantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
 
     private get sourceUnit(): IUnitCard {
         return this.getValue();
@@ -36,63 +37,59 @@ export class GainNonKeywordAbilitiesFromUnitEffect extends OngoingEffectValueWra
     public override apply(target: IUnitCard): void {
         super.apply(target);
 
-        Contract.assertDoesNotHaveKey(this._abilityUuidsByTargetCard, target.uuid, `Attempting to apply gained abilities from ${this.sourceUnit.internalName} to ${target.internalName} multiple times`);
-
-        const gainedAbilityUuidsByType = new Map<AbilityType, string[]>();
+        Contract.assertDoesNotHaveKey(this._triggeredAbilityUuidsByTargetCard, target.uuid, `Attempting to apply gained triggered abilities from ${this.sourceUnit.internalName} to ${target.internalName} multiple times`);
+        Contract.assertDoesNotHaveKey(this._actionAbilityUuidsByTargetCard, target.uuid, `Attempting to apply gained action abilities from ${this.sourceUnit.internalName} to ${target.internalName} multiple times`);
+        Contract.assertDoesNotHaveKey(this._constantAbilityUuidsByTargetCard, target.uuid, `Attempting to apply gained constant abilities from ${this.sourceUnit.internalName} to ${target.internalName} multiple times`);
 
         // This covers Triggered, Replacement, and Damage Modification abilities
-        gainedAbilityUuidsByType.set(AbilityType.Triggered,
-            this.sourceUnit.getTriggeredAbilities()
-                .map((ability) => {
-                    const abilityProps = ability.properties as ITriggeredAbilityProps<InPlayCard>;
-                    return target.addGainedTriggeredAbility({ ...abilityProps, gainAbilitySource: this.sourceUnit });
-                })
-        );
+        const triggeredAbilityUuids = this.sourceUnit.getTriggeredAbilities()
+            .map((ability) => {
+                const abilityProps = ability.properties as ITriggeredAbilityProps<InPlayCard>;
+                return target.addGainedTriggeredAbility({ ...abilityProps, gainAbilitySource: this.sourceUnit });
+            });
 
-        gainedAbilityUuidsByType.set(AbilityType.Action,
-            this.sourceUnit.getActionAbilities()
-                .map((ability) => {
-                    const abilityProps = ability.properties as IActionAbilityProps<InPlayCard>;
-                    return target.addGainedActionAbility({ ...abilityProps, gainAbilitySource: this.sourceUnit });
-                })
-        );
+        const actionAbilityUuids = this.sourceUnit.getActionAbilities()
+            .map((ability) => {
+                const abilityProps = ability.properties as IActionAbilityProps<InPlayCard>;
+                return target.addGainedActionAbility({ ...abilityProps, gainAbilitySource: this.sourceUnit });
+            });
 
-        gainedAbilityUuidsByType.set(AbilityType.Constant,
-            this.sourceUnit.getConstantAbilities()
-                .map((ability) => {
-                    const abilityProps = ability.properties as IConstantAbilityProps<InPlayCard>;
-                    return target.addGainedConstantAbility({ ...abilityProps, gainAbilitySource: this.sourceUnit });
-                })
-        );
+        const constantAbilityUuids = this.sourceUnit.getConstantAbilities()
+            .map((ability) => {
+                const abilityProps = ability.properties as IConstantAbilityProps<InPlayCard>;
+                return target.addGainedConstantAbility({ ...abilityProps, gainAbilitySource: this.sourceUnit });
+            });
 
-        this._abilityUuidsByTargetCard.set(target.uuid, gainedAbilityUuidsByType);
+        this._triggeredAbilityUuidsByTargetCard.set(target.uuid, triggeredAbilityUuids);
+        this._actionAbilityUuidsByTargetCard.set(target.uuid, actionAbilityUuids);
+        this._constantAbilityUuidsByTargetCard.set(target.uuid, constantAbilityUuids);
     }
 
     public override unapply(target: IUnitCard): void {
         super.unapply(target);
 
-        Contract.assertMapHasKey(this._abilityUuidsByTargetCard, target.uuid, `Attempting to unapply gained abilities from ${this.sourceUnit.internalName} to ${target.internalName} multiple times`);
+        Contract.assertMapHasKey(this._triggeredAbilityUuidsByTargetCard, target.uuid, `Attempting to unapply gained triggered abilities from ${this.sourceUnit.internalName} to ${target.internalName} multiple times`);
+        Contract.assertMapHasKey(this._actionAbilityUuidsByTargetCard, target.uuid, `Attempting to unapply gained action abilities from ${this.sourceUnit.internalName} to ${target.internalName} multiple times`);
+        Contract.assertMapHasKey(this._constantAbilityUuidsByTargetCard, target.uuid, `Attempting to unapply gained constant abilities from ${this.sourceUnit.internalName} to ${target.internalName} multiple times`);
 
-        const gainedAbilityUuidsByType = this._abilityUuidsByTargetCard.get(target.uuid);
+        const triggeredAbilityUuids = this._triggeredAbilityUuidsByTargetCard.get(target.uuid);
+        const actionAbilityUuids = this._actionAbilityUuidsByTargetCard.get(target.uuid);
+        const constantAbilityUuids = this._constantAbilityUuidsByTargetCard.get(target.uuid);
 
-        for (const [abilityType, abilityUuids] of gainedAbilityUuidsByType.entries()) {
-            for (const abilityUuid of abilityUuids) {
-                switch (abilityType) {
-                    case AbilityType.Triggered:
-                        target.removeGainedTriggeredAbility(abilityUuid);
-                        break;
-                    case AbilityType.Action:
-                        target.removeGainedActionAbility(abilityUuid);
-                        break;
-                    case AbilityType.Constant:
-                        target.removeGainedConstantAbility(abilityUuid);
-                        break;
-                    default:
-                        Contract.fail(`Unsupported ability type ${abilityType} found when removing gained abilities from ${this.sourceUnit.internalName} to ${target.internalName}`);
-                }
-            }
+        for (const abilityUuid of triggeredAbilityUuids) {
+            target.removeGainedTriggeredAbility(abilityUuid);
         }
 
-        this._abilityUuidsByTargetCard.delete(target.uuid);
+        for (const abilityUuid of actionAbilityUuids) {
+            target.removeGainedActionAbility(abilityUuid);
+        }
+
+        for (const abilityUuid of constantAbilityUuids) {
+            target.removeGainedConstantAbility(abilityUuid);
+        }
+
+        this._triggeredAbilityUuidsByTargetCard.delete(target.uuid);
+        this._actionAbilityUuidsByTargetCard.delete(target.uuid);
+        this._constantAbilityUuidsByTargetCard.delete(target.uuid);
     }
 }
