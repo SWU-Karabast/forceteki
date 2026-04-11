@@ -45,7 +45,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
     }
 
     protected override getPromptedPlayer(properties: ILookAtProperties, context: TContext): Player {
-        return context.player;
+        return properties.player || context.player;
     }
 
     public override checkEventCondition(): boolean {
