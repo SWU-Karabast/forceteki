@@ -62,9 +62,8 @@ describe('Support keyword', function() {
 
                 // Battlefield Marine gained Ezra's On Attack ability (give a unit -3/-0 for the phase)
                 // Since Battlefield Marine is upgraded, the ability triggers
-                expect(context.player1).toHavePassAbilityPrompt('Give a unit -3/-0 for the phase');
-                context.player1.clickPrompt('Trigger');
-
+                expect(context.player1).toHavePrompt('Give a unit -3/-0 for the phase');
+                expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.ezraBridger,
                     context.battlefieldMarine,
