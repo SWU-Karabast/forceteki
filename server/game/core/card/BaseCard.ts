@@ -17,7 +17,7 @@ import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityReg
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithCaptureZone } from '../zone/CaptureZone';
 import { CaptureZone } from '../zone/CaptureZone';
-import { registerStateBase } from '../GameObjectUtils';
+import { registerStateBase, stateRef } from '../GameObjectUtils';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -35,6 +35,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return this.epicActionSpentInternal();
     }
 
+    @stateRef()
     private accessor _captureZone: CaptureZone | null = null;
 
     public get captureZone(): CaptureZone {
@@ -42,6 +43,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     public get capturedUnits() {
+        Contract.assertNotNullLike(this._captureZone, `Attempting to access captured units for card ${this.internalName}, but capture zone is not initialized`);
         return this.captureZone.cards;
     }
 
