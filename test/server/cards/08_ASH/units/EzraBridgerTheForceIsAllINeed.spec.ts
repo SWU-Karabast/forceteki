@@ -27,13 +27,11 @@ describe('Ezra Bridger, The Force Is All I Need', function() {
                 context.player1.clickCard(context.ezraBridger);
                 context.player1.clickCard(context.p2Base);
 
-                // Ability triggers - player can use it or pass
-                expect(context.player1).toHavePassAbilityPrompt('Give a unit -3/-0 for the phase');
+                // Ability triggers - player can select a unit or pass
+                expect(context.player1).toHavePrompt('Give a unit -3/-0 for the phase');
                 expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Trigger');
-
-                // All units should be valid targets, including friendly and leader units
                 expect(context.player1).toBeAbleToSelectExactly([
+                    // All units should be valid targets, including friendly and leader units
                     context.ezraBridger,
                     context.greenSquadronAwing,
                     context.wampa,
@@ -100,6 +98,7 @@ describe('Ezra Bridger, The Force Is All I Need', function() {
                 context.player1.clickCard(context.p2Base);
 
                 // Ability triggers but player passes
+                expect(context.player1).toHavePrompt('Give a unit -3/-0 for the phase');
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
 
