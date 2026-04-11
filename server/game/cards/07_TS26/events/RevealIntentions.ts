@@ -12,7 +12,7 @@ export default class RevealIntentions extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.setEventAbility({
-            title: 'Each player reveals their hand and their opponent discards discard a card from it. Then, each player draws a card',
+            title: 'Each player reveals their hand and their opponent discards a card from it. Then, each player draws a card',
             immediateEffect: abilityHelper.immediateEffects.sequential([
                 abilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
                     activePromptTitle: 'Discard a card from opponent\'s hand',
