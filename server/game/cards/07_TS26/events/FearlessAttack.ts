@@ -14,9 +14,9 @@ export default class FearlessAttack extends EventCard {
         registrar.setEventAbility({
             title: 'Attack with a unit. It gets +1/+0 for this attack for each unit controlled by the defending player.',
             initiateAttack: {
-                attackerLastingEffects: (context) => ({
+                attackerLastingEffects: (context, attack) => ({
                     effect: abilityHelper.ongoingEffects.modifyStats({
-                        power: context.player.opponent.getArenaUnits().length,
+                        power: attack.getDefendingPlayer().getArenaUnits().length,
                         hp: 0,
                     })
                 })
