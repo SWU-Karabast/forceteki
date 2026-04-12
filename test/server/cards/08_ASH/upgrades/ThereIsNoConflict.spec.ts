@@ -22,6 +22,7 @@ describe('There Is No Conflict', function () {
             context.player1.clickCard(context.sawGerrera);
             expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.shield]);
             expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+            expect(context.player1).toHavePrompt('Return any number of other upgrades on Saw Gerrera to their owners hands');
             context.player1.clickCard(context.entrenched);
             context.player1.clickPrompt('Done');
 

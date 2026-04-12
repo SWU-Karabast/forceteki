@@ -14,6 +14,7 @@ export default class ThereIsNoConflict extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Return any number of other upgrades on attached unit to their owners hands',
+            contextTitle: (context) => `Return any number of other upgrades on ${context.source.parentCard.title} to their owners hands`,
             targetResolver: {
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,

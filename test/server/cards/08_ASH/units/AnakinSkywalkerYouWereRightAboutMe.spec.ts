@@ -22,6 +22,7 @@ describe('Anakin Skywalker, You Were Right About Me', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.rebelPathfinder, context.awing]);
             expect(context.player1).not.toHavePassAbilityButton();
             expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).toHavePrompt('Give a Shield token to another friendly unit');
 
             // Select Battlefield Marine
             context.player1.clickCard(context.battlefieldMarine);
@@ -31,6 +32,28 @@ describe('Anakin Skywalker, You Were Right About Me', function() {
             expect(context.rebelPathfinder).toHaveExactUpgradeNames([]);
             expect(context.anakinSkywalker).toHaveExactUpgradeNames([]);
             expect(context.wampa).toHaveExactUpgradeNames([]);
+        });
+
+        it('should do nothing if there are no other friendly units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['anakin-skywalker#you-were-right-about-me'],
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Ani
+            context.player1.clickCard(context.anakinSkywalker);
+
+            expect(context.anakinSkywalker).toHaveExactUpgradeNames([]);
+            expect(context.wampa).toHaveExactUpgradeNames([]);
+
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
