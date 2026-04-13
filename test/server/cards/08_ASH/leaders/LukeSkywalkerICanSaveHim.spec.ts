@@ -20,12 +20,24 @@ describe('Luke Skywalker, I Can Save Him', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust your leader. If you do, heal 1 damage from that unit');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust Luke Skywalker to heal 1 damage from Battlefield Marine');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.lukeSkywalker.exhausted).toBeTrue();
                 expect(context.battlefieldMarine.damage).toBe(1);
+            });
+
+            it('should not exhaust Luke if the unit die with attack', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.lukeSkywalker.exhausted).toBeFalse();
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+                expect(context.wampa).toBeInZone('discard', context.player2);
             });
 
             it('can be passed without exhausting', function() {
@@ -34,7 +46,7 @@ describe('Luke Skywalker, I Can Save Him', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust your leader. If you do, heal 1 damage from that unit');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust Luke Skywalker to heal 1 damage from Battlefield Marine');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
@@ -171,6 +183,7 @@ describe('Luke Skywalker, I Can Save Him', function() {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.p1Base]);
                 context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(3);
 
                 context.player2.passAction();
 
@@ -179,6 +192,7 @@ describe('Luke Skywalker, I Can Save Him', function() {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base]);
                 context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(1);
 
                 context.player2.passAction();
 
@@ -187,7 +201,6 @@ describe('Luke Skywalker, I Can Save Him', function() {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.lukeSkywalker, context.p1Base]);
                 context.player1.clickCard(context.p1Base);
-
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p1Base.damage).toBe(0);

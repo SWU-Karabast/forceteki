@@ -78,7 +78,7 @@ describe('Emperor Palpatine, According to My Design', function() {
                 context.player1.clickCard(context.emperorPalpatine);
 
                 // When no valid targets, a confirmation prompt appears asking if the player wants to proceed
-                expect(context.player1).toHavePrompt('The ability "Give Advantage tokens to an exhausted friendly unit for each other friendly unit" will have no effect. Are you sure you want to use it?');
+                expect(context.player1).toHaveNoEffectAbilityPrompt('Give Advantage tokens to an exhausted friendly unit for each other friendly unit');
 
                 context.player1.clickPrompt('Use it anyway');
 
