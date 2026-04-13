@@ -14,9 +14,7 @@ export default class ExecutorFinalDestructionOfTheAlliance extends NonLeaderUnit
         registrar.addConstantAbility({
             title: 'This unit gets +1/+0 for each upgrade on other friendly units',
             ongoingEffect: abilityHelper.ongoingEffects.modifyStats((target) => {
-                const upgradeCountOnOtherFriendlyUnits = target.controller.getArenaUpgrades({
-                    condition: (card) => card.parentCard !== target,
-                }).length;
+                const upgradeCountOnOtherFriendlyUnits = target.controller.getArenaUnits({ otherThan: target }).flatMap((x) => x.upgrades).length;
                 return ({
                     power: upgradeCountOnOtherFriendlyUnits,
                     hp: 0,
