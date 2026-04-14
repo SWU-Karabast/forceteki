@@ -1254,6 +1254,7 @@ export class GameServer {
                         id,
                         name: lobby.name,
                         format: lobby.format,
+                        cardPool: lobby.cardPool,
                         gamesToWinMode: lobby.gamesToWinMode,
                         host: lobbyOwnerUser?.deck ? {
                             leader: lobbyOwnerUser.deck.leader,
