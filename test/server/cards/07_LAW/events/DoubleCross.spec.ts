@@ -193,6 +193,42 @@ describe('Double-Cross', function() {
                 expect(context.player1.credits).toBe(6);
                 expect(context.player2.credits).toBe(0);
             });
+
+            it('gives credits to the correct player when the exchanged unit is defeated by unique rule', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['doublecross'],
+                        groundArena: ['jyn-erso#take-the-next-chance'], // cost 2
+                        leader: { card: 'boba-fett#daimyo', deployed: true },
+                    },
+                    player2: {
+                        groundArena: ['rugged-survivors', 'jyn-erso#take-the-next-chance'], // cost 5, cost 2
+                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1JynErso = context.player1.findCardByName('jyn-erso#take-the-next-chance');
+
+                context.player1.clickCard(context.doublecross);
+
+                // Give Jyn Erso (cost 2) to opponent, take Rugged Survivors (cost 5)
+                context.player1.clickCard(p1JynErso);
+                context.player1.clickCard(context.ruggedSurvivors);
+
+                // Unique rule triggers: opponent now has two Jyn Ersos, must defeat one
+                expect(context.player2).toHavePrompt('Choose which copy of Jyn Erso, Take the Next Chance to defeat');
+                context.player2.clickCard(p1JynErso);
+                expect(p1JynErso).toBeInZone('discard');
+
+                // Rugged Survivors (cost 5) is now controlled by player1, Jyn Erso (cost 2) was given to player2
+                // Player2 received the lower-cost unit, so player2 should get 2 credits
+                expect(context.ruggedSurvivors.controller).toBe(context.player1Object);
+                expect(context.player1.credits).toBe(0);
+                expect(context.player2.credits).toBe(3);
+            });
         });
     });
 });
