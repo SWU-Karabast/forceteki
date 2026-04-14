@@ -134,6 +134,7 @@ function populateMissingData(attributes, id) {
             };
             break;
         case '6658095148': // Zeb Orrelios - Spectre Four
+        case '2157679168':
             attributes.title = 'Zeb Orrelios'; // Fix spelling
             break;
     }
@@ -365,7 +366,8 @@ function buildCardLists(cards) {
         ['IBH', 5.9],
         ['SEC', 6],
         ['LAW', 7],
-        ['TS26', 7.5]
+        ['TS26', 7.5],
+        ['ASH', 8]
     ]);
 
     for (const card of cards) {
