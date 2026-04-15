@@ -50,10 +50,9 @@ export default class DoubleCross extends EventCard {
                 const lowerCostUnit = hasTargets
                     ? (friendlyUnit.cost < enemyUnit.cost ? friendlyUnit : enemyUnit)
                     : null;
-                const lowerCostEvent = thenContext.events.find((event) => event.card === lowerCostUnit);
-                const creditRecipient = lowerCostEvent?.isResolved
-                    ? lowerCostEvent.lastKnownInformation.controller.opponent
-                    : lowerCostUnit?.controller;
+                const creditRecipient = lowerCostUnit?.isInPlay()
+                    ? lowerCostUnit.controller
+                    : thenContext.events.find((event) => event.card === lowerCostUnit)?.newController;
 
                 return {
                     title: 'The player who takes control of the lower-cost unit creates Credit tokens equal to the difference between those units\' costs.',
