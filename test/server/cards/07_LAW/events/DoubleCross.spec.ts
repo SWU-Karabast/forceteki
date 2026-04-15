@@ -194,7 +194,7 @@ describe('Double-Cross', function() {
                 expect(context.player2.credits).toBe(0);
             });
 
-            it('gives credits to the correct player when the exchanged unit is defeated by unique rule', async function() {
+            it('gives credits to the correct player when the lower cost exchanged unit is defeated by unique rule', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -228,6 +228,42 @@ describe('Double-Cross', function() {
                 expect(context.ruggedSurvivors.controller).toBe(context.player1Object);
                 expect(context.player1.credits).toBe(0);
                 expect(context.player2.credits).toBe(3);
+            });
+
+            it('gives credits to the correct player when the higher cost exchanged unit is defeated by unique rule', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['doublecross'],
+                        groundArena: ['poe-dameron#quick-to-improvise'], // cost 5
+                        leader: { card: 'boba-fett#daimyo', deployed: true },
+                    },
+                    player2: {
+                        groundArena: ['poe-dameron#quick-to-improvise', 'jyn-erso#take-the-next-chance'], // cost 5, cost 2
+                        leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1Poe = context.player1.findCardByName('poe-dameron#quick-to-improvise');
+
+                context.player1.clickCard(context.doublecross);
+
+                // Give Poe Dameron (cost 5) to opponent, take Jyn Erso (cost 2)
+                context.player1.clickCard(p1Poe);
+                context.player1.clickCard(context.jynErso);
+
+                // Unique rule triggers: opponent now has two Poes, must defeat one
+                expect(context.player2).toHavePrompt('Choose which copy of Poe Dameron, Quick to Improvise to defeat');
+                context.player2.clickCard(p1Poe);
+                expect(p1Poe).toBeInZone('discard');
+
+                // Jyn Erso (cost 2) is now controlled by player1, Poe Dameron (cost 5) was given to player2
+                // Player1 received the lower-cost unit, so player1 should get 2 credits
+                expect(context.jynErso.controller).toBe(context.player1Object);
+                expect(context.player1.credits).toBe(3);
+                expect(context.player2.credits).toBe(0);
             });
         });
     });
