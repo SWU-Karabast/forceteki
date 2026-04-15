@@ -73,6 +73,8 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
     protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ITakeControlOfUnitProperties>): void {
         super.updateEvent(event, player, context, additionalProperties);
 
+        this.addLastKnownInformationToEvent(event, event.card);
+
         // By rule, leader units are always defeated instead of changing control (CR 3.4.6)
         event.setReplacementEventsGenerator((event) => {
             if (event.card.isLeader() && event.newController !== event.card.controller) {
