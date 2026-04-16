@@ -10,7 +10,7 @@ export default class DookusSolarSailerBeautifulAndExpensive extends NonLeaderUni
 
     protected override getImplementationId() {
         return {
-            id: 'dookus-solar-sailer#beautiful-and-expensive-id',
+            id: '5179344355',
             internalName: 'dookus-solar-sailer#beautiful-and-expensive',
         };
     }
