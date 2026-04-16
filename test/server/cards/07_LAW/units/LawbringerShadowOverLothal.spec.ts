@@ -1,6 +1,9 @@
 describe('Lawbringer, Shadow Over Lothal', function() {
     integration(function(contextRef) {
         describe('Lawbringer\'s triggered ability', function() {
+            const prompt = 'Choose an aspect. Each enemy unit with that aspect gets -2/-2 for this phase';
+            const choices = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism'];
+
             it('should give enemy units with chosen aspect -2/-2 for this phase when played', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -9,9 +12,6 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                         groundArena: ['wampa'],
                     },
                     player2: {
-                        // battlefield-marine is Command/Heroism
-                        // atst is Villainy only
-                        // pyke-sentinel is Villainy/Vigilance
                         groundArena: ['battlefield-marine', 'atst', 'pyke-sentinel']
                     }
                 });
@@ -20,11 +20,8 @@ describe('Lawbringer, Shadow Over Lothal', function() {
 
                 context.player1.clickCard(context.lawbringer);
 
-                // Should be prompted to choose an aspect (only aspects enemy units have)
-                // battlefield-marine: Command, Heroism
-                // atst: Villainy
-                // pyke-sentinel: Villainy, Vigilance
-                expect(context.player1).toHaveExactPromptButtons(['Vigilance', 'Command', 'Villainy', 'Heroism']);
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(choices);
 
                 // Choose Villainy to affect atst and pyke-sentinel
                 context.player1.clickPrompt('Villainy');
@@ -41,6 +38,11 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
 
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Lawbringer',
+                    'player1 uses Lawbringer to choose Villainy and to give -2/-2 to AT-ST and Pyke Sentinel for this phase',
+                ]);
+
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -51,8 +53,6 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                         spaceArena: ['lawbringer#shadow-over-lothal']
                     },
                     player2: {
-                        // battlefield-marine: Command, Heroism
-                        // atst: Villainy
                         groundArena: ['battlefield-marine', 'atst']
                     }
                 });
@@ -63,7 +63,8 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 context.player1.clickCard(context.p2Base);
 
                 // Should be prompted to choose an aspect
-                expect(context.player1).toHaveExactPromptButtons(['Command', 'Villainy', 'Heroism']);
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(choices);
 
                 // Choose Command to affect battlefield-marine
                 context.player1.clickPrompt('Command');
@@ -75,6 +76,11 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 // atst (Villainy) should be unaffected
                 expect(context.atst.getPower()).toBe(6);
                 expect(context.atst.getHp()).toBe(7);
+
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 attacks player2\'s base with Lawbringer',
+                    'player1 uses Lawbringer to choose Command and to give -2/-2 to Battlefield Marine for this phase',
+                ]);
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -88,8 +94,6 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                         spaceArena: ['phoenix-squadron-awing'],
                     },
                     player2: {
-                        // battlefield-marine: Command, Heroism
-                        // consular-security-force: Vigilance, Heroism
                         groundArena: ['battlefield-marine', 'consular-security-force']
                     }
                 });
@@ -98,8 +102,8 @@ describe('Lawbringer, Shadow Over Lothal', function() {
 
                 context.player1.clickCard(context.lawbringer);
 
-                // Enemy has: battlefield-marine (Command, Heroism), consular-security-force (Vigilance, Heroism)
-                expect(context.player1).toHaveExactPromptButtons(['Vigilance', 'Command', 'Heroism']);
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(choices);
 
                 context.player1.clickPrompt('Command');
 
@@ -123,6 +127,11 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 expect(context.consularSecurityForce.getPower()).toBe(3);
                 expect(context.consularSecurityForce.getHp()).toBe(7);
 
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Lawbringer',
+                    'player1 uses Lawbringer to choose Command and to give -2/-2 to Battlefield Marine for this phase',
+                ]);
+
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -130,11 +139,9 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['lawbringer#shadow-over-lothal'],
-                        resources: 20
+                        hand: ['lawbringer#shadow-over-lothal']
                     },
                     player2: {
-                        // atst is Villainy, battlefield-marine is Command/Heroism
                         groundArena: ['atst', 'battlefield-marine']
                     }
                 });
@@ -144,7 +151,8 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 context.player1.clickCard(context.lawbringer);
 
                 // Should have multiple aspect options
-                expect(context.player1).toHaveExactPromptButtons(['Command', 'Villainy', 'Heroism']);
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(choices);
                 context.player1.clickPrompt('Villainy');
 
                 expect(context.atst.getPower()).toBe(4);
@@ -161,11 +169,9 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['lawbringer#shadow-over-lothal'],
-                        resources: 20
+                        hand: ['lawbringer#shadow-over-lothal']
                     },
                     player2: {
-                        // tieln-fighter (2/1 Villainy), battlefield-marine (Command/Heroism)
                         spaceArena: ['tieln-fighter'],
                         groundArena: ['battlefield-marine']
                     }
@@ -175,8 +181,8 @@ describe('Lawbringer, Shadow Over Lothal', function() {
 
                 context.player1.clickCard(context.lawbringer);
 
-                // Should have multiple aspect options
-                expect(context.player1).toHaveExactPromptButtons(['Command', 'Villainy', 'Heroism']);
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(choices);
                 context.player1.clickPrompt('Villainy');
 
                 // tieln-fighter (2/1) gets -2/-2, reducing to 0/-1 - should be defeated
@@ -185,6 +191,41 @@ describe('Lawbringer, Shadow Over Lothal', function() {
                 // battlefield-marine should be unaffected
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should allow choosing an aspect to no effect', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['lawbringer#shadow-over-lothal']
+                    },
+                    player2: {
+                        groundArena: ['atst', 'battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.lawbringer);
+
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(choices);
+                context.player1.clickPrompt('Aggression');
+
+                // AT-ST is unaffected
+                expect(context.atst.getPower()).toBe(6);
+                expect(context.atst.getHp()).toBe(7);
+
+                // Battlefield Marine is unaffected
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
+
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Lawbringer',
+                    'player1 uses Lawbringer to choose Aggression'
+                ]);
 
                 expect(context.player2).toBeActivePlayer();
             });

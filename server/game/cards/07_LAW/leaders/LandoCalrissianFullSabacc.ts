@@ -3,7 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, EventName, TargetMode } from '../../../core/Constants';
-import { EnumHelpers } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -20,26 +20,31 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
                 AbilityHelper.costs.abilityActivationResourceCost(1),
                 AbilityHelper.costs.exhaustSelf()
             ],
-            targetResolver: {
-                activePromptTitle: 'Choose an Aspect',
-                mode: TargetMode.DropdownList,
-                // eslint-disable-next-line forceteki/no-raw-token-text -- dropdown component only supports raw strings
-                options: ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism']
-            },
-            then: (outerContext) => ({
-                title: 'Choose a deck to discard from',
-                targetResolver: {
+            targetResolvers: {
+                aspect: {
+                    activePromptTitle: 'Choose an aspect',
+                    mode: TargetMode.Select,
+                    choices: {
+                        [TextHelper.Vigilance]: this.choiceHandler(Aspect.Vigilance, AbilityHelper),
+                        [TextHelper.Command]: this.choiceHandler(Aspect.Command, AbilityHelper),
+                        [TextHelper.Aggression]: this.choiceHandler(Aspect.Aggression, AbilityHelper),
+                        [TextHelper.Cunning]: this.choiceHandler(Aspect.Cunning, AbilityHelper),
+                        [TextHelper.Villainy]: this.choiceHandler(Aspect.Villainy, AbilityHelper),
+                        [TextHelper.Heroism]: this.choiceHandler(Aspect.Heroism, AbilityHelper)
+                    }
+                },
+                deck: {
                     activePromptTitle: 'Choose a deck to discard from',
                     mode: TargetMode.Player,
                     immediateEffect: AbilityHelper.immediateEffects.discardFromDeck({
                         amount: 1
                     })
-                },
-                then: (innerContext) => ({
-                    title: 'Create a Credit token',
-                    thenCondition: () => outerContext.select && this.hasChosenAspect(outerContext.select, innerContext),
-                    immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
-                })
+                }
+            },
+            then: (thenContext) => ({
+                title: 'Create a Credit token',
+                thenCondition: () => this.discardedCardHasChosenAspect(thenContext),
+                immediateEffect: AbilityHelper.immediateEffects.createCreditToken()
             })
         });
     }
@@ -66,8 +71,15 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
         });
     }
 
-    private hasChosenAspect(aspectStr: string, context: AbilityContext): boolean {
-        const chosenAspect = EnumHelpers.checkConvertToEnum(aspectStr.toLowerCase(), Aspect)[0];
+    private choiceHandler(aspect: Aspect, AbilityHelper: IAbilityHelper) {
+        return AbilityHelper.immediateEffects.handler({
+            handler: (context) => context['_landoChosenAspect'] = aspect,
+            effectMessage: () => ['choose {0}', [TextHelper.aspect(aspect)]]
+        });
+    }
+
+    private discardedCardHasChosenAspect(context: AbilityContext): boolean {
+        const aspect = context['_landoChosenAspect'] as Aspect;
         const discardedCards = context.events
             .filter((e) => e.name === EventName.OnCardDiscarded)
             .map((e) => e.card);
@@ -76,6 +88,6 @@ export default class LandoCalrissianFullSabacc extends LeaderUnitCard {
             return false;
         }
 
-        return discardedCards[0].aspects.includes(chosenAspect);
+        return discardedCards[0].aspects.includes(aspect);
     }
 }
