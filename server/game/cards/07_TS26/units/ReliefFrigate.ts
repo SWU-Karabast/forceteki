@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class ReliefFrigate extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'relief-frigate-id',
+            id: '9458579327',
             internalName: 'relief-frigate',
         };
     }

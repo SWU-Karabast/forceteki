@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class Encircle extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'encircle-id',
+            id: '9368766211',
             internalName: 'encircle',
         };
     }
