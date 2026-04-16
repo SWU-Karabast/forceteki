@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../cor
 export default class FortuneAndGloryHondosLuxuryYacht extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'fortune-and-glory#hondos-luxury-yacht-id',
+            id: '3634566382',
             internalName: 'fortune-and-glory#hondos-luxury-yacht',
         };
     }

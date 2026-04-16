@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class FearlessAttack extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'fearless-attack-id',
+            id: '5550216396',
             internalName: 'fearless-attack',
         };
     }

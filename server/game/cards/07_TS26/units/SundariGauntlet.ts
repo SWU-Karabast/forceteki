@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class SundariGauntlet extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sundari-gauntlet-id',
+            id: '1109370851',
             internalName: 'sundari-gauntlet',
         };
     }

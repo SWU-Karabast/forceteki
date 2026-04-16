@@ -6,7 +6,7 @@ import { KeywordName, Trait, WildcardCardType } from '../../../core/Constants';
 export default class AbandonedTheOrder extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'abandoned-the-order-id',
+            id: '8767791219',
             internalName: 'abandoned-the-order',
         };
     }

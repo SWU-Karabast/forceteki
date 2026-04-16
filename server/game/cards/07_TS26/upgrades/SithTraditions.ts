@@ -6,7 +6,7 @@ import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants
 export default class SithTraditions extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'sith-traditions-id',
+            id: '1377604550',
             internalName: 'sith-traditions',
         };
     }
