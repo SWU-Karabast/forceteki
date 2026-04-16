@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class TwilightEscapingMalevolence extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'twilight#escaping-malevolence-id',
+            id: '2922751567',
             internalName: 'twilight#escaping-malevolence',
         };
     }

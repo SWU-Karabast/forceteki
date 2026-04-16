@@ -6,7 +6,7 @@ import { BaseCard } from '../../../core/card/BaseCard';
 export default class ExecutionersArena extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'executioners-arena-id',
+            id: '1546304694',
             internalName: 'executioners-arena',
         };
     }

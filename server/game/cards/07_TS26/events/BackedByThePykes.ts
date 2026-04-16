@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class BackedByThePykes extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'backed-by-the-pykes-id',
+            id: '6707130129',
             internalName: 'backed-by-the-pykes',
         };
     }

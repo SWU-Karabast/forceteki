@@ -6,7 +6,7 @@ import { BaseCard } from '../../../core/card/BaseCard';
 export default class FirstBattleMemorial extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'first-battle-memorial-id',
+            id: '1352374398',
             internalName: 'first-battle-memorial',
         };
     }

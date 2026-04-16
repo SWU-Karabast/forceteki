@@ -5,7 +5,7 @@ import { EventCard } from '../../../core/card/EventCard';
 export default class RevealIntentions extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'reveal-intentions-id',
+            id: '0706465142',
             internalName: 'reveal-intentions',
         };
     }

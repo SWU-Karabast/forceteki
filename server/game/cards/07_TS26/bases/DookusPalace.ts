@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class DookusPalace extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'dookus-palace-id',
+            id: '4631699773',
             internalName: 'dookus-palace',
         };
     }

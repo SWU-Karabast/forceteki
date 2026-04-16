@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class ArmsDeal extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'arms-deal-id',
+            id: '7870233603',
             internalName: 'arms-deal',
         };
     }

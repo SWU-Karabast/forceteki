@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class R2D2GettingHisChance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'r2d2#getting-his-chance-id',
+            id: '5584623623',
             internalName: 'r2d2#getting-his-chance',
         };
     }

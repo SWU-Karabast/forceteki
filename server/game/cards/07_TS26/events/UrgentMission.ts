@@ -5,7 +5,7 @@ import { EventCard } from '../../../core/card/EventCard';
 export default class UrgentMission extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'urgent-mission-id',
+            id: '9066758387',
             internalName: 'urgent-mission',
         };
     }

@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class JediGeneral extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jedi-general-id',
+            id: '5760795689',
             internalName: 'jedi-general',
         };
     }
