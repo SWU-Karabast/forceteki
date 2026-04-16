@@ -139,7 +139,6 @@ function populateMissingData(attributes, id) {
             break;
         case '9349017358':
             attributes.title = 'C-3PO';
-            attributes.internalName = 'c3po#die-jedi-dogs';
             break;
     }
 
