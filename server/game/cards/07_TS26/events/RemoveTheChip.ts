@@ -6,7 +6,7 @@ import { Trait, WildcardCardType } from '../../../core/Constants';
 export default class RemoveTheChip extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'remove-the-chip-id',
+            id: '3750822861',
             internalName: 'remove-the-chip',
         };
     }

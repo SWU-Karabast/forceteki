@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class Fervor extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'fervor-id',
+            id: '3800728779',
             internalName: 'fervor',
         };
     }
