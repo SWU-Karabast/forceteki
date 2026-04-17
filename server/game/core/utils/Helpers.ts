@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import type { CardTypeFilter } from '../Constants';
+import type { CardTypeFilter, KeywordName } from '../Constants';
 import type { Aspect } from '../Constants';
 import type { IRandomness } from '../Randomness';
 import { CardType, ZoneName } from '../Constants';
@@ -92,6 +92,15 @@ export namespace Helpers {
             card.aspects.forEach((aspect) => aspects.add(aspect));
         });
         return aspects.size;
+    }
+
+    export function countUniqueKeywords(cards: Card | Card[]): number {
+        const keywords = new Set<KeywordName>();
+        const cardsArray = Array.isArray(cards) ? cards : [cards];
+        cardsArray.forEach((card) => {
+            card.keywords.forEach((keyword) => keywords.add(keyword.name));
+        });
+        return keywords.size;
     }
 
     /**
