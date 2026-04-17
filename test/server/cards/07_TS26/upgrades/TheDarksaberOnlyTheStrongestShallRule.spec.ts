@@ -62,7 +62,7 @@ describe('The Darksaber, Only the Strongest Shall Rule', function() {
                     player1: {
                         hand: ['the-darksaber#only-the-strongest-shall-rule'],
                         base: { card: 'dagobah-swamp', damage: 5 },
-                        groundArena: [{ card: 'battlefield-marine', exhausted: true }, 'wampa'],
+                        groundArena: [{ card: 'battlefield-marine', exhausted: true }, 'grand-inquisitor#youre-right-to-be-afraid'],
                         spaceArena: ['strikeship', 'restored-arc170']
                     },
                     player2: {
@@ -72,7 +72,7 @@ describe('The Darksaber, Only the Strongest Shall Rule', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theDarksaber);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.wildernessFighter]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.grandInquisitor, context.wildernessFighter]);
                 context.player1.clickCard(context.wildernessFighter);
 
                 expect(context.wildernessFighter.exhausted).toBe(false);
@@ -80,7 +80,7 @@ describe('The Darksaber, Only the Strongest Shall Rule', function() {
 
                 context.player2.passAction();
 
-                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.grandInquisitor);
                 expect(context.player1).toBeAbleToSelectExactly([context.wildernessFighter]);
                 context.player1.clickCard(context.wildernessFighter);
             });
