@@ -32,6 +32,63 @@ describe('Dooku\'s Solar Sailer, Beautiful and Expensive', function() {
                 expect(battleDroid).toHaveExactUpgradeNames(['experience']);
             });
 
+            it('should not give an Experience token to another Separatist unit if a base was healed a previous phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['dookus-solar-sailer#beautiful-and-expensive', 'repair'],
+                        groundArena: ['battle-droid'],
+                        base: { card: 'echo-base', damage: 5 },
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+                const { context } = contextRef;
+
+                // first heal a base using Repair
+                context.player1.clickCard(context.repair);
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(2);
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.dookusSolarSailer);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battleDroid).toHaveExactUpgradeNames([]);
+            });
+
+            it('should give an Experience token to another Separatist unit if opponent\'s base was healed this phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['dookus-solar-sailer#beautiful-and-expensive'],
+                        groundArena: ['battle-droid'],
+                    },
+                    player2: {
+                        hand: ['repair'],
+                        groundArena: ['wampa'],
+                        base: { card: 'echo-base', damage: 5 },
+                        hasInitiative: true,
+                    }
+                });
+                const { context } = contextRef;
+
+                // first heal a base using Repair
+                context.player2.clickCard(context.repair);
+                context.player2.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                // play Dooku's Solar Sailer — condition met (base healed this phase)
+                context.player1.clickCard(context.dookusSolarSailer);
+                const battleDroid = context.player1.findCardByName('battle-droid');
+                expect(context.player1).toBeAbleToSelectExactly([battleDroid]);
+                context.player1.clickCard(battleDroid);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(battleDroid).toHaveExactUpgradeNames(['experience']);
+            });
+
             it('should not give an Experience token if no base was healed this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -108,6 +165,67 @@ describe('Dooku\'s Solar Sailer, Beautiful and Expensive', function() {
                 context.player1.clickCard(context.dookusSolarSailer);
                 context.player1.clickCard(context.p2Base);
 
+                const battleDroid = context.player1.findCardByName('battle-droid');
+                expect(context.player1).toBeAbleToSelectExactly([battleDroid]);
+                context.player1.clickCard(battleDroid);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(battleDroid).toHaveExactUpgradeNames(['experience']);
+            });
+
+            it('should not give an Experience token to another Separatist unit if a base was healed a previous phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['repair'],
+                        spaceArena: ['dookus-solar-sailer#beautiful-and-expensive'],
+                        groundArena: ['battle-droid'],
+                        base: { card: 'echo-base', damage: 5 },
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+                const { context } = contextRef;
+
+                // first heal a base using Repair
+                context.player1.clickCard(context.repair);
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(2);
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.dookusSolarSailer);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battleDroid).toHaveExactUpgradeNames([]);
+            });
+
+
+            it('should give an Experience token to another Separatist unit if opponent\'s base was healed this phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['dookus-solar-sailer#beautiful-and-expensive'],
+                        groundArena: ['battle-droid'],
+                    },
+                    player2: {
+                        hand: ['repair'],
+                        groundArena: ['wampa'],
+                        base: { card: 'echo-base', damage: 5 },
+                        hasInitiative: true,
+                    }
+                });
+                const { context } = contextRef;
+
+                // first heal a base using Repair
+                context.player2.clickCard(context.repair);
+                context.player2.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                // play Dooku's Solar Sailer — condition met (base healed this phase)
+                context.player1.clickCard(context.dookusSolarSailer);
+                context.player1.clickCard(context.p2Base);
                 const battleDroid = context.player1.findCardByName('battle-droid');
                 expect(context.player1).toBeAbleToSelectExactly([battleDroid]);
                 context.player1.clickCard(battleDroid);
