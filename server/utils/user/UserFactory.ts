@@ -27,15 +27,9 @@ const getDefaultCosmeticsPreferences = () => ({
 export const getDefaultPreferences = (): IUserPreferences => ({
     sound: getDefaultSoundPreferences(),
     cosmetics: getDefaultCosmeticsPreferences(),
-    welcomeMessage: 'Good luck, have fun!',
     keyboardShortcuts: {
-        menu: 'ESC',
         passTurn: 'SPACE',
         undo: 'U',
-        concede: 'A',
-        leaderAbility: 'L',
-        claimInitiative: 'I',
-        welcomeMessage: 'W'
     }
 });
 

@@ -53,16 +53,8 @@ export interface IDeckStatsEntity {
 }
 
 export interface IKeyboardShortcuts {
-    menu?: string;
     passTurn?: string;
     undo?: string;
-    concede?: string;
-    leaderAbility?: string;
-    chat?: string;
-    modalMinimize?: string;
-    history?: string;
-    claimInitiative?: string;
-    welcomeMessage?: string;
 }
 
 
@@ -79,7 +71,6 @@ export interface IUserPreferences {
         background?: string;
     };
     keyboardShortcuts?: IKeyboardShortcuts;
-    welcomeMessage?: string; // Add this line
 }
 
 // Define user interface
