@@ -6,7 +6,7 @@ import { BaseCard } from '../../../core/card/BaseCard';
 export default class SundariPalace extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: 'sundari-palace-id',
+            id: '0344986336',
             internalName: 'sundari-palace',
         };
     }

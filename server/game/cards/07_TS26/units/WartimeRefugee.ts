@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class WartimeRefugee extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'wartime-refugee-id',
+            id: '1577019857',
             internalName: 'wartime-refugee',
         };
     }

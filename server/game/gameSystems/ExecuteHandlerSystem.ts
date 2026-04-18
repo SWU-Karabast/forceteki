@@ -8,23 +8,32 @@ import type { Player } from '../core/Player';
 
 export interface IExecuteHandlerSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     handler: (context: TContext) => void;
+    effectMessage?: (context: TContext) => [string, any[]];
     hasTargetsChosenByInitiatingPlayer?: boolean;
 }
 
 /**
- * A {@link GameSystem} which executes a handler function
- * @override This was copied from L5R but has not been tested yet
+ * A {@link GameSystem} which executes a handler function, and can optionally emit a custom effect message.
  */
 export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IExecuteHandlerSystemProperties<TContext>> {
     public override readonly eventName = MetaEventName.ExecuteHandler;
     protected override readonly defaultProperties: IExecuteHandlerSystemProperties = {
         handler: () => true,
+        effectMessage: undefined,
         hasTargetsChosenByInitiatingPlayer: false
     };
 
     public eventHandler(event, additionalProperties: Partial<IExecuteHandlerSystemProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties) as IExecuteHandlerSystemProperties;
         properties.handler(event.context);
+    }
+
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IExecuteHandlerSystemProperties<TContext>>): [string, any[]] {
+        const { effectMessage } = this.generatePropertiesFromContext(context, additionalProperties);
+        if (effectMessage) {
+            return effectMessage(context);
+        }
+        return super.getEffectMessage(context, additionalProperties);
     }
 
     public override hasLegalTarget(): boolean {

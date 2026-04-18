@@ -12,7 +12,7 @@ export default class TribunalGraveOfThe332nd extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'tribunal#grave-of-the-332nd-id',
+            id: '5729664588',
             internalName: 'tribunal#grave-of-the-332nd'
         };
     }

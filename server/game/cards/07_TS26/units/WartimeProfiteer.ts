@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class WartimeProfiteer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'wartime-profiteer-id',
+            id: '2014524470',
             internalName: 'wartime-profiteer',
         };
     }
