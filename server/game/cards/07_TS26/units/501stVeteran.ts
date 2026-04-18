@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class _501stVeteran extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '501st-veteran-id',
+            id: '9624598578',
             internalName: '501st-veteran',
         };
     }
