@@ -29,7 +29,7 @@ import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardData
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
-import { QueueHandler } from './QueueHandler';
+import { QueueHandler, QueuedPlayerState } from './QueueHandler';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
@@ -1571,7 +1571,6 @@ export class GameServer {
                     }
                 }
 
-                this.userLobbyMap.delete(userId);
                 this.removeUserMaybeCleanupLobby(previousLobby, userId);
             } else {
                 this.userLobbyMap.delete(userId);
@@ -2149,14 +2148,23 @@ export class GameServer {
             const userLobbyMapEntry = this.userLobbyMap.get(user.getId());
             if (userLobbyMapEntry) {
                 const lobbyId = userLobbyMapEntry.lobbyId;
-                this.userLobbyMap.delete(user.getId());
-
                 const lobby = this.lobbies.get(lobbyId);
                 this.removeUserMaybeCleanupLobby(lobby, user.getId());
             }
 
             // add user to queue
-            this.queue.addPlayer(format, { user, deck, socket });
+            const queuedPlayer: QueuedPlayer = {
+                user,
+                deck,
+                socket,
+                state: QueuedPlayerState.Connected
+            };
+            this.queue.addPlayer(format, queuedPlayer);
+
+            if (socket.eventContainsListener('disconnect')) {
+                socket.removeEventsListeners(['disconnect']);
+            }
+            socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, queuedPlayer));
 
             this.matchmakeAllQueuesAsync();
         } catch (err) {
@@ -2164,23 +2172,77 @@ export class GameServer {
         }
     }
 
+    private getLobbyParticipant(
+        lobby: Lobby,
+        userId: string
+    ): { participant: { id: string; socket?: Socket }; role: UserRole } | null {
+        const user = lobby.users.find((lobbyUser) => lobbyUser.id === userId);
+        if (user) {
+            return { participant: user, role: UserRole.Player };
+        }
+
+        const spectator = lobby.spectators.find((lobbySpectator) => lobbySpectator.id === userId);
+        if (spectator) {
+            return { participant: spectator, role: UserRole.Spectator };
+        }
+
+        return null;
+    }
+
+    private cleanupLobbyParticipant(
+        participant: { id: string; socket?: Socket },
+        role: UserRole,
+        shouldNotify = false,
+        errorMessage?: string
+    ) {
+        this.userLobbyMap.delete(participant.id);
+
+        if (shouldNotify) {
+            participant.socket?.send('connection_error', errorMessage);
+        }
+
+        participant.socket?.removeEventsListeners(
+            role === UserRole.Player
+                ? ['game', 'lobby', 'disconnect']
+                : ['lobby', 'disconnect']
+        );
+    }
+
     private removeUserMaybeCleanupLobby(lobby: Lobby | null, userId: string) {
-        lobby?.removeUser(userId);
-        lobby?.removeSpectator(userId);
-        // Check if lobby is empty
-        if (lobby?.isEmpty()) {
-            // Start the cleanup process
-            lobby.cleanLobby();
+        if (!lobby) {
+            this.userLobbyMap.delete(userId);
+            return;
+        }
+
+        const participant = this.getLobbyParticipant(lobby, userId);
+
+        if (participant) {
+            this.cleanupLobbyParticipant(participant.participant, participant.role);
+
+            if (participant.role === UserRole.Player) {
+                lobby.removeUser(userId);
+            } else {
+                lobby.removeSpectator(userId);
+            }
+        } else {
+            this.userLobbyMap.delete(userId);
+        }
+
+        if (lobby.hasNoParticipants()) {
             this.lobbies.delete(lobby.id);
+            lobby.cleanLobby();
         }
     }
 
     public removeLobby(lobby: Lobby, errorMessage?: string) {
         this.lobbies.delete(lobby.id);
 
-        for (const user of lobby.users) {
-            this.userLobbyMap.delete(user.id);
-            user.socket?.send('connection_error', errorMessage);
+        for (const user of [...lobby.users]) {
+            this.cleanupLobbyParticipant(user, UserRole.Player, true, errorMessage);
+        }
+
+        for (const spectator of [...lobby.spectators]) {
+            this.cleanupLobbyParticipant(spectator, UserRole.Spectator, true, errorMessage);
         }
 
         lobby.cleanLobby();
@@ -2195,7 +2257,6 @@ export class GameServer {
 
     public handleIntentionalDisconnect(id: string, wasManualDisconnect: boolean, lobby?: Lobby) {
         this.queue.removePlayer(id, wasManualDisconnect ? 'Player disconnect' : 'Force disconnect');
-        this.userLobbyMap.delete(id);
         this.removeUserMaybeCleanupLobby(lobby, id);
     }
 
@@ -2241,14 +2302,19 @@ export class GameServer {
                     if (lobby?.isDisconnected(id, socket.id)) {
                         logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than ${timeoutSeconds}s, removing from lobby`, { userId: id, lobbyId: lobby.id });
 
-                        this.userLobbyMap.delete(id);
-
                         if (isMatchmaking) {
                             logger.info(
                                 `GameServer: User ${id} disconnected from matchmaking during countdown for lobby ${lobby.id}, setting 20s restriction for joining new game`,
                                 { userId: id, lobbyId: lobby.id }
                             );
                             this.playerMatchmakingDisconnectedTime.set(id, new Date());
+
+                            const participant = this.getLobbyParticipant(lobby, id);
+                            if (participant) {
+                                this.cleanupLobbyParticipant(participant.participant, participant.role);
+                            } else {
+                                this.userLobbyMap.delete(id);
+                            }
 
                             lobby.removeUser(id);
                             lobby.handleMatchmakingDisconnect();
@@ -2534,4 +2600,3 @@ export class GameServer {
         return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
-
