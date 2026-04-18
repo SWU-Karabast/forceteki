@@ -121,6 +121,13 @@ export class SnapshotFactory {
         this.currentActionSnapshot = null;
     }
 
+    public destroy(): void {
+        this.clearCurrentSnapshot();
+        this.clearNewerSnapshotsHandlers.length = 0;
+        this.lastAssignedSnapshotId = -1;
+        this.lastAssignedTimepointNumber = -1;
+    }
+
     /**
      * Notifies all snapshot containers to clear any snapshots that were taken after the given snapshot ID.
      * @param snapshotId - The ID of the snapshot to clear newer snapshots for.

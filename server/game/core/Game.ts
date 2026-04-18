@@ -317,6 +317,7 @@ export class Game extends EventEmitter {
     public finishedAt?: Date;
     public gameEndReason?: GameEndReason;
     private _actionsSinceLastUndo?: number;
+    private _destroyed = false;
 
     // #endregion
 
@@ -633,6 +634,21 @@ export class Game extends EventEmitter {
         UnitPropertiesCard.registerRulesListeners(this);
     }
 
+    public destroy(): void {
+        if (this._destroyed) {
+            return;
+        }
+
+        this._destroyed = true;
+        this._snapshotManager.destroy();
+        this.removeAllListeners();
+        this.playersAndSpectators = {};
+        this.chatMessageOffsets.clear();
+        this.playerHasBeenPrompted.clear();
+        this.preUndoStateForError = null;
+        this.undoConfirmationOpen = false;
+    }
+
     /**
      * Checks who the next legal active player for the action phase should be and updates activePlayer. If none available, sets it to null.
      */
@@ -839,6 +855,10 @@ export class Game extends EventEmitter {
             this._router.sendGameState(this);
         } else {
             this.queueStep(new GameOverPrompt(this));
+        }
+
+        if (typeof this._router.cleanupFinishedGame === 'function') {
+            this._router.cleanupFinishedGame(this);
         }
     }
 
