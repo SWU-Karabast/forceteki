@@ -20,7 +20,7 @@ export default class TheDarksaberOnlyTheStrongestShallRule extends UpgradeCard {
         registrar.addWhenPlayedAbility({
             title: 'If there are 4 or more different keywords among friendly units, ready attached unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
-                condition: Helpers.countUniqueKeywords(context.source.controller.getArenaUnits()) >= 4,
+                condition: Helpers.countUniqueKeywords(context.player.getArenaUnits()) >= 4,
                 onTrue: AbilityHelper.immediateEffects.ready({ target: context.source.parentCard }),
             }))
         });
