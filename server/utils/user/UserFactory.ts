@@ -24,13 +24,15 @@ const getDefaultCosmeticsPreferences = () => ({
     background: null,
 });
 
+const getDefaultKeyboardShortcuts = () => ({
+    passTurn: 'SPACE',
+    undo: 'U',
+});
+
 export const getDefaultPreferences = (): IUserPreferences => ({
     sound: getDefaultSoundPreferences(),
     cosmetics: getDefaultCosmeticsPreferences(),
-    keyboardShortcuts: {
-        passTurn: 'SPACE',
-        undo: 'U',
-    }
+    keyboardShortcuts: getDefaultKeyboardShortcuts(),
 });
 
 
