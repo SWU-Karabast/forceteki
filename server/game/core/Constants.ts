@@ -237,7 +237,8 @@ export type CardTypeFilter = CardType | WildcardCardType;
 
 export enum TokenUpgradeName {
     Experience = 'experience',
-    Shield = 'shield'
+    Shield = 'shield',
+    Advantage = 'advantage',
 }
 
 export enum TokenUnitName {
@@ -246,6 +247,7 @@ export enum TokenUnitName {
     XWing = 'xwing',
     TIEFighter = 'tieFighter',
     Spy = 'spy',
+    Mandalorian = 'mandalorian',
 }
 
 export enum TokenCardName {

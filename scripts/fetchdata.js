@@ -137,6 +137,9 @@ function populateMissingData(attributes, id) {
         case '2157679168':
             attributes.title = 'Zeb Orrelios'; // Fix spelling
             break;
+        case '9349017358':
+            attributes.title = 'C-3PO';
+            break;
     }
 
     // Plot cards from Secrets of Power
@@ -366,7 +369,8 @@ function buildCardLists(cards) {
         ['IBH', 5.9],
         ['SEC', 6],
         ['LAW', 7],
-        ['TS26', 7.5]
+        ['TS26', 7.5],
+        ['ASH', 8]
     ]);
 
     for (const card of cards) {

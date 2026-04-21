@@ -6,7 +6,7 @@ import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 export default class SecretMarriage extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'secret-marriage-id',
+            id: '8178276439',
             internalName: 'secret-marriage',
         };
     }

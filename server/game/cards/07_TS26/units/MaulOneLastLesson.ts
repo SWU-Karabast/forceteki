@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class MaulOneLastLesson extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'maul#one-last-lesson-id',
+            id: '0211565206',
             internalName: 'maul#one-last-lesson',
         };
     }
