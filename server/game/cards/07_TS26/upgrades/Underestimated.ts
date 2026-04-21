@@ -5,7 +5,7 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 export default class Underestimated extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'underestimated-id',
+            id: '0122156036',
             internalName: 'underestimated',
         };
     }

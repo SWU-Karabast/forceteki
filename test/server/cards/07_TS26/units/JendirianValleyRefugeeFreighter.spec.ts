@@ -4,7 +4,7 @@ describe('Jendirian Valley, Refugee Freighter', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['jenridian-valley#refugee-freighter'],
+                    hand: ['jendirian-valley#refugee-freighter'],
                     deck: ['wampa', 'atst', 'awing', 'mastery', 'protector', 'battlefield-marine', 'green-squadron-awing', 'yoda#old-master', 'gungi#finding-himself'],
                     leader: 'chewbacca#walking-carpet',
                     base: 'echo-base'
@@ -14,7 +14,7 @@ describe('Jendirian Valley, Refugee Freighter', function() {
             const { context } = contextRef;
 
             const initialResourceCount = context.player1.resources.length;
-            context.player1.clickCard(context.jenridianValley);
+            context.player1.clickCard(context.jendirianValley);
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [context.wampa, context.atst, context.awing, context.mastery, context.protector, context.battlefieldMarine, context.greenSquadronAwing, context.yoda],
             });

@@ -6,7 +6,7 @@ import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core
 export default class Mechanize extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'mechanize-id',
+            id: '9392548494',
             internalName: 'mechanize',
         };
     }

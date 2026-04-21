@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class BackedByBlackSun extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'backed-by-black-sun-id',
+            id: '5951272870',
             internalName: 'backed-by-black-sun',
         };
     }
