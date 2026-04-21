@@ -9,7 +9,7 @@ import { Helpers } from '../../../core/utils/Helpers';
 export default class ChaoticDiversion extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'chaotic-diversion-id',
+            id: '9572287182',
             internalName: 'chaotic-diversion',
         };
     }
