@@ -225,5 +225,51 @@ describe('Chaotic Diversion', function() {
             context.player1.clickCard(context.p2Base);
             expect(context.p2Base.damage).toBe(4);
         });
+
+        it('the attack restriction does not apply if the enemy unit cannot be readied', async function() {
+            // Frozen in Carbonite upgrade prevents attached unit from readying
+            // Dogfight event card allows a unit to attack even if it's exhausted.
+            // We can use these cards to verify that the attack restriction only applies if the enemy unit is actually readied by Chaotic Diversion.
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['chaotic-diversion'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    hand: ['dogfight'],
+                    groundArena: [{
+                        card: 'wampa',
+                        exhausted: true,
+                        upgrades: ['frozen-in-carbonite']
+                    }],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Chaotic Diversion. Enemy prompt is skipped since there are no valid targets to ready
+            context.player1.clickCard(context.chaoticDiversion);
+
+            // Give a shield to the friendly unit
+            expect(context.player1).toHavePrompt(friendlyUnitPrompt);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            // Wampa is not readied due to Frozen in Carbonite, but the shield is still given
+            expect(context.wampa.exhausted).toBeTrue();
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
+            expect(context.chaoticDiversion).toBeInZone('discard');
+
+            // Player 2 plays Dogfight, Wampa is a valid attacker since it was not readied by Chaotic Diversion
+            context.player2.clickCard(context.dogfight);
+            context.player2.clickCard(context.wampa);
+            expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine]); // Cannot attack bases with Dogfight
+            context.player2.clickCard(context.battlefieldMarine);
+
+            // Marine's shield is defeated, Wampa takes 3 combat damage
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
+            expect(context.wampa.damage).toBe(3);
+        });
     });
 });
