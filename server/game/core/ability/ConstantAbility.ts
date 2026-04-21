@@ -1,6 +1,6 @@
-import type { AbilityContext } from './AbilityContext.js';
+import { AbilityContext } from './AbilityContext.js';
 import type { ZoneFilter } from '../Constants.js';
-import { Duration, WildcardZoneName } from '../Constants.js';
+import { Duration, Stage, WildcardZoneName } from '../Constants.js';
 import type { IConstantAbilityProps, IOngoingEffectFactory, IOngoingEffectGenerator } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type { Game } from '../Game.js';
@@ -8,6 +8,7 @@ import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
 import { registerState, stateRefArray } from '../GameObjectUtils';
+import type { Player } from '../Player.js';
 
 /**
  * Represents an action ability provided by card text.
@@ -123,6 +124,21 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
         }
 
         return this.title;
+    }
+
+    public createContext(player: Player = this.sourceCard.controller, event = undefined) {
+        return new AbilityContext(this.getContextProperties(player, event));
+    }
+
+    public getContextProperties(player: Player, event) {
+        return {
+            ability: this,
+            game: this.game,
+            player,
+            source: this.sourceCard,
+            stage: Stage.Effect,
+            events: event ? [event] : []
+        };
     }
 }
 

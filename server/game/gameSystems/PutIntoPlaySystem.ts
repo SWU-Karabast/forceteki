@@ -76,7 +76,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
         event.entersReady = entersReady ||
-          card.hasOngoingEffect(EffectName.EntersPlayReady) ||
+          this.checkEntersPlayReady(card, newController, event) ||
           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
         event.newController = newController;
         event.setPreResolutionEffect((event) => {
@@ -87,7 +87,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
                 }
                 context.game.queueSimpleStep(() => {
                     if (!event.entersReady) {
-                        event.entersReady = card.hasOngoingEffect(EffectName.EntersPlayReady) ||
+                        event.entersReady = this.checkEntersPlayReady(card, newController, event) ||
                           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
                     }
                 }, `Update onUnitEntersPlay event after resolving pre-enter play abilities for ${card.internalName}`);
@@ -97,5 +97,30 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
         return context.player || card.owner;
+    }
+
+    /**
+     * Checks whether a card should enter play ready by examining its constant abilities.
+     * This evaluates conditions using a context with the new controller's player
+     * rather than the effect's own context (which uses the card owner's player).
+     * This is important when a player plays an opponent's card (e.g., via Vermillion).
+     */
+    private checkEntersPlayReady(card: Card, newController: Player, event): boolean {
+        for (const ability of card.getConstantAbilities()) {
+            for (const effect of ability.registeredEffects) {
+                if (effect.type === EffectName.EntersPlayReady) {
+                    if (!effect.impl.isConditional) {
+                        return true;
+                    }
+
+                    const abilityContext = ability.createContext(newController, event);
+
+                    if (effect.condition(abilityContext)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
