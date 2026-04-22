@@ -118,7 +118,7 @@ describe('Advantage', function() {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // Resolve simultaneous triggers
-                expect(context.player2).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player2).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player2).toHaveExactPromptButtons(['Defeat Advantage token', 'Defeat Advantage token']);
                 context.player2.clickPrompt('Defeat Advantage token');
 
