@@ -78,7 +78,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     isUpgraded(): boolean;
     hasExperience(): boolean;
     hasShield(): boolean;
-    effectsPreventAttack(target: Card);
+    effectsPreventAttack(target: Card, context?: AbilityContext): boolean;
     moveToCaptureZone(targetZone: CaptureZone);
     checkRegisterWhenPlayedKeywordAbilities(event: GameEvent);
     checkRegisterOnAttackKeywordAbilities(event: GameEvent);
@@ -364,8 +364,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Check if there are any effect restrictions preventing this unit from attacking the passed target.
          * Returns true if so.
          */
-        public effectsPreventAttack(target: Card) {
-            if (this.hasRestriction(AbilityRestriction.Attack)) {
+        public effectsPreventAttack(target: Card, context?: AbilityContext): boolean {
+            if (this.hasRestriction(AbilityRestriction.Attack, context)) {
                 return true;
             }
             if (this.hasOngoingEffect(EffectName.CannotAttackBase) && target.isBase()) {
