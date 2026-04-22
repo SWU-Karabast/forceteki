@@ -174,7 +174,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
         if ( // sentinel keyword overrides "can't be attacked" abilities (SWU Comp Rules 2.0 7.5.11.D)
             ((targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) && !targetCard.hasSomeKeyword(KeywordName.Sentinel)) ||
-              properties.attacker.effectsPreventAttack(targetCard))
+              properties.attacker.effectsPreventAttack(targetCard, context))
         ) {
             return false; // cannot attack cards with a BeAttacked restriction
         }
