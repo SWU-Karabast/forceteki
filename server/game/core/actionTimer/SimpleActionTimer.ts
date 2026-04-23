@@ -39,6 +39,16 @@ export class SimpleActionTimer {
         );
     }
 
+    public get timeRemainingSeconds(): number | null {
+        if (this.endTime === null) {
+            return null;
+        }
+        // If paused, calculate remaining time from when we paused
+        const referenceTime = this.pauseTime ?? new Date();
+        const remainingMs = this.endTime.getTime() - referenceTime.getTime();
+        return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : null;
+    }
+
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
         return this._timeRemainingStatus;
     }
@@ -83,8 +93,6 @@ export class SimpleActionTimer {
 
         this.stop();
         this.initializeTimersForTimeRemaining(this.getTimeLimitMs());
-
-        this.onStart();
     }
 
     /**
@@ -100,45 +108,38 @@ export class SimpleActionTimer {
         this.timers = [];
         this.endTime = null;
         this.pauseTime = null;
-
-        this.onStop();
     }
 
     /**
-     * Pauses the timer if it's running.
-     * @deprecated Not fully tested
+     * Pauses the timer, preserving remaining time.
      */
     public pause(): void {
-        Contract.assertNotNullLike(this.endTime, 'Attempting to pause timer when it is not running');
+        if (!this.isRunning) {
+            return;
+        }
 
         this.pauseTime = new Date();
         this.clearTimers();
     }
 
     /**
-     * Resumes the timer if it was paused.
-     * @deprecated Not fully tested
+     * Resumes the timer from where it was paused.
      */
     public resume(): void {
-        Contract.assertNotNullLike(this.endTime, 'Attempting to resume timer when it is not started');
-        Contract.assertNotNullLike(this.pauseTime, 'Attempting to resume timer when it is not paused');
+        if (!this.isPaused || this.endTime === null || this.pauseTime === null) {
+            return;
+        }
 
         const timeRemainingMs = this.endTime.getTime() - this.pauseTime.getTime();
+        if (timeRemainingMs <= 0) {
+            this.stop();
+            return;
+        }
+
+        // Clear pause state and reinitialize with remaining time
+        this.endTime = null;
+        this.pauseTime = null;
         this.initializeTimersForTimeRemaining(timeRemainingMs);
-    }
-
-    /**
-     * Hook called when the timer starts. Override in subclasses for custom behavior.
-     */
-    protected onStart(): void {
-        // Default: no-op
-    }
-
-    /**
-     * Hook called when the timer stops. Override in subclasses for custom behavior.
-     */
-    protected onStop(): void {
-        // Default: no-op
     }
 
     /**

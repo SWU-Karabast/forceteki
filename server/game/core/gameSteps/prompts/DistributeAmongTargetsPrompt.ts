@@ -77,11 +77,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         };
     }
 
-    protected override startActionTimer(player: Player): void {
-        // give players a little extra time during distribution prompts
-        player.actionTimer.start(120);
-    }
-
     protected override highlightSelectableCards(): void {
         this.player.setSelectableCards(this.properties.legalTargets);
         this.player.opponent.setSelectableCards([]);

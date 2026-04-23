@@ -608,6 +608,7 @@ export enum GameEndReason {
     Concede = 'concede',
     GameRules = 'gameRules',
     PlayerLeft = 'playerLeft',
+    Timeout = 'timeout',
 }
 
 export enum Conjunction {

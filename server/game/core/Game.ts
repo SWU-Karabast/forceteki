@@ -757,14 +757,18 @@ export class Game extends EventEmitter {
         const player = this.getPlayerById(playerId);
 
         player.incrementActionId();
-        player.actionTimer.restartIfRunning();
     }
 
-    public onActionTimerExpired(player: Player): null {
+    public onGameTimerExpired(player: Player): null {
         player.opponent.actionTimer.stop();
+        this.addAlert(AlertType.Notification, `Game ended due to ${player.name} timing out.`);
 
-        this.userTimeoutDisconnect(player.id);
-        this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
+        if (player.opponent.actionTimer.mainTimeRemainingSeconds < 3) {
+            this.endGame([player, player.opponent], GameEndReason.Timeout);
+        } else {
+            this.endGame(player.opponent, GameEndReason.Timeout);
+        }
+
         return null;
     }
 
@@ -839,6 +843,16 @@ export class Game extends EventEmitter {
             this._router.sendGameState(this);
         } else {
             this.queueStep(new GameOverPrompt(this));
+        }
+    }
+
+    /**
+     * Sends updated game state to all players.
+     * Used by action timers to push state updates when timer state changes.
+     */
+    public sendUpdatedGameStateToPlayers() {
+        if (typeof this._router?.sendGameState === 'function') {
+            this._router.sendGameState(this);
         }
     }
 
