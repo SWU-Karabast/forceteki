@@ -34,7 +34,7 @@ describe('The Darksaber, Only the Strongest Shall Rule', function() {
                     player1: {
                         base: { card: 'dagobah-swamp', damage: 5 },
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }, 'wampa'],
-                        spaceArena: ['strikeship', 'restored-arc170']
+                        spaceArena: ['strikeship', 'restored-arc170', 'pirate-snub-fighter']
                     },
                     player2: {
                         hand: ['the-darksaber#only-the-strongest-shall-rule'],

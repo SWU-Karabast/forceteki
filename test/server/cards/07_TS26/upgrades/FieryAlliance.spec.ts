@@ -35,6 +35,7 @@ describe('Fiery Alliance', function() {
                     context.clanChallengers,
                     context.zygerrianStarhopper
                 ]);
+                expect(context.player1).toHavePrompt('Deal 1 damage to another friendly unit and attack with it');
 
                 context.player1.clickCard(context.clanChallengers);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
@@ -71,6 +72,7 @@ describe('Fiery Alliance', function() {
                     context.strikeship
                 ]);
                 context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toHavePrompt('Deal 1 damage to another friendly unit and attack with it');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.cartelSpacer, context.zygerrianStarhopper]);
 
@@ -109,6 +111,7 @@ describe('Fiery Alliance', function() {
                     context.strikeship
                 ]);
                 context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toHavePrompt('Deal 1 damage to another friendly unit and attack with it');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.cartelSpacer, context.zygerrianStarhopper]);
 
@@ -145,6 +148,7 @@ describe('Fiery Alliance', function() {
                     context.strikeship
                 ]);
                 context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toHavePrompt('Deal 1 damage to another friendly unit and attack with it');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.cartelSpacer, context.zygerrianStarhopper]);
                 context.player1.clickPrompt('Pass');
@@ -183,6 +187,7 @@ describe('Fiery Alliance', function() {
                     context.strikeship
                 ]);
                 context.player1.clickCard(context.wampa);
+                expect(context.player1).toHavePrompt('Deal 1 damage to another friendly unit and attack with it');
 
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.deathStarStormtrooper,
@@ -226,6 +231,7 @@ describe('Fiery Alliance', function() {
                     context.strikeship
                 ]);
                 context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toHavePrompt('Deal 1 damage to another friendly unit and attack with it');
 
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.deathStarStormtrooper,
