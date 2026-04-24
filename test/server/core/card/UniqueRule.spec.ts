@@ -673,7 +673,7 @@ describe('Uniqueness rule', function() {
                 expect(context.getChatLogs(1)).toContain('player1 defeats 2 copies of Obi-Wan Kenobi due to the uniqueness rule');
 
                 // Once both are defeated, the player can resolve the When Defeated abilities
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.',
                     'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.'
@@ -743,7 +743,7 @@ describe('Uniqueness rule', function() {
                 expect(obi3).toBeInZone('discard');
 
                 // Once both are defeated, the player can resolve the When Defeated abilities
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.',
                     'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.'

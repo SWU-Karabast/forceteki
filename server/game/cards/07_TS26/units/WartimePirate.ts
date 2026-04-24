@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class WartimePirate extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'wartime-pirate-id',
+            id: '3034449380',
             internalName: 'wartime-pirate',
         };
     }

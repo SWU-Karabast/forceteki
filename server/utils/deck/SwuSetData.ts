@@ -85,9 +85,14 @@ const bannedPremierCards = new Map([
     ['1705806419', 'force-throw']
 ]);
 
+const bannedEternalCards = new Map([
+    ['4203363893', 'war-juggernaut'],
+    ['3722493191', 'ig2000#assassins-aggressor'],
+]);
+
 export const formatRules = new Map<SwuGameFormat, IFormatRules>([
     [SwuGameFormat.Premier, { minDeckSize: 50, maxCardCopies: 3, rotationBlockCount: 2, bannedCards: bannedPremierCards }],
-    [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
+    [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: bannedEternalCards }],
     [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
     [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map() }],
 ]);
