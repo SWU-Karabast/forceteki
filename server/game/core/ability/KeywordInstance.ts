@@ -1,4 +1,4 @@
-import type { IAbilityPropsWithType, ITriggeredAbilityBaseProps } from '../../Interfaces';
+import type { AbilityDefinitionKeywordName, CostKeywordName, IAbilityPropsWithType, ITriggeredAbilityBaseProps, KeywordNameOrProperties, NumericKeywordName } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import { RelativePlayer, type Aspect, type KeywordName } from '../Constants';
 import { Contract } from '../utils/Contract';
@@ -49,14 +49,21 @@ export class KeywordInstance {
         return this.name;
     }
 
+    /** Converts this keyword instance back into its {@link KeywordNameOrProperties} representation */
+    public toProperties(): KeywordNameOrProperties {
+        return this.name as KeywordNameOrProperties;
+    }
+
     public duplicate(card: Card): KeywordInstance {
         return new KeywordInstance(this.name, card);
     }
 }
 
 export class KeywordWithNumericValue extends KeywordInstance {
+    declare public readonly name: NumericKeywordName;
+
     public constructor(
-        name: KeywordName,
+        name: NumericKeywordName,
         card: Card,
         public readonly value: number
     ) {
@@ -67,14 +74,21 @@ export class KeywordWithNumericValue extends KeywordInstance {
         return true;
     }
 
+    public override toProperties(): KeywordNameOrProperties {
+        const props = { keyword: this.name, amount: this.value };
+        return props as KeywordNameOrProperties;
+    }
+
     public override duplicate(card: Card): KeywordInstance {
         return new KeywordWithNumericValue(this.name, card, this.value);
     }
 }
 
 export class KeywordWithCostValues extends KeywordInstance {
+    declare public readonly name: CostKeywordName;
+
     public constructor(
-        name: KeywordName,
+        name: CostKeywordName,
         card: Card,
         public readonly cost: number,
         public readonly aspects: Aspect[],
@@ -87,6 +101,11 @@ export class KeywordWithCostValues extends KeywordInstance {
         return true;
     }
 
+    public override toProperties(): KeywordNameOrProperties {
+        const props = { keyword: this.name, cost: this.cost, aspects: this.aspects };
+        return props as KeywordNameOrProperties;
+    }
+
     public override duplicate(card: Card): KeywordInstance {
         return new KeywordWithCostValues(this.name, card, this.cost, this.aspects, this.additionalCosts);
     }
@@ -96,6 +115,8 @@ export class KeywordWithAbilityDefinition<
     TSource extends Card = Card,
     TAbilityProps = IAbilityPropsWithType<TSource>
 > extends KeywordInstance {
+    declare public readonly name: AbilityDefinitionKeywordName;
+
     private _abilityProps?: TAbilityProps = null;
 
     public get abilityProps() {
@@ -120,8 +141,13 @@ export class KeywordWithAbilityDefinition<
         return this._abilityProps != null;
     }
 
+    public override toProperties(): KeywordNameOrProperties {
+        const props = { keyword: this.name, ability: this.abilityProps };
+        return props as KeywordNameOrProperties;
+    }
+
     /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
-    public constructor(name: KeywordName, card: Card, abilityProps: TAbilityProps = null) {
+    public constructor(name: AbilityDefinitionKeywordName, card: Card, abilityProps: TAbilityProps = null) {
         super(name, card);
         this._abilityProps = abilityProps;
     }
@@ -136,6 +162,8 @@ export class KeywordWithAbilityDefinition<
 
 export class BountyKeywordInstance<TSource extends Card = Card>
     extends KeywordWithAbilityDefinition<TSource, Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>> {
+    declare public readonly name: KeywordName.Bounty;
+
     public override isBounty(): this is BountyKeywordInstance {
         return true;
     }

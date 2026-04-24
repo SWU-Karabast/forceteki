@@ -353,6 +353,11 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             }
 
             const keywordProps: KeywordNameOrProperties = effect.impl.getValue(properties.attacker);
+
+            if (!keywordProps) {
+                return false;
+            }
+
             const keyword = typeof keywordProps === 'string' ? keywordProps : keywordProps.keyword;
 
             return keyword === KeywordName.Saboteur;
