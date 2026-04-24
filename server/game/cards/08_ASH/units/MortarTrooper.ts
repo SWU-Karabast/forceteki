@@ -1,7 +1,7 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { TargetMode, WildcardCardType } from '../../../core/Constants';
+import { TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class MortarTrooper extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -19,6 +19,7 @@ export default class MortarTrooper extends NonLeaderUnitCard {
                 mode: TargetMode.UpTo,
                 canChooseNoCards: true,
                 numCards: 3,
+                zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.damage({ amount: 1 })
             }

@@ -25,23 +25,21 @@ describe('Mortar Trooper', function() {
             expect(context.player1).toBeAbleToSelectExactly([
                 context.mortarTrooper,
                 context.battlefieldMarine,
-                context.awing,
                 context.wampa,
-                context.tielnFighter
             ]);
 
             // Select 3 targets
             context.player1.clickCard(context.wampa);
-            context.player1.clickCard(context.tielnFighter);
+            context.player1.clickCard(context.mortarTrooper);
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickPrompt('Done');
 
             // Each selected unit takes 1 damage
             expect(context.wampa.damage).toBe(1);
-            expect(context.tielnFighter).toBeInZone('discard'); // 1 damage defeats it
             expect(context.battlefieldMarine.damage).toBe(1);
-            expect(context.mortarTrooper.damage).toBe(0);
+            expect(context.mortarTrooper.damage).toBe(1);
             expect(context.awing.damage).toBe(0);
+            expect(context.tielnFighter.damage).toBe(0);
 
             // Mortar Trooper is exhausted from the cost
             expect(context.mortarTrooper.exhausted).toBe(true);
