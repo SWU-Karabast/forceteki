@@ -102,7 +102,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
          * @returns The uuid of the created triggered ability
          */
         public addGainedTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): string {
-            const addedAbility = this.createTriggeredAbility(properties);
+            const addedAbility = this.createTriggeredAbility({ ...properties, printedAbility: false });
             this.triggeredAbilities = [...this.triggeredAbilities, addedAbility];
             addedAbility.registerEvents();
 
@@ -115,7 +115,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
          * @returns The uuid of the created triggered ability
          */
         public addGainedReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): string {
-            const addedAbility = this.createReplacementEffectAbility(properties);
+            const addedAbility = this.createReplacementEffectAbility({ ...properties, printedAbility: false });
             this.triggeredAbilities = [...this.triggeredAbilities, addedAbility];
             addedAbility.registerEvents();
 
@@ -128,7 +128,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
          * @returns The uuid of the created triggered ability
          */
         public addGainedDamageModificationAbility<TSource extends Card = this>(properties: IDamageModificationAbilityProps<TSource>): string {
-            const addedAbility = this.createDamageModificationAbility({ ...properties });
+            const addedAbility = this.createDamageModificationAbility({ ...properties, printedAbility: false });
             this.triggeredAbilities = [...this.triggeredAbilities, addedAbility];
             addedAbility.registerEvents();
 

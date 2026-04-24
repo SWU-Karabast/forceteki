@@ -123,7 +123,7 @@ const mockCards = [
         aspects: ['vigilance', 'heroism'],
         types: ['unit'],
         traits: ['rebel', 'official'],
-        // TODO: Add this back when support exists keywords: ['support'],
+        keywords: ['support'],
         setId: {
             set: 'ASH',
             number: 59
@@ -241,7 +241,7 @@ const mockCards = [
         aspects: ['aggression', 'heroism'],
         types: ['unit'],
         traits: ['droid'],
-        // TODO: Add this back when support exists keywords: ['support'],
+        keywords: ['support'],
         setId: {
             set: 'ASH',
             number: 156
@@ -319,7 +319,7 @@ const mockCards = [
         aspects: ['cunning', 'heroism'],
         types: ['unit'],
         traits: ['force', 'jedi', 'spectre'],
-        // TODO: Add this back when support exists keywords: ['support'],
+        keywords: ['support'],
         setId: {
             set: 'ASH',
             number: 209
@@ -385,6 +385,78 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'anakin-skywalker#you-were-right-about-me',
+    }),
+    buildMockCard({
+        title: 'Jod Na Nawood',
+        subtitle: 'Keeping Secrets',
+        cost: 3,
+        power: 4,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['force', 'underworld'],
+        keywords: ['sentinel'],
+        setId: {
+            set: 'ASH',
+            number: 290
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jod-na-nawood#keeping-secrets',
+    }),
+    buildMockCard({
+        title: 'Blade Three',
+        subtitle: 'Bane of the Devastator',
+        cost: 3,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'fighter'],
+        setId: {
+            set: 'ASH',
+            number: 204
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'blade-three#bane-of-the-devastator',
+    }),
+    buildMockCard({
+        title: 'Mortar Trooper',
+        cost: 2,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'trooper'],
+        setId: {
+            set: 'ASH',
+            number: 142
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'mortar-trooper',
+    }),
+    buildMockCard({
+        title: 'Mandalorian Flagship',
+        subtitle: 'Captured from the Empire',
+        cost: 7,
+        power: 4,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['mandalorian', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'ASH',
+            number: 113
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'mandalorian-flagship#captured-from-the-empire',
     }),
 ];
 

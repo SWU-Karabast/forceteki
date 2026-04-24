@@ -1162,7 +1162,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 !EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
                 EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
             ) {
-                constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
+                constantAbility.registeredEffects = this.addEffectToEngine(constantAbility.buildEffectFactoryProps());
             } else if (
                 EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
                 !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)

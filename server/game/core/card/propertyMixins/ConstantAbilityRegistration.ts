@@ -25,7 +25,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseCl
             const ability = this.createConstantAbility({ ...properties, printedAbility: true });
             // This check is necessary to make sure on-play cost-reduction effects are registered
             if (ability.sourceZoneFilter === WildcardZoneName.Any) {
-                ability.registeredEffects = this.addEffectToEngine(ability);
+                ability.registeredEffects = this.addEffectToEngine(ability.buildEffectFactoryProps());
             }
             this.constantAbilities = [...this.constantAbilities, ability];
             return ability;
@@ -56,7 +56,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseCl
         public addGainedConstantAbility(properties: IConstantAbilityProps<this>): string {
             const addedAbility = this.createConstantAbility({ ...properties, printedAbility: false });
             this.constantAbilities = [...this.constantAbilities, addedAbility];
-            addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
+            addedAbility.registeredEffects = this.addEffectToEngine(addedAbility.buildEffectFactoryProps());
 
             return addedAbility.uuid;
         }
