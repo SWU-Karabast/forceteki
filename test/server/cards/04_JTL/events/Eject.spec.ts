@@ -145,5 +145,24 @@ describe('Eject', function () {
                 expect(context.paigeTico.isUpgraded()).toBeFalse();
             });
         });
+
+        it('Eject\'s ability should draw a card even if there is not Pilot to detach', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['eject'],
+                    spaceArena: ['awing'],
+                    groundArena: ['l337#get-out-of-my-seat'],
+                    deck: ['yoda#old-master']
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.eject);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.l337.exhausted).toBeFalse();
+            expect(context.yoda).toBeInZone('hand', context.player1);
+        });
     });
 });

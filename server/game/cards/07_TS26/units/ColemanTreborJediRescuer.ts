@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ColemanTreborJediRescuer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'coleman-trebor#jedi-rescuer-id',
+            id: '0571552412',
             internalName: 'coleman-trebor#jedi-rescuer',
         };
     }

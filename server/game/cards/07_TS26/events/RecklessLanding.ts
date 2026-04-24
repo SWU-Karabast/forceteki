@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class RecklessLanding extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'reckless-landing-id',
+            id: '4432234342',
             internalName: 'reckless-landing',
         };
     }

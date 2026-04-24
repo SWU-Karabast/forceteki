@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class YodaBegunTheCloneWarHas extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'yoda#begun-the-clone-war-has-id',
+            id: '1104377502',
             internalName: 'yoda#begun-the-clone-war-has',
         };
     }

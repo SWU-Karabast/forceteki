@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class PrimeMinisterAlmecSchemingPopulist extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'prime-minister-almec#scheming-populist-id',
+            id: '8042667309',
             internalName: 'prime-minister-almec#scheming-populist',
         };
     }
