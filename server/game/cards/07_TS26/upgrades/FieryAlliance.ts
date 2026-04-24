@@ -19,7 +19,7 @@ export default class FieryAlliance extends UpgradeCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => card !== context.source.parentCard,
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.damage({ amount: 1 }),
                     AbilityHelper.immediateEffects.attack()
                 ])
