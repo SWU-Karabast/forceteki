@@ -265,7 +265,7 @@ export abstract class TriggerWindowBase extends BaseStep {
         handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
-            activePromptTitle: 'Choose an ability to resolve:',
+            activePromptTitle: 'You have multiple triggers to resolve. Choose which to resolve first:',
             source: 'Choose Triggered Ability Resolution Order',
             choices,
             handlers,
