@@ -1547,7 +1547,7 @@ export class GameServer {
                     createdAt: profile.createdAt,
                     lastLogin: profile.lastLogin,
                     isMuted: this.modActionService?.isPlayerMuted(profile.id) ?? false,
-                    needsRename: this.modActionService?.playerNeedsRename(profile.id) ?? false,
+                    activeRename: this.modActionService?.playerActiveRename(profile.id) ?? null,
                 }));
 
                 // If single match, include mod actions directly
@@ -1580,6 +1580,7 @@ export class GameServer {
 
                 const { playerId, actionType, durationDays, note } = parseResult.data;
                 const moderatorId = req.user.getId();
+                const moderatorUsername = req.user.getUsername();
 
                 if (!this.modActionService) {
                     return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
@@ -1590,6 +1591,7 @@ export class GameServer {
                     playerId,
                     actionType,
                     moderatorId,
+                    moderatorUsername,
                     note,
                     durationDays ?? undefined,
                 );
@@ -1616,11 +1618,11 @@ export class GameServer {
                 }
 
                 const { modActionId, playerId } = parseResult.data;
-                const cancelledBy = req.user.getId();
-
+                const cancelledById = req.user.getId();
+                const cancelledByUsername = req.user.getUsername();
                 // Write-through to cache
                 if (this.modActionService) {
-                    await this.modActionService.onActionCancelled(playerId, modActionId, cancelledBy);
+                    await this.modActionService.onActionCancelled(playerId, modActionId, cancelledById, cancelledByUsername);
                 }
 
                 return res.status(200).json({

@@ -838,7 +838,7 @@ class DynamoDBService {
     /**
      * Cancel a mod action: set cancelledAt and cancelledBy, remove GSI_PK to drop it from the active index.
      */
-    public cancelModActionAsync(playerId: string, modActionId: string, cancelledBy: string) {
+    public cancelModActionAsync(playerId: string, modActionId: string, cancelledById: string, cancelledByUsername: string) {
         return this.executeDbOperationAsync(() => {
             const command = new UpdateCommand({
                 TableName: this.tableName,
@@ -846,10 +846,13 @@ class DynamoDBService {
                     pk: `USER#${playerId}`,
                     sk: `MODACTION#${modActionId}`,
                 },
-                UpdateExpression: 'SET cancelledAt = :cancelledAt, cancelledBy = :cancelledBy REMOVE GSI_PK',
+                UpdateExpression: 'SET cancelledAt = :cancelledAt, cancelledById = :cancelledById, cancelledByUsername = :cancelledByUsername ' +
+                  'REMOVE GSI_PK',
+                ConditionExpression: 'attribute_exists(pk) AND attribute_not_exists(cancelledAt)',
                 ExpressionAttributeValues: {
                     ':cancelledAt': new Date().toISOString(),
-                    ':cancelledBy': cancelledBy,
+                    ':cancelledById': cancelledById,
+                    ':cancelledByUsername': cancelledByUsername
                 },
                 ReturnValues: 'ALL_NEW'
             });

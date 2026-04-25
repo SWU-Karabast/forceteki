@@ -84,9 +84,11 @@ export const ModActionEntitySchema = z.object({
         .optional(),
     note: z.string().optional(),
     moderatorId: z.string(),
+    moderatorUsername: z.string(),
     createdAt: z.string(),
     startedAt: z.string().optional(),
     expiresAt: z.string().optional(),
     cancelledAt: z.string().optional(),
-    cancelledBy: z.string().optional(),
+    cancelledById: z.string().optional(),
+    cancelledByUsername: z.string().optional(),
 }) as z.ZodType<IModActionEntity>;

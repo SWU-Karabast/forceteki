@@ -140,11 +140,13 @@ export interface IModActionEntity {
     durationDays?: number;
     note?: string;
     moderatorId: string;
+    moderatorUsername: string;
     createdAt: string;
     startedAt?: string;
     expiresAt?: string;
     cancelledAt?: string;
-    cancelledBy?: string;
+    cancelledById?: string;
+    cancelledByUsername?: string;
 }
 
 export interface IActiveModActionCacheEntry {

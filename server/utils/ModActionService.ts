@@ -162,14 +162,13 @@ export class ModActionService {
      * Sets cancelledAt/cancelledBy and removes it from the active index.
      * @throws Error if the mod action is not found.
      */
-    private async cancelModActionAsync(playerId: string, modActionId: string, cancelledBy: string): Promise<void> {
+    private async cancelModActionAsync(playerId: string, modActionId: string, cancelledById: string, cancelledByUsername: string): Promise<void> {
         try {
             const dbService = await this.dbServicePromise;
-            const result = await dbService.cancelModActionAsync(playerId, modActionId, cancelledBy);
+            const result = await dbService.cancelModActionAsync(playerId, modActionId, cancelledById, cancelledByUsername);
             Contract.assertNotNullLike(result.Attributes, `Mod action not found: ${modActionId}`);
 
-            logger.info(`ModActionService: Moderator ${cancelledBy} cancelled action ${modActionId} on player ${playerId}`, {
-                moderatorId: cancelledBy,
+            logger.info(`ModActionService: Moderator ${cancelledByUsername} cancelled action ${modActionId} on player ${playerId}`, {
                 userId: playerId,
             });
         } catch (error) {
@@ -191,6 +190,7 @@ export class ModActionService {
         playerId: string,
         actionType: ModActionType,
         moderatorId: string,
+        moderatorUsername: string,
         note: string,
         durationDays?: number,
     ): Promise<IModActionEntity> {
@@ -208,6 +208,7 @@ export class ModActionService {
                 durationDays,
                 note,
                 moderatorId,
+                moderatorUsername,
                 createdAt: new Date().toISOString(),
             };
 
@@ -319,13 +320,13 @@ export class ModActionService {
     /**
      * Checks if a player has an active force rename.
      */
-    public playerNeedsRename(playerId: string): boolean {
+    public playerActiveRename(playerId: string): IActiveModActionCacheEntry | null {
         const playerActions = this.getPlayerActions(playerId);
         if (!playerActions) {
-            return false;
+            return null;
         }
 
-        return playerActions.has(ModActionType.Rename);
+        return playerActions.get(ModActionType.Rename);
     }
 
     /**
@@ -405,6 +406,7 @@ export class ModActionService {
      */
     public async onActionSubmitted(playerId: string, actionType: ModActionType,
         moderatorId: string,
+        moderatorUsername: string,
         note: string,
         durationDays?: number
     ): Promise<{ success: boolean; message: string }> {
@@ -416,7 +418,7 @@ export class ModActionService {
             };
         }
 
-        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, note, durationDays);
+        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, moderatorUsername, note, durationDays);
 
         if (!isTimedModAction(modAction.actionType)) {
             return {
@@ -450,10 +452,10 @@ export class ModActionService {
      * Removes the entry only if the cancelled action was the one in cache.
      * If there are other active actions of the same type, the next refresh will pick them up.
      */
-    public async onActionCancelled(playerId: string, cancelledModActionId: string, cancelledBy: string): Promise<void> {
+    public async onActionCancelled(playerId: string, cancelledModActionId: string, cancelledById: string, cancelledByUsername: string): Promise<void> {
         const playerActions = this.getPlayerActions(playerId);
         // DB cancellation
-        await this.cancelModActionAsync(playerId, cancelledModActionId, cancelledBy);
+        await this.cancelModActionAsync(playerId, cancelledModActionId, cancelledById, cancelledByUsername);
 
         // Cache cancellation
         if (!playerActions) {

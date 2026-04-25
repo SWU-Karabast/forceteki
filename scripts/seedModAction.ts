@@ -54,6 +54,7 @@ async function run() {
         actionType: ACTION_TYPE,
         note: NOTE,
         moderatorId: 'seed-script',
+        moderatorUsername: 'JarJar',
         createdAt: now.toISOString(),
     };
 
