@@ -7,13 +7,15 @@ const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
 const { addMockCards } = require('./mockdata');
+const { computeCardDataHash } = require('./cardDataHash');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
 // ############################################################################
-// if you are updating this script in a way that will change the card data,
-// you must also update card-data-version.txt with a new version number
-// so that the pipeline and other devs will know to update the card data
+// The CI card data cache key and local dev validation are based on a hash of
+// card-data-version.txt, fetchdata.js, and mockdata.js. Changes to any of
+// these files will automatically bust the cache. You can also manually
+// update card-data-version.txt to force a cache bust if needed.
 
 const pathToJSON = path.join(__dirname, '../test/json/');
 
@@ -503,7 +505,7 @@ async function main() {
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
     fs.writeFile(path.join(pathToJSON, '_leaderNames.json'), JSON.stringify(leaderNames, null, 2));
-    fs.copyFile(path.join(__dirname, '../card-data-version.txt'), path.join(pathToJSON, 'card-data-version.txt'));
+    fs.writeFile(path.join(pathToJSON, 'card-data-hash.txt'), computeCardDataHash());
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
