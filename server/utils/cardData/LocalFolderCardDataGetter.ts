@@ -42,18 +42,16 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
 
         Contract.assertTrue(fs.existsSync(directory), `Json card definitions folder ${directory} not found${getCardsSuffix}`);
 
-        const actualCardDataVersionPath = path.join(directory, 'card-data-version.txt');
-        Contract.assertTrue(fs.existsSync(actualCardDataVersionPath), `Card data version file ${actualCardDataVersionPath} not found${getCardsSuffix}`);
+        const actualCardDataHashPath = path.join(directory, 'card-data-hash.txt');
+        Contract.assertTrue(fs.existsSync(actualCardDataHashPath), `Card data hash file ${actualCardDataHashPath} not found${getCardsSuffix}`);
 
-        const expectedCardDataVersionPath = path.join(__dirname, '../../card-data-version.txt');
-        Contract.assertTrue(fs.existsSync(expectedCardDataVersionPath), `Repository file ${expectedCardDataVersionPath} not found${getCardsSuffix}`);
+        const expectedCardDataHashPath = path.join(__dirname, '../../card-data-hash.txt');
+        Contract.assertTrue(fs.existsSync(expectedCardDataHashPath), `Build hash file ${expectedCardDataHashPath} not found, please rebuild the project`);
 
-        const actualCardDataVersion = fs.readFileSync(actualCardDataVersionPath, 'utf8')
-            .split('\n')[0].trim();
-        const expectedCardDataVersion = fs.readFileSync(expectedCardDataVersionPath, 'utf8')
-            .split('\n')[0].trim();
+        const actualCardDataHash = fs.readFileSync(actualCardDataHashPath, 'utf8').trim();
+        const expectedCardDataHash = fs.readFileSync(expectedCardDataHashPath, 'utf8').trim();
 
-        Contract.assertTrue(actualCardDataVersion === expectedCardDataVersion, `Json card data version mismatch, expected '${expectedCardDataVersion}' but found '${actualCardDataVersion}' currently installed${getCardsSuffix}`);
+        Contract.assertTrue(actualCardDataHash === expectedCardDataHash, `Card data hash mismatch, expected '${expectedCardDataHash}' but found '${actualCardDataHash}' currently installed${getCardsSuffix}`);
     }
 
     protected static getRelativePathFromInternalName(internalName: string) {

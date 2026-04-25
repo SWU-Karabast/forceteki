@@ -68,7 +68,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         }
 
         for (const ability of this.getConstantAbilities()) {
-            ability.registeredEffects = this.addEffectToEngine(ability);
+            ability.registeredEffects = this.addEffectToEngine(ability.buildEffectFactoryProps());
         }
     }
 
