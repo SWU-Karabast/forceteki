@@ -4,7 +4,7 @@
  *
  * Prerequisites:
  *   - ENVIRONMENT=development and USE_LOCAL_DYNAMODB=true in your env
- *   - Local DynamoDB Docker container running
+ *   - Local DynamoDB Docker container ( by "running docker-compose up -d"  )
  * Usage:
  *   1. Set MY_USER_ID to the target user's GUID
  *   2. Configure ACTION_TYPE, DURATION_DAYS, EXPIRES_IN_MINUTES, and NOTE as needed
