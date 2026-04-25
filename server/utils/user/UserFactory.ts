@@ -24,9 +24,14 @@ const getDefaultCosmeticsPreferences = () => ({
     background: null,
 });
 
+const getDefaultGameOptionsPreferences = () => ({
+    muteChat: false,
+});
+
 export const getDefaultPreferences = (): IUserPreferences => ({
     sound: getDefaultSoundPreferences(),
     cosmetics: getDefaultCosmeticsPreferences(),
+    gameOptions: getDefaultGameOptionsPreferences(),
 });
 
 
