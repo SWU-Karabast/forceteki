@@ -1,4 +1,4 @@
-import type { IKeywordProperties, KeywordNameOrProperties } from '../../Interfaces';
+import type { CostKeywordName, IKeywordProperties, KeywordNameOrProperties, NumericKeywordName } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { PlayType } from '../Constants';
 import { Aspect, KeywordName } from '../Constants';
@@ -22,7 +22,7 @@ export function parseKeywords(
         if (isNumericType[keywordName]) {
             const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, card.internalName);
             if (keywordValueOrNull != null) {
-                keywords.push(new KeywordWithNumericValue(keywordName, card, keywordValueOrNull));
+                keywords.push(new KeywordWithNumericValue(keywordName as NumericKeywordName, card, keywordValueOrNull));
             }
         } else if (keywordName === KeywordName.Piloting) {
             const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, pilotText, card);
@@ -56,6 +56,7 @@ export function keywordFromProperties(properties: IKeywordProperties, card: Card
     switch (properties.keyword) {
         case KeywordName.Restore:
         case KeywordName.Raid:
+        case KeywordName.Exploit:
             return new KeywordWithNumericValue(properties.keyword, card, properties.amount);
 
         case KeywordName.Bounty:
@@ -76,6 +77,7 @@ export function keywordFromProperties(properties: IKeywordProperties, card: Card
         case KeywordName.Saboteur:
         case KeywordName.Sentinel:
         case KeywordName.Shielded:
+        case KeywordName.Support:
             return new KeywordInstance(properties.keyword, card);
 
         default:
@@ -98,7 +100,8 @@ export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Saboteur]: false,
     [KeywordName.Sentinel]: false,
     [KeywordName.Shielded]: false,
-    [KeywordName.Smuggle]: false
+    [KeywordName.Smuggle]: false,
+    [KeywordName.Support]: false
 };
 
 export const hasWhileInPlayAbility: Record<KeywordName, boolean> = {
@@ -116,7 +119,8 @@ export const hasWhileInPlayAbility: Record<KeywordName, boolean> = {
     [KeywordName.Saboteur]: false,
     [KeywordName.Sentinel]: false,
     [KeywordName.Shielded]: false,
-    [KeywordName.Smuggle]: false
+    [KeywordName.Smuggle]: false,
+    [KeywordName.Support]: false
 };
 
 /**
@@ -174,7 +178,7 @@ function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: strin
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
-function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: string, card: Card): KeywordWithCostValues {
+function parseKeywordWithCostValuesIfEnabled(keyword: CostKeywordName, cardText: string, card: Card): KeywordWithCostValues {
     const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);
 
@@ -239,6 +243,8 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Shielded/g;
         case KeywordName.Smuggle:
             return /(?:\n)?Smuggle\s\[\s*(\d+)\s+resources(?:,\s*|\s+)([\w\s]+)(,.*)?\]/g;
+        case KeywordName.Support:
+            return /(?:^|(?:\n))Support/g;
         default:
             throw new Error(`Keyword '${keyword}' is not implemented yet`);
     }

@@ -20,6 +20,7 @@ import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
+import { SupportAbility } from '../../../abilities/keyword/SupportAbility';
 import type { Game } from '../../Game';
 import type { GameEvent } from '../../event/GameEvent';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
@@ -78,7 +79,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     isUpgraded(): boolean;
     hasExperience(): boolean;
     hasShield(): boolean;
-    effectsPreventAttack(target: Card);
+    effectsPreventAttack(target: Card, context?: AbilityContext): boolean;
     moveToCaptureZone(targetZone: CaptureZone);
     checkRegisterWhenPlayedKeywordAbilities(event: GameEvent);
     checkRegisterOnAttackKeywordAbilities(event: GameEvent);
@@ -364,8 +365,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Check if there are any effect restrictions preventing this unit from attacking the passed target.
          * Returns true if so.
          */
-        public effectsPreventAttack(target: Card) {
-            if (this.hasRestriction(AbilityRestriction.Attack)) {
+        public effectsPreventAttack(target: Card, context?: AbilityContext): boolean {
+            if (this.hasRestriction(AbilityRestriction.Attack, context)) {
                 return true;
             }
             if (this.hasOngoingEffect(EffectName.CannotAttackBase) && target.isBase()) {
@@ -688,7 +689,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 };
 
                 const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
-                coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
+                coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility.buildEffectFactoryProps());
 
                 this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, coordinateKeywordAbility];
             }
@@ -703,7 +704,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 };
 
                 const hiddenKeywordAbility = this.createConstantAbility(hiddenKeywordAbilityProps);
-                hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility);
+                hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility.buildEffectFactoryProps());
 
                 this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, hiddenKeywordAbility];
             }
@@ -727,8 +728,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public checkRegisterWhenPlayedKeywordAbilities(event: GameEvent) {
             const hasAmbush = this.hasSomeKeyword(KeywordName.Ambush);
             const hasShielded = this.hasSomeKeyword(KeywordName.Shielded);
+            const hasSupport = this.hasSomeKeyword(KeywordName.Support);
 
-            if (!hasAmbush && !hasShielded) {
+            if (!hasAmbush && !hasShielded && !hasSupport) {
                 return;
             }
 
@@ -751,6 +753,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const shieldedAbility = this.createTriggeredAbility(shieldedProps);
                 shieldedAbility.registerEvents();
                 this._whenPlayedKeywordAbilities = [...this._whenPlayedKeywordAbilities, shieldedAbility];
+            }
+
+            if (hasSupport) {
+                const supportProps = Object.assign(this.buildGeneralAbilityProps('keyword_support'), SupportAbility.buildSupportAbilityProperties(this));
+                const supportAbility = this.createTriggeredAbility(supportProps);
+                supportAbility.registerEvents();
+                this._whenPlayedKeywordAbilities = [...this._whenPlayedKeywordAbilities, supportAbility];
             }
 
             event.addCleanupHandler(() => this.unregisterWhenPlayedKeywords());
