@@ -102,6 +102,7 @@ export enum EffectName {
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
+    GainNonKeywordAbilitiesFromUnit = 'gainNonKeywordAbilitiesFromUnit',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
@@ -390,6 +391,7 @@ export enum KeywordName {
     Sentinel = 'sentinel',
     Shielded = 'shielded',
     Smuggle = 'smuggle',
+    Support = 'support',
 }
 
 export enum Trait {
@@ -527,6 +529,7 @@ export enum StateWatcherName {
     TokensCreatedThisPhase = 'tokensCreatedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
+    BasesHealedThisPhase = 'basesHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado

@@ -35,7 +35,7 @@ describe('Specific Clone scenarios', function() {
                 expect(context.p1Base.damage).toBe(0);
 
                 // Nested triggers: Resolve each of the two When You Use the Force abilities
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'When you use the Force',
                     'When you use the Force'
