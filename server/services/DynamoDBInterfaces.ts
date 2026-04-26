@@ -52,6 +52,11 @@ export interface IDeckStatsEntity {
     statsByMatchup?: IMatchupStatEntity[];
 }
 
+export interface IKeyboardShortcuts {
+    passTurn?: string;
+    undo?: string;
+}
+
 
 export interface IUserPreferences {
     sound?: {
@@ -65,6 +70,7 @@ export interface IUserPreferences {
         cardback?: string;
         background?: string;
     };
+    keyboardShortcuts?: IKeyboardShortcuts;
 }
 
 // Define user interface
