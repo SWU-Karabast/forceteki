@@ -1,7 +1,16 @@
-import type { CardTypeFilter, ZoneFilter, MoveZoneDestination } from '../Constants';
-import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
+import type { CardTypeFilter, MoveZoneDestination, ZoneFilter } from '../Constants';
+import {
+    CardType,
+    DeckZoneDestination,
+    RelativePlayer,
+    WildcardCardType,
+    WildcardZoneName,
+    ZoneName
+} from '../Constants';
 import type { Player } from '../Player';
 import { Helpers } from './Helpers';
+import type { TimedModActionType } from '../../../services/DynamoDBInterfaces';
+import { ModActionType } from '../../../services/DynamoDBInterfaces';
 
 // Cache for enum lookup maps (lowercase string -> enum value)
 const enumLookupCache = new Map<object, Map<string, unknown>>();
@@ -302,3 +311,7 @@ export namespace EnumHelpers {
         return player === otherPlayer ? RelativePlayer.Self : RelativePlayer.Opponent;
     };
 }
+
+export const isTimedModAction = (actionType: ModActionType): actionType is TimedModActionType => {
+    return actionType === ModActionType.Mute || actionType === ModActionType.Rename;
+};

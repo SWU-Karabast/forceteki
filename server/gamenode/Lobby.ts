@@ -356,6 +356,14 @@ export class Lobby {
         };
     }
 
+    private isUserChatDisabled(user: LobbyUserWrapper): boolean {
+        const isModerationMuted = user.socket?.user.getModeration()?.moderationType === ModerationType.Mute;
+        const lobbyChatMuted = user.id === this.userWhoMutedChat;
+        const playerAccountChatSettingDisabled = user.socket?.user.getPreferences()?.gameOptions?.muteChat === true;
+
+        return isModerationMuted || lobbyChatMuted || playerAccountChatSettingDisabled;
+    }
+
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
         const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
 
@@ -375,7 +383,7 @@ export class Lobby {
             state: user.state,
             ready: user.ready,
             authenticated: authenticatedStatus,
-            chatDisabled: user.socket?.user.getModeration()?.moderationType === ModerationType.Mute || user.id === this.userWhoMutedChat,
+            chatDisabled: this.isUserChatDisabled(user)
         };
 
         const extendedData = fullData ? {
