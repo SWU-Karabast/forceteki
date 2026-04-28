@@ -2327,4 +2327,38 @@ export class Lobby {
             });
         }
     }
+
+    public getGameLog(socket: any, callback: (data: { rawLog: string; swuPgn: string; swuReplay: string } | { error: string }) => void): void {
+        if (!this.game) {
+            if (typeof callback === 'function') {
+                callback({ error: 'No active game' });
+            }
+            return;
+        }
+
+        // Only serve game files after the game has ended to prevent leaking
+        // omniscient replay snapshots (which include hidden card data) mid-game
+        if (!this.game.finishedAt) {
+            if (typeof callback === 'function') {
+                callback({ error: 'Game is still in progress' });
+            }
+            return;
+        }
+
+        try {
+            const rawLog = this.game.cachedRawGameLog ?? this.game.getRawGameLog();
+            const gameFiles = this.game.cachedSwuPgn && this.game.cachedSwuReplay
+                ? { swuPgn: this.game.cachedSwuPgn, swuReplay: this.game.cachedSwuReplay }
+                : this.game.generateGameFiles();
+
+            if (typeof callback === 'function') {
+                callback({ rawLog, swuPgn: gameFiles.swuPgn, swuReplay: gameFiles.swuReplay });
+            }
+        } catch (e) {
+            logger.error(`Error generating game log: ${e}`);
+            if (typeof callback === 'function') {
+                callback({ error: 'Failed to generate game log' });
+            }
+        }
+    }
 }

@@ -1,0 +1,380 @@
+[Game "SWU-PGN v1.0"]
+[Date "2026.04.04"]
+[Player1 "Player 1"]
+[Player2 "Player 2"]
+[P1Leader "Darth Vader, Commanding the First Legion"]
+[P1Base "Command Center"]
+[P2Leader "Luke Skywalker, Faithful Friend"]
+[P2Base "Echo Base"]
+[Result "P1 Win"]
+[Reason "Base Destroyed"]
+[Format "Premier"]
+[Rounds "4"]
+
+=== FREEFORM ===
+
+═══ ROUND 1 ═══
+
+─── Setup Phase ───
+P1 draws 6 cards in starting hand
+P1 will keep their hand
+P2 draws 6 cards in starting hand
+P2 will mulligan
+P2 shuffles their deck
+P2 draws 6 cards in starting hand
+P1 resources 1 card from hand: Vanquish
+P2 resources 1 card from hand: Asteroid Sanctuary
+
+─── Action Phase ───
+1. P1 plays Viper Probe Droid to Ground Arena (cost 2)
+  1a. P1's Viper Probe Droid triggers When Played: looks at P2's hand
+  1b. P2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace, Snowspeeder, Jedha City
+2. P2 plays Rebel Pathfinder to Ground Arena (cost 2)
+  2a. P2's Rebel Pathfinder triggers When Played: P2 searches deck
+  2b. P2 finds Surprise Strike and puts it into hand
+  2c. P2 shuffles their deck
+3. P1 plays Cell Block Guard to Ground Arena (cost 3)
+  3a. P1 activates Darth Vader, Commanding the First Legion ability: deals 1 damage to P1's Base
+  3b. Command Center takes 1 damage (29 remaining HP)
+  3c. P1 draws 1 card
+4. P2 passes
+5. P1 attacks with Viper Probe Droid against P2's Base
+  5a. Viper Probe Droid deals 2 damage to Echo Base (28 remaining HP)
+  5b. Viper Probe Droid is exhausted
+6. P2 claims initiative and passes
+
+─── Regroup Phase ───
+P1 draws 2 cards
+P2 draws 2 cards
+P1 resources 1 card from hand: Admiral Ozzel, Overconfident
+P2 resources 0 cards
+All cards readied
+
+═══ ROUND 2 ═══
+
+─── Action Phase ───
+1. P2 plays Wing Leader to Space Arena (cost 3)
+  1a. P2's Wing Leader triggers When Played: creates X-Wing token
+  1b. X-Wing token enters Space Arena (2/3)
+2. P1 attacks with Cell Block Guard against P2's Rebel Pathfinder
+  2a. Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
+  2b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
+  2c. Rebel Pathfinder is defeated
+  2d. Cell Block Guard is exhausted
+3. P2 plays Snowspeeder to Space Arena (cost 2)
+4. P1 plays 97th Legion, Keeping the Peace on Sullust to Ground Arena (cost 5)
+  4a. P1 activates Darth Vader, Commanding the First Legion ability: deals 1 damage to P1's Base
+  4b. Command Center takes 1 damage (28 remaining HP)
+  4c. P1 draws 1 card
+5. P2 attacks with Wing Leader against P1's Base
+  5a. Wing Leader deals 3 damage to Command Center (25 remaining HP)
+  5b. Wing Leader is exhausted
+6. P1 attacks with Viper Probe Droid against P2's Base
+  6a. Viper Probe Droid deals 2 damage to Echo Base (26 remaining HP)
+  6b. Viper Probe Droid is exhausted
+7. P2 attacks with X-Wing token against P1's Base
+  7a. X-Wing token deals 2 damage to Command Center (23 remaining HP)
+  7b. X-Wing token is exhausted
+8. P1 passes
+9. P2 attacks with Snowspeeder against P1's Base
+  9a. Snowspeeder deals 3 damage to Command Center (20 remaining HP)
+  9b. Snowspeeder is exhausted
+10. P1 claims initiative and passes
+
+─── Regroup Phase ───
+P1 draws 2 cards
+P2 draws 2 cards
+P1 resources 1 card from hand: Force Choke
+P2 resources 1 card from hand: Moment of Peace
+All cards readied
+
+═══ ROUND 3 ═══
+
+─── Action Phase ───
+1. P1 plays Relentless, Konstantine's Folly to Space Arena (cost 5)
+  1a. P1's Relentless, Konstantine's Folly triggers When Played: deals 3 damage to Snowspeeder
+  1b. Snowspeeder takes 3 damage (0 remaining HP)
+  1c. Snowspeeder is defeated
+2. P2 plays Moment of Peace (cost 2)
+  2a. 2 damage healed from Echo Base (28 remaining HP)
+  2b. P2's Echo Base gains a Shield token
+3. P1 attacks with 97th Legion, Keeping the Peace on Sullust against P2's Base
+  3a. P2's Echo Base's Shield token is defeated to prevent damage
+  3b. 97th Legion, Keeping the Peace on Sullust is exhausted
+4. P2 plays Jedha City to Ground Arena (cost 3)
+5. P1 attacks with Cell Block Guard against P2's Jedha City
+  5a. Cell Block Guard deals 3 damage to Jedha City (0 remaining HP)
+  5b. Jedha City deals 3 damage to Cell Block Guard (0 remaining HP)
+  5c. Jedha City is defeated
+  5d. Cell Block Guard is defeated
+6. P2 attacks with Wing Leader against P1's Relentless, Konstantine's Folly
+  6a. Wing Leader deals 3 damage to Relentless, Konstantine's Folly (5 remaining HP)
+  6b. Relentless, Konstantine's Folly deals 5 damage to Wing Leader (0 remaining HP)
+  6c. Wing Leader is defeated
+  6d. 2 Overwhelm damage dealt to P2's Echo Base (26 remaining HP)
+  6e. Relentless, Konstantine's Folly is exhausted
+7. P2 attacks with X-Wing token against P1's Base
+  7a. X-Wing token deals 2 damage to Command Center (18 remaining HP)
+  7b. X-Wing token is exhausted
+8. P1 plays Superlaser Technician to Ground Arena (cost 2)
+  8a. P1's Superlaser Technician triggers When Played: P1 readies a resource
+9. P2 plays Surprise Strike (cost 3)
+  9a. X-Wing token deals 2 damage to Relentless, Konstantine's Folly (3 remaining HP)
+10. P1 deploys Darth Vader, Commanding the First Legion to Ground Arena (cost 7)
+  10a. P1's Darth Vader, Commanding the First Legion triggers When Played: deals 4 damage to X-Wing token
+  10b. X-Wing token takes 4 damage (0 remaining HP)
+  10c. X-Wing token is defeated
+11. P2 claims initiative and passes
+
+─── Regroup Phase ───
+P1 draws 2 cards
+P2 draws 2 cards
+P1 resources 0 cards
+P2 resources 1 card from hand: Rebel Pathfinder
+All cards readied
+
+═══ ROUND 4 ═══
+
+─── Action Phase ───
+1. P2 plays Alliance X-Wing to Space Arena (cost 2)
+2. P1 attacks with Darth Vader, Commanding the First Legion against P2's Base
+  2a. Darth Vader, Commanding the First Legion deals 5 damage to Echo Base (21 remaining HP)
+  2b. Darth Vader, Commanding the First Legion is exhausted
+3. P2 plays Luke Skywalker, Jedi Knight to Ground Arena (cost 6)
+  3a. P2's Luke Skywalker, Jedi Knight triggers When Played: defeats P1's Superlaser Technician
+  3b. Superlaser Technician is defeated
+4. P1 attacks with 97th Legion, Keeping the Peace on Sullust against P2's Luke Skywalker, Jedi Knight
+  4a. 97th Legion, Keeping the Peace on Sullust deals 5 damage to Luke Skywalker, Jedi Knight (2 remaining HP)
+  4b. Luke Skywalker, Jedi Knight deals 6 damage to 97th Legion, Keeping the Peace on Sullust (0 remaining HP)
+  4c. 97th Legion, Keeping the Peace on Sullust is defeated
+  4d. Luke Skywalker, Jedi Knight is exhausted
+5. P2 attacks with Alliance X-Wing against P1's Base
+  5a. Alliance X-Wing deals 2 damage to Command Center (16 remaining HP)
+  5b. Alliance X-Wing is exhausted
+6. P1 attacks with Relentless, Konstantine's Folly against P2's Base
+  6a. Relentless, Konstantine's Folly deals 5 damage to Echo Base (16 remaining HP)
+  6b. Relentless, Konstantine's Folly is exhausted
+7. P2 activates Luke Skywalker, Faithful Friend leader ability: heals 1 damage from Luke Skywalker, Jedi Knight (3 remaining HP)
+8. P1 plays Vanquish (cost 4)
+  8a. Luke Skywalker, Jedi Knight is defeated
+9. P2 passes
+10. P1 attacks with Viper Probe Droid against P2's Base
+  10a. Viper Probe Droid deals 2 damage to Echo Base (14 remaining HP)
+  10b. Viper Probe Droid is exhausted
+11. P2 passes
+12. P1 plays Open Fire (cost 2)
+  12a. Deals 4 damage to Echo Base (10 remaining HP)
+13. P2 passes
+14. P1 plays Superlaser Blast (cost 8)
+  14a. All units in play are defeated
+  14b. Alliance X-Wing is defeated
+  14c. Viper Probe Droid is defeated
+  14d. Relentless, Konstantine's Folly is defeated
+  14e. Deals 10 damage to Echo Base (0 remaining HP)
+  14f. Echo Base is destroyed
+  14g. P1 wins the game
+
+═══ CARD INDEX ═══
+
+── P1 Decklist ──
+Leader: Darth Vader, Commanding the First Legion = SOR#010
+Base: Command Center = SOR#028
+Deck:
+  3x Admiral Piett, Captain of the Executor = SOR#080
+  2x Admiral Ozzel, Overconfident = SOR#087
+  2x Blizzard Assault AT-AT = SOR#092
+  2x Cell Block Guard = SOR#095
+  3x Death Star Stormtrooper = SOR#093
+  3x Emperor's Royal Guard = SOR#096
+  2x First Legion Snowtrooper = SOR#097
+  2x Force Choke = SOR#138
+  2x Force Lightning = SOR#139
+  3x General Veers, Blizzard Force Commander = SOR#086
+  1x Grand Inquisitor, Hunting the Jedi = SOR#012
+  1x Grand Moff Tarkin, Oversector Governor = SOR#084
+  3x 97th Legion, Keeping the Peace on Sullust = SOR#091
+  1x Open Fire = SOR#148
+  2x Overwhelming Barrage = SOR#136
+  3x Recruit = SOR#173
+  1x Relentless, Konstantine's Folly = SOR#118
+  1x Resupply = SOR#146
+  2x Ruthless Raider = SOR#120
+  1x Superlaser Blast = SOR#141
+  3x Superlaser Technician = SOR#102
+  2x The Emperor's Legion = SOR#137
+  3x Vanquish = SOR#142
+  2x Viper Probe Droid = SOR#108
+
+── P2 Decklist ──
+Leader: Luke Skywalker, Faithful Friend = SOR#005
+Base: Echo Base = SOR#020
+Deck:
+  2x Alliance X-Wing = SOR#038
+  2x Asteroid Sanctuary = SHD#062
+  2x Bright Hope, The Last Transport = SOR#040
+  2x C-3PO, Protocol Droid = SOR#050
+  3x Echo Base Defender = SOR#034
+  3x Jedha City = SOR#176
+  2x Luke Skywalker, Jedi Knight = SOR#051
+  3x Moment of Peace = SOR#165
+  2x R2-D2, Ignoring Protocol = SOR#054
+  3x Rebel Pathfinder = SOR#045
+  3x Recruit = SOR#173
+  2x Repair = SOR#172
+  1x Resourceful Pursuit = SOR#170
+  1x Snowspeeder = SOR#039
+  2x Surprise Strike = SOR#150
+  2x Wedge Antilles, Star of the Rebellion = SOR#043
+  3x Wing Leader = SOR#042
+  2x Yoda, Old Master = SOR#057
+
+=== PARSEABLE ===
+{"seq":"R1.S.1","type":"DRAW","player":"P1","count":6}
+{"seq":"R1.S.2","type":"KEEP_HAND","player":"P1"}
+{"seq":"R1.S.3","type":"DRAW","player":"P2","count":6}
+{"seq":"R1.S.4","type":"MULLIGAN","player":"P2"}
+{"seq":"R1.S.5","type":"SHUFFLE","player":"P2"}
+{"seq":"R1.S.6","type":"DRAW","player":"P2","count":6}
+{"seq":"R1.S.7","type":"RESOURCE","player":"P1","card":"SOR#142","count":1}
+{"seq":"R1.S.8","type":"RESOURCE","player":"P2","card":"SHD#062","count":1}
+{"seq":"R1.A.0","type":"PHASE_START","phase":"Action","round":1}
+{"seq":"R1.A.1","type":"PLAY","player":"P1","card":"SOR#108","zone":"Ground","cost":2,"playType":"playFromHand"}
+{"seq":"R1.A.1a","type":"TRIGGER","card":"SOR#108","abilityType":"whenPlayed","description":"looks at opponent hand"}
+{"seq":"R1.A.1b","type":"REVEAL","player":"P2","zone":"Hand","cards":["SOR#045","SOR#042","SOR#165","SOR#039","SOR#176"]}
+{"seq":"R1.A.2","type":"PLAY","player":"P2","card":"SOR#045","zone":"Ground","cost":2,"playType":"playFromHand"}
+{"seq":"R1.A.2a","type":"TRIGGER","card":"SOR#045","abilityType":"whenPlayed","description":"search deck"}
+{"seq":"R1.A.2b","type":"SEARCH","player":"P2","zone":"Deck","found":"SOR#150","destination":"Hand"}
+{"seq":"R1.A.2c","type":"SHUFFLE","player":"P2"}
+{"seq":"R1.A.3","type":"PLAY","player":"P1","card":"SOR#095","zone":"Ground","cost":3,"playType":"playFromHand"}
+{"seq":"R1.A.3a","type":"ABILITY_ACTIVATE","player":"P1","card":"SOR#010","abilityType":"action","description":"deals 1 damage to own base"}
+{"seq":"R1.A.3b","type":"DAMAGE","source":"SOR#010","target":"SOR#028","amount":1,"damageType":"ability","remainingHp":29}
+{"seq":"R1.A.3c","type":"DRAW","player":"P1","count":1}
+{"seq":"R1.A.4","type":"PASS","player":"P2"}
+{"seq":"R1.A.5","type":"ATTACK","player":"P1","attacker":"SOR#108","defender":"SOR#020","defenderType":"base"}
+{"seq":"R1.A.5a","type":"DAMAGE","source":"SOR#108","target":"SOR#020","amount":2,"damageType":"combat","remainingHp":28}
+{"seq":"R1.A.5b","type":"EXHAUST","card":"SOR#108"}
+{"seq":"R1.A.6","type":"CLAIM_INITIATIVE","player":"P2"}
+{"seq":"R1.A.end","type":"PHASE_END","phase":"Action","round":1}
+{"seq":"R1.G.0","type":"PHASE_START","phase":"Regroup","round":1}
+{"seq":"R1.G.1","type":"DRAW","player":"P1","count":2}
+{"seq":"R1.G.2","type":"DRAW","player":"P2","count":2}
+{"seq":"R1.G.3","type":"RESOURCE","player":"P1","card":"SOR#087","count":1}
+{"seq":"R1.G.4","type":"RESOURCE","player":"P2","card":null,"count":0}
+{"seq":"R1.G.5","type":"READY","card":"all"}
+{"seq":"R1.G.end","type":"PHASE_END","phase":"Regroup","round":1}
+{"seq":"R2.A.0","type":"PHASE_START","phase":"Action","round":2}
+{"seq":"R2.A.1","type":"PLAY","player":"P2","card":"SOR#042","zone":"Space","cost":3,"playType":"playFromHand"}
+{"seq":"R2.A.1a","type":"TRIGGER","card":"SOR#042","abilityType":"whenPlayed","description":"creates X-Wing token"}
+{"seq":"R2.A.1b","type":"CREATE_TOKEN","player":"P2","token":"X-Wing","zone":"Space","power":2,"hp":3}
+{"seq":"R2.A.2","type":"ATTACK","player":"P1","attacker":"SOR#095","defender":"SOR#045","defenderType":"unit"}
+{"seq":"R2.A.2a","type":"DAMAGE","source":"SOR#095","target":"SOR#045","amount":3,"damageType":"combat","remainingHp":0}
+{"seq":"R2.A.2b","type":"DAMAGE","source":"SOR#045","target":"SOR#095","amount":2,"damageType":"combat","remainingHp":1}
+{"seq":"R2.A.2c","type":"DEFEAT","card":"SOR#045","reason":"no_remaining_hp","defeatedBy":"SOR#095"}
+{"seq":"R2.A.2d","type":"EXHAUST","card":"SOR#095"}
+{"seq":"R2.A.3","type":"PLAY","player":"P2","card":"SOR#039","zone":"Space","cost":2,"playType":"playFromHand"}
+{"seq":"R2.A.4","type":"PLAY","player":"P1","card":"SOR#091","zone":"Ground","cost":5,"playType":"playFromHand"}
+{"seq":"R2.A.4a","type":"ABILITY_ACTIVATE","player":"P1","card":"SOR#010","abilityType":"action","description":"deals 1 damage to own base"}
+{"seq":"R2.A.4b","type":"DAMAGE","source":"SOR#010","target":"SOR#028","amount":1,"damageType":"ability","remainingHp":28}
+{"seq":"R2.A.4c","type":"DRAW","player":"P1","count":1}
+{"seq":"R2.A.5","type":"ATTACK","player":"P2","attacker":"SOR#042","defender":"SOR#028","defenderType":"base"}
+{"seq":"R2.A.5a","type":"DAMAGE","source":"SOR#042","target":"SOR#028","amount":3,"damageType":"combat","remainingHp":25}
+{"seq":"R2.A.5b","type":"EXHAUST","card":"SOR#042"}
+{"seq":"R2.A.6","type":"ATTACK","player":"P1","attacker":"SOR#108","defender":"SOR#020","defenderType":"base"}
+{"seq":"R2.A.6a","type":"DAMAGE","source":"SOR#108","target":"SOR#020","amount":2,"damageType":"combat","remainingHp":26}
+{"seq":"R2.A.6b","type":"EXHAUST","card":"SOR#108"}
+{"seq":"R2.A.7","type":"ATTACK","player":"P2","attacker":"TOKEN:xwing-1","defender":"SOR#028","defenderType":"base"}
+{"seq":"R2.A.7a","type":"DAMAGE","source":"TOKEN:xwing-1","target":"SOR#028","amount":2,"damageType":"combat","remainingHp":23}
+{"seq":"R2.A.7b","type":"EXHAUST","card":"TOKEN:xwing-1"}
+{"seq":"R2.A.8","type":"PASS","player":"P1"}
+{"seq":"R2.A.9","type":"ATTACK","player":"P2","attacker":"SOR#039","defender":"SOR#028","defenderType":"base"}
+{"seq":"R2.A.9a","type":"DAMAGE","source":"SOR#039","target":"SOR#028","amount":3,"damageType":"combat","remainingHp":20}
+{"seq":"R2.A.9b","type":"EXHAUST","card":"SOR#039"}
+{"seq":"R2.A.10","type":"CLAIM_INITIATIVE","player":"P1"}
+{"seq":"R2.A.end","type":"PHASE_END","phase":"Action","round":2}
+{"seq":"R2.G.0","type":"PHASE_START","phase":"Regroup","round":2}
+{"seq":"R2.G.1","type":"DRAW","player":"P1","count":2}
+{"seq":"R2.G.2","type":"DRAW","player":"P2","count":2}
+{"seq":"R2.G.3","type":"RESOURCE","player":"P1","card":"SOR#138","count":1}
+{"seq":"R2.G.4","type":"RESOURCE","player":"P2","card":"SOR#165","count":1}
+{"seq":"R2.G.5","type":"READY","card":"all"}
+{"seq":"R2.G.end","type":"PHASE_END","phase":"Regroup","round":2}
+{"seq":"R3.A.0","type":"PHASE_START","phase":"Action","round":3}
+{"seq":"R3.A.1","type":"PLAY","player":"P1","card":"SOR#118","zone":"Space","cost":5,"playType":"playFromHand"}
+{"seq":"R3.A.1a","type":"TRIGGER","card":"SOR#118","abilityType":"whenPlayed","description":"deals 3 damage to a space unit"}
+{"seq":"R3.A.1b","type":"DAMAGE","source":"SOR#118","target":"SOR#039","amount":3,"damageType":"ability","remainingHp":0}
+{"seq":"R3.A.1c","type":"DEFEAT","card":"SOR#039","reason":"no_remaining_hp","defeatedBy":"SOR#118"}
+{"seq":"R3.A.2","type":"PLAY_EVENT","player":"P2","card":"SOR#165","cost":2}
+{"seq":"R3.A.2a","type":"HEAL","card":"SOR#020","amount":2,"remainingHp":28}
+{"seq":"R3.A.2b","type":"SHIELD_GAIN","card":"SOR#020"}
+{"seq":"R3.A.3","type":"ATTACK","player":"P1","attacker":"SOR#091","defender":"SOR#020","defenderType":"base"}
+{"seq":"R3.A.3a","type":"SHIELD_USE","card":"SOR#020"}
+{"seq":"R3.A.3b","type":"EXHAUST","card":"SOR#091"}
+{"seq":"R3.A.4","type":"PLAY","player":"P2","card":"SOR#176","zone":"Ground","cost":3,"playType":"playFromHand"}
+{"seq":"R3.A.5","type":"ATTACK","player":"P1","attacker":"SOR#095","defender":"SOR#176","defenderType":"unit"}
+{"seq":"R3.A.5a","type":"DAMAGE","source":"SOR#095","target":"SOR#176","amount":3,"damageType":"combat","remainingHp":0}
+{"seq":"R3.A.5b","type":"DAMAGE","source":"SOR#176","target":"SOR#095","amount":3,"damageType":"combat","remainingHp":0}
+{"seq":"R3.A.5c","type":"DEFEAT","card":"SOR#176","reason":"no_remaining_hp","defeatedBy":"SOR#095"}
+{"seq":"R3.A.5d","type":"DEFEAT","card":"SOR#095","reason":"no_remaining_hp","defeatedBy":"SOR#176"}
+{"seq":"R3.A.6","type":"ATTACK","player":"P2","attacker":"SOR#042","defender":"SOR#118","defenderType":"unit"}
+{"seq":"R3.A.6a","type":"DAMAGE","source":"SOR#042","target":"SOR#118","amount":3,"damageType":"combat","remainingHp":5}
+{"seq":"R3.A.6b","type":"DAMAGE","source":"SOR#118","target":"SOR#042","amount":5,"damageType":"combat","remainingHp":0}
+{"seq":"R3.A.6c","type":"DEFEAT","card":"SOR#042","reason":"no_remaining_hp","defeatedBy":"SOR#118"}
+{"seq":"R3.A.6d","type":"OVERWHELM","source":"SOR#118","target":"SOR#020","amount":2,"remainingHp":26}
+{"seq":"R3.A.6e","type":"EXHAUST","card":"SOR#118"}
+{"seq":"R3.A.7","type":"ATTACK","player":"P2","attacker":"TOKEN:xwing-1","defender":"SOR#028","defenderType":"base"}
+{"seq":"R3.A.7a","type":"DAMAGE","source":"TOKEN:xwing-1","target":"SOR#028","amount":2,"damageType":"combat","remainingHp":18}
+{"seq":"R3.A.7b","type":"EXHAUST","card":"TOKEN:xwing-1"}
+{"seq":"R3.A.8","type":"PLAY","player":"P1","card":"SOR#102","zone":"Ground","cost":2,"playType":"playFromHand"}
+{"seq":"R3.A.8a","type":"TRIGGER","card":"SOR#102","abilityType":"whenPlayed","description":"ready a resource"}
+{"seq":"R3.A.9","type":"PLAY_EVENT","player":"P2","card":"SOR#150","cost":3}
+{"seq":"R3.A.9a","type":"DAMAGE","source":"TOKEN:xwing-1","target":"SOR#118","amount":2,"damageType":"ability","remainingHp":3}
+{"seq":"R3.A.10","type":"DEPLOY_LEADER","player":"P1","card":"SOR#010","zone":"Ground","cost":7}
+{"seq":"R3.A.10a","type":"TRIGGER","card":"SOR#010","abilityType":"whenPlayed","description":"deals 4 damage to a unit"}
+{"seq":"R3.A.10b","type":"DAMAGE","source":"SOR#010","target":"TOKEN:xwing-1","amount":4,"damageType":"ability","remainingHp":0}
+{"seq":"R3.A.10c","type":"DEFEAT","card":"TOKEN:xwing-1","reason":"no_remaining_hp","defeatedBy":"SOR#010"}
+{"seq":"R3.A.11","type":"CLAIM_INITIATIVE","player":"P2"}
+{"seq":"R3.A.end","type":"PHASE_END","phase":"Action","round":3}
+{"seq":"R3.G.0","type":"PHASE_START","phase":"Regroup","round":3}
+{"seq":"R3.G.1","type":"DRAW","player":"P1","count":2}
+{"seq":"R3.G.2","type":"DRAW","player":"P2","count":2}
+{"seq":"R3.G.3","type":"RESOURCE","player":"P1","card":null,"count":0}
+{"seq":"R3.G.4","type":"RESOURCE","player":"P2","card":"SOR#045","count":1}
+{"seq":"R3.G.5","type":"READY","card":"all"}
+{"seq":"R3.G.end","type":"PHASE_END","phase":"Regroup","round":3}
+{"seq":"R4.A.0","type":"PHASE_START","phase":"Action","round":4}
+{"seq":"R4.A.1","type":"PLAY","player":"P2","card":"SOR#038","zone":"Space","cost":2,"playType":"playFromHand"}
+{"seq":"R4.A.2","type":"ATTACK","player":"P1","attacker":"SOR#010","defender":"SOR#020","defenderType":"base"}
+{"seq":"R4.A.2a","type":"DAMAGE","source":"SOR#010","target":"SOR#020","amount":5,"damageType":"combat","remainingHp":21}
+{"seq":"R4.A.2b","type":"EXHAUST","card":"SOR#010"}
+{"seq":"R4.A.3","type":"PLAY","player":"P2","card":"SOR#051","zone":"Ground","cost":6,"playType":"playFromHand"}
+{"seq":"R4.A.3a","type":"TRIGGER","card":"SOR#051","abilityType":"whenPlayed","description":"defeat an enemy unit"}
+{"seq":"R4.A.3b","type":"DEFEAT","card":"SOR#102","reason":"ability","defeatedBy":"SOR#051"}
+{"seq":"R4.A.4","type":"ATTACK","player":"P1","attacker":"SOR#091","defender":"SOR#051","defenderType":"unit"}
+{"seq":"R4.A.4a","type":"DAMAGE","source":"SOR#091","target":"SOR#051","amount":5,"damageType":"combat","remainingHp":2}
+{"seq":"R4.A.4b","type":"DAMAGE","source":"SOR#051","target":"SOR#091","amount":6,"damageType":"combat","remainingHp":0}
+{"seq":"R4.A.4c","type":"DEFEAT","card":"SOR#091","reason":"no_remaining_hp","defeatedBy":"SOR#051"}
+{"seq":"R4.A.4d","type":"EXHAUST","card":"SOR#051"}
+{"seq":"R4.A.5","type":"ATTACK","player":"P2","attacker":"SOR#038","defender":"SOR#028","defenderType":"base"}
+{"seq":"R4.A.5a","type":"DAMAGE","source":"SOR#038","target":"SOR#028","amount":2,"damageType":"combat","remainingHp":16}
+{"seq":"R4.A.5b","type":"EXHAUST","card":"SOR#038"}
+{"seq":"R4.A.6","type":"ATTACK","player":"P1","attacker":"SOR#118","defender":"SOR#020","defenderType":"base"}
+{"seq":"R4.A.6a","type":"DAMAGE","source":"SOR#118","target":"SOR#020","amount":5,"damageType":"combat","remainingHp":16}
+{"seq":"R4.A.6b","type":"EXHAUST","card":"SOR#118"}
+{"seq":"R4.A.7","type":"ABILITY_ACTIVATE","player":"P2","card":"SOR#005","abilityType":"action","description":"heal 1 from a unit"}
+{"seq":"R4.A.7a","type":"HEAL","card":"SOR#051","amount":1,"remainingHp":3}
+{"seq":"R4.A.8","type":"PLAY_EVENT","player":"P1","card":"SOR#142","cost":4}
+{"seq":"R4.A.8a","type":"DEFEAT","card":"SOR#051","reason":"ability","defeatedBy":"SOR#142"}
+{"seq":"R4.A.9","type":"PASS","player":"P2"}
+{"seq":"R4.A.10","type":"ATTACK","player":"P1","attacker":"SOR#108","defender":"SOR#020","defenderType":"base"}
+{"seq":"R4.A.10a","type":"DAMAGE","source":"SOR#108","target":"SOR#020","amount":2,"damageType":"combat","remainingHp":14}
+{"seq":"R4.A.10b","type":"EXHAUST","card":"SOR#108"}
+{"seq":"R4.A.11","type":"PASS","player":"P2"}
+{"seq":"R4.A.12","type":"PLAY_EVENT","player":"P1","card":"SOR#148","cost":2}
+{"seq":"R4.A.12a","type":"DAMAGE","source":"SOR#148","target":"SOR#020","amount":4,"damageType":"ability","remainingHp":10}
+{"seq":"R4.A.13","type":"PASS","player":"P2"}
+{"seq":"R4.A.14","type":"PLAY_EVENT","player":"P1","card":"SOR#141","cost":8}
+{"seq":"R4.A.14a","type":"DEFEAT","card":"SOR#038","reason":"ability","defeatedBy":"SOR#141"}
+{"seq":"R4.A.14b","type":"DEFEAT","card":"SOR#108","reason":"ability","defeatedBy":"SOR#141"}
+{"seq":"R4.A.14c","type":"DEFEAT","card":"SOR#118","reason":"ability","defeatedBy":"SOR#141"}
+{"seq":"R4.A.14d","type":"DAMAGE","source":"SOR#141","target":"SOR#020","amount":10,"damageType":"ability","remainingHp":0}
+{"seq":"R4.A.14e","type":"GAME_END","winner":"P1","reason":"Base Destroyed"}

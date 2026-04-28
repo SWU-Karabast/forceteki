@@ -103,6 +103,9 @@ import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import { SwuPgn } from './chat/SwuPgn';
+import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IGameFiles } from './chat/PgnTypes';
+import { PgnReplayRecorder } from './chat/PgnReplayRecorder';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -316,7 +319,11 @@ export class Game extends EventEmitter {
     public startedAt?: Date;
     public finishedAt?: Date;
     public gameEndReason?: GameEndReason;
+    private _cachedSwuPgn?: string;
+    private _cachedSwuReplay?: string;
+    private _cachedRawGameLog?: string;
     private _actionsSinceLastUndo?: number;
+    private _replayRecorder: PgnReplayRecorder;
 
     // #endregion
 
@@ -339,6 +346,7 @@ export class Game extends EventEmitter {
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
+        this._replayRecorder = new PgnReplayRecorder(this, () => this.captureAnonymizedState());
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
@@ -514,6 +522,254 @@ export class Game extends EventEmitter {
         }
 
         return filteredMessages;
+    }
+
+    /**
+     * Returns the raw human-readable game log with player names anonymized.
+     */
+    public getRawGameLog(): string {
+        const players = this.getPlayers();
+        const player1Name = players[0].name;
+        const player2Name = players[1].name;
+        const structureMarkers = this._replayRecorder.getStructureMarkers();
+        return SwuPgn.generateHumanNotation(
+            this.gameChat.messages, player1Name, player2Name, structureMarkers
+        );
+    }
+
+    /**
+     * Generates both game files: human-readable .swupgn and machine-replay .swureplay.
+     */
+    public generateGameFiles(): IGameFiles {
+        const players = this.getPlayers();
+        const player1 = players[0];
+        const player2 = players[1];
+        const header = this.buildPgnHeader(player1, player2);
+        const structureMarkers = this._replayRecorder.getStructureMarkers();
+        const humanNotation = SwuPgn.generateHumanNotation(
+            this.gameChat.messages, player1.name, player2.name, structureMarkers
+        );
+        const p1Decklist = this.buildPlayerDecklist(player1);
+        const p2Decklist = this.buildPlayerDecklist(player2);
+
+        const swuPgn = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
+        const swuReplay = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, this._replayRecorder.getReplayRecords());
+
+        return { swuPgn, swuReplay };
+    }
+
+    /**
+     * Captures the full game state as an anonymous spectator would see it,
+     * with player names/IDs anonymized to Player 1/Player 2.
+     */
+    private captureAnonymizedState(): Record<string, any> {
+        const state = this.getState('__replay_spectator__', true);
+        // Remove the synthetic spectator's message offset so it doesn't accumulate
+        this.chatMessageOffsets.delete('__replay_spectator__');
+        if (!state) {
+            return {};
+        }
+
+        // Anonymize player data: remap top-level player keys
+        const players = this.getPlayers();
+        const anonymizedPlayers: Record<string, any> = {};
+        for (let i = 0; i < players.length; i++) {
+            const playerLabel = `Player ${i + 1}`;
+            const playerState = state.players?.[players[i].id];
+            if (playerState) {
+                anonymizedPlayers[playerLabel] = {
+                    ...playerState,
+                    id: playerLabel,
+                    name: playerLabel,
+                    user: { username: playerLabel },
+                };
+            }
+        }
+
+        const result = {
+            ...state,
+            players: anonymizedPlayers,
+            // Strip messages from snapshot (they're in the freeform file)
+            newMessages: undefined,
+            messageOffset: undefined,
+            totalMessages: undefined,
+            // Strip PGN data from snapshot (circular reference)
+            swuPgn: undefined,
+            rawGameLog: undefined,
+        };
+
+        // Deep-replace real player IDs (controllerId, ownerId, etc.) throughout
+        // the entire snapshot by serializing, replacing, and deserializing.
+        // Use literal string replacement (not regex) to avoid corruption when
+        // player IDs are short or contain regex-special characters.
+        try {
+            let json = JSON.stringify(result);
+            for (let i = 0; i < players.length; i++) {
+                const playerId = players[i].id;
+                // Skip IDs shorter than 8 chars to avoid corrupting unrelated JSON values
+                if (playerId.length < 8) {
+                    continue;
+                }
+                json = json.split(playerId).join(`Player ${i + 1}`);
+            }
+            return JSON.parse(json);
+        } catch {
+            return result; // Fall back to partially-anonymized state if serialization fails
+        }
+    }
+
+    public get cachedRawGameLog(): string | undefined {
+        return this._cachedRawGameLog;
+    }
+
+    public get cachedSwuPgn(): string | undefined {
+        return this._cachedSwuPgn;
+    }
+
+    public get cachedSwuReplay(): string | undefined {
+        return this._cachedSwuReplay;
+    }
+
+    /**
+     * Builds the PGN header from game state and player info.
+     */
+    private buildPgnHeader(player1: Player, player2: Player): IPgnHeader {
+        const now = new Date();
+        const date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+
+        let result: string;
+        if (this.winnerNames.length === 0) {
+            result = 'Incomplete';
+        } else if (this.winnerNames.length > 1) {
+            result = 'Draw';
+        } else if (this.winnerNames[0] === player1.name) {
+            result = 'P1 Win';
+        } else {
+            result = 'P2 Win';
+        }
+
+        return {
+            game: 'SWU-PGN v1.0',
+            date,
+            player1: 'Player 1',
+            player2: 'Player 2',
+            p1Leader: SwuPgn.formatCardName(player1.leader.title, player1.leader.subtitle),
+            p1Base: SwuPgn.formatCardName(player1.base.title, player1.base.subtitle),
+            p2Leader: SwuPgn.formatCardName(player2.leader.title, player2.leader.subtitle),
+            p2Base: SwuPgn.formatCardName(player2.base.title, player2.base.subtitle),
+            result,
+            reason: this.gameEndReasonString(this.gameEndReason),
+            rounds: String(this.roundNumber),
+        };
+    }
+
+    /**
+     * Maps a GameEndReason to a human-readable string for PGN output.
+     */
+    private gameEndReasonString(reasonCode: GameEndReason | undefined): string {
+        switch (reasonCode) {
+            case GameEndReason.Concede:
+                return 'Concession';
+            case GameEndReason.PlayerLeft:
+                return 'Disconnection';
+            case GameEndReason.GameRules:
+                return 'Base Destroyed';
+            default:
+                return 'Unknown';
+        }
+    }
+
+    /**
+     * Resolves a set code (e.g. "SOR_095") to a display name using the card map.
+     */
+    private resolveCardName(setCode: string): string {
+        const cardMap = this.cardDataGetter.cardMap;
+        const setCodeMap = this.cardDataGetter.setCodeMap;
+        const internalId = setCodeMap.get(setCode);
+        if (internalId) {
+            const entry = cardMap.get(internalId);
+            if (entry) {
+                return SwuPgn.formatCardName(entry.title, entry.subtitle);
+            }
+        }
+        return setCode;
+    }
+
+    /**
+     * Converts an array of deck entries (from Deck.getDecklist()) to PGN card index entries.
+     */
+    private buildCardEntries(entries: { id: string; count: number }[]): IPgnCardIndexEntry[] {
+        const result: IPgnCardIndexEntry[] = [];
+        for (const entry of entries) {
+            if (entry.count === 0) {
+                continue;
+            }
+            const setIdParts = entry.id.split('_');
+            const setId = setIdParts.length === 2
+                ? SwuPgn.formatSetId(setIdParts[0], Number(setIdParts[1]))
+                : entry.id;
+            result.push({
+                name: this.resolveCardName(entry.id),
+                setId,
+                count: entry.count,
+            });
+        }
+        return result;
+    }
+
+    /**
+     * Builds the decklist object for one player using the lobby Deck for accurate counts and sideboard.
+     */
+    private buildPlayerDecklist(player: Player): IPgnPlayerDecklist {
+        const leaderSetId = SwuPgn.formatSetId(player.leader.setId.set, player.leader.setId.number);
+        const baseSetId = SwuPgn.formatSetId(player.base.setId.set, player.base.setId.number);
+
+        const lobbyDeck = player.lobbyDeck;
+        let deck: IPgnCardIndexEntry[] = [];
+        let sideboard: IPgnCardIndexEntry[] | undefined;
+
+        if (lobbyDeck) {
+            const decklistData = lobbyDeck.getDecklist();
+            deck = this.buildCardEntries(decklistData.deck);
+            if (decklistData.sideboard && decklistData.sideboard.length > 0) {
+                sideboard = this.buildCardEntries(decklistData.sideboard);
+            }
+        } else {
+            // Fallback: use allCards if lobby deck is unavailable
+            const deckMap = new Map<string, IPgnCardIndexEntry>();
+            for (const card of player.allCards) {
+                if (card.isLeader() || card.isBase() || card.isToken()) {
+                    continue;
+                }
+                const cardSetId = SwuPgn.formatSetId(card.setId.set, card.setId.number);
+                const existing = deckMap.get(cardSetId);
+                if (existing) {
+                    existing.count++;
+                } else {
+                    deckMap.set(cardSetId, {
+                        name: SwuPgn.formatCardName(card.title, card.subtitle),
+                        setId: cardSetId,
+                        count: 1,
+                    });
+                }
+            }
+            deck = Array.from(deckMap.values());
+        }
+
+        return {
+            leader: {
+                name: SwuPgn.formatCardName(player.leader.title, player.leader.subtitle),
+                setId: leaderSetId,
+                count: 1,
+            },
+            base: {
+                name: SwuPgn.formatCardName(player.base.title, player.base.subtitle),
+                setId: baseSetId,
+                count: 1,
+            },
+            deck,
+            sideboard,
+        };
     }
 
     /**
@@ -832,6 +1088,22 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
+
+        // Record game end in replay data
+        const endPlayer = winners.length === 1
+            ? (winners[0] === this.getPlayers()[0] ? 'Player 1' : 'Player 2')
+            : undefined;
+        this._replayRecorder.addGameEndRecord(endPlayer ?? 'Draw', this.gameEndReasonString(reasonCode));
+
+        try {
+            this._cachedRawGameLog = this.getRawGameLog();
+            const gameFiles = this.generateGameFiles();
+            this._cachedSwuPgn = gameFiles.swuPgn;
+            this._cachedSwuReplay = gameFiles.swuReplay;
+        } catch (e) {
+            logger.error(`Error caching game log at end of game: ${e}`);
+        }
+
         this._router.handleGameEnd();
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
@@ -1611,7 +1883,7 @@ export class Game extends EventEmitter {
      * Returns the serialized game state for a specific player/spectator.
      * Tracks message offsets internally per player/spectator for incremental message sync.
      */
-    public getState(notInactivePlayerId: string) {
+    public getState(notInactivePlayerId: string, omniscient: boolean = false) {
         const lastMessageOffset = this.chatMessageOffsets.get(notInactivePlayerId) ?? 0;
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
@@ -1636,7 +1908,7 @@ export class Game extends EventEmitter {
             const playerState: Record<string, any> = {};
             if (this.started) {
                 for (const player of this.getPlayers()) {
-                    playerState[player.id] = player.getStateSummary(activePlayer);
+                    playerState[player.id] = player.getStateSummary(activePlayer, omniscient);
                 }
 
                 const allMessages = this.gameChat.messages;
@@ -1904,6 +2176,12 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
+        // Clear stale replay/PGN state so rolled-back actions don't persist
+        this._replayRecorder.reset();
+        this._cachedSwuPgn = undefined;
+        this._cachedSwuReplay = undefined;
+        this._cachedRawGameLog = undefined;
+
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {
