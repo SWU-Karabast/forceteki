@@ -148,7 +148,7 @@ export class Lobby {
     private readonly swuBaseEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
-    private readonly cardPool: CardPool;
+    public readonly cardPool: CardPool;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
