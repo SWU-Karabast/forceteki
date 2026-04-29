@@ -15,6 +15,7 @@ Source: Comprehensive Rules v7.0 (3/6/26)
 | [07-costs-and-resources.md](07-costs-and-resources.md) | Sections 1.7, 1.8, 8.1, 8.16: Resources, cost rules, aspect penalty, modifiers (cost/power/HP), Exploit and Smuggle quick reference |
 | [08-zones.md](08-zones.md) | Section 4: All zones — base zone, ground arena, space arena, resource zone, deck, hand, discard pile, in-play vs. out-of-play, play area, set aside |
 | [09-special-rules.md](09-special-rules.md) | Sections 8, 9, 10, 11, 12: All additional rules (attributes, "can/can't", choose, copy, empty deck, enters play, "if you do", ignore, last known information, leaves play, look at, "lose", modifiers, "must", name, unique, capture, indirect damage, move, The Force, disclose, etc.); Premier/Trilogy/Sealed/Draft formats; Multiplayer; Twin Suns |
+| [10-rulings-clarifications.md](10-rulings-clarifications.md) | Official rulings Q&A: direct answers from Ryan Serrano (SWU Rules Admiral), dev team clarifications by set, and commonly asked questions — supersede any ambiguity in the Comprehensive Rules |
 
 ---
 
