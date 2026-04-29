@@ -105,7 +105,7 @@ describe('Shield', function() {
                 });
             });
 
-            it('its owner and controller should be the player who created it', function () {
+            it('its owner and controller should be the player whose unit it is attached to', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.momentOfPeace);
@@ -113,8 +113,8 @@ describe('Shield', function() {
                 expect(context.tielnFighter.upgrades.length).toBe(1);
                 const shield = context.tielnFighter.upgrades[0];
                 expect(shield.internalName).toBe('shield');
-                expect(shield.owner).toBe(context.player1.player);
-                expect(shield.controller).toBe(context.player1.player);
+                expect(shield.owner).toBe(context.player2.player);
+                expect(shield.controller).toBe(context.player2.player);
             });
         });
     });
