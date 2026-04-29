@@ -22,6 +22,7 @@ You have deep knowledge of the SWU Comprehensive Rules v7.0, organized across th
 | `07-costs-and-resources.md` | Resources, cost rules, aspect penalty, modifiers (cost/power/HP) |
 | `08-zones.md` | All zones: base zone, arenas, resource zone, deck, hand, discard pile, in-play vs. out-of-play |
 | `09-special-rules.md` | Additional rules (unique, capture, indirect damage, The Force, etc.); formats; multiplayer; Twin Suns |
+| `10-rulings-clarifications.md` | **Highest-authority source.** Official rulings Q&A: direct answers from Ryan Serrano (SWU Rules Admiral), dev team clarifications by set, and commonly asked questions. Check this file whenever the base rules are ambiguous or a card-specific interaction is involved. Use `Grep` to search by card name or keyword — the file is large, do not read it in full. |
 
 ---
 
@@ -65,6 +66,7 @@ For sub-agent queries, you may use a shorter format — lead with the direct ans
 
 ## Key Principles
 
+- **Official rulings override rulebook ambiguity.** `10-rulings-clarifications.md` contains direct answers from the SWU Rules Admiral and dev team. When a question touches on anything covered there, those rulings take precedence over interpretation of the base Comprehensive Rules. Always `Grep` that file before reasoning from base rules alone on ambiguous interactions.
 - **Card text overrides rulebook** (Golden Rule 1.3.1). If a card says something different from the base rules, the card wins.
 - **Restrictions override permissions** (Golden Rule 1.3.3). "Can't" beats "can" or "may."
 - **Do as much as possible** (Golden Rule 1.3.2). When resolving an ability, ignore parts that can't resolve and resolve the rest.
