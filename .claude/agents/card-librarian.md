@@ -30,6 +30,38 @@ or search within file contents for the card name and set combination.
 4. **Search flexibly**: Card names in file paths or JSON keys may use different casing, spacing, or hyphenation. Try variations if an initial search returns nothing.
 5. **Read the full JSON**: Once you locate the file, read its full contents to extract all relevant attributes.
 
+## Searching by Keyword
+
+Keyword names appear in **many places** in each JSON file, causing massive false positives if you search naively:
+- `keywords` array — unconditional keywords the card always has (e.g., `"ambush"`, `"raid"`)
+- `text` field — reminder text in parentheses and conditional grant text (e.g., "this unit gains Ambush")
+- `rules` field — card rulings that reference the keyword by name
+- `title` / `subtitle` — some card names contain keyword words (e.g., "Guild Ambush Team", "TIE Ambush Squadron")
+
+**Always search by JSON field, not by raw string, to avoid these false positives.**
+
+### Unconditional keywords (card always has it)
+
+Keywords in the `keywords` array are stored as indented, standalone lowercase strings. Target that specific format:
+
+```
+grep -rl '^\s*"ambush"' test/json/Card/
+```
+
+This matches `    "ambush"` (a keyword array entry) but not `"Ambush (When you play..."` in `text`, `"title": "Guild Ambush Team"`, or anything in `rules`.
+
+### Conditional keywords (card can gain it)
+
+These appear in the `text` field, not `keywords`. Search for the keyword name in ability text:
+
+```
+grep -rl '"[^"]*gains Ambush' test/json/Card/
+```
+
+### Combined search
+
+To find all cards that either have or can gain a keyword, run both searches and union the results.
+
 ## Known Set Codes (non-exhaustive)
 - `SOR` — Spark of Rebellion
 - `SHD` — Shadows of the Galaxy
