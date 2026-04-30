@@ -322,11 +322,8 @@ export class ModActionService {
      */
     public playerActiveRename(playerId: string): IActiveModActionCacheEntry | null {
         const playerActions = this.getPlayerActions(playerId);
-        if (!playerActions) {
-            return null;
-        }
 
-        return playerActions.get(ModActionType.Rename);
+        return playerActions?.get(ModActionType.Rename);
     }
 
     /**
