@@ -461,6 +461,25 @@ const mockCards = [
         internalName: 'the-mandalorian#devoted-rescuer',
     }),
     buildMockCard({
+        title: 'Ninth Sister',
+        subtitle: 'Hulking Inquisitor',
+        cost: 7,
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'imperial', 'inquisitor'],
+        keywords: ['overwhelm'],
+        setId: {
+            set: 'ASH',
+            number: 148
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ninth-sister#hulking-inquisitor',
+    }),
+    buildMockCard({
         title: 'Mandalorian Flagship',
         subtitle: 'Captured from the Empire',
         cost: 7,
