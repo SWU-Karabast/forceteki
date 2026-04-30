@@ -440,6 +440,26 @@ const mockCards = [
         arena: 'ground',
         internalName: 'mortar-trooper',
     }),
+    // The Mandalorian, Devoted Rescuer
+    buildMockCard({
+        title: 'The Mandalorian',
+        subtitle: 'Devoted Rescuer',
+        power: 5,
+        hp: 4,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'vigilance'],
+        types: ['unit'],
+        traits: ['mandalorian'],
+        keywords: ['shielded'],
+        setId: {
+            set: 'ASH',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-mandalorian#devoted-rescuer',
+    }),
     buildMockCard({
         title: 'Mandalorian Flagship',
         subtitle: 'Captured from the Empire',
