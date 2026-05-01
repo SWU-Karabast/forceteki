@@ -34,23 +34,22 @@ The internal name format is `card-name#subtitle` (lowercase, hyphenated). The ID
 
 ---
 
-## Step 3: Read Similar Cards as Patterns
+## Step 3: Find Similar Cards via card-librarian
 
-Before writing, find and read 2–3 existing card implementations that use similar ability types. This grounds your implementation in real patterns.
+Use the `card-librarian` sub-agent to find 2–3 cards that share the same ability types as the card you are implementing. Ask it to search for cards with:
+- The same ability trigger type (e.g., "On Attack", "When Played", "When Defeated")
+- The same base card type (unit, upgrade, event, leader)
+- Similar traits or keywords if relevant
 
-**Finding similar cards:**
-- For `addTriggeredAbility` with `whenPlayed`: search for `registrar.addTriggeredAbility` in cards of the same type
-- For `addConstantAbility`: look at constant ability examples
-- For `addActionAbility`: look at action ability examples
-- For leader cards: look at existing `setupLeaderSideAbilities` and `setupLeaderUnitSideAbilities` examples
+Once card-librarian returns candidates, `Read` their implementation files in `server/game/cards/` to study the actual code patterns. This grounds your implementation in real, working examples.
 
-Use `Grep` to find the patterns, then `Read` the relevant files.
+For leader cards, look for existing uses of `setupLeaderSideAbilities` and `setupLeaderUnitSideAbilities`.
 
 ---
 
 ## Step 4: Check Referenced Cards
 
-If the card's ability text references specific named cards by name (e.g., "if the attached unit is Millennium Falcon"), use the `card-librarian` sub-agent to look up those cards' exact details.
+If the card's ability text references specific named cards (e.g., "if the attached unit is Millennium Falcon"), use the `card-librarian` sub-agent to look up those cards' exact details.
 
 ---
 
@@ -91,6 +90,12 @@ export default class CardName extends NonLeaderUnitCard {
 | Leader | `LeaderUnitCard` | `../../../core/card/LeaderUnitCard` |
 | Upgrade | `UpgradeCard` | `../../../core/card/UpgradeCard` |
 | Event | `EventCard` | `../../../core/card/EventCard` |
+
+**Keywords require no implementation code** — they are parsed automatically from card data and applied by the engine. Do not write any `registrar` calls for keywords like Saboteur, Overwhelm, Sentinel, Shielded, Ambush, Raid, Grit, Restore, etc.
+
+The only exceptions that DO require implementation:
+1. **Conditionally granted keywords** (e.g., "this unit gains Sentinel while it is upgraded") — implement as `registrar.addConstantAbility` using `AbilityHelper.ongoingEffects.grantKeyword(...)`
+2. **Bounty / Coordinate** — these keywords embed an ability definition inside them and must be explicitly registered. They are rare; look for existing examples if the card has one.
 
 **Registrar method reference:**
 - `registrar.addTriggeredAbility({ title, when, optional?, targetResolvers?, immediateEffect, ... })`
