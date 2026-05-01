@@ -1,9 +1,12 @@
 // scripts/migrateUsernameLinks.ts
-//
+
 // One-time migration script that creates USERNAME# link items for all existing user profiles.
 // This enables the mod tools username search for accounts created before the feature was added.
 // For it to work in production you'll need to set the environment variables for the DynamoDB (API_KEY and SECRET)
-// and you'll need to set USE_LOCAL_DYNAMODB == false and use ENVIRONMENT for production.
+// and you'll need to set USE_LOCAL_DYNAMODB == false and use ENVIRONMENT for production. Additionally set the DRY_RUN
+// to false if you want the changes to actually happen.
+
+
 // Usage: ts-node scripts/migrateUsernameLinks.ts
 import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
 import '../server/env';

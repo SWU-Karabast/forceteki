@@ -2,7 +2,7 @@
 import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
 import '../server/env';
 
-const MY_USER_ID: string | null = 'c10c1f8a-036f-47da-8e28-7810f98f51e3'; // guid of generated user after logging in
+const MY_USER_ID: string | null = ''; // guid of generated user after logging in
 
 
 // to run this script run on root folder ts-node scripts/seed-dynamo.ts
