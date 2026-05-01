@@ -6,7 +6,7 @@ type: feedback
 
 ## General Structure
 
-- Outer `describe` uses the card's full display name with a colon separator: `describe('Card Name: Subtitle', function() {`
+- Outer `describe` uses the card's full display name with a comma separator (matching the SWU publisher's style for unique cards): `describe('Card Name, Subtitle', function() {`
 - Inner `describe` identifies the ability type: `'Card\'s on attack ability'`, `'Card\'s undeployed ability'`, `'Card\'s deployed ability'`
 - For leader cards, use `'his/her triggered deploy ability'` for the undeployed leader side trigger that deploys Grogu
 - For leader cards with multiple deployed-side constant abilities, use `'his/her leader unit side ability: <description>'` to name each describe block
