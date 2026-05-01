@@ -458,6 +458,26 @@ const mockCards = [
         arena: 'space',
         internalName: 'mandalorian-flagship#captured-from-the-empire',
     }),
+    // Razor Crest, Outfitted Armament
+    buildMockCard({
+        title: 'Razor Crest',
+        subtitle: 'Outfitted Armament',
+        cost: 4,
+        hp: 5,
+        power: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['mandalorian', 'vehicle', 'transport'],
+        keywords: ['saboteur'],
+        setId: {
+            set: 'ASH',
+            number: 165
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'razor-crest#outfitted-armament',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
