@@ -948,4 +948,32 @@ class DynamoDBService {
             logger.info(`Cleared all data from local DynamoDB table '${this.tableName}'`);
         }, 'Error clearing local DynamoDB data');
     }
+
+    /**
+     * Get all user profiles via table scan.
+     * Note: Use sparingly scans are expensive on large tables.
+     */
+    public getAllUserProfilesAsync(): Promise<IUserProfileDataEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const profiles: IUserProfileDataEntity[] = [];
+            let lastEvaluatedKey: Record<string, any> | undefined;
+
+            do {
+                const result = await this.client.send(new ScanCommand({
+                    TableName: this.tableName,
+                    FilterExpression: 'sk = :sk',
+                    ExpressionAttributeValues: { ':sk': 'PROFILE' },
+                    ExclusiveStartKey: lastEvaluatedKey,
+                }));
+
+                for (const item of result.Items || []) {
+                    profiles.push(item as IUserProfileDataEntity);
+                }
+
+                lastEvaluatedKey = result.LastEvaluatedKey;
+            } while (lastEvaluatedKey);
+
+            return profiles;
+        }, 'Error scanning all user profiles');
+    }
 }
