@@ -25,6 +25,8 @@ type: feedback
 - Add a single-line comment above each logical group (game action, state transition, assertion set)
 - Comments are terse and imperative: `// Activate Yularen's ability`, `// Second attack`, `// Trigger fires`
 - Do not use comments to narrate what the code obviously does — add them only where context aids scannability
+- Use correct card name capitalization in comments (e.g. "Death Trooper" not "Death trooper")
+- No trailing period on action-step comments (e.g., `// Battlefield Marine attacks Death Trooper` not `// Battlefield Marine attacks Death Trooper.`)
 
 ## Setup Bloat
 
