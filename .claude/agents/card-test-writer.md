@@ -20,7 +20,7 @@ Before writing any tests, read these files:
 2. **The card implementation file** (provided in your task) — to understand exact ability structure, so your test assertions match the real implementation
 3. **A few existing spec files for similar cards** — to see real examples of the test patterns in use
 
-To find similar spec files, use `Grep` to search `test/server/cards/` for specs that test the same ability types (e.g., `When Played`, `On Attack`, `addConstantAbility`).
+Use the `card-librarian` sub-agent to find cards with similar ability types, then `Read` their spec files in `test/server/cards/`. This is more reliable than grepping for ability type strings — card-librarian can search by trigger type, trait, keyword, and more. Also use `card-librarian` when you need to find suitable test fodder cards (e.g., "a space unit with 3 HP", "a ground unit with Sentinel") — looking up real card stats prevents writing tests against units that don't have the HP you assumed.
 
 ---
 
@@ -124,7 +124,11 @@ Write an `it` block for each test case in the plan:
 - **Edge cases from rules-expert**: any special interactions identified during discovery
 - **Optional abilities**: verify the player can pass/decline when relevant
 
-If you are uncertain about how a specific interaction resolves (e.g., timing with shields, Sentinel, tokens), consult the `swu-rules-expert` sub-agent before writing the assertion. A wrong assertion is worse than a missing one.
+**Keywords do not need their own test cases.** Standard printed keywords (Saboteur, Overwhelm, Sentinel, Shielded, Ambush, Raid, etc.) are tested as part of the keyword's own test suite. Only test keyword behavior when it's the specific interaction being exercised — e.g., if the card has Saboteur AND an On Attack ability, you may test that Saboteur and the ability resolve together correctly, but don't write a standalone "should be able to attack non-Sentinel units" test just because the card has Saboteur.
+
+**Prefer attacking the base when testing power/damage output.** A unit attack target that dies during the test no longer has visible damage counters — which makes it useless for asserting how much damage was dealt. Use `context.p2Base` as the attack target whenever you're trying to confirm a power value or damage number: `expect(context.p2Base.damage).toBe(N)` is always readable. Unit-vs-unit attacks are only warranted when the test is specifically about a unit interaction (e.g., the defending unit's own On Defense ability, shield defeat, Overwhelm excess damage).
+
+**When unsure about rules mechanics, consult `swu-rules-expert` before writing the test.** Don't guess at prompt text, trigger ordering, or timing windows — a wrong assertion is worse than a missing one.
 
 ---
 

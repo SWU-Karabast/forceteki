@@ -17,16 +17,18 @@ Spawn these two agents **simultaneously in a single message** (use two Agent too
 
 **Agent A — Explore (codebase patterns):**
 ```
-Search the forceteki codebase for 2-3 existing card implementations that are most similar to this card:
+Use the card-librarian sub-agent to find 2-3 existing cards that are most similar to this card:
 
 Card details: [insert card details from user]
 
-Find cards that use the same ability types (When Played, On Attack, constant abilities, etc.) and the same base class (NonLeaderUnit, Upgrade, Event, Leader, etc.). For each similar card you find:
+Ask card-librarian to search for cards with the same ability trigger type (e.g., On Attack, When Played, When Defeated), same card type (unit/upgrade/event/leader), and similar traits or keywords. Once it returns candidates, read their implementation files in server/game/cards/ to study the actual code patterns.
+
+For each similar card found:
 - Report the file path
 - Quote the relevant setupCardAbilities section
 - Note which AbilityHelper methods it uses
 
-Also check AbilityHelper.ts and the relevant GameSystem/OngoingEffect files to confirm the right methods exist for this card's abilities.
+Also check AbilityHelper.ts and the relevant GameSystem/OngoingEffect files to confirm the right methods exist for this card's non-keyword abilities.
 
 Report findings concisely.
 ```
@@ -58,6 +60,7 @@ Synthesize the discovery results and enter plan mode. Write a plan that covers:
 - **Card class**: which base class to extend and why
 - **File path**: `server/game/cards/<SET>/<type>/CardName.ts`
 - **Each ability**: how it maps to `registrar.add*` methods, including props structure
+- **Keywords**: standard printed keywords (Saboteur, Overwhelm, Sentinel, Raid, Ambush, etc.) need **no implementation** — they are auto-applied from card data. Only plan implementation for: (1) conditionally granted keywords ("gains Sentinel while upgraded"), or (2) Bounty/Coordinate, which embed an ability definition.
 - **Engine work needed**: if any — flag explicitly and **stop the workflow here** if engine work is required. Engine changes (new GameSystem, new OngoingEffect type, new StateWatcher) are prerequisites and must be handled separately before implementation proceeds.
 
 ### Test Plan
@@ -66,6 +69,10 @@ List every test case to implement, one bullet per `it` block:
 - ✓ Edge cases identified by the rules-expert
 - ✓ Cases where player has a choice (can they pass/decline?)
 - ✓ Cases where the condition is NOT met (ability should not trigger)
+
+**Do not plan test cases for standard printed keywords** — they have their own test suites. Only include keyword tests when a specific interaction between a keyword and the card's ability is being exercised.
+
+**Plan base attacks (not unit attacks) for any test that checks power or damage output.** A unit that dies during combat loses its damage counters — `context.p2Base.damage` is always readable and is the reliable way to assert a power value.
 
 Present this plan and use **ExitPlanMode** to get user approval before proceeding.
 

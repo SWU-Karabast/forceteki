@@ -43,3 +43,10 @@ type: feedback
 
 **Why:** Reduces noise at outer scope; makes each test more self-contained and readable.
 **How to apply:** Before extracting a constant to a higher scope, confirm it is used in at least two tests at that scope level.
+
+## Keyword + On Attack trigger timing
+
+- `when: { onAttack: true }` in a triggered ability resolves on `EventName.OnAttackDeclared` — the same event Saboteur uses
+- This means a unit with both Saboteur and an `On Attack` triggered ability will show the multi-trigger prompt ("You have multiple triggers to resolve. Choose which to resolve first:") when attacking a unit, even if there are no shields present
+- When attacking a base, Saboteur does not trigger (it checks `event.attack.getAllTargets().some(target => target.isUnit())`), so only the `On Attack` ability prompts
+- When hand is empty, an optional `On Attack` discard ability with a hand card target has no legal targets; whether it still appears in the multi-trigger menu is engine-implementation-specific — do not add speculative comments about this behavior
