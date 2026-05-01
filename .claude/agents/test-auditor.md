@@ -55,7 +55,7 @@ When you audit a spec file, evaluate and fix each of the following:
 
 ### 6. Test Names
 - All `describe` and `it` block names must be grammatically correct, clear, and in plain English.
-- `describe` names should identify the card and ability being tested (e.g., `'Vader: His natural habitat'`).
+- `describe` names should identify the card and ability being tested (e.g., `'Darth Vader, Dark Lord of the Sith'` for the outer describe, or `'Vader\'s on attack ability'` for inner describes).
 - `it` names should read as a complete statement of expected behavior (e.g., `'should deal 2 damage to each enemy unit when played'`).
 - Fix typos, capitalization errors, and awkward phrasing.
 
