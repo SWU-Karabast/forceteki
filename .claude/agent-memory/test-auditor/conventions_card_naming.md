@@ -24,3 +24,9 @@ Only include the subtitle in the property name when the same base title appears 
 
 **Why:** Shorter names reduce line length and improve readability. The subtitle form is only needed for disambiguation.
 **How to apply:** Check the card file's `internalName` field to determine the correct camelCase expansion.
+
+## ⚠ Known failure pattern — audit this explicitly
+
+When auditing any spec file, **grep the file for `context.<title><Subtitle>`** patterns and verify each one actually needs the subtitle. This is a frequent miss. A card like `grogu#charming-companion` used alone in a file should appear as `context.grogu`, never `context.groguCharmingCompanion`.
+
+**Checklist step:** After all other edits, do a final scan — search the file for any `context.[a-z]+[A-Z]` access that looks like it includes a subtitle word, and verify disambiguation is actually required before leaving it.
