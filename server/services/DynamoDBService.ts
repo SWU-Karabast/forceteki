@@ -6,7 +6,8 @@ import {
     PutCommand,
     QueryCommand,
     ScanCommand,
-    UpdateCommand
+    UpdateCommand,
+    BatchWriteCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
@@ -229,6 +230,43 @@ class DynamoDBService {
             });
             return this.client.send(command);
         }, 'DynamoDB putItem error');
+    }
+
+    /**
+     * Batch write multiple items to DynamoDB.
+     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items.
+     */
+    public batchWriteItemsAsync(items: Record<string, any>[]) {
+        return this.executeDbOperationAsync(async () => {
+            const chunks = [];
+            for (let i = 0; i < items.length; i += 25) {
+                chunks.push(items.slice(i, i + 25));
+            }
+
+            for (const chunk of chunks) {
+                let unprocessed = chunk;
+
+                while (unprocessed.length > 0) {
+                    const result = await this.client.send(new BatchWriteCommand({
+                        RequestItems: {
+                            [this.tableName]: unprocessed.map((item) => ({
+                                PutRequest: { Item: item }
+                            }))
+                        }
+                    }));
+
+                    const retryItems = result.UnprocessedItems?.[this.tableName];
+                    if (retryItems && retryItems.length > 0) {
+                        logger.info(`Retrying ${retryItems.length} unprocessed items...`);
+                        unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
+                        // Back off before retry
+                        await new Promise((resolve) => setTimeout(resolve, 500));
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }, 'Error in batch write');
     }
 
     public queryItemsAsync(pk: string, options: {
