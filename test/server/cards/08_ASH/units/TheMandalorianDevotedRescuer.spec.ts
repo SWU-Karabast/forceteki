@@ -81,10 +81,12 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 context.player1.clickPrompt('Trigger');
 
                 const [shield] = context.player1.findCardsByName('shield');
+                expect(context.player1).toBeAbleToSelectExactly([shield]);
                 context.player1.clickCard(shield);
 
                 expect(shield).toBeInZone('outsideTheGame');
                 expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should allow passing — unit then takes full damage', async function () {
@@ -235,7 +237,7 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should allow defeating shield for indirect damage but damage still goes through', async function () {
+            it('should not prevent indirect damage even when shield is defeated — indirect damage bypasses PreventAll modification', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

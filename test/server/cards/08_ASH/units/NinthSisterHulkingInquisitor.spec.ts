@@ -23,6 +23,7 @@ describe('Ninth Sister, Hulking Inquisitor', function () {
                 expect(context.wampa).toBeInZone('discard');
 
                 // wampa costs 4, distribute 4 damage among friendly (battlefieldMarine) and enemy (atst) units
+                expect(context.player1).toHavePassAbilityPrompt('Deal 4 damage divided as you choose among any number of units');
                 context.player1.clickPrompt('Trigger');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 2],
