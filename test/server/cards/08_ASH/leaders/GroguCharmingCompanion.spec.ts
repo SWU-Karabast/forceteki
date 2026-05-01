@@ -193,6 +193,62 @@ describe('Grogu: Charming Companion', function() {
                 expect(context.grogu.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should allow Grogu to deploy again after being defeated and readied in a new round', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grogu#charming-companion',
+                        hand: ['sabine-wren#you-can-count-on-me', 'obiwan-kenobi#finding-what-doesnt-exist'],
+                        resources: 10
+                    },
+                    player2: {
+                        groundArena: ['death-trooper'], // 3/3 — enough power to defeat Grogu (0/3)
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player1 plays Sabine Wren (unique, cost 4) — Grogu deploys
+                context.player1.clickCard(context.sabineWren);
+                expect(context.player1).toHavePassAbilityPrompt('Deploy Grogu');
+                context.player1.clickPrompt('Trigger');
+                expect(context.grogu).toBeInZone('groundArena');
+
+                // Player2 attacks Grogu with Death Trooper — Grogu is defeated and flips back to leader side
+                context.player2.clickCard(context.deathTrooper);
+                context.player2.clickCard(context.grogu);
+                expect(context.grogu).toBeInZone('base');
+                expect(context.grogu.exhausted).toBeTrue();
+
+                // Advance to the next action phase — Grogu's leader side readies
+                context.moveToNextActionPhase();
+                expect(context.grogu.exhausted).toBeFalse();
+
+                // Player1 plays Obi-Wan Kenobi (unique, cost 4) — Grogu's trigger fires again
+                context.player1.clickCard(context.obiwanKenobi);
+                expect(context.player1).toHavePassAbilityPrompt('Deploy Grogu');
+                context.player1.clickPrompt('Trigger');
+
+                // Grogu deploys again to the ground arena
+                expect(context.grogu).toBeInZone('groundArena');
+                expect(context.grogu.exhausted).toBeFalse();
+            });
+
+            it('should not have an epic action deploy ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grogu#charming-companion',
+                        resources: 10
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Grogu has no Epic Action deploy — clicking him as a leader presents no action
+                expect(context.grogu).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            });
         });
 
         describe('his leader unit side ability: +1/+0 to defending friendly units', function() {
@@ -213,11 +269,11 @@ describe('Grogu: Charming Companion', function() {
             it('should give +1/+0 to a friendly unit while it is defending', function() {
                 const { context } = contextRef;
 
-                // Death trooper attacks Wilderness Fighter while Grogu is deployed
+                // Death Trooper attacks Wilderness Fighter while Grogu is deployed
                 context.player2.clickCard(context.deathTrooper);
                 context.player2.clickCard(context.wildernessFighter);
 
-                // Wilderness fighter gets +1/+0, enough to defeat the Death Trooper in combat
+                // Wilderness Fighter gets +1/+0, enough to defeat Death Trooper in combat
                 expect(context.deathTrooper).toBeInZone('discard');
                 expect(context.wildernessFighter).toBeInZone('groundArena');
                 expect(context.wildernessFighter.damage).toBe(3);
@@ -257,7 +313,7 @@ describe('Grogu: Charming Companion', function() {
             it('should give the defending enemy -1/-0 when a friendly non-Grogu unit is attacking', function() {
                 const { context } = contextRef;
 
-                // Battlefield Marine (3/3) attacks Death Trooper (3/3).
+                // Battlefield Marine (3/3) attacks Death Trooper (3/3)
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.deathTrooper);
 
@@ -270,7 +326,7 @@ describe('Grogu: Charming Companion', function() {
             it('should NOT give -1/-0 to the defending enemy when Grogu himself is attacking', function() {
                 const { context } = contextRef;
 
-                // Grogu (0/3) attacks Death Trooper (3/3).
+                // Grogu (0/3) attacks Death Trooper (3/3)
                 context.player1.clickCard(context.grogu);
                 context.player1.clickCard(context.deathTrooper);
 
