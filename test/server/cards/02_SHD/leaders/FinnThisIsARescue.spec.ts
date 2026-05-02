@@ -179,5 +179,42 @@ describe('Finn, This is a Rescue', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
         });
+
+        it('Finn\'s undeployed ability can defeat a shield token on a friendly unit created by an opponent', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'finn#this-is-a-rescue',
+                    resources: 4,
+                    groundArena: ['wampa']
+                },
+                player2: {
+                    groundArena: ['val#its-been-a-ride-babe']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.valItsBeenARideBabe);
+
+            expect(context.player2).toHavePrompt('Give a Shield token to an enemy unit');
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa]);
+            context.player2.clickCard(context.wampa);
+
+            // Wampa now has a shield from Val's ability
+            expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+
+            context.player2.passAction();
+
+            const shield = context.player1.findCardByName('shield');
+            context.player1.clickCard(context.finn);
+            expect(context.player1).toBeAbleToSelectExactly([shield]);
+            context.player1.clickCard(shield);
+
+            // Shield is defeated and Wampa gains a new shield from Finn
+            expect(shield).toBeInZone('outsideTheGame');
+            expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+        });
     });
 });
