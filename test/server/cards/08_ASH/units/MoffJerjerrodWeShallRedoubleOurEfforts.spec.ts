@@ -211,7 +211,49 @@ describe('Moff Jerjerrod, We Shall Redouble Our Efforts', function () {
                 expect(context.wampa).toHaveExactUpgradeNames(['shield', 'shield']);
             });
 
-            it('should not trigger when the effect causes an opponent to create tokens', async function () {
+            it('should double token upgrades given to multiple units simultaneously', async function () {
+                // TODO: currently the engine only lets you double tokens for one of the affected units
+                // Revisit this when rules for token-doubling effects are clarified
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['crucible#centuries-of-wisdom'],
+                        groundArena: [
+                            'moff-jerjerrod#we-shall-redouble-our-efforts',
+                            'wampa',
+                            'battlefield-marine'
+                        ],
+                        spaceArena: ['xwing']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Play Crucible, giving an experience token to each other friendly unit
+                context.player1.clickCard(context.crucible);
+
+                // Jerjerrod's replacement triggers once for each unit - choose one to resolve first
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat Moff Jerjerrod to create 2 Experience tokens instead: Moff Jerjerrod',
+                    'Defeat Moff Jerjerrod to create 2 Experience tokens instead: Wampa',
+                    'Defeat Moff Jerjerrod to create 2 Experience tokens instead: Battlefield Marine',
+                    'Defeat Moff Jerjerrod to create 2 Experience tokens instead: X-Wing'
+                ]);
+
+                // Arbitrarily choose to resolve the effect on Battlefield Marine
+                context.player1.clickPrompt('Defeat Moff Jerjerrod to create 2 Experience tokens instead: Battlefield Marine');
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Experience tokens instead: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
+
+                // Jerjerrod is defeated and Battlefield Marine receives 2 experience tokens instead of 1; the other units still receive 1 experience token each
+                expect(context.moffJerjerrod).toBeInZone('discard');
+                expect(context.wampa).toHaveExactUpgradeNames(['experience']);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.xwing).toHaveExactUpgradeNames(['experience']);
+            });
+
+            it('should not trigger when a friendly effect causes an opponent to create tokens', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -255,9 +297,6 @@ describe('Moff Jerjerrod, We Shall Redouble Our Efforts', function () {
                 // Accept the Experience replacement — Jerjerrod is defeated and 2 XP tokens are created
                 expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Experience tokens instead: Wampa');
                 context.player1.clickPrompt('Trigger');
-
-                // The Shield trigger is automatically dropped since Jerjerrod is no longer in play —
-                // the Shield token is created normally without doubling
 
                 // Result: 2 Experience tokens (doubled) + 1 Shield (not doubled, Jerjerrod already gone)
                 expect(context.moffJerjerrod).toBeInZone('discard');
