@@ -484,7 +484,7 @@ const mockCards = [
         power: 5,
         hp: 4,
         hasNonKeywordAbility: true,
-        aspects: ['command', 'heroism'],
+        aspects: ['vigilance', 'heroism'],
         types: ['unit'],
         traits: ['mandalorian'],
         keywords: ['shielded'],
