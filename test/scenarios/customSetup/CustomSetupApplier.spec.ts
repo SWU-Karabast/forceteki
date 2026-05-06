@@ -1,6 +1,5 @@
-
-const GameStateBuilder = require('../../helpers/GameStateBuilder.js');
-const GameFlowWrapper = require('../../helpers/GameFlowWrapper.js');
+import GameStateBuilder from '../../helpers/GameStateBuilder';
+import GameFlowWrapper from '../../helpers/GameFlowWrapper';
 import { UndoMode } from '../../../server/game/core/snapshot/SnapshotManager';
 import { CustomSetupValidationFailure } from '../../../server/game/core/customSetup/CustomSetupTypes';
 
@@ -16,7 +15,9 @@ function makeRouter() {
     return {
         gameWon: () => undefined,
         playerLeft: () => undefined,
-        handleError: (_game: unknown, error: Error) => { throw error; },
+        handleError: (_game: unknown, error: Error) => {
+            throw error;
+        },
         handleGameEnd: () => undefined,
         handleUndoGameEnd: () => undefined,
     };
@@ -65,15 +66,17 @@ async function setupCustomGameAsync(options: CustomSetupTestOptions) {
     const wrapper = new GameFlowWrapper(
         builder.cardDataGetter,
         makeRouter(),
-        { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
-        { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } },
+        { id: '111', username: 'player1' },
+        { id: '222', username: 'player2' },
         UndoMode.Disabled,
         customSetupState,
     );
 
     wrapper.player1.selectDeck(deck1);
     wrapper.player2.selectDeck(deck2);
-    wrapper.game.initialiseTokens(builder.deckBuilder.tokenData);
+
+    // Token data is already initialised by Game's constructor (it pulls from
+    // cardDataGetter.tokenData), so no explicit initialiseTokens call here.
 
     await wrapper.startGameAsync();
 
@@ -202,8 +205,8 @@ describe('CustomSetupApplier', function () {
         const wrapper = new GameFlowWrapper(
             builder.cardDataGetter,
             makeRouter(),
-            { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
-            { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } },
+            { id: '111', username: 'player1' },
+            { id: '222', username: 'player2' },
             UndoMode.Disabled,
             // Reference a card the deck doesn't contain.
             { phase: 'action', player1: { hand: ['rebel-pathfinder'] }, player2: {} },
@@ -211,7 +214,6 @@ describe('CustomSetupApplier', function () {
 
         wrapper.player1.selectDeck(deck1);
         wrapper.player2.selectDeck(deck2);
-        wrapper.game.initialiseTokens(builder.deckBuilder.tokenData);
 
         let caught: unknown = null;
         try {

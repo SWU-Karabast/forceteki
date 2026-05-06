@@ -2,7 +2,7 @@ import { Game } from '../game/core/Game';
 import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import { Contract } from '../game/core/utils/Contract';
-import { CustomSetupValidator } from '../game/core/customSetup/CustomSetupValidator';
+import { validateCustomSetup } from '../game/core/customSetup/CustomSetupValidator';
 import type { ICustomSetupState, ICustomSetupValidationError } from '../game/core/customSetup/CustomSetupTypes';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import fs from 'fs';
@@ -1001,7 +1001,7 @@ export class Lobby {
         }
         const ownerUser = this.users.find((u) => u.id === this.lobbyOwnerId);
         const opponentUser = this.users.find((u) => u.id !== this.lobbyOwnerId);
-        const errors = CustomSetupValidator.validate(this.customSetupState, ownerUser?.deck, opponentUser?.deck, this.cardDataGetter);
+        const errors = validateCustomSetup(this.customSetupState, ownerUser?.deck, opponentUser?.deck, this.cardDataGetter);
         if (errors.length > 0) {
             this.customSetupState = null;
             this.customSetupErrors = errors;
@@ -1413,7 +1413,7 @@ export class Lobby {
         }
         const ownerUser = this.users.find((u) => u.id === this.lobbyOwnerId);
         const opponentUser = this.users.find((u) => u.id !== this.lobbyOwnerId);
-        const errors = CustomSetupValidator.validate(
+        const errors = validateCustomSetup(
             this.customSetupState,
             ownerUser?.deck,
             opponentUser?.deck,
@@ -1462,7 +1462,7 @@ export class Lobby {
 
         const ownerUser = this.users.find((u) => u.id === this.lobbyOwnerId);
         const opponentUser = this.users.find((u) => u.id !== this.lobbyOwnerId);
-        const errors = CustomSetupValidator.validate(parsed, ownerUser?.deck, opponentUser?.deck, this.cardDataGetter);
+        const errors = validateCustomSetup(parsed, ownerUser?.deck, opponentUser?.deck, this.cardDataGetter);
 
         this.customSetupRawJson = rawJson;
         this.customSetupErrors = errors;

@@ -21,7 +21,7 @@ import { AbilityResolver } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
 import { cards } from '../cards/Index';
-import { CustomSetupApplier } from './customSetup/CustomSetupApplier';
+import { applyCustomSetup } from './customSetup/CustomSetupApplier';
 import type { ICustomSetupState } from './customSetup/CustomSetupTypes';
 
 import {
@@ -1093,7 +1093,7 @@ export class Game extends EventEmitter {
             // would just be busywork. If no initiative was specified in the
             // setup, fall back to the random/preselected pick used by
             // SetupPhase.chooseFirstPlayer so the game still has one.
-            CustomSetupApplier.apply(this, this._customSetupState);
+            applyCustomSetup(this, this._customSetupState);
 
             if (!this.initiativePlayer) {
                 this.initiativePlayer = this.preselectedFirstPlayerId

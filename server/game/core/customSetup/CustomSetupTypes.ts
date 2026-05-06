@@ -24,6 +24,7 @@ export interface ICardSpec {
 }
 
 export interface ILeaderSpec {
+
     /** Optional self-documentation; if present, must match the player's deck leader. */
     card?: string;
     deployed?: boolean;
@@ -34,6 +35,7 @@ export interface ILeaderSpec {
 }
 
 export interface IBaseSpec {
+
     /** Optional self-documentation; if present, must match the player's deck base. */
     card?: string;
     damage?: number;
@@ -51,11 +53,13 @@ export interface ICustomSetupPlayerState {
     groundArena?: CardEntry[];
     spaceArena?: CardEntry[];
     discard?: string[];
+
     /**
      * Cards (by internalName) to leave on top of the deck. Cards not listed are
      * removed from play. If omitted, the entire remaining deck is left intact.
      */
     deck?: string[];
+
     /** Either a count of generic resources or an explicit list of cards from the deck. */
     resources?: number | ResourceEntry[];
     base?: string | IBaseSpec;
@@ -66,6 +70,7 @@ export interface ICustomSetupPlayerState {
 }
 
 export interface ICustomSetupState {
+
     /** Only 'action' is supported for now. */
     phase?: 'action';
     player1: ICustomSetupPlayerState;
@@ -73,6 +78,7 @@ export interface ICustomSetupState {
 }
 
 export interface ICustomSetupValidationError {
+
     /** Dot/bracket path into the JSON document, e.g. "player1.hand[2]". */
     path: string;
     message: string;

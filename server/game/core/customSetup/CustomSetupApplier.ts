@@ -30,44 +30,42 @@ import {
  * makes no assumption that decks were synthesized — every named card must
  * already exist in the player's loaded deck.
  */
-export class CustomSetupApplier {
-    public static apply(game: Game, setup: ICustomSetupState): void {
-        const errors: ICustomSetupValidationError[] = [];
+export function applyCustomSetup(game: Game, setup: ICustomSetupState): void {
+    const errors: ICustomSetupValidationError[] = [];
 
-        const players = game.getPlayers();
-        Contract.assertTrue(players.length === 2, 'Custom setup requires exactly two players');
+    const players = game.getPlayers();
+    Contract.assertTrue(players.length === 2, 'Custom setup requires exactly two players');
 
-        const owner = players[0];
-        const opponent = players[1];
+    const owner = players[0];
+    const opponent = players[1];
 
-        const ownerCtx = new PlayerSetupContext(game, owner, 'player1', errors);
-        const opponentCtx = new PlayerSetupContext(game, opponent, 'player2', errors);
+    const ownerCtx = new PlayerSetupContext(game, owner, 'player1', errors);
+    const opponentCtx = new PlayerSetupContext(game, opponent, 'player2', errors);
 
-        if (setup.player1?.hasInitiative) {
-            game.initiativePlayer = owner;
-        } else if (setup.player2?.hasInitiative) {
-            game.initiativePlayer = opponent;
-        }
-
-        // Both players' action windows are pre-prompted so the action phase
-        // begins immediately without an extra "First action" UI step.
-        owner.promptedActionWindows.action = true;
-        opponent.promptedActionWindows.action = true;
-
-        // Clear all non-base zones for both players first so cross-player
-        // upgrade attachments and shared zone moves don't trip over each other.
-        ownerCtx.moveAllNonBaseZonesToOutside();
-        opponentCtx.moveAllNonBaseZonesToOutside();
-
-        ownerCtx.applyState(setup.player1 ?? {});
-        opponentCtx.applyState(setup.player2 ?? {});
-
-        if (errors.length > 0) {
-            throw new CustomSetupValidationFailure(errors);
-        }
-
-        game.resolveGameState(true);
+    if (setup.player1?.hasInitiative) {
+        game.initiativePlayer = owner;
+    } else if (setup.player2?.hasInitiative) {
+        game.initiativePlayer = opponent;
     }
+
+    // Both players' action windows are pre-prompted so the action phase
+    // begins immediately without an extra "First action" UI step.
+    owner.promptedActionWindows.action = true;
+    opponent.promptedActionWindows.action = true;
+
+    // Clear all non-base zones for both players first so cross-player
+    // upgrade attachments and shared zone moves don't trip over each other.
+    ownerCtx.moveAllNonBaseZonesToOutside();
+    opponentCtx.moveAllNonBaseZonesToOutside();
+
+    ownerCtx.applyState(setup.player1 ?? {});
+    opponentCtx.applyState(setup.player2 ?? {});
+
+    if (errors.length > 0) {
+        throw new CustomSetupValidationFailure(errors);
+    }
+
+    game.resolveGameState(true);
 }
 
 /**
@@ -98,6 +96,14 @@ class PlayerSetupContext {
         this.applyHand(state.hand);
         this.applyDiscard(state.discard);
         this.applyDeck(state.deck);
+
+        // The standard SetupPhase shuffles each deck before drawing starting
+        // hands; we skip that phase here, so we have to shuffle ourselves to
+        // avoid deterministic draws. If the user specified a deck list
+        // explicitly, treat that as an intentional order and leave it alone.
+        if (state.deck === undefined) {
+            this.player.shuffleDeck();
+        }
 
         this.applyForceToken(state.hasForceToken);
         this.applyCredits(state.credits);
@@ -357,7 +363,7 @@ class PlayerSetupContext {
         if (credits < current) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const tokens = (this.player.baseZone as any)?.credits?.slice(0, current - credits) ?? [];
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
             for (const token of tokens) {
                 token.moveTo(ZoneName.OutsideTheGame);
             }
