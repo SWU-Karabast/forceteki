@@ -13,7 +13,7 @@ export default class MortarTrooper extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Deal 1 damage to each of up to 3 units',
+            title: 'Deal 1 damage to each of up to 3 ground units',
             cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 mode: TargetMode.UpTo,
