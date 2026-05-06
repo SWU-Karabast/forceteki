@@ -86,7 +86,7 @@ describe('The Mandalorian, Devoted Rescuer', function () {
 
                 expect(shield).toBeInZone('outsideTheGame');
                 expect(context.battlefieldMarine.damage).toBe(0);
-                expect(context.player2).toBeActivePlayer();
+                expect(context.player1).toBeActivePlayer();
             });
 
             it('should allow passing — unit then takes full damage', async function () {
