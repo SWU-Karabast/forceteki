@@ -28,6 +28,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
                 whenPlayed: true,
                 onAttackEnd: (event, context) => event.attack.attacker === context.source
             },
+            optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
                     context.event.name !== EventName.OnAttackEnd ||
