@@ -399,7 +399,7 @@ const mockCards = [
         keywords: ['sentinel'],
         setId: {
             set: 'ASH',
-            number: 290
+            number: 219
         },
         unique: true,
         arena: 'ground',
