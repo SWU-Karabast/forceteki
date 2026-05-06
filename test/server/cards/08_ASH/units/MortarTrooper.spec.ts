@@ -1,6 +1,6 @@
 describe('Mortar Trooper', function() {
     integration(function(contextRef) {
-        it('Mortar Trooper\'s action ability should deal 1 damage to up to 3 units', async function () {
+        it('Mortar Trooper\'s action ability should deal 1 damage to up to 3 ground units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -18,10 +18,10 @@ describe('Mortar Trooper', function() {
             context.player1.clickCard(context.mortarTrooper);
 
             // Click the ability button
-            context.player1.clickPrompt('Deal 1 damage to each of up to 3 units');
+            context.player1.clickPrompt('Deal 1 damage to each of up to 3 ground units');
 
             // Should prompt to select up to 3 units
-            expect(context.player1).toHavePrompt('Deal 1 damage to each of up to 3 units');
+            expect(context.player1).toHavePrompt('Deal 1 damage to each of up to 3 ground units');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.mortarTrooper,
                 context.battlefieldMarine,
@@ -47,7 +47,7 @@ describe('Mortar Trooper', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Mortar Trooper\'s ability can target fewer than 3 units', async function () {
+        it('Mortar Trooper\'s ability can target fewer than 3 ground units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -63,7 +63,7 @@ describe('Mortar Trooper', function() {
             context.player1.clickCard(context.mortarTrooper);
 
             // Click the ability button
-            context.player1.clickPrompt('Deal 1 damage to each of up to 3 units');
+            context.player1.clickPrompt('Deal 1 damage to each of up to 3 ground units');
 
             // Select only 1 target
             context.player1.clickCard(context.wampa);
@@ -92,7 +92,7 @@ describe('Mortar Trooper', function() {
             context.player1.clickCard(context.mortarTrooper);
 
             // Click the ability button
-            context.player1.clickPrompt('Deal 1 damage to each of up to 3 units');
+            context.player1.clickPrompt('Deal 1 damage to each of up to 3 ground units');
 
             // Choose no targets
             context.player1.clickPrompt('Choose nothing');
@@ -119,7 +119,7 @@ describe('Mortar Trooper', function() {
             context.player1.clickCard(context.mortarTrooper);
 
             // Click the ability button
-            context.player1.clickPrompt('Deal 1 damage to each of up to 3 units');
+            context.player1.clickPrompt('Deal 1 damage to each of up to 3 ground units');
 
             // Target itself
             context.player1.clickCard(context.mortarTrooper);
