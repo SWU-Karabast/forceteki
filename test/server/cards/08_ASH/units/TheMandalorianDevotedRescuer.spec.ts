@@ -237,7 +237,7 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not prevent indirect damage even when shield is defeated — indirect damage bypasses PreventAll modification', async function () {
+            it('should not prevent indirect damage even when shield is defeated — indirect damage bypasses prevention', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

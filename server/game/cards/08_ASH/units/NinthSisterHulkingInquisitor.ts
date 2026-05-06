@@ -16,10 +16,10 @@ export default class NinthSisterHulkingInquisitor extends NonLeaderUnitCard {
             title: 'An opponent discards a card from their hand. You may deal damage equal to its cost divided as you choose among any number of units.',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOpponentsHand({ amount: 1 }),
             ifYouDo: (ifYouDoContext) => ({
-                title: `Deal ${ifYouDoContext.events[0]?.card?.printedCost ?? 0} damage divided as you choose among any number of units`,
+                title: `Deal ${ifYouDoContext.events[0].card.printedCost ?? 0} damage divided as you choose among any number of units`,
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong({
-                    amountToDistribute: ifYouDoContext.events[0]?.card?.printedCost ?? 0,
+                    amountToDistribute: ifYouDoContext.events[0].card.printedCost ?? 0,
                     canChooseNoTargets: true,
                     controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Unit,
