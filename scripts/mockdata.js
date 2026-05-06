@@ -497,6 +497,44 @@ const mockCards = [
         arena: 'space',
         internalName: 'mandalorian-flagship#captured-from-the-empire',
     }),
+    buildMockCard({
+        title: 'Ninth Sister',
+        subtitle: 'Hulking Inquisitor',
+        cost: 7,
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'imperial', 'inquisitor'],
+        keywords: ['overwhelm'],
+        setId: {
+            set: 'ASH',
+            number: 148
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ninth-sister#hulking-inquisitor',
+    }),
+    buildMockCard({
+        title: 'The Mandalorian',
+        subtitle: 'Devoted Rescuer',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['mandalorian'],
+        keywords: ['shielded'],
+        setId: {
+            set: 'ASH',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-mandalorian#devoted-rescuer',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
