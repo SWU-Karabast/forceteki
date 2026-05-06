@@ -100,14 +100,19 @@ export class MulliganPrompt extends AllPlayerPrompt {
                         TriggerHandlingMode.ResolvesTriggers
                     );
             } else {
-                // Perform a fake shuffle to ensure that the same amount of random numbers are generated
-                // in case the game was rolled back to before the mulligan decision and the players make
-                // different choices. For example, if both players decide to mulligan and after the rollback
-                // player1 decides to keep instead, we want player2 to draw the same cards as before.
-                Helpers.shuffle([
-                    ...player.deckZone.getCards(),
-                    ...player.hand,
-                ], this.game.randomGenerator);
+                // Queue a fake shuffle to ensure the same number of random numbers are generated
+                // in this player's slot of the queue, regardless of whether they chose to mulligan.
+                // This matters when the game is rolled back to before the mulligan decision and the
+                // players make different choices: we want each player's outcome to be independent
+                // of their opponent's choice. The step must be queued (not run synchronously) so it
+                // executes in the same pipeline order as the real ShuffleDeckSystem above would.
+                this.game.queueSimpleStep(
+                    () => Helpers.shuffle([
+                        ...player.deckZone.getCards(),
+                        ...player.hand,
+                    ], this.game.randomGenerator),
+                    `mulligan keep fake-shuffle for ${player.name}`
+                );
             }
         }
         return super.complete();
