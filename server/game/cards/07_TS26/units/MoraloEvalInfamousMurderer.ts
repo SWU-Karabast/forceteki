@@ -6,7 +6,7 @@ import { DamageType, WildcardCardType } from '../../../core/Constants';
 export default class MoraloEvalInfamousMurderer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'moralo-eval#infamous-murderer-id',
+            id: '9215361599',
             internalName: 'moralo-eval#infamous-murderer',
         };
     }

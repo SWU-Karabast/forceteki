@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class MotherTalzinStealingTheSpirit extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mother-talzin#stealing-the-spirit-id',
+            id: '6272807676',
             internalName: 'mother-talzin#stealing-the-spirit',
         };
     }

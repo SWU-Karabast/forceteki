@@ -6,7 +6,7 @@ import { RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class C3PODieJediDogs extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'c3po#die-jedi-dogs-id',
+            id: '9349017358',
             internalName: 'c3po#die-jedi-dogs',
         };
     }

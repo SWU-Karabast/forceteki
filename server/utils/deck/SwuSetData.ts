@@ -9,7 +9,8 @@ export enum SwuSetId {
     IBH = 'ibh',
     SEC = 'sec',
     LAW = 'law',
-    TS26 = 'ts26'
+    TS26 = 'ts26',
+    ASH = 'ash',
 }
 
 export enum BlockId {
@@ -54,7 +55,8 @@ export const rotationBlocks: IRotationBlock[] = [
     {
         id: BlockId.B,
         sets: [
-            { id: SwuSetId.LAW, released: true, mainline: true }
+            { id: SwuSetId.LAW, released: true, mainline: true },
+            { id: SwuSetId.ASH, released: false, mainline: true }
         ]
     },
 ];
@@ -83,9 +85,14 @@ const bannedPremierCards = new Map([
     ['1705806419', 'force-throw']
 ]);
 
+const bannedEternalCards = new Map([
+    ['4203363893', 'war-juggernaut'],
+    ['3722493191', 'ig2000#assassins-aggressor'],
+]);
+
 export const formatRules = new Map<SwuGameFormat, IFormatRules>([
     [SwuGameFormat.Premier, { minDeckSize: 50, maxCardCopies: 3, rotationBlockCount: 2, bannedCards: bannedPremierCards }],
-    [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
+    [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: bannedEternalCards }],
     [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
     [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map() }],
 ]);

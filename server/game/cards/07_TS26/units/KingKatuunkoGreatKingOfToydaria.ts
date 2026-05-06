@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class KingKatuunkoGreatKingOfToydaria extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'king-katuunko#great-king-of-toydaria-id',
+            id: '3325398707',
             internalName: 'king-katuunko#great-king-of-toydaria',
         };
     }

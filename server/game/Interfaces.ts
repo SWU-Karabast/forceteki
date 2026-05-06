@@ -193,6 +193,9 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     abilityIdentifier?: string;
     printedAbility?: boolean;
+
+    /** If this is a gained ability, gives the source card that is giving the ability */
+    gainAbilitySource?: Card;
 }
 
 export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
@@ -257,6 +260,7 @@ export type IKeywordProperties =
   | IAmbushKeywordProperties
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
+  | IExploitKeywordProperties
   | IGritKeywordProperties
   | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
@@ -267,7 +271,8 @@ export type IKeywordProperties =
   | ISaboteurKeywordProperties
   | ISentinelKeywordProperties
   | IShieldedKeywordProperties
-  | ISmuggleKeywordProperties;
+  | ISmuggleKeywordProperties
+  | ISupportKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
 
@@ -527,6 +532,10 @@ interface ICoordinateKeywordProperties<TSource extends IUnitCard = IUnitCard> ex
     ability: IAbilityPropsWithType<TSource>;
 }
 
+interface IExploitKeywordProperties extends INumericKeywordProperties {
+    keyword: KeywordName.Exploit;
+}
+
 interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
@@ -571,20 +580,34 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
+interface ISupportKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Support;
+}
+
 /** List of keywords that don't have any additional parameters */
 export type NonParameterKeywordName =
   | KeywordName.Ambush
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm
+  | KeywordName.Plot
   | KeywordName.Saboteur
   | KeywordName.Sentinel
-  | KeywordName.Shielded;
+  | KeywordName.Shielded
+  | KeywordName.Support;
 
 export type NumericKeywordName =
   | KeywordName.Raid
   | KeywordName.Restore
   | KeywordName.Exploit;
+
+export type CostKeywordName =
+  | KeywordName.Smuggle
+  | KeywordName.Piloting;
+
+export type AbilityDefinitionKeywordName =
+  | KeywordName.Bounty
+  | KeywordName.Coordinate;
 
 export interface ICardAttributes {
     // TODO: Add more attributes as needed

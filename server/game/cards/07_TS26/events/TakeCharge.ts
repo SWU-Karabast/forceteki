@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TakeCharge extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'take-charge-id',
+            id: '4540524041',
             internalName: 'take-charge',
         };
     }

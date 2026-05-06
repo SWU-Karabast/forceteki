@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity } from '../../services/DynamoDBInterfaces';
 import { ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
@@ -24,9 +24,14 @@ const getDefaultCosmeticsPreferences = () => ({
     background: null,
 });
 
+const getDefaultGameOptionsPreferences = () => ({
+    muteChat: false,
+});
+
 export const getDefaultPreferences = (): IUserPreferences => ({
     sound: getDefaultSoundPreferences(),
     cosmetics: getDefaultCosmeticsPreferences(),
+    gameOptions: getDefaultGameOptionsPreferences(),
 });
 
 
@@ -265,13 +270,16 @@ export class UserFactory {
                 }
             }
 
+            // update the GSI username
+            await dbService.deleteUsernameLinkAsync(userProfile.username, userId);
+            await dbService.saveUsernameLinkAsync(newUsername, userId);
+
             // Update username and set the timestamp
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
                 needsUsernameChange: false,
             });
-
             logger.info(`Username for ${userId} changed to ${newUsername}`);
 
             return {
@@ -377,6 +385,8 @@ export class UserFactory {
             await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
             // Save the user profile
             await dbService.saveUserProfileAsync(newUser);
+            // create username link
+            await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
             // Create email link if email is available
             if (!email) {
                 throw new Error(`Email not found for user ${newUser.id}`);
@@ -497,6 +507,7 @@ export class UserFactory {
     }
 
     /**
+     * TODO remove this function after 1 month of new mod actions since its legacy
      * Processes moderation logic for a user
      * @param userData User data from database
      * @returns Updated user data with moderation processed
@@ -627,6 +638,65 @@ export class UserFactory {
             return false;
         } catch (error) {
             logger.error('Error setting moderation seen status:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    // ------------------ MOD ACTIONS ------------------
+    /**
+     * Find user profile(s) by ID or username.
+     * - If searchQuery matches a userId: returns a single profile.
+     * - Otherwise tries username lookup: can return multiple profiles.
+     * @returns Array of matching user profiles, or empty array if not found.
+     */
+    public async findUserProfilesAsync(searchQuery: string): Promise<IUserProfileDataEntity[]> {
+        try {
+            const dbService = await this.dbServicePromise;
+
+            // Try direct lookup by userId first
+            const directProfile = await dbService.getUserProfileAsync(searchQuery);
+            if (directProfile) {
+                return [directProfile];
+            }
+
+            // Fallback to username search
+            const userIds = await dbService.getUserIdsByUsernameAsync(searchQuery);
+            if (!userIds || userIds.length === 0) {
+                return [];
+            }
+
+            const profiles: IUserProfileDataEntity[] = [];
+            for (const userId of userIds) {
+                const profile = await dbService.getUserProfileAsync(userId);
+                if (profile) {
+                    profiles.push(profile);
+                }
+            }
+
+            return profiles;
+        } catch (error) {
+            logger.error('Error finding user profiles:', {
+                error: { message: error.message, stack: error.stack },
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Get the full mod action history for a player (all actions, including cancelled/expired).
+     * Sorted by createdAt descending (newest first).
+     */
+    public async getModActionHistoryAsync(userId: string): Promise<IModActionEntity[]> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const modActions = await dbService.getModActionsAsync({ userId });
+            modActions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return modActions;
+        } catch (error) {
+            logger.error('Error getting mod action history:', {
                 error: { message: error.message, stack: error.stack },
                 userId
             });

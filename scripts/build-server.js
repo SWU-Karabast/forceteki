@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+const { computeCardDataHash } = require('./cardDataHash');
 
 function runCommand(command) {
     console.log('----------------------');
@@ -10,4 +11,4 @@ function runCommand(command) {
 fs.mkdirSync('./build/server', { recursive: true });
 
 runCommand('tsc');
-runCommand('cpy ./card-data-version.txt ./build/server/');
+fs.writeFileSync('./build/server/card-data-hash.txt', computeCardDataHash());

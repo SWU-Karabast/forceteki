@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TakeAim extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'take-aim-id',
+            id: '6349103776',
             internalName: 'take-aim',
         };
     }
