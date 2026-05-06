@@ -18,7 +18,7 @@ class GameFlowWrapper {
      * @param {UndoMode} undoMode
      * @param {boolean} enableConfirmationToUndo
      */
-    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Free) {
+    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Free, customSetupState = null) {
         /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
@@ -36,6 +36,10 @@ class GameFlowWrapper {
             userTimeoutDisconnect: () => undefined,
             undoMode
         };
+
+        if (customSetupState) {
+            details.customSetupState = customSetupState;
+        }
 
         this.game = new Game(details, { router });
         this.game.started = true;

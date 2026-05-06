@@ -4,6 +4,7 @@ import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { Attack } from './attack/Attack';
 import type { AttackRulesVersion } from './attack/AttackFlow';
+import type { ICustomSetupState } from './customSetup/CustomSetupTypes';
 import type { EventWindow } from './event/EventWindow';
 import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
@@ -28,6 +29,14 @@ export interface GameConfiguration {
 
     /** Player ID who gets to choose who starts with initiative, or undefined for random selection */
     preselectedFirstPlayerId?: string;
+
+    /**
+     * Optional starting board state. When set, the SetupPhase (initiative
+     * choice + mulligan + resource-2 prompt) is skipped and the supplied state
+     * is applied directly before round 1 begins. `players[0]` is treated as
+     * `setup.player1` and `players[1]` as `setup.player2`.
+     */
+    customSetupState?: ICustomSetupState;
 }
 
 export interface ICurrentlyResolving {

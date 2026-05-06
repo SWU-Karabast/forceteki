@@ -2,6 +2,8 @@ import { Game } from '../game/core/Game';
 import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import { Contract } from '../game/core/utils/Contract';
+import { CustomSetupValidator } from '../game/core/customSetup/CustomSetupValidator';
+import type { ICustomSetupState, ICustomSetupValidationError } from '../game/core/customSetup/CustomSetupTypes';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import fs from 'fs';
 import path from 'path';
@@ -153,6 +155,9 @@ export class Lobby {
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
     private allowSpectators = false;
+    private customSetupRawJson: string | null = null;
+    private customSetupState: ICustomSetupState | null = null;
+    private customSetupErrors: ICustomSetupValidationError[] = [];
 
     private game?: Game;
     public users: LobbyUserWrapper[] = [];
@@ -352,6 +357,11 @@ export class Lobby {
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
                 allowSpectators: this.allowSpectators,
+                customSetup: this.isPrivate ? {
+                    json: this.customSetupRawJson,
+                    errors: this.customSetupErrors,
+                    valid: this.customSetupState !== null,
+                } : null,
             },
         };
     }
@@ -974,7 +984,29 @@ export class Lobby {
         }
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
+        this.invalidateCustomSetupIfStale();
+
         this.updateUserLastActivity(activeUser.id);
+    }
+
+    /**
+     * Re-validates the saved custom setup against the current decks. If it no
+     * longer applies cleanly (most commonly: a player swapped decks so their
+     * leader/base or referenced cards changed), drop the saved state and let
+     * the leader know.
+     */
+    private invalidateCustomSetupIfStale(): void {
+        if (!this.customSetupState) {
+            return;
+        }
+        const ownerUser = this.users.find((u) => u.id === this.lobbyOwnerId);
+        const opponentUser = this.users.find((u) => u.id !== this.lobbyOwnerId);
+        const errors = CustomSetupValidator.validate(this.customSetupState, ownerUser?.deck, opponentUser?.deck, this.cardDataGetter);
+        if (errors.length > 0) {
+            this.customSetupState = null;
+            this.customSetupErrors = errors;
+            this.gameChat.addAlert(AlertType.Warning, 'Custom starting board was cleared because a deck change made it invalid.');
+        }
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -1366,7 +1398,80 @@ export class Lobby {
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),
             userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
+            customSetupState: this.buildCustomSetupForGameStart() ?? undefined,
         };
+    }
+
+    /**
+     * Returns the saved custom setup state if it is still valid against the
+     * current decks. The state is dropped (and a chat alert posted) if either
+     * player's deck has changed since the leader saved the JSON.
+     */
+    private buildCustomSetupForGameStart(): ICustomSetupState | null {
+        if (!this.customSetupState) {
+            return null;
+        }
+        const ownerUser = this.users.find((u) => u.id === this.lobbyOwnerId);
+        const opponentUser = this.users.find((u) => u.id !== this.lobbyOwnerId);
+        const errors = CustomSetupValidator.validate(
+            this.customSetupState,
+            ownerUser?.deck,
+            opponentUser?.deck,
+            this.cardDataGetter,
+        );
+        if (errors.length > 0) {
+            // Re-validation failed; clear and let the game start normally.
+            this.customSetupState = null;
+            this.customSetupRawJson = null;
+            this.customSetupErrors = errors;
+            this.gameChat.addAlert(AlertType.Warning, 'Custom starting board was discarded because the decks have changed since it was set.');
+            return null;
+        }
+        return this.customSetupState;
+    }
+
+    /**
+     * Owner-only socket command. Accepts a raw JSON string, validates against
+     * the current decks, and stores it for use at game start. Pass null/empty
+     * to clear.
+     */
+    private setCustomSetupState(socket: Socket, rawJson: string | null): void {
+        Contract.assertTrue(this.isPrivate, 'Custom starting board is only available in private lobbies');
+        const user = this.getUser(socket.user.getId());
+        Contract.assertTrue(user.id === this.lobbyOwnerId, `User ${user.id} attempted to set custom setup but is not the lobby owner`);
+        Contract.assertFalse(!!this.game, 'Cannot change custom setup after the game has started');
+
+        if (rawJson == null || rawJson.trim() === '') {
+            this.customSetupRawJson = null;
+            this.customSetupState = null;
+            this.customSetupErrors = [];
+            this.sendLobbyState();
+            return;
+        }
+
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(rawJson);
+        } catch (err) {
+            this.customSetupRawJson = rawJson;
+            this.customSetupState = null;
+            this.customSetupErrors = [{ path: '', message: `Invalid JSON: ${(err as Error).message}` }];
+            this.sendLobbyState();
+            return;
+        }
+
+        const ownerUser = this.users.find((u) => u.id === this.lobbyOwnerId);
+        const opponentUser = this.users.find((u) => u.id !== this.lobbyOwnerId);
+        const errors = CustomSetupValidator.validate(parsed, ownerUser?.deck, opponentUser?.deck, this.cardDataGetter);
+
+        this.customSetupRawJson = rawJson;
+        this.customSetupErrors = errors;
+        this.customSetupState = errors.length === 0 ? (parsed as ICustomSetupState) : null;
+
+        if (errors.length === 0) {
+            this.gameChat.addAlert(AlertType.Warning, `${user.username} set a custom starting board for this game.`);
+        }
+        this.sendLobbyState();
     }
 
     private userTimeoutDisconnect(userId: string) {
