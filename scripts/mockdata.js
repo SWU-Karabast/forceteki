@@ -459,25 +459,6 @@ const mockCards = [
         internalName: 'mandalorian-flagship#captured-from-the-empire',
     }),
     buildMockCard({
-        title: 'The Mandalorian',
-        subtitle: 'Devoted Rescuer',
-        power: 5,
-        hp: 4,
-        cost: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'vigilance'],
-        types: ['unit'],
-        traits: ['mandalorian'],
-        keywords: ['shielded'],
-        setId: {
-            set: 'ASH',
-            number: 62
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'the-mandalorian#devoted-rescuer',
-    }),
-    buildMockCard({
         title: 'Ninth Sister',
         subtitle: 'Hulking Inquisitor',
         cost: 7,
@@ -495,6 +476,25 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'ninth-sister#hulking-inquisitor',
+    }),
+    buildMockCard({
+        title: 'The Mandalorian',
+        subtitle: 'Devoted Rescuer',
+        power: 5,
+        hp: 4,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'vigilance'],
+        types: ['unit'],
+        traits: ['mandalorian'],
+        keywords: ['shielded'],
+        setId: {
+            set: 'ASH',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-mandalorian#devoted-rescuer',
     })
 ];
 
