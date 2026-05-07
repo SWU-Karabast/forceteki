@@ -65,7 +65,7 @@ export const nonRotatingSets: INonRotatingSet[] = [
     {
         id: SwuSetId.TS26,
         legalFormats: new Set([SwuGameFormat.Eternal]),
-        released: false,
+        released: true,
         mainline: false
     },
 ];
