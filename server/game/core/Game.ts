@@ -21,6 +21,8 @@ import { AbilityResolver } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
 import { cards } from '../cards/Index';
+import { applyCustomSetup } from './customSetup/CustomSetupApplier';
+import type { ICustomSetupState } from './customSetup/CustomSetupTypes';
 
 import {
     AlertType,
@@ -299,6 +301,7 @@ export class Game extends EventEmitter {
     public readonly buildSafeTimeoutHandler: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
+    private readonly _customSetupState: ICustomSetupState | undefined;
     public manualMode: boolean;
     public gameMode: GameMode;
     public currentlyResolving: ICurrentlyResolving;
@@ -361,6 +364,7 @@ export class Game extends EventEmitter {
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
+        this._customSetupState = details.customSetupState;
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this._debug = { pipeline: false };
@@ -1096,7 +1100,27 @@ export class Game extends EventEmitter {
         );
 
         this.resolveGameState(true);
-        this.initializePipelineForSetup();
+
+        if (this._customSetupState) {
+            // Skip the SetupPhase entirely; the supplied state describes the
+            // exact starting board, so initiative/mulligan/resource-2 prompts
+            // would just be busywork. If no initiative was specified in the
+            // setup, fall back to the random/preselected pick used by
+            // SetupPhase.chooseFirstPlayer so the game still has one.
+            applyCustomSetup(this, this._customSetupState);
+
+            if (!this.initiativePlayer) {
+                this.initiativePlayer = this.preselectedFirstPlayerId
+                    ? this.getPlayerById(this.preselectedFirstPlayerId)
+                    : Helpers.randomItem(this.getPlayers(), this.randomGenerator);
+            }
+
+            this.pipeline.initialise([
+                new SimpleStep(this, () => this.beginRound(), 'beginRound')
+            ]);
+        } else {
+            this.initializePipelineForSetup();
+        }
 
         this.playStarted = true;
         this.startedAt = new Date();
