@@ -19,7 +19,6 @@ export default class QueenAmidalaChampioningHerPeople extends NonLeaderUnitCard 
 
         registrar.addDamageModificationAbility({
             title: 'Defeat a friendly unit that shares a trait with Queen Amidala to prevent all damage to her',
-            contextTitle: (context) => `Defeat a friendly unit that shares a trait with ${context.source.title} to prevent all damage to her`,
             modificationType: DamageModificationType.PreventAll,
             optional: true,
             onlyIfYouDoEffect: AbilityHelper.immediateEffects.selectCard(({

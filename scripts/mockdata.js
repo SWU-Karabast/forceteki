@@ -440,7 +440,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'mortar-trooper',
     }),
-    // The Mandalorian, Devoted Rescuer
+    buildMockCard({
+        title: 'Mandalorian Flagship',
+        subtitle: 'Captured from the Empire',
+        cost: 7,
+        power: 4,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['mandalorian', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'ASH',
+            number: 113
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'mandalorian-flagship#captured-from-the-empire',
+    }),
     buildMockCard({
         title: 'The Mandalorian',
         subtitle: 'Devoted Rescuer',
@@ -478,24 +495,6 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'ninth-sister#hulking-inquisitor',
-    }),
-    buildMockCard({
-        title: 'Mandalorian Flagship',
-        subtitle: 'Captured from the Empire',
-        cost: 7,
-        power: 4,
-        hp: 8,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'heroism'],
-        types: ['unit'],
-        traits: ['mandalorian', 'vehicle', 'capital ship'],
-        setId: {
-            set: 'ASH',
-            number: 113
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'mandalorian-flagship#captured-from-the-empire',
     })
 ];
 

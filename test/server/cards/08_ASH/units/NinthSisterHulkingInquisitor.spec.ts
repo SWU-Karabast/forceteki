@@ -82,7 +82,7 @@ describe('Ninth Sister, Hulking Inquisitor', function () {
                 expect(context.porg).toBeInZone('discard');
 
                 // 0-cost card — decline the 0-damage trigger
-                context.player1.clickPrompt('Pass');
+                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.specforceSoldier.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
