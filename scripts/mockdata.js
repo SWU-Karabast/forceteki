@@ -484,7 +484,7 @@ const mockCards = [
         hp: 4,
         cost: 4,
         hasNonKeywordAbility: true,
-        aspects: ['command', 'vigilance'],
+        aspects: ['vigilance', 'heroism'],
         types: ['unit'],
         traits: ['mandalorian'],
         keywords: ['shielded'],
@@ -495,7 +495,7 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'the-mandalorian#devoted-rescuer',
-    })
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
