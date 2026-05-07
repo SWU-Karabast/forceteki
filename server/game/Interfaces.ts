@@ -38,6 +38,8 @@ import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffe
 
 // ********************************************** EXPORTED TYPES **********************************************
 
+export type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
+
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
 export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
@@ -481,7 +483,7 @@ export interface IEventRegistration<Handler = () => void> {
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler' | 'then' | 'ifYouDo' | 'ifYouDoNot'
 > {
-    replaceWith?: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
+    replaceWith?: PropsFactory<IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>, TriggeredAbilityContext<TSource>>;
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 }
 
