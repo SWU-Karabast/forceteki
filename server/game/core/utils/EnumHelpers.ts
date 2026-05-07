@@ -1,12 +1,5 @@
-import type { CardTypeFilter, MoveZoneDestination, ZoneFilter } from '../Constants';
-import {
-    CardType,
-    DeckZoneDestination,
-    RelativePlayer,
-    WildcardCardType,
-    WildcardZoneName,
-    ZoneName
-} from '../Constants';
+import type { CardTypeFilter, ZoneFilter, MoveZoneDestination, TokenName } from '../Constants';
+import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName, TokenCardName, TokenUpgradeName, TokenUnitName } from '../Constants';
 import type { Player } from '../Player';
 import { Helpers } from './Helpers';
 import type { TimedModActionType } from '../../../services/DynamoDBInterfaces';
@@ -309,6 +302,20 @@ export namespace EnumHelpers {
 
     export const asRelativePlayer = (player: Player, otherPlayer: Player): RelativePlayer => {
         return player === otherPlayer ? RelativePlayer.Self : RelativePlayer.Opponent;
+    };
+
+    export const tokenTitle: Record<TokenName, string> = {
+        [TokenUnitName.BattleDroid]: 'Battle Droid',
+        [TokenUnitName.CloneTrooper]: 'Clone Trooper',
+        [TokenUnitName.XWing]: 'X-Wing',
+        [TokenUnitName.TIEFighter]: 'TIE Fighter',
+        [TokenUnitName.Spy]: 'Spy',
+        [TokenUnitName.Mandalorian]: 'Mandalorian',
+        [TokenUpgradeName.Shield]: 'Shield',
+        [TokenUpgradeName.Experience]: 'Experience',
+        [TokenUpgradeName.Advantage]: 'Advantage',
+        [TokenCardName.Credit]: 'Credit',
+        [TokenCardName.Force]: 'The Force'
     };
 }
 
