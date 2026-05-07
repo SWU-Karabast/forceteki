@@ -172,8 +172,7 @@ import type { IGiveAdvantageProperties } from './GiveAdvantageSystem';
 import { GiveAdvantageSystem } from './GiveAdvantageSystem';
 import { CreateMandalorianSystem } from './CreateMandalorianSystem';
 import type { ICreateMandalorianProperties } from './CreateMandalorianSystem';
-
-type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
+import type { PropsFactory } from '../Interfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
