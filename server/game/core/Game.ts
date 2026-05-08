@@ -299,6 +299,7 @@ export class Game extends EventEmitter {
     public readonly buildSafeTimeoutHandler: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
+    public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
     public gameMode: GameMode;
     public currentlyResolving: ICurrentlyResolving;
@@ -361,6 +362,7 @@ export class Game extends EventEmitter {
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
+        this.onBo3SetForfeit = details.onBo3SetForfeit;
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this._debug = { pipeline: false };
@@ -763,9 +765,14 @@ export class Game extends EventEmitter {
         player.opponent.actionTimer.stop();
         this.addAlert(AlertType.Notification, `Game ended due to ${player.name} timing out.`);
 
-        if (player.opponent.actionTimer.mainTimeRemainingSeconds < 3) {
+        if (player.opponent.actionTimer.totalTimeRemainingSeconds < 3) {
+            // Both players nearly timed out - treat as draw, don't forfeit Bo3 set
             this.endGame([player, player.opponent], GameEndReason.Timeout);
         } else {
+            // Single player timeout - forfeit Bo3 set if applicable
+            if (this.onBo3SetForfeit) {
+                this.onBo3SetForfeit(player.id);
+            }
             this.endGame(player.opponent, GameEndReason.Timeout);
         }
 

@@ -62,7 +62,7 @@ class UndoConfirmationPrompt extends HandlerMenuPrompt {
      * @override
      * @param {Player} player
      */
-    stopInactivePlayerActionTimer(player) {
+    stopPlayerActionTimer(player) {
         // we pause the requesting player's timer instead of stopping it so that they can't cheat time back
         player.actionTimer.pause();
     }

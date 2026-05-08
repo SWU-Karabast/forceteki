@@ -861,8 +861,9 @@ export class Lobby {
 
         const user = this.getUser(userId);
 
-        // If there's an active game that hasn't finished, concede it first
-        if (this.game && this.game.finishedAt == null) {
+        // If there's an active game that hasn't finished and no winner has been determined yet, concede it first
+        // (Skip if game already has a winner, e.g., from timeout - endGame guard will prevent double-recording)
+        if (this.game && this.game.finishedAt == null && this.game.winnerNames.length === 0) {
             this.game.concede(userId);
         }
 
@@ -1366,6 +1367,9 @@ export class Lobby {
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),
             userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
+            onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
+                ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
+                : undefined,
         };
     }
 
