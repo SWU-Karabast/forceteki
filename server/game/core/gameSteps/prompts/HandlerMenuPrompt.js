@@ -21,7 +21,7 @@ const { UiPrompt } = require('./UiPrompt.js');
  */
 class HandlerMenuPrompt extends UiPrompt {
     constructor(game, player, properties) {
-        super(game);
+        super(game, properties.resetActionTimerOnComplete);
         this.player = player;
         if (typeof properties.source === 'string') {
             properties.source = new OngoingEffectSource(game, properties.source);

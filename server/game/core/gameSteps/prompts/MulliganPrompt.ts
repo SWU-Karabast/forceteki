@@ -13,7 +13,8 @@ export class MulliganPrompt extends AllPlayerPrompt {
     protected playersDone = new Map<string, boolean>();
     protected playerMulligan = new Map<string, boolean>();
     public constructor(game: Game) {
-        super(game);
+        super(game, true);
+
         for (const player of game.getPlayers()) {
             this.playersDone[player.name] = false;
             this.playerMulligan[player.name] = false;
@@ -69,9 +70,6 @@ export class MulliganPrompt extends AllPlayerPrompt {
 
     public override complete() {
         for (const player of this.game.getPlayers()) {
-            // force stop both players' action timers to ensure that both players' timers are reset for the next step and don't keep running
-            this.stopPlayerActionTimer(player);
-
             if (this.playerMulligan[player.name]) {
                 // Move the first hand to the bottom of the deck
                 new MoveCardSystem({
