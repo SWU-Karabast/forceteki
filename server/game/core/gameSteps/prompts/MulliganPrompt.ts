@@ -69,6 +69,9 @@ export class MulliganPrompt extends AllPlayerPrompt {
 
     public override complete() {
         for (const player of this.game.getPlayers()) {
+            // force stop both players' action timers to ensure that both players' timers are reset for the next step and don't keep running
+            this.stopPlayerActionTimer(player);
+
             if (this.playerMulligan[player.name]) {
                 // Move the first hand to the bottom of the deck
                 new MoveCardSystem({

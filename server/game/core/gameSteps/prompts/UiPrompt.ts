@@ -100,7 +100,7 @@ export abstract class UiPrompt extends BaseStep {
                 this.playersActiveForPrompt.push(player);
 
                 if ((this.firstContinue && !player.activeForPreviousPrompt) || !player.actionTimer.isRunning) {
-                    this.startActivePlayerActionTimer(player);
+                    this.startPlayerActionTimer(player);
                 }
 
                 player.activeForPreviousPrompt = true;
@@ -108,14 +108,14 @@ export abstract class UiPrompt extends BaseStep {
             } else {
                 player.activeForPreviousPrompt = false;
                 player.setPrompt(this.waitingPrompt());
-                this.stopInactivePlayerActionTimer(player);
+                this.stopPlayerActionTimer(player);
             }
         }
 
         this.highlightSelectableCards();
     }
 
-    public startActivePlayerActionTimer(player: Player) {
+    public startPlayerActionTimer(player: Player) {
         // if the player's timer was paused instead of stop, do a resume so we don't reset their timer
         if (player.actionTimer.isPaused) {
             player.actionTimer.resume();
@@ -124,7 +124,7 @@ export abstract class UiPrompt extends BaseStep {
         }
     }
 
-    public stopInactivePlayerActionTimer(player: Player) {
+    public stopPlayerActionTimer(player: Player) {
         player.actionTimer.stop();
     }
 
