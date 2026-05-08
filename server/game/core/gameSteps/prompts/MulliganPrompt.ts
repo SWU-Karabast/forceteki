@@ -13,7 +13,8 @@ export class MulliganPrompt extends AllPlayerPrompt {
     protected playersDone = new Map<string, boolean>();
     protected playerMulligan = new Map<string, boolean>();
     public constructor(game: Game) {
-        super(game);
+        super(game, true);
+
         for (const player of game.getPlayers()) {
             this.playersDone[player.name] = false;
             this.playerMulligan[player.name] = false;

@@ -11,6 +11,8 @@ import type { AllPlayerPrompt } from './AllPlayerPrompt';
 export abstract class UiPrompt extends BaseStep {
     public readonly uuid = uuid();
 
+    private readonly resetActionTimerOnComplete: boolean;
+
     private previousPrompt?: UiPrompt;
     private completed = false;
     private firstContinue = true;
@@ -21,8 +23,10 @@ export abstract class UiPrompt extends BaseStep {
     // this is passed to the FE for the sake of being able to inform the player by e.g. making a sound
     private playerIsNewlyActive = new Map<Player, boolean>();
 
-    public constructor(game: Game) {
+    public constructor(game: Game, resetActionTimerOnComplete = false) {
         super(game);
+
+        this.resetActionTimerOnComplete = resetActionTimerOnComplete;
 
         this.clearPrompts();
     }
@@ -71,6 +75,13 @@ export abstract class UiPrompt extends BaseStep {
 
     public complete(): void {
         this.completed = true;
+
+        if (this.resetActionTimerOnComplete) {
+            for (const player of this.playersActiveForPrompt) {
+                this.stopPlayerActionTimer(player);
+            }
+        }
+
         this.game.setCurrentOpenPrompt(this.previousPrompt);
 
         // if this is an opponent reveal new info prompt, require confirmation to undo for the active player
@@ -100,7 +111,7 @@ export abstract class UiPrompt extends BaseStep {
                 this.playersActiveForPrompt.push(player);
 
                 if ((this.firstContinue && !player.activeForPreviousPrompt) || !player.actionTimer.isRunning) {
-                    this.startActivePlayerActionTimer(player);
+                    this.startPlayerActionTimer(player);
                 }
 
                 player.activeForPreviousPrompt = true;
@@ -108,14 +119,14 @@ export abstract class UiPrompt extends BaseStep {
             } else {
                 player.activeForPreviousPrompt = false;
                 player.setPrompt(this.waitingPrompt());
-                this.stopInactivePlayerActionTimer(player);
+                this.stopPlayerActionTimer(player);
             }
         }
 
         this.highlightSelectableCards();
     }
 
-    public startActivePlayerActionTimer(player: Player) {
+    public startPlayerActionTimer(player: Player) {
         // if the player's timer was paused instead of stop, do a resume so we don't reset their timer
         if (player.actionTimer.isPaused) {
             player.actionTimer.resume();
@@ -124,7 +135,7 @@ export abstract class UiPrompt extends BaseStep {
         }
     }
 
-    public stopInactivePlayerActionTimer(player: Player) {
+    public stopPlayerActionTimer(player: Player) {
         player.actionTimer.stop();
     }
 
