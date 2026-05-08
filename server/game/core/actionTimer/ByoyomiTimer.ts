@@ -52,6 +52,10 @@ export class ByoyomiTimer implements IByoyomiTimer {
         return this.mainTimer.timeRemainingSeconds ?? ByoyomiTimer.MainTimeLimitSeconds;
     }
 
+    public get totalTimeRemainingSeconds(): number {
+        return (this.turnTimeRemainingSeconds ?? 0) + this.mainTimeRemainingSeconds;
+    }
+
     public constructor(
         player: Player,
         game: Game,

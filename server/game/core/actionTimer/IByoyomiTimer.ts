@@ -19,4 +19,9 @@ export interface IByoyomiTimer extends IActionTimer {
      * Seconds remaining on the main timer. Always has a value.
      */
     get mainTimeRemainingSeconds(): number;
+
+    /**
+     * Total seconds remaining across both timers (turn time if active + main time).
+     */
+    get totalTimeRemainingSeconds(): number;
 }
