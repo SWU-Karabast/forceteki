@@ -143,11 +143,10 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['the-mandalorian#devoted-rescuer', { card: 'pyke-sentinel', upgrades: ['shield'] }],
+                        groundArena: ['the-mandalorian#devoted-rescuer', 'wampa', { card: 'pyke-sentinel', upgrades: ['shield'] }],
                     },
                     player2: {
                         hand: ['open-fire'],
-                        groundArena: ['wampa'],
                         hasInitiative: true
                     }
                 });
@@ -155,9 +154,12 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.openFire);
-                context.player2.clickCard(context.theMandalorian);
+                context.player2.clickCard(context.wampa);
 
                 expect(context.player1).toBeActivePlayer(); // player2 used their action
+
+                // Deal damage to a friendly unit while Mando doesnt have a shield but another friendly unit does
+                expect(context.wampa.damage).toBe(4);
             });
 
             it('should not trigger when The Mandalorian has no shield', async function () {

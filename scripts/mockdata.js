@@ -480,9 +480,9 @@ const mockCards = [
     buildMockCard({
         title: 'The Mandalorian',
         subtitle: 'Devoted Rescuer',
+        cost: 4,
         power: 5,
         hp: 4,
-        cost: 4,
         hasNonKeywordAbility: true,
         aspects: ['vigilance', 'heroism'],
         types: ['unit'],
