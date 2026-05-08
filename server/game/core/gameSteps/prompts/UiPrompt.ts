@@ -99,20 +99,33 @@ export abstract class UiPrompt extends BaseStep {
             if (this.activeCondition(player)) {
                 this.playersActiveForPrompt.push(player);
 
+                if ((this.firstContinue && !player.activeForPreviousPrompt) || !player.actionTimer.isRunning) {
+                    this.startActivePlayerActionTimer(player);
+                }
+
                 player.activeForPreviousPrompt = true;
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
-
-                if (this.firstContinue) {
-                    this.startActionTimer(player);
-                }
             } else {
                 player.activeForPreviousPrompt = false;
                 player.setPrompt(this.waitingPrompt());
-                player.actionTimer.stop();
+                this.stopInactivePlayerActionTimer(player);
             }
         }
 
         this.highlightSelectableCards();
+    }
+
+    public startActivePlayerActionTimer(player: Player) {
+        // if the player's timer was paused instead of stop, do a resume so we don't reset their timer
+        if (player.actionTimer.isPaused) {
+            player.actionTimer.resume();
+        } else {
+            player.actionTimer.start();
+        }
+    }
+
+    public stopInactivePlayerActionTimer(player: Player) {
+        player.actionTimer.stop();
     }
 
     public isAllPlayerPrompt(): this is AllPlayerPrompt {
@@ -121,10 +134,6 @@ export abstract class UiPrompt extends BaseStep {
 
     protected isOpponentRevealNewInfoPrompt(): boolean {
         return true;
-    }
-
-    protected startActionTimer(player: Player) {
-        player.actionTimer.start();
     }
 
     protected highlightSelectableCards() {
