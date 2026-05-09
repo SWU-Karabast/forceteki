@@ -33,7 +33,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
             .then((data) => data as Record<string, string>);
 
         const leaderNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.leaderNamesFileName)
-            .then((data) => data as { name: string; id: string; subtitle?: string }[]);
+            .then((data) => data as { name: string; id: string; subtitle?: string; aspects: string[]; set: string | null }[]);
 
         const baseNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseNamesFileName)
             .then((data) => data as { name: string; id: string; subtitle?: string; aspects: string[] }[]);
@@ -80,7 +80,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         allNonLeaderCardTitles: string[],
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
-        leaderNames: { name: string; id: string; subtitle?: string }[],
+        leaderNames: { name: string; id: string; subtitle?: string; aspects: string[]; set: string | null }[],
         baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
         baseTypes: IBaseType[],
     ) {

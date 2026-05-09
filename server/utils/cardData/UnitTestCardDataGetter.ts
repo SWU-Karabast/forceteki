@@ -43,7 +43,7 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
 
         const setCodeMap = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.setCodeMapFileName) as Record<string, string>;
 
-        const leaderNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.leaderNamesFileName) as { name: string; id: string; subtitle: string }[];
+        const leaderNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.leaderNamesFileName) as { name: string; id: string; subtitle: string; aspects: string[]; set: string | null }[];
         const baseNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.baseNamesFileName) as { name: string; id: string; subtitle: string; aspects: string[] }[];
         const baseTypes = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.baseTypesFileName) as IBaseType[];
         super(folderRoot, cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes);
