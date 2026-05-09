@@ -282,6 +282,7 @@ function filterValues(card) {
         filteredObj.traits = getAttributeNames(card.attributes.traits);
         filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
         filteredObj.keywords = getAttributeNames(card.attributes.keywords);
+        filteredObj.rarity = card.attributes.rarity?.data?.attributes?.character ?? null;
 
         if (card.attributes.backSideAspects) {
             filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
@@ -447,6 +448,7 @@ function buildCardLists(cards) {
                 aspects: Array.isArray(card.aspects) ? card.aspects : [],
                 hp: card.hp,
                 text: typeof card.text === 'string' ? card.text : '',
+                rarity: card.rarity ?? null,
             });
         }
     }
@@ -500,13 +502,18 @@ function buildBaseTypes(baseNames) {
     for (const [groupKey, group] of groups.entries()) {
         if (group.bases.length === 1) {
             // A unique-named base gets its own category, labeled by the
-            // card's name.
+            // card's name + HP, with an (R) suffix for rare-rarity prints
+            // so players can spot them at a glance.
             const only = group.bases[0];
+            const rarityTag = formatRaritySuffix(only.rarity);
+            const hp = group.hp ? `${group.hp}hp` : '';
+            const baseLabel = [only.name, hp].filter(Boolean).join(' - ');
             types.push({
                 id: `unique_${only.id}`,
-                label: only.name,
+                label: rarityTag ? `${baseLabel} ${rarityTag}` : baseLabel,
                 aspect: group.aspect,
                 hp: group.hp,
+                rarity: only.rarity ?? null,
                 baseIds: [only.id],
                 representativeId: only.id,
             });
@@ -520,6 +527,7 @@ function buildBaseTypes(baseNames) {
             label,
             aspect: group.aspect,
             hp: group.hp,
+            rarity: null,
             baseIds: sorted.map((b) => b.id),
             representativeId: sorted[0].id,
         });
@@ -536,17 +544,28 @@ function labelForGroup(group) {
     const hp = group.hp ? `${group.hp}hp` : '';
     const text = group.text || '';
     if (text === '') {
-        // Vanilla bases — no rules text. Differentiate by HP since base HP
-        // pools are the player-relevant axis.
-        return `Vanilla ${aspect} ${hp}`.trim();
+        // Vanilla bases — no rules text. Tag is just the HP (e.g.,
+        // "Aggression - 30hp"), since vanilla bases differ only in stats.
+        return `${aspect} - ${hp}`;
     }
     if ((/force token/i).test(text) || (/force is with you/i).test(text)) {
-        return `${aspect} - Force${hp ? ` (${hp})` : ''}`;
+        return `${aspect} - Force - ${hp}`;
     }
     if ((/aspect penalt/i).test(text)) {
-        return `${aspect} - Splash${hp ? ` (${hp})` : ''}`;
+        return `${aspect} - Splash - ${hp}`;
     }
-    return `${aspect} ${hp}`.trim();
+    return `${aspect} - ${hp}`;
+}
+
+function formatRaritySuffix(rarityChar) {
+    if (!rarityChar) {
+        return '';
+    }
+    const upper = rarityChar.toUpperCase();
+    if (upper === 'R' || upper === 'L' || upper === 'S') {
+        return `(${upper})`;
+    }
+    return '';
 }
 
 function capitalizeWord(value) {

@@ -12,6 +12,7 @@ export interface IBaseType {
     label: string;
     aspect: string;
     hp: number;
+    rarity: string | null;
     baseIds: string[];
     representativeId: string;
 }
