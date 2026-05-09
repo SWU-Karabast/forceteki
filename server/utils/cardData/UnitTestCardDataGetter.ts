@@ -1,4 +1,5 @@
 import { CardDataGetter } from './CardDataGetter';
+import type { IBaseType } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
 import { LocalFolderCardDataGetter } from './LocalFolderCardDataGetter';
 import { Contract } from '../../game/core/utils/Contract';
@@ -44,7 +45,8 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
 
         const leaderNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.leaderNamesFileName) as { name: string; id: string; subtitle: string }[];
         const baseNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.baseNamesFileName) as { name: string; id: string; subtitle: string; aspects: string[] }[];
-        super(folderRoot, cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames);
+        const baseTypes = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.baseTypesFileName) as IBaseType[];
+        super(folderRoot, cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes);
     }
 
     public getCardSync(id: string): ICardDataJson {

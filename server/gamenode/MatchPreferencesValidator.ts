@@ -5,7 +5,9 @@ import type { MatchPreferences } from './MatchmakingRules';
 const ASPECTS = new Set<string>(Object.values(Aspect));
 
 const MAX_ARCHETYPES = 200;
+const MAX_BASE_IDS_PER_TYPE = 200;
 const MAX_ID_LENGTH = 64;
+const MAX_LABEL_LENGTH = 128;
 
 /**
  * Validates an arbitrary value as MatchPreferences. Returns null on success
@@ -53,12 +55,26 @@ function validateArchetype(input: unknown, index: number): string | null {
         return `matchPreferences.allowedArchetypes[${index}].baseConstraint must be an object`;
     }
     const constraint = archetype.baseConstraint as Record<string, unknown>;
-    if (constraint.kind === 'specificBase') {
-        if (typeof constraint.baseId !== 'string' || constraint.baseId.length === 0) {
-            return `matchPreferences.allowedArchetypes[${index}].baseConstraint.baseId must be a non-empty string`;
+    if (constraint.kind === 'baseType') {
+        if (!Array.isArray(constraint.baseIds) || constraint.baseIds.length === 0) {
+            return `matchPreferences.allowedArchetypes[${index}].baseConstraint.baseIds must be a non-empty array`;
         }
-        if (constraint.baseId.length > MAX_ID_LENGTH) {
-            return `matchPreferences.allowedArchetypes[${index}].baseConstraint.baseId must be at most ${MAX_ID_LENGTH} characters`;
+        if (constraint.baseIds.length > MAX_BASE_IDS_PER_TYPE) {
+            return `matchPreferences.allowedArchetypes[${index}].baseConstraint.baseIds must contain at most ${MAX_BASE_IDS_PER_TYPE} entries`;
+        }
+        for (let j = 0; j < constraint.baseIds.length; j++) {
+            const baseId = constraint.baseIds[j];
+            if (typeof baseId !== 'string' || baseId.length === 0) {
+                return `matchPreferences.allowedArchetypes[${index}].baseConstraint.baseIds[${j}] must be a non-empty string`;
+            }
+            if (baseId.length > MAX_ID_LENGTH) {
+                return `matchPreferences.allowedArchetypes[${index}].baseConstraint.baseIds[${j}] must be at most ${MAX_ID_LENGTH} characters`;
+            }
+        }
+        if (constraint.label !== undefined && constraint.label !== null) {
+            if (typeof constraint.label !== 'string' || constraint.label.length > MAX_LABEL_LENGTH) {
+                return `matchPreferences.allowedArchetypes[${index}].baseConstraint.label must be a string of at most ${MAX_LABEL_LENGTH} characters`;
+            }
         }
         return null;
     }
@@ -68,7 +84,7 @@ function validateArchetype(input: unknown, index: number): string | null {
         }
         return null;
     }
-    return `matchPreferences.allowedArchetypes[${index}].baseConstraint.kind must be 'specificBase' or 'aspect'`;
+    return `matchPreferences.allowedArchetypes[${index}].baseConstraint.kind must be 'baseType' or 'aspect'`;
 }
 
 /**

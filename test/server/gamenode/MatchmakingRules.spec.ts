@@ -126,22 +126,46 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
         });
     });
 
-    describe('with leader + specific-base constraint', function() {
+    describe('with leader + baseType (single-id) constraint', function() {
         const archetype: OpponentArchetype = {
             leaderId: 'JTL_005',
-            baseConstraint: { kind: 'specificBase', baseId: 'JTL_023' },
+            baseConstraint: { kind: 'baseType', baseIds: ['JTL_023'], label: 'Colossus' },
         };
         const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
 
-        it('matches on exact baseId match', function() {
+        it('matches when opponent baseId is in the single-id set', function() {
             const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
             const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { baseAspects: ['vigilance'] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
-        it('rejects when opponent base differs even if aspect matches', function() {
+        it('rejects when opponent baseId is not in the single-id set', function() {
             const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
             const p2 = buildPlayer('u2', 'JTL_005', 'LOF_999', { baseAspects: ['vigilance'] });
+            expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
+        });
+    });
+
+    describe('with leader + baseType (multi-id) constraint', function() {
+        const archetype: OpponentArchetype = {
+            leaderId: 'JTL_005',
+            baseConstraint: {
+                kind: 'baseType',
+                baseIds: ['LOF_023', 'LOF_026', 'LOF_027'],
+                label: 'Aggression - Force (28hp)',
+            },
+        };
+        const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
+
+        it('matches when opponent baseId is any member of the type', function() {
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'LOF_026', { baseAspects: ['aggression'] });
+            expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
+        });
+
+        it('rejects when opponent baseId is not in the type', function() {
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'LAW_026', { baseAspects: ['aggression'] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
     });

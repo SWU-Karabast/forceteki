@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { Contract } from '../../game/core/utils/Contract';
-import type { ITokenCardsData } from './CardDataGetter';
+import type { IBaseType, ITokenCardsData } from './CardDataGetter';
 import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
 
@@ -37,7 +37,10 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
 
         const baseNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseNamesFileName)
             .then((data) => data as { name: string; id: string; subtitle?: string; aspects: string[] }[]);
-        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames);
+
+        const baseTypes = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseTypesFileName)
+            .then((data) => data as IBaseType[]);
+        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes);
     }
 
     protected static validateFolderContents(directory: string, isDevelopment: boolean) {
@@ -79,8 +82,9 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
         baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
+        baseTypes: IBaseType[],
     ) {
-        super(cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames);
+        super(cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes);
 
         this.folderRoot = folderRoot;
     }

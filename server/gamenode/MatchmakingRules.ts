@@ -20,10 +20,16 @@ export interface IMatchmakingRule {
 /**
  * Constraint on which bases a filtered opponent's deck can use, paired with a
  * leader. Omit `baseConstraint` for "any base of this leader".
+ *
+ * `baseType` carries the set of acceptable base-card ids inline. The FE
+ * resolves a user-friendly category (e.g. "Aggression - Force", or a unique
+ * base like "Colossus") to the list of card ids in that group, so the BE
+ * doesn't need a separate base-type registry to evaluate the rule. `label`
+ * is optional metadata for display only.
  */
 export type BaseConstraint =
-  | { kind: 'specificBase'; baseId: string }
-  | { kind: 'aspect'; aspect: Aspect };
+  | { kind: 'aspect'; aspect: Aspect }
+  | { kind: 'baseType'; baseIds: string[]; label?: string };
 
 /**
  * A single archetype the player is willing to be matched against.
@@ -150,8 +156,8 @@ function archetypeMatchesOpponent(
     if (!archetype.baseConstraint) {
         return true;
     }
-    if (archetype.baseConstraint.kind === 'specificBase') {
-        return opponentBaseId === archetype.baseConstraint.baseId;
+    if (archetype.baseConstraint.kind === 'baseType') {
+        return typeof opponentBaseId === 'string' && archetype.baseConstraint.baseIds.includes(opponentBaseId);
     }
     if (archetype.baseConstraint.kind === 'aspect') {
         return Array.isArray(opponentBaseAspects) && opponentBaseAspects.includes(archetype.baseConstraint.aspect);

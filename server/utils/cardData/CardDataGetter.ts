@@ -7,6 +7,15 @@ export type ITokenCardsData = {
     [TokenNameValue in TokenName]: ICardDataJson;
 };
 
+export interface IBaseType {
+    id: string;
+    label: string;
+    aspect: string;
+    hp: number;
+    baseIds: string[];
+    representativeId: string;
+}
+
 export abstract class CardDataGetter {
     public readonly cardMap: ICardMap;
 
@@ -18,6 +27,7 @@ export abstract class CardDataGetter {
     private readonly _leaders: { name: string; id: string; subtitle?: string }[];
     private readonly _bases: { name: string; id: string; subtitle?: string; aspects: string[] }[];
     private readonly _baseAspectsById: Map<string, string[]>;
+    private readonly _baseTypes: IBaseType[];
 
     protected static readonly setCodeMapFileName = '_setCodeMap.json';
     protected static readonly cardMapFileName = '_cardMap.json';
@@ -25,6 +35,7 @@ export abstract class CardDataGetter {
     protected static readonly playableCardTitlesFileName = '_playableCardTitles.json';
     protected static readonly leaderNamesFileName = '_leaderNames.json';
     protected static readonly baseNamesFileName = '_baseNames.json';
+    protected static readonly baseTypesFileName = '_baseTypes.json';
 
     public get cardIds(): string[] {
         return Array.from(this.cardMap.keys());
@@ -54,6 +65,10 @@ export abstract class CardDataGetter {
         return this._bases;
     }
 
+    public getBaseTypes(): IBaseType[] {
+        return this._baseTypes;
+    }
+
     /**
      * Returns the aspects of a base by its set-code id (e.g. 'SOR_022'), or
      * an empty array if no base with that id is known. Used by the matchmaking
@@ -74,6 +89,7 @@ export abstract class CardDataGetter {
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
         baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
+        baseTypes: IBaseType[],
     ) {
         this.cardMap = new Map<string, ICardMapEntry>();
         this.knownCardInternalNames = new Set<string>();
@@ -90,6 +106,7 @@ export abstract class CardDataGetter {
         this._leaders = leaderNames;
         this._bases = baseNames;
         this._baseAspectsById = new Map(baseNames.map((base) => [base.id, base.aspects]));
+        this._baseTypes = baseTypes;
     }
 
     protected abstract getCardInternalAsync(relativePath: string): Promise<ICardDataJson>;

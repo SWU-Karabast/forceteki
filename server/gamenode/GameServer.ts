@@ -1451,6 +1451,15 @@ export class GameServer {
             }
         });
 
+        app.get('/api/all-base-types', (_, res, next) => {
+            try {
+                return res.json(this.cardDataGetter.getBaseTypes());
+            } catch (err) {
+                logger.error('GameServer (all-base-types) Server error: ', err);
+                next(err);
+            }
+        });
+
         // Cosmetics API endpoints
         app.get('/api/cosmetics', this.buildAuthMiddleware('get-cosmetics'), (req, res, next) => {
             try {
