@@ -553,9 +553,11 @@ function labelForGroup(group) {
     const hp = group.hp ? `${group.hp}hp` : '';
     const text = group.text || '';
     if (text === '') {
-        // Vanilla bases — no rules text. Tag is just the HP (e.g.,
-        // "Aggression - 30hp"), since vanilla bases differ only in stats.
-        return `${aspect} - ${hp}`;
+        // Vanilla bases — no rules text. The tag is "Vanilla" so when an
+        // aspect icon is rendered alongside the label and the leading
+        // aspect word is stripped, the FE still has a meaningful descriptor
+        // (e.g. "Vanilla - 30hp") rather than just "30hp".
+        return `${aspect} - Vanilla - ${hp}`;
     }
     if ((/force token/i).test(text) || (/force is with you/i).test(text)) {
         return `${aspect} - Force - ${hp}`;
