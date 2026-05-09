@@ -48,6 +48,9 @@ function validateArchetype(input: unknown, index: number): string | null {
     if (archetype.leaderId.length > MAX_ID_LENGTH) {
         return `matchPreferences.allowedArchetypes[${index}].leaderId must be at most ${MAX_ID_LENGTH} characters`;
     }
+    if (archetype.enabled !== undefined && typeof archetype.enabled !== 'boolean') {
+        return `matchPreferences.allowedArchetypes[${index}].enabled must be a boolean`;
+    }
     if (archetype.baseConstraint === undefined || archetype.baseConstraint === null) {
         return null;
     }

@@ -41,6 +41,13 @@ export type BaseConstraint =
 export interface OpponentArchetype {
     leaderId: string;
     baseConstraint?: BaseConstraint;
+
+    /**
+     * Set to `false` to keep the archetype saved but exclude it from the
+     * active filter. Treated as `true` when omitted, so existing payloads
+     * remain compatible.
+     */
+    enabled?: boolean;
 }
 
 /**
@@ -132,11 +139,17 @@ function playerAcceptsOpponent(filterer: IMatchmakingPlayerEntry, opponent: IMat
         return true;
     }
 
+    // Per-archetype `enabled` defaults to true; only false explicitly disables.
+    const activeArchetypes = prefs.allowedArchetypes.filter((archetype) => archetype.enabled !== false);
+    if (activeArchetypes.length === 0) {
+        return true;
+    }
+
     const opponentLeaderId = opponent.player.deck?.leader?.id;
     const opponentBaseId = opponent.player.deck?.base?.id;
     const opponentBaseAspects = opponent.baseAspects;
 
-    return prefs.allowedArchetypes.some((archetype) =>
+    return activeArchetypes.some((archetype) =>
         archetypeMatchesOpponent(archetype, opponentLeaderId, opponentBaseId, opponentBaseAspects)
     );
 }

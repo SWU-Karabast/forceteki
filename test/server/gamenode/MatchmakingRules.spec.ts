@@ -246,6 +246,50 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
         });
     });
 
+    describe('per-archetype enabled flag', function() {
+        it('skips archetypes whose enabled is explicitly false', function() {
+            const prefs: MatchPreferences = {
+                enabled: true,
+                allowedArchetypes: [
+                    { leaderId: 'SEC_010', enabled: false },
+                    { leaderId: 'JTL_005', enabled: true },
+                ],
+            };
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
+            // SEC_010 archetype is disabled, so this opponent should not match
+            const p2 = buildPlayer('u2', 'SEC_010', 'JTL_021', { baseAspects: ['vigilance'] });
+            expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
+        });
+
+        it('matches when only enabled archetypes accept the opponent', function() {
+            const prefs: MatchPreferences = {
+                enabled: true,
+                allowedArchetypes: [
+                    { leaderId: 'SEC_010', enabled: false },
+                    { leaderId: 'JTL_005' },
+                ],
+            };
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_021', { baseAspects: ['vigilance'] });
+            expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
+        });
+
+        it('matches anyone when every archetype is disabled (empty active set)', function() {
+            const prefs: MatchPreferences = {
+                enabled: true,
+                allowedArchetypes: [
+                    { leaderId: 'SEC_010', enabled: false },
+                    { leaderId: 'JTL_005', enabled: false },
+                ],
+            };
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
+            // Empty active set is treated as "match anyone" — matches the
+            // top-level disabled / empty-allowedArchetypes behavior.
+            const p2 = buildPlayer('u2', 'XYZ_999', 'JTL_021', { baseAspects: ['vigilance'] });
+            expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
+        });
+    });
+
     describe('edge cases', function() {
         it('treats opponent with missing leader id as not matching any archetype', function() {
             const prefs: MatchPreferences = {
