@@ -16,12 +16,15 @@ export abstract class CardDataGetter {
     private readonly _setCodeMap: Map<string, string>;
     private readonly _tokenData: ITokenCardsData;
     private readonly _leaders: { name: string; id: string; subtitle?: string }[];
+    private readonly _bases: { name: string; id: string; subtitle?: string; aspects: string[] }[];
+    private readonly _baseAspectsById: Map<string, string[]>;
 
     protected static readonly setCodeMapFileName = '_setCodeMap.json';
     protected static readonly cardMapFileName = '_cardMap.json';
     protected static readonly allNonLeaderCardTitlesFileName = '_allNonLeaderCardTitles.json';
     protected static readonly playableCardTitlesFileName = '_playableCardTitles.json';
     protected static readonly leaderNamesFileName = '_leaderNames.json';
+    protected static readonly baseNamesFileName = '_baseNames.json';
 
     public get cardIds(): string[] {
         return Array.from(this.cardMap.keys());
@@ -47,6 +50,22 @@ export abstract class CardDataGetter {
         return this._leaders;
     }
 
+    public getBaseCards() {
+        return this._bases;
+    }
+
+    /**
+     * Returns the aspects of a base by its set-code id (e.g. 'SOR_022'), or
+     * an empty array if no base with that id is known. Used by the matchmaking
+     * filter rule to evaluate base-aspect constraints.
+     */
+    public getBaseAspectsById(baseId: string | undefined): string[] {
+        if (!baseId) {
+            return [];
+        }
+        return this._baseAspectsById.get(baseId) ?? [];
+    }
+
     public constructor(
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
@@ -54,6 +73,7 @@ export abstract class CardDataGetter {
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
+        baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
     ) {
         this.cardMap = new Map<string, ICardMapEntry>();
         this.knownCardInternalNames = new Set<string>();
@@ -68,6 +88,8 @@ export abstract class CardDataGetter {
         this._setCodeMap = new Map(Object.entries(setCodeMap));
         this._tokenData = tokenData;
         this._leaders = leaderNames;
+        this._bases = baseNames;
+        this._baseAspectsById = new Map(baseNames.map((base) => [base.id, base.aspects]));
     }
 
     protected abstract getCardInternalAsync(relativePath: string): Promise<ICardDataJson>;

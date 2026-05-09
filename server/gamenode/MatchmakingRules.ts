@@ -1,12 +1,50 @@
+import type { Aspect } from '../game/core/Constants';
+
 import type { PreviousMatchEntry, QueuedPlayer } from './QueueHandler';
 
 export interface IMatchmakingPlayerEntry {
     player: QueuedPlayer;
     previousMatch?: PreviousMatchEntry;
+
+    /**
+     * Aspects of the player's base, pre-resolved from card data when the
+     * player enters the queue. Used by leader/base filter rules.
+     */
+    baseAspects?: readonly string[];
 }
 
 export interface IMatchmakingRule {
     canMatch(player1: IMatchmakingPlayerEntry, player2: IMatchmakingPlayerEntry): boolean;
+}
+
+/**
+ * Constraint on which bases a filtered opponent's deck can use, paired with a
+ * leader. Omit `baseConstraint` for "any base of this leader".
+ */
+export type BaseConstraint =
+  | { kind: 'specificBase'; baseId: string }
+  | { kind: 'aspect'; aspect: Aspect };
+
+/**
+ * A single archetype the player is willing to be matched against.
+ *
+ * The wire format is forward-compatible: `baseConstraint` is optional, so a
+ * v1 client that only exposes leader-only filters can omit it, while a future
+ * client can add base-specificity without changing the wire shape.
+ */
+export interface OpponentArchetype {
+    leaderId: string;
+    baseConstraint?: BaseConstraint;
+}
+
+/**
+ * Opt-in matchmaking preferences. When `enabled` is false or
+ * `allowedArchetypes` is empty, the rule treats the player as "match anyone"
+ * (the default, current behavior).
+ */
+export interface MatchPreferences {
+    enabled: boolean;
+    allowedArchetypes: OpponentArchetype[];
 }
 
 /**
@@ -22,6 +60,16 @@ export const MatchmakingRule = {
      */
     rematchCooldown: (cooldownSeconds: number): IMatchmakingRule => {
         return new RematchCooldownRule(cooldownSeconds);
+    },
+
+    /**
+     * A matchmaking rule that respects each player's opt-in opponent-archetype
+     * filter. Both players must accept the other's leader+base for a match to
+     * be allowed. Players without preferences (or with the filter disabled or
+     * an empty allowlist) accept anyone, preserving the default behavior.
+     */
+    leaderArchetypeFilter: (): IMatchmakingRule => {
+        return new LeaderArchetypeFilterRule();
     },
 };
 
@@ -64,4 +112,49 @@ class RematchCooldownRule implements IMatchmakingRule {
     private isWithinCooldown(endTimestamp: number, now: number): boolean {
         return now - endTimestamp <= this.cooldownMs;
     }
+}
+
+class LeaderArchetypeFilterRule implements IMatchmakingRule {
+    public canMatch(p1: IMatchmakingPlayerEntry, p2: IMatchmakingPlayerEntry): boolean {
+        return playerAcceptsOpponent(p1, p2) && playerAcceptsOpponent(p2, p1);
+    }
+}
+
+function playerAcceptsOpponent(filterer: IMatchmakingPlayerEntry, opponent: IMatchmakingPlayerEntry): boolean {
+    const prefs = filterer.player.matchPreferences;
+    if (!prefs || !prefs.enabled || prefs.allowedArchetypes.length === 0) {
+        return true;
+    }
+
+    const opponentLeaderId = opponent.player.deck?.leader?.id;
+    const opponentBaseId = opponent.player.deck?.base?.id;
+    const opponentBaseAspects = opponent.baseAspects;
+
+    return prefs.allowedArchetypes.some((archetype) =>
+        archetypeMatchesOpponent(archetype, opponentLeaderId, opponentBaseId, opponentBaseAspects)
+    );
+}
+
+function archetypeMatchesOpponent(
+    archetype: OpponentArchetype,
+    opponentLeaderId: string | undefined,
+    opponentBaseId: string | undefined,
+    opponentBaseAspects: readonly string[] | undefined,
+): boolean {
+    if (!opponentLeaderId) {
+        return false;
+    }
+    if (archetype.leaderId !== opponentLeaderId) {
+        return false;
+    }
+    if (!archetype.baseConstraint) {
+        return true;
+    }
+    if (archetype.baseConstraint.kind === 'specificBase') {
+        return opponentBaseId === archetype.baseConstraint.baseId;
+    }
+    if (archetype.baseConstraint.kind === 'aspect') {
+        return Array.isArray(opponentBaseAspects) && opponentBaseAspects.includes(archetype.baseConstraint.aspect);
+    }
+    return false;
 }

@@ -34,7 +34,10 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
 
         const leaderNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.leaderNamesFileName)
             .then((data) => data as { name: string; id: string; subtitle?: string }[]);
-        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames);
+
+        const baseNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseNamesFileName)
+            .then((data) => data as { name: string; id: string; subtitle?: string; aspects: string[] }[]);
+        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames);
     }
 
     protected static validateFolderContents(directory: string, isDevelopment: boolean) {
@@ -75,8 +78,9 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
+        baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
     ) {
-        super(cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames);
+        super(cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames);
 
         this.folderRoot = folderRoot;
     }
