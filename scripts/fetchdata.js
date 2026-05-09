@@ -449,6 +449,7 @@ function buildCardLists(cards) {
                 hp: card.hp,
                 text: typeof card.text === 'string' ? card.text : '',
                 rarity: card.rarity ?? null,
+                set: card.setId?.set ?? null,
             });
         }
     }
@@ -514,6 +515,7 @@ function buildBaseTypes(baseNames) {
                 aspect: group.aspect,
                 hp: group.hp,
                 rarity: only.rarity ?? null,
+                set: only.set ?? null,
                 baseIds: [only.id],
                 representativeId: only.id,
             });
@@ -528,6 +530,7 @@ function buildBaseTypes(baseNames) {
             aspect: group.aspect,
             hp: group.hp,
             rarity: null,
+            set: null,
             baseIds: sorted.map((b) => b.id),
             representativeId: sorted[0].id,
         });
