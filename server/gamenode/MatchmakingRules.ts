@@ -135,9 +135,6 @@ function archetypeMatchesOpponent(
     opponentBaseId: string | undefined,
     opponentBaseAspects: readonly string[] | undefined,
 ): boolean {
-    // archetype.leaderId is required and validated non-empty; opponentLeaderId
-    // is optional on the wire deck format. If the opponent has no leader id,
-    // this inequality returns false, which is the correct outcome.
     if (archetype.leaderId !== opponentLeaderId) {
         return false;
     }

@@ -31,7 +31,6 @@ import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/d
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import type { MatchPreferences } from './MatchmakingRules';
-import { validateMatchPreferencesInput } from './MatchPreferencesValidator';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
@@ -1400,18 +1399,13 @@ export class GameServer {
                 }
 
                 // Optional opponent-archetype filter; absent/disabled = match anyone (default).
-                let validatedMatchPreferences: MatchPreferences | undefined;
-                if (matchPreferences !== undefined && matchPreferences !== null) {
-                    const matchPreferencesError = validateMatchPreferencesInput(matchPreferences);
-                    if (matchPreferencesError) {
-                        logger.info(`GameServer (enter-queue): Rejected matchPreferences from user ${user.getId()}: ${matchPreferencesError}`);
-                        return res.status(400).json({ success: false, message: matchPreferencesError });
-                    }
-                    validatedMatchPreferences = matchPreferences as MatchPreferences;
-                }
+                // The matchmaking rule degrades gracefully on malformed input — archetypes
+                // that don't parse cleanly are treated as non-matching, so no payload-shape
+                // validation is needed here.
+                const optMatchPreferences = matchPreferences as MatchPreferences | undefined;
 
                 await this.processDeckValidation(deck, false, { format, cardPool }, res, () => {
-                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck, validatedMatchPreferences);
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck, optMatchPreferences);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1438,15 +1432,6 @@ export class GameServer {
                 return res.json(this.cardDataGetter.getLeaderCards());
             } catch (err) {
                 logger.error('GameServer (all-leaders) Server error: ', err);
-                next(err);
-            }
-        });
-
-        app.get('/api/all-bases', (_, res, next) => {
-            try {
-                return res.json(this.cardDataGetter.getBaseCards());
-            } catch (err) {
-                logger.error('GameServer (all-bases) Server error: ', err);
                 next(err);
             }
         });

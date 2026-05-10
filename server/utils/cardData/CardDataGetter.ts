@@ -26,7 +26,6 @@ export abstract class CardDataGetter {
     private readonly _setCodeMap: Map<string, string>;
     private readonly _tokenData: ITokenCardsData;
     private readonly _leaders: { name: string; id: string; subtitle?: string }[];
-    private readonly _bases: { name: string; id: string; subtitle?: string; aspects: string[] }[];
     private readonly _baseAspectsById: Map<string, string[]>;
     private readonly _baseTypes: IBaseType[];
 
@@ -62,18 +61,13 @@ export abstract class CardDataGetter {
         return this._leaders;
     }
 
-    public getBaseCards() {
-        return this._bases;
-    }
-
     public getBaseTypes(): IBaseType[] {
         return this._baseTypes;
     }
 
     /**
-     * Returns the aspects of a base by its set-code id (e.g. 'SOR_022'), or
-     * an empty array if no base with that id is known. Used by the matchmaking
-     * filter rule to evaluate base-aspect constraints.
+     * Aspects of a base by its set-code id (e.g. 'SOR_022'), or `[]` if not
+     * known. Consumed by the matchmaking filter rule.
      */
     public getBaseAspectsById(baseId: string | undefined): string[] {
         if (!baseId) {
@@ -105,7 +99,6 @@ export abstract class CardDataGetter {
         this._setCodeMap = new Map(Object.entries(setCodeMap));
         this._tokenData = tokenData;
         this._leaders = leaderNames;
-        this._bases = baseNames;
         this._baseAspectsById = new Map(baseNames.map((base) => [base.id, base.aspects]));
         this._baseTypes = baseTypes;
     }
