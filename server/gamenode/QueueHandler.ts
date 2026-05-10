@@ -14,18 +14,8 @@ export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
     socket?: Socket;
     user: User;
-
-    /**
-     * Opt-in opponent-archetype filter. When undefined, disabled, or empty,
-     * the player matches against any opponent (the default).
-     */
     matchPreferences?: MatchPreferences;
-
-    /**
-     * Pre-resolved aspects of the player's base, used by the matchmaking
-     * filter rule to evaluate aspect-based constraints without doing a card
-     * data lookup at match time.
-     */
+    /** Pre-resolved aspects of the player's base; consumed by leaderArchetypeFilter. */
     baseAspects?: readonly string[];
 }
 

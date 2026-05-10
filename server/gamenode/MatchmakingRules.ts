@@ -5,11 +5,7 @@ import type { PreviousMatchEntry, QueuedPlayer } from './QueueHandler';
 export interface IMatchmakingPlayerEntry {
     player: QueuedPlayer;
     previousMatch?: PreviousMatchEntry;
-
-    /**
-     * Aspects of the player's base, pre-resolved from card data when the
-     * player enters the queue. Used by leader/base filter rules.
-     */
+    /** Pre-resolved aspects of the player's base; consumed by leaderArchetypeFilter. */
     baseAspects?: readonly string[];
 }
 
@@ -17,44 +13,21 @@ export interface IMatchmakingRule {
     canMatch(player1: IMatchmakingPlayerEntry, player2: IMatchmakingPlayerEntry): boolean;
 }
 
-/**
- * Constraint on which bases a filtered opponent's deck can use, paired with a
- * leader. Omit `baseConstraint` for "any base of this leader".
- *
- * `baseType` carries the set of acceptable base-card ids inline. The FE
- * resolves a user-friendly category (e.g. "Aggression - Force", or a unique
- * base like "Colossus") to the list of card ids in that group, so the BE
- * doesn't need a separate base-type registry to evaluate the rule. `label`
- * is optional metadata for display only.
- */
+// `baseType.baseIds` is the inline list of acceptable card ids for this
+// archetype (a single id for unique bases, multiple for grouped types like
+// "Aggression - Force"); the FE resolves the category and sends the ids
+// directly so the BE doesn't need a base-type registry.
 export type BaseConstraint =
-  | { kind: 'aspect'; aspect: Aspect }
-  | { kind: 'baseType'; baseIds: string[]; label?: string };
+    | { kind: 'aspect'; aspect: Aspect }
+    | { kind: 'baseType'; baseIds: string[]; label?: string };
 
-/**
- * A single archetype the player is willing to be matched against.
- *
- * The wire format is forward-compatible: `baseConstraint` is optional, so a
- * v1 client that only exposes leader-only filters can omit it, while a future
- * client can add base-specificity without changing the wire shape.
- */
 export interface OpponentArchetype {
     leaderId: string;
     baseConstraint?: BaseConstraint;
-
-    /**
-     * Set to `false` to keep the archetype saved but exclude it from the
-     * active filter. Treated as `true` when omitted, so existing payloads
-     * remain compatible.
-     */
+    /** Set to false to keep saved but excluded from the filter; defaults to true. */
     enabled?: boolean;
 }
 
-/**
- * Opt-in matchmaking preferences. When `enabled` is false or
- * `allowedArchetypes` is empty, the rule treats the player as "match anyone"
- * (the default, current behavior).
- */
 export interface MatchPreferences {
     enabled: boolean;
     allowedArchetypes: OpponentArchetype[];
