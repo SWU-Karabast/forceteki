@@ -10,7 +10,7 @@ export type ITokenCardsData = {
 export interface IBaseType {
     id: string;
     label: string;
-    aspect: string;
+    aspects: string[];
     hp: number;
     set: string | null;
     baseIds: string[];

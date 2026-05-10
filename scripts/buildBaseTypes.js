@@ -19,13 +19,16 @@ function buildBaseTypes(baseNames) {
         if (typeof base.hp !== 'number') {
             continue;
         }
-        const aspect = base.aspects[0] ?? 'neutral';
+        // Sorted multi-aspect key: a future multi-aspect base (e.g. an
+        // 'aggression+cunning' base) groups separately from single-aspect
+        // bases that share only one of its aspects.
+        const aspects = base.aspects.length === 0 ? ['neutral'] : [...base.aspects].sort();
         const hp = base.hp;
         const textKey = (base.text || '').trim();
-        const groupKey = `${aspect}::${hp}::${textKey}`;
+        const groupKey = `${aspects.join('+')}::${hp}::${textKey}`;
         if (!groups.has(groupKey)) {
             groups.set(groupKey, {
-                aspect,
+                aspects,
                 hp,
                 text: textKey,
                 bases: [],
@@ -43,7 +46,7 @@ function buildBaseTypes(baseNames) {
             types.push({
                 id: `unique_${only.id}`,
                 label: baseLabel,
-                aspect: group.aspect,
+                aspects: group.aspects,
                 hp: group.hp,
                 set: only.set ?? null,
                 baseIds: [only.id],
@@ -55,9 +58,9 @@ function buildBaseTypes(baseNames) {
         const label = labelForGroup(group);
         const sorted = [...group.bases].sort((a, b) => a.name.localeCompare(b.name));
         types.push({
-            id: `group_${slug(`${group.aspect}_${group.hp}_${group.text || 'vanilla'}`)}`,
+            id: `group_${slug(`${group.aspects.join('_')}_${group.hp}_${group.text || 'vanilla'}`)}`,
             label,
-            aspect: group.aspect,
+            aspects: group.aspects,
             hp: group.hp,
             set: null,
             baseIds: sorted.map((b) => b.id),
@@ -72,7 +75,7 @@ function buildBaseTypes(baseNames) {
 }
 
 function labelForGroup(group) {
-    const aspect = capitalizeWord(group.aspect);
+    const aspectLabel = group.aspects.map(capitalizeWord).join(' / ');
     const hp = group.hp ? `${group.hp}hp` : '';
     const text = group.text || '';
     if (text === '') {
@@ -80,15 +83,15 @@ function labelForGroup(group) {
         // aspect icon is rendered alongside the label and the leading
         // aspect word is stripped, the FE still has a meaningful descriptor
         // (e.g. "Vanilla - 30hp") rather than just "30hp".
-        return `${aspect} - Vanilla - ${hp}`;
+        return `${aspectLabel} - Vanilla - ${hp}`;
     }
     if ((/force token/i).test(text) || (/force is with you/i).test(text)) {
-        return `${aspect} - Force - ${hp}`;
+        return `${aspectLabel} - Force - ${hp}`;
     }
     if ((/aspect penalt/i).test(text)) {
-        return `${aspect} - Splash - ${hp}`;
+        return `${aspectLabel} - Splash - ${hp}`;
     }
-    return `${aspect} - ${hp}`;
+    return `${aspectLabel} - ${hp}`;
 }
 
 function capitalizeWord(value) {
