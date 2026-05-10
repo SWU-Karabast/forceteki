@@ -209,7 +209,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                 this.game,
                 () => this.game.onGameTimerExpired(this),
                 (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId),
-                () => this.game.sendUpdatedGameStateToPlayers()
+                () => this.game.sendTimerUpdatedGameStateToPlayers()
             );
         } else {
             this.actionTimer = new NoopActionTimer();
@@ -257,7 +257,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
         return this.game.getCurrentOpenPrompt().uuid === promptUuid &&
           playerActionId === this._lastActionId &&
-          this.game.winnerNames.length === 0;
+          !this.game.isEnded;
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
