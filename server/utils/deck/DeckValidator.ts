@@ -23,6 +23,7 @@ interface ICardCheckData {
     titleAndSubtitle: string;
     type: CardType;
     sets: SwuSetId[];
+    aspects: string[];
     implemented: boolean;
     minDeckSizeModifier?: number;
     maxCopiesOfCardOverride?: number;
@@ -54,11 +55,16 @@ export class DeckValidator {
         return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
     }
 
+    public static createForTesting(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>): DeckValidator {
+        return new DeckValidator(allCardsData, setCodeToId);
+    }
+
     private static parseSets(cardData: ICardDataJson): SwuSetId[] {
-        if (cardData.setCodes) {
-            return cardData.setCodes.map((code) => EnumHelpers.checkConvertToEnum(code.set, SwuSetId)[0]);
-        }
-        return [EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSetId)[0]];
+        const setCodes = cardData.setCodes ?? [cardData.setId];
+        // Use tryConvertToEnum so cards with unrecognized set codes (e.g. test fixtures) produce an
+        // empty array rather than throwing. An empty array means the card matches no legal set and
+        // will always fail checkFormatLegality, which is the correct behaviour.
+        return EnumHelpers.tryConvertToEnum(setCodes.map((c) => c.set), SwuSetId);
     }
 
     /**
@@ -79,7 +85,7 @@ export class DeckValidator {
      * subject to the same released/unreleased filtering.
      */
     public static getLegalSets(format: SwuGameFormat, cardPool: CardPool): Set<SwuSetId> {
-        // Open or Unlimited pool: everything, always
+        // Open/Unlimited: all sets including previews, always
         if (format === SwuGameFormat.Open) {
             const all = new Set<SwuSetId>(rotationBlocks.flatMap((block) => block.sets.map((s) => s.id)));
             for (const nrs of nonRotatingSets) {
@@ -162,6 +168,7 @@ export class DeckValidator {
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
                 sets: DeckValidator.parseSets(cardData),
+                aspects: cardData.aspects ?? [],
                 implemented: !overrideNotImplementedCardIds.has(cardData.id) && (!Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
                 maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
@@ -199,11 +206,11 @@ export class DeckValidator {
 
     // update this function if anything affects the sideboard count
     public getMaxSideboardSize(format: SwuGameFormat, cardPool: CardPool): number {
-        // Sideboard is only restricted in Premier and Eternal. We relax the restriction in Next Set mode.
-        if (format === SwuGameFormat.Open || format === SwuGameFormat.Limited || cardPool === CardPool.NextSet) {
-            return -1;
+        // Sideboard is only restricted in Premier and Eternal. We relax the restriction in other modes.
+        if(format === SwuGameFormat.Premier || format === SwuGameFormat.Eternal) {
+            return 10;
         }
-        return 10;
+        return -1;
     }
 
     public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbFormatDecklist): { id: string; name: string }[] {
@@ -217,6 +224,15 @@ export class DeckValidator {
         const leaderData = this.getCardCheckData(deck.leader.id);
         if (leaderData && !leaderData.implemented) {
             unimplemented.push({ id: deck.leader.id, name: leaderData.titleAndSubtitle });
+        }
+
+        // check second leader if present
+        const secondLeaderEntry = (deck as ISwuDbFormatDecklist).secondleader ?? (deck as IDecklistInternal).secondLeader;
+        if (secondLeaderEntry) {
+            const secondLeaderData = this.getCardCheckData(secondLeaderEntry.id);
+            if (secondLeaderData && !secondLeaderData.implemented) {
+                unimplemented.push({ id: secondLeaderEntry.id, name: secondLeaderData.titleAndSubtitle });
+            }
         }
 
         // check base
@@ -251,8 +267,10 @@ export class DeckValidator {
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
         }
-        // SWU‑DB decks must not have a second leader.
-        if (deck.secondleader) {
+        // SWU‑DB decks must not have a second leader in non-TwinSuns formats.
+        // TODO: audit other deck builders before shipping — only SWUDB is handled here.
+        const rules = formatRules.get(properties.format);
+        if (deck.secondleader && rules?.leaderCount !== 2) {
             return { [DeckValidationFailureReason.TooManyLeaders]: true };
         }
         return this.validateCommonDeck(deck, properties.format, properties.cardPool);
@@ -326,6 +344,28 @@ export class DeckValidator {
             } else {
                 this.checkCardLocation(deck.leader, leaderData, DecklistLocation.Leader, failures);
                 this.checkFormatLegality(leaderData, format, legalSets, failures);
+            }
+
+            // Validate second leader (TwinSuns formats only).
+            const rules = formatRules.get(format);
+            if (rules?.leaderCount === 2) {
+                const secondLeaderEntry = (deck as ISwuDbFormatDecklist).secondleader ?? (deck as IDecklistInternal).secondLeader;
+
+                if (!secondLeaderEntry) {
+                    failures[DeckValidationFailureReason.MissingSecondLeader] = true;
+                } else {
+                    secondLeaderEntry.id = this.normalizeSetCodeId(secondLeaderEntry.id);
+                    const secondLeaderData = this.getCardCheckData(secondLeaderEntry.id);
+                    if (!secondLeaderData) {
+                        failures[DeckValidationFailureReason.UnknownCardId].push({ id: secondLeaderEntry.id });
+                    } else {
+                        this.checkCardLocation(secondLeaderEntry, secondLeaderData, DecklistLocation.Leader, failures);
+                        this.checkFormatLegality(secondLeaderData, format, legalSets, failures);
+                        if (leaderData) {
+                            this.checkTwinSunsLeaderAspectConflict(leaderData, secondLeaderData, failures);
+                        }
+                    }
+                }
             }
 
             // Validate base.
@@ -423,6 +463,20 @@ export class DeckValidator {
                 card: { id: card.id, name: cardData.titleAndSubtitle },
                 location
             });
+        }
+    }
+
+    /**
+     * Checks if the given leaders are legal for the Twin Suns gamemode
+     * @param leader1Data The first leader
+     * @param leader2Data The second leader
+     * @param failures The validation failures
+     */
+    protected checkTwinSunsLeaderAspectConflict(leader1Data: ICardCheckData, leader2Data: ICardCheckData, failures: IDeckValidationFailures): void {
+        const eitherHasHeroism = leader1Data.aspects.includes('heroism') || leader2Data.aspects.includes('heroism');
+        const eitherHasVillainy = leader1Data.aspects.includes('villainy') || leader2Data.aspects.includes('villainy');
+        if (eitherHasHeroism && eitherHasVillainy) {
+            failures[DeckValidationFailureReason.MixedAlignmentLeaders] = true;
         }
     }
 

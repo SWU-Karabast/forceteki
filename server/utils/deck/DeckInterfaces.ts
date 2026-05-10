@@ -56,6 +56,7 @@ export interface ILeaderBaseInternal {
 
 export type IDecklistInternal = ILeaderBaseInternal & IDeckListBase & {
     name?: string;
+    secondLeader?: IInternalCardEntry;
     deck: IInternalCardEntry[];
     sideboard?: IInternalCardEntry[];
 };
@@ -89,24 +90,40 @@ export enum DecklistLocation {
 }
 
 export enum DeckValidationFailureReason {
+    /** Card is from a set not legal in this format/card-pool, or is on the format's ban list. */
     IllegalInFormat = 'illegalInFormat',
-    TooManyLeaders = 'tooManyLeaders',
-    InvalidDecklistLocation = 'invalidCardLocation',
+    /** Deck object is null, missing required fields, or contains a negative card count. */
     InvalidDeckData = 'invalidDeckData',
-    MinDecklistSizeNotMet = 'minDecklistSizeNotMet',
-    MinMainboardSizeNotMet = 'minMainboardSizeNotMet',
+    /** Card appears in the wrong zone (e.g. a leader in the main deck, or a unit in the leader slot). */
+    InvalidDecklistLocation = 'invalidCardLocation',
+    /** Sideboard exceeds the format maximum (10 in Premier/Eternal; unrestricted in Open/TwinSuns). */
     MaxSideboardSizeExceeded = 'maxSideboardSizeExceeded',
+    /** Total card count (main deck + sideboard) is below the format minimum (50 Premier/Eternal, 80 TwinSuns). */
+    MinDecklistSizeNotMet = 'minDecklistSizeNotMet',
+    /** Main deck alone is below the format minimum even though the sideboard brings the combined total up to it. */
+    MinMainboardSizeNotMet = 'minMainboardSizeNotMet',
+    /** TwinSuns only: deck has a primary leader but is missing a secondary leader. */
+    MissingSecondLeader = 'missingSecondLeader',
+    /** TwinSuns only: one leader has the Heroism aspect and the other has Villainy — an illegal pairing. */
+    MixedAlignmentLeaders = 'mixedAlignmentLeaders',
+    /** One or more cards exceed the per-card copy limit for this format (3× Premier/Eternal, 1× TwinSuns, with per-card overrides). */
     TooManyCopiesOfCard = 'tooManyCopiesOfCard',
-    UnknownCardId = 'unknownCardId'
+    /** SWUDB import: a secondleader field was present in a non-TwinSuns deck submission. */
+    TooManyLeaders = 'tooManyLeaders',
+    /** A card's set code was not found in the card database. */
+    UnknownCardId = 'unknownCardId',
 }
 
 export interface IDeckValidationFailures {
     [DeckValidationFailureReason.IllegalInFormat]?: ICardIdAndName[];
-    [DeckValidationFailureReason.TooManyLeaders]?: boolean;
-    [DeckValidationFailureReason.InvalidDecklistLocation]?: { card: ICardIdAndName; location: DecklistLocation }[];
     [DeckValidationFailureReason.InvalidDeckData]?: boolean;
+    [DeckValidationFailureReason.InvalidDecklistLocation]?: { card: ICardIdAndName; location: DecklistLocation }[];
+    [DeckValidationFailureReason.MaxSideboardSizeExceeded]?: { maxSideboardSize: number; actualSideboardSize: number };
     [DeckValidationFailureReason.MinDecklistSizeNotMet]?: { minDecklistSize: number; actualDecklistSize: number };
     [DeckValidationFailureReason.MinMainboardSizeNotMet]?: { minBoardedSize: number; actualBoardedSize: number };
+    [DeckValidationFailureReason.MissingSecondLeader]?: boolean;
+    [DeckValidationFailureReason.MixedAlignmentLeaders]?: boolean;
     [DeckValidationFailureReason.TooManyCopiesOfCard]?: { card: ICardIdAndName; maxCopies: number; actualCopies: number }[];
+    [DeckValidationFailureReason.TooManyLeaders]?: boolean;
     [DeckValidationFailureReason.UnknownCardId]?: { id: string }[];
 }

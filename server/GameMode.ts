@@ -1,3 +1,4 @@
 export enum GameMode {
-    Premier = 'premier'
+    Premier = 'premier',
+    TwinSuns = 'twinSuns'
 }

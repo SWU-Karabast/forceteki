@@ -22,6 +22,19 @@ function getEnumLookupMap<T extends object>(enumObj: T): Map<string, T[keyof T]>
 }
 
 export namespace EnumHelpers {
+    // convert a set of strings to an enum type, silently dropping values not present in the enum
+    export function tryConvertToEnum<T extends object>(values: string | string[], enumObj: T): T[keyof T][] {
+        const lookupMap = getEnumLookupMap(enumObj);
+        const result: T[keyof T][] = [];
+        for (const value of Helpers.asArray(values)) {
+            const matchingValue = lookupMap.get(value.toLowerCase());
+            if (matchingValue !== undefined) {
+                result.push(matchingValue);
+            }
+        }
+        return result;
+    }
+
     // convert a set of strings to map to an enum type, throw if any of them is not a legal value
     export function checkConvertToEnum<T extends object>(values: string | string[], enumObj: T): T[keyof T][] {
         const result: T[keyof T][] = [];
