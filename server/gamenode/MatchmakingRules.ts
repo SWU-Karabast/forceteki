@@ -135,20 +135,20 @@ function archetypeMatchesOpponent(
     opponentBaseId: string | undefined,
     opponentBaseAspects: readonly string[] | undefined,
 ): boolean {
-    if (!opponentLeaderId) {
-        return false;
-    }
+    // archetype.leaderId is required and validated non-empty; opponentLeaderId
+    // is optional on the wire deck format. If the opponent has no leader id,
+    // this inequality returns false, which is the correct outcome.
     if (archetype.leaderId !== opponentLeaderId) {
         return false;
     }
-    if (!archetype.baseConstraint) {
+    const constraint = archetype.baseConstraint;
+    if (!constraint) {
         return true;
     }
-    if (archetype.baseConstraint.kind === 'baseType') {
-        return typeof opponentBaseId === 'string' && archetype.baseConstraint.baseIds.includes(opponentBaseId);
+    switch (constraint.kind) {
+        case 'baseType':
+            return opponentBaseId !== undefined && constraint.baseIds.includes(opponentBaseId);
+        case 'aspect':
+            return opponentBaseAspects?.includes(constraint.aspect) ?? false;
     }
-    if (archetype.baseConstraint.kind === 'aspect') {
-        return Array.isArray(opponentBaseAspects) && opponentBaseAspects.includes(archetype.baseConstraint.aspect);
-    }
-    return false;
 }
