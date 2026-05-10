@@ -1,16 +1,9 @@
 /**
- * Group bases into "types" — sets of functionally-identical bases — used by
- * the matchmaking-queue opponent filter so that picking a "Vanilla 30hp
- * Aggression" type matches against any of the printed cards in that group.
- *
- * Two bases are the same type if they share aspect, HP, and rules text. Each
- * type carries:
- *   - id:      stable identifier (`<aspect>_<hp>_<textKey>` or `unique_<id>`)
- *   - label:   short human-friendly description ("Aggression - Force",
- *              "Vanilla Aggression 30hp", or the base's own name)
- *   - aspect, hp
- *   - baseIds: every set-code id that belongs to this type
- *   - representativeId: a baseId that can be used for thumbnail rendering
+ * Group bases into "types" — sets of functionally-identical bases — for the
+ * matchmaking-queue opponent filter. Two bases share a type iff they share
+ * aspects, HP, and rules text; unique-named (rarer) bases each get their own
+ * single-card type. The FE picks a type and sends its `baseIds` on the wire,
+ * so the BE rule never has to reason about groupings — it just compares ids.
  */
 function buildBaseTypes(baseNames) {
     const groups = new Map();
@@ -19,33 +12,22 @@ function buildBaseTypes(baseNames) {
         if (typeof base.hp !== 'number') {
             continue;
         }
-        // Sorted multi-aspect key: a future multi-aspect base (e.g. an
-        // 'aggression+cunning' base) groups separately from single-aspect
-        // bases that share only one of its aspects.
         const aspects = base.aspects.length === 0 ? ['neutral'] : [...base.aspects].sort();
-        const hp = base.hp;
-        const textKey = (base.text || '').trim();
-        const groupKey = `${aspects.join('+')}::${hp}::${textKey}`;
+        const textKey = normalizeText(base.text);
+        const groupKey = `${aspects.join('+')}::${base.hp}::${textKey}`;
         if (!groups.has(groupKey)) {
-            groups.set(groupKey, {
-                aspects,
-                hp,
-                text: textKey,
-                bases: [],
-            });
+            groups.set(groupKey, { aspects, hp: base.hp, text: textKey, bases: [] });
         }
         groups.get(groupKey).bases.push(base);
     }
 
     const types = [];
-    for (const [groupKey, group] of groups.entries()) {
+    for (const group of groups.values()) {
         if (group.bases.length === 1) {
             const only = group.bases[0];
-            const hp = group.hp ? `${group.hp}hp` : '';
-            const baseLabel = [only.name, hp].filter(Boolean).join(' - ');
             types.push({
                 id: `unique_${only.id}`,
-                label: baseLabel,
+                label: `${only.name} - ${group.hp}hp`,
                 aspects: group.aspects,
                 hp: group.hp,
                 set: only.set ?? null,
@@ -55,19 +37,16 @@ function buildBaseTypes(baseNames) {
             continue;
         }
 
-        const label = labelForGroup(group);
         const sorted = [...group.bases].sort((a, b) => a.name.localeCompare(b.name));
         types.push({
             id: `group_${slug(`${group.aspects.join('_')}_${group.hp}_${group.text || 'vanilla'}`)}`,
-            label,
+            label: labelForGroup(group),
             aspects: group.aspects,
             hp: group.hp,
             set: null,
             baseIds: sorted.map((b) => b.id),
             representativeId: sorted[0].id,
         });
-        // groupKey is debug only; reference it to satisfy lint rules.
-        void groupKey;
     }
 
     types.sort((a, b) => a.label.localeCompare(b.label));
@@ -89,19 +68,15 @@ function normalizeText(text) {
 
 function labelForGroup(group) {
     const aspectLabel = group.aspects.map(capitalizeWord).join(' / ');
-    const hp = group.hp ? `${group.hp}hp` : '';
-    const text = normalizeText(group.text);
-    if (text === '') {
-        // Vanilla bases — no rules text. The tag is "Vanilla" so when an
-        // aspect icon is rendered alongside the label and the leading
-        // aspect word is stripped, the FE still has a meaningful descriptor
-        // (e.g. "Vanilla - 30hp") rather than just "30hp".
+    const hp = `${group.hp}hp`;
+    // group.text was normalised in buildBaseTypes — no need to re-normalise.
+    if (group.text === '') {
         return `${aspectLabel} - Vanilla - ${hp}`;
     }
-    if (text === CANONICAL_FORCE_TEXT) {
+    if (group.text === CANONICAL_FORCE_TEXT) {
         return `${aspectLabel} - Force - ${hp}`;
     }
-    if (text === CANONICAL_SPLASH_TEXT) {
+    if (group.text === CANONICAL_SPLASH_TEXT) {
         return `${aspectLabel} - Splash - ${hp}`;
     }
     return `${aspectLabel} - ${hp}`;
