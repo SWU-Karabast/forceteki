@@ -208,12 +208,12 @@ function populateMissingData(attributes, id) {
     }
 }
 
-function getAttributeNames(attributeList) {
+function getAttributeNames(attributeList, field = 'name') {
     if (Array.isArray(attributeList.data)) {
-        return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
+        return attributeList.data.map((attr) => attr.attributes[field].toLowerCase());
     }
 
-    return attributeList.data.attributes.name.toLowerCase();
+    return attributeList.data.attributes[field].toLowerCase();
 }
 
 function buildSetCodeList(card) {
@@ -282,7 +282,7 @@ function filterValues(card) {
         filteredObj.traits = getAttributeNames(card.attributes.traits);
         filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
         filteredObj.keywords = getAttributeNames(card.attributes.keywords);
-        filteredObj.rarity = card.attributes.rarity?.data?.attributes?.character ?? null;
+        filteredObj.rarity = card.attributes.rarity?.data ? getAttributeNames(card.attributes.rarity, 'character') : null;
 
         if (card.attributes.backSideAspects) {
             filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
