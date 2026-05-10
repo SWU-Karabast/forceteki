@@ -209,12 +209,12 @@ function populateMissingData(attributes, id) {
     }
 }
 
-function getAttributeNames(attributeList, field = 'name') {
+function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
-        return attributeList.data.map((attr) => attr.attributes[field].toLowerCase());
+        return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
     }
 
-    return attributeList.data.attributes[field].toLowerCase();
+    return attributeList.data.attributes.name.toLowerCase();
 }
 
 function buildSetCodeList(card) {
@@ -283,7 +283,6 @@ function filterValues(card) {
         filteredObj.traits = getAttributeNames(card.attributes.traits);
         filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
         filteredObj.keywords = getAttributeNames(card.attributes.keywords);
-        filteredObj.rarity = card.attributes.rarity?.data ? getAttributeNames(card.attributes.rarity, 'character') : null;
 
         if (card.attributes.backSideAspects) {
             filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
@@ -449,7 +448,6 @@ function buildCardLists(cards) {
                 aspects: Array.isArray(card.aspects) ? card.aspects : [],
                 hp: card.hp,
                 text: typeof card.text === 'string' ? card.text : '',
-                rarity: card.rarity ?? null,
                 set: card.setId?.set ?? null,
             });
         }

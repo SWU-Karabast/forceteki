@@ -37,19 +37,14 @@ function buildBaseTypes(baseNames) {
     const types = [];
     for (const [groupKey, group] of groups.entries()) {
         if (group.bases.length === 1) {
-            // A unique-named base gets its own category, labeled by the
-            // card's name + HP, with an (R) suffix for rare-rarity prints
-            // so players can spot them at a glance.
             const only = group.bases[0];
-            const rarityTag = formatRaritySuffix(only.rarity);
             const hp = group.hp ? `${group.hp}hp` : '';
             const baseLabel = [only.name, hp].filter(Boolean).join(' - ');
             types.push({
                 id: `unique_${only.id}`,
-                label: rarityTag ? `${baseLabel} ${rarityTag}` : baseLabel,
+                label: baseLabel,
                 aspect: group.aspect,
                 hp: group.hp,
-                rarity: only.rarity ?? null,
                 set: only.set ?? null,
                 baseIds: [only.id],
                 representativeId: only.id,
@@ -64,7 +59,6 @@ function buildBaseTypes(baseNames) {
             label,
             aspect: group.aspect,
             hp: group.hp,
-            rarity: null,
             set: null,
             baseIds: sorted.map((b) => b.id),
             representativeId: sorted[0].id,
@@ -95,17 +89,6 @@ function labelForGroup(group) {
         return `${aspect} - Splash - ${hp}`;
     }
     return `${aspect} - ${hp}`;
-}
-
-function formatRaritySuffix(rarityChar) {
-    if (!rarityChar) {
-        return '';
-    }
-    const upper = rarityChar.toUpperCase();
-    if (upper === 'R' || upper === 'L' || upper === 'S') {
-        return `(${upper})`;
-    }
-    return '';
 }
 
 function capitalizeWord(value) {
