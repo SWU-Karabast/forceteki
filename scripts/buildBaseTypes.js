@@ -74,10 +74,23 @@ function buildBaseTypes(baseNames) {
     return types;
 }
 
+// The four canonical "common" Force bases (one per aspect) all share this
+// exact rules text, as do the four canonical "common" Splash bases. Matching
+// the whole text (case- and whitespace-normalised) classifies only the
+// canonical commons; rare/unique Force- or Splash-themed bases have their
+// own distinct text and get their own single-base group with a card-name
+// label instead of being mis-labelled "Force"/"Splash".
+const CANONICAL_FORCE_TEXT = 'when a friendly force unit attacks: the force is with you (create your force token).';
+const CANONICAL_SPLASH_TEXT = 'epic action: play a card from your hand, ignoring 1 of its vigilance, command, aggression, or cunning aspect penalties.';
+
+function normalizeText(text) {
+    return (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
 function labelForGroup(group) {
     const aspectLabel = group.aspects.map(capitalizeWord).join(' / ');
     const hp = group.hp ? `${group.hp}hp` : '';
-    const text = group.text || '';
+    const text = normalizeText(group.text);
     if (text === '') {
         // Vanilla bases — no rules text. The tag is "Vanilla" so when an
         // aspect icon is rendered alongside the label and the leading
@@ -85,10 +98,10 @@ function labelForGroup(group) {
         // (e.g. "Vanilla - 30hp") rather than just "30hp".
         return `${aspectLabel} - Vanilla - ${hp}`;
     }
-    if ((/force token/i).test(text) || (/force is with you/i).test(text)) {
+    if (text === CANONICAL_FORCE_TEXT) {
         return `${aspectLabel} - Force - ${hp}`;
     }
-    if ((/aspect penalt/i).test(text)) {
+    if (text === CANONICAL_SPLASH_TEXT) {
         return `${aspectLabel} - Splash - ${hp}`;
     }
     return `${aspectLabel} - ${hp}`;
