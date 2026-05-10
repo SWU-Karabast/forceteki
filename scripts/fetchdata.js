@@ -490,8 +490,11 @@ function buildBaseTypes(baseNames) {
     const groups = new Map();
 
     for (const base of baseNames) {
+        if (typeof base.hp !== 'number') {
+            continue;
+        }
         const aspect = base.aspects[0] ?? 'neutral';
-        const hp = typeof base.hp === 'number' ? base.hp : 0;
+        const hp = base.hp;
         const textKey = (base.text || '').trim();
         const groupKey = `${aspect}::${hp}::${textKey}`;
         if (!groups.has(groupKey)) {
