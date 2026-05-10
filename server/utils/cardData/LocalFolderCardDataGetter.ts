@@ -33,7 +33,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
             .then((data) => data as Record<string, string>);
 
         const leaderNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.leaderNamesFileName)
-            .then((data) => data as { name: string; id: string; subtitle?: string; aspects: string[]; set: string | null }[]);
+            .then((data) => data as { name: string; id: string; subtitle?: string }[]);
 
         const baseNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseNamesFileName)
             .then((data) => data as { name: string; id: string; subtitle?: string; aspects: string[] }[]);

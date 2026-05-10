@@ -1398,14 +1398,10 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                // Optional opponent-archetype filter; absent/disabled = match anyone (default).
-                // The matchmaking rule degrades gracefully on malformed input — archetypes
-                // that don't parse cleanly are treated as non-matching, so no payload-shape
-                // validation is needed here.
-                const optMatchPreferences = matchPreferences as MatchPreferences | undefined;
-
+                // The matchmaking rule treats malformed/absent prefs as "match anyone",
+                // so no payload-shape validation is needed here.
                 await this.processDeckValidation(deck, false, { format, cardPool }, res, () => {
-                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck, optMatchPreferences);
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck, matchPreferences as MatchPreferences | undefined);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });

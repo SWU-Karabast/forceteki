@@ -63,7 +63,8 @@ const CANONICAL_FORCE_TEXT = 'when a friendly force unit attacks: the force is w
 const CANONICAL_SPLASH_TEXT = 'epic action: play a card from your hand, ignoring 1 of its vigilance, command, aggression, or cunning aspect penalties.';
 
 function normalizeText(text) {
-    return (text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return (text || '').replace(/\s+/g, ' ').trim()
+        .toLowerCase();
 }
 
 function labelForGroup(group) {
