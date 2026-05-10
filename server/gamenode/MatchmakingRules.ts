@@ -5,6 +5,7 @@ import type { PreviousMatchEntry, QueuedPlayer } from './QueueHandler';
 export interface IMatchmakingPlayerEntry {
     player: QueuedPlayer;
     previousMatch?: PreviousMatchEntry;
+
     /** Pre-resolved aspects of the player's base; consumed by leaderArchetypeFilter. */
     baseAspects?: readonly string[];
 }
@@ -18,12 +19,13 @@ export interface IMatchmakingRule {
 // "Aggression - Force"); the FE resolves the category and sends the ids
 // directly so the BE doesn't need a base-type registry.
 export type BaseConstraint =
-    | { kind: 'aspect'; aspect: Aspect }
-    | { kind: 'baseType'; baseIds: string[]; label?: string };
+  | { kind: 'aspect'; aspect: Aspect }
+  | { kind: 'baseType'; baseIds: string[]; label?: string };
 
 export interface OpponentArchetype {
     leaderId: string;
     baseConstraint?: BaseConstraint;
+
     /** Set to false to keep saved but excluded from the filter; defaults to true. */
     enabled?: boolean;
 }

@@ -15,6 +15,7 @@ export interface QueuedPlayerToAdd {
     socket?: Socket;
     user: User;
     matchPreferences?: MatchPreferences;
+
     /** Pre-resolved aspects of the player's base; consumed by leaderArchetypeFilter. */
     baseAspects?: readonly string[];
 }
