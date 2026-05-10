@@ -26,7 +26,7 @@ export abstract class CardDataGetter {
     private readonly _playableCardTitles: string[];
     private readonly _setCodeMap: Map<string, string>;
     private readonly _tokenData: ITokenCardsData;
-    private readonly _leaders: { name: string; id: string; subtitle?: string; aspects: string[]; set: string | null }[];
+    private readonly _leaders: { name: string; id: string; subtitle?: string }[];
     private readonly _bases: { name: string; id: string; subtitle?: string; aspects: string[] }[];
     private readonly _baseAspectsById: Map<string, string[]>;
     private readonly _baseTypes: IBaseType[];
@@ -89,7 +89,7 @@ export abstract class CardDataGetter {
         allNonLeaderCardTitles: string[],
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
-        leaderNames: { name: string; id: string; subtitle?: string; aspects: string[]; set: string | null }[],
+        leaderNames: { name: string; id: string; subtitle?: string }[],
         baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
         baseTypes: IBaseType[],
     ) {

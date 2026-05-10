@@ -80,7 +80,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         allNonLeaderCardTitles: string[],
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
-        leaderNames: { name: string; id: string; subtitle?: string; aspects: string[]; set: string | null }[],
+        leaderNames: { name: string; id: string; subtitle?: string }[],
         baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
         baseTypes: IBaseType[],
     ) {

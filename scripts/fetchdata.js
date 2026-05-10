@@ -436,13 +436,7 @@ function buildCardLists(cards) {
 
         if (card.types.includes('leader')) {
             const cardId = `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
-            leaderNames.push({
-                name: card.title,
-                id: cardId,
-                subtitle: card.subtitle,
-                aspects: Array.isArray(card.aspects) ? card.aspects : [],
-                set: card.setId?.set ?? null,
-            });
+            leaderNames.push({ name: card.title, id: cardId, subtitle: card.subtitle });
         }
 
         if (card.types.includes('base')) {
