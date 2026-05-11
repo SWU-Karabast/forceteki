@@ -863,7 +863,7 @@ export class Lobby {
 
         // If there's an active game that hasn't finished and no winner has been determined yet, concede it first
         // (Skip if game already has a winner, e.g., from timeout - endGame guard will prevent double-recording)
-        if (this.game && this.game.finishedAt == null && this.game.winnerNames.length === 0) {
+        if (this.game && this.game.finishedAt == null && !this.game.isEnded) {
             this.game.concede(userId);
         }
 
@@ -1777,8 +1777,8 @@ export class Lobby {
             const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Lose : ScoreType.Win;
 
             // Only update stats if the game has a winner and made it into the second round at least
-            if (game.winnerNames.length === 0 || !game.finishedAt) {
-                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${game.winnerNames.length === 0
+            if (!game.isEnded || !game.finishedAt) {
+                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${!game.isEnded
                     ? `winnerNames length being ${game.winnerNames.length}` : ''}
                     ${!game.finishedAt ? 'game finishedAt missing' : ''} `);
             }

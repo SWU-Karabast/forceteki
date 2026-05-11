@@ -196,6 +196,10 @@ export class Game extends EventEmitter {
         return this.state.winnerNames;
     }
 
+    public get isEnded(): boolean {
+        return this.state.winnerNames.length > 0;
+    }
+
     public get currentPhase() {
         return this.state.currentPhase;
     }
@@ -794,6 +798,12 @@ export class Game extends EventEmitter {
     }
 
     public onGameTimerExpired(player: Player): null {
+        if (this.isEnded) {
+            // Stale timer fired after game already ended (e.g. for a previous game in a Bo3 set).
+            // Skip to avoid spurious endGame / onBo3SetForfeit side effects on the wrong game.
+            return null;
+        }
+
         player.opponent.actionTimer.stop();
         this.addAlert(AlertType.Notification, `Game ended due to ${player.name} timing out.`);
 
@@ -850,7 +860,7 @@ export class Game extends EventEmitter {
     public endGame(winnerPlayers: Player[] | Player, reasonCode: GameEndReason): void {
         this.gameEndReason = reasonCode;
 
-        if (this.state.winnerNames.length > 0) {
+        if (this.isEnded) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
@@ -886,10 +896,15 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Sends updated game state to all players.
-     * Used by action timers to push state updates when timer state changes.
+     * Push game state to players in response to a timer-driven state change
+     * (e.g. byoyomi turn timer expired and we transitioned to the main timer).
+     * No-op if the game has ended — timers should not drive updates after end-of-game,
+     * which can otherwise cause stale state pushes from a prior game in a Bo3 set.
      */
-    public sendUpdatedGameStateToPlayers() {
+    public sendTimerUpdatedGameStateToPlayers() {
+        if (this.isEnded) {
+            return;
+        }
         if (typeof this._router?.sendGameState === 'function') {
             this._router.sendGameState(this);
         }
