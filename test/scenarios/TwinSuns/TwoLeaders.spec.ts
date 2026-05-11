@@ -1,12 +1,11 @@
-import { SwuGameFormat } from '../../../../server/game/core/Constants';
-
+﻿
 describe('Twin Suns dual-leader in-game support', function () {
     integration(function (contextRef) {
         describe('leader accessors and aspects', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    format: SwuGameFormat.FauxSuns,
+                    format: 'fauxSuns',
                     player1: {
                         // Luke: [heroism, command]  |  Saw: [command, aggression]  |  base kestro-city: [aggression]
                         leader: 'luke-skywalker#faithful-friend',
@@ -66,11 +65,11 @@ describe('Twin Suns dual-leader in-game support', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    format: SwuGameFormat.FauxSuns,
+                    format: 'fauxSuns',
                     player1: {
                         // Luke: [heroism, command] | Saw: [command, aggression] | kestro-city: [aggression]
-                        // Combined: heroism, command, aggression — missing: cunning
-                        // Greedo (SOR_204): cost 1, cunning → total cost with penalty = 1 + 2 = 3
+                        // Combined: heroism, command, aggression â€” missing: cunning
+                        // Greedo (SOR_204): cost 1, cunning â†’ total cost with penalty = 1 + 2 = 3
                         leader: 'luke-skywalker#faithful-friend',
                         secondLeader: 'saw-gerrera#bring-down-the-empire',
                         base: 'kestro-city',
@@ -104,7 +103,7 @@ describe('Twin Suns dual-leader in-game support', function () {
                 beforeEach(function () {
                     return contextRef.setupTestAsync({
                         phase: 'action',
-                        format: SwuGameFormat.FauxSuns,
+                        format: 'fauxSuns',
                         player1: {
                             leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
                             secondLeader: 'saw-gerrera#bring-down-the-empire',
@@ -128,7 +127,7 @@ describe('Twin Suns dual-leader in-game support', function () {
                 beforeEach(function () {
                     return contextRef.setupTestAsync({
                         phase: 'action',
-                        format: SwuGameFormat.FauxSuns,
+                        format: 'fauxSuns',
                         player1: {
                             leader: 'luke-skywalker#faithful-friend',
                             secondLeader: { card: 'saw-gerrera#bring-down-the-empire', deployed: true },
@@ -153,9 +152,9 @@ describe('Twin Suns dual-leader in-game support', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    format: SwuGameFormat.FauxSuns,
+                    format: 'fauxSuns',
                     player1: {
-                        // Saw's action: exhaust → target friendly unit gets +2/+0, Overwhelm, then is defeated
+                        // Saw's action: exhaust â†’ target friendly unit gets +2/+0, Overwhelm, then is defeated
                         leader: 'luke-skywalker#faithful-friend',
                         secondLeader: 'saw-gerrera#bring-down-the-empire',
                         base: 'kestro-city',
@@ -212,7 +211,7 @@ describe('Twin Suns dual-leader in-game support', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    format: SwuGameFormat.FauxSuns,
+                    format: 'fauxSuns',
                     player1: {
                         leader: 'luke-skywalker#faithful-friend',
                         secondLeader: 'saw-gerrera#bring-down-the-empire',
@@ -245,3 +244,4 @@ describe('Twin Suns dual-leader in-game support', function () {
         });
     });
 });
+

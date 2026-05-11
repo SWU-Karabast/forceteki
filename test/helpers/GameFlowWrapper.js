@@ -115,9 +115,54 @@ class GameFlowWrapper {
     }
 
     /**
-     * Both players pass for the rest of the action window
+     * Both players pass for the rest of the action window.
+     * In Twin Suns format, all unclaimed tokens are claimed first (in order: Plan, Blast, Initiative),
+     * including handling the Plan token's put-to-bottom-of-deck sub-prompt.
      */
     noMoreActions() {
+        if (this.game.format === 'fauxSuns') {
+            // Claim Initiative first so player1 (who usually goes first) retains initiative into the next round.
+            // Plan and Blast follow; with permanent-exit semantics the active player stays active until
+            // all tokens are claimed, so the second player will end up claiming both Plan and Blast.
+            const tokenButtons = ['Claim Initiative', 'Claim Plan', 'Claim Blast'];
+            const maxIterations = 10; // safety valve against infinite loops
+
+            for (let i = 0; i < maxIterations; i++) {
+                if (this.game.currentPhase !== 'action') {
+                    return; // phase ended naturally while claiming tokens
+                }
+
+                const activePlayer = [this.player1, this.player2].find((p) => p.canAct);
+                if (!activePlayer) {
+                    break;
+                }
+
+                const tokenBtn = tokenButtons.find((b) => activePlayer.currentButtons.includes(b));
+                if (!tokenBtn) {
+                    break; // no more tokens to claim; fall through to regular pass logic
+                }
+
+                activePlayer.clickPrompt(tokenBtn);
+
+                // The Plan token prompts the claiming player to put a hand card on the bottom of their deck
+                if (tokenBtn === 'Claim Plan') {
+                    const planPlayer = [this.player1, this.player2].find((p) =>
+                        p.hasPrompt('Choose a card from your hand to put on the bottom of your deck')
+                    );
+                    if (planPlayer) {
+                        const card = planPlayer.player.hand[0];
+                        if (card) {
+                            planPlayer.clickCard(card);
+                        }
+                    }
+                }
+            }
+
+            if (this.game.currentPhase !== 'action') {
+                return; // phase ended naturally after the last token claim
+            }
+        }
+
         this.eachPlayerStartingWithPrompted((player) => {
             if (player.player.passedActionPhase === false) {
                 player.clickPrompt('Pass');

@@ -1,5 +1,4 @@
-import { SwuGameFormat } from '../../../../../server/game/core/Constants';
-
+﻿
 describe('Petranaki Arena', function () {
     integration(function (contextRef) {
         it('Petranaki Arena\'s ability should give +1/+0 to leader unit you control', async function () {
@@ -33,9 +32,9 @@ describe('Petranaki Arena', function () {
         it('Petranaki Arena\'s ability should give +1/+0 to both deployed leaders in FauxSuns', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                format: SwuGameFormat.FauxSuns,
+                format: 'fauxSuns',
                 player1: {
-                    // Luke deployed: base 4/7 → 5/7  |  Saw deployed: base 4/7 → 5/7
+                    // Luke deployed: base 4/7 â†’ 5/7  |  Saw deployed: base 4/7 â†’ 5/7
                     leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
                     secondLeader: { card: 'saw-gerrera#bring-down-the-empire', deployed: true },
                     base: 'petranaki-arena',
@@ -55,3 +54,4 @@ describe('Petranaki Arena', function () {
         });
     });
 });
+

@@ -88,6 +88,46 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.bobaFett.exhausted).toBe(false);
             });
 
+            it('should trigger when the Blast claim token deals damage in FauxSuns format', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        secondLeader: 'saw-gerrera#bring-down-the-empire',
+                        base: 'kestro-city',
+                        hand: [],
+                        deck: ['battlefield-marine', 'wampa'],
+                    },
+                    player2: {
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        base: 'administrators-tower',
+                        groundArena: ['wampa'],
+                        deck: ['moment-of-peace', 'atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('Claim Blast');
+
+                // Blast deals 1 Ability-type damage — non-combat, so Boba's ability triggers
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+
+                expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.p2Base, 1]
+                ]));
+
+                // 1 from Blast + 1 indirect from Boba's trigger
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.bobaFett.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             describe('when dealing simultaneous damage to multiple targets,', function () {
                 beforeEach(function () {
                     return contextRef.setupTestAsync({

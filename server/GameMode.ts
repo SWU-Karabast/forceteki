@@ -1,4 +1,5 @@
 export enum GameMode {
+
     /** Standard 2-player game (Premier, Eternal, Open, FauxSuns, etc.) */
     OneVsOne = 'oneVsOne',
 

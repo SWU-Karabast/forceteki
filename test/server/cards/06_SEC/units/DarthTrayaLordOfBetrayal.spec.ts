@@ -1,5 +1,4 @@
-import { SwuGameFormat } from '../../../../../server/game/core/Constants';
-
+﻿
 describe('Darth Traya, Lord of Betrayal', function() {
     integration(function(contextRef) {
         describe('Darth Traya\'s attack ability', function() {
@@ -136,7 +135,7 @@ describe('Darth Traya, Lord of Betrayal', function() {
             it('should be able to target both p1 leaders alongside p2\'s leader', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    format: SwuGameFormat.FauxSuns,
+                    format: 'fauxSuns',
                     player1: {
                         leader: { card: 'grand-inquisitor#hunting-the-jedi', exhausted: true },
                         secondLeader: { card: 'saw-gerrera#bring-down-the-empire', exhausted: true },
@@ -160,7 +159,7 @@ describe('Darth Traya, Lord of Betrayal', function() {
             it('should ready the second leader when targeted', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    format: SwuGameFormat.FauxSuns,
+                    format: 'fauxSuns',
                     player1: {
                         leader: 'grand-inquisitor#hunting-the-jedi',
                         secondLeader: { card: 'saw-gerrera#bring-down-the-empire', exhausted: true },
@@ -185,7 +184,7 @@ describe('Darth Traya, Lord of Betrayal', function() {
             it('should not be able to target the second leader when it is deployed', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    format: SwuGameFormat.FauxSuns,
+                    format: 'fauxSuns',
                     player1: {
                         leader: { card: 'grand-inquisitor#hunting-the-jedi', exhausted: true },
                         secondLeader: { card: 'saw-gerrera#bring-down-the-empire', exhausted: true, deployed: true },
@@ -202,10 +201,11 @@ describe('Darth Traya, Lord of Betrayal', function() {
 
                 context.player1.clickCard(context.darthTraya);
                 context.player1.clickCard(context.p2Base);
-                // Saw is now a LeaderUnit — not a valid target; only grandInquisitor and yoda qualify
+                // Saw is now a LeaderUnit â€” not a valid target; only grandInquisitor and yoda qualify
                 expect(context.player1).toBeAbleToSelectExactly([context.grandInquisitor, context.yoda]);
                 context.player1.clickPrompt('Pass');
             });
         });
     });
 });
+

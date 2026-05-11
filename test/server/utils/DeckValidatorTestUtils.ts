@@ -7,7 +7,8 @@ import type { ICardDataJson } from '../../../server/utils/cardData/CardDataInter
 
 // Released set IDs (uppercase to match card.setId.set from JSON)
 export const RELEASED_SETS = new Set<string>([
-    ...rotationBlocks.flatMap((b) => b.sets).filter((s) => s.released).map((s) => s.id.toUpperCase()),
+    ...rotationBlocks.flatMap((b) => b.sets).filter((s) => s.released)
+        .map((s) => s.id.toUpperCase()),
     ...nonRotatingSets.filter((s) => s.released).map((s) => s.id.toUpperCase()),
 ]);
 
@@ -35,8 +36,8 @@ export function makeDeckValidatorHelpers(cardDataGetter: UnitTestCardDataGetter)
             }
             const card = cardDataGetter.getCardSync(cardId);
             const isPlayable = !card.types.includes('leader') &&
-                !card.types.includes('base') &&
-                !card.types[0].startsWith('token');
+              !card.types.includes('base') &&
+              !card.types[0].startsWith('token');
             if (!isPlayable) {
                 continue;
             }
@@ -56,8 +57,8 @@ export function makeDeckValidatorHelpers(cardDataGetter: UnitTestCardDataGetter)
                 continue;
             }
             const isPlayable = !card.types.includes('leader') &&
-                !card.types.includes('base') &&
-                !card.types[0].startsWith('token');
+              !card.types.includes('base') &&
+              !card.types[0].startsWith('token');
             if (isPlayable) {
                 return { id: setCodeToString(card.setId), count: 1, internalName: card.internalName };
             }
@@ -123,9 +124,15 @@ export function makeDeckValidatorHelpers(cardDataGetter: UnitTestCardDataGetter)
     function getFirstLeader(legalSets: Set<string> = RELEASED_SETS, filter?: (card: ICardDataJson) => boolean): IInternalCardEntry {
         for (const cardId of cardDataGetter.cardIds) {
             const card = cardDataGetter.getCardSync(cardId);
-            if (!legalSets.has(card.setId.set)) continue;
-            if (!card.types.includes('leader')) continue;
-            if (filter && !filter(card)) continue;
+            if (!legalSets.has(card.setId.set)) {
+                continue;
+            }
+            if (!card.types.includes('leader')) {
+                continue;
+            }
+            if (filter && !filter(card)) {
+                continue;
+            }
             return { id: setCodeToString(card.setId), count: 1, internalName: card.internalName };
         }
         throw new Error('No leader found in provided sets matching the given filter');
@@ -135,7 +142,9 @@ export function makeDeckValidatorHelpers(cardDataGetter: UnitTestCardDataGetter)
     function getFirstBase(legalSets: Set<string> = RELEASED_SETS): IInternalCardEntry {
         for (const cardId of cardDataGetter.cardIds) {
             const card = cardDataGetter.getCardSync(cardId);
-            if (!legalSets.has(card.setId.set)) continue;
+            if (!legalSets.has(card.setId.set)) {
+                continue;
+            }
             if (card.types.includes('base')) {
                 return { id: setCodeToString(card.setId), count: 1, internalName: card.internalName };
             }
