@@ -62,8 +62,12 @@ function buildBaseTypes(baseNames) {
     // the FE can resort by its own composed label if it wants.
     types.sort((a, b) => {
         const aspectCmp = a.aspects.join('+').localeCompare(b.aspects.join('+'));
-        if (aspectCmp !== 0) return aspectCmp;
-        if (a.hp !== b.hp) return a.hp - b.hp;
+        if (aspectCmp !== 0) {
+            return aspectCmp;
+        }
+        if (a.hp !== b.hp) {
+            return a.hp - b.hp;
+        }
         return a.id.localeCompare(b.id);
     });
     return types;
@@ -92,7 +96,7 @@ function normalizeText(text) {
 
 function classifyGroup(group) {
     if (group.text === '') {
-        return 'vanilla';
+        return 'standard';
     }
     if (group.bases.some((b) => FORCE_BASE_IDS.has(b.id))) {
         return 'force';
@@ -100,7 +104,10 @@ function classifyGroup(group) {
     if (group.bases.some((b) => SPLASH_BASE_IDS.has(b.id))) {
         return 'splash';
     }
-    return 'themed';
+    // Fall-through: a multi-card group whose text doesn't match any known
+    // classification. Doesn't fire on current data — kept as a forward-compat
+    // bucket for future sets that release commons with shared novel text.
+    return 'unknown';
 }
 
 module.exports = { buildBaseTypes };
