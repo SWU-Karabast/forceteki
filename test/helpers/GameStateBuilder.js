@@ -1,5 +1,6 @@
 const { Contract } = require('../../server/game/core/utils/Contract');
 const { SwuGameFormat } = require('../../server/game/core/Constants.js');
+const { GameMode } = require('../../server/GameMode.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
@@ -107,7 +108,8 @@ class GameStateBuilder {
         this.validatePlayerOptions(options.player1, 'player1', options.phase);
         this.validatePlayerOptions(options.player2, 'player2', options.phase);
 
-        context.game.gameMode = SwuGameFormat.Premier;
+        context.game.gameMode = options.gameMode ?? GameMode.OneVsOne;
+        context.game.format = options.format ?? SwuGameFormat.Premier;
         context.game.attackRulesVersion = options.attackRulesVersion ?? AttackRulesVersion.CR7;
 
         if (options.hasOwnProperty('enableConfirmationToUndo')) {
@@ -178,6 +180,8 @@ class GameStateBuilder {
             // Set Leader state (deployed, exhausted, etc.)
             context.player1.setLeaderStatus(options.player1.leader);
             context.player2.setLeaderStatus(options.player2.leader);
+            context.player1.setSecondLeaderStatus(options.player1.secondLeader);
+            context.player2.setSecondLeaderStatus(options.player2.secondLeader);
 
             context.player1.attachOpponentOwnedUpgrades(player2OwnedCards.opponentAttachedUpgrades);
             context.player2.attachOpponentOwnedUpgrades(player1OwnedCards.opponentAttachedUpgrades);
@@ -271,8 +275,10 @@ class GameStateBuilder {
     attachAbbreviatedContextInfo(fromContext, toObj) {
         toObj.p1Base = fromContext.player1.base;
         toObj.p1Leader = fromContext.player1.leader;
+        toObj.p1SecondLeader = fromContext.player1.secondLeader;
         toObj.p2Base = fromContext.player2.base;
         toObj.p2Leader = fromContext.player2.leader;
+        toObj.p2SecondLeader = fromContext.player2.secondLeader;
 
         if ('cardPropertyNames' in toObj) {
             return;
@@ -294,6 +300,7 @@ class GameStateBuilder {
             'hand',
             'discard',
             'leader',
+            'secondLeader',
             'base',
             'deck',
             'resource',
@@ -303,6 +310,7 @@ class GameStateBuilder {
         // list of approved property names for setup phase
         const setupPhase = [
             'leader',
+            'secondLeader',
             'deck',
             'base',
             'hand',
@@ -328,7 +336,9 @@ class GameStateBuilder {
             'autoSingleTarget',
             'testUndo',
             'enableConfirmationToUndo',
-            'attackRulesVersion'
+            'attackRulesVersion',
+            'gameMode',
+            'format'
         ];
 
         // Check for unknown properties

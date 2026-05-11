@@ -3,7 +3,7 @@ import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import { CardType, CardPool, SwuGameFormat } from '../../game/core/Constants';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
-import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
+import { DecklistLocation, DeckValidationFailureReason, IllegalInFormatReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import { Contract } from '../../game/core/utils/Contract';
 import { EnumHelpers } from '../../game/core/utils/EnumHelpers';
@@ -443,7 +443,8 @@ export class DeckValidator {
         if (!isLegalInFormat) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
-                name: cardData.titleAndSubtitle
+                name: cardData.titleAndSubtitle,
+                reason: this.getIllegalInFormatReason(cardData.sets)
             });
             return;
         }
@@ -452,9 +453,31 @@ export class DeckValidator {
         if (rules?.bannedCards.has(this.setCodeToId.get(setCode))) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
-                name: cardData.titleAndSubtitle
+                name: cardData.titleAndSubtitle,
+                reason: IllegalInFormatReason.Suspended
             });
         }
+    }
+
+    /**
+     * Determines why a card is not legal in the requested format.
+     * - If the card has no recognized sets (unknown set code), it is treated as Unreleased.
+     * - If any of the card's recognized sets are unreleased, the card is Unreleased.
+     * - Otherwise the card's set exists and is released but is outside the legal rotation: RotatedOut.
+     */
+    private getIllegalInFormatReason(sets: SwuSetId[]): IllegalInFormatReason {
+        if (sets.length === 0) {
+            return IllegalInFormatReason.Unreleased;
+        }
+        const allSets = [
+            ...rotationBlocks.flatMap((b) => b.sets),
+            ...nonRotatingSets
+        ];
+        const isUnreleased = sets.some((setId) => {
+            const setData = allSets.find((s) => s.id === setId);
+            return setData != null && !setData.released;
+        });
+        return isUnreleased ? IllegalInFormatReason.Unreleased : IllegalInFormatReason.RotatedOut;
     }
 
     protected checkCardLocation(card: ISwuDbFormatCardEntry, cardData: ICardCheckData, location: DecklistLocation, failures: IDeckValidationFailures) {

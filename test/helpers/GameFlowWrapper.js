@@ -17,15 +17,16 @@ class GameFlowWrapper {
      * @param {PlayerInfo} player2Info
      * @param {UndoMode} undoMode
      * @param {boolean} enableConfirmationToUndo
+     * @param {import('../../server/GameMode.js').GameMode} [gameMode]
      */
-    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Free) {
+    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Free, gameMode = GameMode.OneVsOne) {
         /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
             id: 12345,
             owner: player1Info.username,
             saveGameId: 12345,
-            gameMode: GameMode.Premier,
+            gameMode,
             players: [
                 Settings.getUserWithDefaultsSet(player1Info),
                 Settings.getUserWithDefaultsSet(player2Info),

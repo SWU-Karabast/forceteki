@@ -641,7 +641,7 @@ export enum SwuGameFormat {
     Open = 'open',
     Eternal = 'eternal',
     Limited = 'limited',
-    TwinSuns = 'twinSuns',
+    FauxSuns = 'fauxSuns',
 }
 
 export enum CardPool {

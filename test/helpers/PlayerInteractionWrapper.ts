@@ -82,6 +82,21 @@ export class PlayerInteractionWrapper {
     }
 
     /**
+     * Gets the player's primary leader card
+     */
+    public get leader() {
+        return this.player.leader;
+    }
+
+    /**
+     * Gets the player's second leader card (FauxSuns / TwinSuns format only).
+     * Returns null when playing a single-leader format.
+     */
+    public get secondLeader() {
+        return this.player.secondLeader;
+    }
+
+    /**
      * Gets the player's base card
      */
     public get base() {
@@ -160,6 +175,77 @@ export class PlayerInteractionWrapper {
             }
 
             leaderCard.exhausted = leaderOptions.exhausted || false;
+        }
+
+        Util.refreshGameState(this.game);
+    }
+
+    /**
+     * Validates the second leader option and sets its exhausted state.
+     * This is a no-op when no second leader is present (single-leader formats) or
+     * when `leaderOptions` is null/undefined.
+     *
+     * The second leader cannot be deployed during setup, so this only handles
+     * `exhausted` and a string identity check (same contract as setLeaderStatus).
+     */
+    public setSecondLeaderStatus(leaderOptions: { card?: any; deployed?: boolean; damage?: number; exhausted?: boolean; upgrades?: any; capturedUnits?: any; flipped?: boolean } | string | null | undefined) {
+        if (!leaderOptions) {
+            return;
+        }
+
+        const secondLeader = this.player.secondLeader;
+        if (!secondLeader) {
+            throw new TestSetupError('setSecondLeaderStatus called but player has no second leader');
+        }
+
+        if (typeof leaderOptions === 'string') {
+            if (leaderOptions !== secondLeader.internalName) {
+                throw new TestSetupError(`Provided secondLeader name '${leaderOptions}' does not match player's second leader '${secondLeader.internalName}'`);
+            }
+            return;
+        }
+
+        if (leaderOptions.card !== undefined && leaderOptions.card !== secondLeader.internalName) {
+            throw new TestSetupError(`Provided secondLeader name '${leaderOptions.card}' does not match player's second leader '${secondLeader.internalName}'`);
+        }
+
+        if (leaderOptions.deployed) {
+            secondLeader.deploy({ type: DeployType.LeaderUnit });
+
+            // mark the deploy epic action as used
+            const deployAbility = secondLeader.getActionAbilities().find((ability: { getTitle: () => string | string[] }) => ability.getTitle().includes('Deploy'));
+            if (deployAbility?.limit) {
+                deployAbility.limit.increment(this.player);
+            }
+
+            secondLeader.damage = leaderOptions.damage || 0;
+            secondLeader.exhausted = leaderOptions.exhausted || false;
+
+            if (leaderOptions.upgrades) {
+                this.setCardUpgrades(secondLeader, leaderOptions.upgrades);
+            }
+
+            if (leaderOptions.capturedUnits) {
+                this.setCapturedUnits(secondLeader, leaderOptions.capturedUnits);
+            }
+        } else {
+            if (leaderOptions.deployed === false) {
+                if (secondLeader.deployed === true) {
+                    secondLeader.undeploy();
+                }
+            }
+            if (leaderOptions.damage) {
+                throw new TestSetupError('Second leader should not have damage when not deployed');
+            }
+            if (leaderOptions.upgrades) {
+                throw new TestSetupError('Second leader should not have upgrades when not deployed');
+            }
+
+            if (leaderOptions.flipped) {
+                secondLeader.flipLeader();
+            }
+
+            secondLeader.exhausted = leaderOptions.exhausted || false;
         }
 
         Util.refreshGameState(this.game);

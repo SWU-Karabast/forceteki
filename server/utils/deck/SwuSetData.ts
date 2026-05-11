@@ -64,7 +64,7 @@ export const rotationBlocks: IRotationBlock[] = [
 export const nonRotatingSets: INonRotatingSet[] = [
     {
         id: SwuSetId.TS26,
-        legalFormats: new Set([SwuGameFormat.Eternal, SwuGameFormat.TwinSuns]),
+        legalFormats: new Set([SwuGameFormat.Eternal, SwuGameFormat.FauxSuns]),
         released: true,
         mainline: false
     },
@@ -97,5 +97,5 @@ export const formatRules = new Map<SwuGameFormat, IFormatRules>([
     [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: bannedEternalCards, leaderCount: 1 }],
     [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map(), leaderCount: 1 }],
     [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map(), leaderCount: 1 }],
-    [SwuGameFormat.TwinSuns, { minDeckSize: 80, maxCardCopies: 1, bannedCards: new Map(), leaderCount: 2 }],
+    [SwuGameFormat.FauxSuns, { minDeckSize: 80, maxCardCopies: 1, bannedCards: new Map(), leaderCount: 2 }],
 ]);

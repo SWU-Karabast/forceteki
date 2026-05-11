@@ -32,6 +32,7 @@ import {
     RollbackRoundEntryPoint,
     RollbackSetupEntryPoint,
     SnapshotType,
+    SwuGameFormat,
     TokenCardName,
     TokenUpgradeName,
     TokenUnitName,
@@ -302,6 +303,7 @@ export class Game extends EventEmitter {
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
     public gameMode: GameMode;
+    public format: SwuGameFormat;
     public currentlyResolving: ICurrentlyResolving;
     public state: IGameState;
     public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
@@ -371,6 +373,7 @@ export class Game extends EventEmitter {
 
         this.manualMode = false;
         this.gameMode = details.gameMode;
+        this.format = details.format ?? SwuGameFormat.Premier;
 
         this.initializeCurrentlyResolving();
 
@@ -1684,6 +1687,7 @@ export class Game extends EventEmitter {
                     }),
                     started: this.started,
                     gameMode: this.gameMode,
+                    format: this.format,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                 };

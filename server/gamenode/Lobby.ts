@@ -1356,7 +1356,7 @@ export class Lobby {
             id: uuidv4(),
             allowSpectators: false,
             owner: 'Order66',
-            gameMode: GameMode.Premier,
+            gameMode: GameMode.OneVsOne,
             attackRulesVersion: AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
