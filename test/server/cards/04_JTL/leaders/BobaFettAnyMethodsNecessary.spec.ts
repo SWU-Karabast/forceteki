@@ -97,13 +97,13 @@ describe('Boba Fett, Any Methods Necessary', function() {
                         secondLeader: 'saw-gerrera#bring-down-the-empire',
                         base: 'kestro-city',
                         hand: [],
-                        deck: ['battlefield-marine', 'wampa'],
+                        deck: ['battlefield-marine', 'moment-of-peace'],
                     },
                     player2: {
                         leader: 'darth-vader#dark-lord-of-the-sith',
                         base: 'administrators-tower',
                         groundArena: ['wampa'],
-                        deck: ['moment-of-peace', 'atst'],
+                        deck: ['atst', 'scout-bike-pursuer'],
                     }
                 });
 

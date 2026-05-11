@@ -111,6 +111,7 @@ import * as CardSelectorFactory from './cardSelector/CardSelectorFactory';
 import { DamageSystem } from '../gameSystems/DamageSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -1374,6 +1375,15 @@ export class Game extends EventEmitter {
         // Draw 1 card into hand - we'll fire the draw event later
         player.drawCardsToHand(1);
 
+        // If the deck was empty (or too small), deal 3 damage per missed draw to the player's own base.
+        const cannotDrawCount = 1 - cardsBeingDrawn.length;
+        if (cannotDrawCount > 0) {
+            new DamageSystem({
+                type: DamageType.Ability,
+                amount: 3 * cannotDrawCount,
+            }).resolve(player.base, frameworkContext, TriggerHandlingMode.CannotHaveTriggers);
+        }
+
         if (player.hand.length > 0) {
             const selector = CardSelectorFactory.create({
                 mode: TargetMode.Single,
@@ -1389,7 +1399,14 @@ export class Game extends EventEmitter {
                 selectCardMode: SelectCardMode.Single,
                 onSelect: (card: Card | Card[]) => {
                     const target = Array.isArray(card) ? card[0] : card;
-                    target.moveTo(DeckZoneDestination.DeckBottom);
+
+                    // TODO: determine how to handle this, as this doesn't seem to be working
+                    new MoveCardSystem({
+                        target: target,
+                        destination: DeckZoneDestination.DeckBottom
+                    }).resolve(player, frameworkContext, TriggerHandlingMode.ResolvesTriggers);
+
+                    this.registerMovedCard(target);
 
                     // Fire OnCardsDrawn after the full Plan effect has resolved so that
                     // triggered abilities (Rey, Seasoned Fleet Admiral, etc.) respond
