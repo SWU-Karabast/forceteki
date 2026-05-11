@@ -12,9 +12,9 @@ function buildBaseTypes(baseNames) {
         if (typeof base.hp !== 'number') {
             continue;
         }
-        const aspects = base.aspects.length === 0 ? ['neutral'] : [...base.aspects].sort();
+        const aspects = base.aspects.length === 0 ? null : [...base.aspects].sort();
         const textKey = normalizeText(base.text);
-        const groupKey = `${aspects.join('+')}::${base.hp}::${textKey}`;
+        const groupKey = `${aspects ? aspects.join('+') : ''}::${base.hp}::${textKey}`;
         if (!groups.has(groupKey)) {
             groups.set(groupKey, { aspects, hp: base.hp, text: textKey, bases: [] });
         }
@@ -52,7 +52,7 @@ function buildBaseTypes(baseNames) {
     }
 
     types.sort((a, b) => {
-        const aspectCmp = a.aspects.join('+').localeCompare(b.aspects.join('+'));
+        const aspectCmp = (a.aspects ?? []).join('+').localeCompare((b.aspects ?? []).join('+'));
         if (aspectCmp !== 0) {
             return aspectCmp;
         }

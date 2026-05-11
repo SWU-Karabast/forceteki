@@ -15,7 +15,7 @@ export interface IBaseType {
 
     /** Card name; only populated for `kind: 'unique'` (single-card types). */
     name?: string;
-    aspects: string[];
+    aspects: string[] | null;
     hp: number;
     set: string | null;
     baseIds: string[];
