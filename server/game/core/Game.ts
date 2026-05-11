@@ -171,6 +171,9 @@ export class Game extends EventEmitter {
     }
 
     public allClaimTokensClaimed(): boolean {
+        if (this.format === SwuGameFormat.FauxSuns) {
+            return this.isInitiativeClaimed && this.isPlanTokenClaimed && this.isBlastTokenClaimed;
+        }
         return true;
     }
 
