@@ -54,28 +54,21 @@ function buildBaseTypes(baseNames) {
     return types;
 }
 
-// "Force" and "Splash" are two recurring archetypes of common base in SWU,
-// each printed once in every aspect (Aggression, Command, Cunning,
-// Vigilance). We tag them by id rather than by rules-text match, since
-// upstream text can drift (capitalisation, punctuation, wording edits).
+// SWU has shipped two "themed common base" archetypes so far — Force bases
+// and Splash bases — each with two printings in every aspect (Aggression,
+// Command, Cunning, Vigilance). We list every member by id so classifyGroup
+// can tag a base's group by its card id rather than by rules-text match
+// (text can drift across upstream edits).
 //
-// One representative id per aspect is enough: identical printings of the
-// same archetype share aspect + hp + rules text, so the grouping step
-// above bundles them together, and matching any one of the group's ids
-// classifies the whole group.
-//
-// When a new set releases another Force or Splash common, add its id here.
+// If a future set introduces another themed-base archetype, define a new
+// id set + classifyGroup branch alongside these.
 const FORCE_BASE_IDS = new Set([
-    'LOF_020', // Vigilance
-    'LOF_023', // Command
-    'LOF_026', // Aggression
-    'LOF_029', // Cunning
+    'LOF_020', 'LOF_021', 'LOF_023', 'LOF_024',
+    'LOF_026', 'LOF_027', 'LOF_029', 'LOF_030',
 ]);
 const SPLASH_BASE_IDS = new Set([
-    'LAW_020', // Vigilance
-    'LAW_022', // Command
-    'LAW_025', // Aggression
-    'LAW_028', // Cunning
+    'LAW_020', 'LAW_021', 'LAW_022', 'LAW_024',
+    'LAW_025', 'LAW_027', 'LAW_028', 'LAW_030',
 ]);
 
 function normalizeText(text) {
