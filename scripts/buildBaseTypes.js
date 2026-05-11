@@ -54,15 +54,21 @@ function buildBaseTypes(baseNames) {
     return types;
 }
 
-// Hardcoded so a rules-text reword can't silently drop the kind tag. New
-// sets that release additional Force / Splash commons need their IDs added.
+// One representative id per (kind, aspect). A group's other commons share
+// aspect+hp+text with the representative and group together, so matching any
+// member is enough to classify the whole group. Hardcoded ids — not a text
+// match — so a rules-text reword can't silently drop the kind tag.
 const FORCE_BASE_IDS = new Set([
-    'LOF_020', 'LOF_021', 'LOF_023', 'LOF_024',
-    'LOF_026', 'LOF_027', 'LOF_029', 'LOF_030',
+    'LOF_020', // Vigilance
+    'LOF_023', // Command
+    'LOF_026', // Aggression
+    'LOF_029', // Cunning
 ]);
 const SPLASH_BASE_IDS = new Set([
-    'LAW_020', 'LAW_021', 'LAW_022', 'LAW_024',
-    'LAW_025', 'LAW_027', 'LAW_028', 'LAW_030',
+    'LAW_020', // Vigilance
+    'LAW_022', // Command
+    'LAW_025', // Aggression
+    'LAW_028', // Cunning
 ]);
 
 function normalizeText(text) {
