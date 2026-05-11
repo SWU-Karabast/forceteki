@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { Contract } from '../../game/core/utils/Contract';
+import type { Aspect } from '../../game/core/Constants';
 import type { IBaseType, ITokenCardsData } from './CardDataGetter';
 import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
@@ -36,7 +37,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
             .then((data) => data as { name: string; id: string; subtitle?: string }[]);
 
         const baseNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseNamesFileName)
-            .then((data) => data as { name: string; id: string; subtitle?: string; aspects: string[] }[]);
+            .then((data) => data as { name: string; id: string; subtitle?: string; aspects: Aspect[] }[]);
 
         const baseTypes = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseTypesFileName)
             .then((data) => data as IBaseType[]);
@@ -81,7 +82,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
-        baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
+        baseNames: { name: string; id: string; subtitle?: string; aspects: Aspect[] }[],
         baseTypes: IBaseType[],
     ) {
         super(cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes);

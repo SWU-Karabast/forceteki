@@ -7,7 +7,7 @@ export interface IMatchmakingPlayerEntry {
     previousMatch?: PreviousMatchEntry;
 
     /** Pre-resolved aspects of the player's base; consumed by leaderArchetypeFilter. */
-    baseAspects?: readonly string[];
+    baseAspects?: readonly Aspect[];
 }
 
 export interface IMatchmakingRule {

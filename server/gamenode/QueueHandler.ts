@@ -3,6 +3,7 @@ import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import { Contract } from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import type { Aspect } from '../game/core/Constants';
 import { CardPool } from '../game/core/Constants';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
@@ -17,7 +18,7 @@ export interface QueuedPlayerToAdd {
     matchPreferences?: MatchPreferences;
 
     /** Pre-resolved aspects of the player's base; consumed by leaderArchetypeFilter. */
-    baseAspects?: readonly string[];
+    baseAspects?: readonly Aspect[];
 }
 
 export enum QueuedPlayerState {

@@ -21,7 +21,7 @@ function mockDeck(leaderId: string, baseId: string): ISwuDbFormatDecklist {
 
 interface PlayerOverrides {
     matchPreferences?: MatchPreferences;
-    baseAspects?: readonly string[];
+    baseAspects?: readonly Aspect[];
 }
 
 function buildPlayer(userId: string, leaderId: string, baseId: string, overrides: PlayerOverrides = {}): QueuedPlayer {
@@ -52,8 +52,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
 
     describe('when neither player has matchPreferences', function() {
         it('matches any opponent (preserves default behavior)', function() {
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SOR_002', 'SOR_023', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_002', 'SOR_023', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
     });
@@ -61,15 +61,15 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
     describe('when prefs are disabled or empty', function() {
         it('matches anyone when enabled=false', function() {
             const prefs: MatchPreferences = { enabled: false, allowedArchetypes: [{ leaderId: 'OTHER' }] };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SOR_002', 'SOR_023', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_002', 'SOR_023', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
         it('matches anyone when allowedArchetypes is empty', function() {
             const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [] };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SOR_002', 'SOR_023', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_002', 'SOR_023', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
     });
@@ -78,24 +78,24 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
         it('rejects when opponent leader is not in allowlist', function() {
             const archetype: OpponentArchetype = { leaderId: 'SOR_005' };
             const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SOR_999', 'SOR_023', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_999', 'SOR_023', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
 
         it('matches when opponent leader is in allowlist (and opponent has no filter)', function() {
             const archetype: OpponentArchetype = { leaderId: 'SOR_005' };
             const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SOR_005', 'LOF_023', { baseAspects: ['command'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_005', 'LOF_023', { baseAspects: [Aspect.Command] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
         it('matches against any base when no baseConstraint is set', function() {
             const archetype: OpponentArchetype = { leaderId: 'SOR_005' };
             const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SOR_005', 'SOR_999', { baseAspects: ['villainy'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_005', 'SOR_999', { baseAspects: [Aspect.Villainy] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
     });
@@ -108,19 +108,19 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
         const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
 
         it('matches when opponent\'s base aspect satisfies the constraint', function() {
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SOR_005', 'JTL_023', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_005', 'JTL_023', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
         it('rejects when opponent\'s base aspect doesn\'t match', function() {
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SOR_005', 'LOF_022', { baseAspects: ['cunning'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_005', 'LOF_022', { baseAspects: [Aspect.Cunning] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
 
         it('rejects when opponent base aspects are unknown', function() {
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
             const p2 = buildPlayer('u2', 'SOR_005', 'SOR_999', { baseAspects: undefined });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
@@ -134,14 +134,14 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
         const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
 
         it('matches when opponent baseId is in the single-id set', function() {
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
         it('rejects when opponent baseId is not in the single-id set', function() {
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'LOF_999', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'LOF_999', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
     });
@@ -157,14 +157,14 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
         const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
 
         it('matches when opponent baseId is any member of the type', function() {
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'LOF_026', { baseAspects: ['aggression'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'LOF_026', { baseAspects: [Aspect.Aggression] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
         it('rejects when opponent baseId is not in the type', function() {
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'LAW_026', { baseAspects: ['aggression'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'LAW_026', { baseAspects: [Aspect.Aggression] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
     });
@@ -178,8 +178,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                     { leaderId: 'JTL_005', baseConstraint: { kind: 'aspect', aspect: Aspect.Vigilance } },
                 ],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
@@ -191,8 +191,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                     { leaderId: 'JTL_005', baseConstraint: { kind: 'aspect', aspect: Aspect.Vigilance } },
                 ],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'LOF_022', { baseAspects: ['cunning'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'LOF_022', { baseAspects: [Aspect.Cunning] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
     });
@@ -207,8 +207,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                 enabled: true,
                 allowedArchetypes: [{ leaderId: 'SOR_001' }],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: p1Prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { matchPreferences: p2Prefs, baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: p1Prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { matchPreferences: p2Prefs, baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
@@ -221,8 +221,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                 enabled: true,
                 allowedArchetypes: [{ leaderId: 'SOMEONE_ELSE' }],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: p1Prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { matchPreferences: p2Prefs, baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: p1Prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { matchPreferences: p2Prefs, baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
 
@@ -235,8 +235,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                 enabled: true,
                 allowedArchetypes: [{ leaderId: 'NOT_P1' }],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: p1Prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { matchPreferences: p2Prefs, baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: p1Prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { matchPreferences: p2Prefs, baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
     });
@@ -250,8 +250,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                     { leaderId: 'JTL_005', enabled: true },
                 ],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'SEC_010', 'JTL_021', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SEC_010', 'JTL_021', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
 
@@ -263,8 +263,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                     { leaderId: 'JTL_005' },
                 ],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_021', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'JTL_005', 'JTL_021', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
 
@@ -276,8 +276,8 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                     { leaderId: 'JTL_005', enabled: false },
                 ],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            const p2 = buildPlayer('u2', 'XYZ_999', 'JTL_021', { baseAspects: ['vigilance'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'XYZ_999', 'JTL_021', { baseAspects: [Aspect.Vigilance] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
     });
@@ -288,7 +288,7 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                 enabled: true,
                 allowedArchetypes: [{ leaderId: 'SOR_005' }],
             };
-            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
             const p2 = buildPlayerWithoutLeaderOrBase('u2');
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });

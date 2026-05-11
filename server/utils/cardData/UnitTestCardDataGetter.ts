@@ -1,3 +1,4 @@
+import type { Aspect } from '../../game/core/Constants';
 import { CardDataGetter } from './CardDataGetter';
 import type { IBaseType } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
@@ -44,7 +45,7 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
         const setCodeMap = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.setCodeMapFileName) as Record<string, string>;
 
         const leaderNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.leaderNamesFileName) as { name: string; id: string; subtitle: string }[];
-        const baseNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.baseNamesFileName) as { name: string; id: string; subtitle: string; aspects: string[] }[];
+        const baseNames = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.baseNamesFileName) as { name: string; id: string; subtitle: string; aspects: Aspect[] }[];
         const baseTypes = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.baseTypesFileName) as IBaseType[];
         super(folderRoot, cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes);
     }

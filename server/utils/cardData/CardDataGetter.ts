@@ -1,4 +1,4 @@
-import type { TokenName } from '../../game/core/Constants';
+import type { Aspect, TokenName } from '../../game/core/Constants';
 import { TokenCardName, TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ICardDataJson, ICardMap, ICardMapEntry, ICardMapJson } from './CardDataInterfaces';
@@ -11,7 +11,7 @@ export type BaseTypeKind = 'standard' | 'force' | 'splash' | 'unknown' | 'unique
 
 interface IBaseTypeCommon {
     id: string;
-    aspects: string[] | null;
+    aspects: Aspect[] | null;
     hp: number;
     set: string | null;
     baseIds: string[];
@@ -30,7 +30,7 @@ export abstract class CardDataGetter {
     private readonly _setCodeMap: Map<string, string>;
     private readonly _tokenData: ITokenCardsData;
     private readonly _leaders: { name: string; id: string; subtitle?: string }[];
-    private readonly _baseAspectsById: Map<string, string[]>;
+    private readonly _baseAspectsById: Map<string, Aspect[]>;
     private readonly _baseTypes: IBaseType[];
 
     protected static readonly setCodeMapFileName = '_setCodeMap.json';
@@ -70,7 +70,7 @@ export abstract class CardDataGetter {
     }
 
     /** Empty array if the id is unknown or undefined. */
-    public getBaseAspectsById(baseId: string | undefined): string[] {
+    public getBaseAspectsById(baseId: string | undefined): Aspect[] {
         if (!baseId) {
             return [];
         }
@@ -84,7 +84,7 @@ export abstract class CardDataGetter {
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
-        baseNames: { name: string; id: string; subtitle?: string; aspects: string[] }[],
+        baseNames: { name: string; id: string; subtitle?: string; aspects: Aspect[] }[],
         baseTypes: IBaseType[],
     ) {
         this.cardMap = new Map<string, ICardMapEntry>();
