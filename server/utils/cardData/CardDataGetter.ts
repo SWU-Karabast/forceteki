@@ -12,8 +12,6 @@ export type BaseTypeKind = 'standard' | 'force' | 'splash' | 'unknown' | 'unique
 interface IBaseTypeCommon {
     id: string;
     aspects: Aspect[] | null;
-    hp: number;
-    set: string | null;
     baseIds: string[];
 }
 

@@ -30,8 +30,6 @@ function buildBaseTypes(baseNames) {
                 kind: 'unique',
                 name: only.name,
                 aspects: group.aspects,
-                hp: group.hp,
-                set: only.set ?? null,
                 baseIds: [only.id],
             });
             continue;
@@ -42,8 +40,6 @@ function buildBaseTypes(baseNames) {
             id: sorted[0].id,
             kind: classifyGroup(group),
             aspects: group.aspects,
-            hp: group.hp,
-            set: null,
             baseIds: sorted.map((b) => b.id),
         });
     }
@@ -52,9 +48,6 @@ function buildBaseTypes(baseNames) {
         const aspectCmp = (a.aspects ?? []).join('+').localeCompare((b.aspects ?? []).join('+'));
         if (aspectCmp !== 0) {
             return aspectCmp;
-        }
-        if (a.hp !== b.hp) {
-            return a.hp - b.hp;
         }
         return a.id.localeCompare(b.id);
     });
