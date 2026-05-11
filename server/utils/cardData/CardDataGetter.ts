@@ -7,9 +7,13 @@ export type ITokenCardsData = {
     [TokenNameValue in TokenName]: ICardDataJson;
 };
 
+export type BaseTypeKind = 'vanilla' | 'force' | 'splash' | 'themed' | 'unique';
+
 export interface IBaseType {
     id: string;
-    label: string;
+    kind: BaseTypeKind;
+    /** Card name; only populated for `kind: 'unique'` (single-card types). */
+    name?: string;
     aspects: string[];
     hp: number;
     set: string | null;

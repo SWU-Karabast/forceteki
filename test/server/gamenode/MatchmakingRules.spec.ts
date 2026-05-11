@@ -129,7 +129,7 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
     describe('with leader + baseType (single-id) constraint', function() {
         const archetype: OpponentArchetype = {
             leaderId: 'JTL_005',
-            baseConstraint: { kind: 'baseType', baseIds: ['JTL_023'], label: 'Colossus' },
+            baseConstraint: { kind: 'baseType', baseIds: ['JTL_023'] },
         };
         const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };
 
@@ -152,7 +152,6 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
             baseConstraint: {
                 kind: 'baseType',
                 baseIds: ['LOF_023', 'LOF_026', 'LOF_027'],
-                label: 'Aggression - Force (28hp)',
             },
         };
         const prefs: MatchPreferences = { enabled: true, allowedArchetypes: [archetype] };

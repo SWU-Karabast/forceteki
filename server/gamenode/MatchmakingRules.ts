@@ -20,7 +20,7 @@ export interface IMatchmakingRule {
 // directly so the BE doesn't need a base-type registry.
 export type BaseConstraint =
   | { kind: 'aspect'; aspect: Aspect }
-  | { kind: 'baseType'; baseIds: string[]; label?: string };
+  | { kind: 'baseType'; baseIds: string[] };
 
 export interface OpponentArchetype {
     leaderId: string;
