@@ -9,18 +9,17 @@ export type ITokenCardsData = {
 
 export type BaseTypeKind = 'standard' | 'force' | 'splash' | 'unknown' | 'unique';
 
-export interface IBaseType {
+interface IBaseTypeCommon {
     id: string;
-    kind: BaseTypeKind;
-
-    /** Card name; only populated for `kind: 'unique'` (single-card types). */
-    name?: string;
     aspects: string[] | null;
     hp: number;
     set: string | null;
     baseIds: string[];
-    representativeId: string;
 }
+
+export type IBaseType =
+    | (IBaseTypeCommon & { kind: 'unique'; name: string })
+    | (IBaseTypeCommon & { kind: 'standard' | 'force' | 'splash' | 'unknown' });
 
 export abstract class CardDataGetter {
     public readonly cardMap: ICardMap;

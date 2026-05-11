@@ -33,21 +33,18 @@ function buildBaseTypes(baseNames) {
                 hp: group.hp,
                 set: only.set ?? null,
                 baseIds: [only.id],
-                representativeId: only.id,
             });
             continue;
         }
 
         const sorted = [...group.bases].sort((a, b) => a.name.localeCompare(b.name));
-        const representativeId = sorted[0].id;
         types.push({
-            id: representativeId,
+            id: sorted[0].id,
             kind: classifyGroup(group),
             aspects: group.aspects,
             hp: group.hp,
             set: null,
             baseIds: sorted.map((b) => b.id),
-            representativeId,
         });
     }
 
