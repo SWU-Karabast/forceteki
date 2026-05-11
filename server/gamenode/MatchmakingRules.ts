@@ -1,27 +1,44 @@
+import type { Aspect } from '../game/core/Constants';
+
 import type { PreviousMatchEntry, QueuedPlayer } from './QueueHandler';
 
 export interface IMatchmakingPlayerEntry {
     player: QueuedPlayer;
     previousMatch?: PreviousMatchEntry;
+
+    /** Pre-resolved aspects of the player's base; consumed by leaderArchetypeFilter. */
+    baseAspects?: readonly Aspect[];
 }
 
 export interface IMatchmakingRule {
     canMatch(player1: IMatchmakingPlayerEntry, player2: IMatchmakingPlayerEntry): boolean;
 }
 
-/**
- * Collection of predefined matchmaking rules & values
- */
+export type BaseConstraint =
+  | { kind: 'aspect'; aspect: Aspect }
+  | { kind: 'baseType'; baseIds: string[] };
+
+export interface OpponentArchetype {
+    leaderId: string;
+    baseConstraint?: BaseConstraint;
+
+    /** Defaults to true; `false` keeps the archetype saved but excluded from the filter. */
+    enabled?: boolean;
+}
+
+export interface MatchPreferences {
+    enabled: boolean;
+    allowedArchetypes: OpponentArchetype[];
+}
+
 export const MatchmakingRule = {
-    /**
-     * A matchmaking rule that prevents players from rematching
-     * within a specified cooldown period.
-     *
-     * @param cooldownSeconds The cooldown period in seconds
-     * @returns An instance of IMatchmakingRule enforcing the cooldown
-     */
     rematchCooldown: (cooldownSeconds: number): IMatchmakingRule => {
         return new RematchCooldownRule(cooldownSeconds);
+    },
+
+    /** Both players must accept the other's leader+base via their match preferences. */
+    leaderArchetypeFilter: (): IMatchmakingRule => {
+        return new LeaderArchetypeFilterRule();
     },
 };
 
@@ -63,5 +80,52 @@ class RematchCooldownRule implements IMatchmakingRule {
 
     private isWithinCooldown(endTimestamp: number, now: number): boolean {
         return now - endTimestamp <= this.cooldownMs;
+    }
+}
+
+class LeaderArchetypeFilterRule implements IMatchmakingRule {
+    public canMatch(p1: IMatchmakingPlayerEntry, p2: IMatchmakingPlayerEntry): boolean {
+        return playerAcceptsOpponent(p1, p2) && playerAcceptsOpponent(p2, p1);
+    }
+}
+
+function playerAcceptsOpponent(filterer: IMatchmakingPlayerEntry, opponent: IMatchmakingPlayerEntry): boolean {
+    const prefs = filterer.player.matchPreferences;
+    if (!prefs || !prefs.enabled || prefs.allowedArchetypes.length === 0) {
+        return true;
+    }
+
+    const activeArchetypes = prefs.allowedArchetypes.filter((archetype) => archetype.enabled !== false);
+    if (activeArchetypes.length === 0) {
+        return true;
+    }
+
+    const opponentLeaderId = opponent.player.deck?.leader?.id;
+    const opponentBaseId = opponent.player.deck?.base?.id;
+    const opponentBaseAspects = opponent.baseAspects;
+
+    return activeArchetypes.some((archetype) =>
+        archetypeMatchesOpponent(archetype, opponentLeaderId, opponentBaseId, opponentBaseAspects)
+    );
+}
+
+function archetypeMatchesOpponent(
+    archetype: OpponentArchetype,
+    opponentLeaderId: string | undefined,
+    opponentBaseId: string | undefined,
+    opponentBaseAspects: readonly Aspect[] | undefined,
+): boolean {
+    if (archetype.leaderId !== opponentLeaderId) {
+        return false;
+    }
+    const constraint = archetype.baseConstraint;
+    if (!constraint) {
+        return true;
+    }
+    switch (constraint.kind) {
+        case 'baseType':
+            return opponentBaseId !== undefined && constraint.baseIds.includes(opponentBaseId);
+        case 'aspect':
+            return opponentBaseAspects?.includes(constraint.aspect) ?? false;
     }
 }

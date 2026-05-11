@@ -1,4 +1,4 @@
-import type { TokenName } from '../../game/core/Constants';
+import type { Aspect, TokenName } from '../../game/core/Constants';
 import { TokenCardName, TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ICardDataJson, ICardMap, ICardMapEntry, ICardMapJson } from './CardDataInterfaces';
@@ -6,6 +6,18 @@ import type { ICardDataJson, ICardMap, ICardMapEntry, ICardMapJson } from './Car
 export type ITokenCardsData = {
     [TokenNameValue in TokenName]: ICardDataJson;
 };
+
+export type BaseTypeKind = 'standard' | 'force' | 'splash' | 'unknown' | 'unique';
+
+interface IBaseTypeCommon {
+    id: string;
+    aspects: Aspect[] | null;
+    baseIds: string[];
+}
+
+export type IBaseType =
+    | (IBaseTypeCommon & { kind: 'unique'; name: string })
+    | (IBaseTypeCommon & { kind: 'standard' | 'force' | 'splash' | 'unknown' });
 
 export abstract class CardDataGetter {
     public readonly cardMap: ICardMap;
@@ -16,12 +28,16 @@ export abstract class CardDataGetter {
     private readonly _setCodeMap: Map<string, string>;
     private readonly _tokenData: ITokenCardsData;
     private readonly _leaders: { name: string; id: string; subtitle?: string }[];
+    private readonly _baseAspectsById: Map<string, Aspect[]>;
+    private readonly _baseTypes: IBaseType[];
 
     protected static readonly setCodeMapFileName = '_setCodeMap.json';
     protected static readonly cardMapFileName = '_cardMap.json';
     protected static readonly allNonLeaderCardTitlesFileName = '_allNonLeaderCardTitles.json';
     protected static readonly playableCardTitlesFileName = '_playableCardTitles.json';
     protected static readonly leaderNamesFileName = '_leaderNames.json';
+    protected static readonly baseNamesFileName = '_baseNames.json';
+    protected static readonly baseTypesFileName = '_baseTypes.json';
 
     public get cardIds(): string[] {
         return Array.from(this.cardMap.keys());
@@ -47,6 +63,18 @@ export abstract class CardDataGetter {
         return this._leaders;
     }
 
+    public getBaseTypes(): IBaseType[] {
+        return this._baseTypes;
+    }
+
+    /** Empty array if the id is unknown or undefined. */
+    public getBaseAspectsById(baseId: string | undefined): Aspect[] {
+        if (!baseId) {
+            return [];
+        }
+        return this._baseAspectsById.get(baseId) ?? [];
+    }
+
     public constructor(
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
@@ -54,6 +82,8 @@ export abstract class CardDataGetter {
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
+        baseNames: { name: string; id: string; subtitle?: string; aspects: Aspect[] }[],
+        baseTypes: IBaseType[],
     ) {
         this.cardMap = new Map<string, ICardMapEntry>();
         this.knownCardInternalNames = new Set<string>();
@@ -68,6 +98,8 @@ export abstract class CardDataGetter {
         this._setCodeMap = new Map(Object.entries(setCodeMap));
         this._tokenData = tokenData;
         this._leaders = leaderNames;
+        this._baseAspectsById = new Map(baseNames.map((base) => [base.id, base.aspects]));
+        this._baseTypes = baseTypes;
     }
 
     protected abstract getCardInternalAsync(relativePath: string): Promise<ICardDataJson>;

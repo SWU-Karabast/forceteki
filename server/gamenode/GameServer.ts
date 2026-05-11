@@ -30,6 +30,7 @@ import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
+import type { MatchPreferences } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
@@ -1367,7 +1368,7 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { format, cardPool, gamesToWinMode, deck } = req.body;
+                const { format, cardPool, gamesToWinMode, deck, matchPreferences } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1398,7 +1399,7 @@ export class GameServer {
                 }
 
                 await this.processDeckValidation(deck, false, { format, cardPool }, res, () => {
-                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck);
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck, matchPreferences as MatchPreferences | undefined);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1425,6 +1426,15 @@ export class GameServer {
                 return res.json(this.cardDataGetter.getLeaderCards());
             } catch (err) {
                 logger.error('GameServer (all-leaders) Server error: ', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/all-base-types', (_, res, next) => {
+            try {
+                return res.json(this.cardDataGetter.getBaseTypes());
+            } catch (err) {
+                logger.error('GameServer (all-base-types) Server error: ', err);
                 next(err);
             }
         });
@@ -2165,7 +2175,8 @@ export class GameServer {
         cardPool: CardPool,
         gamesToWinMode: GamesToWinMode,
         user: User,
-        deck: ISwuDbFormatDecklist
+        deck: ISwuDbFormatDecklist,
+        matchPreferences?: MatchPreferences,
     ): boolean {
         const formatKey: IQueueFormatKey = {
             format,
@@ -2173,12 +2184,16 @@ export class GameServer {
             gamesToWinMode
         };
 
+        const baseAspects = this.cardDataGetter.getBaseAspectsById(deck?.base?.id);
+
         this.queue.addPlayer(
             formatKey,
             {
                 user,
                 deck,
-                socket: null
+                socket: null,
+                matchPreferences,
+                baseAspects,
             }
         );
 

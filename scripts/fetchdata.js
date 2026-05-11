@@ -8,6 +8,7 @@ const path = require('path');
 const cliProgress = require('cli-progress');
 const { addMockCards } = require('./mockdata');
 const { computeCardDataHash } = require('./cardDataHash');
+const { buildBaseTypes } = require('./buildBaseTypes');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
@@ -361,6 +362,7 @@ function buildCardLists(cards) {
     const playableCardTitlesSet = new Set();
     const seenNames = [];
     const leaderNames = [];
+    const baseNames = [];
     const uniqueCardsMap = new Map();
     const setNumber = new Map([
         ['SOR', 1],
@@ -436,6 +438,19 @@ function buildCardLists(cards) {
             const cardId = `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
             leaderNames.push({ name: card.title, id: cardId, subtitle: card.subtitle });
         }
+
+        if (card.types.includes('base')) {
+            const cardId = `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
+            baseNames.push({
+                name: card.title,
+                id: cardId,
+                subtitle: card.subtitle,
+                aspects: Array.isArray(card.aspects) ? card.aspects : [],
+                hp: card.hp,
+                text: typeof card.text === 'string' ? card.text : '',
+                set: card.setId?.set ?? null,
+            });
+        }
     }
 
     const allNonLeaderCardTitles = Array.from(allNonLeaderCardTitlesSet);
@@ -444,8 +459,10 @@ function buildCardLists(cards) {
     const playableCardTitles = Array.from(playableCardTitlesSet);
     playableCardTitles.sort();
 
+    const baseTypes = buildBaseTypes(baseNames);
+
     const uniqueCards = [...uniqueCardsMap].map(([internalName, card]) => card);
-    return { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames };
+    return { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes };
 }
 
 async function main() {
@@ -484,7 +501,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames } = buildCardLists(cards);
+    const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -505,6 +522,8 @@ async function main() {
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
     fs.writeFile(path.join(pathToJSON, '_leaderNames.json'), JSON.stringify(leaderNames, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_baseNames.json'), JSON.stringify(baseNames, null, 2));
+    fs.writeFile(path.join(pathToJSON, '_baseTypes.json'), JSON.stringify(baseTypes, null, 2));
     fs.writeFile(path.join(pathToJSON, 'card-data-hash.txt'), computeCardDataHash());
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);

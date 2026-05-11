@@ -3,17 +3,22 @@ import { logger } from '../logger';
 import type { User } from '../utils/user/User';
 import { Contract } from '../game/core/utils/Contract';
 import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import type { Aspect } from '../game/core/Constants';
 import { CardPool } from '../game/core/Constants';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
 
-import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
+import type { IMatchmakingPlayerEntry, IMatchmakingRule, MatchPreferences } from './MatchmakingRules';
 import { MatchmakingRule } from './MatchmakingRules';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
     socket?: Socket;
     user: User;
+    matchPreferences?: MatchPreferences;
+
+    /** Pre-resolved aspects of the player's base; consumed by leaderArchetypeFilter. */
+    baseAspects?: readonly Aspect[];
 }
 
 export enum QueuedPlayerState {
@@ -128,7 +133,12 @@ export class QueueHandler {
         const queueEntry = this.findPlayerInQueue(userId);
         if (queueEntry && queueEntry.player?.socket?.id === socketId) {
             this.removePlayer(userId, `Temporarily disconnected on socket id ${socketId}`);
-            this.addPlayer(queueEntry.format, { user: queueEntry.player.user, deck: queueEntry.player.deck });
+            this.addPlayer(queueEntry.format, {
+                user: queueEntry.player.user,
+                deck: queueEntry.player.deck,
+                matchPreferences: queueEntry.player.matchPreferences,
+                baseAspects: queueEntry.player.baseAspects,
+            });
         }
     }
 
@@ -228,7 +238,10 @@ export class QueueHandler {
             return null;
         }
 
-        return this.findMatchInQueue(queue, [MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS)]);
+        return this.findMatchInQueue(queue, [
+            MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS),
+            MatchmakingRule.leaderArchetypeFilter(),
+        ]);
     }
 
     /**
@@ -243,8 +256,16 @@ export class QueueHandler {
             for (let j = i + 1; j < queue.length; j++) {
                 const player1 = queue[i];
                 const player2 = queue[j];
-                const p1Entry: IMatchmakingPlayerEntry = { player: player1, previousMatch: this.playerPreviousMatch.get(player1.user.getId()) };
-                const p2Entry: IMatchmakingPlayerEntry = { player: player2, previousMatch: this.playerPreviousMatch.get(player2.user.getId()) };
+                const p1Entry: IMatchmakingPlayerEntry = {
+                    player: player1,
+                    previousMatch: this.playerPreviousMatch.get(player1.user.getId()),
+                    baseAspects: player1.baseAspects,
+                };
+                const p2Entry: IMatchmakingPlayerEntry = {
+                    player: player2,
+                    previousMatch: this.playerPreviousMatch.get(player2.user.getId()),
+                    baseAspects: player2.baseAspects,
+                };
 
                 const canMatch = rules.every((rule) => rule.canMatch(p1Entry, p2Entry));
 
