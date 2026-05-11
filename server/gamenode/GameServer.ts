@@ -1398,8 +1398,6 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                // The matchmaking rule treats malformed/absent prefs as "match anyone",
-                // so no payload-shape validation is needed here.
                 await this.processDeckValidation(deck, false, { format, cardPool }, res, () => {
                     const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck, matchPreferences as MatchPreferences | undefined);
                     if (!success) {
@@ -2186,8 +2184,6 @@ export class GameServer {
             gamesToWinMode
         };
 
-        // Pre-resolve the player's base aspects so the matchmaking filter rule
-        // doesn't need card-data access at match time.
         const baseAspects = this.cardDataGetter.getBaseAspectsById(deck?.base?.id);
 
         this.queue.addPlayer(

@@ -179,8 +179,6 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                 ],
             };
             const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-
-            // matches second archetype: leader=JTL_005 + base aspect=vigilance
             const p2 = buildPlayer('u2', 'JTL_005', 'JTL_023', { baseAspects: ['vigilance'] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });
@@ -194,8 +192,6 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                 ],
             };
             const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-
-            // leader=JTL_005 but base aspect=cunning, and not in any archetype
             const p2 = buildPlayer('u2', 'JTL_005', 'LOF_022', { baseAspects: ['cunning'] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
@@ -255,7 +251,6 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                 ],
             };
             const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            // SEC_010 archetype is disabled, so this opponent should not match
             const p2 = buildPlayer('u2', 'SEC_010', 'JTL_021', { baseAspects: ['vigilance'] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
@@ -282,8 +277,6 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
                 ],
             };
             const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: ['command'] });
-            // Empty active set is treated as "match anyone" — matches the
-            // top-level disabled / empty-allowedArchetypes behavior.
             const p2 = buildPlayer('u2', 'XYZ_999', 'JTL_021', { baseAspects: ['vigilance'] });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
         });

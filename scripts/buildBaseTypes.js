@@ -1,14 +1,9 @@
 /**
  * Group bases into "types" — sets of functionally-identical bases — for the
  * matchmaking-queue opponent filter. Two bases share a type iff they share
- * aspects, HP, and rules text; unique-named (rarer) bases each get their own
- * single-card type. The FE picks a type and sends its `baseIds` on the wire,
- * so the BE rule never has to reason about groupings — it just compares ids.
- *
- * The output is pure data — aspects, hp, set, baseIds, plus a `kind`
- * discriminator and the card `name` for unique types. The FE owns label
- * formatting (capitalisation, separators, etc.) so display tweaks don't
- * require regenerating card data.
+ * aspects, HP, and rules text; otherwise each base is its own single-card
+ * type. The FE picks a type and sends its `baseIds` on the wire, so the BE
+ * rule just compares ids.
  */
 function buildBaseTypes(baseNames) {
     const groups = new Map();
@@ -46,8 +41,6 @@ function buildBaseTypes(baseNames) {
         const sorted = [...group.bases].sort((a, b) => a.name.localeCompare(b.name));
         const representativeId = sorted[0].id;
         types.push({
-            // Each card belongs to exactly one type, so the representative card
-            // id is a unique and stable opaque identifier for React keys.
             id: representativeId,
             kind: classifyGroup(group),
             aspects: group.aspects,
@@ -58,8 +51,6 @@ function buildBaseTypes(baseNames) {
         });
     }
 
-    // Sort by aspects then hp then kind for a stable, FE-agnostic ordering;
-    // the FE can resort by its own composed label if it wants.
     types.sort((a, b) => {
         const aspectCmp = a.aspects.join('+').localeCompare(b.aspects.join('+'));
         if (aspectCmp !== 0) {
@@ -73,13 +64,8 @@ function buildBaseTypes(baseNames) {
     return types;
 }
 
-// Explicit ID sets for the canonical "common" Force and Splash bases (one
-// per aspect, two cards each — same aspect+hp+text on the printed card).
-// Hardcoded so a rules-text reword in card data can't accidentally drop
-// the kind tag, and so rare/unique Force- or Splash-themed bases (which
-// have their own distinct rules text and don't appear here) stay tagged
-// 'unique'. New sets that release additional Force / Splash commons need
-// their IDs added here.
+// Hardcoded so a rules-text reword can't silently drop the kind tag. New
+// sets that release additional Force / Splash commons need their IDs added.
 const FORCE_BASE_IDS = new Set([
     'LOF_020', 'LOF_021', 'LOF_023', 'LOF_024',
     'LOF_026', 'LOF_027', 'LOF_029', 'LOF_030',
@@ -104,9 +90,7 @@ function classifyGroup(group) {
     if (group.bases.some((b) => SPLASH_BASE_IDS.has(b.id))) {
         return 'splash';
     }
-    // Fall-through: a multi-card group whose text doesn't match any known
-    // classification. Doesn't fire on current data — kept as a forward-compat
-    // bucket for future sets that release commons with shared novel text.
+    // Multi-card group with unrecognised text — doesn't fire on current data.
     return 'unknown';
 }
 

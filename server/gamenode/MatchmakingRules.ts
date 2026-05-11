@@ -14,10 +14,6 @@ export interface IMatchmakingRule {
     canMatch(player1: IMatchmakingPlayerEntry, player2: IMatchmakingPlayerEntry): boolean;
 }
 
-// `baseType.baseIds` is the inline list of acceptable card ids for this
-// archetype (a single id for unique bases, multiple for grouped types like
-// "Aggression - Force"); the FE resolves the category and sends the ids
-// directly so the BE doesn't need a base-type registry.
 export type BaseConstraint =
   | { kind: 'aspect'; aspect: Aspect }
   | { kind: 'baseType'; baseIds: string[] };
@@ -26,7 +22,7 @@ export interface OpponentArchetype {
     leaderId: string;
     baseConstraint?: BaseConstraint;
 
-    /** Set to false to keep saved but excluded from the filter; defaults to true. */
+    /** Defaults to true; `false` keeps the archetype saved but excluded from the filter. */
     enabled?: boolean;
 }
 
@@ -35,27 +31,12 @@ export interface MatchPreferences {
     allowedArchetypes: OpponentArchetype[];
 }
 
-/**
- * Collection of predefined matchmaking rules & values
- */
 export const MatchmakingRule = {
-    /**
-     * A matchmaking rule that prevents players from rematching
-     * within a specified cooldown period.
-     *
-     * @param cooldownSeconds The cooldown period in seconds
-     * @returns An instance of IMatchmakingRule enforcing the cooldown
-     */
     rematchCooldown: (cooldownSeconds: number): IMatchmakingRule => {
         return new RematchCooldownRule(cooldownSeconds);
     },
 
-    /**
-     * A matchmaking rule that respects each player's opt-in opponent-archetype
-     * filter. Both players must accept the other's leader+base for a match to
-     * be allowed. Players without preferences (or with the filter disabled or
-     * an empty allowlist) accept anyone, preserving the default behavior.
-     */
+    /** Both players must accept the other's leader+base via their match preferences. */
     leaderArchetypeFilter: (): IMatchmakingRule => {
         return new LeaderArchetypeFilterRule();
     },
@@ -114,7 +95,6 @@ function playerAcceptsOpponent(filterer: IMatchmakingPlayerEntry, opponent: IMat
         return true;
     }
 
-    // Per-archetype `enabled` defaults to true; only false explicitly disables.
     const activeArchetypes = prefs.allowedArchetypes.filter((archetype) => archetype.enabled !== false);
     if (activeArchetypes.length === 0) {
         return true;

@@ -70,10 +70,7 @@ export abstract class CardDataGetter {
         return this._baseTypes;
     }
 
-    /**
-     * Aspects of a base by its set-code id (e.g. 'SOR_022'), or `[]` if not
-     * known. Consumed by the matchmaking filter rule.
-     */
+    /** Empty array if the id is unknown or undefined. */
     public getBaseAspectsById(baseId: string | undefined): string[] {
         if (!baseId) {
             return [];
