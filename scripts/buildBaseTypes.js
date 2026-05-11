@@ -56,9 +56,8 @@ function buildBaseTypes(baseNames) {
 
 // SWU has shipped two "themed common base" archetypes so far — Force bases
 // and Splash bases — each with two printings in every aspect (Aggression,
-// Command, Cunning, Vigilance). We list every member by id so classifyGroup
-// can tag a base's group by its card id rather than by rules-text match
-// (text can drift across upstream edits).
+// Command, Cunning, Vigilance). classifyGroup tags a group by checking
+// these id sets; matching on a full sentence of rules text would be fragile.
 //
 // If a future set introduces another themed-base archetype, define a new
 // id set + classifyGroup branch alongside these.
