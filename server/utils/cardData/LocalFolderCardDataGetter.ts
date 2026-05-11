@@ -1,7 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 import { Contract } from '../../game/core/utils/Contract';
-import type { ITokenCardsData } from './CardDataGetter';
+import type { Aspect } from '../../game/core/Constants';
+import type { IBaseType, ITokenCardsData } from './CardDataGetter';
 import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
 
@@ -34,7 +35,13 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
 
         const leaderNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.leaderNamesFileName)
             .then((data) => data as { name: string; id: string; subtitle?: string }[]);
-        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames);
+
+        const baseNames = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseNamesFileName)
+            .then((data) => data as { name: string; id: string; subtitle?: string; aspects: Aspect[] }[]);
+
+        const baseTypes = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.baseTypesFileName)
+            .then((data) => data as IBaseType[]);
+        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes);
     }
 
     protected static validateFolderContents(directory: string, isDevelopment: boolean) {
@@ -75,8 +82,10 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         playableCardTitles: string[],
         setCodeMap: Record<string, string>,
         leaderNames: { name: string; id: string; subtitle?: string }[],
+        baseNames: { name: string; id: string; subtitle?: string; aspects: Aspect[] }[],
+        baseTypes: IBaseType[],
     ) {
-        super(cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames);
+        super(cardMapJson, tokenData, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames, baseNames, baseTypes);
 
         this.folderRoot = folderRoot;
     }

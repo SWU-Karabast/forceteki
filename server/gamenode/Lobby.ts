@@ -10,10 +10,11 @@ import { GameChat } from '../game/core/chat/GameChat';
 import type { User } from '../utils/user/User';
 import type { IUser } from '../Settings';
 import { getUserWithDefaultsSet } from '../Settings';
+import type { OpponentArchetype } from '../utils/archetypeFilter';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
@@ -149,6 +150,7 @@ export class Lobby {
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
     public readonly cardPool: CardPool;
+    public readonly archetypeFilter: OpponentArchetype[] | null;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -185,6 +187,7 @@ export class Lobby {
         deckValidator: DeckValidator,
         gameServer: GameServer,
         discordDispatcher: DiscordDispatcher,
+        archetypeFilter: OpponentArchetype[] | null = null,
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
@@ -206,6 +209,7 @@ export class Lobby {
         this.discordDispatcher = discordDispatcher;
         this.undoMode = matchmakingType === MatchmakingType.PrivateLobby ? UndoMode.Free : UndoMode.Request;
         this.cardPool = cardPool;
+        this.archetypeFilter = archetypeFilter;
 
         switch (gamesToWinMode) {
             case GamesToWinMode.BestOfOne:
@@ -519,7 +523,7 @@ export class Lobby {
         this.sendLobbyState();
     }
 
-    public async addLobbyUserAsync(user: User, socket: Socket): Promise<void> {
+    public async addLobbyUserAsync(user: User, socket: Socket, preValidatedDeck?: ISwuDbFormatDecklist | null): Promise<void> {
         const existingUser = this.users.find((u) => u.id === user.getId());
         const existingSpectator = this.spectators.find((s) => s.id === user.getId());
         if (existingSpectator) {
@@ -544,6 +548,7 @@ export class Lobby {
             this.checkUpdateSocket(existingUser, socket);
             logger.info(`Lobby: setting state to connected for existing user ${user.getId()} with socket id ${socket.id}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         } else {
+            const deck = preValidatedDeck ? new Deck(preValidatedDeck, this.cardDataGetter) : undefined;
             this.users.push({
                 id: user.getId(),
                 username: user.getUsername(),
@@ -551,6 +556,10 @@ export class Lobby {
                 ready: false,
                 socket,
                 user: socket.user,
+                deck,
+                deckValidationErrors: deck
+                    ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, cardPool: this.cardPool })
+                    : {},
                 reportedBugs: 0
             });
             logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()}, socket id: ${socket.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -863,7 +872,7 @@ export class Lobby {
 
         // If there's an active game that hasn't finished and no winner has been determined yet, concede it first
         // (Skip if game already has a winner, e.g., from timeout - endGame guard will prevent double-recording)
-        if (this.game && this.game.finishedAt == null && !this.game.isEnded) {
+        if (this.game && this.game.finishedAt == null && this.game.winnerNames.length === 0) {
             this.game.concede(userId);
         }
 
@@ -1777,8 +1786,8 @@ export class Lobby {
             const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Lose : ScoreType.Win;
 
             // Only update stats if the game has a winner and made it into the second round at least
-            if (!game.isEnded || !game.finishedAt) {
-                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${!game.isEnded
+            if (game.winnerNames.length === 0 || !game.finishedAt) {
+                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${game.winnerNames.length === 0
                     ? `winnerNames length being ${game.winnerNames.length}` : ''}
                     ${!game.finishedAt ? 'game finishedAt missing' : ''} `);
             }

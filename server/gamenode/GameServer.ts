@@ -30,6 +30,8 @@ import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
+import type { OpponentArchetype } from '../utils/archetypeFilter';
+import { deckMatchesArchetypeFilter } from '../utils/archetypeFilter';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
@@ -75,6 +77,7 @@ enum UserRole {
 interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
+    preValidatedDeck?: ISwuDbFormatDecklist;
 }
 
 export interface IToken {
@@ -1211,7 +1214,7 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, gamesToWinMode, lobbyName, cardPool } = req.body;
+                const { deck, format, isPrivate, gamesToWinMode, lobbyName, cardPool, archetypeFilter } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1265,8 +1268,22 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
+                let validatedArchetypeFilter: OpponentArchetype[] | null = null;
+                if (archetypeFilter != null) {
+                    if (isPrivate) {
+                        return res.status(400).json({ success: false, message: 'Archetype filter is not allowed for private lobbies' });
+                    }
+                    if (!Array.isArray(archetypeFilter) || archetypeFilter.length === 0) {
+                        return res.status(400).json({ success: false, message: 'Archetype filter must be a non-empty array' });
+                    }
+                    if (!archetypeFilter.every((a: unknown) => typeof (a as { leaderId?: unknown })?.leaderId === 'string')) {
+                        return res.status(400).json({ success: false, message: 'Each archetype must have a leaderId' });
+                    }
+                    validatedArchetypeFilter = archetypeFilter as OpponentArchetype[];
+                }
+
                 await this.processDeckValidation(deck, true, { format, cardPool }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, cardPool);
+                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, cardPool, validatedArchetypeFilter);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1287,6 +1304,7 @@ export class GameServer {
                         format: lobby.format,
                         cardPool: lobby.cardPool,
                         gamesToWinMode: lobby.gamesToWinMode,
+                        archetypeFilter: lobby.archetypeFilter,
                         host: lobbyOwnerUser?.deck ? {
                             leader: lobbyOwnerUser.deck.leader,
                             base: lobbyOwnerUser.deck.base
@@ -1300,9 +1318,9 @@ export class GameServer {
             }
         });
 
-        app.post('/api/join-lobby', this.buildAuthMiddleware(), (req, res, next) => {
+        app.post('/api/join-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { lobbyId } = req.body;
+                const { lobbyId, deck } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1333,6 +1351,22 @@ export class GameServer {
                 if (bo3AccessError) {
                     logger.info(`GameServer (join-lobby): Anonymous user ${user.getId()} blocked from joining public Bo3 lobby ${lobbyId}`);
                     return res.status(400).json({ success: false, message: bo3AccessError });
+                }
+
+                if (lobby.archetypeFilter) {
+                    if (!deck) {
+                        return res.status(400).json({ success: false, message: 'A deck is required to join this lobby' });
+                    }
+                    await this.processDeckValidation(deck, true, { format: lobby.format, cardPool: lobby.cardPool }, res, () => {
+                        const baseAspects = this.cardDataGetter.getBaseAspectsById(deck?.base?.id);
+                        if (!deckMatchesArchetypeFilter(lobby.archetypeFilter, deck?.leader?.id, deck?.base?.id, baseAspects)) {
+                            res.status(400).json({ success: false, message: 'Your deck does not match any of this lobby\'s allowed leader/base archetypes' });
+                            return;
+                        }
+                        this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player, preValidatedDeck: deck });
+                        res.status(200).json({ success: true });
+                    });
+                    return;
                 }
 
                 // Add the user to the lobby
@@ -1425,6 +1459,15 @@ export class GameServer {
                 return res.json(this.cardDataGetter.getLeaderCards());
             } catch (err) {
                 logger.error('GameServer (all-leaders) Server error: ', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/all-base-types', (_, res, next) => {
+            try {
+                return res.json(this.cardDataGetter.getBaseTypes());
+            } catch (err) {
+                logger.error('GameServer (all-base-types) Server error: ', err);
                 next(err);
             }
         });
@@ -1888,7 +1931,8 @@ export class GameServer {
         format: SwuGameFormat,
         gamesToWinMode: GamesToWinMode,
         isPrivate: boolean,
-        cardPool: CardPool = CardPool.Current
+        cardPool: CardPool = CardPool.Current,
+        archetypeFilter: OpponentArchetype[] | null = null
     ) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
@@ -1908,6 +1952,7 @@ export class GameServer {
             this.deckValidator,
             this,
             this.discordDispatcher,
+            archetypeFilter,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -1927,6 +1972,7 @@ export class GameServer {
             this.deckValidator,
             this,
             this.discordDispatcher,
+            null,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -2054,7 +2100,7 @@ export class GameServer {
             const socket = new Socket(ioSocket);
 
             try {
-                await lobby.addLobbyUserAsync(user, socket);
+                await lobby.addLobbyUserAsync(user, socket, lobbyUserEntry.preValidatedDeck);
             } catch (err) {
                 this.userLobbyMap.delete(user.getId());
                 ioSocket.emit('connection_error', 'Error connecting to lobby');
@@ -2107,6 +2153,14 @@ export class GameServer {
             if (bo3AccessError) {
                 logger.info(`GameServer (onConnectionAsync): Anonymous user ${user.getId()} blocked from joining public Bo3 lobby ${lobby.id} via link`);
                 ioSocket.emit('connection_error', bo3AccessError);
+                ioSocket.disconnect();
+                return Promise.resolve();
+            }
+
+            // Filtered lobbies require the deck-pre-check at /api/join-lobby; link-based joins bypass it.
+            if (lobby.archetypeFilter) {
+                logger.info(`GameServer (onConnectionAsync): User ${user.getId()} attempted link-based join to filtered lobby ${lobby.id}`);
+                ioSocket.emit('connection_error', 'This lobby requires you to join from the lobby browser');
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -2165,7 +2219,7 @@ export class GameServer {
         cardPool: CardPool,
         gamesToWinMode: GamesToWinMode,
         user: User,
-        deck: ISwuDbFormatDecklist
+        deck: ISwuDbFormatDecklist,
     ): boolean {
         const formatKey: IQueueFormatKey = {
             format,
@@ -2178,7 +2232,7 @@ export class GameServer {
             {
                 user,
                 deck,
-                socket: null
+                socket: null,
             }
         );
 
