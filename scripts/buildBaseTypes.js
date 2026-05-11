@@ -26,7 +26,7 @@ function buildBaseTypes(baseNames) {
         if (group.bases.length === 1) {
             const only = group.bases[0];
             types.push({
-                id: `unique_${only.id}`,
+                id: only.id,
                 label: `${only.name} - ${group.hp}hp`,
                 aspects: group.aspects,
                 hp: group.hp,
@@ -38,14 +38,18 @@ function buildBaseTypes(baseNames) {
         }
 
         const sorted = [...group.bases].sort((a, b) => a.name.localeCompare(b.name));
+        const representativeId = sorted[0].id;
         types.push({
-            id: `group_${slug(`${group.aspects.join('_')}_${group.hp}_${group.text || 'vanilla'}`)}`,
+            // FE consumes this only as an opaque React key / autocomplete-equality
+            // value; the representative card id is unique (each card belongs to
+            // exactly one type) and stable.
+            id: representativeId,
             label: labelForGroup(group),
             aspects: group.aspects,
             hp: group.hp,
             set: null,
             baseIds: sorted.map((b) => b.id),
-            representativeId: sorted[0].id,
+            representativeId,
         });
     }
 
@@ -94,13 +98,6 @@ function capitalizeWord(value) {
         return '';
     }
     return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function slug(value) {
-    return value
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_|_$/g, '');
 }
 
 module.exports = { buildBaseTypes };
