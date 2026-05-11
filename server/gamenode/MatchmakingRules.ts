@@ -113,7 +113,7 @@ function archetypeMatchesOpponent(
     archetype: OpponentArchetype,
     opponentLeaderId: string | undefined,
     opponentBaseId: string | undefined,
-    opponentBaseAspects: readonly string[] | undefined,
+    opponentBaseAspects: readonly Aspect[] | undefined,
 ): boolean {
     if (archetype.leaderId !== opponentLeaderId) {
         return false;

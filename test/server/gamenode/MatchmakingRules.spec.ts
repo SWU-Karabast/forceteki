@@ -124,6 +124,12 @@ describe('MatchmakingRule.leaderArchetypeFilter', function() {
             const p2 = buildPlayer('u2', 'SOR_005', 'SOR_999', { baseAspects: undefined });
             expect(rule.canMatch(entry(p1), entry(p2))).toBeFalse();
         });
+
+        it('matches when one of the opponent\'s aspects on a multi-aspect base satisfies the constraint', function() {
+            const p1 = buildPlayer('u1', 'SOR_001', 'SOR_022', { matchPreferences: prefs, baseAspects: [Aspect.Command] });
+            const p2 = buildPlayer('u2', 'SOR_005', 'FUT_001', { baseAspects: [Aspect.Aggression, Aspect.Vigilance] });
+            expect(rule.canMatch(entry(p1), entry(p2))).toBeTrue();
+        });
     });
 
     describe('with leader + baseType (single-id) constraint', function() {
