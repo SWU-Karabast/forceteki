@@ -54,10 +54,17 @@ function buildBaseTypes(baseNames) {
     return types;
 }
 
-// One representative id per (kind, aspect). A group's other commons share
-// aspect+hp+text with the representative and group together, so matching any
-// member is enough to classify the whole group. Hardcoded ids — not a text
-// match — so a rules-text reword can't silently drop the kind tag.
+// "Force" and "Splash" are two recurring archetypes of common base in SWU,
+// each printed once in every aspect (Aggression, Command, Cunning,
+// Vigilance). We tag them by id rather than by rules-text match, since
+// upstream text can drift (capitalisation, punctuation, wording edits).
+//
+// One representative id per aspect is enough: identical printings of the
+// same archetype share aspect + hp + rules text, so the grouping step
+// above bundles them together, and matching any one of the group's ids
+// classifies the whole group.
+//
+// When a new set releases another Force or Splash common, add its id here.
 const FORCE_BASE_IDS = new Set([
     'LOF_020', // Vigilance
     'LOF_023', // Command
