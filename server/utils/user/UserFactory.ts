@@ -7,7 +7,7 @@ import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity } from '../../services/DynamoDBInterfaces';
-import { CardImageLocale, ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';
+import { CardImageLocale, ModerationFieldState, ModerationType, TimerVisibility } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
 
@@ -27,6 +27,7 @@ const getDefaultCosmeticsPreferences = () => ({
 const getDefaultGameOptionsPreferences = () => ({
     muteChat: false,
     cardLanguage: CardImageLocale.English,
+    timerVisibility: TimerVisibility.Standard,
 });
 
 export const getDefaultPreferences = (): IUserPreferences => ({
