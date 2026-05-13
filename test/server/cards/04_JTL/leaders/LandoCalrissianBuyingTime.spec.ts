@@ -28,6 +28,22 @@ describe('Lando Calrissian, Buying Time', function () {
                 expect(context.kuiil.isUpgraded()).toBeFalse();
             });
 
+            it('can be used as a soft pass by choosing nothing (hand is hidden information)', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.landoCalrissian);
+                expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170, context.kuiil]);
+                expect(context.player1).toHaveChooseNothingButton();
+
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.restoredArc170).toBeInZone('hand');
+                expect(context.kuiil).toBeInZone('hand');
+                expect(context.landoCalrissian.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should play a unit and give a shield because we control a unit in both arena', function () {
                 const { context } = contextRef;
 
