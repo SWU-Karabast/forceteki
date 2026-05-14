@@ -55,8 +55,7 @@ export default class PadmeAmidalaFollowMyLead extends LeaderUnitCard {
 
     private friendlyUnitsThatEnteredPlayThisPhase(context: AbilityContext): IInPlayCard[] {
         return this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
-            entry.card.controller === context.player &&
-            entry.card.isInPlay()
+            entry.playedBy === context.player
         );
     }
 }

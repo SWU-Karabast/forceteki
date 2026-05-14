@@ -23,12 +23,11 @@ export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard 
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addActionAbility({
-            title: 'Give a Shield token to a friendly unit that entered play this phase',
+            title: 'Give a Shield token to a unit that entered play this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 activePromptTitle: 'Give a Shield token to a unit that entered play this phase',
                 cardTypeFilter: WildcardCardType.Unit,
-                controller: RelativePlayer.Self,
                 cardCondition: (card, context) =>
                     card.canBeInPlay() &&
                     this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
@@ -58,8 +57,7 @@ export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard 
 
     private friendlyUnitsThatEnteredPlayThisPhase(context: AbilityContext): IInPlayCard[] {
         return this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
-            entry.card.controller === context.player &&
-            entry.card.isInPlay()
+            entry.playedBy === context.player
         );
     }
 }
