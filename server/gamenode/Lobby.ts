@@ -13,7 +13,7 @@ import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
@@ -947,22 +947,33 @@ export class Lobby {
     }
 
     private changeDeck(socket: Socket, ...args) {
-        // Changing decks is not allowed after game 1 in a Bo3 set
-        Contract.assertFalse(
-            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
-            'Changing decks is not allowed after game 1 in a Bo3 set'
-        );
+        this.changeDeckForUser(socket.user.getId(), args[0]);
+    }
 
-        const activeUser = this.users.find((u) => u.id === socket.user.getId());
+    /**
+     * Applies a deck-change for the given user in this lobby. Used by both the
+     * `changeDeck` socket handler and the lobby-scoped REST endpoint
+     * (`POST /api/lobby/:lobbyId/change-deck`). Throws if the lobby is in a
+     * Bo3 game ≥ 2 state where deck-changes are disallowed; callers should
+     * translate that to an appropriate user-facing error.
+     */
+    public changeDeckForUser(userId: string, deck: ISwuDbFormatDecklist): IDeckValidationFailures | undefined {
+        // Changing decks is not allowed after game 1 in a Bo3 set
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2) {
+            throw new Error('Changing decks is not allowed after game 1 in a Bo3 set');
+        }
+
+        const activeUser = this.users.find((u) => u.id === userId);
+        Contract.assertNotNullLike(activeUser, `Lobby.changeDeckForUser: user ${userId} not found in lobby ${this.id}`);
 
         // we check if the deck is valid.
         const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
         // if the deck doesn't have any errors that block import, set it as active
         const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
         if (Object.keys(filteredErrors).length === 0) {
-            activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.deck = new Deck(deck, this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 validationProperties
@@ -976,6 +987,8 @@ export class Lobby {
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
         this.updateUserLastActivity(activeUser.id);
+
+        return activeUser.importDeckValidationErrors;
     }
 
     private updateDeck(socket: Socket, ...args) {
