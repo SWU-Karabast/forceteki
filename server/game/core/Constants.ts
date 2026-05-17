@@ -102,6 +102,7 @@ export enum EffectName {
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
+    GainNonKeywordAbilitiesFromUnit = 'gainNonKeywordAbilitiesFromUnit',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
@@ -237,7 +238,8 @@ export type CardTypeFilter = CardType | WildcardCardType;
 
 export enum TokenUpgradeName {
     Experience = 'experience',
-    Shield = 'shield'
+    Shield = 'shield',
+    Advantage = 'advantage',
 }
 
 export enum TokenUnitName {
@@ -246,6 +248,7 @@ export enum TokenUnitName {
     XWing = 'xwing',
     TIEFighter = 'tieFighter',
     Spy = 'spy',
+    Mandalorian = 'mandalorian',
 }
 
 export enum TokenCardName {
@@ -388,6 +391,7 @@ export enum KeywordName {
     Sentinel = 'sentinel',
     Shielded = 'shielded',
     Smuggle = 'smuggle',
+    Support = 'support',
 }
 
 export enum Trait {
@@ -525,6 +529,7 @@ export enum StateWatcherName {
     TokensCreatedThisPhase = 'tokensCreatedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
+    BasesHealedThisPhase = 'basesHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado
@@ -605,6 +610,7 @@ export enum GameEndReason {
     Concede = 'concede',
     GameRules = 'gameRules',
     PlayerLeft = 'playerLeft',
+    Timeout = 'timeout',
 }
 
 export enum Conjunction {

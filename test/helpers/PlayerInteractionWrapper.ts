@@ -354,6 +354,9 @@ export class PlayerInteractionWrapper {
             case 'spy':
                 tokenClassName = 'spy';
                 break;
+            case 'mandalorian':
+                tokenClassName = 'mandalorian';
+                break;
             case 'tie-fighter':
                 tokenClassName = 'tieFighter';
                 break;
@@ -362,6 +365,7 @@ export class PlayerInteractionWrapper {
                 break;
             case 'experience':
             case 'shield':
+            case 'advantage':
                 tokenClassName = tokenName;
                 break;
             default:

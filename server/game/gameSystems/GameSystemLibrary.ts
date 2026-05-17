@@ -168,8 +168,11 @@ import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditT
 import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
 import type { IRevealAndDrawProperties } from './RevealAndDrawSystem';
 import { RevealAndDrawSystem } from './RevealAndDrawSystem';
-
-type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
+import type { IGiveAdvantageProperties } from './GiveAdvantageSystem';
+import { GiveAdvantageSystem } from './GiveAdvantageSystem';
+import { CreateMandalorianSystem } from './CreateMandalorianSystem';
+import type { ICreateMandalorianProperties } from './CreateMandalorianSystem';
+import type { PropsFactory } from '../Interfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -217,6 +220,9 @@ export function createTieFighter<TContext extends AbilityContext = AbilityContex
 }
 export function createSpy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateSpyProperties, TContext> = {}) {
     return new CreateSpySystem<TContext>(propertyFactory);
+}
+export function createMandalorian<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateMandalorianProperties, TContext> = {}) {
+    return new CreateMandalorianSystem<TContext>(propertyFactory);
 }
 export function createCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCreditTokenProperties, TContext> = {}) {
     return new CreateCreditTokenSystem<TContext>(propertyFactory);
@@ -305,6 +311,9 @@ export function giveExperience<TContext extends AbilityContext = AbilityContext>
 }
 export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveShieldProperties, TContext> = {}) {
     return new GiveShieldSystem<TContext>(propertyFactory);
+}
+export function giveAdvantage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveAdvantageProperties, TContext> = {}) {
+    return new GiveAdvantageSystem<TContext>(propertyFactory);
 }
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);

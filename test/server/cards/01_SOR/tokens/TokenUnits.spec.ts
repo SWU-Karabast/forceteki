@@ -1,5 +1,76 @@
 describe('Token units', function() {
     integration(function(contextRef) {
+        describe('Basics', function() {
+            it('can be created by each player based on the test setup', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            'clone-trooper',
+                            'battle-droid',
+                            'spy',
+                            'mandalorian'
+                        ],
+                        spaceArena: ['xwing', 'tie-fighter']
+                    },
+                    player2: {
+                        groundArena: [
+                            'clone-trooper',
+                            'battle-droid',
+                            'spy',
+                            'mandalorian'
+                        ],
+                        spaceArena: ['xwing', 'tie-fighter']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1Tokens = {
+                    ['clone-trooper']: context.player1.findCardsByName('clone-trooper'),
+                    ['battle-droid']: context.player1.findCardsByName('battle-droid'),
+                    ['spy']: context.player1.findCardsByName('spy'),
+                    ['mandalorian']: context.player1.findCardsByName('mandalorian'),
+                    ['xwing']: context.player1.findCardsByName('xwing'),
+                    ['tie-fighter']: context.player1.findCardsByName('tie-fighter'),
+                };
+
+                const p2Tokens = {
+                    ['clone-trooper']: context.player2.findCardsByName('clone-trooper'),
+                    ['battle-droid']: context.player2.findCardsByName('battle-droid'),
+                    ['spy']: context.player2.findCardsByName('spy'),
+                    ['mandalorian']: context.player2.findCardsByName('mandalorian'),
+                    ['xwing']: context.player2.findCardsByName('xwing'),
+                    ['tie-fighter']: context.player2.findCardsByName('tie-fighter'),
+                };
+
+                function expectedZoneForToken(tokenName: string) {
+                    switch (tokenName) {
+                        case 'xwing':
+                        case 'tie-fighter':
+                            return 'spaceArena';
+                        case 'clone-trooper':
+                        case 'battle-droid':
+                        case 'spy':
+                        case 'mandalorian':
+                            return 'groundArena';
+                        default:
+                            throw new Error(`Unrecognized token name: ${tokenName}`);
+                    }
+                }
+
+                for (const tokenName in p1Tokens) {
+                    expect(p1Tokens[tokenName].length).toBe(1);
+                    expect(p1Tokens[tokenName][0]).toBeInZone(expectedZoneForToken(tokenName), context.player1);
+                }
+
+                for (const tokenName in p2Tokens) {
+                    expect(p2Tokens[tokenName].length).toBe(1);
+                    expect(p2Tokens[tokenName][0]).toBeInZone(expectedZoneForToken(tokenName), context.player2);
+                }
+            });
+        });
+
         describe('Token units', function() {
             it('should enter exhausted by default and async function in the arena like normal units', async function () {
                 await contextRef.setupTestAsync({

@@ -6,7 +6,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class DeployedDroideka extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'deployed-droideka-id',
+            id: '0797474670',
             internalName: 'deployed-droideka',
         };
     }

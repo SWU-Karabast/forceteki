@@ -1,0 +1,28 @@
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { DamageModificationType } from '../../../core/Constants';
+
+export default class TheMandalorianDevotedRescuer extends NonLeaderUnitCard {
+    protected override getImplementationId() {
+        return {
+            id: 'the-mandalorian#devoted-rescuer-id',
+            internalName: 'the-mandalorian#devoted-rescuer',
+        };
+    }
+
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+        registrar.addDamageModificationAbility({
+            title: 'Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit',
+            contextTitle: (context) => `Defeat a Shield attached to ${context.source.title} to prevent all damage to ${context.event.card.title}`,
+            modificationType: DamageModificationType.PreventAll,
+            optional: true,
+            shouldCardHaveDamageModification: (card, context) =>
+                card.isUnit() && card.controller === context.player && card !== context.source,
+            onlyIfYouDoEffect: AbilityHelper.immediateEffects.selectCard({
+                cardCondition: (card, context) => card.isShield() && card.parentCard === context.source,
+                immediateEffect: AbilityHelper.immediateEffects.defeat()
+            })
+        });
+    }
+}

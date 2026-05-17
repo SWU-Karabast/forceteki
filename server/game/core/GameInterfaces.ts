@@ -28,6 +28,9 @@ export interface GameConfiguration {
 
     /** Player ID who gets to choose who starts with initiative, or undefined for random selection */
     preselectedFirstPlayerId?: string;
+
+    /** Callback to forfeit a Bo3 set when a player times out during a game. Only provided for Bo3 matches. */
+    onBo3SetForfeit?: (losingPlayerId: string) => void;
 }
 
 export interface ICurrentlyResolving {

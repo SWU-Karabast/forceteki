@@ -54,7 +54,6 @@ export type ITriggeredAbilityTargetsResolver<TContext extends TriggeredAbilityCo
 export interface ISelectTargetResolver<TContext extends AbilityContext> extends ISelectTargetResolverBase<TContext> {
     mode: TargetMode.Select;
     choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
-    /** The effect the choosing player can pay to avoid the default effect (SelectUnless mode only) */
 }
 
 export interface ISelectUnlessTargetResolver<TContext extends AbilityContext> extends ISelectTargetResolverBase<TContext> {

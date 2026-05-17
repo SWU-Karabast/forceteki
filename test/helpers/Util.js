@@ -127,11 +127,11 @@ function formatDropdownListOptions(options) {
 }
 
 function isTokenUnit(cardName) {
-    return ['battle-droid', 'clone-trooper', 'tie-fighter', 'xwing', 'spy'].includes(cardName);
+    return ['battle-droid', 'clone-trooper', 'tie-fighter', 'xwing', 'spy', 'mandalorian'].includes(cardName);
 }
 
 function isTokenUpgrade(cardName) {
-    return ['shield', 'experience'].includes(cardName);
+    return ['shield', 'experience', 'advantage'].includes(cardName);
 }
 
 /**

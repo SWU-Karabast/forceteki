@@ -1,7 +1,7 @@
 import type { AbilityContext } from './AbilityContext.js';
-import type { CardTypeFilter, RelativePlayerFilter, ZoneFilter } from '../Constants.js';
+import type { ZoneFilter } from '../Constants.js';
 import { Duration, WildcardZoneName } from '../Constants.js';
-import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../Interfaces.js';
+import type { IConstantAbilityProps, IOngoingEffectFactory, IOngoingEffectGenerator } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type { Game } from '../Game.js';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
@@ -33,22 +33,37 @@ import { registerState, stateRefArray } from '../GameObjectUtils';
  */
 @registerState()
 export class ConstantAbility extends GameObjectBase implements IConstantAbility {
-    public readonly title: string;
-    public readonly contextTitle?: (context: AbilityContext) => string;
-    public readonly abilityIdentifier?: string;
-    public readonly printedAbility: boolean;
+    public readonly properties: IConstantAbilityProps;
 
+    // Stored fields: computed/defaulted values or from constructor args
     public readonly duration: Duration;
     public readonly sourceZoneFilter?: ZoneFilter | ZoneFilter[];
-
-    public readonly condition?: (context?: AbilityContext) => boolean;
-    public readonly matchTarget?: (card: Card, context?: AbilityContext<Card>) => boolean;
-    public readonly targetController?: RelativePlayerFilter;
-    public readonly targetZoneFilter?: ZoneFilter;
-    public readonly targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
-    public readonly cardName?: string;
-    public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     public readonly sourceCard: Card;
+
+    // Getters delegating to properties
+    public get title(): string {
+        return this.properties.title;
+    }
+
+    public get contextTitle(): ((context: AbilityContext) => string) | undefined {
+        return this.properties.contextTitle;
+    }
+
+    public get abilityIdentifier(): string | undefined {
+        return this.properties.abilityIdentifier;
+    }
+
+    public get printedAbility(): boolean {
+        return this.properties.printedAbility ?? true;
+    }
+
+    public get gainAbilitySource(): Card | undefined {
+        return this.properties.gainAbilitySource;
+    }
+
+    public get ongoingEffect(): IOngoingEffectGenerator | IOngoingEffectGenerator[] {
+        return this.properties.ongoingEffect;
+    }
 
     @stateRefArray()
     public accessor registeredEffects: readonly OngoingEffect[] = [];
@@ -56,35 +71,50 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
         super(game);
 
-        this.title = properties.title;
-        this.abilityIdentifier = properties.abilityIdentifier;
+        this.properties = properties;
         this.duration = Duration.Persistent;
         this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
-        this.printedAbility = properties.printedAbility ?? true;
         this.sourceCard = card;
+    }
 
-        // This object is destructured later and these properties will be to override defaults when the OngoingEffect is created. If these fields exist at all, even if undefined, it'll override the defaults when they shouldn't be.
-        if (properties.condition) {
-            this.condition = properties.condition;
+    /**
+     * Builds a plain object suitable for passing to {@link OngoingEffectSource.addEffectToEngine}.
+     * Conditionally includes optional properties so that `undefined` values don't override
+     * defaults when the result is destructured in the effect engine.
+     */
+    public buildEffectFactoryProps<TTarget extends Card = Card>(): IOngoingEffectFactory<TTarget> {
+        const props = this.properties;
+        // Using a typed base and adding optional properties conditionally so that
+        // undefined values don't override defaults when destructured in the effect engine.
+        const result: IOngoingEffectFactory<Card> & Record<string, unknown> = {
+            ongoingEffect: props.ongoingEffect,
+            sourceZoneFilter: this.sourceZoneFilter,
+            duration: this.duration,
+        };
+
+        if (props.condition) {
+            result.condition = props.condition;
         }
-        if (properties.matchTarget) {
-            this.matchTarget = properties.matchTarget;
+        if (props.matchTarget) {
+            result.matchTarget = props.matchTarget;
         }
-        if (properties.targetController) {
-            this.targetController = properties.targetController;
+        if (props.targetController) {
+            result.targetController = props.targetController;
         }
-        if (properties.targetController) {
-            this.targetZoneFilter = properties.targetZoneFilter;
+        if (props.targetZoneFilter) {
+            result.targetZoneFilter = props.targetZoneFilter;
         }
-        if (properties.targetCardTypeFilter) {
-            this.targetCardTypeFilter = properties.targetCardTypeFilter;
+        if (props.targetCardTypeFilter) {
+            result.targetCardTypeFilter = props.targetCardTypeFilter;
         }
-        if (properties.cardName) {
-            this.cardName = properties.cardName;
+        if (props.cardName) {
+            result.cardName = props.cardName;
         }
-        if (properties.ongoingEffect) {
-            this.ongoingEffect = properties.ongoingEffect;
+        if (props.abilityIdentifier) {
+            result.abilityIdentifier = props.abilityIdentifier;
         }
+
+        return result as unknown as IOngoingEffectFactory<TTarget>;
     }
 
     public getTitle<T extends AbilityContext>(context?: T): string {

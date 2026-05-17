@@ -25,6 +25,7 @@ export default class ValItsBeenARideBabe extends NonLeaderUnitCard {
         registrar.addWhenDefeatedAbility({
             title: 'Give a Shield token to an enemy unit',
             targetResolver: {
+                waitingPromptTitle: 'Waiting for opponent to select a unit for Val\'s ability',
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.giveShield()

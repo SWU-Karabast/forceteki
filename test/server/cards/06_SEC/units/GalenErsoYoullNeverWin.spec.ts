@@ -689,7 +689,6 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 expect(context.p1Base.damage).toBe(3); // Would be 4 if Raid 1 was still active
             });
 
-
             it('should not be playable using Smuggle', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -753,6 +752,32 @@ describe('Galen Erso - You\'ll Never Win', function() {
 
                 expect(context.allianceXwing.getPower()).toBe(3);
                 expect(context.allianceXwing.getHp()).toBe(4);
+            });
+
+            it('should name parent unit, remove attached abilities gained, even if Galen Erso die at the same time of a When Defeated ability gained (Creditor\'s Claim)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: [{ card: 'atst', damage: 6, upgrades: ['creditors-claim'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('AT-ST');
+
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.galenErso);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.galenErso).toBeInZone('discard');
+                expect(context.atst).toBeInZone('discard');
+                expect(context.creditorsClaim).toBeInZone('discard');
             });
         });
 

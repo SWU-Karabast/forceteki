@@ -342,7 +342,7 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(context.chimaeraInHand).toBeInZone('discard');
 
                 // Choose which ability to resolve first
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Use a When Defeated ability on another unit',  // When Played
                     'Create 2 TIE Fighters'                         // When Defeated

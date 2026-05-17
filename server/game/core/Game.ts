@@ -168,6 +168,10 @@ export class Game extends EventEmitter {
         return this.state.winnerNames;
     }
 
+    public get isEnded(): boolean {
+        return this.state.winnerNames.length > 0;
+    }
+
     public get currentPhase() {
         return this.state.currentPhase;
     }
@@ -299,6 +303,7 @@ export class Game extends EventEmitter {
     public readonly buildSafeTimeoutHandler: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
+    public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
     public gameMode: GameMode;
     public currentlyResolving: ICurrentlyResolving;
@@ -361,6 +366,7 @@ export class Game extends EventEmitter {
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
+        this.onBo3SetForfeit = details.onBo3SetForfeit;
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this._debug = { pipeline: false };
@@ -757,14 +763,29 @@ export class Game extends EventEmitter {
         const player = this.getPlayerById(playerId);
 
         player.incrementActionId();
-        player.actionTimer.restartIfRunning();
     }
 
-    public onActionTimerExpired(player: Player): null {
-        player.opponent.actionTimer.stop();
+    public onGameTimerExpired(player: Player): null {
+        if (this.isEnded) {
+            // Stale timer fired after game already ended (e.g. for a previous game in a Bo3 set).
+            // Skip to avoid spurious endGame / onBo3SetForfeit side effects on the wrong game.
+            return null;
+        }
 
-        this.userTimeoutDisconnect(player.id);
-        this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
+        player.opponent.actionTimer.stop();
+        this.addAlert(AlertType.Notification, `Game ended due to ${player.name} timing out.`);
+
+        if (player.opponent.actionTimer.totalTimeRemainingSeconds < 3) {
+            // Both players nearly timed out - treat as draw, don't forfeit Bo3 set
+            this.endGame([player, player.opponent], GameEndReason.Timeout);
+        } else {
+            // Single player timeout - forfeit Bo3 set if applicable
+            if (this.onBo3SetForfeit) {
+                this.onBo3SetForfeit(player.id);
+            }
+            this.endGame(player.opponent, GameEndReason.Timeout);
+        }
+
         return null;
     }
 
@@ -807,7 +828,7 @@ export class Game extends EventEmitter {
     public endGame(winnerPlayers: Player[] | Player, reasonCode: GameEndReason): void {
         this.gameEndReason = reasonCode;
 
-        if (this.state.winnerNames.length > 0) {
+        if (this.isEnded) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
@@ -839,6 +860,21 @@ export class Game extends EventEmitter {
             this._router.sendGameState(this);
         } else {
             this.queueStep(new GameOverPrompt(this));
+        }
+    }
+
+    /**
+     * Push game state to players in response to a timer-driven state change
+     * (e.g. byoyomi turn timer expired and we transitioned to the main timer).
+     * No-op if the game has ended — timers should not drive updates after end-of-game,
+     * which can otherwise cause stale state pushes from a prior game in a Bo3 set.
+     */
+    public sendTimerUpdatedGameStateToPlayers() {
+        if (this.isEnded) {
+            return;
+        }
+        if (typeof this._router?.sendGameState === 'function') {
+            this._router.sendGameState(this);
         }
     }
 

@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class VanquishTheLegion extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'vanquish-the-legion-id',
+            id: '5236803699',
             internalName: 'vanquish-the-legion',
         };
     }

@@ -46,7 +46,7 @@ export class EventCard extends EventCardParent implements IEventCard {
 
         // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of zone
         for (const constantAbility of this.constantAbilities) {
-            constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
+            constantAbility.registeredEffects = this.addEffectToEngine(constantAbility.buildEffectFactoryProps());
         }
     }
 
@@ -159,7 +159,7 @@ export class EventCard extends EventCardParent implements IEventCard {
             }),
         });
 
-        ability.registeredEffects = this.addEffectToEngine(ability);
+        ability.registeredEffects = this.addEffectToEngine(ability.buildEffectFactoryProps());
         this.constantAbilities = [...this.constantAbilities, ability];
     }
 }

@@ -13,7 +13,7 @@ import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
@@ -148,7 +148,7 @@ export class Lobby {
     private readonly swuBaseEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
-    private readonly cardPool: CardPool;
+    public readonly cardPool: CardPool;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -356,6 +356,14 @@ export class Lobby {
         };
     }
 
+    private isUserChatDisabled(user: LobbyUserWrapper): boolean {
+        const isModerationMuted = user.socket?.user.getModeration()?.moderationType === ModerationType.Mute;
+        const lobbyChatMuted = user.id === this.userWhoMutedChat;
+        const playerAccountChatSettingDisabled = user.socket?.user.getPreferences()?.gameOptions?.muteChat === true;
+
+        return isModerationMuted || lobbyChatMuted || playerAccountChatSettingDisabled;
+    }
+
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
         const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
 
@@ -375,7 +383,7 @@ export class Lobby {
             state: user.state,
             ready: user.ready,
             authenticated: authenticatedStatus,
-            chatDisabled: user.socket?.user.getModeration()?.moderationType === ModerationType.Mute || user.id === this.userWhoMutedChat,
+            chatDisabled: this.isUserChatDisabled(user)
         };
 
         const extendedData = fullData ? {
@@ -853,8 +861,9 @@ export class Lobby {
 
         const user = this.getUser(userId);
 
-        // If there's an active game that hasn't finished, concede it first
-        if (this.game && this.game.finishedAt == null) {
+        // If there's an active game that hasn't finished and no winner has been determined yet, concede it first
+        // (Skip if game already has a winner, e.g., from timeout - endGame guard will prevent double-recording)
+        if (this.game && this.game.finishedAt == null && !this.game.isEnded) {
             this.game.concede(userId);
         }
 
@@ -938,22 +947,33 @@ export class Lobby {
     }
 
     private changeDeck(socket: Socket, ...args) {
-        // Changing decks is not allowed after game 1 in a Bo3 set
-        Contract.assertFalse(
-            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
-            'Changing decks is not allowed after game 1 in a Bo3 set'
-        );
+        this.changeDeckForUser(socket.user.getId(), args[0]);
+    }
 
-        const activeUser = this.users.find((u) => u.id === socket.user.getId());
+    /**
+     * Applies a deck-change for the given user in this lobby. Used by both the
+     * `changeDeck` socket handler and the lobby-scoped REST endpoint
+     * (`POST /api/lobby/:lobbyId/change-deck`). Throws if the lobby is in a
+     * Bo3 game ≥ 2 state where deck-changes are disallowed; callers should
+     * translate that to an appropriate user-facing error.
+     */
+    public changeDeckForUser(userId: string, deck: ISwuDbFormatDecklist): IDeckValidationFailures | undefined {
+        // Changing decks is not allowed after game 1 in a Bo3 set
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2) {
+            throw new Error('Changing decks is not allowed after game 1 in a Bo3 set');
+        }
+
+        const activeUser = this.users.find((u) => u.id === userId);
+        Contract.assertNotNullLike(activeUser, `Lobby.changeDeckForUser: user ${userId} not found in lobby ${this.id}`);
 
         // we check if the deck is valid.
         const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
         // if the deck doesn't have any errors that block import, set it as active
         const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
         if (Object.keys(filteredErrors).length === 0) {
-            activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.deck = new Deck(deck, this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 validationProperties
@@ -967,6 +987,8 @@ export class Lobby {
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
         this.updateUserLastActivity(activeUser.id);
+
+        return activeUser.importDeckValidationErrors;
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -1362,6 +1384,9 @@ export class Lobby {
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),
             userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
+            onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
+                ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
+                : undefined,
         };
     }
 
@@ -1769,8 +1794,8 @@ export class Lobby {
             const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Lose : ScoreType.Win;
 
             // Only update stats if the game has a winner and made it into the second round at least
-            if (game.winnerNames.length === 0 || !game.finishedAt) {
-                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${game.winnerNames.length === 0
+            if (!game.isEnded || !game.finishedAt) {
+                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${!game.isEnded
                     ? `winnerNames length being ${game.winnerNames.length}` : ''}
                     ${!game.finishedAt ? 'game finishedAt missing' : ''} `);
             }
