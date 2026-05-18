@@ -21,16 +21,14 @@ export default class CobbVanthLetMeHandleThis extends NonLeaderUnitCard {
                     event.card !== context.source
             },
             optional: true,
-            immediateEffect: abilityHelper.immediateEffects.damage((context) => ({ amount: 2, target: context.source })),
-            ifYouDo: (ifYouDoContext) => {
-                return ({
-                    title: 'Give a Shield token to that unit',
-                    contextTitle: (context) => '',
-                    immediateEffect: abilityHelper.immediateEffects.giveShield({
-                        target: ifYouDoContext.events[0].card,
-                    })
-                });
-            }
+            immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
+                amount: 2,
+                target: context.source
+            })),
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Give a Shield token to that unit',
+                immediateEffect: abilityHelper.immediateEffects.giveShield({ target: ifYouDoContext.event.card })
+            })
         });
     }
 }
