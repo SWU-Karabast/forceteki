@@ -578,7 +578,7 @@ const mockCards = [
         power: 5,
         hp: 6,
         hasNonKeywordAbility: true,
-        aspects: ['cunning', 'heroism'],
+        aspects: ['command', 'heroism'],
         types: ['leader'],
         traits: ['force', 'jedi'],
         keywords: ['support'],
