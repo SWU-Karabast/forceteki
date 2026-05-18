@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { RelativePlayer } from '../../../core/Constants';
 
 export default class MandosN1StarfighterFasterThanAFathier extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +16,8 @@ export default class MandosN1StarfighterFasterThanAFathier extends NonLeaderUnit
             title: 'Exhaust a friendly leader. If you do, this unit gets +2/+0 for this attack',
             optional: true,
             targetResolver: {
-                cardCondition: (card) => card.canBeExhausted() && !card.exhausted && card.isLeader(),
+                controller: RelativePlayer.Self,
+                cardCondition: (card) => card.canBeExhausted() && card.isLeader() && !card.isUpgrade() && !card.exhausted,
                 immediateEffect: abilityHelper.immediateEffects.exhaust()
             },
             ifYouDo: {
