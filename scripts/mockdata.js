@@ -655,6 +655,7 @@ const mockCards = [
         aspects: ['vigilance', 'heroism'],
         types: ['unit'],
         traits: ['rebel', 'vehicle', 'capital ship'],
+        keywords: ['sentinel'],
         setId: {
             set: 'ASH',
             number: 65
