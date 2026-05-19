@@ -47,6 +47,7 @@ type: feedback
 - Multiple `it` blocks sharing the same game state should use a single `beforeEach` with `setupTestAsync`
 - If a test needs significantly different state (e.g., no units at all vs. a full board), split into separate `describe` blocks each with their own `beforeEach`
 - Avoid putting cards in shared setup that are only needed by one test — but if removing them would require a separate `describe`, prefer keeping them in the shared setup
+- **Anti-pattern:** `describe` + `beforeEach` + single `it` — this triple nesting for a single test adds no value. Flatten to a standalone `it` with inline `setupTestAsync`. The Vermillion spec uses this flat pattern exclusively for one-off scenario tests.
 
 ## Scoped Constants
 
