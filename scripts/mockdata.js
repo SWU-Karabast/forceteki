@@ -627,6 +627,73 @@ const mockCards = [
         unique: false,
         internalName: 'whistling-birds',
     }),
+    buildMockCard({
+        title: 'Chimaera',
+        subtitle: 'A Frightening Reality',
+        cost: 7,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'ASH',
+            number: 52
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'chimaera#a-frightening-reality',
+    }),
+    buildMockCard({
+        title: 'Home One',
+        subtitle: 'Heart of the Fleet',
+        cost: 8,
+        power: 7,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'ASH',
+            number: 65
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'home-one#heart-of-the-fleet',
+    }),
+    buildMockCard({
+        title: 'Protectorate Fighter',
+        cost: 3,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['mandalorian', 'vehicle', 'fighter'],
+        setId: {
+            set: 'ASH',
+            number: 124
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'protectorate-fighter',
+    }),
+    buildMockCard({
+        title: 'Turning the Tide',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'ASH',
+            number: 138
+        },
+        unique: false,
+        internalName: 'turning-the-tide',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
