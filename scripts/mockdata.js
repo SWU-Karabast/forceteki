@@ -73,6 +73,25 @@ const mockCards = [
         arena: 'ground',
         internalName: 'emperor-palpatine#according-to-my-design',
     }),
+    // Grogu, Charming Companion
+    buildMockCard({
+        title: 'Grogu',
+        subtitle: 'Charming Companion',
+        power: 0,
+        hp: 3,
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['leader'],
+        traits: ['force'],
+        setId: {
+            set: 'ASH',
+            number: 18
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grogu#charming-companion',
+    }),
     // Shin Hati, Going Somewhere
     buildMockCard({
         title: 'Shin Hati',
