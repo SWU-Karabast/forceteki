@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class T6Shuttle1974WithAMentorsDedication extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,6 @@ export default class T6Shuttle1974WithAMentorsDedication extends NonLeaderUnitCa
             cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                controller: RelativePlayer.Self,
                 cardCondition: (card, context) => card !== context.source,
                 immediateEffect: abilityHelper.immediateEffects.sequential([
                     abilityHelper.immediateEffects.forThisPhaseCardEffect({

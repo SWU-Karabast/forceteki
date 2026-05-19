@@ -22,7 +22,7 @@ describe('T6 Shuttle 1974, With A Mentor\'s Dedication', function() {
                 context.player1.clickPrompt('Give another unit +2/+2 for this phase. You may attack with that unit');
 
                 // Select another unit to buff
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.wampa]);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // Battlefield Marine gets +2/+2
@@ -48,6 +48,34 @@ describe('T6 Shuttle 1974, With A Mentor\'s Dedication', function() {
 
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
+            });
+
+            it('should give another unit +2/+2 for this phase and allow attacking (enemy unit)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['t6-shuttle-1974#with-a-mentors-dedication', 'green-squadron-awing']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.t6Shuttle1974);
+                context.player1.clickPrompt('Give another unit +2/+2 for this phase. You may attack with that unit');
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa.getPower()).toBe(6);
+                expect(context.wampa.getHp()).toBe(7);
+
+                context.moveToNextActionPhase();
+
+                expect(context.wampa.getPower()).toBe(4);
+                expect(context.wampa.getHp()).toBe(5);
             });
 
             it('should allow buffing without attacking', async function() {
