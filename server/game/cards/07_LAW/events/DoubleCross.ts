@@ -64,7 +64,7 @@ export default class DoubleCross extends EventCard {
 
                 return {
                     title: 'The player who takes control of the lower-cost unit creates Credit tokens equal to the difference between those units\' costs.',
-                    thenCondition: (_) => costDifference > 0 && creditRecipient,
+                    thenCondition: (_) => effectiveAmount > 0 && creditRecipient,
                     immediateEffect: abilityHelper.immediateEffects.createCreditToken({
                         amount: effectiveAmount,
                         target: creditRecipient
