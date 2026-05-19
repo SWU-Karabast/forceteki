@@ -8,6 +8,9 @@ describe('Mando\'s N-1 Starfighter, Faster Than A Fathier', function() {
                         spaceArena: ['mandos-n1-starfighter#faster-than-a-fathier'],
                         leader: 'boba-fett#collecting-the-bounty'
                     },
+                    player2: {
+                        leader: 'sabine-wren#galvanized-revolutionary'
+                    }
                 });
 
                 const { context } = contextRef;
@@ -17,6 +20,7 @@ describe('Mando\'s N-1 Starfighter, Faster Than A Fathier', function() {
 
                 // Ability triggers - select leader to exhaust
                 expect(context.player1).toHavePrompt('Exhaust a friendly leader. If you do, this unit gets +2/+0 for this attack');
+                expect(context.player1).toBeAbleToSelectExactly([context.bobaFett]);
                 context.player1.clickCard(context.bobaFett);
 
                 expect(context.player2).toBeActivePlayer();

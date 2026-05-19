@@ -22,6 +22,50 @@ describe('Cobb Vanth, Let Me Handle This', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
             });
 
+            it('should not trigger when unit are played as upgrade', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chewbacca#faithful-first-mate'],
+                        groundArena: ['cobb-vanth#let-me-handle-this'],
+                        spaceArena: ['awing']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                context.player1.clickCard(context.awing);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.cobbVanth.damage).toBe(0);
+                expect(context.awing).toHaveExactUpgradeNames(['chewbacca#faithful-first-mate']);
+            });
+
+            it('should trigger when Pilot unit are played as unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chewbacca#faithful-first-mate'],
+                        groundArena: ['cobb-vanth#let-me-handle-this'],
+                        spaceArena: ['awing']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca');
+
+                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit. If you do, give a Shield token to that unit');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.cobbVanth.damage).toBe(2);
+                expect(context.chewbacca).toHaveExactUpgradeNames(['shield']);
+            });
+
             it('should absorb damage with shield and still give shield to played unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
