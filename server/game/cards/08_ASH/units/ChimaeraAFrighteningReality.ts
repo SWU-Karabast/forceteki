@@ -26,10 +26,10 @@ export default class ChimaeraAFrighteningReality extends NonLeaderUnitCard {
                     cardCondition: (card) => !card.isLeaderUnit(),
                 },
             },
-            then: (ifYouDoContext) => ({
+            then: (thenContext) => ({
                 title: 'This unit gets +2/+0 for this attack',
                 immediateEffect: abilityHelper.immediateEffects.defeat(() => {
-                    return { target: [ifYouDoContext.targets.friendlyUnits, ifYouDoContext.targets.enemyUnits] };
+                    return { target: [thenContext.targets.friendlyUnits, thenContext.targets.enemyUnits] };
                 })
             })
         });
