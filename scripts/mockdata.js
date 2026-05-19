@@ -695,6 +695,57 @@ const mockCards = [
         unique: false,
         internalName: 'turning-the-tide',
     }),
+    buildMockCard({
+        title: 'Stronger Together',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'ASH',
+            number: 140
+        },
+        unique: false,
+        internalName: 'stronger-together',
+    }),
+    buildMockCard({
+        title: 'Bo-Katan\'s Gauntlet',
+        subtitle: 'Reinforce From Above',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['mandalorian', 'vehicle', 'transport'],
+        keywords: ['restore 1'],
+        setId: {
+            set: 'ASH',
+            number: 63
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'bokatans-gauntlet#reinforce-from-above',
+    }),
+    buildMockCard({
+        title: 'Bo-Katan Kryze',
+        subtitle: 'For All of Mandalore',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['mandalorian'],
+        setId: {
+            set: 'ASH',
+            number: 105
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bokatan-kryze#for-all-of-mandalore',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
