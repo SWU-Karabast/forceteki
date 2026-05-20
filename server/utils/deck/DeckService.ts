@@ -75,6 +75,7 @@ export class DeckService {
                     // Extract just the inner deck object which matches ILocalStorageDeckData
                     ...deckData.deck,
                     deckID: deckData.id,
+                    stats: deckData.stats,
                 }));
         } catch (error) {
             logger.error(`Error retrieving decks for user ${userId}:`, { error: { message: error.message, stack: error.stack } });
