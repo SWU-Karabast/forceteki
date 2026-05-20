@@ -1,4 +1,4 @@
-import type { IActionTimer } from './IActionTimer';
+import type { IActionTimer, PlayerTimeRemainingStatus } from './IActionTimer';
 
 /**
  * Interface for a two-stage "byoyomi" style timer.
@@ -24,4 +24,10 @@ export interface IByoyomiTimer extends IActionTimer {
      * Total seconds remaining across both timers (turn time if active + main time).
      */
     get totalTimeRemainingSeconds(): number;
+
+    /**
+     * Current warning status of the main timer. NoAlert while the player isn't actively
+     * burning main time; transitions to Warning/Danger as main time runs low.
+     */
+    get timeRemainingStatus(): PlayerTimeRemainingStatus;
 }
