@@ -172,7 +172,6 @@ describe('Whistling Birds', function() {
             it('should trigger even when the attached unit is defeated by combat damage in the same attack', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         // Wampa: 4/5 with Overwhelm; with Whistling Birds: 6/7
                         groundArena: [{ card: 'wampa', upgrades: ['whistling-birds'] }]

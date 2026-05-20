@@ -63,7 +63,8 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         // The OnAttackDamageResolved event currently does not carry an `attackerLastKnownInformation`.
         // If a future ability triggers on this event and needs the attacker's pre-damage state,
-        // attach LKI here in the same shape as OnAttackDeclared / OnAttackEnd.
+        // attach LKI here in the same shape as OnAttackDeclared / OnAttackEnd (capture occurs
+        // for OnAttackEnd inside dealDamage just before the damage window opens).
         this.context.game.createEventAndOpenWindow(
             EventName.OnAttackDamageResolved,
             this.context,
@@ -86,19 +87,11 @@ export class AttackFlow extends BaseStepWithPipeline {
             return;
         }
 
-        // Capture the attacker's LKI just before combat damage events resolve. All "On Attack"
-        // / "On Defense" abilities have finished by this point, so power/HP/trait modifiers
-        // from them (Raid, "while attacking" buffs, etc.) are reflected. Read by triggers that
-        // resolve at/after OnAttackEnd (e.g. Whistling Birds).
-        const attackerLki = buildLastKnownInformation(this.attack.attacker);
-        if (additionalEvent) {
-            // CR7: OnAttackEnd shares this damage window — attach directly to the event.
-            (additionalEvent as any).attackerLastKnownInformation = attackerLki;
-        } else {
-            // CR6: OnAttackEnd is built later in completeAttack (separate window, after damage
-            // has resolved). Stash on the attack so completeAttack can attach it.
-            this.attack.attackerLastKnownInformation = attackerLki;
-        }
+        // Capture the attacker's LKI on the OnAttackEnd event just before combat damage events
+        // resolve. All "On Attack" / "On Defense" abilities have finished by this point, so
+        // power/HP/trait modifiers from them (Raid, "while attacking" buffs, etc.) are
+        // reflected. Read by triggers that resolve at/after OnAttackEnd (e.g. Whistling Birds).
+        (attackCompleteEvent as any).attackerLastKnownInformation = buildLastKnownInformation(this.attack.attacker);
 
         const inPlayTargets = [];
         let directOverwhelmDamage = 0;
