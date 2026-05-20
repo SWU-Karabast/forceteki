@@ -259,7 +259,7 @@ export function distributeHealingAmong<TContext extends AbilityContext = Ability
 export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
     return new DistributeExperienceSystem<TContext>(propertyFactory);
 }
-export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext>) {
+export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
 }
 export function deployAndAttachPilotLeader<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployAndAttachPilotLeaderProperties, TContext>) {
