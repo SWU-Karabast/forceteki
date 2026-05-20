@@ -845,7 +845,7 @@ const mockCards = [
         keywords: ['support'],
         aspects: ['vigilance'],
         types: ['unit'],
-        traits: ['new-republic'],
+        traits: ['new republic'],
         setId: {
             set: 'ASH',
             number: 72
