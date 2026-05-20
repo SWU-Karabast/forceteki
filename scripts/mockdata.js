@@ -823,7 +823,6 @@ const mockCards = [
         power: 3,
         hp: 1,
         hasNonKeywordAbility: true,
-        keywords: ['support'],
         aspects: ['cunning', 'villainy'],
         types: ['unit'],
         traits: ['vehicle', 'fighter'],
