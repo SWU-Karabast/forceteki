@@ -14,7 +14,7 @@ export default class ProtectorateFighter extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Create a Mandalorian token',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.getArenaUnits().some((unit) => unit.unique),
+                condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isUnit() && card.unique }),
                 onTrue: AbilityHelper.immediateEffects.createMandalorian(),
             })
         });

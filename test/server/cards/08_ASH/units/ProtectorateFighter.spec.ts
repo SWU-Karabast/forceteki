@@ -1,8 +1,8 @@
 describe('Protectorate Fighter', function () {
     integration(function (contextRef) {
         describe('Protectorate Fighter\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should not create a Mandalorian token as we do not control a unique unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['protectorate-fighter'],
@@ -12,9 +12,6 @@ describe('Protectorate Fighter', function () {
                         groundArena: ['grand-inquisitor#youre-right-to-be-afraid']
                     }
                 });
-            });
-
-            it('should not create a Mandalorian token as we do not control a unique unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.protectorateFighter);
@@ -27,8 +24,8 @@ describe('Protectorate Fighter', function () {
         });
 
         describe('Protectorate Fighter\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should create a Mandalorian token as we control a unique unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['protectorate-fighter'],
@@ -38,9 +35,6 @@ describe('Protectorate Fighter', function () {
                         groundArena: ['liberated-slaves'],
                     }
                 });
-            });
-
-            it('should create a Mandalorian token as we control a unique unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.protectorateFighter);
