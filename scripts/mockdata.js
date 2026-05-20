@@ -746,6 +746,75 @@ const mockCards = [
         arena: 'ground',
         internalName: 'bokatan-kryze#for-all-of-mandalore',
     }),
+    buildMockCard({
+        title: 'Grand Admiral Thrawn',
+        subtitle: 'Victory is Mine',
+        cost: 8,
+        power: 5,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['leader'],
+        traits: ['imperial', 'official'],
+        keywords: ['restore 2'],
+        setId: {
+            set: 'ASH',
+            number: 4
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-admiral-thrawn#victory-is-mine',
+    }),
+    buildMockCard({
+        title: 'Foundling Rescue',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'ASH',
+            number: 92
+        },
+        unique: false,
+        internalName: 'foundling-rescue',
+    }),
+    buildMockCard({
+        title: 'Pointless to Resist',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['upgrade'],
+        traits: ['condition'],
+        setId: {
+            set: 'ASH',
+            number: 54
+        },
+        unique: false,
+        internalName: 'pointless-to-resist',
+    }),
+    buildMockCard({
+        title: 'Scion Shuttle',
+        subtitle: 'At Morgan\'s Bidding',
+        cost: 2,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'vehicle', 'transport'],
+        setId: {
+            set: 'ASH',
+            number: 46
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'scion-shuttle#at-morgans-bidding',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
