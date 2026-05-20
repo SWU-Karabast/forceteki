@@ -11,10 +11,6 @@ import { DamageSystem } from '../../gameSystems/DamageSystem';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import { Contract } from '../utils/Contract';
 
-export enum AttackRulesVersion {
-    CR7 = 'cr7'
-}
-
 export class AttackFlow extends BaseStepWithPipeline {
     private context: AbilityContext;
     private attack: Attack;
