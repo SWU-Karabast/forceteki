@@ -169,12 +169,7 @@ describe('Whistling Birds', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // TODO: engine limitation — `addGainTriggeredAbilityTargetingAttached` revokes the granted ability
-            // when the attached unit dies (constant ability's matchTarget requires the upgrade is in play),
-            // so the `OnAttackEnd` trigger never resolves. Setting `attackRulesVersion: 'cr7'` does not help —
-            // the issue is the gained-ability lifecycle, not the attack flow. Per CR 7.6.16c the trigger
-            // should still fire. Re-enable once the engine preserves the trigger across the attacker's defeat.
-            xit('should trigger even when the attached unit is defeated by combat damage in the same attack', async function() {
+            it('should trigger even when the attached unit is defeated by combat damage in the same attack', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     attackRulesVersion: 'cr7',

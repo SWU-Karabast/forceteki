@@ -33,7 +33,9 @@ export default class WhistlingBirds extends UpgradeCard {
                 onTrue: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 2,
                     target: context.player.opponent.getArenaUnits({
-                        arena: context.event.attack.attacker.zoneName
+                        // Use the attacker's LKI so we still resolve to the correct arena when
+                        // the attacker has been defeated by combat damage in this same attack.
+                        arena: context.event.attackerLastKnownInformation.arena
                     })
                 }))
             })

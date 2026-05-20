@@ -5,6 +5,7 @@ import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { GameEvent } from '../event/GameEvent';
+import { buildLastKnownInformation } from '../event/LastKnownInformation';
 import type { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
@@ -42,7 +43,12 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private declareAttack() {
-        this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
+        const event = this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
+
+        // Capture the attacker's LKI on the event itself, before any "On Attack" / "On Defense"
+        // abilities can mutate or defeat the attacker. Read by triggers that resolve during the
+        // OnAttackDeclared window (e.g. Kragan Gorr's target resolver).
+        (event as any).attackerLastKnownInformation = buildLastKnownInformation(this.attack.attacker);
     }
 
     private dealDamageAndCompleteAttack(): void {
@@ -55,6 +61,9 @@ export class AttackFlow extends BaseStepWithPipeline {
         // ensure that this resolves after the damage events
         attackCompleteEvent.order = 1;
 
+        // The OnAttackDamageResolved event currently does not carry an `attackerLastKnownInformation`.
+        // If a future ability triggers on this event and needs the attacker's pre-damage state,
+        // attach LKI here in the same shape as OnAttackDeclared / OnAttackEnd.
         this.context.game.createEventAndOpenWindow(
             EventName.OnAttackDamageResolved,
             this.context,
@@ -75,6 +84,20 @@ export class AttackFlow extends BaseStepWithPipeline {
         if (legalTargets.length === 0) {
             this.context.game.addMessage('The attack does not resolve because there is no longer a legal target');
             return;
+        }
+
+        // Capture the attacker's LKI just before combat damage events resolve. All "On Attack"
+        // / "On Defense" abilities have finished by this point, so power/HP/trait modifiers
+        // from them (Raid, "while attacking" buffs, etc.) are reflected. Read by triggers that
+        // resolve at/after OnAttackEnd (e.g. Whistling Birds).
+        const attackerLki = buildLastKnownInformation(this.attack.attacker);
+        if (additionalEvent) {
+            // CR7: OnAttackEnd shares this damage window — attach directly to the event.
+            (additionalEvent as any).attackerLastKnownInformation = attackerLki;
+        } else {
+            // CR6: OnAttackEnd is built later in completeAttack (separate window, after damage
+            // has resolved). Stash on the attack so completeAttack can attach it.
+            this.attack.attackerLastKnownInformation = attackerLki;
         }
 
         const inPlayTargets = [];

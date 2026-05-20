@@ -6,6 +6,7 @@ import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Player } from '../Player';
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { ILastKnownInformation } from '../event/LastKnownInformation';
 
 export class Attack {
     private readonly game: Game;
@@ -22,6 +23,16 @@ export class Attack {
     private defendingPlayer: Player;
 
     public previousAttack: Attack;
+
+    /**
+     * CR6-only internal carrier — do not read from cards. Used by {@link AttackFlow} to hand
+     * an attacker LKI snapshot taken in `dealDamage` (just before combat damage) over to
+     * `completeAttack`, which builds the CR6 `OnAttackEnd` event in a separate window after
+     * damage has already resolved. CR7's `OnAttackEnd` lives in the damage window and gets
+     * its `attackerLastKnownInformation` assigned directly. Cards should always read LKI from
+     * the relevant event (e.g. `context.event.attackerLastKnownInformation`).
+     */
+    public attackerLastKnownInformation?: ILastKnownInformation;
 
     public constructor(
         game: Game,
