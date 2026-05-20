@@ -804,6 +804,7 @@ const mockCards = [
         power: 1,
         hp: 3,
         hasNonKeywordAbility: true,
+        keywords: ['support'],
         aspects: ['vigilance', 'villainy'],
         types: ['unit'],
         traits: ['imperial', 'vehicle', 'transport'],
