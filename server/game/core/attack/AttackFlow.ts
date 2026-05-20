@@ -12,14 +12,12 @@ import type { IAttackableCard } from '../card/CardInterfaces';
 import { Contract } from '../utils/Contract';
 
 export enum AttackRulesVersion {
-    CR6 = 'cr6',
     CR7 = 'cr7'
 }
 
 export class AttackFlow extends BaseStepWithPipeline {
     private context: AbilityContext;
     private attack: Attack;
-    private attackRulesVersion: AttackRulesVersion;
 
     public constructor(
         context: AbilityContext,
@@ -29,30 +27,11 @@ export class AttackFlow extends BaseStepWithPipeline {
 
         this.context = context;
         this.attack = attack;
-        this.attackRulesVersion = context.game.attackRulesVersion;
-
-        let attackResolutionSteps: SimpleStep[];
-
-        switch (this.attackRulesVersion) {
-            case AttackRulesVersion.CR6:
-                attackResolutionSteps = [
-                    new SimpleStep(this.game, () => this.openDealDamageWindow(), 'openDealDamageWindow'),
-                    new SimpleStep(this.game, () => this.completeAttack(), 'completeAttack')
-                ];
-                break;
-            case AttackRulesVersion.CR7:
-                attackResolutionSteps = [
-                    new SimpleStep(this.game, () => this.openDealDamageWindow(true), 'dealDamageAndCompleteAttack'),
-                ];
-                break;
-            default:
-                Contract.fail(`Unsupported attack rules version '${this.attackRulesVersion}'`);
-        }
 
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.setCurrentAttack(), 'setCurrentAttack'),
             new SimpleStep(this.game, () => this.declareAttack(), 'declareAttack'),
-            ...attackResolutionSteps,
+            new SimpleStep(this.game, () => this.dealDamageAndCompleteAttack(), 'dealDamageAndCompleteAttack'),
             new SimpleStep(this.game, () => this.cleanUpAttack(), 'cleanUpAttack'),
             new SimpleStep(this.game, () => this.game.resolveGameState(true), 'resolveGameState')
         ]);
@@ -70,18 +49,15 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
     }
 
-    private openDealDamageWindow(includeAttackCompleteEvent = false): void {
-        let attackCompleteEvent: GameEvent = null;
-        if (includeAttackCompleteEvent) {
-            attackCompleteEvent = new GameEvent(
-                EventName.OnAttackEnd,
-                this.context,
-                { attack: this.attack }
-            );
+    private dealDamageAndCompleteAttack(): void {
+        const attackCompleteEvent = new GameEvent(
+            EventName.OnAttackEnd,
+            this.context,
+            { attack: this.attack }
+        );
 
-            // ensure that this resolves after the damage events
-            attackCompleteEvent.order = 1;
-        }
+        // ensure that this resolves after the damage events
+        attackCompleteEvent.order = 1;
 
         this.context.game.createEventAndOpenWindow(
             EventName.OnAttackDamageResolved,
@@ -92,7 +68,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         );
     }
 
-    private dealDamage(additionalEvent?: GameEvent): void {
+    private dealDamage(attackCompleteEvent: GameEvent): void {
         if (!this.attack.isAttackerLegal()) {
             this.context.game.addMessage('The attack does not resolve because the attacker is no longer valid');
             return;
@@ -148,7 +124,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
                 this.context.game.openEventWindow(damageEvents);
                 this.context.game.queueSimpleStep(() => {
-                    const events = additionalEvent ? [additionalEvent] : [];
+                    const events: GameEvent[] = [attackCompleteEvent];
 
                     if (inPlayTargets.some((target) => !target.isBase() && target.isInPlay())) {
                         const defenderDamageEvent = this.createDefenderDamageEvent(false);
@@ -157,9 +133,7 @@ export class AttackFlow extends BaseStepWithPipeline {
                         }
                     }
 
-                    if (events.length > 0) {
-                        this.context.game.openEventWindow(events);
-                    }
+                    this.context.game.openEventWindow(events);
                 }, 'defender damage after attacker');
             } else if (anyDefenderDealsDamageFirst) {
                 // Some/all defenders deal damage first
@@ -170,7 +144,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
                 this.context.game.openEventWindow(damageEvents);
                 this.context.game.queueSimpleStep(() => {
-                    const normalDamageEvents = additionalEvent ? [additionalEvent] : [];
+                    const normalDamageEvents: GameEvent[] = [attackCompleteEvent];
 
                     // Attacker damages all targets if still alive
                     if (this.attack.isAttackerLegal()) {
@@ -189,9 +163,7 @@ export class AttackFlow extends BaseStepWithPipeline {
                         }
                     }
 
-                    if (normalDamageEvents.length > 0) {
-                        this.context.game.openEventWindow(normalDamageEvents);
-                    }
+                    this.context.game.openEventWindow(normalDamageEvents);
                 }, 'attacker and normal defender damage');
             } else {
                 // Normal attack - all damage simultaneous
@@ -200,9 +172,7 @@ export class AttackFlow extends BaseStepWithPipeline {
                     .filter((event) => event !== null);
                 damageEvents.push(...attackerDamageEvents);
 
-                if (additionalEvent) {
-                    damageEvents.push(additionalEvent);
-                }
+                damageEvents.push(attackCompleteEvent);
 
                 if (inPlayTargets.some((target) => !target.isBase())) {
                     const defenderDamageEvent = this.createDefenderDamageEvent();
@@ -213,13 +183,11 @@ export class AttackFlow extends BaseStepWithPipeline {
                 this.context.game.openEventWindow(damageEvents);
             }
         } else if (directOverwhelmDamage > 0) {
-            if (additionalEvent) {
-                damageEvents.push(additionalEvent);
-            }
+            damageEvents.push(attackCompleteEvent);
 
             this.context.game.openEventWindow(damageEvents);
-        } else if (additionalEvent) {
-            this.context.game.openEventWindow(additionalEvent);
+        } else {
+            this.context.game.openEventWindow(attackCompleteEvent);
         }
     }
 
@@ -278,16 +246,8 @@ export class AttackFlow extends BaseStepWithPipeline {
         }).generateEvent(this.context);
     }
 
-    private completeAttack() {
-        this.game.createEventAndOpenWindow(EventName.OnAttackEnd, this.context, {
-            attack: this.attack,
-        }, TriggerHandlingMode.ResolvesTriggers);
-    }
-
     private cleanUpAttack() {
-        if (this.attackRulesVersion === AttackRulesVersion.CR7) {
-            this.game.ongoingEffectEngine.unregisterOnAttackEffects();
-        }
+        this.game.ongoingEffectEngine.unregisterOnAttackEffects();
 
         this.game.currentAttack = this.attack.previousAttack;
         this.checkUnsetActiveAttack(this.attack.attacker);
