@@ -816,6 +816,62 @@ const mockCards = [
         arena: 'space',
         internalName: 'scion-shuttle#at-morgans-bidding',
     }),
+    buildMockCard({
+        title: 'Shin Hati\'s Fiend Fighter',
+        subtitle: 'Compact and Agile',
+        cost: 2,
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        keywords: ['support'],
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['vehicle', 'fighter'],
+        setId: {
+            set: 'ASH',
+            number: 191
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'shin-hatis-fiend-fighter#compact-and-agile',
+    }),
+    buildMockCard({
+        title: 'Doctor Pershing',
+        subtitle: 'Dedicated to Research',
+        cost: 2,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        keywords: ['support'],
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['new-republic'],
+        setId: {
+            set: 'ASH',
+            number: 72
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'doctor-pershing#dedicated-to-research',
+    }),
+    buildMockCard({
+        title: 'Gar Saxon',
+        subtitle: 'Coveting Power',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['mandalorian', 'trooper'],
+        setId: {
+            set: 'ASH',
+            number: 47
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'gar-saxon#coveting-power',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
