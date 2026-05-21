@@ -871,6 +871,75 @@ const mockCards = [
         arena: 'ground',
         internalName: 'gar-saxon#coveting-power',
     }),
+    buildMockCard({
+        title: 'Grogu',
+        subtitle: 'Yes. Yes. Yes.',
+        cost: 3,
+        power: 2,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['force', 'droid'],
+        setId: {
+            set: 'ASH',
+            number: 155
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grogu#yes-yes-yes',
+    }),
+    buildMockCard({
+        title: 'The Great Mothers',
+        subtitle: 'With Strange Magicks',
+        cost: 7,
+        power: 6,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        keywords: ['support'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'night'],
+        setId: {
+            set: 'ASH',
+            number: 101
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-great-mothers#with-strange-magicks',
+    }),
+    buildMockCard({
+        title: 'Eye of Sion',
+        subtitle: 'Delivered from Exile',
+        cost: 7,
+        power: 5,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'vehicle', 'transport'],
+        setId: {
+            set: 'ASH',
+            number: 245
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'eye-of-sion#delivered-from-exile',
+    }),
+    buildMockCard({
+        title: 'Hold Them Off',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'ASH',
+            number: 139
+        },
+        unique: false,
+        internalName: 'hold-them-off',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
