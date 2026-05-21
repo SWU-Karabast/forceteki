@@ -44,7 +44,6 @@ import {
     StatsSource,
     updateStatsMessage
 } from '../utils/stats/statsMessages';
-import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -1370,7 +1369,6 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
-            attackRulesVersion: AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,

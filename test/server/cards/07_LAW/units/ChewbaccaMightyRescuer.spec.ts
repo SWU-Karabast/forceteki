@@ -3,7 +3,6 @@ describe('Chewbacca, Mighty Rescuer', function() {
         beforeEach(async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['heroic-sacrifice'],
                     groundArena: [{ card: 'chewbacca#mighty-rescuer', upgrades: ['experience'], damage: 1 }],

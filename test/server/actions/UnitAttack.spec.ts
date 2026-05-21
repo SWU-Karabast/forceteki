@@ -3,7 +3,6 @@ describe('Basic attack', function() {
         describe('When a unit attacks', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
-                    // TODO: helper function for automatically selecting a leader and / or base that match the aspects of the card under test
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa'],
@@ -244,6 +243,353 @@ describe('Basic attack', function() {
             context.player1.clickCard(context.p2Base);
 
             expect(context.p2Base.damage).toBe(5);
+        });
+
+        it('"When this unit completes an attack" abilities should resolve in the same window as "when defeated" abilities', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['cassian-andor#everything-for-the-rebellion', 'general-krell#heartless-tactician']
+                },
+                player2: {
+                    groundArena: ['escort-skiff'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.cassianAndor);
+            context.player1.clickCard(context.escortSkiff);
+
+            // Cassian and Escort Skiff trade, both of his abilities should trigger
+            expect(context.escortSkiff).toBeInZone('discard');
+            expect(context.cassianAndor).toBeInZone('discard');
+            expect(context.player1).toHaveExactPromptButtons([
+                'Draw a card',
+                'If the defending unit was defeated, deal 2 damage to a base'
+            ]);
+
+            context.player1.clickPrompt('Draw a card');
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1.handSize).toBe(1);
+
+            // Cassian ability resolves
+            expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('"When combat damage is dealt" abilities should resolve in the same window as "when defeated" abilities"', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['warzone-lieutenant', 'general-krell#heartless-tactician']
+                },
+                player2: {
+                    groundArena: ['phaseiii-dark-trooper'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.warzoneLieutenant);
+            context.player1.clickCard(context.phaseiiiDarkTrooper);
+
+            // Warzone Lieutenant is defeated, triggering his "when defeated" ability and Dark Trooper's "when combat damage is dealt" ability
+            expect(context.warzoneLieutenant).toBeInZone('discard');
+            expect(context.phaseiiiDarkTrooper.damage).toBe(2);
+
+            expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+            context.player1.clickPrompt('You');
+
+            // resolve Krell draw first
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1.handSize).toBe(1);
+
+            // Dark Trooper xp ability resolves automatically
+
+            expect(context.phaseiiiDarkTrooper).toHaveExactUpgradeNames(['experience']);
+            expect(context.phaseiiiDarkTrooper.damage).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        describe('Gained "when combat damage is dealt" abilities', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['heroic-sacrifice', 'general-krell#heartless-tactician'],
+                        groundArena: ['atst', 'rukh#thrawns-assassin'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'nightsister-warrior'],
+                    }
+                });
+            });
+
+            it('should resolve correctly', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heroicSacrifice);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.atst).toBeInZone('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should resolve in the same window as "when defeated" abilities', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heroicSacrifice);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.nightsisterWarrior);
+
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('You');
+
+                // abilities resolve automatically
+
+                expect(context.atst).toBeInZone('discard');
+                expect(context.nightsisterWarrior).toBeInZone('discard');
+                expect(context.player2.handSize).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        it('Gained "when combat damage is dealt" abilities should resolve in the same window as "when defeated" abilities and correctly nest triggers', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['heroic-sacrifice'],
+                    groundArena: ['rukh#thrawns-assassin', { card: 'general-krell#heartless-tactician', upgrades: ['academy-training'] }],
+                },
+                player2: {
+                    groundArena: ['tarfful#kashyyyk-chieftain', 'gentle-giant'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.heroicSacrifice);
+            context.player1.clickCard(context.rukh);
+            context.player1.clickCard(context.gentleGiant);
+
+            expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+            context.player1.clickPrompt('You');
+
+            expect(context.player1).toHaveExactPromptButtons([
+                'Defeat unit being attacked',
+                'When this unit deals combat damage: Defeat it.'
+            ]);
+
+            // resolve Heroic Sacrifice trigger first. Rukh is defeated, and the Krell trigger happens in a nested way.
+            // therefore, it has to happen before the Rukh trigger
+            context.player1.clickPrompt('When this unit deals combat damage: Defeat it.');
+
+            // trigger card draw from Krell, confirm that Rukh trigger hasn't happened yet
+            expect(context.gentleGiant).toBeInZone('groundArena');
+            context.player1.clickPrompt('Trigger');
+
+            // Rukh trigger resolves automatically, move to Tarfful trigger
+            context.player2.clickCard(context.generalKrell);
+
+            expect(context.rukh).toBeInZone('discard');
+            expect(context.gentleGiant).toBeInZone('discard');
+            expect(context.player1.handSize).toBe(2);       // draw from Krell and Heroic Sacrifice
+            expect(context.generalKrell.damage).toBe(5);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        const disclosePrompt = (attackerTitle) => `Disclose Vigilance, Villainy to give ${attackerTitle} -6/-0 for this attack`;
+
+        it('Gained "while this unit is attacking" abilities should work', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: [
+                        'condemn',
+                        'superlaser-blast'
+                    ],
+                    groundArena: ['awakened-specters']
+                },
+                player2: {
+                    groundArena: ['ravenous-rathtar']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Condemn on Ravenous Rathtar
+            context.player1.clickCard(context.condemn);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.awakenedSpecters,
+                context.ravenousRathtar
+            ]);
+            context.player1.clickCard(context.ravenousRathtar);
+
+            // P2 attacks Awakened Specters with Ravenous Rathtar
+            context.player2.clickCard(context.ravenousRathtar);
+            context.player2.clickCard(context.awakenedSpecters);
+
+            // P1 is prompted to disclose Vigilance/Villainy
+            expect(context.player1).toHavePrompt(disclosePrompt(context.ravenousRathtar.title));
+            expect(context.player1).toHaveChooseNothingButton();
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.superlaserBlast
+            ]);
+
+            // P1 discloses Superlaser Blast
+            context.player1.clickCard(context.superlaserBlast);
+
+            // Cards are revealed to the opponent
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.superlaserBlast]);
+            expect(context.player2).toHaveEnabledPromptButton('Done');
+            context.player2.clickDone();
+
+            // Attack resolves
+            expect(context.awakenedSpecters.damage).toBe(2); // Ravenous Rathtar deals 2 damage due to -6 power
+            expect(context.ravenousRathtar.damage).toBe(4);
+        });
+
+        it('Condemn correctly makes the attached unit lose When Defeated & Bounty abilities if it is defeated during the attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [
+                        'consular-security-force',
+                        {
+                            card: 'val#loyal-to-the-end',
+                            upgrades: ['condemn']
+                        }
+                    ]
+                },
+                player2: {
+                    groundArena: ['reinforcement-walker']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks Reinforcement Walker with Val
+            context.player1.clickCard(context.val);
+            context.player1.clickCard(context.reinforcementWalker);
+
+            // Val is defeated and does not trigger her When Defeated or Bounty abilities
+            expect(context.val).toBeInZone('discard', context.player1);
+            expect(context.consularSecurityForce.upgrades.length).toBe(0); // No Experience given from When Defeated
+            expect(context.consularSecurityForce.damage).toBe(0); // No damage from Bounty
+            expect(context.reinforcementWalker.damage).toBe(2); // From combat
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('Condemn blanks post-attack triggers', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    deck: ['resupply'],
+                    groundArena: [{
+                        card: 'ezra-bridger#resourceful-troublemaker',
+                        upgrades: ['condemn']
+                    }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks base with Ezra Bridger
+            context.player1.clickCard(context.ezraBridger);
+            context.player1.clickCard(context.p2Base);
+
+            // No post-attack trigger, it is now P2's turn
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (Qui-Gon leader)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'quigon-jinn#student-of-the-living-force', deployed: true, damage: 6 }
+                },
+                player2: {
+                    groundArena: ['battlefield-marine', 'consular-security-force'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.quigonJinn);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.quigonJinn.exhausted).toBe(true);
+            expect(context.quigonJinn).toBeInZone('base');
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (SOR Leia leader)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'leia-organa#alliance-general', deployed: true, damage: 5 },
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.leiaOrgana);
+            context.player1.clickCard(context.wampa);
+            expect(context.leiaOrgana.exhausted).toBe(true);
+            expect(context.leiaOrgana).toBeInZone('base');
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (JTL Invisible Hand)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['the-invisible-hand#crawling-with-vultures'],
+                    deck: ['wampa', 'pyke-sentinel', 'viper-probe-droid',
+                        'repair', 'calculating-magnaguard', 'battlefield-marine',
+                        'concord-dawn-interceptors', 'drop-in', '21b-surgical-droid'],
+                },
+                player2: {
+                    spaceArena: ['avenger#hunting-star-destroyer']
+                }
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.theInvisibleHand);
+            context.player1.clickCard(context.avenger);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A pre-LAW "on attack completed" ability should not trigger if the attacker is defeated (SEC Captain Rex)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['consular-security-force', 'captain-rex#into-the-firefight']
+                },
+                player2: {
+                    groundArena: ['wampa', 'atat-suppressor'],
+                    spaceArena: ['strikeship'],
+                    leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.captainRexIntoTheFirefight);
+            context.player1.clickCard(context.atatSuppressor);
+
+            expect(context.captainRexIntoTheFirefight).toBeInZone('discard');
+
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

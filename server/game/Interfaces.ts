@@ -417,7 +417,6 @@ export interface IPlayerSerializedState {
 
 export interface ISerializedGameState {
     phase?: string;
-    attackRulesVersion?: string;
     reportingPlayer?: ISafeSerializedType<IPlayerSerializedState>;
     opponent?: ISafeSerializedType<IPlayerSerializedState>;
     player1?: ISafeSerializedType<IPlayerSerializedState>;
