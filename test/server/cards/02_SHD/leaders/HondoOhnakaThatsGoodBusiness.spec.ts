@@ -61,8 +61,9 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
         });
 
         describe('Hondo Ohnaka\'s leader deployed ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+
+            it('should give experience token when play a unit from smuggle', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wampa'],
@@ -75,9 +76,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
                         resources: ['freetown-backup', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst']
                     },
                 });
-            });
 
-            it('should give experience token when play a unit from smuggle', function () {
                 const { context } = contextRef;
 
                 // play a unit from hand
@@ -122,42 +121,42 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
                 context.player1.clickCard(context.pirateBattleTank);
                 expect(context.pirateBattleTank).toHaveExactUpgradeNames(['experience']);
             });
-        });
 
-        it('should give the Hondo Experience after ambush from timely resolves', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    spaceArena: ['corvus#inferno-squadron-raider', 'cartel-spacer'],
-                    hand: ['clone-pilot'],
-                    leader: 'hondo-ohnaka#thats-good-business',
-                    resources: ['timely-intervention', 'daring-raid', 'wampa', 'wampa', 'wampa']
+            it('should give the Hondo Experience after ambush from timely resolves', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['corvus#inferno-squadron-raider', 'cartel-spacer'],
+                        hand: ['clone-pilot'],
+                        leader: 'hondo-ohnaka#thats-good-business',
+                        resources: ['timely-intervention', 'daring-raid', 'wampa', 'wampa', 'wampa']
 
-                },
-                player2: {
-                    spaceArena: [{ card: 'awing', upgrades: ['legal-authority'] }, 'survivors-gauntlet'],
-                    groundArena: ['battlefield-marine'],
-                    hand: ['traitorous']
-                }
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'awing', upgrades: ['legal-authority'] }, 'survivors-gauntlet'],
+                        groundArena: ['battlefield-marine'],
+                        hand: ['traitorous']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.timelyIntervention);
+                context.player1.clickCard(context.clonePilot);
+
+                // Ambush resolves first as a nested trigger
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // After Ambush completes, Hondo's Smuggle trigger fires
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.corvus);
+
+                expect(context.corvus).toHaveExactUpgradeNames(['experience']);
+                expect(context.battlefieldMarine.damage).toBe(2);
+                expect(context.clonePilot).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
             });
-
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.timelyIntervention);
-            context.player1.clickCard(context.clonePilot);
-
-            // Ambush resolves first as a nested trigger
-            context.player1.clickPrompt('Trigger');
-            context.player1.clickCard(context.battlefieldMarine);
-
-            // After Ambush completes, Hondo's Smuggle trigger fires
-            context.player1.clickPrompt('Trigger');
-            context.player1.clickCard(context.corvus);
-
-            expect(context.corvus).toHaveExactUpgradeNames(['experience']);
-            expect(context.battlefieldMarine.damage).toBe(2);
-            expect(context.clonePilot).toBeInZone('discard');
-            expect(context.player2).toBeActivePlayer();
         });
     });
 });
