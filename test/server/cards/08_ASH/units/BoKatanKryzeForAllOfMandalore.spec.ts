@@ -36,13 +36,13 @@ describe('Bo-Katan Kryze, For All of Mandalore', function() {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p2Base.damage).toBe(4);
-            
-            context.player2.clickCard(context.battlefieldMarine)
+
+            context.player2.clickCard(context.battlefieldMarine);
             context.player2.clickCard(context.bokatanKryze);
 
             expect(context.player1).toBeActivePlayer();
-            expect(context.bokatanKryze.damage).toBe(3)
-            expect(context.battlefieldMarine.damage).toBe(2)
+            expect(context.bokatanKryze.damage).toBe(3);
+            expect(context.battlefieldMarine.damage).toBe(2);
         });
     });
 });
