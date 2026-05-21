@@ -873,7 +873,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Grogu',
-        subtitle: 'Yes, Yes, Yes',
+        subtitle: 'Yes. Yes. Yes.',
         cost: 3,
         power: 2,
         hp: 6,
