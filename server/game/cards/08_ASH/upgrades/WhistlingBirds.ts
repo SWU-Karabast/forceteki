@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { EventName, Trait } from '../../../core/Constants';
+import { Trait } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
 
@@ -25,7 +25,7 @@ export default class WhistlingBirds extends UpgradeCard {
         registrar.addGainTriggeredAbilityTargetingAttached({
             title: 'Deal 2 damage to each unit that opponent controls in this unit\'s arena',
             when: {
-                [EventName.OnAttackEnd]: (event, context) => event.attack.attacker === context.source
+                onAttackEnd: (event, context) => event.attack.attacker === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
