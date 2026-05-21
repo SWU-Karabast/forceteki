@@ -56,6 +56,35 @@ describe('Shin Hati\'s Fiend Fighter, Compact and Agile', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage']);
             });
 
+            it('may give 3 Advantage tokens to an enemy unit when defeated by No Glory Only Results', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['shin-hatis-fiend-fighter#compact-and-agile']
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        groundArena: ['wampa'],
+                        resources: 10,
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.shinHatisFiendFighter);
+
+                expect(context.player2).toHavePrompt('Give 3 Advantage tokens to a unit');
+                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
+                expect(context.player2).toHavePassAbilityButton();
+                context.player2.clickCard(context.wampa);
+
+                expect(context.wampa).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage']);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
+            });
+
             it('may be passed', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
