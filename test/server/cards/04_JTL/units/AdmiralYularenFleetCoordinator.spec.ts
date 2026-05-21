@@ -183,7 +183,7 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
                 expect(context.clone).toBeCloneOf(context.admiralYularen);
             });
 
-            it('JTL Yularen should only affect the units of his owner, not controller', async function () {
+            it('JTL Yularen should only affect the units of whoever played him, even if control changes', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -209,6 +209,40 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
                 expect(context.corvus.hasSomeKeyword('sentinel')).toBe(true);
                 expect(context.cartelSpacer.hasSomeKeyword('sentinel')).toBe(true);
                 expect(context.awing.hasSomeKeyword('sentinel')).toBe(false);
+            });
+
+            it('JTL Yularen played via SEC Obi-Wan should buff the Vehicles of the player who plays him', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['cartel-spacer'],
+                        deck: ['admiral-yularen#fleet-coordinator']
+                    },
+                    player2: {
+                        groundArena: ['obiwan-kenobi#finding-what-doesnt-exist'],
+                        spaceArena: ['awing'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player2 attacks player1's base with Obi-Wan, triggering his ability
+                context.player2.clickCard(context.obiwanKenobi);
+                context.player2.clickCard(context.p1Base);
+
+                // Obi-Wan's ability discards Yularen from player1's deck; Yularen is now
+                // playable by player2 from player1's discard for this phase
+                context.player1.passAction();
+                context.player2.clickCard(context.admiralYularen);
+                context.player2.clickPrompt('Sentinel');
+
+                // Player2's vehicles should gain Sentinel (player2 played Yularen)
+                expect(context.awing.hasSomeKeyword('sentinel')).toBe(true);
+                // Player1's vehicles should NOT gain Sentinel (player1 only owns Yularen, didn't play him)
+                expect(context.cartelSpacer.hasSomeKeyword('sentinel')).toBe(false);
+
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });
