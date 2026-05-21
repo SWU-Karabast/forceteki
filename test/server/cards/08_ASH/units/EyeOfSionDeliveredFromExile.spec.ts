@@ -86,7 +86,7 @@ describe('Eye of Sion, Delivered From Exile', function() {
 
             const { context } = contextRef;
 
-            expect(context.eyeOfSion.getPower()).toBe(5);
+            expect(context.eyeOfSion.getPower()).toBe(6);
 
             context.player1.clickCard(context.eyeOfSion);
             context.player1.clickPrompt(abilityTitle);
@@ -94,13 +94,13 @@ describe('Eye of Sion, Delivered From Exile', function() {
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [
                     context.blueSquadronAssaultWing,
+                    context.atst,
                     context.vanguardInfantry,
                     context.pykeSentinel,
                     context.battlefieldMarine,
                     context.greenSquadronAwing
                 ],
                 invalid: [
-                    context.atst,
                     context.repair,
                     context.takedown
                 ]
