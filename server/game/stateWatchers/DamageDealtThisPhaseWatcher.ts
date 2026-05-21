@@ -10,6 +10,7 @@ import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployabl
 import type { Card } from '../core/card/Card';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
 import { registerState, type GameObjectId } from '../core/GameObjectUtils';
@@ -21,6 +22,7 @@ export interface DamageDealtEntry {
     damageSourceCardType: CardType;
     damageSourcePlayer: GameObjectId<Player>;
     damageSourceEventId: number;
+    target: GameObjectId<Card>;
     targets: GameObjectId<Card>[];
     targetType: CardType;
     targetController: GameObjectId<Player>;
@@ -43,6 +45,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
         return stateValue.map((x) => ({
             ...x,
             damageSourceCard: this.game.getFromId(x.damageSourceCard),
+            target: this.game.getFromId(x.target),
             targets: x.targets.map((y) => this.game.getFromId(y)),
             targetController: this.game.getFromId(x.targetController),
             damageSourcePlayer: this.game.getFromId(x.damageSourcePlayer)
@@ -76,6 +79,20 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                 entry.activeAttackId === context.event.attack.id &&
                 ((entry.damageType === DamageType.Combat && entry.targets.some((target) => target.isBase())) || entry.damageType === DamageType.Overwhelm)
         );
+    }
+
+    public getNonLeaderUnitsDealtCombatDamageByUnitThisAttack(card: IUnitCard, context: TriggeredAbilityContext): Card[] {
+        return this.getCurrentValue()
+            .filter((entry) =>
+                (entry.damageSourceCard as Card) === card &&
+                entry.damageSourceInPlayId === this.getCardId(card) &&
+                entry.activeAttackId === context.event.attack.id &&
+                entry.damageType === DamageType.Combat &&
+                entry.amount > 0 &&
+                entry.target !== context.event.attack.attacker &&
+                entry.target.isNonLeaderUnit()
+            )
+            .map((entry) => entry.target);
     }
 
     protected override setupWatcher() {
@@ -119,6 +136,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                     targets,
                     damageSourcePlayer: event.damageSource.player?.getObjectId(),
                     damageSourceEventId: event.damageSource.eventId,
+                    target: event.card.getObjectId(),
                     targetType: event.card.type,
                     targetController: event.card.controller?.getObjectId(),
                     amount: event.damageDealt,
