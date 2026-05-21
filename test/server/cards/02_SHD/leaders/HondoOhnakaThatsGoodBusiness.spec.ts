@@ -61,7 +61,6 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
         });
 
         describe('Hondo Ohnaka\'s leader deployed ability', function () {
-
             it('should give experience token when play a unit from smuggle', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
