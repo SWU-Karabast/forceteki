@@ -1,5 +1,5 @@
 import { EffectName, PhaseName } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ActionWindow } from '../ActionWindow';

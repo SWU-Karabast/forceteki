@@ -22,10 +22,8 @@ describe('Vambrace Flamethrower', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
-                context.player1.clickPrompt('Trigger');
-
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.specforceSoldier]);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.atst, 2],
                     [context.specforceSoldier, 1],
@@ -43,8 +41,8 @@ describe('Vambrace Flamethrower', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // pass vambrace flamethrower ability
-                expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
-                context.player1.clickPrompt('Pass');
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.setDistributeDamagePromptState(new Map([]));
 
                 // nothing should have changed
                 expect(context.atst.damage).toBe(2);
@@ -58,10 +56,8 @@ describe('Vambrace Flamethrower', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
-                context.player1.clickPrompt('Trigger');
-
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.specforceSoldier]);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.specforceSoldier, 3],
                 ]));

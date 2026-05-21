@@ -2,6 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { Aspect } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GeneralRieekanStalwartTactician extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class GeneralRieekanStalwartTactician extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Attack with another Heroism unit. It gets +2/+0 for this attack',
+            title: `Attack with another ${TextHelper.Heroism} unit. It gets +2/+0 for this attack`,
             cost: abilityHelper.costs.exhaustSelf(),
             initiateAttack: {
                 attackerCondition: (card, context) => card.hasSomeAspect(Aspect.Heroism) && card !== context.source,

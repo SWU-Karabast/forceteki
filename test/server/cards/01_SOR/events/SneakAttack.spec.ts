@@ -26,6 +26,7 @@ describe('Sneak Attack', function() {
                 context.moveToRegroupPhase();
                 expect(context.sabineWren).toBeInZone('discard');
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
+                expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Sneak Attack to defeat Sabine Wren');
             });
 
             it('should not bug if there is no legal card to be played', async function () {
@@ -73,6 +74,8 @@ describe('Sneak Attack', function() {
                 expect(context.sabineWren).toBeInZone('discard');
 
                 context.moveToRegroupPhase();
+
+                expect(context.getChatLogs(1)).toEqual(['Round: 1 - Regroup Phase']);
             });
 
             it('should not bug if the unit is defeated because of the uniqueness rule', async function () {

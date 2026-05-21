@@ -5,11 +5,10 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import * as Helpers from '../core/utils/Helpers.js';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
+import { Helpers } from '../core/utils/Helpers.js';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { MsgArg } from '../core/chat/GameChat';
-
 
 export interface IRandomSelectionSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
 

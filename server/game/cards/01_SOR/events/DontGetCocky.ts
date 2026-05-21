@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
-import * as Contract from '../../../core/utils/Contract';
+import { Contract } from '../../../core/utils/Contract';
 
 export default class DontGetCocky extends EventCard {
     protected override getImplementationId() {
@@ -72,7 +72,10 @@ export default class DontGetCocky extends EventCard {
                     condition: totalCost <= 7,
                     onTrue: AbilityHelper.immediateEffects.damage({ target: contextWithUnitTarget.target, amount: totalCost }),
                 }),
-                AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.player.getTopCardsOfDeck(cardsRevealedCount) })
+                AbilityHelper.immediateEffects.moveToBottomOfDeck({
+                    target: context.player.getTopCardsOfDeck(cardsRevealedCount),
+                    shuffleMovedCards: true
+                })
             ];
         });
     }

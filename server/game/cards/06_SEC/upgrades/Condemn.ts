@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Aspect } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class Condemn extends UpgradeCard {
     protected override getImplementationId() {
@@ -19,10 +19,10 @@ export default class Condemn extends UpgradeCard {
         const aspects = [Aspect.Vigilance, Aspect.Villainy];
 
         registrar.addGainOnAttackAbilityTargetingAttached({
-            title: `The defending player discloses ${EnumHelpers.aspectString(aspects)} to give this unit -6/-0 for this attack`,
+            title: `The defending player discloses ${TextHelper.aspectList(aspects)} to give this unit -6/-0 for this attack`,
             gainCondition: (context) => context.source.parentCard?.isAttacking(),
             immediateEffect: AbilityHelper.immediateEffects.disclose((context) => ({
-                activePromptTitle: `Disclose ${EnumHelpers.aspectString(aspects)} to give ${context.source.title} -6/-0 for this attack`,
+                activePromptTitle: `Disclose ${TextHelper.aspectList(aspects)} to give ${context.source.title} -6/-0 for this attack`,
                 aspects: aspects,
                 target: context.event.attack.getDefendingPlayer()
             })),

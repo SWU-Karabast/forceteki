@@ -1,15 +1,17 @@
 import { v1 as uuid } from 'uuid';
 import type { Player } from '../../Player';
 import { BaseStep } from '../BaseStep';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import * as Helpers from '../../utils/Helpers';
+import { Helpers } from '../../utils/Helpers';
 import type { IButton } from '../PromptInterfaces';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { AllPlayerPrompt } from './AllPlayerPrompt';
 
 export abstract class UiPrompt extends BaseStep {
     public readonly uuid = uuid();
+
+    private readonly resetActionTimerOnComplete: boolean;
 
     private previousPrompt?: UiPrompt;
     private completed = false;
@@ -21,8 +23,10 @@ export abstract class UiPrompt extends BaseStep {
     // this is passed to the FE for the sake of being able to inform the player by e.g. making a sound
     private playerIsNewlyActive = new Map<Player, boolean>();
 
-    public constructor(game: Game) {
+    public constructor(game: Game, resetActionTimerOnComplete = false) {
         super(game);
+
+        this.resetActionTimerOnComplete = resetActionTimerOnComplete;
 
         this.clearPrompts();
     }
@@ -71,6 +75,13 @@ export abstract class UiPrompt extends BaseStep {
 
     public complete(): void {
         this.completed = true;
+
+        if (this.resetActionTimerOnComplete) {
+            for (const player of this.playersActiveForPrompt) {
+                this.stopPlayerActionTimer(player);
+            }
+        }
+
         this.game.setCurrentOpenPrompt(this.previousPrompt);
 
         // if this is an opponent reveal new info prompt, require confirmation to undo for the active player
@@ -99,20 +110,33 @@ export abstract class UiPrompt extends BaseStep {
             if (this.activeCondition(player)) {
                 this.playersActiveForPrompt.push(player);
 
+                if ((this.firstContinue && !player.activeForPreviousPrompt) || !player.actionTimer.isRunning) {
+                    this.startPlayerActionTimer(player);
+                }
+
                 player.activeForPreviousPrompt = true;
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
-
-                if (this.firstContinue) {
-                    this.startActionTimer(player);
-                }
             } else {
                 player.activeForPreviousPrompt = false;
                 player.setPrompt(this.waitingPrompt());
-                player.actionTimer.stop();
+                this.stopPlayerActionTimer(player);
             }
         }
 
         this.highlightSelectableCards();
+    }
+
+    public startPlayerActionTimer(player: Player) {
+        // if the player's timer was paused instead of stop, do a resume so we don't reset their timer
+        if (player.actionTimer.isPaused) {
+            player.actionTimer.resume();
+        } else {
+            player.actionTimer.start();
+        }
+    }
+
+    public stopPlayerActionTimer(player: Player) {
+        player.actionTimer.stop();
     }
 
     public isAllPlayerPrompt(): this is AllPlayerPrompt {
@@ -121,10 +145,6 @@ export abstract class UiPrompt extends BaseStep {
 
     protected isOpponentRevealNewInfoPrompt(): boolean {
         return true;
-    }
-
-    protected startActionTimer(player: Player) {
-        player.actionTimer.start();
     }
 
     protected highlightSelectableCards() {

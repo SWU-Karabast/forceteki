@@ -5,9 +5,8 @@ import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEff
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
-import * as Helpers from '../core/utils/Helpers';
+import { type DistributiveOmit, Helpers } from '../core/utils/Helpers';
 import * as LastingEffectSystemHelpers from './helpers/LastingEffectSystemHelpers';
-import type { DistributiveOmit } from '../core/utils/Helpers';
 import type { IOngoingPlayerEffectGenerator, IOngoingPlayerEffectProps } from '../Interfaces';
 
 export type IPlayerLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target' | 'effect'> & Pick<IPlayerTargetSystemProperties, 'target'> & {

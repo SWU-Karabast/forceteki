@@ -1,8 +1,8 @@
 import type { Card } from '../../card/Card';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IPromptPropertiesBase } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
@@ -35,18 +35,14 @@ export class DropdownListPrompt extends UiPrompt {
         }
 
         const menuTitle = 'Choose an option from the list';
+        const activePromptTitle = typeof properties.activePromptTitle === 'string' ? properties.activePromptTitle : null;
 
         this._activePrompt = {
             menuTitle,
-            promptTitle: this.properties.promptTitle || (this.properties.source ? this.properties.source.name : undefined),
+            promptTitle: this.properties.promptTitle || activePromptTitle || (this.properties.source ? this.properties.source.name : undefined),
             dropdownListOptions: this.properties.options,
             promptUuid: this.uuid
         };
-    }
-
-    protected override startActionTimer(player: Player): void {
-        // give players a little extra time during dropdown list prompts
-        player.actionTimer.start(90);
     }
 
     public override activeCondition(player) {

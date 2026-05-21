@@ -29,8 +29,9 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar) {
-        registrar.addOnAttackCompletedAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Attack with another Rebel unit',
+            attackerMustSurvive: true,
             optional: true,
             initiateAttack: {
                 attackerCondition: (card, context) => card.hasSomeTrait(Trait.Rebel) && card !== context.source

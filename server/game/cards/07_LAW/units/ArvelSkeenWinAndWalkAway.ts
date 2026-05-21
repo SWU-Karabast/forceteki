@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class ArvelSkeenWinAndWalkAway extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'arvel-skeen#win-and-walk-away-id',
+            id: '5253255222',
             internalName: 'arvel-skeen#win-and-walk-away',
         };
     }

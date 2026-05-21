@@ -1,4 +1,4 @@
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { ICostAdjustEvaluationIntermediateResult } from '../CostInterfaces';
 
 /**

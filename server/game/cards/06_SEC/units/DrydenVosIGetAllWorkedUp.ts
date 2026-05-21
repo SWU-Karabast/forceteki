@@ -31,7 +31,8 @@ export default class DrydenVosIGetAllWorkedUp extends NonLeaderUnitCard {
                         onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                     },
                     immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup)
+                        effect: abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup),
+                        ongoingEffectDescription: 'prevent {0} from readying',
                     })
                 }))
             }

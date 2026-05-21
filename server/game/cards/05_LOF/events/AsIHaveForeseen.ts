@@ -4,6 +4,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 import { WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AsIHaveForeseen extends EventCard {
     protected override getImplementationId() {
@@ -24,7 +25,7 @@ export default class AsIHaveForeseen extends EventCard {
                         target: topCardOfDeck,
                         perCardButtons: [
                             {
-                                text: 'Use the Force and play for 4 less',
+                                text: `Use the Force and play for ${TextHelper.resource(4)} less`,
                                 arg: 'play-discount',
                                 immediateEffect: AbilityHelper.immediateEffects.sequential({
                                     gameSystems: [

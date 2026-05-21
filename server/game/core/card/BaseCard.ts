@@ -1,11 +1,10 @@
 import type { Player } from '../Player';
-import type { ICardState } from './Card';
 import { Card } from './Card';
 import { CardType } from '../Constants';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
-import type { ActionAbility } from '../ability/ActionAbility';
+import type { ActionAbilityBase } from '../ability/ActionAbility';
 import type { IEpicActionProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
@@ -18,19 +17,16 @@ import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityReg
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithCaptureZone } from '../zone/CaptureZone';
 import { CaptureZone } from '../zone/CaptureZone';
-import type { GameObjectRef } from '../GameObjectBase';
+import { registerStateBase, stateRef } from '../GameObjectUtils';
 
-const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card<IBaseCardState>)))));
-
-export interface IBaseCardState extends ICardState {
-    captureZone: GameObjectRef<CaptureZone> | null;
-}
+const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
 export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard>, ICardWithCaptureZone {
     get epicActionSpent(): boolean;
 }
 
 /** A Base card (as in, the card you put in your base zone) */
+@registerStateBase()
 export class BaseCard extends BaseCardParent implements IBaseCard {
     private _epicActionAbility?: EpicActionAbility;
 
@@ -39,11 +35,15 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return this.epicActionSpentInternal();
     }
 
+    @stateRef()
+    private accessor _captureZone: CaptureZone | null = null;
+
     public get captureZone(): CaptureZone {
-        return this.game.gameObjectManager.get(this.state.captureZone);
+        return this._captureZone;
     }
 
     public get capturedUnits() {
+        Contract.assertNotNullLike(this._captureZone, `Attempting to access captured units for card ${this.internalName}, but capture zone is not initialized`);
         return this.captureZone.cards;
     }
 
@@ -68,11 +68,11 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         }
 
         for (const ability of this.getConstantAbilities()) {
-            ability.registeredEffects = this.addEffectToEngine(ability);
+            ability.registeredEffects = this.addEffectToEngine(ability.buildEffectFactoryProps());
         }
     }
 
-    public override getActionAbilities(): ActionAbility[] {
+    public override getActionAbilities(): ActionAbilityBase[] {
         if (!this.isFullyBlanked() && this._epicActionAbility) {
             return super.getActionAbilities().concat(this._epicActionAbility);
         }
@@ -117,7 +117,6 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
 
     private initializeCaptureZone() {
-        this.state.captureZone = new CaptureZone(this.game, this.owner, this)
-            .getRef();
+        this._captureZone = new CaptureZone(this.game, this.owner, this);
     }
 }

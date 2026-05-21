@@ -46,6 +46,15 @@ describe('Setup Phase', function() {
                 // Draw cards step
                 expect(context.player1.handSize).toBe(6);
                 expect(context.player2.handSize).toBe(6);
+                expect(context.player2.handSize).toBe(6);
+                expect(context.getChatLogs(4)).toEqual([
+                    'player1 is shuffling their deck',
+                    'player1 draws 6 cards in their starting hand',
+                    'player2 is shuffling their deck',
+                    'player2 draws 6 cards in their starting hand',
+                ]);
+
+
                 const beforeMulliganHand = context.player1.hand;
                 const beforePlayer2Hand = context.player2.hand;
 
@@ -61,6 +70,12 @@ describe('Setup Phase', function() {
                 expect(context.player2).toHaveExactPromptButtons(['Mulligan', 'Keep']);
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to mulligan');
                 context.player2.clickPrompt('Keep');
+                expect(context.getChatLogs(4)).toEqual([
+                    'player1 will mulligan',
+                    'player2 will keep their hand',
+                    'player1 is shuffling their deck',
+                    'player1 draws 6 cards in their starting hand',
+                ]);
 
                 const afterMulliganHand = context.player1.hand;
                 const afterPlayer2Hand = context.player2.hand;

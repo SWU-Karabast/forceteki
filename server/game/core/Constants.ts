@@ -94,13 +94,15 @@ export enum EffectName {
     CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CloneUnit = 'cloneUnit',
+    CopyStandardTriggeredAbilities = 'copyStandardTriggeredAbilities',
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
-    DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
+    DealsCombatDamageFirst = 'dealsCombatDamageFirst',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
+    GainNonKeywordAbilitiesFromUnit = 'gainNonKeywordAbilitiesFromUnit',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
@@ -163,6 +165,7 @@ export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum StandardTriggeredAbilityType {
     OnAttack = 'onAttack',
+    OnDefense = 'onDefense',
     WhenDefeated = 'whenDefeated',
     WhenPlayed = 'whenPlayed',
     WhenPlayedUsingSmuggle = 'whenPlayedUsingSmuggle',
@@ -202,7 +205,8 @@ export enum CardType {
     BasicUpgrade = 'basicUpgrade',
     Event = 'event',
     Leader = 'leader',
-    LeaderUnit = 'leaderUnit',
+    NonTokenLeaderUnit = 'nonTokenLeaderUnit',
+    TokenLeaderUnit = 'tokenLeaderUnit',
     LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
@@ -212,8 +216,10 @@ export enum CardType {
 
 export enum WildcardCardType {
     Any = 'any',
+    LeaderUnit = 'leaderUnit',
     NonLeaderUnit = 'nonLeaderUnit',
     NonLeaderUpgrade = 'nonLeaderUpgrade',
+    NonTokenUnit = 'nonTokenUnit',
     NonUnit = 'nonUnit',
     /** Any card type that can be played from hand */
     Playable = 'playable',
@@ -232,7 +238,8 @@ export type CardTypeFilter = CardType | WildcardCardType;
 
 export enum TokenUpgradeName {
     Experience = 'experience',
-    Shield = 'shield'
+    Shield = 'shield',
+    Advantage = 'advantage',
 }
 
 export enum TokenUnitName {
@@ -241,6 +248,7 @@ export enum TokenUnitName {
     XWing = 'xwing',
     TIEFighter = 'tieFighter',
     Spy = 'spy',
+    Mandalorian = 'mandalorian',
 }
 
 export enum TokenCardName {
@@ -257,9 +265,9 @@ export enum EventName {
     OnActionTaken = 'onActionTaken',
     OnAddTokenToCard = 'onAddTokenToCard',
     OnAspectsDisclosed = 'onAspectsDisclosed',
-    OnAttackCompleted = 'onAttackCompleted',
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
+    OnAttackEnd = 'onAttackEnd',
     OnBeginRound = 'onBeginRound',
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
@@ -341,6 +349,7 @@ export enum MetaEventName {
     PlayCard = 'playCard',
     RandomSelection = 'randomSelection',
     ReplacementEffect = 'replacementEffect',
+    RevealAndDrawCard = 'revealAndDrawCard',
     SelectCard = 'selectCard',
     SelectPlayer = 'selectPlayer',
     Sequential = 'sequential',
@@ -382,6 +391,7 @@ export enum KeywordName {
     Sentinel = 'sentinel',
     Shielded = 'shielded',
     Smuggle = 'smuggle',
+    Support = 'support',
 }
 
 export enum Trait {
@@ -489,6 +499,15 @@ export enum AbilityRestriction {
     DealCombatDamage = 'dealCombatDamage',
 }
 
+/** Union type of AbilityRestriction values that can block a card from being played */
+export type PlayRestriction =
+  | AbilityRestriction.Play
+  | AbilityRestriction.PlayEvent
+  | AbilityRestriction.PlayUnit
+  | AbilityRestriction.PlayUpgrade
+  | AbilityRestriction.PutIntoPlay
+  | AbilityRestriction.EnterPlay;
+
 export enum DamageModificationType {
     PreventAll = 'all',
     Increase = 'increase',
@@ -510,6 +529,7 @@ export enum StateWatcherName {
     TokensCreatedThisPhase = 'tokensCreatedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
+    BasesHealedThisPhase = 'basesHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado
@@ -590,6 +610,7 @@ export enum GameEndReason {
     Concede = 'concede',
     GameRules = 'gameRules',
     PlayerLeft = 'playerLeft',
+    Timeout = 'timeout',
 }
 
 export enum Conjunction {
@@ -617,8 +638,15 @@ export enum NamedAction {
 
 export enum SwuGameFormat {
     Premier = 'premier',
-    NextSetPreview = 'nextSetPreview',
-    Open = 'open'
+    Open = 'open',
+    Eternal = 'eternal',
+    Limited = 'limited',
+}
+
+export enum CardPool {
+    Current = 'current',
+    NextSet = 'nextSet',
+    Unlimited = 'unlimited',
 }
 
 export enum GamesToWinMode {

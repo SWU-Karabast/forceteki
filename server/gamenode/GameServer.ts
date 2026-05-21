@@ -6,41 +6,58 @@ import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
-import { getHeapStatistics, getHeapSpaceStatistics } from 'v8';
-import { freemem, cpus } from 'os';
-import { monitorEventLoopDelay, performance, PerformanceObserver, constants as NodePerfConstants, type EventLoopUtilization, type IntervalHistogram } from 'perf_hooks';
-
-import { logger, jsonOnlyLogger } from '../logger';
-
+import { getHeapSpaceStatistics, getHeapStatistics } from 'v8';
+import { cpus, freemem } from 'os';
+import {
+    constants as NodePerfConstants,
+    type EventLoopUtilization,
+    type IntervalHistogram,
+    monitorEventLoopDelay,
+    performance,
+    PerformanceObserver
+} from 'perf_hooks';
+import { jsonOnlyLogger, logger } from '../logger';
 import { Lobby, MatchmakingType } from './Lobby';
 import Socket from '../socket';
 import type { User } from '../utils/user/User';
 import * as env from '../env';
+import { requireEnvVars } from '../env';
 import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
-import * as Contract from '../game/core/utils/Contract';
+import { Contract } from '../game/core/utils/Contract';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { ISwuDbFormatDecklist, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import { SwuDbDeckFetcher, SwuDbFetchError } from '../utils/deck/SwuDbDeckFetcher';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
-import * as Helpers from '../game/core/utils/Helpers';
+import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
-import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
-import { SwuStatsHandler } from '../utils/SWUStats/SwuStatsHandler';
+import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
+import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
-import { requireEnvVars } from '../env';
-import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
-import { ServerRole } from '../services/DynamoDBInterfaces';
+import type { IActiveModActionCacheEntry,
+    IDeckDataEntity,
+    IModerationAction } from '../services/DynamoDBInterfaces';
+import { ModActionType } from '../services/DynamoDBInterfaces';
+import {
+    ModerationType,
+    ServerRole
+} from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
-import { SwuGameFormat } from '../game/core/Constants';
+import { CardPool, SwuGameFormat } from '../game/core/Constants';
+import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
+import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
+import { ModActionService } from '../utils/ModActionService';
+import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema } from '../services/DynamoDBInterfaceSchemas';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -61,7 +78,8 @@ interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
 }
-export interface ISwuStatsToken {
+
+export interface IToken {
     accessToken: string;
     refreshToken: string;
     creationDateTime: Date;
@@ -115,11 +133,13 @@ export class GameServer {
 
         let cosmeticsService: CosmeticsService | undefined;
         let serverRoleUsersCache: ServerRoleUsersCache | undefined;
+        let modActionCache: ModActionService | undefined;
         const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
         if (shouldInitializeDbCaches) {
             console.log('SETUP: Initializing caches for server roles and customizations.');
             serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
             cosmeticsService = await CosmeticsService.createAsync();
+            modActionCache = await ModActionService.createAsync();
             console.log('SETUP: Caches for server roles and customizations initialized.');
         }
 
@@ -131,6 +151,7 @@ export class GameServer {
             deckValidator,
             serverRoleUsersCache,
             cosmeticsService,
+            modActionCache,
             testGameBuilder
         );
     }
@@ -150,7 +171,9 @@ export class GameServer {
     private readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
-    public swuStatsTokenMapping = new Map<string, ISwuStatsToken>();
+    private readonly dailyActiveUserIds = new Set<string>();
+    public swuStatsTokenMapping = new Map<string, IToken>();
+    public swuBaseTokenMapping = new Map<string, IToken>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -182,15 +205,19 @@ export class GameServer {
     public readonly deckService: DeckService = new DeckService();
     public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
+    public readonly swuBaseHandler: SwuBaseHandler;
+    public readonly swuDbDeckFetcher: SwuDbDeckFetcher = new SwuDbDeckFetcher();
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
+    public readonly modActionService?: ModActionService;
 
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
         cosmeticsService?: CosmeticsService,
+        modActionCache?: ModActionService,
         testGameBuilder?: any
     ) {
         const app = express();
@@ -199,6 +226,7 @@ export class GameServer {
 
         this.serverRoleUsersCache = serverRoleUsersCache;
         this.cosmeticsService = cosmeticsService;
+        this.modActionService = modActionCache;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -335,6 +363,7 @@ export class GameServer {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
+        this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
 
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 500);
@@ -361,6 +390,11 @@ export class GameServer {
                 this.logPlayerStats();
                 this.logGCStats();
             }, 30000);
+
+            // emit daily active user count and reset every 24 hours
+            setInterval(() => {
+                this.logAndResetDailyActiveUsers();
+            }, 86_400_000); // 24 hours
         }
     }
 
@@ -379,7 +413,14 @@ export class GameServer {
                 const { gameId } = req.body;
                 const user = req.user as User;
                 const lobby = this.lobbies.get(gameId);
-                if (user.isAnonymousUser()) {
+
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    logger.verbose(`GameServer (spectate-game): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
+                if (process.env.ENVIRONMENT !== 'development' && user.isAnonymousUser()) {
                     logger.error(`GameServer (spectate-game): Anonymous user ${user.getId()} is attempting to spectate a game.`);
                     return res.status(401).json({
                         success: false,
@@ -395,8 +436,8 @@ export class GameServer {
                         message: 'User is already in a game'
                     });
                 }
-                if (!lobby || !lobby.hasOngoingGame() || lobby.isPrivate) {
-                    logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game that does not exist or is set to private`);
+                if (!lobby || !lobby.hasOngoingGame() || !lobby.spectationAllowed) {
+                    logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game that does not exist or does not allow spectators`);
                     return res.status(404).json({
                         success: false,
                         message: 'Game not found or does not allow spectators'
@@ -414,34 +455,51 @@ export class GameServer {
 
         // *** Start of User Object calls ***
 
-        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), (req, res, next) => {
+        app.post('/api/get-user', this.buildAuthMiddleware('get-user'), async (req, res, next) => {
             try {
-                // const { decks, preferences } = req.body;
                 const user = req.user as User;
-                // We try to sync the decks first
-                // if (decks.length > 0) {
-                //     try {
-                //         await this.deckService.syncDecksAsync(user.getId(), decks);
-                //     } catch (err) {
-                //         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
-                //         next(err);
-                //     }
-                // }
-                // if (preferences) {
-                //     try {
-                //         user.setPreferences(await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences));
-                //     } catch (err) {
-                //         logger.error(`GameServer (get-user): Error with syncing Preferences for User ${user.getId()}`, err);
-                //     }
-                // }
+
+                // Start with legacy values (backwards compatibility)
+                let moderation = user.getModeration();
+                let needsUsernameChange = user.needsUsernameChange();
+
+                if (user.isAuthenticatedUser()) {
+                    const userId = user.getId();
+                    const activeActions = this.modActionService.getActiveActionsForPlayer(userId);
+
+                    if (activeActions) {
+                        if (activeActions.some((action) => action.actionType === ModActionType.Rename)) {
+                            needsUsernameChange = true;
+                        }
+
+                        // Only derive mute from cache if no legacy moderation exists
+                        if (!moderation) {
+                            const muteEntry = activeActions.find((action) => action.actionType === ModActionType.Mute);
+
+                            if (muteEntry) {
+                                // Pending mute — activate it (sets startedAt + expiresAt)
+                                if (!muteEntry.startedAt) {
+                                    const activated = await this.modActionService.activatePendingMuteAsync(userId);
+                                    moderation = this.buildModerationFromCacheEntry(activated, false);
+                                } else if (muteEntry.expiresAt) {
+                                    // Already active — just build the moderation object
+                                    moderation = this.buildModerationFromCacheEntry(muteEntry, true);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 return res.status(200).json({ success: true, user: {
                     id: user.getId(),
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     preferences: user.getPreferences(),
-                    needsUsernameChange: user.needsUsernameChange(),
-                    moderation: user.getModeration(),
+                    mustRequestUsernameChange: user.mustRequestUsernameChange(),
+                    reportingDisabled: user.reportingDisabled(),
+                    needsUsernameChange,
+                    moderation
                 } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
@@ -463,6 +521,79 @@ export class GameServer {
                 res.status(200).json({ linked: !!linked });
             } catch (err) {
                 logger.error('GameServer (swustatsLink) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swustats/decks', this.buildAuthMiddleware('swustatsDecks'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swustatsDecks): Anonymous user ${user.getId()} is attempting to retrieve swustats decks`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swustats decks'
+                    });
+                }
+
+                // Get query parameters
+                const limit = parseInt(req.query.limit as string) || 100;
+                const offset = parseInt(req.query.offset as string) || 0;
+
+                const decksData = await this.swuStatsHandler.fetchUserDecksAsync(user.getId(), this, {
+                    limit,
+                    offset
+                });
+
+                // Transform SWU Stats decks to our format
+                const transformedDecks = decksData.decks.map((deck) => ({
+                    id: deck.id,
+                    name: deck.name || 'Untitled Deck',
+                    description: deck.description || '',
+                    isFavorite: deck.is_favorite,
+                    createdAt: deck.created_at,
+                    updatedAt: deck.updated_at,
+                    deckLink: `https://swustats.net/TCGEngine/Decks/Deck.php?gameName=${deck.id}`,
+                }));
+
+                // Sort favorites to the top, then by name
+                transformedDecks.sort((a, b) => {
+                    if (a.isFavorite && !b.isFavorite) {
+                        return -1;
+                    }
+                    if (!a.isFavorite && b.isFavorite) {
+                        return 1;
+                    }
+                    const nameA = a.name || '';
+                    const nameB = b.name || '';
+                    return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+                });
+
+                return res.status(200).json({
+                    success: true,
+                    decks: transformedDecks,
+                    pagination: decksData.pagination,
+                });
+            } catch (err) {
+                logger.error('GameServer (swustatsDecks) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/user/:userId/swubaseLink', this.buildAuthMiddleware('swubaseLink'), async (req, res, next) => {
+            const user = req.user as User;
+            try {
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (swubaseLink): Anonymous user ${user.getId()} is attempting to retrieve swubaseLink`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve swubaseLink'
+                    });
+                }
+                const linked = await this.swuBaseHandler.getAccessTokenAsync(user.getId(), this);
+                res.status(200).json({ linked: !!linked });
+            } catch (err) {
+                logger.error('GameServer (swubaseLink) Server Error: ', err);
                 next(err);
             }
         });
@@ -555,7 +686,7 @@ export class GameServer {
                 }
 
                 // Check for profanity
-                if (usernameContainsProfanity(newUsername)) {
+                if (userOrLobbyNameContainsProfanity(newUsername)) {
                     logger.warn(`GameServer (change-username): User ${user.getId()} attempted to use a username containing profanity: ${newUsername}`);
                     return res.status(400).json({
                         success: false,
@@ -566,6 +697,7 @@ export class GameServer {
                 // Call the changeUsername method
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername);
                 if (result.success) {
+                    await this.modActionService.onRenameCompleted(user.getId());
                     return res.status(200).json({
                         succeess: true,
                         message: 'Username successfully changed',
@@ -607,6 +739,54 @@ export class GameServer {
             }
         });
 
+        app.post('/api/set-must-request-username-change-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (set-must-request-username-change-seen): Anonymous user ${user.getId()} attempted to set must-request-username-change seen`, { userId: user.getId() });
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                const result = await this.userFactory.setMustRequestUsernameChangeSeenAsync(user.getId());
+
+                return res.status(200).json({
+                    success: result,
+                    message: 'Must-request-username-change seen status updated'
+                });
+            } catch (err) {
+                logger.error('GameServer (set-must-request-username-change-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/set-reporting-disabled-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (set-reporting-disabled-seen): Anonymous user ${user.getId()} attempted to set reporting-disabled seen`, { userId: user.getId() });
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                const result = await this.userFactory.setReportingDisabledSeenAsync(user.getId());
+
+                return res.status(200).json({
+                    success: result,
+                    message: 'Reporting-disabled seen status updated'
+                });
+            } catch (err) {
+                logger.error('GameServer (set-reporting-disabled-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
         // SWUSTATS
         // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
         app.post('/api/link-swustats', async (req, res, next) => {
@@ -623,7 +803,7 @@ export class GameServer {
                 }
                 // We test the refresh token if it correctly returns a new access token.
                 const newRefreshToken = await this.swuStatsHandler.refreshTokensAsync(swuStatsToken.refreshToken);
-                await this.userFactory.addSwuStatsRefreshTokenAsync(userId, newRefreshToken.refreshToken);
+                await this.userFactory.addRefreshTokenAsync(userId, newRefreshToken.refreshToken, RefreshTokenSource.SWUStats);
                 // add token mapping
                 this.swuStatsTokenMapping.set(userId, newRefreshToken);
                 return res.status(200).json({
@@ -646,7 +826,7 @@ export class GameServer {
                         message: 'Error attempting to unlink swu-stats'
                     });
                 }
-                await this.userFactory.unlinkSwuStatsAsync(user.getId());
+                await this.userFactory.unlinkRefreshTokenAsync(user.getId(), RefreshTokenSource.SWUStats);
                 this.swuStatsTokenMapping.delete(user.getId());
                 return res.status(200).json({
                     success: true,
@@ -654,6 +834,58 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (unlink-swustats) Server error:', err);
+                next(err);
+            }
+        });
+
+        // SWUBASE
+        // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
+        app.post('/api/link-swubase', async (req, res, next) => {
+            try {
+                const { userId, linkToken, internalApiKey } = req.body;
+                if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
+                    throw new Error('Environment variable INTRASERVICE_SECRET not set');
+                }
+                if (internalApiKey !== process.env.INTRASERVICE_SECRET) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Forbidden'
+                    });
+                }
+                // We test the refresh token if it correctly returns a new access token.
+                const newRefreshToken = await this.swuBaseHandler.linkAccountAsync(linkToken, userId);
+                await this.userFactory.addRefreshTokenAsync(userId, newRefreshToken.refreshToken, RefreshTokenSource.SWUBase);
+                // add token mapping
+                this.swuBaseTokenMapping.set(userId, newRefreshToken);
+                return res.status(200).json({
+                    success: true,
+                    message: 'SWUBase linked successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (link-swubase) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/unlink-swubase', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (unlink-swubase): Anonymous user ${user.getId()} attempted to change swubase setting in dynamodb`);
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Error attempting to unlink swu-base'
+                    });
+                }
+                await this.swuBaseHandler.unlinkAccountAsync(user.getId());
+                await this.userFactory.unlinkRefreshTokenAsync(user.getId(), RefreshTokenSource.SWUBase);
+                this.swuBaseTokenMapping.delete(user.getId());
+                return res.status(200).json({
+                    success: true,
+                    message: 'SWUBase unlinked successfully'
+                });
+            } catch (err) {
+                logger.error('GameServer (unlink-swubase) Server error:', err);
                 next(err);
             }
         });
@@ -879,17 +1111,49 @@ export class GameServer {
 
         app.post('/api/save-deck', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck } = req.body;
+                const { deck, swudbLink } = req.body;
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (save-deck): A anonymous user ${user.getId()} attempted to save deck ${deck.id}`);
+                    logger.error(`GameServer (save-deck): A anonymous user ${user.getId()} attempted to save deck`);
                     return res.status(401).json({
                         success: false,
                         message: 'Authentication error'
                     });
                 }
+
+                let deckEntity: IDeckDataEntity;
+                if (typeof swudbLink === 'string' && swudbLink.trim().length > 0) {
+                    let resolved;
+                    try {
+                        resolved = await this.swuDbDeckFetcher.fetchAsync(swudbLink);
+                    } catch (err) {
+                        if (err instanceof SwuDbFetchError) {
+                            return res.status(err.status).json({ success: false, error: err.message });
+                        }
+                        logger.error('GameServer (save-deck): unexpected error resolving swudbLink', err);
+                        return res.status(500).json({ success: false, error: 'Failed to resolve swudb deck link' });
+                    }
+                    deckEntity = {
+                        id: '',
+                        userId: user.getId(),
+                        deck: {
+                            leader: { id: resolved.leader?.id ?? '' },
+                            base: { id: resolved.base?.id ?? '' },
+                            name: resolved.metadata?.name || 'Untitled Deck',
+                            favourite: false,
+                            deckLink: swudbLink,
+                            deckLinkID: resolved.deckID ?? '',
+                            source: 'SWUDB',
+                        },
+                    };
+                } else if (deck) {
+                    deckEntity = deck;
+                } else {
+                    return res.status(400).json({ success: false, error: 'No deck or swudbLink provided' });
+                }
+
                 // we save the deck
-                const newDeck = await this.deckService.saveDeckAsync(deck, user);
+                const newDeck = await this.deckService.saveDeckAsync(deckEntity, user);
                 return res.status(200).json({
                     success: true,
                     message: 'Deck saved successfully',
@@ -971,6 +1235,77 @@ export class GameServer {
             }
         });
 
+        // Resolves a swudb.com deck-share URL into a full decklist payload.
+        // Used by the FE to preview decks before submitting them to other
+        // endpoints (create-lobby, enter-queue, save-deck) and to re-render
+        // saved decks on the deck view page.
+        app.post('/api/resolve-deck-link', this.buildAuthMiddleware('resolve-deck-link'), async (req, res, next) => {
+            try {
+                const { deckLink } = req.body;
+                if (typeof deckLink !== 'string' || deckLink.trim().length === 0) {
+                    return res.status(400).json({ success: false, error: 'Missing deckLink' });
+                }
+                if (!deckLink.includes('swudb.com')) {
+                    return res.status(400).json({ success: false, error: 'Only swudb.com links are supported by this endpoint' });
+                }
+
+                try {
+                    const resolvedDeck = await this.swuDbDeckFetcher.fetchAsync(deckLink);
+                    return res.status(200).json({ success: true, deck: resolvedDeck });
+                } catch (err) {
+                    if (err instanceof SwuDbFetchError) {
+                        return res.status(err.status).json({ success: false, error: err.message });
+                    }
+                    throw err;
+                }
+            } catch (err) {
+                logger.error('GameServer (resolve-deck-link) Server error :', err);
+                next(err);
+            }
+        });
+
+        // Lobby-scoped deck change. Mirrors the `changeDeck` socket message
+        // but accepts an optional `swudbLink` for server-side deck resolution.
+        // The caller must be a Player currently in `:lobbyId`.
+        app.post('/api/lobby/:lobbyId/change-deck', this.buildAuthMiddleware('lobby-change-deck'), async (req, res, next) => {
+            try {
+                const { lobbyId } = req.params;
+                const { deck, swudbLink } = req.body;
+                const user = req.user as User;
+
+                const mapping = this.userLobbyMap.get(user.getId());
+                if (!mapping || mapping.lobbyId !== lobbyId || mapping.role !== UserRole.Player) {
+                    return res.status(403).json({
+                        success: false,
+                        error: 'Not a player in this lobby',
+                        errorCode: 'NotLobbyMember',
+                    });
+                }
+
+                const lobby = this.lobbies.get(lobbyId);
+                if (!lobby) {
+                    return res.status(404).json({ success: false, error: 'Lobby not found' });
+                }
+
+                const resolvedDeck = await this.resolveDeckInputAsync({ deck, swudbLink }, res);
+                if (!resolvedDeck) {
+                    return;
+                }
+
+                try {
+                    const importDeckErrors = lobby.changeDeckForUser(user.getId(), resolvedDeck);
+                    lobby.sendLobbyState();
+                    return res.status(200).json({ success: true, importDeckErrors });
+                } catch (err) {
+                    const message = err instanceof Error ? err.message : 'Failed to change deck';
+                    return res.status(400).json({ success: false, error: message });
+                }
+            } catch (err) {
+                logger.error('GameServer (lobby-change-deck) Server error :', err);
+                next(err);
+            }
+        });
+
         app.get('/api/ongoing-games', (_, res, next) => {
             try {
                 return res.json(this.getOngoingGamesData());
@@ -982,8 +1317,32 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, gamesToWinMode, lobbyName, allow30CardsInMainBoard } = req.body;
+                const { deck, swudbLink, format, isPrivate, gamesToWinMode, lobbyName, cardPool } = req.body;
                 const user = req.user;
+
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    logger.verbose(`GameServer (create-lobby): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
+                // Check for profanity
+                if (userOrLobbyNameContainsProfanity(lobbyName)) {
+                    logger.warn(`GameServer (create-lobby): User ${user.getId()} attempted to use a lobby name containing profanity: ${lobbyName}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Lobby name contains inappropriate words'
+                    });
+                }
+
+                // Check for length
+                if (lobbyName.length > 100) {
+                    logger.warn(`GameServer (create-lobby): User ${user.getId()} attempted to use a lobby name that is too long: ${lobbyName}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Lobby name is too long, max 100 characters'
+                    });
+                }
 
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
@@ -1000,6 +1359,11 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
+                if (!EnumHelpers.isEnumValue(cardPool, CardPool)) {
+                    logger.error(`GameServer (create-lobby): Invalid card pool parameter ${cardPool}`);
+                    return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
+                }
+
                 // Check Bo3 access restrictions for anonymous users
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, isPrivate, 'create a public best of three lobby');
                 if (bo3AccessError) {
@@ -1007,8 +1371,15 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, true, { format, allow30CardsInMainBoard }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, allow30CardsInMainBoard);
+                const resolvedDeck = await this.resolveDeckInputAsync({ deck, swudbLink }, res);
+                if (!resolvedDeck) {
+                    return;
+                }
+
+                await this.processDeckValidation(resolvedDeck, true, { format, cardPool }, res, () => {
+                    // createLobby's `deck` parameter is mistyped as `Deck` but receives the raw
+                    // decklist at runtime; cast preserves the pre-existing behavior.
+                    this.createLobby(lobbyName, user, resolvedDeck as any, format, gamesToWinMode, isPrivate, cardPool);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1027,6 +1398,7 @@ export class GameServer {
                         id,
                         name: lobby.name,
                         format: lobby.format,
+                        cardPool: lobby.cardPool,
                         gamesToWinMode: lobby.gamesToWinMode,
                         host: lobbyOwnerUser?.deck ? {
                             leader: lobbyOwnerUser.deck.leader,
@@ -1045,6 +1417,12 @@ export class GameServer {
             try {
                 const { lobbyId } = req.body;
                 const user = req.user;
+
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    logger.verbose(`GameServer (join-lobby): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
 
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a different lobby while already being in a lobby`);
@@ -1102,8 +1480,15 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { format, gamesToWinMode, deck } = req.body;
+                const { format, cardPool, gamesToWinMode, deck, swudbLink } = req.body;
                 const user = req.user;
+
+                // track daily active user (req.user is set by auth middleware)
+                if (req.user?.hasClientProvidedId()) {
+                    logger.verbose(`GameServer (enter-queue): Tracking daily active user ${req.user.getId()}`, { userId: req.user.getId() });
+                    this.dailyActiveUserIds.add(req.user.getId());
+                }
+
                 // check if user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
@@ -1125,8 +1510,13 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, false, { format, allow30CardsInMainBoard: false }, res, () => {
-                    const success = this.enterQueue(format, gamesToWinMode, user, deck);
+                const resolvedDeck = await this.resolveDeckInputAsync({ deck, swudbLink }, res);
+                if (!resolvedDeck) {
+                    return;
+                }
+
+                await this.processDeckValidation(resolvedDeck, false, { format, cardPool }, res, () => {
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1248,7 +1638,123 @@ export class GameServer {
                 next(error);
             }
         });
+        // MOD ACTIONS
+        app.post('/api/mod/find-user', this.buildAuthMiddleware('mod-find-user', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = FindUserSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { searchQuery } = parseResult.data;
+                const profiles = await this.userFactory.findUserProfilesAsync(searchQuery);
+
+                if (profiles.length === 0) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Player not found'
+                    });
+                }
+
+                const players = profiles.map((profile) => ({
+                    id: profile.id,
+                    username: profile.username,
+                    createdAt: profile.createdAt,
+                    lastLogin: profile.lastLogin,
+                    isMuted: this.modActionService?.isPlayerMuted(profile.id) ?? false,
+                    activeRename: this.modActionService?.playerActiveRename(profile.id) ?? null,
+                }));
+
+                // If single match, include mod actions directly
+                let modActions = [];
+                if (players.length === 1) {
+                    modActions = await this.userFactory.getModActionHistoryAsync(players[0].id);
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    players,
+                    modActions,
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-find-user) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/submit-action', this.buildAuthMiddleware('mod-submit-action', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = ModActionSubmitSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { playerId, actionType, durationDays, note } = parseResult.data;
+                const moderatorId = req.user.getId();
+                const moderatorUsername = req.user.getUsername();
+
+                if (!this.modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                // Write-through to cache
+                const modActionResult = await this.modActionService.onActionSubmitted(
+                    playerId,
+                    actionType,
+                    moderatorId,
+                    moderatorUsername,
+                    note,
+                    durationDays ?? undefined,
+                );
+
+                return res.status(200).json({
+                    success: modActionResult.success,
+                    message: modActionResult.message,
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-submit-action) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/cancel-action', this.buildAuthMiddleware('mod-cancel-action', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = ModActionCancelSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                const { modActionId, playerId } = parseResult.data;
+                const cancelledById = req.user.getId();
+                const cancelledByUsername = req.user.getUsername();
+                // Write-through to cache
+                if (this.modActionService) {
+                    await this.modActionService.onActionCancelled(playerId, modActionId, cancelledById, cancelledByUsername);
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'Mod action cancelled successfully',
+                });
+            } catch (err) {
+                logger.error('GameServer (mod-cancel-action) Server error:', err);
+                next(err);
+            }
+        });
     }
+
 
     /**
      * Creates an auth middleware function with the GameServer instance injected.
@@ -1258,6 +1764,25 @@ export class GameServer {
      */
     private buildAuthMiddleware(routeName?: string, serverRoleRequired?: ServerRole) {
         return authMiddleware(this, routeName, serverRoleRequired);
+    }
+
+    /**
+     * Builds a ModerationAction suitable for the FE from the CacheEntry
+     * @param entry - The Cache ActiveModAction object
+     * @param hasSeen - The boolean that tells us whether a user has seen the Mod action popup
+     * @private
+     */
+    private buildModerationFromCacheEntry(entry: IActiveModActionCacheEntry, hasSeen: boolean): IModerationAction {
+        const expiresAt = new Date(entry.expiresAt);
+        const now = new Date();
+        const daysRemaining = Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
+
+        return {
+            daysRemaining,
+            endDate: entry.expiresAt,
+            hasSeen,
+            moderationType: ModerationType.Mute,
+        };
     }
 
     // dev only endpoints
@@ -1373,6 +1898,43 @@ export class GameServer {
         return this.userLobbyMap.get(userId)?.lobbyId;
     }
 
+    /**
+     * Resolves the deck input for endpoints that accept either a pre-resolved
+     * `deck` payload or a `swudbLink` to be fetched server-side.
+     *
+     * If `swudbLink` is provided, fetches the deck from swudb.com via
+     * {@link SwuDbDeckFetcher}. On failure, writes the appropriate error
+     * response to `res` and returns `null` so the caller can short-circuit.
+     *
+     * If only `deck` is provided, returns it unchanged. If neither is
+     * provided, writes a 400 to `res` and returns `null`.
+     */
+    private async resolveDeckInputAsync(
+        body: { deck?: ISwuDbFormatDecklist; swudbLink?: string },
+        res: express.Response
+    ): Promise<ISwuDbFormatDecklist | null> {
+        if (typeof body.swudbLink === 'string' && body.swudbLink.trim().length > 0) {
+            try {
+                return await this.swuDbDeckFetcher.fetchAsync(body.swudbLink);
+            } catch (err) {
+                if (err instanceof SwuDbFetchError) {
+                    res.status(err.status).json({ success: false, error: err.message });
+                    return null;
+                }
+                logger.error('GameServer (resolveDeckInputAsync): unexpected error resolving swudbLink', err);
+                res.status(500).json({ success: false, error: 'Failed to resolve swudb deck link' });
+                return null;
+            }
+        }
+
+        if (body.deck) {
+            return body.deck;
+        }
+
+        res.status(400).json({ success: false, error: 'No deck or swudbLink provided' });
+        return null;
+    }
+
     // method for validating the deck via API
     private async processDeckValidation(
         deck: ISwuDbFormatDecklist,
@@ -1481,7 +2043,7 @@ export class GameServer {
         format: SwuGameFormat,
         gamesToWinMode: GamesToWinMode,
         isPrivate: boolean,
-        allow30CardsInMainBoard: boolean = false
+        cardPool: CardPool = CardPool.Current
     ) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
@@ -1496,7 +2058,7 @@ export class GameServer {
             isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
             format,
             gamesToWinMode,
-            allow30CardsInMainBoard,
+            cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1515,7 +2077,7 @@ export class GameServer {
             MatchmakingType.PublicLobby,
             SwuGameFormat.Open,
             GamesToWinMode.BestOfOne,
-            false,
+            CardPool.Unlimited,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -1582,7 +2144,7 @@ export class GameServer {
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
         // 0. If user is spectator
         if (isSpectator) {
-            if (user.isAnonymousUser()) {
+            if (process.env.ENVIRONMENT !== 'development' && user.isAnonymousUser()) {
                 logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect as spectator to a lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -1602,6 +2164,14 @@ export class GameServer {
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
+
+            if (!lobby.spectationAllowed) {
+                logger.warn(`GameServer: Spectation not allowed for lobby ${lobby.id}, disconnecting spectator ${user.getId()}`);
+                this.userLobbyMap.delete(user.getId());
+                ioSocket.disconnect();
+                return Promise.resolve();
+            }
+
             const socket = new Socket(ioSocket);
             this.registerDisconnect(socket, user.getId());
             lobby.addSpectator(user, socket);
@@ -1745,9 +2315,16 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, gamesToWinMode: GamesToWinMode, user: User, deck: ISwuDbFormatDecklist): boolean {
+    private enterQueue(
+        format: SwuGameFormat,
+        cardPool: CardPool,
+        gamesToWinMode: GamesToWinMode,
+        user: User,
+        deck: ISwuDbFormatDecklist
+    ): boolean {
         const formatKey: IQueueFormatKey = {
-            swuFormat: format,
+            format,
+            cardPool,
             gamesToWinMode
         };
 
@@ -1833,9 +2410,9 @@ export class GameServer {
         const lobby = new Lobby(
             'Quick Game',
             MatchmakingType.Quick,
-            format.swuFormat,
+            format.format,
             format.gamesToWinMode,
-            false,
+            format.cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -2104,12 +2681,18 @@ export class GameServer {
         }
     }
 
+    private logAndResetDailyActiveUsers(): void {
+        const count = this.dailyActiveUserIds.size;
+        logger.info(`[DAU] ${count} unique users in the last 24 hours`, { dailyActiveUserCount: count });
+        this.dailyActiveUserIds.clear();
+    }
+
     /**
      * Clean up invalid/expired tokens from the user token map
      */
     private cleanupInvalidTokens(): void {
         try {
-            const newTokenMapping = new Map<string, ISwuStatsToken>();
+            const newTokenMapping = new Map<string, IToken>();
             // Create new map with only valid tokens
             for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
                 if (this.swuStatsHandler.isTokenValid(token)) {

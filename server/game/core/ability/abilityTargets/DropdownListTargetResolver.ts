@@ -4,7 +4,7 @@ import type { AbilityContext } from '../AbilityContext';
 import { TargetResolver } from './TargetResolver';
 import { SelectChoice } from './SelectChoice';
 import type { Player } from '../../Player';
-import * as Helpers from '../../utils/Helpers';
+import { Helpers } from '../../utils/Helpers';
 
 /** Target resolver for selecting from a list of strings and passing the choice to a GameSystem */
 export class DropdownListTargetResolver extends TargetResolver<IDropdownListTargetResolver<AbilityContext>> {
@@ -18,7 +18,11 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
 
     public override hasLegalTarget(context: AbilityContext): boolean {
         const gameSystems = Helpers.asArray(this.getGameSystems(context));
-        return gameSystems.length === 0 || gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
+        // If there's no selection yet, we consider there to be a legal target
+        // since the game system usually depends on the selection
+        return !context.select ||
+          gameSystems.length === 0 ||
+          gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
     protected override resolveInternal(player: Player, context: AbilityContext) {

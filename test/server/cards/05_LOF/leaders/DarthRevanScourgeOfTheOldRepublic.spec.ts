@@ -628,7 +628,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickDone();
 
                 // Choose resolution order
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 // TODO: these names are unintuitive, since it names the attack target and not Maul. Need to find a way to improve this
                 expect(context.player1).toHaveExactPromptButtons([
                     'Give an Experience token to the attacking unit: Warzone Lieutenant',

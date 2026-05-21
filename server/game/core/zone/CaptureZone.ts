@@ -2,10 +2,10 @@ import type { IBaseCard } from '../card/BaseCard';
 import type { Card } from '../card/Card';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import { ZoneName } from '../Constants';
-import type Game from '../Game';
+import type { Game } from '../Game';
 import { registerState } from '../GameObjectUtils';
 import type { Player } from '../Player';
-import * as Contract from '../utils/Contract';
+import { Contract } from '../utils/Contract';
 import { SimpleZone } from './SimpleZone';
 
 export type ICaptorCard = IUnitCard | IBaseCard;

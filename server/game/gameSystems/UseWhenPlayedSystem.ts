@@ -2,7 +2,8 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, GameStateChangeRequired, Stage, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import TriggeredAbility from '../core/ability/TriggeredAbility';
+import type { TriggeredAbilityBase } from '../core/ability/TriggeredAbility';
+import { TriggeredAbility } from '../core/ability/TriggeredAbility';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ITriggeredAbilityProps } from '../Interfaces';
 import { PlayCardSystem } from './PlayCardSystem';
@@ -27,7 +28,7 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
         const whenPlayedSource = event.whenPlayedSource;
         const triggerAll = event.triggerAll;
         const onCardPlayedEvent = event.onCardPlayedEvent;
-        const whenPlayedAbilities: TriggeredAbility[] = onCardPlayedEvent == null ? event.whenPlayedAbilities : [event.resolvedAbility];
+        const whenPlayedAbilities: TriggeredAbilityBase[] = onCardPlayedEvent == null ? event.whenPlayedAbilities : [event.resolvedAbility];
 
         if (whenPlayedAbilities.length === 1 || triggerAll) {
             whenPlayedAbilities.forEach((whenPlayedAbility) => {
@@ -58,7 +59,7 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
         }
     }
 
-    private useWhenPlayedAbility(whenPlayedAbility: TriggeredAbility, whenPlayedSource: Card, event, onCardPlayedEvent = null) {
+    private useWhenPlayedAbility(whenPlayedAbility: TriggeredAbilityBase, whenPlayedSource: Card, event, onCardPlayedEvent = null) {
         const whenPlayedProps = { ...(whenPlayedAbility.properties as ITriggeredAbilityProps), optional: false, target: whenPlayedSource };
         const ability = event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new TriggeredAbility(event.context.game, whenPlayedSource, whenPlayedProps));
 

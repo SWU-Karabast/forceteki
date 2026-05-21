@@ -1,19 +1,19 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type Game from '../../Game';
-import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from '../../GameObjectBase';
-import { registerState, undoMap } from '../../GameObjectUtils';
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import type { Game } from '../../Game';
+import type { GameObjectBase, IGameObjectBaseState } from '../../GameObjectBase';
+import { registerState, stateRefMap, type GameObjectId } from '../../GameObjectUtils';
+import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 
 export interface IDetachedOngoingEffectValueWrapperState extends IGameObjectBaseState {
-    targetStates: Record<string, GameObjectRef>;
+    targetStates: Record<string, GameObjectId<GameObjectBase>>;
 }
 
 @registerState()
-export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapper<TValue, IDetachedOngoingEffectValueWrapperState> {
+export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapperBase<TValue> {
     public readonly applyFunc: any;
     public readonly unapplyFunc: any;
 
-    @undoMap()
+    @stateRefMap()
     private accessor _targetStates: Map<string, GameObjectBase> = new Map();
 
     public get targetStates(): ReadonlyMap<string, GameObjectBase> {

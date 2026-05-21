@@ -35,6 +35,7 @@ describe('Final Showdown', function() {
             // Player 1 should have lost the game
             expect(context.game).toBeOver();
             expect(context.player1).not.toBeGameWinner();
+            expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Final Showdown to lose the game');
         });
 
         it('Final Showdown\'s event ability should ready all friendly units and allow you to win this phase', async function() {

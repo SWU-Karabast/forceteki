@@ -11,18 +11,21 @@ export default class Eject extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Detach a Pilot upgrade, move it to the ground arena as a unit, and exhaust it. Draw a card.',
-            targetResolver: {
-                cardTypeFilter: WildcardCardType.UnitUpgrade,
-                cardCondition: (card) => card.hasSomeTrait(Trait.Pilot),
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.detachPilot(),
-                    AbilityHelper.immediateEffects.exhaust(),
-                    AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
-                ])
-            }
+            immediateEffect: abilityHelper.immediateEffects.simultaneous([
+                abilityHelper.immediateEffects.selectCard({
+                    activePromptTitle: 'Detach a Pilot upgrade, move it to the ground arena as a unit, and exhaust it',
+                    cardTypeFilter: WildcardCardType.UnitUpgrade,
+                    cardCondition: (card) => card.hasSomeTrait(Trait.Pilot),
+                    immediateEffect: abilityHelper.immediateEffects.sequential([
+                        abilityHelper.immediateEffects.detachPilot(),
+                        abilityHelper.immediateEffects.exhaust(),
+                    ])
+                }),
+                abilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
+            ])
         });
     }
 }

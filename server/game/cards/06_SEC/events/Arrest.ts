@@ -24,16 +24,17 @@ export default class Arrest extends EventCard {
                     AbilityHelper.immediateEffects.capture({
                         captor: context.player.base
                     }),
-                    AbilityHelper.immediateEffects.delayedPlayerEffect({
+                    AbilityHelper.immediateEffects.delayedPlayerEffect((effectContext) => ({
                         title: 'The captured unit is rescued by its owner',
                         when: {
                             onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                         },
                         effectDescription: 'apply an effect that rescues {0} at the start of the regroup phase',
+                        target: effectContext.target.owner,
                         immediateEffect: AbilityHelper.immediateEffects.rescue({
                             target: context.target
                         })
-                    })
+                    }))
                 ]))
             }
         });

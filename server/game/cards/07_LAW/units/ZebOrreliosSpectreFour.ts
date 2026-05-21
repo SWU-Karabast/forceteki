@@ -1,7 +1,8 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, ZoneName } from '../../../core/Constants';
+import { Aspect, Conjunction, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ZebOrreliosSpectreFour extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ZebOrreliosSpectreFour extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Deal 3 damage to a ground unit. If you control a Command or Cunning unit, deal 5 damage to a ground unit instead',
+            title: `Deal 3 damage to a ground unit. If you control a ${TextHelper.aspectList([Aspect.Command, Aspect.Cunning], Conjunction.Or)} unit, deal 5 damage to a ground unit instead`,
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,

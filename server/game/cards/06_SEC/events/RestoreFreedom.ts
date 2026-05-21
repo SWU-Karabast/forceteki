@@ -3,6 +3,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class RestoreFreedom extends EventCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class RestoreFreedom extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Play a unit from your hand. It costs 1 resource less for each Heroism aspect icon among friendly units.',
+            title: `Play a unit from your hand. It costs ${TextHelper.resource(1)} less for each ${TextHelper.Heroism} aspect icon among friendly units.`,
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: WildcardCardType.Unit,

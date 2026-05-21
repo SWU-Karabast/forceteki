@@ -1,5 +1,6 @@
 import { lstatSync, readdirSync } from 'fs';
 import { join, sep } from 'path';
+import { buildAutoInitializingCardClass } from '../core/GameObjectUtils';
 
 function allJsFiles(path: string): string[] {
     const files = [];
@@ -46,13 +47,16 @@ for (const filepath of allJsFiles(__dirname)) {
         throw Error(`Import card class with duplicate class name: ${card.name}`);
     }
 
-    cardsMap.set(cardId.id, card);
+    const wrappedCardClass = buildAutoInitializingCardClass(card);
+    cardsMap.set(cardId.id, wrappedCardClass);
     cardClassNames.add(card.name);
 
     if (card.prototype.overrideNotImplemented) {
-        overrideNotImplementedCardsMap.set(cardId.id, card);
+        overrideNotImplementedCardsMap.set(cardId.id, wrappedCardClass);
     }
 }
 
 export const cards = cardsMap;
 export const overrideNotImplementedCards = overrideNotImplementedCardsMap;
+
+

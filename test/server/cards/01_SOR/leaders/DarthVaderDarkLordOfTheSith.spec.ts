@@ -71,6 +71,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
 
                 // play a villainy card
                 context.player1.clickCard(context.powerOfTheDarkSide);
+                context.player1.clickPrompt('Play anyway');
                 context.player2.passAction();
 
                 // use ability with effect

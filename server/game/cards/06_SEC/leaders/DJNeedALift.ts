@@ -4,6 +4,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { EffectName, RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DJNeedALift extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -27,7 +28,7 @@ export default class DJNeedALift extends LeaderUnitCard {
                     zoneFilter: WildcardZoneName.AnyArena,
                 },
                 unitInHand: {
-                    activePromptTitle: (context) => `Choose a unit in your hand to play for 1 Resource less. ${context.targets.friendlyUnit.title} captures it.`,
+                    activePromptTitle: (context) => `Choose a unit in your hand to play for ${TextHelper.resource(1)} less. ${context.targets.friendlyUnit.title} captures it.`,
                     dependsOn: 'friendlyUnit',
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,

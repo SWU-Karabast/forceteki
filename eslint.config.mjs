@@ -6,6 +6,8 @@ import stylistic from '@stylistic/eslint-plugin';
 import eslintPluginImportX from 'eslint-plugin-import-x';
 import tsParser from '@typescript-eslint/parser';
 import unusedImports from "eslint-plugin-unused-imports";
+import noRawTokenText from './eslint-rules/no-raw-token-text.mjs';
+import stateRefArrayRequiresIStateArray from './eslint-rules/state-ref-array-requires-istatearray.mjs';
 
 export default tseslint.config(
     {
@@ -242,6 +244,22 @@ export default tseslint.config(
             "@typescript-eslint/prefer-namespace-keyword": "off",
             "@typescript-eslint/explicit-member-accessibility": "error",
             "@typescript-eslint/no-namespace": "off"
+        }
+    },
+    {
+        files: ["server/game/**/*.ts"],
+        ignores: ["server/game/core/utils/TextHelper.ts"],
+        plugins: {
+            forceteki: {
+                rules: {
+                    'no-raw-token-text': noRawTokenText,
+                    'state-ref-array-requires-istatearray': stateRefArrayRequiresIStateArray,
+                }
+            }
+        },
+        rules: {
+            'forceteki/no-raw-token-text': 'error',
+            'forceteki/state-ref-array-requires-istatearray': 'error',
         }
     }
 );

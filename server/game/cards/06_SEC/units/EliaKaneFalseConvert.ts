@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
-import * as Helpers from '../../../core/utils/Helpers';
+import { Helpers } from '../../../core/utils/Helpers';
 
 export default class EliaKaneFalseConvert extends NonLeaderUnitCard {
     protected override getImplementationId() {

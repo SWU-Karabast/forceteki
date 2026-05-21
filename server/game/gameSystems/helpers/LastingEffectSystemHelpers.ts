@@ -3,9 +3,9 @@ import type { FormatMessage } from '../../core/chat/GameChat';
 import { Duration, EffectName } from '../../core/Constants';
 import type { ILastingEffectPropertiesBase } from '../../core/gameSystem/LastingEffectPropertiesBase';
 import type { IOngoingCardOrPlayerEffect, IOngoingCardOrPlayerEffectGenerator, IOngoingCardOrPlayerEffectProps } from '../../Interfaces';
-import * as ChatHelpers from '../../core/chat/ChatHelpers';
-import * as Contract from '../../core/utils/Contract';
-import * as Helpers from '../../core/utils/Helpers';
+import { ChatHelpers } from '../../core/chat/ChatHelpers';
+import { Contract } from '../../core/utils/Contract';
+import { Helpers } from '../../core/utils/Helpers';
 import type { GameSystem, IGameSystemProperties } from '../../core/gameSystem/GameSystem';
 
 type Flatten<A> = A extends readonly (infer T)[] ? T : A;
@@ -38,7 +38,7 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
                 if (effect.impl.effectDescription && filterApplicableEffects(properties.target[i] as any, [effect], context).length > 0) {
                     if (effect.impl.type === EffectName.AbilityRestrictions) {
                         abilityRestrictions.push(effect.impl.effectDescription);
-                    } else if (effect.impl.type === EffectName.CloneUnit) {
+                    } else if (effect.impl.type === EffectName.CloneUnit || effect.impl.type === EffectName.CopyStandardTriggeredAbilities) {
                         cloneEffects.push(effect.impl.effectDescription);
                     } else {
                         otherEffects.push(effect.impl.effectDescription);

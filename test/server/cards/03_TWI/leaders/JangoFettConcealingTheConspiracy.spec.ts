@@ -96,7 +96,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 ]));
 
                 // Choose resolution order
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine',
                     'Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant',
@@ -125,7 +125,6 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 context.player1.clickCard(context.isbAgent);
                 context.player1.clickCard(context.volunteerSoldier);
-                context.player1.clickPrompt('Trigger');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 2],
                     [context.fleetLieutenant, 1],
@@ -318,7 +317,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 ]));
 
                 // Choose resolution order
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine',
                     'Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant',
@@ -433,7 +432,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 ]));
 
                 // Choose resolution order
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Exhaust the damaged enemy unit: Volunteer Soldier',
                     'Exhaust the damaged enemy unit: Fleet Lieutenant',
@@ -448,7 +447,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.volunteerSoldier.exhausted).toBeTrue();
 
                 // Choose resolution order again
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Exhaust the damaged enemy unit: Fleet Lieutenant',
                     'Exhaust the damaged enemy unit: Battlefield Marine'
@@ -474,7 +473,6 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // Attack and distribute damage with Vambrace Flamethrower
                 context.player1.clickCard(context.isbAgent);
                 context.player1.clickCard(context.volunteerSoldier);
-                context.player1.clickPrompt('Trigger');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 2],
                     [context.fleetLieutenant, 1],
@@ -534,7 +532,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 ]));
 
                 // Choose resolution order
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Exhaust the damaged enemy unit: Fleet Lieutenant',
                     'Exhaust the damaged enemy unit: Battlefield Marine',
@@ -549,7 +547,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.volunteerSoldier.exhausted).toBeTrue();
 
                 // Choose resolution order again
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Exhaust the damaged enemy unit: Fleet Lieutenant',
                     'Exhaust the damaged enemy unit: Battlefield Marine',

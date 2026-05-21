@@ -2,14 +2,13 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { type MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
-import * as Contract from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Contract } from '../core/utils/Contract';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { ISimultaneousOrSequentialSystemProperties } from './SimultaneousOrSequentialSystem';
 import { ResolutionMode, SimultaneousOrSequentialSystem } from './SimultaneousOrSequentialSystem';
 
 export type ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> = ISimultaneousOrSequentialSystemProperties<TContext>;
-
 
 // TODO: add a variant of this (or a configuration option) for repeating the same action a variable number of times
 /**

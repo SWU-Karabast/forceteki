@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, Conjunction, WildcardCardType } from '../../../core/Constants';
-import { aspectString } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class EzraBridgerSpectreSix extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +14,7 @@ export default class EzraBridgerSpectreSix extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `Heal 2 damage from a unit. If you control a ${aspectString([Aspect.Aggression, Aspect.Cunning], Conjunction.Or)} unit, heal 4 damage from a unit instead`,
+            title: `Heal 2 damage from a unit. If you control a ${TextHelper.aspectList([Aspect.Aggression, Aspect.Cunning], Conjunction.Or)} unit, heal 4 damage from a unit instead`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

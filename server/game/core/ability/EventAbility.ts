@@ -3,9 +3,11 @@ import { CardAbility } from './CardAbility.js';
 import { AbilityType, ZoneName, PhaseName } from '../Constants.js';
 import type { IEventAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
-import type Game from '../Game.js';
+import type { Game } from '../Game.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
+import { registerState } from '../GameObjectUtils';
 
+@registerState()
 export class EventAbility extends CardAbility {
     protected anyPlayer: boolean;
     protected phase: string;

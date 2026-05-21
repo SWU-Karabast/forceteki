@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FaithInYourFriends extends EventCard {
     protected override getImplementationId() {
@@ -19,11 +19,10 @@ export default class FaithInYourFriends extends EventCard {
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 3,
                 selectCount: 1,
-                revealSelected: false,
                 selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
             }),
             then: {
-                title: `Disclose ${EnumHelpers.aspectString(aspects)} to create 2 Spy tokens`,
+                title: `Disclose ${TextHelper.aspectList(aspects)} to create 2 Spy tokens`,
                 immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
                 ifYouDo: {
                     title: 'Create 2 Spy tokens',

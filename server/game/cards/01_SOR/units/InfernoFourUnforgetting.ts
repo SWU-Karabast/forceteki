@@ -2,7 +2,6 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 
-
 export default class InfernoFourUnforgetting extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {

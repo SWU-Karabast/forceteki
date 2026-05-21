@@ -10,12 +10,12 @@ import {
     WildcardCardType,
     ZoneName
 } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import * as Helpers from '../core/utils/Helpers.js';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
+import { Helpers } from '../core/utils/Helpers.js';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { AttachedUpgradeOverrideHandler } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { FormatMessage, MsgArg } from '../core/chat/GameChat';
 
 /**

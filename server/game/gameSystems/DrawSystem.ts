@@ -4,9 +4,11 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DamageSystem } from './DamageSystem';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { GameEvent } from '../core/event/GameEvent';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
+import { Helpers } from '../core/utils/Helpers';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -29,12 +31,26 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
             gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
         }
 
+        event.cards = event.player.drawDeck.slice(0, event.amount);
         event.player.drawCardsToHand(event.amount);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['draw {0}', [ChatHelpers.pluralize(properties.amount, 'a card', 'cards')]];
+        const effects: FormatMessage[] = Helpers.asArray(properties.target).map((target) => {
+            const cardAmount = ChatHelpers.pluralize(properties.amount, 'a card', 'cards');
+            if (target === context.player) {
+                return {
+                    format: 'draw {0}',
+                    args: [cardAmount],
+                };
+            }
+            return {
+                format: 'make {0} draw {1}',
+                args: [target, cardAmount],
+            };
+        });
+        return [ChatHelpers.formatWithLength(effects.length, 'to '), effects];
     }
 
     public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDrawProperties> = {}): boolean {
@@ -49,7 +65,6 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDrawProperties>): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
-        event.cards = event.player.drawDeck.slice(0, amount);
         event.amount = amount;
     }
 

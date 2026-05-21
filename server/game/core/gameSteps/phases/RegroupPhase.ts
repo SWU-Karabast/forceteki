@@ -1,5 +1,5 @@
 import { AbilityRestriction, EventName, PhaseName, ZoneName } from '../../Constants';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';
@@ -8,7 +8,7 @@ import * as GameSystemLibrary from '../../../gameSystems/GameSystemLibrary';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOrDeployableCard';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { SnapshotManager } from '../../snapshot/SnapshotManager';
 import { SnapshotTimepoint } from '../../snapshot/SnapshotInterfaces';
 import type { AdditionalPhaseEffect } from '../../ongoingEffect/effectImpl/AdditionalPhaseEffect';

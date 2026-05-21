@@ -3,7 +3,6 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import { Duration } from '../../../core/Constants';
 import type { Player } from '../../../core/Player';
 
 export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
@@ -38,10 +37,11 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
             title: 'If you played an event this phase, this unit gets +1/+0 for this attack and deals combat damage before the defender',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.hasPlayedAnEventThisPhase(context.player),
-                onTrue: AbilityHelper.immediateEffects.cardLastingEffect({
-                    duration: Duration.UntilEndOfAttack,
-                    effect: [AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
-                        AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })]
+                onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect({
+                    effect: [
+                        AbilityHelper.ongoingEffects.dealsCombatDamageFirst(),
+                        AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
+                    ]
                 }),
             })
         });

@@ -14,6 +14,9 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
             const { context } = contextRef;
             context.player1.clickCard(context.theInvisibleHand);
 
+            expect(context.player1).toHavePassAbilityPrompt('Search the top 8 cards of your deck for a Droid unit, reveal it, and draw it. If it costs 2 or less, you may play it for free.');
+            context.player1.clickPrompt('Trigger');
+
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [context.viperProbeDroid, context.calculatingMagnaguard],
                 invalid: [context.wampa, context.pykeSentinel, context.repair,
@@ -24,8 +27,9 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
             expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
             context.player1.clickCardInDisplayCardPrompt(context.calculatingMagnaguard);
+
+            expect(context.getChatLog()).toEqual('player1 uses The Invisible Hand to reveal and draw Calculating MagnaGuard and to move 7 cards to the bottom of their deck');
             expect(context.calculatingMagnaguard).toBeInZone('hand');
-            expect(context.getChatLogs(2)).toContain('player1 takes Calculating MagnaGuard');
 
             expect(context.player2).toBeActivePlayer();
         });
@@ -44,6 +48,9 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
             const { context } = contextRef;
             context.player1.clickCard(context.theInvisibleHand);
 
+            expect(context.player1).toHavePassAbilityPrompt('Search the top 8 cards of your deck for a Droid unit, reveal it, and draw it. If it costs 2 or less, you may play it for free.');
+            context.player1.clickPrompt('Trigger');
+
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [context.viperProbeDroid, context.calculatingMagnaguard],
                 invalid: [context.wampa, context.pykeSentinel, context.repair,
@@ -55,7 +62,7 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
 
             context.player1.clickCardInDisplayCardPrompt(context.viperProbeDroid);
             expect(context.viperProbeDroid).toBeInZone('hand');
-            expect(context.getChatLogs(2)).toContain('player1 takes Viper Probe Droid');
+            expect(context.getChatLog()).toEqual('player1 uses The Invisible Hand to reveal and draw Viper Probe Droid and then to look at a card and to move 7 cards to the bottom of their deck');
 
             const readyResources = context.player1.readyResourceCount;
 
@@ -83,6 +90,9 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
             context.player1.clickCard(context.theInvisibleHand);
             context.player1.clickCard(context.p2Base);
 
+            expect(context.player1).toHavePassAbilityPrompt('Search the top 8 cards of your deck for a Droid unit, reveal it, and draw it. If it costs 2 or less, you may play it for free.');
+            context.player1.clickPrompt('Trigger');
+
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [context.viperProbeDroid, context.calculatingMagnaguard],
                 invalid: [context.wampa, context.pykeSentinel, context.repair,
@@ -94,9 +104,33 @@ describe('The Invisible Hand, Crawling With Vultures', function() {
 
             context.player1.clickCardInDisplayCardPrompt(context.calculatingMagnaguard);
             expect(context.calculatingMagnaguard).toBeInZone('hand');
-            expect(context.getChatLogs(2)).toContain('player1 takes Calculating MagnaGuard');
+            expect(context.getChatLog()).toEqual('player1 uses The Invisible Hand to reveal and draw Calculating MagnaGuard and to move 7 cards to the bottom of their deck');
 
             expect(context.player2).toBeActivePlayer();
+        });
+
+        it('The Invisible Hand\'s ability could be passed', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['the-invisible-hand#crawling-with-vultures'],
+                    deck: ['wampa', 'pyke-sentinel', 'viper-probe-droid',
+                        'repair', 'calculating-magnaguard', 'battlefield-marine',
+                        'concord-dawn-interceptors', 'drop-in', '21b-surgical-droid'],
+                },
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.theInvisibleHand);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toHavePassAbilityPrompt('Search the top 8 cards of your deck for a Droid unit, reveal it, and draw it. If it costs 2 or less, you may play it for free.');
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.deck[0]).toBe(context.wampa);
+            expect(context.player1.deck[1]).toBe(context.pykeSentinel);
+            expect(context.player1.deck[2]).toBe(context.viperProbeDroid);
         });
     });
 });

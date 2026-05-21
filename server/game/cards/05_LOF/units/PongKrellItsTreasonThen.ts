@@ -12,9 +12,10 @@ export default class PongKrellItsTreasonThen extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackCompletedAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Defeat a unit with less remaining HP than this unit\'s power',
             optional: true,
+            attackerMustSurvive: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card.isUnit() && card.remainingHp < context.source.getPower(),

@@ -3,6 +3,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class KelleranBeqTheSaberedHand extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class KelleranBeqTheSaberedHand extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 7 cards of your deck for a unit, reveal it, and play it. It costs 3 resources less',
+            title: `Search the top 7 cards of your deck for a unit, reveal it, and play it. It costs ${TextHelper.resource(3)} less`,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 7,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({

@@ -1,14 +1,14 @@
-import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
+import { OngoingEffectValueWrapper, OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import type { EffectName } from '../../Constants';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
-import type Game from '../../Game';
-import { registerState, undoObject } from '../../GameObjectUtils';
+import type { Game } from '../../Game';
+import { registerState, registerStateBase, stateRef } from '../../GameObjectUtils';
 
-@registerState()
-export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
-    @undoObject()
-    private accessor _valueWrapper: OngoingEffectValueWrapper<TValue>;
+@registerStateBase()
+export abstract class StaticOngoingEffectImplBase<TValue> extends OngoingEffectImpl<TValue> {
+    @stateRef()
+    private accessor _valueWrapper: OngoingEffectValueWrapperBase<TValue>;
 
     public override get valueWrapper() {
         return this._valueWrapper;
@@ -18,10 +18,10 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         return this.valueWrapper.effectDescription;
     }
 
-    public constructor(game: Game, type: EffectName, value: OngoingEffectValueWrapper<TValue> | TValue) {
+    public constructor(game: Game, type: EffectName, value: OngoingEffectValueWrapperBase<TValue> | TValue) {
         super(game, type);
 
-        if (value instanceof OngoingEffectValueWrapper) {
+        if (value instanceof OngoingEffectValueWrapperBase) {
             this._valueWrapper = value;
         } else {
             this._valueWrapper = new OngoingEffectValueWrapper(game, value);
@@ -56,3 +56,9 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
     }
 }
 
+@registerState()
+export class StaticOngoingEffectImpl<TValue> extends StaticOngoingEffectImplBase<TValue> {
+    public override getGameObjectName() {
+        return 'StaticOngoingEffectImpl';
+    }
+}

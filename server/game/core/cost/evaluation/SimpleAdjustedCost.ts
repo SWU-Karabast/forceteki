@@ -1,5 +1,5 @@
 import type { Aspect } from '../../Constants';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IPenaltyAspectFilters } from '../CostInterfaces';
 
 interface IPenaltyAspect {

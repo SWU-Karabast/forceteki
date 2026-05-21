@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -24,7 +25,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
         });
 
         registrar.addOnAttackAbility({
-            title: 'Each of the next 3 Republic cards you play this phase costs 1 resource less',
+            title: `Each of the next 3 Republic cards you play this phase costs ${TextHelper.resource(1)} less`,
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     match: (card) => card.hasSomeTrait(Trait.Republic),

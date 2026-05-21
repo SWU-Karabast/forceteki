@@ -25,6 +25,7 @@ export default class LukeSkywalkerProfitOrBeDestroyed extends NonLeaderUnitCard 
                         ]),
                     [`${context.player.name} may deal 5 damage to a unit`]:
                         abilityHelper.immediateEffects.selectCard({
+                            activePromptTitle: 'Select a unit to deal 5 damage to',
                             optional: true,
                             cardTypeFilter: WildcardCardType.Unit,
                             immediateEffect: abilityHelper.immediateEffects.damage({ amount: 5 })

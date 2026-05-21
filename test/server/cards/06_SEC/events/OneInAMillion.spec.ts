@@ -79,7 +79,7 @@ describe('One in a Million', function () {
 
             const { context } = contextRef;
             context.player1.clickCard(context.bibFortuna);
-            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 resource less.');
             expect(context.oneInAMillion).not.toHaveAvailableActionWhenClickedBy(context.player1);
             context.player1.clickCard(context.resupply);
         });

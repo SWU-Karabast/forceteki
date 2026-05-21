@@ -1,6 +1,6 @@
 /* global jasmine */
 
-const Game = require('../../server/game/core/Game.js');
+const { Game } = require('../../server/game/core/Game.js');
 const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');

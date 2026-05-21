@@ -3,6 +3,7 @@ import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistr
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class StrategicAcumen extends UpgradeCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class StrategicAcumen extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addGainActionAbilityTargetingAttached({
-            title: 'Play a unit from your hand. It costs 1 less',
+            title: `Play a unit from your hand. It costs ${TextHelper.resource(1)} less`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before

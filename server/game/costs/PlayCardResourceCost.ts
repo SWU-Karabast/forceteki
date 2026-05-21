@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Aspect } from '../core/Constants';
 import type { PlayType } from '../core/Constants';
-import * as Contract from '../core/utils/Contract.js';
+import { Contract } from '../core/utils/Contract.js';
 import { type CostAdjuster } from '../core/cost/CostAdjuster';
 import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
 import { ResourceCost } from './ResourceCost';

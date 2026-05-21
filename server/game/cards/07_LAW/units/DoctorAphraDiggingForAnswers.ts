@@ -6,7 +6,7 @@ import { EventName, RelativePlayer, Trait, ZoneName } from '../../../core/Consta
 export default class DoctorAphraDiggingForAnswers extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'doctor-aphra#digging-for-answers-id',
+            id: '4883890091',
             internalName: 'doctor-aphra#digging-for-answers',
         };
     }

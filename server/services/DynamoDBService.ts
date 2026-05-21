@@ -6,15 +6,26 @@ import {
     PutCommand,
     QueryCommand,
     ScanCommand,
-    UpdateCommand
+    UpdateCommand,
+    BatchWriteCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
-import * as Contract from '../game/core/utils/Contract';
-import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IServerRoleUsersListsEntity } from './DynamoDBInterfaces';
+import { Contract } from '../game/core/utils/Contract';
+import type {
+    IModActionEntity
+} from './DynamoDBInterfaces';
+import {
+    type IDeckDataEntity,
+    type IDeckStatsEntity,
+    type IUserProfileDataEntity,
+    type IUserPreferences,
+    type IServerRoleUsersListsEntity
+} from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { IDeckDataEntitySchema, IDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
+import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import { isTimedModAction } from '../game/core/utils/EnumHelpers';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -219,6 +230,43 @@ class DynamoDBService {
             });
             return this.client.send(command);
         }, 'DynamoDB putItem error');
+    }
+
+    /**
+     * Batch write multiple items to DynamoDB.
+     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items.
+     */
+    public batchWriteItemsAsync(items: Record<string, any>[]) {
+        return this.executeDbOperationAsync(async () => {
+            const chunks = [];
+            for (let i = 0; i < items.length; i += 25) {
+                chunks.push(items.slice(i, i + 25));
+            }
+
+            for (const chunk of chunks) {
+                let unprocessed = chunk;
+
+                while (unprocessed.length > 0) {
+                    const result = await this.client.send(new BatchWriteCommand({
+                        RequestItems: {
+                            [this.tableName]: unprocessed.map((item) => ({
+                                PutRequest: { Item: item }
+                            }))
+                        }
+                    }));
+
+                    const retryItems = result.UnprocessedItems?.[this.tableName];
+                    if (retryItems && retryItems.length > 0) {
+                        logger.info(`Retrying ${retryItems.length} unprocessed items...`);
+                        unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
+                        // Back off before retry
+                        await new Promise((resolve) => setTimeout(resolve, 500));
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }, 'Error in batch write');
     }
 
     public queryItemsAsync(pk: string, options: {
@@ -742,6 +790,172 @@ class DynamoDBService {
         }, 'Error getting admin users');
     }
 
+    // Mod Actions
+    /**
+     * Query items using the GSI_PK_INDEX
+     * @param gsiPkValue The value for the GSI_PK partition key
+     */
+    public queryByGSIAsync(gsiPkValue: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new QueryCommand({
+                TableName: this.tableName,
+                IndexName: 'GSI_PK_INDEX',
+                KeyConditionExpression: 'GSI_PK = :gsiPk',
+                ExpressionAttributeValues: { ':gsiPk': gsiPkValue }
+            });
+
+            return this.client.send(command);
+        }, 'DynamoDB queryByGSI error');
+    }
+
+    /**
+     * Get mod actions from DynamoDB.
+     * - { playerId }  All mod actions for a specific player (main table query)
+     */
+    public getModActionsAsync(options: { userId?: string } = {}): Promise<IModActionEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = options.userId
+                ? await this.queryItemsAsync(`USER#${options.userId}`, { beginsWith: 'MODACTION#' })
+                : await this.queryByGSIAsync('ACTIVE_MODACTION');
+
+            if (!result.Items || result.Items.length === 0) {
+                return [];
+            }
+
+            return Promise.all(
+                result.Items.map((item: any) =>
+                    this.validateAndHandleAsync<IModActionEntity>(
+                        ModActionEntitySchema,
+                        item,
+                        `getModActionsAsync (action ${item.id})`,
+                    )
+                )
+            ).then((actions) => actions.filter(Boolean));
+        }, 'Error getting mod actions');
+    }
+
+    /**
+     * Save a new mod action item.
+     * For Mute actions, GSI_PK is set to 'ACTIVE_MODACTION' so it appears in the sparse index.
+     */
+    public saveModActionAsync(modAction: IModActionEntity) {
+        return this.executeDbOperationAsync(() => {
+            const item: Record<string, any> = {
+                pk: `USER#${modAction.playerId}`,
+                sk: `MODACTION#${modAction.id}`,
+                ...modAction,
+            };
+
+            // Active action types (Mute, Rename) get indexed via the sparse GSI
+            if (isTimedModAction(modAction.actionType) && !modAction.cancelledAt) {
+                item.GSI_PK = 'ACTIVE_MODACTION';
+            }
+
+            return this.putItemAsync(item);
+        }, 'Error saving mod action');
+    }
+
+    /**
+     * Activate a pending mute: set startedAt and expiresAt.
+     * Called when the muted user first logs in.
+     */
+    public activateMuteAsync(playerId: string, modActionId: string, startedAt: string, expiresAt: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
+                `USER#${playerId}`,
+                `MODACTION#${modActionId}`,
+                'SET startedAt = :startedAt, expiresAt = :expiresAt',
+                {
+                    ':startedAt': startedAt,
+                    ':expiresAt': expiresAt,
+                }
+            );
+        }, 'Error activating mute');
+    }
+
+    /**
+     * Cancel a mod action: set cancelledAt and cancelledBy, remove GSI_PK to drop it from the active index.
+     */
+    public cancelModActionAsync(playerId: string, modActionId: string, cancelledById: string, cancelledByUsername: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: {
+                    pk: `USER#${playerId}`,
+                    sk: `MODACTION#${modActionId}`,
+                },
+                UpdateExpression: 'SET cancelledAt = :cancelledAt, cancelledById = :cancelledById, cancelledByUsername = :cancelledByUsername ' +
+                  'REMOVE GSI_PK',
+                ConditionExpression: 'attribute_exists(pk) AND attribute_not_exists(cancelledAt)',
+                ExpressionAttributeValues: {
+                    ':cancelledAt': new Date().toISOString(),
+                    ':cancelledById': cancelledById,
+                    ':cancelledByUsername': cancelledByUsername
+                },
+                ReturnValues: 'ALL_NEW'
+            });
+
+            return this.client.send(command);
+        }, 'Error cancelling mod action');
+    }
+
+    /**
+     * Remove GSI_PK from an expired mod action (cleanup only, doesn't set cancelledAt/cancelledBy).
+     * This drops the item from the ACTIVE_MODACTION sparse index.
+     */
+    public removeModActionFromActiveIndexAsync(playerId: string, modActionId: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: {
+                    pk: `USER#${playerId}`,
+                    sk: `MODACTION#${modActionId}`,
+                },
+                UpdateExpression: 'REMOVE GSI_PK',
+                ReturnValues: 'ALL_NEW'
+            });
+
+            return this.client.send(command);
+        }, 'Error removing mod action from active index');
+    }
+
+    // Username
+    /**
+     * Save a username -> userId link for mod tools username search.
+     * Uses lowercase username to ensure case-insensitive lookups.
+     */
+    public saveUsernameLinkAsync(username: string, userId: string) {
+        return this.executeDbOperationAsync(() => {
+            const item = {
+                pk: `USERNAME#${username.toLowerCase()}`,
+                sk: `USER#${userId}`,
+                GSI_PK: userId,
+            };
+            return this.putItemAsync(item);
+        }, 'Error saving username link');
+    }
+
+    /**
+     * Look up all userIds that share a given username.
+     * @returns Array of userIds
+     */
+    public getUserIdsByUsernameAsync(username: string): Promise<string[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USERNAME#${username.toLowerCase()}`);
+            return (result.Items || []).map((item: any) => item.GSI_PK as string);
+        }, 'Error getting user IDs by username');
+    }
+
+    /**
+     * Delete a specific username link for a user.
+     * Uses both username and userId
+     */
+    public deleteUsernameLinkAsync(username: string, userId: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.deleteItemAsync(`USERNAME#${username.toLowerCase()}`, `USER#${userId}`);
+        }, 'Error deleting username link');
+    }
+
     // Clear all data (for testing purposes only)
     public clearAllDataAsync() {
         if (!this.isLocalMode) {
@@ -771,5 +985,33 @@ class DynamoDBService {
             await Promise.all(deletePromises);
             logger.info(`Cleared all data from local DynamoDB table '${this.tableName}'`);
         }, 'Error clearing local DynamoDB data');
+    }
+
+    /**
+     * Get all user profiles via table scan.
+     * Note: Use sparingly scans are expensive on large tables.
+     */
+    public getAllUserProfilesAsync(): Promise<IUserProfileDataEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const profiles: IUserProfileDataEntity[] = [];
+            let lastEvaluatedKey: Record<string, any> | undefined;
+
+            do {
+                const result = await this.client.send(new ScanCommand({
+                    TableName: this.tableName,
+                    FilterExpression: 'sk = :sk',
+                    ExpressionAttributeValues: { ':sk': 'PROFILE' },
+                    ExclusiveStartKey: lastEvaluatedKey,
+                }));
+
+                for (const item of result.Items || []) {
+                    profiles.push(item as IUserProfileDataEntity);
+                }
+
+                lastEvaluatedKey = result.LastEvaluatedKey;
+            } while (lastEvaluatedKey);
+
+            return profiles;
+        }, 'Error scanning all user profiles');
     }
 }

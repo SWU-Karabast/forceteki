@@ -6,7 +6,7 @@ import { AbilityType } from '../../../core/Constants';
 export default class DefiantHammerhead extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'defiant-hammerhead-id',
+            id: '1272763174',
             internalName: 'defiant-hammerhead',
         };
     }
@@ -28,7 +28,7 @@ export default class DefiantHammerhead extends NonLeaderUnitCard {
                         type: AbilityType.Triggered,
                         title: 'Defeat Defiant Hammerhead',
                         when: {
-                            onAttackCompleted: () => true,
+                            onAttackEnd: () => true,
                         },
                         immediateEffect: AbilityHelper.immediateEffects.defeat(),
                     })

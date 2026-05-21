@@ -8,8 +8,8 @@ import { SelectChoice } from './SelectChoice';
 import { GameStateChangeRequired, Stage, TargetMode } from '../../Constants';
 import type { Player } from '../../Player';
 import type { IPassAbilityHandler } from '../../gameSteps/AbilityResolver';
-import * as Helpers from '../../utils/Helpers';
-import * as Contract from '../../utils/Contract';
+import { Helpers } from '../../utils/Helpers';
+import { Contract } from '../../utils/Contract';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext> | ISelectUnlessTargetResolver<AbilityContext>> {

@@ -114,7 +114,7 @@ describe('Old Daka, Oldest and Wisest', function() {
             expect(context.talzinsAssassin).toBeInZone('groundArena');
             expect(context.player1.readyResourceCount).toBe(p1ResourceCount);
 
-            expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+            expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
             expect(context.player1).toHaveExactPromptButtons([
                 'Use the Force to give a unit -3/-3 for this phase',
                 'Give an Experience token to another friendly unit',

@@ -5,9 +5,9 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
-import * as Helpers from '../core/utils/Helpers';
-import * as Contract from '../core/utils/Contract';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
+import { Contract } from '../core/utils/Contract';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { FormatMessage } from '../core/chat/GameChat';
 
@@ -19,15 +19,8 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
     public override readonly name = 'discardFromDeck';
     public override readonly eventName = EventName.OnDiscardFromDeck;
 
-    public override eventHandler(event) {
-        const gameEvent = event as GameEvent;
-        Contract.assertNotNullLike(gameEvent.context);
-        Contract.assertNotNullLike(gameEvent.context.player);
-
-        if (event.player === gameEvent.context.player && event.amount > 0 && event.player.drawDeck.length > 0) {
-            gameEvent.context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(gameEvent.context.player.id);
-        }
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public override eventHandler(event) { }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
@@ -104,9 +97,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
                 return;
             }
 
-            if (player !== context.player) {
-                context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
-            }
+            context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(context.player.id);
 
             const topCards = player.getTopCardsOfDeck(amount);
             topCards.forEach((card) => this.generateEventsForCard(card, context, events, additionalProperties));

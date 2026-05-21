@@ -16,7 +16,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
 
                 // Use Palpatine to search the top 5 for a Plot card
                 context.player1.clickCard(context.chancellorPalpatine);
-                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHavePrompt('Select a card');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     invalid: [context.confiscate, context.wampa, context.whenHasBecomeNow],
                     selectable: [context.dogmaticShockSquad, context.unveiledMight]
@@ -24,7 +24,12 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
-                expect(context.getChatLogs(2)).toContain('player1 takes Dogmatic Shock Squad');
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.dogmaticShockSquad]);
+                context.player2.clickDone();
+
+                expect(context.getChatLog()).toContain('player1 uses Chancellor Palpatine to reveal and draw Dogmatic Shock Squad');
                 expect(context.dogmaticShockSquad).toBeInZone('hand');
             });
         });
@@ -47,10 +52,10 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 context.player1.clickCard(context.chancellorPalpatine);
                 context.player1.clickPrompt('Deploy Chancellor Palpatine');
                 expect(context.chancellorPalpatine).toBeInZone('groundArena');
-                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 less.', 'Play Dogmatic Shock Squad using Plot', 'Play Unveiled Might using Plot']);
+                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 resources less.', 'Play Dogmatic Shock Squad using Plot', 'Play Unveiled Might using Plot']);
 
                 // Reduce the next card played using Plot by 3
-                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 less.');
+                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 resources less.');
 
                 // Play Dogmatic for 3
                 context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
@@ -87,7 +92,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 context.player1.clickCard(context.chancellorPalpatineHowLibertyDies);
                 context.player1.clickPrompt('Deploy Chancellor Palpatine');
                 expect(context.chancellorPalpatineHowLibertyDies).toBeInZone('groundArena');
-                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 less.', 'Play Jar Jar Binks using Plot', 'Play Chancellor Palpatine using Plot']);
+                expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 resources less.', 'Play Jar Jar Binks using Plot', 'Play Chancellor Palpatine using Plot']);
 
                 // Play Jar Jar Binks for 2
                 context.player1.clickPrompt('Play Jar Jar Binks using Plot');
@@ -97,7 +102,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 context.player1.clickCard(context.chancellorPalpatineHowLibertyDies); // Give Palp +2/+2
 
                 // Reduce the next card played using Plot by 3
-                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 less.');
+                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 resources less.');
 
                 // Play Chancellor Palpatine unit for 0
                 expect(context.player1).toHavePassAbilityPrompt('Play Chancellor Palpatine using Plot');

@@ -120,7 +120,6 @@ describe('Betrayed Trust', function () {
             context.player2.clickPrompt('Attack with a friendly Droid unit. For this attack, it deals damage equal to its remaining HP instead of its power.');
             context.player2.clickCard(context.c3po);
             context.player2.clickCard(context.p1Base);
-            context.player2.clickPrompt('Pass'); // Pass on C-3PO's attack trigger
 
             // No combat damage is dealt
             expect(context.p1Base.damage).toBe(0);

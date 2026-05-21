@@ -24,7 +24,7 @@ describe('You\'re My Only Hope', function() {
                 context.player1.clickCard(context.youreMyOnlyHope);
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst]);
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 less', 'Leave on top']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 resources less', 'Leave on top']);
                 expect(context.getChatLogs(1)[0]).not.toContain(context.atst.title);
 
                 context.player1.clickDisplayCardPromptButton(context.atst.uuid, 'leave');
@@ -32,13 +32,13 @@ describe('You\'re My Only Hope', function() {
                 expect(context.atst).toBeInZone('deck', context.player1);
             });
 
-            it('shows the top card of the deck and allows the player to play it for 5 less', function () {
+            it('shows the top card of the deck and allows the player to play it for 5 resources less', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.youreMyOnlyHope);
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst]);
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 less', 'Leave on top']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 resources less', 'Leave on top']);
                 expect(context.getChatLogs(1)[0]).not.toContain(context.atst.title);
 
                 const exhaustedResourcesBeforeAction = context.player1.exhaustedResourceCount;
@@ -79,7 +79,7 @@ describe('You\'re My Only Hope', function() {
                 context.player1.clickCard(context.youreMyOnlyHope);
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst]);
-                expect(context.player1).toHaveExactDisabledDisplayPromptPerCardButtons(['Play for 5 less']);
+                expect(context.player1).toHaveExactDisabledDisplayPromptPerCardButtons(['Play for 5 resources less']);
                 expect(context.player1).toHaveExactEnabledDisplayPromptPerCardButtons(['Leave on top']);
                 expect(context.getChatLogs(1)[0]).not.toContain(context.atst.title);
 
@@ -115,7 +115,7 @@ describe('You\'re My Only Hope', function() {
             context.player1.clickCard(context.youreMyOnlyHope);
 
             expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daggerSquadronPilot]);
-            expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 less', 'Leave on top']);
+            expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 resources less', 'Leave on top']);
 
             context.player1.clickDisplayCardPromptButton(context.daggerSquadronPilot.uuid, 'play-discount');
             expect(context.player1).toHaveExactPromptButtons(['Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);
@@ -139,7 +139,7 @@ describe('You\'re My Only Hope', function() {
             context.player1.clickCard(context.youreMyOnlyHope);
 
             expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daggerSquadronPilot]);
-            expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 less', 'Leave on top']);
+            expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play for 5 resources less', 'Leave on top']);
 
             context.player1.clickDisplayCardPromptButton(context.daggerSquadronPilot.uuid, 'play-discount');
             expect(context.player1).toHaveExactPromptButtons(['Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);

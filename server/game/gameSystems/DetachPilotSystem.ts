@@ -8,8 +8,8 @@ import {
 } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import * as Contract from '../core/utils/Contract';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { Contract } from '../core/utils/Contract';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IDetachPilotProperties extends ICardTargetSystemProperties {}

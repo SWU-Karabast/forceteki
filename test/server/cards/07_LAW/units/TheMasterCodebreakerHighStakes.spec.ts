@@ -32,6 +32,10 @@ describe('The Master Codebreaker, High Stakes', function () {
 
                 context.player1.clickCardInDisplayCardPrompt(context.secondChance);
 
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.secondChance]);
+                context.player2.clickDone();
+
                 expect(context.secondChance).toBeInZone('hand');
 
                 expect([context.battlefieldMarine, context.wampa, context.protector, context.infernoFour, context.devotion, context.consularSecurityForce, context.finalShowdown]).toAllBeInBottomOfDeck(context.player1, 7);
@@ -106,6 +110,10 @@ describe('The Master Codebreaker, High Stakes', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.finalShowdown);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.finalShowdown]);
+                context.player2.clickDone();
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.finalShowdown).toBeInZone('hand');

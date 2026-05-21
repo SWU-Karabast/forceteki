@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GNKPowerDroid extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class GNKPowerDroid extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'The next unit you play this phase costs 1 resource less',
+            title: `The next unit you play this phase costs ${TextHelper.resource(1)} less`,
             immediateEffect: abilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 ongoingEffectDescription: 'discount the next unit played by',
                 ongoingEffectTargetDescription: 'them',

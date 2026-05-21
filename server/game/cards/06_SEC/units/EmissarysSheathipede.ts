@@ -12,6 +12,7 @@ export default class EmissarysSheathipede extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
+        // THIS IMPLEMENTATION IS NOT ACCURATE FOR TWIN SUNS
         registrar.addWhenDefeatedAbility({
             title: 'Ready a resource',
             optional: true,

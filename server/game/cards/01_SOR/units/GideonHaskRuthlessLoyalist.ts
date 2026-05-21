@@ -2,7 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers.js';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers.js';
 
 export default class GideonHaskRuthlessLoyalist extends NonLeaderUnitCard {
     protected override getImplementationId () {

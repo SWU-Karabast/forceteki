@@ -160,7 +160,7 @@ describe('Bamboozle', function () {
 
             // play Bamboozle using Bib Fortuna ability
             context.player1.clickCard(context.bibFortuna);
-            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 resource less.');
 
             // expect to see both play actions, choose the discard mode
             context.player1.clickCard(context.bamboozle);
@@ -183,7 +183,7 @@ describe('Bamboozle', function () {
 
             // play Bamboozle using Bib Fortuna ability, choose normal play this time
             context.player1.clickCard(context.bibFortuna);
-            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 resource less.');
             context.player1.clickCard(context.bamboozle);
             context.player1.clickPrompt('Play Bamboozle');
 
@@ -199,7 +199,7 @@ describe('Bamboozle', function () {
 
             // use the discard play mode again to confirm that the cost adjuster still works
             context.player1.clickCard(context.bibFortuna);
-            context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
+            context.player1.clickPrompt('Play an event from your hand. It costs 1 resource less.');
             context.player1.clickCard(context.bamboozle);
             context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
 

@@ -1,16 +1,18 @@
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import { StateWatcherName } from '../core/Constants';
-import type Game from '../core/Game';
-import type { GameObjectRef, UnwrapRef } from '../core/GameObjectBase';
+import type { Game } from '../core/Game';
+import type { UnwrapRef } from '../core/GameObjectBase';
+import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 
 export interface CreatedTokenEntry {
-    token: GameObjectRef<IInPlayCard>;
-    createdBy: GameObjectRef<Player>;
+    token: GameObjectId<IInPlayCard>;
+    createdBy: GameObjectId<Player>;
 }
 
+@registerState()
 export class TokensCreatedThisPhaseWatcher extends StateWatcher<CreatedTokenEntry> {
     public constructor(
         game: Game,
@@ -20,8 +22,8 @@ export class TokensCreatedThisPhaseWatcher extends StateWatcher<CreatedTokenEntr
 
     protected override mapCurrentValue(stateValue: CreatedTokenEntry[]): UnwrapRef<CreatedTokenEntry>[] {
         return stateValue.map((x) => ({
-            token: this.game.getFromRef(x.token),
-            createdBy: this.game.getFromRef(x.createdBy)
+            token: this.game.getFromId(x.token),
+            createdBy: this.game.getFromId(x.createdBy)
         }));
     }
 
@@ -45,8 +47,8 @@ export class TokensCreatedThisPhaseWatcher extends StateWatcher<CreatedTokenEntr
             update: (currentState: CreatedTokenEntry[], event: any) => {
                 return !event.generatedTokens ? currentState : currentState.concat(
                     event.generatedTokens.map((token) => ({
-                        token: token.getRef(),
-                        createdBy: event.player.getRef(),
+                        token: token.getObjectId(),
+                        createdBy: event.player.getObjectId(),
                     }))
                 );
             }

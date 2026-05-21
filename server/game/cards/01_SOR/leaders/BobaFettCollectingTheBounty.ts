@@ -3,7 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
-import { isUnit } from '../../../core/utils/EnumHelpers';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
@@ -24,7 +24,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             title: 'Exhaust Boba Fett to ready a resource',
             when: {
                 onCardLeavesPlay: (event, context) =>
-                    isUnit(event.lastKnownInformation.type) && event.lastKnownInformation.controller !== context.player
+                    EnumHelpers.isUnit(event.lastKnownInformation.type) && event.lastKnownInformation.controller !== context.player
             },
             // we shortcut and automatically activate Boba's ability if there are any exhausted resources
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
@@ -40,8 +40,9 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addOnAttackCompletedAbility({
+        registrar.addWhenAttackEndsAbility({
             title: 'Ready 2 resources',
+            attackerMustSurvive: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
                     const opponentHasUnitsThatLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player.opponent });

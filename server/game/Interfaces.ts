@@ -8,7 +8,7 @@ import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import type { ICost } from './core/cost/ICost';
-import type Game from './core/Game';
+import type { Game } from './core/Game';
 import type { PlayerOrCardAbility } from './core/ability/PlayerOrCardAbility';
 import type { Player } from './core/Player';
 import type { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
@@ -38,6 +38,8 @@ import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffe
 
 // ********************************************** EXPORTED TYPES **********************************************
 
+export type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
+
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
 export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
@@ -60,6 +62,11 @@ export type IDamageModificationAbilityProps<TSource extends Card = Card> = Omit<
      * This is used for damage modification that requires some other system to resolve before modifying the damage, such as defeating a unit
      */
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
+};
+
+export type IWhenAttackEndsAbilityProps<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
+    /** Indicates that the attacker must survive the attack for the trigger to happen. Defaults to false. */
+    attackerMustSurvive?: boolean;
 };
 
 /** Interface definition for addActionAbility */
@@ -123,6 +130,11 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     optional?: boolean;
 
     /**
+     * If true, disables automatic cost reordering in AbilityResolver
+     */
+    disableCostReordering?: boolean;
+
+    /**
      * If optional is true, indicates which player will make the choice to resolve the optional ability (defaults to RelativePlayer.Self)
      */
     playerChoosingOptional?: RelativePlayer;
@@ -163,7 +175,6 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
      * an {@link AbilityContext}.
      */
     initiateAttack?: IInitiateAttackProperties | ((context: TContext) => IInitiateAttackProperties);
-
 }
 
 /** Interface definition for addConstantAbility */
@@ -184,6 +195,9 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     abilityIdentifier?: string;
     printedAbility?: boolean;
+
+    /** If this is a gained ability, gives the source card that is giving the ability */
+    gainAbilitySource?: Card;
 }
 
 export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
@@ -248,6 +262,7 @@ export type IKeywordProperties =
   | IAmbushKeywordProperties
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
+  | IExploitKeywordProperties
   | IGritKeywordProperties
   | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
@@ -258,7 +273,8 @@ export type IKeywordProperties =
   | ISaboteurKeywordProperties
   | ISentinelKeywordProperties
   | IShieldedKeywordProperties
-  | ISmuggleKeywordProperties;
+  | ISmuggleKeywordProperties
+  | ISupportKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
 
@@ -466,7 +482,7 @@ export interface IEventRegistration<Handler = () => void> {
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler' | 'then' | 'ifYouDo' | 'ifYouDoNot'
 > {
-    replaceWith?: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
+    replaceWith?: PropsFactory<IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>, TriggeredAbilityContext<TSource>>;
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 }
 
@@ -517,6 +533,10 @@ interface ICoordinateKeywordProperties<TSource extends IUnitCard = IUnitCard> ex
     ability: IAbilityPropsWithType<TSource>;
 }
 
+interface IExploitKeywordProperties extends INumericKeywordProperties {
+    keyword: KeywordName.Exploit;
+}
+
 interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
@@ -561,20 +581,34 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
+interface ISupportKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Support;
+}
+
 /** List of keywords that don't have any additional parameters */
 export type NonParameterKeywordName =
   | KeywordName.Ambush
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm
+  | KeywordName.Plot
   | KeywordName.Saboteur
   | KeywordName.Sentinel
-  | KeywordName.Shielded;
+  | KeywordName.Shielded
+  | KeywordName.Support;
 
 export type NumericKeywordName =
   | KeywordName.Raid
   | KeywordName.Restore
   | KeywordName.Exploit;
+
+export type CostKeywordName =
+  | KeywordName.Smuggle
+  | KeywordName.Piloting;
+
+export type AbilityDefinitionKeywordName =
+  | KeywordName.Bounty
+  | KeywordName.Coordinate;
 
 export interface ICardAttributes {
     // TODO: Add more attributes as needed

@@ -5,7 +5,7 @@ import type { CostAdjuster } from '../core/cost/CostAdjuster';
 import type { Player } from '../core/Player';
 import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
 import { ExploitCostAdjuster } from '../abilities/keyword/exploit/ExploitCostAdjuster';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import * as CostAdjusterFactory from '../core/cost/CostAdjusterFactory';
 import { ExhaustUnitsCostAdjuster } from '../core/cost/ExhaustUnitsCostAdjuster';
 

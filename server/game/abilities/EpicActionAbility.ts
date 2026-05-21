@@ -1,11 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EpicActionLimit } from '../core/ability/AbilityLimit';
-import { ActionAbility } from '../core/ability/ActionAbility';
+import { ActionAbilityBase } from '../core/ability/ActionAbility';
 import type { Card } from '../core/card/Card';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import type { IEpicActionProps } from '../Interfaces';
+import { registerState } from '../core/GameObjectUtils';
 
-export class EpicActionAbility extends ActionAbility {
+@registerState()
+export class EpicActionAbility extends ActionAbilityBase {
     public constructor(game: Game, card: Card, properties: IEpicActionProps) {
         super(game, card, { ...properties, limit: new EpicActionLimit(game) });
 

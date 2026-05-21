@@ -1,7 +1,7 @@
 /* global beforeEach, jasmine */
 
 const exp = require('constants');
-const Helpers = require('../../server/game/core/utils/Helpers.js');
+const { Helpers } = require('../../server/game/core/utils/Helpers.js');
 const { stringArraysEqual } = require('../../server/Util.js');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');

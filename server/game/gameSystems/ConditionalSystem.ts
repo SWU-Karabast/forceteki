@@ -4,7 +4,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import { NoActionSystem } from './NoActionSystem';
-import * as Contract from '../core/utils/Contract';
+import { Contract } from '../core/utils/Contract';
 import type { Player } from '../core/Player';
 import { StaticAbilityHelper } from '../AbilityHelper';
 
@@ -41,8 +41,8 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         return this.getGameAction(context, additionalProperties).canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}): boolean {
-        return this.getGameAction(context, additionalProperties).hasLegalTarget(context, additionalProperties);
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        return this.getGameAction(context, additionalProperties).hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}): void {

@@ -10,7 +10,7 @@ import {
     WildcardCardType,
     ZoneName
 } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { AttackFlow } from '../core/attack/AttackFlow';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
@@ -18,9 +18,9 @@ import type { Card } from '../core/card/Card';
 import { isArray } from 'underscore';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
-import * as Contract from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Contract } from '../core/utils/Contract';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { IOngoingCardEffectGenerator, KeywordNameOrProperties } from '../Interfaces';
@@ -106,7 +106,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
                     attack.attackingPlayer,
                     this.getTargetMessage(attack.getAllTargets(), event.context),
                     attack.attacker,
-                    attack.attackerDealsDamageBeforeDefender() ? ' (dealing damage before the defender)' : ''
+                    attack.attackerDealsCombatDamageFirst() ? ' (dealing damage before the defender)' : ''
                 ]
             },
         ];
@@ -174,7 +174,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
         if ( // sentinel keyword overrides "can't be attacked" abilities (SWU Comp Rules 2.0 7.5.11.D)
             ((targetCard.hasRestriction(AbilityRestriction.BeAttacked, context) && !targetCard.hasSomeKeyword(KeywordName.Sentinel)) ||
-              properties.attacker.effectsPreventAttack(targetCard))
+              properties.attacker.effectsPreventAttack(targetCard, context))
         ) {
             return false; // cannot attack cards with a BeAttacked restriction
         }
@@ -272,6 +272,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             properties.isAmbush,
             properties.attackerCombatDamageOverride
         );
+        context.activeAttackId = event.attack.id;
 
         event.attackerLastingEffects = properties.attackerLastingEffects;
         event.defenderLastingEffects = properties.defenderLastingEffects;
@@ -352,6 +353,11 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             }
 
             const keywordProps: KeywordNameOrProperties = effect.impl.getValue(properties.attacker);
+
+            if (!keywordProps) {
+                return false;
+            }
+
             const keyword = typeof keywordProps === 'string' ? keywordProps : keywordProps.keyword;
 
             return keyword === KeywordName.Saboteur;
@@ -377,7 +383,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             properties.attacker as IUnitCard,
             [attackTarget],
             properties.isAmbush,
-            properties.attackerCombatDamageOverride
+            properties.attackerCombatDamageOverride,
         );
 
         const effectSystem = this.buildCardLastingEffectSystem(attackerLastingEffects, context, attack, attackTarget);

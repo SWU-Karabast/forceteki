@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class WarriorOfClanOrdo extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class WarriorOfClanOrdo extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Aggression];
         registrar.addOnAttackAbility({
-            title: `Disclose ${EnumHelpers.aspectString(aspects)} to not deal 2 damage to your base`,
+            title: `Disclose ${TextHelper.aspectList(aspects)} to not deal 2 damage to your base`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDoNot: {
                 title: 'Deal 2 damage to your base',

@@ -48,6 +48,10 @@ describe('Seasoned Fleet Admiral', function () {
                 context.player2.clickCardInDisplayCardPrompt(context.supercommandoSquad);
                 context.player2.clickDone();
 
+                // P1 is prompted to see the revealed cards
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.sabineWren, context.supercommandoSquad]);
+                context.player1.clickDone();
+
                 expect(context.player1).toHavePrompt('Give an Experience token to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.seasonedFleetAdmiral, context.battlefieldMarine, context.wampa]);
                 expect(context.player1).toHavePassAbilityButton();

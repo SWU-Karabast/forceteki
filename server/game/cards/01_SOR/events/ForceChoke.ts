@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ForceChoke extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ForceChoke extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: 'If you control a Force unit, this costs 1 resource less to play',
+            title: `If you control a Force unit, this costs ${TextHelper.resource(1)} less to play`,
             amount: 1,
             condition: (context) => context.player.isTraitInPlay(Trait.Force)
         });

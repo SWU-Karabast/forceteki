@@ -9,12 +9,12 @@ import { CardsDiscardedThisPhaseWatcher } from './CardsDiscardedThisPhaseWatcher
 import { UnitsHealedThisPhaseWatcher } from './UnitsHealedThisPhaseWatcher';
 import { LeadersDeployedThisPhaseWatcher } from './LeadersDeployedThisPhaseWatcher';
 import { ForceUsedThisPhaseWatcher } from './ForceUsedThisPhaseWatcher';
-import type Game from '../core/Game';
+import type { Game } from '../core/Game';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import { ActionsThisPhaseWatcher } from './ActionsThisPhaseWatcher';
 import { TokensCreatedThisPhaseWatcher } from './TokensCreatedThisPhaseWatcher';
-
+import { BasesHealedThisPhaseWatcher } from './BasesHealedThisPhaseWatcher';
 
 export class StateWatcherLibrary {
     private readonly game: Game;
@@ -118,6 +118,13 @@ export class StateWatcherLibrary {
         return this.game.stateWatcherRegistrar.registerWatcher(
             StateWatcherName.UnitsHealedThisPhase,
             (registrar: StateWatcherRegistrar) => new UnitsHealedThisPhaseWatcher(this.game, registrar)
+        );
+    }
+
+    public basesHealedThisPhase() {
+        return this.game.stateWatcherRegistrar.registerWatcher(
+            StateWatcherName.BasesHealedThisPhase,
+            (registrar: StateWatcherRegistrar) => new BasesHealedThisPhaseWatcher(this.game, registrar)
         );
     }
 }

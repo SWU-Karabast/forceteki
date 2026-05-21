@@ -45,4 +45,3 @@ export default class AdmiralHoldoWereNotAlone extends LeaderUnitCard {
     }
 }
 
-

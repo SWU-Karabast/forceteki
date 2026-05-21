@@ -8,7 +8,7 @@ import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
 import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
 import type { UndoMode } from './snapshot/SnapshotManager';
-import * as Contract from './utils/Contract';
+import { Contract } from './utils/Contract';
 
 export interface GameConfiguration {
     id: string;
@@ -26,6 +26,9 @@ export interface GameConfiguration {
 
     /** Player ID who gets to choose who starts with initiative, or undefined for random selection */
     preselectedFirstPlayerId?: string;
+
+    /** Callback to forfeit a Bo3 set when a player times out during a game. Only provided for Bo3 matches. */
+    onBo3SetForfeit?: (losingPlayerId: string) => void;
 }
 
 export interface ICurrentlyResolving {

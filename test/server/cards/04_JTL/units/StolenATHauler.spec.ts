@@ -169,5 +169,85 @@ describe('Stolen AT-Hauler', () => {
                 expect(context.player1.readyResourceCount).toBe(p1ReadyResources);
             });
         });
+
+        describe('When Stolen AT-Hauler is returned to hand', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: 'dagobah-swamp',
+                        hand: ['takedown', 'street-gang-recruiter']
+                    },
+                    player2: {
+                        hand: ['waylay'],
+                        spaceArena: [{ card: 'stolen-athauler', owner: 'player1' }],
+                    }
+                });
+            });
+
+            it('from the discard pile, it cannot be played for free from hand', function() {
+                const { context } = contextRef;
+
+                // Play takedown to defeat the Stolen AT-Hauler
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+
+                // It should be in Player 1's discard pile
+                expect(context.stolenAthauler).toBeInZone('discard', context.player1);
+
+                context.player2.passAction();
+
+                // Play Street Gang Recruiter to return the Stolen AT-Hauler to hand
+                context.player1.clickCard(context.streetGangRecruiter);
+                context.player1.clickCard(context.stolenAthauler);
+
+                // It should be in Player 1's hand
+                expect(context.stolenAthauler).toBeInZone('hand', context.player1);
+
+                context.player2.passAction();
+
+                // Player 1 plays it from hand but it should not be free
+                const p1ReadyResources = context.player1.readyResourceCount;
+                expect(context.player1).toBeAbleToSelect(context.stolenAthauler);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.player1.readyResourceCount).toBe(p1ReadyResources - 3);
+            });
+
+            it('from play after being played for free, it cannot be played for free again', function() {
+                const { context } = contextRef;
+
+                // Play takedown to defeat the Stolen AT-Hauler
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+
+                // It should be in Player 1's discard pile
+                expect(context.stolenAthauler).toBeInZone('discard', context.player1);
+
+                context.player2.passAction();
+
+                // Player 1 can play it from discard for free
+                const p1ReadyResources = context.player1.readyResourceCount;
+                expect(context.player1).toBeAbleToSelect(context.stolenAthauler);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.getChatLog()).toEqual('player1 plays Stolen AT-Hauler from their discard pile');
+                expect(context.player1.readyResourceCount).toBe(p1ReadyResources);
+
+                // Player 2 plays Waylay to return the Stolen AT-Hauler to hand
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.stolenAthauler);
+
+                // It should be in Player 1's hand
+                expect(context.stolenAthauler).toBeInZone('hand', context.player1);
+
+                // Player 1 plays it from hand but it should not be free
+                expect(context.player1).toBeAbleToSelect(context.stolenAthauler);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.player1.readyResourceCount).toBe(p1ReadyResources - 3);
+            });
+        });
     });
 });

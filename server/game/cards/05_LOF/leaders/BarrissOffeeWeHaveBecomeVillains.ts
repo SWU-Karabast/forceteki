@@ -3,6 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BarrissOffeeWeHaveBecomeVillains extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class BarrissOffeeWeHaveBecomeVillains extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play an event from your hand. It costs 1 resource less.',
+            title: `Play an event from your hand. It costs ${TextHelper.resource(1)} less.`,
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before
@@ -31,7 +32,7 @@ export default class BarrissOffeeWeHaveBecomeVillains extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play an event from your hand. It costs 1 resource less.',
+            title: `Play an event from your hand. It costs ${TextHelper.resource(1)} less.`,
             cost: AbilityHelper.costs.useTheForce(),
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before

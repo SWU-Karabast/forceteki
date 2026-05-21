@@ -3,6 +3,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { EventCard } from '../../../core/card/EventCard';
 import { WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class Improvise extends EventCard {
     protected override getImplementationId () {
@@ -14,7 +15,7 @@ export default class Improvise extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Look at the top card of your deck. You may play it. It costs 1 less. If you don\'t, you may discard it',
+            title: `Look at the top card of your deck. You may play it. It costs ${TextHelper.resource(1)} less. If you don't, you may discard it`,
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => {
                 const topCardOfDeck = context.player.getTopCardOfDeck();
                 return {
@@ -22,7 +23,7 @@ export default class Improvise extends EventCard {
                     target: topCardOfDeck,
                     perCardButtons: [
                         {
-                            text: 'Play it (it costs 1 less)',
+                            text: `Play it for ${TextHelper.resource(1)} less`,
                             arg: 'play',
                             immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                                 target: topCardOfDeck,

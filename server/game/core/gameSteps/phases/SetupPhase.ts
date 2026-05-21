@@ -1,5 +1,5 @@
-import { randomItem } from '../../utils/Helpers';
-import type Game from '../../Game';
+import { Helpers } from '../../utils/Helpers';
+import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
@@ -12,6 +12,7 @@ import type { IStep } from '../IStep';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';
 import type { Player } from '../../Player';
+import { ShuffleDeckSystem } from '../../../gameSystems/ShuffleDeckSystem';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game, snapshotManager: SnapshotManager, initializeMode: PhaseInitializeMode = PhaseInitializeMode.Normal) {
@@ -38,7 +39,7 @@ export class SetupPhase extends Phase {
             [
                 ...setupStep,
                 ...mulliganStep,
-                new ResourcePrompt(game, 2)
+                new ResourcePrompt(game, 2, true)
             ],
             initializeMode
         );
@@ -64,7 +65,7 @@ export class SetupPhase extends Phase {
             activePromptTitle = 'You lost the previous game. Choose the player to start with initiative:';
         } else {
             // Random selection (coin flip)
-            firstPlayer = randomItem(this.game.getPlayers(), this.game.randomGenerator);
+            firstPlayer = Helpers.randomItem(this.game.getPlayers(), this.game.randomGenerator);
             activePromptTitle = 'You won the flip. Choose the player to start with initiative:';
         }
 
@@ -73,6 +74,7 @@ export class SetupPhase extends Phase {
             activePromptTitle,
             source: 'choose initiative player',
             choices: ['Yourself', 'Opponent'],
+            resetActionTimerOnComplete: true,
             handlers: [
                 () => {
                     this.game.initiativePlayer = firstPlayer;
@@ -85,10 +87,16 @@ export class SetupPhase extends Phase {
     }
 
     private drawStartingHands() {
-        // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
-            player.shuffleDeck();
+            this.game.addMessage('{0} is shuffling their deck', player);
+            new ShuffleDeckSystem({ target: player })
+                .resolve(
+                    player,
+                    this.game.getFrameworkContext(player),
+                    TriggerHandlingMode.ResolvesTriggers
+                );
 
+            this.game.addMessage('{0} draws {1} cards in their starting hand', player, player.getStartingHandSize());
             new DrawSystem({ amount: player.getStartingHandSize() })
                 .resolve(
                     player,

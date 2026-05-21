@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitCard {
@@ -21,7 +22,7 @@ export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitC
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'The first unit you play each round that has a "When Defeated" ability costs 1 resource less',
+            title: `The first unit you play each round that has a "When Defeated" ability costs ${TextHelper.resource(1)} less`,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: CardType.BasicUnit,
             targetZoneFilter: WildcardZoneName.AnyArena,

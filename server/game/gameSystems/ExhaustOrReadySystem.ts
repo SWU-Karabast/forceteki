@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { CardsDiscardedThisPhaseWatcher } from '../../../stateWatchers/CardsDiscardedThisPhaseWatcher';
 
 export default class FearAndDeadMen extends EventCard {
@@ -20,7 +21,7 @@ export default class FearAndDeadMen extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: 'This card costs 1 resource less to play for each card discarded from your hand this phase',
+            title: `This card costs ${TextHelper.resource(1)} less to play for each card discarded from your hand this phase`,
             amount: (_, player) => this.cardsDiscardedThisPhaseWatcher.getCurrentValue().filter((x) => x.discardedFromPlayer === player && x.discardedFromZone === ZoneName.Hand).length,
         });
 

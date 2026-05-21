@@ -11,11 +11,8 @@ export default class KnightOfTheRepublic extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addTriggeredAbility({
+        registrar.addOnDefenseAbility({
             title: 'Create a Clone Trooper token.',
-            when: {
-                onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
-            },
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });
     }

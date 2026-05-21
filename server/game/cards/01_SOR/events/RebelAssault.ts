@@ -14,21 +14,23 @@ export default class RebelAssault extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Attack with a Rebel unit. It gets +1/+0 for this attack',
-            initiateAttack: {
-                attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel),
-                attackerLastingEffects: {
-                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
-                }
-            },
-            then: {
-                title: 'Attack with another Rebel unit. It gets +1/+0 for this attack',
-                initiateAttack: {
+            targetResolver: {
+                immediateEffect: AbilityHelper.immediateEffects.attack({
                     attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel),
                     attackerLastingEffects: {
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
                     }
+                })
+            },
+            then: (thenContext) => ({
+                title: 'Attack with another Rebel unit. It gets +1/+0 for this attack',
+                initiateAttack: {
+                    attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel) && thenContext.target !== card,
+                    attackerLastingEffects: {
+                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
+                    }
                 }
-            }
+            })
         });
     }
 }

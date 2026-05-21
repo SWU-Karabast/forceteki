@@ -3,7 +3,7 @@ import Effects from './ongoingEffects/OngoingEffectLibrary';
 import * as GameSystems from './gameSystems/GameSystemLibrary';
 import { StateWatcherLibrary } from './stateWatchers/StateWatcherLibrary';
 import * as Costs from './costs/CostLibrary.js';
-import type Game from './core/Game';
+import type { Game } from './core/Game';
 
 export interface IAbilityHelper extends IStaticAbilityHelper {
     limit: AbilityLimitInstance;

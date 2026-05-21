@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { AbilityType, KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ForTheRepublic extends UpgradeCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ForTheRepublic extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: 'If you control 3 or more Republic units, this upgrade costs 2 less to play.',
+            title: `If you control 3 or more Republic units, this upgrade costs ${TextHelper.resource(2)} less to play.`,
             amount: 2,
             condition: (context) => context.player.getArenaUnits({ trait: Trait.Republic }).length >= 3,
         });

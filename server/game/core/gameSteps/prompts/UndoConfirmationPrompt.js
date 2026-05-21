@@ -1,9 +1,10 @@
 const { AlertType } = require('../../Constants.js');
+const { Player } = require('../../Player');
 const HandlerMenuPrompt = require('./HandlerMenuPrompt.js');
 
 class UndoConfirmationPrompt extends HandlerMenuPrompt {
     /**
-     * @param {import('../../Game')} game
+     * @param {import('../../Game').Game} game
      * @param {import('../../Player').Player} promptedPlayer
      * @param {string} promptTypeMessage
      * @param {function} rollbackHandler
@@ -55,6 +56,15 @@ class UndoConfirmationPrompt extends HandlerMenuPrompt {
     /** @override */
     setRollbackConfirmation(_playersActiveForPrompt) {
         // No-op
+    }
+
+    /**
+     * @override
+     * @param {Player} player
+     */
+    stopPlayerActionTimer(player) {
+        // we pause the requesting player's timer instead of stopping it so that they can't cheat time back
+        player.actionTimer.pause();
     }
 }
 

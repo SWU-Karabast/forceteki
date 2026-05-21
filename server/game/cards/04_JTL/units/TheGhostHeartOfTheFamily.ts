@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { EffectName, KeywordName, Trait } from '../../../core/Constants';
+import { KeywordName, Trait } from '../../../core/Constants';
 
 export default class TheGhostHeartOfTheFamily extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,11 +15,9 @@ export default class TheGhostHeartOfTheFamily extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: 'Each other friendly Spectre unit gains this unit\'s keywords',
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Spectre),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeywords((target, context) => {
-                const blankedKeywords = context.source.getOngoingEffectValues(EffectName.LoseKeyword);
-                return context.source.getOngoingEffectValues(EffectName.GainKeyword)
-                    .filter((keywordProps) => !blankedKeywords.includes(keywordProps.keyword));
-            })
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeywords((_, context) =>
+                context.source.keywords.map((k) => k.toProperties())
+            )
         });
 
         registrar.addConstantAbility({

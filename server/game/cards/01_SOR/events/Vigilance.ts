@@ -13,6 +13,7 @@ export default class Vigilance extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- card name, not an aspect reference
             title: 'Vigilance modal ability:',
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 2,

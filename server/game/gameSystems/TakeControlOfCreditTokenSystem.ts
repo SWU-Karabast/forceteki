@@ -1,8 +1,8 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired } from '../core/Constants';
 import { EventName } from '../core/Constants';
-import * as Helpers from '../core/utils/Helpers';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { Player } from '../core/Player';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';

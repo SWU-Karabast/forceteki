@@ -36,7 +36,6 @@ describe('Hunting Assassin Droid', function () {
 
             context.player1.clickCard(context.huntingAssassinDroid);
             context.player1.clickCard(context.p2Base);
-            context.player1.clickPrompt('Trigger');
 
             context.player1.setDistributeDamagePromptState(new Map([
                 [context.wampa, 3],

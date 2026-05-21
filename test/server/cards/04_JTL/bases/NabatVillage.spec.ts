@@ -35,8 +35,10 @@ describe('Nabat Village', function() {
 
                 // Draw cards step
                 expect(context.player1.handSize).toBe(9);
+                expect(context.getChatLogs(3)).toContain('player1 draws 9 cards in their starting hand');
                 expect(context.player1.deck.length).toBe(1);
                 expect(context.player2.handSize).toBe(6);
+                expect(context.getChatLogs(3)).toContain('player2 draws 6 cards in their starting hand');
                 expect(context.player2.deck.length).toBe(3);
 
                 // Mulligan step

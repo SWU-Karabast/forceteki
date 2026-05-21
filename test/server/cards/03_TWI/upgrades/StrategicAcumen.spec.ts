@@ -15,8 +15,8 @@ describe('Strategic Acumen', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.wampa);
-            expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play a unit from your hand. It costs 1 less']);
-            context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
+            expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play a unit from your hand. It costs 1 resource less']);
+            context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less');
             expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper, context.jawaScavenger, context.swoopRacer, context.battlefieldMarine]);
             expect(context.player1).toHaveChooseNothingButton();
             context.player1.clickCard(context.jawaScavenger);
@@ -37,7 +37,7 @@ describe('Strategic Acumen', function() {
 
             // can choose nothing and play it later without discount
             context.player1.clickCard(context.wampa);
-            context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
+            context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less');
             context.player1.clickPrompt('Choose nothing');
             expect(context.wampa.exhausted).toBe(true);
 
@@ -53,7 +53,7 @@ describe('Strategic Acumen', function() {
             // should be able to select and play a unit that costs exactly 1 more than ready resources
             context.player1.setResourceCount(2);
             context.player1.clickCard(context.wampa);
-            context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
+            context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less');
             expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper]);
             expect(context.player1).toHaveChooseNothingButton();
             context.player1.clickCard(context.consortiumStarviper);

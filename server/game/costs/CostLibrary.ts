@@ -14,10 +14,11 @@ import { ExhaustSystem } from '../gameSystems/ExhaustSystem';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import { AbilityResourceCost } from './AbilityResourceCost';
 import { UseTheForceSystem } from '../gameSystems/UseTheForceSystem';
-import type { DistributiveOmit } from '../core/utils/Helpers';
 import { DiscardCardsFromHandSystem } from '../gameSystems/DiscardCardsFromHandSystem';
 import type { Player } from '../core/Player';
 import { DiscardFromDeckSystem } from '../gameSystems/DiscardFromDeckSystem';
+import { type DistributiveOmit } from '../core/utils/Helpers';
+import { ReadySystem } from '../gameSystems/ReadySystem';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = DistributiveOmit<ISelectCardProperties<TContext>, 'immediateEffect'>;
 
@@ -55,6 +56,20 @@ export function exhaustSelf<TContext extends AbilityContext = AbilityContext>():
  */
 export function exhaustFriendlyUnit<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
     return getSelectCost(new ExhaustSystem<TContext>({ isCost: true }), { controller: RelativePlayer.Self, cardTypeFilter: WildcardCardType.Unit }, 'Choose a unit to exhaust');
+}
+
+/**
+ * Cost that will ready an exhausted enemy unit
+ */
+export function readyEnemyUnit<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
+    return getSelectCost(
+        new ReadySystem<TContext>({ isCost: true }),
+        {
+            controller: RelativePlayer.Opponent,
+            cardTypeFilter: WildcardCardType.Unit
+        },
+        'Choose an exhausted enemy unit to ready'
+    );
 }
 
 // /**

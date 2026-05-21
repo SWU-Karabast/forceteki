@@ -1,7 +1,8 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { CardType, Trait } from '../../../core/Constants';
+import { CardType, RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each Trick event you play costs 1 resource less',
+            title: `Each Trick event you play costs ${TextHelper.resource(1)} less`,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,
                 cardTypeFilter: CardType.Event,
@@ -26,7 +27,10 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isEvent() && card.hasSomeTrait(Trait.Trick),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

@@ -4,7 +4,7 @@ import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnore
 import type { Card } from './Card';
 import type { DoubleSidedLeaderCard } from './DoubleSidedLeaderCard';
 import type { EventCard } from './EventCard';
-import type { LeaderUnitCard, LeaderUnitCardInternal } from './LeaderUnitCard';
+import type { LeaderUnitCard } from './LeaderUnitCard';
 import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { IActionAbilityRegistrar } from './propertyMixins/ActionAbilityRegistration';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
@@ -37,7 +37,7 @@ export type ILeaderUnitLeaderSideAbilityRegistrar = ILeaderAbilityRegistrar<Lead
     addPilotDeploy(): void;
 };
 
-export type ILeaderUnitAbilityRegistrar = ILeaderAbilityRegistrar<LeaderUnitCardInternal> & IUnitAbilityRegistrar<LeaderUnitCardInternal>;
+export type ILeaderUnitAbilityRegistrar = ILeaderAbilityRegistrar<LeaderUnitCard> & IUnitAbilityRegistrar<LeaderUnitCard>;
 
 export type IDoubleSidedLeaderAbilityRegistrar = ILeaderAbilityRegistrar<DoubleSidedLeaderCard>;
 

@@ -39,10 +39,14 @@ describe('Steela Gerrera, Beloved Tactician', function () {
             // draw superlaser blast
             context.player1.clickCardInDisplayCardPrompt(context.superlaserBlast);
 
+            // P2 is prompted to see the revealed card
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.superlaserBlast]);
+            context.player2.clickDone();
+
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(2);
 
-            expect(context.getChatLogs(2)).toContain('player1 takes Superlaser Blast');
+            expect(context.getChatLog()).toContain('player1 uses Steela Gerrera to reveal and draw Superlaser Blast');
             expect(context.superlaserBlast).toBeInZone('hand');
 
             expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 7);

@@ -18,9 +18,9 @@ describe('Jedi Consular', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jediConsular);
-                expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play a unit from your hand. It costs 2 less']);
+                expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play a unit from your hand. It costs 2 resources less']);
 
-                context.player1.clickPrompt('Play a unit from your hand. It costs 2 less');
+                context.player1.clickPrompt('Play a unit from your hand. It costs 2 resources less');
                 expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper, context.jawaScavenger, context.swoopRacer, context.atst]);
 
                 context.player1.clickCard(context.swoopRacer);
@@ -44,7 +44,7 @@ describe('Jedi Consular', function() {
                 // Should be able to select and play a unit that costs exactly 2 more than ready resources
                 context.player1.setResourceCount(1);
                 context.player1.clickCard(context.jediConsular);
-                context.player1.clickPrompt('Play a unit from your hand. It costs 2 less');
+                context.player1.clickPrompt('Play a unit from your hand. It costs 2 resources less');
                 expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper]);
                 expect(context.player1).toHaveChooseNothingButton();
 
@@ -59,7 +59,7 @@ describe('Jedi Consular', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jediConsular);
-                context.player1.clickPrompt('Play a unit from your hand. It costs 2 less');
+                context.player1.clickPrompt('Play a unit from your hand. It costs 2 resources less');
                 context.player1.clickPrompt('Choose nothing');
                 expect(context.jediConsular.exhausted).toBeTrue();
                 expect(context.player1.hasTheForce).toBeFalse();
@@ -77,7 +77,7 @@ describe('Jedi Consular', function() {
                 context.player1.setHasTheForce(false);
 
                 context.player1.clickCard(context.jediConsular);
-                expect(context.player1).not.toHaveEnabledPromptButtons(['Attack', 'Play a unit from your hand. It costs 2 less']);
+                expect(context.player1).not.toHaveEnabledPromptButtons(['Attack', 'Play a unit from your hand. It costs 2 resources less']);
 
                 context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
@@ -98,7 +98,7 @@ describe('Jedi Consular', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediConsular);
-            context.player1.clickPrompt('Play a unit from your hand. It costs 2 less');
+            context.player1.clickPrompt('Play a unit from your hand. It costs 2 resources less');
             context.player1.clickCard(context.hanSolo);
 
             expect(context.jediConsular.exhausted).toBeTrue();

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Duration, TargetMode } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class QiraPlayingHerPart extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -25,7 +26,7 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
                     options: this.game.playableCardTitles,
                 },
                 then: (thenContext) => ({
-                    title: 'While this unit is in play, each card with that name costs 3 resources more for your opponents to play',
+                    title: `While this unit is in play, each card with that name costs ${TextHelper.resource(3)} more for your opponents to play`,
                     immediateEffect: AbilityHelper.immediateEffects.playerLastingEffect((context) => ({
                         duration: Duration.WhileSourceInPlay,
                         target: context.player.opponent,

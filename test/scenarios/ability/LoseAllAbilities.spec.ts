@@ -262,7 +262,7 @@ describe('Lose All Abilities', function() {
 
                 // Academy Defense Walker does not have an action ability
                 context.player1.clickCard(context.academyDefenseWalker);
-                expect(context.player1).not.toHaveEnabledPromptButton('Play a unit from your hand. It costs 1 less');
+                expect(context.player1).not.toHaveEnabledPromptButton('Play a unit from your hand. It costs 1 resource less');
                 expect(context.player1).toBeAbleToSelect(context.p2Base);
                 context.player1.clickCard(context.p2Base);
 
@@ -271,8 +271,8 @@ describe('Lose All Abilities', function() {
 
                 // Academy Defense Walker has its gained action ability
                 context.player1.clickCard(context.academyDefenseWalker);
-                expect(context.player1).toHaveEnabledPromptButton('Play a unit from your hand. It costs 1 less');
-                context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
+                expect(context.player1).toHaveEnabledPromptButton('Play a unit from your hand. It costs 1 resource less');
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less');
                 expect(context.player1).toBeAbleToSelect(context.swoopRacer);
                 context.player1.clickCard(context.swoopRacer);
 

@@ -1,8 +1,8 @@
-import type Game from '../../Game';
+import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { Card } from '../../card/Card';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults, IStatefulPromptResults } from '../PromptInterfaces';
 import { PromptType, StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
@@ -77,11 +77,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         };
     }
 
-    protected override startActionTimer(player: Player): void {
-        // give players a little extra time during distribution prompts
-        player.actionTimer.start(120);
-    }
-
     protected override highlightSelectableCards(): void {
         this.player.setSelectableCards(this.properties.legalTargets);
         this.player.opponent.setSelectableCards([]);
@@ -122,7 +117,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
                 return card ? [card, target.amount] : null;
             })
             .filter((entry): entry is [Card, number] => entry !== null);
-
 
         Contract.assertTrue(results.valueDistribution.length === targetsArray.length, 'Illegal prompt results, some target cards were not found');
         return { type: results.type, valueDistribution: new Map(targetsArray) };

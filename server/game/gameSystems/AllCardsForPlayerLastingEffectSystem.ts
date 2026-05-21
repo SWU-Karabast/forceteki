@@ -8,12 +8,12 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { IOngoingAllCardsForPlayerEffectProps } from '../core/ongoingEffect/OngoingAllCardsForPlayerEffect';
 import { AllCardsTargetMode } from '../core/ongoingEffect/OngoingAllCardsForPlayerEffect';
 import type { Player } from '../core/Player';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
-import * as Helpers from '../core/utils/Helpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
+import { type DistributiveOmit, Helpers } from '../core/utils/Helpers';
 import type { IOngoingAllCardsForPlayerEffectGenerator, IOngoingPlayerEffectGenerator, IOngoingPlayerEffectProps } from '../Interfaces';
 import * as LastingEffectSystemHelpers from './helpers/LastingEffectSystemHelpers';
 
-export type IAllCardsForPlayerLastingEffectProperties = Helpers.DistributiveOmit<ILastingEffectPropertiesBase, 'target' | 'effect'> & Pick<IPlayerTargetSystemProperties, 'target'> & {
+export type IAllCardsForPlayerLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target' | 'effect'> & Pick<IPlayerTargetSystemProperties, 'target'> & {
     effect: IOngoingAllCardsForPlayerEffectGenerator | IOngoingAllCardsForPlayerEffectGenerator[];
     cardTitle: string;
     includeLeaders?: boolean;

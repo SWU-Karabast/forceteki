@@ -24,6 +24,7 @@ describe('Grand Moff Tarkin, Taking Krennic\'s Achievement', function() {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.atst).toBeInZone('groundArena', context.player1);
+            expect(context.getChatLog()).toEqual('player1 uses Grand Moff Tarkin to take control of AT-ST and to apply an effect that will give control to its owner when this unit leaves play');
 
             context.moveToNextActionPhase();
             expect(context.atst).toBeInZone('groundArena', context.player1);
@@ -148,6 +149,47 @@ describe('Grand Moff Tarkin, Taking Krennic\'s Achievement', function() {
             expect(context.player1).not.toHavePassAbilityButton();
             expect(context.player1).not.toHaveChooseNothingButton();
             context.player1.clickCard(context.atst);
+        });
+
+        it('Grand Moff Tarkin ability should defeat a Vehicle that becomes a leader unit when he leaves play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#victor-squadron-leader',
+                    hand: ['grand-moff-tarkin#taking-krennics-achievement'],
+                },
+                player2: {
+                    hand: ['vanquish'],
+                    spaceArena: ['millennium-falcon#landos-pride'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays Grand Moff Tarkin and takes control of Millennium Falcon
+            context.player1.clickCard(context.grandMoffTarkin);
+            context.player1.clickCard(context.millenniumFalcon);
+
+            expect(context.millenniumFalcon).toBeInZone('spaceArena', context.player1);
+            context.player2.passAction();
+
+            // Player 1 deploys Darth Vader as a pilot to the Millennium Falcon, making it a leader unit
+            context.player1.clickCard(context.darthVader);
+            context.player1.clickPrompt('Deploy Darth Vader as a Pilot');
+            context.player1.clickCard(context.millenniumFalcon);
+
+            expect(context.millenniumFalcon).toHaveExactUpgradeNames(['darth-vader#victor-squadron-leader']);
+            expect(context.millenniumFalcon.isLeader()).toBeTrue();
+
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.grandMoffTarkin);
+
+            // Grand Moff Tarkin is defeated, Millennium Falcon is defeated (because it's a leader unit), Darth Vader returns to base
+            expect(context.grandMoffTarkin).toBeInZone('discard', context.player1);
+            expect(context.getChatLogs(1)).toContain('player2 would take control of Millennium Falcon, but it is a leader unit so it is defeated instead');
+            expect(context.millenniumFalcon).toBeInZone('discard', context.player2);
+            expect(context.darthVader).toBeInZone('base', context.player1);
+            expect(context.darthVader.exhausted).toBeTrue();
         });
     });
 });

@@ -1,4 +1,4 @@
-import type { IModerationAction, IUserDataEntity, IUserPreferences } from '../../services/DynamoDBInterfaces';
+import type { IModerationAction, IUserDataEntity, IUserPreferences, ModerationFieldState } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -56,10 +56,22 @@ export abstract class User {
 
     public abstract needsUsernameChange(): boolean;
 
+    public abstract mustRequestUsernameChange(): ModerationFieldState | null;
+
+    public abstract reportingDisabled(): ModerationFieldState | null;
+
     /**
      * Gets the user's moderation status
      */
     public abstract getModeration(): IModerationAction | null;
+
+    /**
+     * Whether this user has a client-provided ID (as opposed to a server-generated UUID).
+     * Used for DAU tracking to avoid counting manufactured anonymous IDs.
+     */
+    public hasClientProvidedId(): boolean {
+        return true;
+    }
 }
 
 /**
@@ -114,6 +126,14 @@ export class AuthenticatedUser extends User {
         return !!this.userData.needsUsernameChange;
     }
 
+    public mustRequestUsernameChange(): ModerationFieldState | null {
+        return this.userData.mustRequestUsernameChange ?? null;
+    }
+
+    public reportingDisabled(): ModerationFieldState | null {
+        return this.userData.reportingDisabled ?? null;
+    }
+
     public getModeration(): IModerationAction | null {
         return this.userData.moderation ?? null;
     }
@@ -135,11 +155,17 @@ export class AuthenticatedUser extends User {
 export class AnonymousUser extends User {
     public id: string;
     public username: string;
+    private readonly _hasClientProvidedId: boolean;
 
-    public constructor(id: string, username: string = 'Anonymous') {
+    public constructor(id: string, username: string = 'Anonymous', hasClientProvidedId: boolean = false) {
         super();
         this.id = id;
         this.username = username;
+        this._hasClientProvidedId = hasClientProvidedId;
+    }
+
+    public override hasClientProvidedId(): boolean {
+        return this._hasClientProvidedId;
     }
 
     public isAuthenticatedUser(): boolean {
@@ -163,6 +189,14 @@ export class AnonymousUser extends User {
 
     public needsUsernameChange(): boolean {
         return false;
+    }
+
+    public mustRequestUsernameChange(): ModerationFieldState | null {
+        return null;
+    }
+
+    public reportingDisabled(): ModerationFieldState | null {
+        return null;
     }
 
     public getUsername(): string {

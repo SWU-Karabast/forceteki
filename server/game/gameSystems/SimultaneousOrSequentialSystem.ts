@@ -45,7 +45,7 @@ export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneou
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
-    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {

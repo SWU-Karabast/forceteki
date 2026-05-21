@@ -25,7 +25,7 @@ describe('Convene the Senate', function () {
             context.player1.clickCard(context.conveneTheSenate);
 
             // Deck search prompt for up to 2 cards
-            expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
+            expect(context.player1).toHavePrompt('Select up to 2 cards');
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [context.wartimeTradeOfficial, context.highCommandCouncilor],
                 invalid: [
@@ -43,6 +43,10 @@ describe('Convene the Senate', function () {
             context.player1.clickCardInDisplayCardPrompt(context.wartimeTradeOfficial);
             context.player1.clickCardInDisplayCardPrompt(context.highCommandCouncilor);
             context.player1.clickDone();
+
+            // P2 is prompted to see the revealed cards
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.wartimeTradeOfficial, context.highCommandCouncilor]);
+            context.player2.clickDone();
 
             // Both chosen cards are drawn
             expect(context.wartimeTradeOfficial).toBeInZone('hand');

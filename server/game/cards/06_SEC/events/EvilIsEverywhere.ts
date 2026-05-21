@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class EvilIsEverywhere extends EventCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class EvilIsEverywhere extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Defeat a unit with cost equal to or less than the number of Villainy aspect icons among friendly units',
+            title: `Defeat a unit with cost equal to or less than the number of ${TextHelper.Villainy} aspect icons among friendly units`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => {

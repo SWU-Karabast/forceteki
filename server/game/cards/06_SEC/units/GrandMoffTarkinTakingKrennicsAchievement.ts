@@ -22,15 +22,15 @@ export default class GrandMoffTarkinTakingKrennicsAchievement extends NonLeaderU
                     abilityHelper.immediateEffects.takeControlOfUnit((context) => ({
                         newController: context.player,
                     })),
-                    abilityHelper.immediateEffects.delayedPlayerEffect((context) => ({
+                    abilityHelper.immediateEffects.delayedCardEffect((context) => ({
                         title: 'Unit\'s owner takes control of that unit',
-                        target: context.source,
                         when: {
                             onCardLeavesPlay: (event) => event.card === context.source
                         },
+                        effectDescription: 'apply an effect that will give control to its owner when this unit leaves play',
                         immediateEffect: abilityHelper.immediateEffects.takeControlOfUnit({
                             newController: context.target.owner,
-                            target: context.target
+                            excludeLeaderUnit: false,
                         }),
                     }))
                 ])

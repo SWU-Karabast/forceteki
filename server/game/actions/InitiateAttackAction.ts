@@ -1,20 +1,17 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { PlayerAction } from '../core/ability/PlayerAction.js';
 import { AbilityRestriction, TargetMode, WildcardZoneName } from '../core/Constants.js';
-import * as EnumHelpers from '../core/utils/EnumHelpers.js';
+import { EnumHelpers } from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import type { Card } from '../core/card/Card';
-import type { IAttackProperties } from '../gameSystems/AttackStepsSystem.js';
 import { AttackStepsSystem } from '../gameSystems/AttackStepsSystem.js';
 import { GameSystemCost } from '../core/cost/GameSystemCost.js';
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem.js';
-import type Game from '../core/Game.js';
+import type { Game } from '../core/Game';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker.js';
-
-interface IInitiateAttackProperties extends IAttackProperties {
-    allowExhaustedAttacker?: boolean;
-}
+import { registerState } from '../core/GameObjectUtils';
+import type { IInitiateAttackProperties } from '../gameSystems/InitiateAttackSystem.js';
 
 /**
  * Implements the action for a player to initiate an attack from a unit.
@@ -23,6 +20,7 @@ interface IInitiateAttackProperties extends IAttackProperties {
  * Default behaviors can be overridden by passing in an {@link IInitiateAttackProperties} object.
  * See {@link GameSystemLibrary.initiateAttack} for using it in abilities.
  */
+@registerState()
 export class InitiateAttackAction extends PlayerAction {
     public readonly initiateAttackSource?: Card;
 

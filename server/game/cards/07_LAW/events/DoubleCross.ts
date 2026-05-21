@@ -45,17 +45,28 @@ export default class DoubleCross extends EventCard {
                 const enemyUnit = thenContext.targets.enemyUnit;
                 const hasTargets = friendlyUnit && enemyUnit;
                 const costDifference = hasTargets ? Math.abs(friendlyUnit.cost - enemyUnit.cost) : 0;
-                const creditRecipient = hasTargets
-                    ? friendlyUnit.cost < enemyUnit.cost
-                        ? friendlyUnit.controller
-                        : enemyUnit.controller
+
+                // Determine which unit is lower-cost and who took control of it.
+                const lowerCostUnit = hasTargets
+                    ? (friendlyUnit.cost < enemyUnit.cost ? friendlyUnit : enemyUnit)
                     : null;
+                const lowerCostUnitEvent = lowerCostUnit
+                    ? thenContext.events.find((event) => event.card === lowerCostUnit)
+                    : null;
+
+                // If the lower-cost unit's exchange was cancelled (e.g. by Rey), no credits are generated
+                const effectiveAmount = lowerCostUnitEvent?.isResolvedOrReplacementResolved
+                    ? costDifference : 0;
+
+                const creditRecipient = lowerCostUnit?.isInPlay()
+                    ? lowerCostUnit.controller
+                    : lowerCostUnitEvent?.newController;
 
                 return {
                     title: 'The player who takes control of the lower-cost unit creates Credit tokens equal to the difference between those units\' costs.',
-                    thenCondition: (_) => costDifference > 0 && creditRecipient,
+                    thenCondition: (_) => effectiveAmount > 0 && creditRecipient,
                     immediateEffect: abilityHelper.immediateEffects.createCreditToken({
-                        amount: costDifference,
+                        amount: effectiveAmount,
                         target: creditRecipient
                     })
                 };

@@ -25,7 +25,7 @@ export default class AnakinsPodracerSoWizard extends NonLeaderUnitCard {
                 attackEvent.attacker !== context.source ||
                 attackEvent.attackerInPlayId !== context.source.inPlayId
             ).length === 0,
-            ongoingEffect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
+            ongoingEffect: AbilityHelper.ongoingEffects.dealsCombatDamageFirst(),
         });
     }
 }

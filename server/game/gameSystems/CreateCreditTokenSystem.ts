@@ -1,10 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, TokenCardName, ZoneName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
-import * as ChatHelpers from '../core/chat/ChatHelpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { Player } from '../core/Player';
 import type { FormatMessage } from '../core/chat/GameChat';
-import * as Helpers from '../core/utils/Helpers';
+import { Helpers } from '../core/utils/Helpers';
 
 export interface ICreateCreditTokenProperties extends IPlayerTargetSystemProperties {
     amount?: number;

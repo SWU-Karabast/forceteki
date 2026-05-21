@@ -34,6 +34,7 @@ describe('Chio Fain, Four-Armed Slicer', function() {
                 expect(context.player2.handSize).toBe(player2HandSizeBefore + 1);
                 expect(context.overwhelmingBarrage).toBeInZone('hand', context.player2);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(3)).toContain('player1 uses Chio Fain to draw a card and to make player2 draw a card');
             });
 
             it('should allow the player to pass the ability', function () {

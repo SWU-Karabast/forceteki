@@ -1,8 +1,8 @@
-import Game from '../game/core/Game';
+import { Game } from '../game/core/Game';
 import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
-import * as Contract from '../game/core/utils/Contract';
-import * as EnumHelpers from '../game/core/utils/EnumHelpers';
+import { Contract } from '../game/core/utils/Contract';
+import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
@@ -13,11 +13,12 @@ import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
+import type { CardPool } from '../game/core/Constants';
 import {
     AlertType,
     GameEndReason,
@@ -33,9 +34,16 @@ import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
-import type { MessageText } from '../game/Interfaces';
-import { ReportType } from '../game/Interfaces';
-import { PlayerReportType } from '../game/Interfaces';
+import type { ISerializedMessage } from '../game/Interfaces';
+import { PlayerReportType, ReportType } from '../game/Interfaces';
+import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
+import {
+    createStatsMessage,
+    StatsMessageKey,
+    StatsSaveStatus,
+    StatsSource,
+    updateStatsMessage
+} from '../utils/stats/statsMessages';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -45,18 +53,9 @@ interface LobbySpectatorWrapper {
     user?: User;
 }
 
-interface IChatMessageEntry {
-    date: Date;
-    message: MessageText | {
-        alert: {
-            type: string;
-            message: string | string[];
-        };
-    };
-}
-
 enum LobbySettingKeys {
     RequestUndo = 'requestUndo',
+    AllowSpectators = 'allowSpectators',
 }
 
 enum Bo3SetEndedReason {
@@ -126,22 +125,6 @@ export enum MatchmakingType {
     Quick = 'quick',
 }
 
-export enum StatsSource {
-    Karabast = 'Karabast',
-    SwuStats = 'SWUStats'
-}
-
-export enum StatsSaveStatus {
-    Warning = 'Warning',
-    Error = 'Error',
-    Success = 'Success'
-}
-export interface IStatsMessageFormat {
-    type: StatsSaveStatus;
-    source: StatsSource;
-    message: string;
-}
-
 export interface RematchRequest {
     initiator?: string;
     mode: RematchMode;
@@ -161,12 +144,14 @@ export class Lobby {
     private readonly server: GameServer;
     private readonly lobbyCreateTime: Date = new Date();
     private readonly swuStatsEnabled: boolean = true;
+    private readonly swuBaseEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
-    private readonly allow30CardsInMainBoard: boolean;
+    public readonly cardPool: CardPool;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
+    private allowSpectators = false;
 
     private game?: Game;
     public users: LobbyUserWrapper[] = [];
@@ -194,7 +179,7 @@ export class Lobby {
         matchmakingType: MatchmakingType,
         gameFormat: SwuGameFormat,
         gamesToWinMode: GamesToWinMode,
-        allow30CardsInMainBoard: boolean,
+        cardPool: CardPool,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         gameServer: GameServer,
@@ -210,6 +195,7 @@ export class Lobby {
         this.gameChat = new GameChat(() => this.sendLobbyState());
         this.connectionLink = matchmakingType !== MatchmakingType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = matchmakingType === MatchmakingType.PrivateLobby;
+        this.allowSpectators = matchmakingType !== MatchmakingType.PrivateLobby;
         this.matchmakingType = matchmakingType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
@@ -218,7 +204,7 @@ export class Lobby {
         this.server = gameServer;
         this.discordDispatcher = discordDispatcher;
         this.undoMode = matchmakingType === MatchmakingType.PrivateLobby ? UndoMode.Free : UndoMode.Request;
-        this.allow30CardsInMainBoard = allow30CardsInMainBoard;
+        this.cardPool = cardPool;
 
         switch (gamesToWinMode) {
             case GamesToWinMode.BestOfOne:
@@ -244,12 +230,16 @@ export class Lobby {
         return this.gameFormat;
     }
 
+    public get spectationAllowed(): boolean {
+        return this.allowSpectators;
+    }
+
     public get gamesToWinMode(): GamesToWinMode {
         return this.winHistory.gamesToWinMode;
     }
 
     public get queueFormatKey(): IQueueFormatKey {
-        return { swuFormat: this.format, gamesToWinMode: this.gamesToWinMode };
+        return { format: this.format, cardPool: this.cardPool, gamesToWinMode: this.gamesToWinMode };
     }
 
     private get useActionTimers(): boolean {
@@ -346,12 +336,13 @@ export class Lobby {
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
+            spectateLink: this.spectationAllowed ? this.createSpectateLink() : undefined,
             gameType: this.matchmakingType,
             userWhoMutedChat: this.userWhoMutedChat,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
             matchingCountdownText: this.matchingCountdownText,
-            allow30CardsInMainBoard: this.allow30CardsInMainBoard,
+            cardPool: this.cardPool,
             winHistory: this.getWinHistoryForClient(),
             hasConfirmedNextGame: this.gamesToWinMode === GamesToWinMode.BestOfThree && user
                 ? this.bo3NextGameConfirmedBy?.has(user.id) ?? false
@@ -359,8 +350,17 @@ export class Lobby {
             sideboardTimeoutStatus: this.bo3LobbyReadyTimer?.timeRemainingStatus,
             settings: {
                 requestUndo: this.undoMode === UndoMode.Request,
+                allowSpectators: this.allowSpectators,
             },
         };
+    }
+
+    private isUserChatDisabled(user: LobbyUserWrapper): boolean {
+        const isModerationMuted = user.socket?.user.getModeration()?.moderationType === ModerationType.Mute;
+        const lobbyChatMuted = user.id === this.userWhoMutedChat;
+        const playerAccountChatSettingDisabled = user.socket?.user.getPreferences()?.gameOptions?.muteChat === true;
+
+        return isModerationMuted || lobbyChatMuted || playerAccountChatSettingDisabled;
     }
 
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
@@ -382,7 +382,7 @@ export class Lobby {
             state: user.state,
             ready: user.ready,
             authenticated: authenticatedStatus,
-            chatDisabled: user.socket?.user.getModeration()?.moderationType === ModerationType.Mute || user.id === this.userWhoMutedChat,
+            chatDisabled: this.isUserChatDisabled(user)
         };
 
         const extendedData = fullData ? {
@@ -391,8 +391,8 @@ export class Lobby {
             deckErrors: user.deckValidationErrors,
             importDeckErrors: user.importDeckValidationErrors,
             unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
-            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.allow30CardsInMainBoard) : 50,
-            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format),
+            minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.format) : 50,
+            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format, this.cardPool),
         } : {
             deck: user.deck?.getLeaderBase(),
         };
@@ -409,6 +409,12 @@ export class Lobby {
         return process.env.ENVIRONMENT === 'development'
             ? `http://localhost:3000/lobby?lobbyId=${this._id}`
             : `https://karabast.net/lobby?lobbyId=${this._id}`;
+    }
+
+    private createSpectateLink(): string {
+        return process.env.ENVIRONMENT === 'development'
+            ? `http://localhost:3000/spectate?lobbyId=${this._id}`
+            : `https://karabast.net/spectate?lobbyId=${this._id}`;
     }
 
     private updateUserLastActivity(id: string): void {
@@ -441,7 +447,7 @@ export class Lobby {
             ready: false,
             socket: null,
             deckValidationErrors: deck
-                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard })
+                ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, cardPool: this.cardPool })
                 : {},
             deck,
             reportedBugs: 0
@@ -461,6 +467,15 @@ export class Lobby {
             socket.disconnect();
             return;
         }
+
+        // Remove any existing lobby listeners if spectator already existed and reconnected
+        if (socket.eventContainsListener('lobby')) {
+            socket.removeEventsListeners(['lobby']);
+        }
+
+        // Limited lobby message handling for spectators
+        socket.registerEvent('lobby', (socket, command, ...args) => this.onSpectatorLobbyMessage(socket, command, ...args));
+
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
@@ -845,8 +860,9 @@ export class Lobby {
 
         const user = this.getUser(userId);
 
-        // If there's an active game that hasn't finished, concede it first
-        if (this.game && this.game.finishedAt == null) {
+        // If there's an active game that hasn't finished and no winner has been determined yet, concede it first
+        // (Skip if game already has a winner, e.g., from timeout - endGame guard will prevent double-recording)
+        if (this.game && this.game.finishedAt == null && !this.game.isEnded) {
             this.game.concede(userId);
         }
 
@@ -930,22 +946,33 @@ export class Lobby {
     }
 
     private changeDeck(socket: Socket, ...args) {
-        // Changing decks is not allowed after game 1 in a Bo3 set
-        Contract.assertFalse(
-            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
-            'Changing decks is not allowed after game 1 in a Bo3 set'
-        );
+        this.changeDeckForUser(socket.user.getId(), args[0]);
+    }
 
-        const activeUser = this.users.find((u) => u.id === socket.user.getId());
+    /**
+     * Applies a deck-change for the given user in this lobby. Used by both the
+     * `changeDeck` socket handler and the lobby-scoped REST endpoint
+     * (`POST /api/lobby/:lobbyId/change-deck`). Throws if the lobby is in a
+     * Bo3 game ≥ 2 state where deck-changes are disallowed; callers should
+     * translate that to an appropriate user-facing error.
+     */
+    public changeDeckForUser(userId: string, deck: ISwuDbFormatDecklist): IDeckValidationFailures | undefined {
+        // Changing decks is not allowed after game 1 in a Bo3 set
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2) {
+            throw new Error('Changing decks is not allowed after game 1 in a Bo3 set');
+        }
+
+        const activeUser = this.users.find((u) => u.id === userId);
+        Contract.assertNotNullLike(activeUser, `Lobby.changeDeckForUser: user ${userId} not found in lobby ${this.id}`);
 
         // we check if the deck is valid.
-        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
         // if the deck doesn't have any errors that block import, set it as active
         const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
         if (Object.keys(filteredErrors).length === 0) {
-            activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.deck = new Deck(deck, this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 validationProperties
@@ -959,6 +986,8 @@ export class Lobby {
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
         this.updateUserLastActivity(activeUser.id);
+
+        return activeUser.importDeckValidationErrors;
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -982,7 +1011,7 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
-        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, allow30CardsInMainBoard: this.allow30CardsInMainBoard };
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
         user.deckValidationErrors = this.deckValidator.validateInternalDeck(
             userDeck.getDecklist(),
             validationProperties
@@ -993,6 +1022,11 @@ export class Lobby {
         logger.info(`Lobby: user ${user.username} updating deck`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.updateUserLastActivity(user.id);
+    }
+
+    private typingState(socket: Socket, isTyping: boolean) {
+        const userId = socket.user.getId();
+        this.gameChat.setTypingState(userId, isTyping);
     }
 
     private getUser(id: string) {
@@ -1009,6 +1043,7 @@ export class Lobby {
             }
 
             user.state = 'disconnected';
+            this.gameChat.setTypingState(id, false);
             logger.info(`Lobby: setting user ${user.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
 
@@ -1205,6 +1240,7 @@ export class Lobby {
             this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
             this.statsUpdateStatus.clear();
+
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
             game.started = true;
@@ -1342,6 +1378,9 @@ export class Lobby {
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),
             userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
+            onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
+                ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
+                : undefined,
         };
     }
 
@@ -1358,6 +1397,20 @@ export class Lobby {
         this.server.handleIntentionalDisconnect(userId, false, this);
 
         logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
+    }
+
+    private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
+
+    private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
+        try {
+            if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
+                return;
+            }
+
+            await this[command](socket, ...args);
+        } catch (error) {
+            logger.error('Lobby: error processing spectator lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
@@ -1560,9 +1613,9 @@ export class Lobby {
     /**
      * Public method to send a statsSubmitNotification message to a player.
      */
-    public sendStatsMessageToUser(userId: string, messageParameters: IStatsMessageFormat) {
+    public sendStatsMessageToUser(userId: string, messageParameters: IStatsMessageFormat | null) {
         // if the user doesn't exist in the lobby skip
-        if (this.hasPlayer(userId)) {
+        if (this.hasPlayer(userId) && messageParameters && messageParameters.type !== StatsSaveStatus.DoNotSend) {
             // we try/catch in the offchance the user disconnects after the if statement
             try {
                 // cache update message in case we undo the game-end and end again
@@ -1571,7 +1624,6 @@ export class Lobby {
                 } else {
                     this.statsUpdateStatus.set(userId, new Map([[messageParameters.source, messageParameters]]));
                 }
-
                 this.getUser(userId).socket.send('statsSubmitNotification', messageParameters);
             } catch (error) {
                 logger.error('(sendStatsMessageToUser): Error sending statsSubmitNotification', { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
@@ -1583,20 +1635,16 @@ export class Lobby {
     /**
      * Private method to update a players stats on Karabast
      */
-    private async updateKarabastPlayerStatsAsync(updatingPlayer: Player, opponentPlayer: Player, score: ScoreType): Promise<IStatsMessageFormat> {
+    private async updateKarabastPlayerStatsAsync(updatingPlayer: Player, opponentPlayer: Player, score: ScoreType): Promise<StatsMessageKey> {
         try {
             Contract.assertNotNullLike(updatingPlayer.lobbyDeck, `Updating player ${updatingPlayer.id} has no deck assigned at stats update time`);
             Contract.assertNotNullLike(opponentPlayer.lobbyDeck, `Opponent player ${opponentPlayer.id} has no deck assigned at stats update time`);
 
             if (!updatingPlayer.lobbyUser.isAuthenticatedUser()) {
-                return { type: StatsSaveStatus.Warning,
-                    source: StatsSource.Karabast,
-                    message: 'deck stats can only be saved for logged-in users' };
+                return StatsMessageKey.LoggedInOnly;
             }
             if (!updatingPlayer.lobbyDeck.isPresentInDb) {
-                return { type: StatsSaveStatus.Warning,
-                    source: StatsSource.Karabast,
-                    message: 'stats can only be updated for saved decks' };
+                return StatsMessageKey.SavedDecksOnly;
             }
 
             // Get the deck service
@@ -1610,25 +1658,24 @@ export class Lobby {
                 opponentPlayerBaseId.internalName,
             );
             logger.info(`Lobby ${this.id}: Successfully updated deck stats in Karabast for game ${this.id}`, { lobbyId: this.id, userId: updatingPlayer.lobbyUser.getId() });
-            return { type: StatsSaveStatus.Success,
-                source: StatsSource.Karabast,
-                message: 'deck stats successfully updated' };
+            return StatsMessageKey.Success;
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck Karabast stats for a player:`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId: updatingPlayer.lobbyUser.getId() });
-            return { type: StatsSaveStatus.Error,
-                source: StatsSource.Karabast,
-                message: 'an error occurred while updating stats' };
+            return StatsMessageKey.DefaultErrorUpdatingStats;
         }
     }
 
 
     /**
      * Private method to update a players SWU stats
+     * @param game
+     * @param player1
+     * @param player2
      * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
      */
-    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1SwuStatsStatus: IStatsMessageFormat | null; player2SwuStatsStatus: IStatsMessageFormat | null }> {
+    private async updatePlayerSWUStatsAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1StatsMessageKey: StatsMessageKey | null; player2StatsMessageKey: StatsMessageKey | null }> {
         try {
-            const swuStatsMessage = await this.server.swuStatsHandler.sendSWUStatsGameResultAsync(
+            const swuStatsMessageKey = await this.server.swuStatsHandler.sendSWUStatsGameResultAsync(
                 game,
                 player1,
                 player2,
@@ -1639,23 +1686,42 @@ export class Lobby {
             // Success return message
             logger.info(`Lobby ${this.id}: Successfully updated deck SWUStats stats for game ${game.id}`, { lobbyId: this.id });
             return {
-                player1SwuStatsStatus: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessage : null,
-                player2SwuStatsStatus: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessage : null
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessageKey : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? swuStatsMessageKey : null
             };
         } catch (error) {
             // return error stat message for SWUStats
             logger.error(`Lobby ${this.id}: An error occurred while sending stats to SWUStats in ${game.id}`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
             return {
-                player1SwuStatsStatus: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? {
-                    type: StatsSaveStatus.Error,
-                    source: StatsSource.SwuStats,
-                    message: 'an error occurred while sending stats'
-                } : null,
-                player2SwuStatsStatus: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? {
-                    type: StatsSaveStatus.Error,
-                    source: StatsSource.SwuStats,
-                    message: 'an error occurred while sending stats'
-                } : null
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUStats ? StatsMessageKey.DefaultErrorSendingStats : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUStats ? StatsMessageKey.DefaultErrorSendingStats : null
+            };
+        }
+    }
+
+
+    /**
+     * Private method to update a players SWU stats
+     * @param game
+     * @param player1
+     * @param player2
+     * @param sequenceNumber - For Bo3 games, indicates which game in the set (1, 2, or 3). Omitted for Bo1.
+     */
+    private async updatePlayerSWUBaseAsync(game: Game, player1: Player, player2: Player, sequenceNumber?: number): Promise<{ player1StatsMessageKey: StatsMessageKey | null; player2StatsMessageKey: StatsMessageKey | null }> {
+        try {
+            const [p1statsMessageKey, p2statsMessageKey] = await this.server.swuBaseHandler.sendGameResultAsync(game, player1, player2, this.id, this.server, sequenceNumber ?? 1, this.format);
+            // Success return message
+            logger.info(`Lobby ${this.id}: Successfully updated deck SWUBase stats for game ${game.id}`, { lobbyId: this.id });
+            return {
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUBase ? p1statsMessageKey : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUBase ? p2statsMessageKey : null
+            };
+        } catch (error) {
+            // return error stat message for SWUStats
+            logger.error(`Lobby ${this.id}: An error occurred while sending stats to SWUBase in ${game.id}`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            return {
+                player1StatsMessageKey: player1.lobbyDeck.deckSource === DeckSource.SWUBase ? StatsMessageKey.DefaultErrorSendingStats : null,
+                player2StatsMessageKey: player2.lobbyDeck.deckSource === DeckSource.SWUBase ? StatsMessageKey.DefaultErrorSendingStats : null
             };
         }
     }
@@ -1668,8 +1734,8 @@ export class Lobby {
     private async endGameUpdateStatsAsync(game: Game, sequenceNumber?: number): Promise<void> {
         logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`, { lobbyId: this.id });
         // pre-populate the status messages with an error that we will send by default in case something fails
-        let player1KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
-        let player2KarabastStatus: IStatsMessageFormat = { type: StatsSaveStatus.Error, source: StatsSource.Karabast, message: 'an error occurred while updating stats' };
+        const player1KarabastStatus = createStatsMessage(StatsSource.Karabast);
+        const player2KarabastStatus = createStatsMessage(StatsSource.Karabast);
 
         // Get the players from the game
         const players = game.getPlayers();
@@ -1688,11 +1754,19 @@ export class Lobby {
         Contract.assertNotNullLike(player2.lobbyDeck, `Lobby ${this.id}: player2 ${player2.id} has no deck assigned at stats send time`);
 
         // SWUStats
-        let player1SwuStatsStatus = player1.lobbyDeck?.deckSource === DeckSource.SWUStats
-            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
+        const player1SwuStatsStatus = player1.lobbyDeck?.deckSource === DeckSource.SWUStats
+            ? createStatsMessage(StatsSource.SwuStats)
             : null;
-        let player2SwuStatsStatus = player2.lobbyDeck?.deckSource === DeckSource.SWUStats
-            ? { type: StatsSaveStatus.Error, source: StatsSource.SwuStats, message: 'an error occurred while updating stats' }
+        const player2SwuStatsStatus = player2.lobbyDeck?.deckSource === DeckSource.SWUStats
+            ? createStatsMessage(StatsSource.SwuStats)
+            : null;
+
+        // SWUBase
+        const player1SwuBaseStatus = player1.lobbyDeck?.deckSource === DeckSource.SWUBase
+            ? createStatsMessage(StatsSource.SwuBase)
+            : null;
+        const player2SwuBaseStatus = player2.lobbyDeck?.deckSource === DeckSource.SWUBase
+            ? createStatsMessage(StatsSource.SwuBase)
             : null;
 
         try {
@@ -1714,57 +1788,71 @@ export class Lobby {
             const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Lose : ScoreType.Win;
 
             // Only update stats if the game has a winner and made it into the second round at least
-            if (game.winnerNames.length === 0 || !game.finishedAt) {
-                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${game.winnerNames.length === 0
+            if (!game.isEnded || !game.finishedAt) {
+                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${!game.isEnded
                     ? `winnerNames length being ${game.winnerNames.length}` : ''}
                     ${!game.finishedAt ? 'game finishedAt missing' : ''} `);
             }
 
             if (this.game.roundNumber <= 1) {
-                player1KarabastStatus.message = 'stats not updated due to game ending before round 2';
-                player1KarabastStatus.type = StatsSaveStatus.Warning;
-                player2KarabastStatus.message = 'stats not updated due to game ending before round 2';
-                player2KarabastStatus.type = StatsSaveStatus.Warning;
-                if (player1SwuStatsStatus) {
-                    player1SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
-                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
-                }
-                if (player2SwuStatsStatus) {
-                    player2SwuStatsStatus.message = 'stats not updated due to game ending before round 2';
-                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
-                }
+                updateStatsMessage(player1KarabastStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player2KarabastStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player1SwuStatsStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player2SwuStatsStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player1SwuBaseStatus, StatsMessageKey.NotUpdatedBeforeRound2);
+                updateStatsMessage(player2SwuBaseStatus, StatsMessageKey.NotUpdatedBeforeRound2);
                 logger.info('stats not updated due to game ending before round 2', { lobbyId: this.id });
                 return;
             }
 
             // Update Karabast stats
-            player1KarabastStatus = await this.updateKarabastPlayerStatsAsync(player1, player2, player1Score);
-            player2KarabastStatus = await this.updateKarabastPlayerStatsAsync(player2, player1, player2Score);
+            const player1KarabastMessageKey = await this.updateKarabastPlayerStatsAsync(player1, player2, player1Score);
+            const player2KarabastMessageKey = await this.updateKarabastPlayerStatsAsync(player2, player1, player2Score);
+
+            updateStatsMessage(player1KarabastStatus, player1KarabastMessageKey);
+            updateStatsMessage(player2KarabastStatus, player2KarabastMessageKey);
 
             // Send to SWUstats if handler is available
-            if ((player1SwuStatsStatus || player2SwuStatsStatus) && this.format === SwuGameFormat.Premier && this.swuStatsEnabled) {
-                ({ player1SwuStatsStatus, player2SwuStatsStatus } = await this.updatePlayerSWUStatsAsync(game, player1, player2, sequenceNumber));
-            }
-            // Send warning that swustats are not updated when in non-premier format.
-            if (this.format !== SwuGameFormat.Premier && this.swuStatsEnabled) {
-                if (player1SwuStatsStatus) {
-                    player1SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
-                    player1SwuStatsStatus.type = StatsSaveStatus.Warning;
+            if (this.swuStatsEnabled && (player1SwuStatsStatus || player2SwuStatsStatus)) {
+                if (this.format === SwuGameFormat.Premier) {
+                    const {
+                        player1StatsMessageKey,
+                        player2StatsMessageKey
+                    } = await this.updatePlayerSWUStatsAsync(game, player1, player2, sequenceNumber);
+                    updateStatsMessage(player1SwuStatsStatus, player1StatsMessageKey);
+                    updateStatsMessage(player2SwuStatsStatus, player2StatsMessageKey);
+                } else { // Send warning that swustats are not updated when in non-premier format.
+                    updateStatsMessage(player1SwuStatsStatus, StatsMessageKey.NonPremierNotSupported);
+                    updateStatsMessage(player2SwuStatsStatus, StatsMessageKey.NonPremierNotSupported);
                 }
-                if (player2SwuStatsStatus) {
-                    player2SwuStatsStatus.message = 'stats update not supported for non-Premier formats';
-                    player2SwuStatsStatus.type = StatsSaveStatus.Warning;
+            }
+
+            // Send to SWUBase if handler is available
+            if (this.swuBaseEnabled && (player1SwuBaseStatus || player2SwuBaseStatus)) {
+                if (this.format === SwuGameFormat.Premier) {
+                    const {
+                        player1StatsMessageKey,
+                        player2StatsMessageKey
+                    } = await this.updatePlayerSWUBaseAsync(game, player1, player2, sequenceNumber ?? 1);
+
+                    updateStatsMessage(player1SwuBaseStatus, player1StatsMessageKey);
+                    updateStatsMessage(player2SwuBaseStatus, player2StatsMessageKey);
+                } else {
+                    updateStatsMessage(player1SwuBaseStatus, StatsMessageKey.NonPremierNotSupported);
+                    updateStatsMessage(player2SwuBaseStatus, StatsMessageKey.NonPremierNotSupported);
                 }
             }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for ${game.id}`, { lobbyId: this.id });
         } finally {
             this.sendStatsMessageToUser(player1.id, player1KarabastStatus);
             this.sendStatsMessageToUser(player2.id, player2KarabastStatus);
-            if (player1SwuStatsStatus && this.swuStatsEnabled) {
+            if (this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player1.id, player1SwuStatsStatus);
-            }
-            if (player2SwuStatsStatus && this.swuStatsEnabled) {
                 this.sendStatsMessageToUser(player2.id, player2SwuStatsStatus);
+            }
+            if (this.swuBaseEnabled) {
+                this.sendStatsMessageToUser(player1.id, player1SwuBaseStatus);
+                this.sendStatsMessageToUser(player2.id, player2SwuBaseStatus);
             }
         }
     }
@@ -2077,11 +2165,39 @@ export class Lobby {
                 user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
             }
         }
-        for (const user of this.spectators) {
-            if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+        for (const spectator of this.spectators) {
+            if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
+                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
             }
         }
+    }
+
+    /**
+     * Handle client request for message retransmit when gaps are detected.
+     * Client calls this with (startIndex, endIndex) to get messages in that range.
+     */
+    private retransmitGameMessages(socket: Socket, startIndex: number, endIndex: number): void {
+        if (!this.game) {
+            return;
+        }
+
+        const allMessages = this.game.messages;
+        const totalCount = allMessages.length;
+
+        // Clamp indices to valid range
+        const safeStart = Math.max(0, Math.min(startIndex, totalCount));
+        const safeEnd = Math.max(safeStart, Math.min(endIndex, totalCount));
+
+        const requestedMessages = allMessages.slice(safeStart, safeEnd);
+
+        const userId = socket.user.getId();
+        logger.warn('Lobby: retransmitting game messages', { lobbyId: this.id, userId, requestedStart: startIndex, requestedEnd: endIndex, lastMessageOffset: this.game.getChatMessageOffset(userId) });
+
+        socket.send('retransmitResponse', {
+            messages: requestedMessages,
+            startIndex: safeStart,
+            totalCount: totalCount
+        });
     }
 
     private safeSetUserConnected(userId: string): void {
@@ -2116,6 +2232,12 @@ export class Lobby {
                 this.assertSettingType(settingName, settingValue, 'boolean');
                 this.undoMode = settingValue ? UndoMode.Request : UndoMode.Free;
                 this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} undo confirmation`);
+                break;
+            case LobbySettingKeys.AllowSpectators:
+                Contract.assertTrue(this.isPrivate, 'The allowSpectators setting can only be changed in private lobbies');
+                this.assertSettingType(settingName, settingValue, 'boolean');
+                this.allowSpectators = settingValue;
+                this.gameChat.addAlert(AlertType.Warning, `${user.username} has ${settingValue ? 'enabled' : 'disabled'} spectation`);
                 break;
             default:
                 Contract.fail(`Unknown setting name: ${settingName}`);
@@ -2156,7 +2278,7 @@ export class Lobby {
                 ? this.game.captureGameState(socket.user.getId())
                 : { phase: 'action', player1: {}, player2: {} };
 
-            let gameMessages: IChatMessageEntry[];
+            let gameMessages: ISerializedMessage[];
             let opponent: { id: string; username: string };
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());

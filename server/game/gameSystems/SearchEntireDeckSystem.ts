@@ -3,12 +3,13 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
+import type { FormatMessage } from '../core/chat/GameChat.js';
 import type { TargetMode } from '../core/Constants.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 import { GameSystem } from '../core/gameSystem/GameSystem.js';
 import { SearchDeckSystem, type ISearchDeckProperties } from './SearchDeckSystem.js';
 
-export type ISearchEntireDeckProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISearchDeckProperties<TContext>, 'searchCount' | 'multiSelectCondition' | 'remainingCardsHandler'> & {
+export type ISearchEntireDeckProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISearchDeckProperties<TContext>, 'searchCount' | 'multiSelectCondition' | 'remainingCardsHandler' | 'shuffleWhenDone'> & {
     targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.Unlimited;
 };
 
@@ -52,5 +53,9 @@ export class SearchEntireDeckSystem<TContext extends AbilityContext = AbilityCon
             selectedCardsHandler: (selectedCards: Card[]) =>
                 this.onSearchComplete(properties, context, event, selectedCards, cards)
         };
+    }
+
+    protected override remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[], effectMessages: FormatMessage[]): void {
+        // For entire deck search, the remaining cards will be shuffled, so do nothing here
     }
 }

@@ -11,6 +11,7 @@ import {
     WildcardCardType,
     ZoneName
 } from '../../../core/Constants';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -29,14 +30,17 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.playCardFromHand({
-                        playAsType: WildcardCardType.Unit,
-                    }),
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Hidden)
-                    }),
-                ])
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous({
+                    resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,
+                    gameSystems: [
+                        AbilityHelper.immediateEffects.playCardFromHand({
+                            playAsType: WildcardCardType.Unit,
+                        }),
+                        AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                            effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Hidden)
+                        }),
+                    ]
+                })
             }
         });
     }
@@ -50,7 +54,7 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
                     onCardPlayed: (event, context) => this.isUnitPlayedEvent(event, context),
                 },
                 duration: Duration.UntilEndOfPhase,
-                effectDescription: 'give Hidden to the next unit they will play this phase',
+                effectDescription: 'give Hidden to the next unit they play this phase',
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     target: context.events.find((event) => this.isUnitPlayedEvent(event, context)).card,
                     effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Hidden),

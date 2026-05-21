@@ -1,16 +1,16 @@
 import type { AbilityType } from '../Constants';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
-import type { ActionAbility } from './ActionAbility';
-import type TriggeredAbility from './TriggeredAbility';
+import type { ActionAbilityBase } from './ActionAbility';
+import type { TriggeredAbilityBase } from './TriggeredAbility';
 
 interface IAbilityWithTypeBase {
     type: AbilityType;
-    ability: ActionAbility | IConstantAbility | TriggeredAbility;
+    ability: ActionAbilityBase | IConstantAbility | TriggeredAbilityBase;
 }
 
 export interface IActionAbilityWithType extends IAbilityWithTypeBase {
     type: AbilityType.Action;
-    ability: ActionAbility;
+    ability: ActionAbilityBase;
 }
 
 export interface IConstantAbilityWithType extends IAbilityWithTypeBase {
@@ -20,7 +20,7 @@ export interface IConstantAbilityWithType extends IAbilityWithTypeBase {
 
 export interface ITriggeredAbilityWithType extends IAbilityWithTypeBase {
     type: AbilityType.Triggered;
-    ability: TriggeredAbility;
+    ability: TriggeredAbilityBase;
 }
 
 export type IAbilityWithType =

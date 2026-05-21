@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { TargetMode, Trait } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, Trait } from '../../../core/Constants';
 
 export default class ConveneTheSenate extends EventCard {
     protected override getImplementationId () {
@@ -21,7 +21,10 @@ export default class ConveneTheSenate extends EventCard {
                     selectCount: 2,
                     searchCount: 8,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Official),
-                    selectedCardsImmediateEffect: abilityHelper.immediateEffects.drawSpecificCard()
+                    selectedCardsImmediateEffect: abilityHelper.immediateEffects.revealAndDraw({
+                        useDisplayPrompt: true,
+                        promptedPlayer: RelativePlayer.Opponent
+                    })
                 })
             ])
         });

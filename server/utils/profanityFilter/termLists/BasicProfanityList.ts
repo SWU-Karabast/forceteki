@@ -92,6 +92,7 @@ type EnglishProfaneWord =
   | 'kike'
   | 'kkk'
   | 'kys'
+  | 'limpwrist'
   | 'lube'
   | 'masturbate'
   | 'negro'
@@ -113,7 +114,7 @@ type EnglishProfaneWord =
   | 'shit'
   | 'slut'
   | 'swisher'
-  | 'tedbundy'
+  | 'taint'
   | 'tit'
   | 'tranny'
   | 'turd'
@@ -503,8 +504,8 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
     )
     .addPhrase((phrase) =>
         phrase
-            .setMetadata({ originalWord: 'tedbundy' })
-            .addPattern(normalizedPattern`ted[ ]bundy`)
+            .setMetadata({ originalWord: 'taint' })
+            .addPattern(normalizedPattern`|taint|`)
     )
     .addPhrase((phrase) =>
         phrase
@@ -534,4 +535,9 @@ export const basicProfanityList = new DataSet<{ originalWord: EnglishProfaneWord
         phrase
             .setMetadata({ originalWord: 'swisher' })
             .addPattern(normalizedPattern`swisher`)
+    )
+    .addPhrase((phrase) =>
+        phrase
+            .setMetadata({ originalWord: 'limpwrist' })
+            .addPattern(normalizedPattern`limp[ ]wrist`)
     );

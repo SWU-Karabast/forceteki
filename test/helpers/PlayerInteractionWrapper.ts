@@ -1,0 +1,1129 @@
+/* eslint-disable @typescript-eslint/prefer-for-of */
+import { ZoneName, DeckZoneDestination, DeployType } from '../../server/game/core/Constants.js';
+import { Card } from '../../server/game/core/card/Card.js';
+import TestSetupError from './TestSetupError.js';
+import Util from './Util.js';
+import { TrackedGameCardMetric, GameCardMetric } from '../../server/gameStatistics/GameStatisticsTracker.js';
+import type { Game } from '../../server/game/core/Game.js';
+import type { InPlayCard } from '../../server/game/core/card/baseClasses/InPlayCard.js';
+import type { IStatefulPromptResults } from '../../server/game/core/gameSteps/PromptInterfaces.js';
+import { nonEnumerable } from './decorators.js';
+
+export class PlayerInteractionWrapper {
+    @nonEnumerable
+    public game: Game;
+
+    @nonEnumerable
+    public player: Player;
+
+    @nonEnumerable
+    public testContext: GameFlowWrapper;
+
+    public constructor(game: Game, player: Player, testContext: GameFlowWrapper) {
+        this.game = game;
+        this.player = player;
+        this.testContext = testContext;
+    }
+
+    public get name() {
+        return this.player.user.username;
+    }
+
+    public get id() {
+        return this.player.id;
+    }
+
+    /**
+     * Moves all cards other than leader + base to the RemovedFromTheGame zone so they can
+     * be moved into their proper starting zones for the test.
+     */
+    public moveAllNonBaseZonesToRemoved() {
+        // Collect all cards from all zones
+        const arenaCards = this.player.getArenaCards();
+        const resourceCards = this.player.resourceZone.clearCards();
+        const discardCards = this.player.discardZone.clearCards();
+        const handCards = this.player.handZone.clearCards();
+        const deckCards = this.player.deckZone.clearDeck();
+
+        // Remove arena cards from their zones
+        for (let i = 0; i < arenaCards.length; i++) {
+            arenaCards[i].zone.removeCard(arenaCards[i]);
+        }
+
+        // Combine all cards into one list
+        const allCards = [...arenaCards, ...resourceCards, ...discardCards, ...handCards, ...deckCards];
+
+        // Update zone references and add to outsideTheGame in batch
+        const outsideZone = this.player.outsideTheGameZone;
+        for (let i = 0; i < allCards.length; i++) {
+            allCards[i].zone = outsideZone;
+        }
+        outsideZone.addCards(allCards);
+
+        Util.refreshGameState(this.game);
+    }
+
+    public get hand() {
+        return this.player.hand;
+    }
+
+    /**
+     * Sets the player's hand to contain the specified cards. Moves cards between
+     * hand and conflict deck
+     * @param {String|DrawCard[]} [newContents] - a list of card names or objects
+     */
+    public setHand(newContents = [], prevZones = ['deck']) {
+        this.hand.forEach((card: any) => this.setupMoveCard(card, 'deck'));
+
+        newContents.forEach((nameOrCard) => {
+            const card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
+            this.setupMoveCard(card, 'hand');
+        });
+    }
+
+    /**
+     * Gets the player's base card
+     */
+    public get base() {
+        return this.player.base;
+    }
+
+    /**
+     * Sets the player's base card
+     */
+    public set base(Card) {
+        this.player.base = Card;
+    }
+
+    /**
+     * Gets all cards in play for a player in the space arena
+     * @return {BaseCard[]} - List of player's cards currently in play in the space arena
+     */
+    public get inPlay() {
+        return this.player.filterCardsInPlay(() => true);
+    }
+
+    public setLeaderStatus(leaderOptions: { card: any; deployed: boolean; damage: number; exhausted: boolean; upgrades: any; capturedUnits: any; flipped: any }) {
+        if (!leaderOptions) {
+            return;
+        }
+
+        // leader as a string card name is a no-op unless it doesn't match the existing leader, then throw an error
+        if (typeof leaderOptions === 'string') {
+            if (leaderOptions !== this.player.leader.internalName) {
+                throw new TestSetupError(`Provided leader name ${leaderOptions} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+            }
+            return;
+        }
+
+        if (leaderOptions.card !== this.player.leader.internalName) {
+            throw new TestSetupError(`Provided leader name ${leaderOptions.card} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+        }
+
+        const leaderCard = this.player.leader;
+
+        if (leaderOptions.deployed) {
+            leaderCard.deploy({ type: DeployType.LeaderUnit });
+
+            // mark the deploy epic action as used
+            const deployAbility = leaderCard.getActionAbilities().find((ability: { getTitle: () => string | string[] }) => ability.getTitle().includes('Deploy'));
+            if (deployAbility?.limit) {
+                deployAbility.limit.increment(this.player);
+            }
+
+            leaderCard.damage = leaderOptions.damage || 0;
+            leaderCard.exhausted = leaderOptions.exhausted || false;
+
+            // Get the upgrades
+            if (leaderOptions.upgrades) {
+                this.setCardUpgrades(leaderCard, leaderOptions.upgrades);
+            }
+
+            if (leaderOptions.capturedUnits) {
+                this.setCapturedUnits(leaderCard, leaderOptions.capturedUnits);
+            }
+        } else {
+            if (leaderOptions.deployed === false) {
+                if (leaderCard.deployed === true) {
+                    leaderCard.undeploy();
+                }
+            }
+            if (leaderOptions.damage) {
+                throw new TestSetupError('Leader should not have damage when not deployed');
+            }
+            if (leaderOptions.upgrades) {
+                throw new TestSetupError('Leader should not have upgrades when not deployed');
+            }
+
+            if (leaderOptions.flipped) {
+                leaderCard.flipLeader();
+            }
+
+            leaderCard.exhausted = leaderOptions.exhausted || false;
+        }
+
+        Util.refreshGameState(this.game);
+    }
+
+    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits: any }) {
+        if (!baseOptions) {
+            return;
+        }
+        // base as a string card name is a no-op unless it doesn't match the existing base, then throw an error
+        if (typeof baseOptions === 'string') {
+            if (baseOptions !== this.player.base.internalName) {
+                throw new TestSetupError(`Provided base name ${baseOptions} does not match player's base ${this.player.base.internalName}. Do not try to change base after test has initialized.`);
+            }
+            return;
+        }
+
+        if (baseOptions.card !== this.player.base.internalName) {
+            throw new TestSetupError(`Provided base name ${baseOptions.card} does not match player's base ${this.player.base.internalName}. Do not try to change base after test has initialized.`);
+        }
+
+        const baseCard = this.player.base;
+        baseCard.damage = baseOptions.damage || 0;
+
+        if (baseOptions.capturedUnits) {
+            this.setCapturedUnits(baseCard, baseOptions.capturedUnits);
+        }
+
+        Util.refreshGameState(this.game);
+    }
+
+    /**
+     * Gets all cards in play for a player in the space arena
+     * @return {BaseCard[]} - List of player's cards currently in play in the space arena
+     */
+    public get spaceArena() {
+        return this.player.filterCardsInPlay((card: { zoneName: string }) => card.zoneName === 'spaceArena');
+    }
+
+    /**
+     * List of player's units in the space arena
+     * @return {BaseCard[]} - List of player's units currently in play in the space arena
+     */
+    public get spaceArenaUnits() {
+        return this.spaceArena.filter((card: { isUnit: () => any }) => card.isUnit());
+    }
+
+    public setSpaceArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
+        this.setArenaUnits('spaceArena', this.spaceArena, newState, prevZones);
+    }
+
+    /**
+     * Gets all cards in play for a player in the ground arena
+     * @return {BaseCard[]} - List of player's cards currently in play in the ground arena
+     */
+    public get groundArena() {
+        return this.player.filterCardsInPlay((card: { zoneName: string }) => card.zoneName === 'groundArena');
+    }
+
+    /**
+     * List of player's units in the ground arena
+     * @return {BaseCard[]} - List of player's units currently in play in the ground arena
+     */
+    public get groundArenaUnits() {
+        return this.groundArena.filter((card: { isUnit: () => any }) => card.isUnit());
+    }
+
+    public setGroundArenaUnits(newState = [], prevZones = ['deck', 'hand']) {
+        this.setArenaUnits('groundArena', this.groundArena, newState, prevZones);
+    }
+
+    /**
+     * List of objects describing units in play and any upgrades:
+     * Either as Object:
+     * {
+     *    card: String,
+     *    exhausted: Boolean
+     *    covert: Boolean,
+     *    upgrades: String[],
+     *    damage: Number
+     *  }
+     * or String containing name or id of the card
+     * @param {String} arenaName - name of the arena to set the units in, either 'groundArena' or 'spaceArena'
+     * @param {DrawCard[]} currentUnitsInArena - list of cards currently in the arena
+     * @param {(Object|String)[]} newState - list of cards in play and their states
+     */
+    public setArenaUnits(arenaName: string, currentUnitsInArena: any[], newState = [], prevZones = ['deck', 'hand']) {
+        // First, move all cards in play back to the deck
+        currentUnitsInArena.forEach((card: any) => {
+            this.setupMoveCard(card, 'deck');
+        });
+        // Set up each of the cards
+        newState.forEach((options) => {
+            if (typeof options === 'string') {
+                options = {
+                    card: options
+                };
+            }
+            if (!options.card) {
+                throw new TestSetupError('You must provide a card name');
+            }
+
+            const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.name;
+
+            let card: Card;
+            if (Util.isTokenUnit(options.card)) {
+                card = this.generateToken(this.player, options.card);
+            } else {
+                card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
+            }
+
+            if (!card.isUnit()) {
+                throw new TestSetupError(`Attempting to add non-unit card ${card.internalName} to ${arenaName}`);
+            } else if (card.defaultArena !== arenaName) {
+                throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
+            }
+
+            // Move card to play
+            this.setupMoveCard(card, arenaName);
+
+            if (opponentControlled) {
+                card.takeControl(card.owner.opponent);
+            }
+
+            // Set exhausted state (false by default)
+            if (options.exhausted != null) {
+                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+                options.exhausted ? card.exhaust() : card.ready();
+            } else {
+                card.ready();
+            }
+
+            if (options.damage != null) {
+                // @ts-expect-error - need to be able to set damage on non-unit cards for testing purposes
+                card.damage = options.damage;
+            }
+
+            if (options.upgrades) {
+                this.setCardUpgrades(card, options.upgrades, prevZones);
+            }
+
+            if (options.capturedUnits) {
+                this.setCapturedUnits(card, options.capturedUnits, prevZones);
+            }
+
+            if (options.damage !== undefined) {
+                // @ts-expect-error - need to be able to set damage on non-unit cards for testing purposes
+                card.damage = options.damage;
+            }
+        });
+
+        Util.refreshGameState(this.game);
+    }
+
+    public setCardUpgrades(card: any, upgrades: any, prevZones: string | string[] = 'any') {
+        for (const upgrade of upgrades) {
+            const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
+            let upgradeCard: InPlayCard;
+            if (Util.isTokenUpgrade(upgradeName)) {
+                upgradeCard = this.generateToken(this.player, upgradeName) as InPlayCard;
+            } else {
+                upgradeCard = this.findCardByName(upgradeName, prevZones);
+            }
+
+            upgradeCard.attachTo(card);
+        }
+    }
+
+    public setCapturedUnits(card: { captureZone: any }, capturedUnits: any, prevZones: string | string[] = 'any') {
+        for (const capturedUnit of capturedUnits) {
+            const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.name) ? 'self' : 'opponent';
+            let capturedUnitCard: { moveToCaptureZone: (arg0: any) => void };
+            if (Util.isTokenUnit(capturedUnitName)) {
+                throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
+            } else {
+                capturedUnitCard = this.findCardByName(capturedUnitName, prevZones, side);
+            }
+            capturedUnitCard.moveToCaptureZone(card.captureZone);
+        }
+    }
+
+    public generateToken(player: any, tokenName: any) {
+        let tokenClassName: string;
+        switch (tokenName) {
+            case 'battle-droid':
+                tokenClassName = 'battleDroid';
+                break;
+            case 'clone-trooper':
+                tokenClassName = 'cloneTrooper';
+                break;
+            case 'spy':
+                tokenClassName = 'spy';
+                break;
+            case 'mandalorian':
+                tokenClassName = 'mandalorian';
+                break;
+            case 'tie-fighter':
+                tokenClassName = 'tieFighter';
+                break;
+            case 'xwing':
+                tokenClassName = 'xwing';
+                break;
+            case 'experience':
+            case 'shield':
+            case 'advantage':
+                tokenClassName = tokenName;
+                break;
+            default:
+                throw new TestSetupError(`Unknown token type: ${tokenName}`);
+        }
+
+        return this.game.generateToken(player, tokenClassName as any);
+    }
+
+    public get deck() {
+        return this.player.drawDeck;
+    }
+
+    public setDeck(newContents = [], prevZones = ['any']) {
+        this.player.deckZone.cards.forEach(
+            (card: any) => this.setupMoveCard(card, 'outsideTheGame')
+        );
+        newContents.reverse().forEach((nameOrCard) => {
+            const card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
+            this.setupMoveCard(card, 'deck');
+        });
+    }
+
+    public get resources() {
+        return this.player.resources;
+    }
+
+    /**
+     * Sets the player's resource count to the specified number, using
+     * a default card name
+     */
+    public setResourceCount(count: any) {
+        this.setResourceCards(Array(count).fill('underworld-thug'));
+    }
+
+    /**
+     * List of objects describing cards in resource area
+     * Either as Object:
+     * {
+     *    card: String,
+     *    exhausted: Boolean
+     *  }
+     * or String containing name or id of the card
+     * @param {(Object|String)[]} newState - list of cards in play and their states
+     */
+    public setResourceCards(newContents = [], prevZones = ['deck', 'hand']) {
+        //  Move cards to the deck
+        this.resources.forEach((card: any) => {
+            this.setupMoveCard(card, 'deck');
+        });
+        // Move cards to the resource area in reverse order
+        // (helps with referring to cards by index)
+        newContents.reverse().forEach((resource) => {
+            const name = typeof resource === 'string' ? resource : resource.card;
+            const card = this.findCardByName(name, prevZones);
+            this.setupMoveCard(card, 'resource');
+            card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
+        });
+        Util.refreshGameState(this.game);
+    }
+
+    public attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
+        for (const upgrade of opponentOwnedUpgrades) {
+            const upgradeCard = this.findCardByName(upgrade.card, 'any', 'opponent');
+            const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.name;
+            const attachTo = attachedCardAlsoOpponentControlled ? this.findCardByName(upgrade.attachedTo, 'any', 'opponent') : this.findCardByName(upgrade.attachedTo);
+            upgradeCard.attachTo(attachTo);
+        }
+    }
+
+    public get handSize() {
+        return this.player.hand.length;
+    }
+
+    public get deckSize() {
+        return this.player.decklist.deckCards.length;
+    }
+
+    public get readyResourceCount() {
+        return this.player.readyResourceCount;
+    }
+
+    public get exhaustedResourceCount() {
+        return this.player.exhaustedResourceCount;
+    }
+
+    public get discard() {
+        return this.player.discard;
+    }
+
+    /**
+     * Sets the contents of the conflict discard pile
+     * @param {String[]} newContents - list of names of cards to be put in conflict discard
+     */
+    public setDiscard(newContents = [], prevZones = ['deck']) {
+        //  Move cards to the deck
+        this.discard.forEach((card: any) => this.setupMoveCard(card, 'deck'));
+        // Move cards to the discard in reverse order
+        // (helps with referring to cards by index)
+        newContents.reverse().forEach((name) => {
+            const card = typeof name === 'string' ? this.findCardByName(name, prevZones) : name;
+            this.setupMoveCard(card, 'discard');
+        });
+    }
+
+    public get initiativePlayer() {
+        return this.game.initiativePlayer;
+    }
+
+    public get hasInitiative() {
+        return this.game.initiativePlayer != null && this.game.initiativePlayer.id === this.player.id;
+    }
+
+    public get hasTheForce() {
+        return this.player.hasTheForce;
+    }
+
+    public get credits() {
+        return this.player.creditTokenCount;
+    }
+
+    public get actionPhaseActivePlayer() {
+        return this.game.actionPhaseActivePlayer;
+    }
+
+    public get activePlayer() {
+        return this.game.getActivePlayer();
+    }
+
+    public get opponent() {
+        return this.player.opponent;
+    }
+
+    public currentPrompt() {
+        return this.player.currentPrompt();
+    }
+
+    public get currentButtons() {
+        const buttons = this.currentPrompt().buttons;
+        return buttons.map((button: { text: { toString: () => any } }) => button.text.toString());
+    }
+
+    /**
+     * Lists cards selectable by the player during the action
+     * @return {DrawCard[]} - selectable cards
+     */
+    public get currentActionTargets() {
+        return this.player.promptState.selectableCards;
+    }
+
+    /**
+     * Lists cards currently selected by the player
+     * @return {DrawCard[]} - selected cards
+     */
+    public get selectedCards() {
+        return this.player.promptState.selectedCards;
+    }
+
+    /**
+     * Determines whether a player can initiate actions
+     * @return {Boolean} - whether the player can initiate actions or has to wait
+     */
+    public get canAct() {
+        return !this.hasPrompt('Waiting for opponent to take an action or pass');
+    }
+
+    public findCardByName(name: string, zones: string | string[] = 'any', side?: string) {
+        const cards = this.filterCardsByName(name, zones, side);
+        // TODO: Update to throw exception when returning more or less than 1 card. This will require updates to the test suite.git
+        if (cards.length === 0) {
+            throw new TestSetupError(`Could not find any cards matching name ${name}`);
+        }
+        return cards[0];
+    }
+
+    public findCardsByName(names: any, zones: string | string[] = 'any', side?: any) {
+        return this.filterCardsByName(names, zones, side);
+    }
+
+    /**
+     * Filters all of a player's cards using the name and zone of a card
+     * @param {String} names - the names of the cards
+     * @param {String[]|String} [zones = 'any'] - zones in which to look for. 'provinces' = 'province 1', 'province 2', etc.
+     * @param {String?} side - set to 'opponent' to search in opponent's cards
+     */
+    public filterCardsByName(names: any, zones: string | string[] = 'any', side?: any) {
+        // So that function can accept either lists or single zones
+        const namesAra = Array.isArray(names) ? names : [names];
+        if (zones !== 'any') {
+            if (!Array.isArray(zones)) {
+                zones = [zones];
+            }
+        }
+        return this.filterCards(
+            (card: { cardData: { internalName: any }; zoneName: string }) => namesAra.includes(card.cardData.internalName) && (zones === 'any' || zones.includes(card.zoneName)),
+            side
+        );
+    }
+
+    public findCard(condition: any, side: any) {
+        const cards = this.filterCards(condition, side);
+        if (cards.length === 0) {
+            throw new TestSetupError('Could not find any matching cards');
+        }
+        return cards[0];
+    }
+
+    /**
+     *   Filters cards by given condition
+     *   @param {function(card: DrawCard)} condition - card matching function
+     *   @param {String} [side] - set to 'opponent' to search in opponent's cards
+     *   @returns {any[]}
+     */
+    public filterCards(condition: (card: any) => boolean, side: string) {
+        let player = this.player;
+        if (side === 'opponent') {
+            player = this.opponent;
+        }
+        return player.decklist.allCards.map(
+            (x: any) => this.game.getFromId(x)
+        ).filter(condition);
+    }
+
+    public exhaustResources(number: any) {
+        this.player.exhaustResources(number);
+        Util.refreshGameState(this.game);
+    }
+
+    public setExactReadyResources(number: number) {
+        const availableResources = this.player.resources.length;
+
+        if (number > availableResources) {
+            throw new TestSetupError(`Cannot set ready resources to ${number} as only ${availableResources} resources are available`);
+        }
+
+        this.player.readyResources(availableResources);
+
+        const resourcesToExhaust = availableResources - number;
+        this.player.exhaustResources(resourcesToExhaust);
+        Util.refreshGameState(this.game);
+    }
+
+    public hasPrompt(title: string) {
+        const currentPrompt = this.player.currentPrompt();
+
+        // Evaluar si menuTitle es una función o un string
+        const menuTitle =
+            typeof currentPrompt.menuTitle === 'function'
+                ? currentPrompt.menuTitle(this.player.context)
+                : currentPrompt.menuTitle;
+
+        // Evaluar si promptTitle es una función o un string
+        const promptTitle =
+            typeof currentPrompt.promptTitle === 'function'
+                ? currentPrompt.promptTitle(this.player.context)
+                : currentPrompt.promptTitle;
+
+        return (
+            !!currentPrompt &&
+            (menuTitle && menuTitle.toLowerCase() === title.toLowerCase()) ||
+            (menuTitle && (menuTitle.replace('(because you are choosing from a hidden zone you may choose nothing)', '').trim()
+                .toLowerCase() === title.toLowerCase())) || (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
+        );
+    }
+
+    public selectDeck(deck: any) {
+        this.game.selectDeck(this.player.id, deck);
+    }
+
+    public clickPrompt(text: string) {
+        text = text.toString();
+        const currentPrompt = this.player.currentPrompt();
+        const promptButton = currentPrompt.buttons.find(
+            (button: { text: { toString: () => string } }) => button.text.toString().toLowerCase() === text.toLowerCase()
+        );
+
+        if (!promptButton || promptButton.disabled) {
+            throw new TestSetupError(
+                `Couldn't click on '${text}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+            );
+        }
+
+        this.game.menuButton(this.player.id, promptButton.arg, promptButton.uuid, promptButton.method);
+        this.game.continue();
+        // this.checkUnserializableGameState();
+    }
+
+    public chooseListOption(text: any) {
+        const currentPrompt = this.player.currentPrompt();
+        if (!currentPrompt.dropdownListOptions.includes(text)) {
+            throw new TestSetupError(
+                `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+            );
+        }
+
+        // @ts-ignore
+        this.game.menuButton(this.player.id, text, currentPrompt.promptUuid);
+        this.game.continue();
+        // this.checkUnserializableGameState();
+    }
+
+    public setDistributeDamagePromptState(cardDistributionMap: any) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
+    }
+
+    public setDistributeIndirectDamagePromptState(cardDistributionMap: any) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeIndirectDamage');
+    }
+
+    public setDistributeHealingPromptState(cardDistributionMap: any) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
+    }
+
+    public setDistributeExperiencePromptState(cardDistributionMap: any) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeExperience');
+    }
+
+    public setDistributeAmongTargetsPromptState(cardDistributionMap: any, type: string) {
+        const currentPrompt = this.player.currentPrompt();
+
+        const cardDistributionArray = [...cardDistributionMap].map(([card, amount]) => ({
+            uuid: card.uuid,
+            amount
+        }));
+
+        const promptResults: IStatefulPromptResults = {
+            valueDistribution: cardDistributionArray,
+            type: type as any
+        };
+
+        this.game.statefulPromptResults(this.player.id, promptResults, currentPrompt.promptUuid);
+        this.game.continue();
+        // this.checkUnserializableGameState();
+    }
+
+    public clickDisplayCardPromptButton(cardUuid: any, arg: any) {
+        const currentPrompt = this.player.currentPrompt();
+
+        // @ts-ignore
+        this.game.perCardMenuButton(this.player.id, arg, cardUuid, currentPrompt.promptUuid);
+        this.game.continue();
+    }
+
+    public clickCardInDisplayCardPrompt(card: { uuid: any; internalName: any }, allowClickUnselectable = false) {
+        Util.checkNullCard(card);
+
+        const currentPrompt = this.player.currentPrompt();
+
+        const clickingCard = currentPrompt.displayCards.find(
+            (cardEntry: { cardUuid: any }) => cardEntry.cardUuid === card.uuid
+        );
+
+        if (!clickingCard || (!allowClickUnselectable && (clickingCard.selectionState === 'unselectable' || clickingCard.selectionState === 'invalid'))) {
+            throw new TestSetupError(
+                `Couldn't click on '${card.internalName}' in card display prompt for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+            );
+        }
+
+        this.game.menuButton(this.player.id, card.uuid, currentPrompt.promptUuid, 'menuButton');
+        this.game.continue();
+
+        // this.checkUnserializableGameState();
+        return card;
+    }
+
+    // click any N of the selectable cards available
+    // used for randomly selecting resource cards to get through the setup phase
+    public clickAnyOfSelectableCards(nCardsToChoose: number) {
+        const availableCards = this.currentActionTargets;
+
+        if (!availableCards || availableCards.length < nCardsToChoose) {
+            throw new TestSetupError(`Insufficient card targets available for control, expected ${nCardsToChoose} found ${availableCards?.length ?? 0} prompt:\n${Util.formatBothPlayerPrompts(this.testContext)}`);
+        }
+
+        for (let i = 0; i < nCardsToChoose; i++) {
+            this.game.cardClicked(this.player.id, availableCards[i].uuid);
+        }
+        this.game.continue();
+
+        // this.checkUnserializableGameState();
+    }
+
+    public clickCardNonChecking(card: any, zone = 'any', side = 'self') {
+        this.clickCard(card, zone, side, false);
+    }
+
+    public clickCard(card: {
+        name: string; internalName: any; uuid: any;
+    }, zone = 'any', side = 'self', expectChange = true) {
+        Util.checkNullCard(card);
+
+        if (typeof card === 'string') {
+            card = this.findCardByName(card, zone, side);
+        }
+
+        if (expectChange && !this.currentActionTargets.includes(card)) {
+            throw new TestSetupError(
+                `Couldn't click on '${card.internalName}' for ${this.player.name}. The card is not selectable!\nCurrent prompts:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+            );
+        }
+
+        let beforeClick = null;
+        if (expectChange) {
+            beforeClick = Util.getPlayerPromptState(this.player);
+        }
+
+        this.game.cardClicked(this.player.id, card.uuid);
+        this.game.continue();
+
+        if (expectChange) {
+            const afterClick = Util.getPlayerPromptState(this.player);
+            if (Util.promptStatesEqual(beforeClick, afterClick)) {
+                throw new TestSetupError(`Nothing happened when ${this.player.name} clicked ${card.internalName} (prompt and board state did not change). Current prompts:\n${Util.formatBothPlayerPrompts(this.testContext)}`);
+            }
+        }
+
+        // this.checkUnserializableGameState();
+        return card;
+    }
+
+    /**
+     * Clicks the first card in the specified zone.
+     * @param {String} zone - The zone to click the first card in.
+     * @param {Number} pos - The position of the card to click.
+     */
+    public clickCardPosInZone(zone: string, pos: number, side = 'self', expectChange = true) {
+        if (pos < 0 || pos >= this.player[zone].length) {
+            throw new TestSetupError(`Position ${pos} is out of bounds for ${zone} zone`);
+        }
+
+        return this.clickCard(this.player[zone][pos], zone, side, expectChange);
+    }
+
+    /**
+     * Clicks the first card in the specified zone.
+     * @param {String} zone - The zone to click the first card in.
+     */
+    public clickFirstCardInZone(zone: any, side = 'self', expectChange = true) {
+        return this.clickCardPosInZone(zone, 0, side, expectChange);
+    }
+
+    /**
+     * Clicks the card in the player's hand at the specified position.
+     * @param {Number} pos - The position of the card to click.
+     */
+    public clickCardInHand(pos: number, expectChange = true) {
+        return this.clickCardPosInZone('hand', pos, 'self', expectChange);
+    }
+
+    /**
+     * Clicks the first card in the player's hand.
+     */
+    public clickFirstCardInHand(expectChange = true) {
+        return this.clickCardInHand(0, expectChange);
+    }
+
+    /**
+     * Clicks the second card in the player's hand.
+     */
+    public clickSecondCardInHand(expectChange = true) {
+        return this.clickCardInHand(1, expectChange);
+    }
+
+    public clickMenu(card: { getMenu: () => any[]; name: any; uuid: any }, menuText: any) {
+        if (typeof card === 'string') {
+            card = this.findCardByName(card);
+        }
+
+        const items = card.getMenu().filter((item: { text: any }) => item.text === menuText);
+
+        if (items.length === 0) {
+            throw new TestSetupError(`Card ${card.name} does not have a menu item '${menuText}'`);
+        }
+
+        // @ts-ignore - Need to ignore type error because menuItemClick expects a MenuItem object but we're only passing the text property of the MenuItem for testing purposes
+        this.game.menuItemClick(this.player.id, card.uuid, items[0]);
+        this.game.continue();
+        // this.checkUnserializableGameState();
+    }
+
+    public getCardsInZone(zone: any) {
+        return this.player.getCardsInZone(zone);
+    }
+
+    public getArenaCards() {
+        return this.player.getArenaCards();
+    }
+
+    public dragCard(card: { uuid: any; zoneName: any }, targetZone: any) {
+        // @ts-ignore
+        this.game.drop(this.player.id, card.uuid, card.zoneName, targetZone);
+        this.game.continue();
+        // this.checkUnserializableGameState();
+    }
+
+    /**
+     * Moves cards between ZoneName
+     * @param {String|DrawCard} card - card to be moved
+     * @param {String} targetZone - zone where the card should be moved
+     * @param {String | String[]} searchZones - zones where to find the
+     * card object, if card parameter is a String
+     */
+    public moveCard(card: string | Card | { card: Card }, targetZone: string, searchZones = 'any') {
+        // TODO: Check that space units can not be added to ground arena and vice versa
+        if (!(card instanceof Card)) {
+            const cardName = typeof card === 'string' ? card : card.card;
+            card = this.mixedListToCardList([cardName], searchZones)[0];
+        }
+        // @ts-ignore - Need to ignore type error because moveTo expects a Zone object but we're only passing the zone name for testing purposes
+        card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
+        this.game.continue();
+        return card;
+    }
+
+    /**
+     * Moves cards between zones WITHOUT calling game.continue().
+     * Use this for batch operations during test setup to avoid pipeline overhead.
+     * Call Util.refreshGameState() once after all moves are complete.
+     * @param {String|DrawCard} card - card to be moved
+     * @param {String} targetZone - zone where the card should be moved
+     * @param {String | String[]} searchZones - zones where to find the card object
+     */
+    public setupMoveCard(card: string | Card | { card: Card }, targetZone: string, searchZones: string | string[] = 'any') {
+        if (!(card instanceof Card)) {
+            const cardName = typeof card === 'string' ? card : card.card;
+            card = this.mixedListToCardList([cardName], searchZones)[0];
+        }
+        // @ts-ignore - Need to ignore type error because moveTo expects a Zone object but we're only passing the zone name for testing purposes
+        card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
+        return card;
+    }
+
+    public togglePromptedActionWindow(window: string | number, value: any) {
+        this.player.promptedActionWindows[window] = value;
+    }
+
+    /**
+     * Player's action of passing priority
+     */
+    public passAction() {
+        if (!this.canAct) {
+            throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
+        }
+        this.clickPrompt('Pass');
+    }
+
+    /**
+     * Player clicks Done prompt
+     */
+    public clickDone() {
+        if (!this.currentButtons.includes('Done')) {
+            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt`);
+        }
+        this.clickPrompt('Done');
+    }
+
+    /**
+     * Player's action of passing priority
+     */
+    public claimInitiative() {
+        if (!this.canAct) {
+            throw new TestSetupError(`${this.name} can't pass, because they don't have priority`);
+        }
+        this.clickPrompt('Claim Initiative');
+    }
+
+    /**
+     *
+     */
+    public setActivePlayer() {
+        this.game.actionPhaseActivePlayer = this.player;
+        if (this.game.currentActionWindow) {
+            // @ts-ignore - Need to ignore type error because activePlayer expects a Player object but we're only passing the player for testing purposes
+            this.game.currentActionWindow.activePlayer = this.player;
+        }
+        Util.refreshGameState(this.game);
+    }
+
+    /**
+     * Sets the Force Token state for the player
+     * @param {Boolean} hasForce - true if the player should have the Force Token
+     */
+    public setHasTheForce(hasForce = true) {
+        if (hasForce) {
+            if (this.player.hasTheForce) {
+                throw new TestSetupError(`Attempting to give Force Token to ${this.player.name}, but they already have it.`);
+            }
+
+            const forceTokens = this.player.outsideTheGameZone
+                .getCards({ condition: (card: { isForceToken: () => any }) => card.isForceToken() });
+
+            if (forceTokens.length === 0) {
+                throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
+            }
+
+            forceTokens[0].moveTo(ZoneName.Base);
+        } else {
+            if (!this.player.hasTheForce) {
+                throw new TestSetupError(`Attempting to remove Force Token from ${this.player.name}, but they don't have it.`);
+            }
+            const forceToken = this.player.baseZone.forceToken;
+
+            if (!forceToken) {
+                throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
+            }
+
+            forceToken.moveTo(ZoneName.OutsideTheGame);
+        }
+    }
+
+    public setCreditTokenCount(count: number) {
+        const currentCount = this.player.creditTokenCount;
+
+        if (count < currentCount) {
+            const tokensToRemove = currentCount - count;
+            const tokens = this.player.baseZone.credits.slice(0, tokensToRemove);
+            for (const token of tokens) {
+                token.moveTo(ZoneName.OutsideTheGame);
+            }
+            return;
+        }
+
+        const tokensToAdd = count - currentCount;
+        const tokens = [];
+
+        for (let i = 0; i < count; i++) {
+            tokens.push(this.game.generateToken(this.player, 'credit' as any));
+        }
+
+        for (const token of tokens) {
+            token.moveTo(ZoneName.Base);
+        }
+    }
+
+    public playAttachment(attachment: any, target: any) {
+        const card = this.clickCard(attachment, 'hand');
+        if (this.currentButtons.includes('Play ' + card.name + ' as an attachment')) {
+            this.clickPrompt('Play ' + card.name + ' as an attachment');
+        }
+        this.clickCard(target, 'play area');
+        return card;
+    }
+
+    public readyResources(number: any) {
+        this.player.readyResources(number);
+        Util.refreshGameState(this.game);
+    }
+
+    public playCharacterFromHand(card: any, fate = 0) {
+        if (typeof card === 'string') {
+            card = this.findCardByName(card, 'hand');
+        }
+        this.clickCard(card, 'hand');
+        if (this.currentButtons.includes('Play this character')) {
+            this.clickPrompt('Play this character');
+        }
+        this.clickPrompt(fate.toString());
+        return card;
+    }
+
+    /**
+     * Converts a mixed list of card objects and card names to a list of card objects
+     * @param {(DrawCard|String)[]} mixed - mixed list of cards and names or ids
+     * @param {String[]|String} zones - list of zones to get card objects from
+     */
+    public mixedListToCardList(mixed: any[], zones: string | string[] = 'any'): Card[] {
+        if (!mixed) {
+            return [];
+        }
+        // Yank all the non-string cards
+        const cardList = mixed.filter((card: any) => typeof card !== 'string');
+        mixed = mixed.filter((card: any) => typeof card === 'string');
+        // Find cards objects for the rest
+        mixed.forEach((card: any) => {
+            // Find only those cards that aren't already in the list
+            const cardObject = this.filterCardsByName(card, zones).find((card: any) => !cardList.includes(card));
+            if (!cardObject) {
+                throw new TestSetupError(`Could not find card named ${card}`);
+            }
+            cardList.push(cardObject);
+        });
+
+        return cardList;
+    }
+
+    /**
+     * Removes cards unable to participate in a specified type of conflict from a list
+     * @param {DrawCard[]} cardList - list of card objects
+     * @param {String} type - type of conflict 'military' or 'political'
+     */
+    public filterUnableToParticipate(cardList: any[], type: any) {
+        return cardList.filter((card: { hasDash: (arg0: any) => any }) => {
+            if (!card) {
+                return false;
+            }
+            return !card.hasDash(type);
+        });
+    }
+
+    // checkUnserializableGameState() {
+    //     let state = this.game.getState(this.player.id);
+    //     let results = detectBinary(state);
+    //     if (results.length !== 0) {
+    //         throw new TestSetupError('Unable to serialize game state back to client:\n' + JSON.stringify(results));
+    //     }
+    // }
+
+    public reduceDeckToNumber(number: number) {
+        for (let i = this.deck.length - 1; i >= number; i--) {
+            this.moveCard(this.deck[i], 'discard');
+        }
+    }
+
+    /**
+     * Return a tracked card metric for a card that was played.
+     * @param {Card} card - The card that was played
+     * @returns {TrackedGameCardMetric}
+     */
+    public played(card: Card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Played, card, this.player);
+    }
+
+    /**
+     * Return a tracked card metric for a card that was drawn.
+     * @param {Card} card - The card that was drawn
+     * @returns {TrackedGameCardMetric}
+     */
+    public drew(card: Card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Drawn, card, this.player);
+    }
+
+    /**
+     * Return a tracked card metric for a card that was discarded.
+     * @param {Card} card - The card that was discarded
+     * @returns {TrackedGameCardMetric}
+     */
+    public discarded(card: Card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Discarded, card, this.player);
+    }
+
+    /**
+     * Return a tracked card metric for a card that was resourced.
+     * @param {Card} card - The card that was resourced
+     * @returns {TrackedGameCardMetric}
+     */
+    public resourced(card: Card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Resourced, card, this.player);
+    }
+
+
+    /**
+     * Return a tracked card metric for a card that was activated.
+     * @param {Card} card - The card that was activated
+     * @returns {TrackedGameCardMetric}
+     */
+    public activated(card: Card) {
+        return new TrackedGameCardMetric(this.game, GameCardMetric.Activated, card, this.player);
+    }
+}
+
+module.exports = PlayerInteractionWrapper;

@@ -3,6 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { GameStateChangeRequired, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class HanSoloWorthTheRisk extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
+            title: `Play a unit from your hand. It costs ${TextHelper.resource(1)} less. Deal 2 damage to it.`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before
@@ -36,7 +37,7 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.',
+            title: `Play a unit from your hand. It costs ${TextHelper.resource(1)} less. Deal 2 damage to it.`,
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: WildcardCardType.Unit,

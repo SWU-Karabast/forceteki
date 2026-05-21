@@ -3,13 +3,13 @@ import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrati
 import { BaseCard } from '../../../core/card/BaseCard';
 import { Aspect, Conjunction, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import * as EnumHelpers from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export abstract class LAWCommonBase extends BaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         const aspects = [Aspect.Vigilance, Aspect.Command, Aspect.Aggression, Aspect.Cunning];
         registrar.setEpicActionAbility({
-            title: `Play a card from your hand, ignoring 1 of its ${EnumHelpers.aspectString(aspects, Conjunction.Or)} aspect penalties`,
+            title: `Play a card from your hand, ignoring 1 of its ${TextHelper.aspectList(aspects, Conjunction.Or)} aspect penalties`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,

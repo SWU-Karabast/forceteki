@@ -117,7 +117,7 @@ import type { ITakeControlOfResourceProperties } from './TakeControlOfResourceSy
 import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
 import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
 import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
-import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhileSourceInPlayDelayedEffectSystem';
+import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhenSourceLeavesPlayDelayedEffectSystem';
 import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
@@ -166,8 +166,13 @@ import type { IUseOnAttackProperties } from './UseOnAttackSystem';
 import { UseOnAttackSystem } from './UseOnAttackSystem';
 import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditTokenSystem';
 import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
-
-type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
+import type { IRevealAndDrawProperties } from './RevealAndDrawSystem';
+import { RevealAndDrawSystem } from './RevealAndDrawSystem';
+import type { IGiveAdvantageProperties } from './GiveAdvantageSystem';
+import { GiveAdvantageSystem } from './GiveAdvantageSystem';
+import { CreateMandalorianSystem } from './CreateMandalorianSystem';
+import type { ICreateMandalorianProperties } from './CreateMandalorianSystem';
+import type { PropsFactory } from '../Interfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -216,6 +221,9 @@ export function createTieFighter<TContext extends AbilityContext = AbilityContex
 export function createSpy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateSpyProperties, TContext> = {}) {
     return new CreateSpySystem<TContext>(propertyFactory);
 }
+export function createMandalorian<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateMandalorianProperties, TContext> = {}) {
+    return new CreateMandalorianSystem<TContext>(propertyFactory);
+}
 export function createCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCreditTokenProperties, TContext> = {}) {
     return new CreateCreditTokenSystem<TContext>(propertyFactory);
 }
@@ -251,7 +259,7 @@ export function distributeHealingAmong<TContext extends AbilityContext = Ability
 export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
     return new DistributeExperienceSystem<TContext>(propertyFactory);
 }
-export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext>) {
+export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
 }
 export function deployAndAttachPilotLeader<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployAndAttachPilotLeaderProperties, TContext>) {
@@ -303,6 +311,9 @@ export function giveExperience<TContext extends AbilityContext = AbilityContext>
 }
 export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveShieldProperties, TContext> = {}) {
     return new GiveShieldSystem<TContext>(propertyFactory);
+}
+export function giveAdvantage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveAdvantageProperties, TContext> = {}) {
+    return new GiveAdvantageSystem<TContext>(propertyFactory);
 }
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
@@ -486,7 +497,6 @@ export function returnToHand<TContext extends AbilityContext = AbilityContext>(p
     );
 }
 
-
 export function disclose<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscloseAspectsProperties, TContext>) {
     return new DiscloseAspectsSystem<TContext>(propertyFactory);
 }
@@ -512,6 +522,14 @@ export function revealAndSelectCard<TContext extends AbilityContext = AbilityCon
         GameSystem.appendToPropertiesOrPropertyFactory<IViewAndSelectCardsProperties, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.SelectCards }
+        )
+    );
+}
+export function revealAndDraw<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealAndDrawProperties, 'interactMode'>, TContext> = {}) {
+    return new RevealAndDrawSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IRevealAndDrawProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.ViewOnly }
         )
     );
 }

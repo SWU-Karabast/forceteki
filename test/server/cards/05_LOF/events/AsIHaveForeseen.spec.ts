@@ -25,13 +25,13 @@ describe('As I Have Foreseen', function () {
             });
 
             describe('when the player has the Force', function () {
-                it('shows the top card of the deck and allows the player to use the force and play it for 4 less', function () {
+                it('shows the top card of the deck and allows the player to use the force and play it for 4 resources less', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.asIHaveForeseen);
 
                     expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.zuckuss]);
-                    expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Use the Force and play for 4 less', 'Leave on top']);
+                    expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Use the Force and play for 4 resources less', 'Leave on top']);
                     expect(context.getChatLogs(1)[0]).not.toContain(context.zuckuss.title);
 
                     context.player1.clickDisplayCardPromptButton(context.zuckuss.uuid, 'play-discount');
@@ -48,7 +48,7 @@ describe('As I Have Foreseen', function () {
                     context.player1.clickCard(context.asIHaveForeseen);
 
                     expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.zuckuss]);
-                    expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Use the Force and play for 4 less', 'Leave on top']);
+                    expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Use the Force and play for 4 resources less', 'Leave on top']);
                     expect(context.getChatLogs(1)[0]).not.toContain(context.zuckuss.title);
 
                     context.player1.clickDisplayCardPromptButton(context.zuckuss.uuid, 'leave');
@@ -68,7 +68,7 @@ describe('As I Have Foreseen', function () {
                     context.player1.clickCard(context.asIHaveForeseen);
 
                     expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.zuckuss]);
-                    expect(context.player1).toHaveExactDisabledDisplayPromptPerCardButtons(['Use the Force and play for 4 less']);
+                    expect(context.player1).toHaveExactDisabledDisplayPromptPerCardButtons(['Use the Force and play for 4 resources less']);
                     expect(context.player1).toHaveExactEnabledDisplayPromptPerCardButtons(['Leave on top']);
                     expect(context.getChatLogs(1)[0]).not.toContain(context.zuckuss.title);
 
@@ -90,7 +90,7 @@ describe('As I Have Foreseen', function () {
                     context.player1.clickCard(context.asIHaveForeseen);
 
                     expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.bossk]);
-                    expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Use the Force and play for 4 less', 'Leave on top']);
+                    expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Use the Force and play for 4 resources less', 'Leave on top']);
                     expect(context.getChatLogs(1)[0]).not.toContain(context.bossk.title);
 
                     context.player1.clickDisplayCardPromptButton(context.bossk.uuid, 'play-discount');
@@ -165,7 +165,7 @@ describe('As I Have Foreseen', function () {
                 context.player1.clickCard(context.asIHaveForeseen);
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.zuckuss]);
-                expect(context.player1).toHaveExactDisabledDisplayPromptPerCardButtons(['Use the Force and play for 4 less']);
+                expect(context.player1).toHaveExactDisabledDisplayPromptPerCardButtons(['Use the Force and play for 4 resources less']);
                 expect(context.player1).toHaveExactEnabledDisplayPromptPerCardButtons(['Leave on top']);
                 expect(context.getChatLogs(1)[0]).not.toContain(context.zuckuss.title);
 

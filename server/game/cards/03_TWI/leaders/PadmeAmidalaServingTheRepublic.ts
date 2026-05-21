@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { AbilityType, Trait } from '../../../core/Constants';
+import { AbilityType, RelativePlayer, Trait } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 
 export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
@@ -37,7 +37,10 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
         return AbilityHelper.immediateEffects.deckSearch({
             searchCount: 3,
             cardCondition: (card) => card.hasSomeTrait(Trait.Republic),
-            selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+            selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                useDisplayPrompt: true,
+                promptedPlayer: RelativePlayer.Opponent
+            })
         });
     }
 }

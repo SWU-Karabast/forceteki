@@ -1,11 +1,12 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
 import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
-import type Game from '../../Game';
+import type { Game } from '../../Game';
+import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import * as Contract from '../../utils/Contract';
+import { Contract } from '../../utils/Contract';
 import type { IButton, ISelectCardPromptProperties } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
@@ -63,7 +64,7 @@ export class SelectCardPrompt extends UiPrompt {
     private readonly promptTitle: string;
     private readonly properties: ISelectCardPromptProperties;
     private readonly selector: BaseCardSelector<AbilityContext>;
-    private readonly source: OngoingEffectSource;
+    private readonly source: OngoingEffectSourceBase;
 
     private readonly onSelectionSetChanged?: (selectedCards: Card[], context: AbilityContext) => void;
 

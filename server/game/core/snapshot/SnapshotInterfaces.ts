@@ -1,6 +1,6 @@
 import type { Card } from '../card/Card';
 import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, SnapshotType } from '../Constants';
-import type { GameObjectRef } from '../GameObjectBase';
+import type { GameObjectId } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
 
@@ -135,17 +135,17 @@ export interface IGameSnapshot {
 
 export interface IGameState {
     roundNumber: number;
-    initialFirstPlayer: GameObjectRef<Player> | null;
-    initiativePlayer: GameObjectRef<Player> | null;
-    actionPhaseActivePlayer: GameObjectRef<Player> | null;
+    initialFirstPlayer: GameObjectId<Player> | null;
+    initiativePlayer: GameObjectId<Player> | null;
+    actionPhaseActivePlayer: GameObjectId<Player> | null;
     isInitiativeClaimed: boolean;
-    allCards: GameObjectRef<Card>[];
+    allCards: GameObjectId<Card>[];
     actionNumber: number;
     lastGameEventId: number;
     readonly winnerNames: string[];
     currentPhase: PhaseName | null;
     prevActionPhasePlayerPassed: boolean | null;
-    movedCards: GameObjectRef<Card>[];
+    movedCards: GameObjectId<Card>[];
 }
 
 export enum QuickUndoAvailableState {

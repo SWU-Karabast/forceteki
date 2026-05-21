@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AnakinSkywalkerChampionOfMortis extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class AnakinSkywalkerChampionOfMortis extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'If there a Heroism card in your discard pile, you may give a unit -3/-3 for this phase',
+            title: `If there a ${TextHelper.Heroism} card in your discard pile, you may give a unit -3/-3 for this phase`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -27,7 +28,7 @@ export default class AnakinSkywalkerChampionOfMortis extends NonLeaderUnitCard {
         });
 
         registrar.addWhenPlayedAbility({
-            title: 'If there a Villainy card in your discard pile, you may give a unit -3/-3 for this phase',
+            title: `If there a ${TextHelper.Villainy} card in your discard pile, you may give a unit -3/-3 for this phase`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

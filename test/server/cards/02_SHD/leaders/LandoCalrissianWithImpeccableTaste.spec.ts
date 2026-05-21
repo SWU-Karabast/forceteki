@@ -16,7 +16,7 @@ describe('Lando Calrissian With Impeccable Taste', function () {
 
             // Activate Lando ability
             context.player1.clickCard(context.landoCalrissian);
-            context.player1.clickPrompt('Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control.');
+            context.player1.clickPrompt('Play a card using Smuggle. It costs 2 resources less. Defeat a resource you own and control.');
             expect(context.player1).toBeAbleToSelectExactly([context.zoriiBliss, context.hotshotDl44Blaster]);
 
             // Play hot shot blaster
@@ -60,7 +60,7 @@ describe('Lando Calrissian With Impeccable Taste', function () {
 
             // Activate Lando ability
             context.player1.clickCard(context.landoCalrissian);
-            context.player1.clickPrompt('Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control. Use this ability only once each round');
+            context.player1.clickPrompt('Play a card using Smuggle. It costs 2 resources less. Defeat a resource you own and control. Use this ability only once each round');
             expect(context.player1).toBeAbleToSelectExactly([context.zoriiBliss, context.dj]);
 
             // Play DJ
@@ -97,7 +97,7 @@ describe('Lando Calrissian With Impeccable Taste', function () {
 
             // Activate Lando ability
             context.player1.clickCard(context.landoCalrissian);
-            context.player1.clickPrompt('Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control. Use this ability only once each round');
+            context.player1.clickPrompt('Play a card using Smuggle. It costs 2 resources less. Defeat a resource you own and control. Use this ability only once each round');
             expect(context.player1).toBeAbleToSelectExactly([context.zoriiBliss, context.dj]);
 
             // Choose to not play a card

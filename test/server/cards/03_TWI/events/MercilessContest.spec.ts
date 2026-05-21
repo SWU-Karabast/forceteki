@@ -51,6 +51,11 @@ describe('Merciless Contest', function() {
                 // Scenario 3: No non-leader units in play
                 context.player1.clickCard(context.mercilessContest);
 
+                expect(context.player1).toHavePrompt('Playing Merciless Contest will have no effect. Are you sure you want to play it?');
+                expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+                context.player1.clickPrompt('Play anyway');
+                expect(context.mercilessContest).toBeInZone('discard', context.player1);
+
                 expect(context.player2).toBeActivePlayer();
 
                 reset();

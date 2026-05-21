@@ -7,6 +7,10 @@ export function defenderWasDefeated(attack: Attack, watcher: UnitsDefeatedThisPh
     return unitTargets.length > 0 && unitTargets.some((target) => watcher.wasDefeatedThisPhase(target, attack.targetInPlayMap.get(target)));
 }
 
+export function attackerSurvived(attack: Attack, watcher: UnitsDefeatedThisPhaseWatcher): boolean {
+    return !watcher.wasDefeatedThisPhase(attack.attacker, attack.attackerInPlayId);
+}
+
 export function addInitiateAttackProperties(properties): void {
     if (!properties.initiateAttack) {
         return;

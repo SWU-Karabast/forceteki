@@ -34,6 +34,7 @@ describe('Zorii Bliss', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.volunteerSoldier, context.battlefieldMarine]);
                 context.player1.clickCard(context.volunteerSoldier);
                 expect(context.volunteerSoldier).toBeInZone('discard', context.player1);
+                expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Zorii Bliss to make themself discard a card');
 
                 // Verify we move on to regroup phase
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');

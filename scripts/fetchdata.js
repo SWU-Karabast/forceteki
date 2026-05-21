@@ -7,13 +7,15 @@ const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
 const { addMockCards } = require('./mockdata');
+const { computeCardDataHash } = require('./cardDataHash');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
 // ############################################################################
-// if you are updating this script in a way that will change the card data,
-// you must also update card-data-version.txt with a new version number
-// so that the pipeline and other devs will know to update the card data
+// The CI card data cache key and local dev validation are based on a hash of
+// card-data-version.txt, fetchdata.js, and mockdata.js. Changes to any of
+// these files will automatically bust the cache. You can also manually
+// update card-data-version.txt to force a cache bust if needed.
 
 const pathToJSON = path.join(__dirname, '../test/json/');
 
@@ -134,7 +136,12 @@ function populateMissingData(attributes, id) {
             };
             break;
         case '6658095148': // Zeb Orrelios - Spectre Four
+        case '2157679168':
             attributes.title = 'Zeb Orrelios'; // Fix spelling
+            break;
+        case '9349017358':
+            attributes.title = 'C-3PO';
+            break;
     }
 
     // Plot cards from Secrets of Power
@@ -312,6 +319,11 @@ function filterValues(card) {
         filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '')
             .replace(/\s/g, '-');
 
+        // Ensure all card titles with quotes use the same type of quote character (e.g., 'Benthic "Two Tubes"' instead of 'Benthic “Two Tubes”')
+        filteredObj.title = filteredObj.title
+            .replace(/“|”/g, '"')
+            .replace(/‘|’/g, '\'');
+
         // keep original card for debug logging, will be removed before card is written to file
         delete card.attributes.variants;
         filteredObj.debugObject = card;
@@ -358,7 +370,9 @@ function buildCardLists(cards) {
         ['LOF', 5],
         ['IBH', 5.9],
         ['SEC', 6],
-        ['LAW', 7]
+        ['LAW', 7],
+        ['TS26', 7.5],
+        ['ASH', 8]
     ]);
 
     for (const card of cards) {
@@ -491,7 +505,7 @@ async function main() {
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
     fs.writeFile(path.join(pathToJSON, '_leaderNames.json'), JSON.stringify(leaderNames, null, 2));
-    fs.copyFile(path.join(__dirname, '../card-data-version.txt'), path.join(pathToJSON, 'card-data-version.txt'));
+    fs.writeFile(path.join(pathToJSON, 'card-data-hash.txt'), computeCardDataHash());
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }

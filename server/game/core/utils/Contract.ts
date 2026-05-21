@@ -1,6 +1,6 @@
 
 
-export enum AssertMode {
+enum AssertMode {
     Assert,
     Log,
 }
@@ -29,119 +29,121 @@ class AssertContractCheckImpl implements IContractCheckImpl {
 // TODO: this is configured like this so we can potentially have configurable settings once we understand the FE needs better
 const contractCheckImpl: IContractCheckImpl = new AssertContractCheckImpl(false);
 
-export function assertTrue(cond: boolean, message?: string | (() => string)): asserts cond {
-    if (!cond) {
-        contractCheckImpl.fail(typeof message === 'function' ? message() : (message ?? 'False condition'));
+export namespace Contract {
+    export function assertTrue(cond: boolean, message?: string | (() => string)): asserts cond {
+        if (!cond) {
+            contractCheckImpl.fail(typeof message === 'function' ? message() : (message ?? 'False condition'));
+        }
     }
-}
 
-export function assertFalse(cond: boolean, message?: string | (() => string)): asserts cond is false {
-    if (cond) {
-        contractCheckImpl.fail(typeof message === 'function' ? message() : (message ?? 'True condition'));
+    export function assertFalse(cond: boolean, message?: string | (() => string)): asserts cond is false {
+        if (cond) {
+            contractCheckImpl.fail(typeof message === 'function' ? message() : (message ?? 'True condition'));
+        }
     }
-}
 
-export function assertEqual<T>(val1: T, val2: T, message?: string) {
-    if (val1 !== val2) {
-        contractCheckImpl.fail(message ?? `Value ${val1} is not equal to ${val2}`);
+    export function assertEqual<T>(val1: T, val2: T, message?: string) {
+        if (val1 !== val2) {
+            contractCheckImpl.fail(message ?? `Value ${val1} is not equal to ${val2}`);
+        }
     }
-}
 
-export function assertNotEqual<T>(val1: T, val2: T, message?: string) {
-    if (val1 === val2) {
-        contractCheckImpl.fail(message ?? `Value ${val1} is equal to ${val2}`);
+    export function assertNotEqual<T>(val1: T, val2: T, message?: string) {
+        if (val1 === val2) {
+            contractCheckImpl.fail(message ?? `Value ${val1} is equal to ${val2}`);
+        }
     }
-}
 
-export function assertNotNullLike<T>(val: T, message?: string | (() => string)): asserts val is NonNullable<T> {
-    if (val == null) {
-        contractCheckImpl.fail(message ? (typeof message === 'function' ? message() : message) : `Null-like object value: ${val}`);
+    export function assertNotNullLike<T>(val: T, message?: string | (() => string)): asserts val is NonNullable<T> {
+        if (val == null) {
+            contractCheckImpl.fail(message ? (typeof message === 'function' ? message() : message) : `Null-like object value: ${val}`);
+        }
     }
-}
 
-export function assertIsNullLike<T>(val: T, message?: string | (() => string)): asserts val is null | undefined {
-    if (val != null) {
-        contractCheckImpl.fail((typeof message === 'function' ? message() : message) ?? `Expected null-like object value but found: ${val}`);
+    export function assertIsNullLike<T>(val: T, message?: string | (() => string)): asserts val is null | undefined {
+        if (val != null) {
+            contractCheckImpl.fail((typeof message === 'function' ? message() : message) ?? `Expected null-like object value but found: ${val}`);
+        }
     }
-}
 
-export function assertNotNullLikeOrNan(val?: number, message?: string): asserts val is NonNullable<number> {
-    assertNotNullLike(val);
-    if (isNaN(val)) {
-        contractCheckImpl.fail(message ?? 'NaN value');
+    export function assertNotNullLikeOrNan(val?: number, message?: string): asserts val is NonNullable<number> {
+        assertNotNullLike(val);
+        if (isNaN(val)) {
+            contractCheckImpl.fail(message ?? 'NaN value');
+        }
     }
-}
 
-export function assertHasProperty<T extends object, PropertyName extends string>(obj: T, propertyName: PropertyName, message?: string): asserts obj is NonNullable<T> & Record<PropertyName, any> {
-    assertNotNullLike(obj);
-    if (!(propertyName in obj)) {
-        contractCheckImpl.fail(message ?? `Object does not have property '${propertyName}'`);
+    export function assertHasProperty<T extends object, PropertyName extends string>(obj: T, propertyName: PropertyName, message?: string): asserts obj is NonNullable<T> & Record<PropertyName, any> {
+        assertNotNullLike(obj);
+        if (!(propertyName in obj)) {
+            contractCheckImpl.fail(message ?? `Object does not have property '${propertyName}'`);
+        }
     }
-}
 
-export function assertArraySize<T>(ara: readonly T[], expectedSize: number, message?: string): asserts ara is NonNullable<T[]> {
-    assertNotNullLike(ara);
-    if (ara.length !== expectedSize) {
-        contractCheckImpl.fail(message ?? `Array size ${ara.length} does not match expected size ${expectedSize}`);
+    export function assertArraySize<T>(ara: readonly T[], expectedSize: number, message?: string): asserts ara is NonNullable<T[]> {
+        assertNotNullLike(ara);
+        if (ara.length !== expectedSize) {
+            contractCheckImpl.fail(message ?? `Array size ${ara.length} does not match expected size ${expectedSize}`);
+        }
     }
-}
 
-export function assertArrayIncludes<T>(ara: readonly T[], element: T, message?: string): asserts ara is NonNullable<T[]> {
-    assertNotNullLike(ara);
-    if (!ara.includes(element)) {
-        contractCheckImpl.fail(message ?? `Array does not contain element ${element}`);
+    export function assertArrayIncludes<T>(ara: readonly T[], element: T, message?: string): asserts ara is NonNullable<T[]> {
+        assertNotNullLike(ara);
+        if (!ara.includes(element)) {
+            contractCheckImpl.fail(message ?? `Array does not contain element ${element}`);
+        }
     }
-}
 
-export function assertNonEmpty<T>(ara: readonly T[], message?: string): asserts ara is NonNullable<T[]> {
-    assertNotNullLike(ara);
-    if (ara.length === 0) {
-        contractCheckImpl.fail(message ?? 'Array is empty');
+    export function assertNonEmpty<T>(ara: readonly T[], message?: string): asserts ara is NonNullable<T[]> {
+        assertNotNullLike(ara);
+        if (ara.length === 0) {
+            contractCheckImpl.fail(message ?? 'Array is empty');
+        }
     }
-}
 
-export function assertStringValue(val: string, message?: string): asserts val is NonNullable<string> {
-    assertNotNullLike(val);
-    if (val === '') {
-        contractCheckImpl.fail(message ?? 'String is empty');
+    export function assertStringValue(val: string, message?: string): asserts val is NonNullable<string> {
+        assertNotNullLike(val);
+        if (val === '') {
+            contractCheckImpl.fail(message ?? 'String is empty');
+        }
     }
-}
 
-export function assertMapHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): asserts map is NonNullable<Map<TKey, any>> {
-    assertNotNullLike(map);
-    if (!map.has(key)) {
-        contractCheckImpl.fail(message ?? `Map does not contain key ${key}`);
+    export function assertMapHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): asserts map is NonNullable<Map<TKey, any>> {
+        assertNotNullLike(map);
+        if (!map.has(key)) {
+            contractCheckImpl.fail(message ?? `Map does not contain key ${key}`);
+        }
     }
-}
 
-export function assertHasKey<TKey extends string | number>(record: Record<TKey, any>, key: string, message?: string): asserts record is NonNullable<Record<TKey, any>> {
-    assertNotNullLike(record);
-    if (!Object.prototype.hasOwnProperty.call(record, key)) {
-        contractCheckImpl.fail(message ?? `Map does not contain key ${key}`);
+    export function assertHasKey<TKey extends string | number>(record: Record<TKey, any>, key: string, message?: string): asserts record is NonNullable<Record<TKey, any>> {
+        assertNotNullLike(record);
+        if (!Object.prototype.hasOwnProperty.call(record, key)) {
+            contractCheckImpl.fail(message ?? `Map does not contain key ${key}`);
+        }
     }
-}
 
-export function assertDoesNotHaveKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): asserts map is NonNullable<Map<TKey, any>> {
-    assertNotNullLike(map);
-    if (map.has(key)) {
-        contractCheckImpl.fail(message ?? `Map should not contain key ${key} but it does`);
+    export function assertDoesNotHaveKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): asserts map is NonNullable<Map<TKey, any>> {
+        assertNotNullLike(map);
+        if (map.has(key)) {
+            contractCheckImpl.fail(message ?? `Map should not contain key ${key} but it does`);
+        }
     }
-}
 
-export function assertPositiveNonZero(val: number, message?: string): asserts val is NonNullable<number> {
-    assertNotNullLikeOrNan(val);
-    if (val <= 0) {
-        contractCheckImpl.fail(message ?? `Expected ${val} to be > 0`);
+    export function assertPositiveNonZero(val: number, message?: string): asserts val is NonNullable<number> {
+        assertNotNullLikeOrNan(val);
+        if (val <= 0) {
+            contractCheckImpl.fail(message ?? `Expected ${val} to be > 0`);
+        }
     }
-}
 
-export function assertNonNegative(val: number, message?: string): asserts val is NonNullable<number> {
-    assertNotNullLikeOrNan(val);
-    if (val < 0) {
-        contractCheckImpl.fail(message ?? `Expected ${val} to be >= 0`);
+    export function assertNonNegative(val: number, message?: string): asserts val is NonNullable<number> {
+        assertNotNullLikeOrNan(val);
+        if (val < 0) {
+            contractCheckImpl.fail(message ?? `Expected ${val} to be >= 0`);
+        }
     }
-}
 
-export function fail(message: string): never {
-    contractCheckImpl.fail(message);
+    export function fail(message: string): never {
+        contractCheckImpl.fail(message);
+    }
 }

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SithLegionnaire extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class SithLegionnaire extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you control another Villainy unit, this unit gets +2/+0',
+            title: `While you control another ${TextHelper.Villainy} unit, this unit gets +2/+0`,
             condition: (context) => context.player.hasSomeArenaUnit({
                 aspect: Aspect.Villainy,
                 otherThan: context.source

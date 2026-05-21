@@ -23,11 +23,13 @@ describe('Change of Heart', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.battlefieldMarine, context.wampa, context.pykeSentinel]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('groundArena', context.player1);
+                expect(context.getChatLog()).toEqual('player1 plays Change of Heart to take control of Wampa and to apply an effect that will give control to its owner at the start of the regroup phase');
 
                 // Check that Wampa returns to player 2
                 context.moveToRegroupPhase();
                 expect(context.wampa).toBeInZone('groundArena', context.player2);
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
+                expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Change of Heart to give control of Wampa to player2');
             });
 
             it('takes control and will return enemy non-leader unit to owner\'s control', function () {
@@ -45,6 +47,7 @@ describe('Change of Heart', function() {
                 context.moveToRegroupPhase();
                 expect(context.wampa).toBeInZone('discard', context.player2);
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
+                expect(context.getChatLogs(1)).toEqual(['Round: 1 - Regroup Phase']);
             });
 
             it('takes control and will return stolen friendly non-leader unit to owner\'s control', function () {
@@ -58,6 +61,7 @@ describe('Change of Heart', function() {
                 context.moveToRegroupPhase();
                 expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
+                expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Change of Heart to take control of Battlefield Marine');
             });
 
             it('takes control and will not return stolen friendly non-leader unit to owner\'s control if unit is dead', function () {

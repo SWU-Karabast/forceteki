@@ -1,7 +1,8 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, Trait, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'The next Resistance card you play this phase costs 1 resource less',
+            title: `The next Resistance card you play this phase costs ${TextHelper.resource(1)} less`,
             when: {
                 whenPlayed: true,
                 onAttack: true,
@@ -37,7 +38,10 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Resistance),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             })
         });
     }

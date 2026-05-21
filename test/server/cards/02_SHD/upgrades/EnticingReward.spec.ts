@@ -53,7 +53,12 @@ describe('Enticing Reward', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.protector, true);
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Waylay');
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.devotion, context.waylay]);
+                context.player2.clickDone();
+
+                expect(context.getChatLogs(2)).toContain('player1 uses SpecForce Soldier to reveal and draw Devotion and Waylay and to move 8 cards to the bottom of their deck');
                 expect(context.waylay).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
 
@@ -123,7 +128,12 @@ describe('Enticing Reward', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickDone();
-                expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Waylay');
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.devotion, context.waylay]);
+                context.player2.clickDone();
+
+                expect(context.getChatLog()).toContain('player1 uses General Tagge to reveal and draw Devotion and Waylay');
                 expect(context.waylay).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
 
