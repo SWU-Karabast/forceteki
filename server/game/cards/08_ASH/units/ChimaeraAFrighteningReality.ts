@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class ChimaeraAFrighteningReality extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -21,23 +22,18 @@ export default class ChimaeraAFrighteningReality extends NonLeaderUnitCard {
                     controller: RelativePlayer.Self,
                 },
                 enemyUnits: {
-                    cardTypeFilter: WildcardCardType.Unit,
+                    dependsOn: 'friendlyUnits',
+                    cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     controller: RelativePlayer.Opponent,
-                    cardCondition: (card) => !card.isLeaderUnit(),
+                    immediateEffect: abilityHelper.immediateEffects.defeat((context) => ({ target: [context.targets.friendlyUnits, context.targets.enemyUnits] }))
                 },
             },
-            then: (thenContext) => ({
-                title: 'This unit gets +2/+0 for this attack',
-                immediateEffect: abilityHelper.immediateEffects.defeat(() => {
-                    return { target: [thenContext.targets.friendlyUnits, thenContext.targets.enemyUnits] };
-                })
-            })
         });
 
         registrar.addTriggeredAbility({
             title: 'Heal 2 damage from your base',
             when: {
-                onCardDefeated: (event, context) => event.card.isUnit() && event.card.controller !== context.player,
+                onCardDefeated: (event, context) => EnumHelpers.isUnit(event.lastKnownInformation.type) && event.lastKnownInformation.controller !== context.player
             },
             immediateEffect: abilityHelper.immediateEffects.heal((context) => ({ amount: 2, target: context.player.base }))
         });

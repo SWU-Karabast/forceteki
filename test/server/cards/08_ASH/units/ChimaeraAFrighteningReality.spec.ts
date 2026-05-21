@@ -98,10 +98,9 @@ describe('Chimaera, A Frightening Reality', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chimaera);
-                context.player1.clickCard(context.awing);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.awing).toBeInZone('discard');
+                expect(context.awing).toBeInZone('spaceArena');
                 expect(context.sabineWren).toBeInZone('groundArena');
             });
 
@@ -118,10 +117,9 @@ describe('Chimaera, A Frightening Reality', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chimaera);
-                context.player1.clickCard(context.awing);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.awing).toBeInZone('discard');
+                expect(context.awing).toBeInZone('spaceArena');
             });
         });
 
@@ -235,6 +233,67 @@ describe('Chimaera, A Frightening Reality', function() {
                 expect(context.p1Base.damage).toBe(5);
 
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should trigger on friendly units under enemy\'s control', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['chimaera#a-frightening-reality'],
+                        groundArena: ['wampa'],
+                        hand: ['takedown'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['change-of-heart']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.wampa);
+
+                expect(context.wampa).toBeInZone('groundArena', context.player2);
+
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toBeInZone('discard');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p1Base.damage).toBe(3);
+            });
+
+            it('should not trigger when defeating Pilot attached as upgrade', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['chimaera#a-frightening-reality'],
+                        hand: ['outer-rim-constable'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        spaceArena: ['awing'],
+                        hand: ['chewbacca#faithful-first-mate'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.chewbacca);
+                context.player2.clickPrompt('Play Chewbacca with Piloting');
+                context.player2.clickCard(context.awing);
+
+                context.player1.clickCard(context.outerRimConstable);
+                context.player1.clickCard(context.chewbacca);
+
+                expect(context.chewbacca).toBeInZone('discard');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p1Base.damage).toBe(5);
             });
         });
     });
