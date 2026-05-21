@@ -104,7 +104,7 @@ describe('Chimaera, A Frightening Reality', function() {
                 expect(context.sabineWren).toBeInZone('groundArena');
             });
 
-            it('can defeat only a friendly unit', async function() {
+            it('cannot defeat a single unit (friendly)', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
