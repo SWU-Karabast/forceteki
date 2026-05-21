@@ -15,6 +15,7 @@ export default class EyeOfSionDeliveredFromExile extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.addActionAbility({
             title: 'Search the top 8 cards of your deck for a unit that costs the same as or less than this unit\'s power. Play it for free. It enters play ready.',
+            contextTitle: (context) => `Search the top 8 cards of your deck for a unit that costs ${context.source.getPower()} or less. Play it for free. It enters play ready.`,
             cost: abilityHelper.costs.exhaustSelf(),
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 targetMode: TargetMode.Single,

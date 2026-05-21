@@ -1,6 +1,6 @@
 describe('Eye of Sion, Delivered From Exile', function() {
     integration(function(contextRef) {
-        const abilityTitle = 'Search the top 8 cards of your deck for a unit that costs the same as or less than this unit\'s power. Play it for free. It enters play ready.';
+        const abilityTitle = (power) => `Search the top 8 cards of your deck for a unit that costs ${power} or less. Play it for free. It enters play ready.`;
 
         it('should search the top 8 cards for a unit with cost equal to or less than its power, play it for free, and ready it', async function() {
             await contextRef.setupTestAsync({
@@ -27,7 +27,7 @@ describe('Eye of Sion, Delivered From Exile', function() {
 
             context.player1.clickCard(context.eyeOfSion);
             expect(context.player1).toHavePrompt('Choose an ability:');
-            context.player1.clickPrompt(abilityTitle);
+            context.player1.clickPrompt(abilityTitle(5));
 
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [
@@ -89,7 +89,7 @@ describe('Eye of Sion, Delivered From Exile', function() {
             expect(context.eyeOfSion.getPower()).toBe(6);
 
             context.player1.clickCard(context.eyeOfSion);
-            context.player1.clickPrompt(abilityTitle);
+            context.player1.clickPrompt(abilityTitle(6));
 
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [
@@ -136,7 +136,7 @@ describe('Eye of Sion, Delivered From Exile', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.eyeOfSion);
-            context.player1.clickPrompt(abilityTitle);
+            context.player1.clickPrompt(abilityTitle(5));
             context.player1.clickPrompt('Take nothing');
 
             expect([
@@ -150,6 +150,63 @@ describe('Eye of Sion, Delivered From Exile', function() {
                 context.battlefieldMarine
             ]).toAllBeInBottomOfDeck(context.player1, 8);
             expect(context.player1.deck[0]).toBe(context.blueSquadronAssaultWing);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should play a Piloting unit as a unit and not as an upgrade', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: [
+                        {
+                            card: 'eye-of-sion#delivered-from-exile',
+                            // it has a -2/-2 and a -1/-1 upgrades so power now is 2
+                            upgrades: ['perilous-position', 'kill-switch'],
+                        },
+                        'wing-leader'
+                    ],
+                    deck: [
+                        // luke unit costs 2 but luke pilot costs 3
+                        'luke-skywalker#you-still-with-me',
+                        'repair',
+                        'green-squadron-awing',
+                        'atst',
+                        'vanguard-infantry',
+                        'takedown',
+                        'pyke-sentinel',
+                        'battlefield-marine',
+                        'blue-squadron-assault-wing'
+                    ],
+                    resources: 1
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.eyeOfSion);
+            context.player1.clickPrompt(abilityTitle(2));
+
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                selectable: [
+                    context.lukeSkywalkerYouStillWithMe,
+                    context.greenSquadronAwing,
+                    context.vanguardInfantry,
+                    context.pykeSentinel,
+                    context.battlefieldMarine
+                ],
+                invalid: [
+                    context.repair,
+                    context.atst,
+                    context.takedown
+                ]
+            });
+
+            context.player1.clickCardInDisplayCardPrompt(context.lukeSkywalkerYouStillWithMe);
+
+            expect(context.lukeSkywalkerYouStillWithMe).toBeInZone('groundArena', context.player1);
+            expect(context.lukeSkywalkerYouStillWithMe.exhausted).toBeFalse();
+            expect(context.wingLeader).not.toHaveExactUpgradeNames(['luke-skywalker#you-still-with-me']);
+            expect(context.player1.readyResourceCount).toBe(1);
             expect(context.player2).toBeActivePlayer();
         });
     });
