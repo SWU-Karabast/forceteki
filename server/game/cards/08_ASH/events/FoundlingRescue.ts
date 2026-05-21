@@ -13,16 +13,17 @@ export default class FoundlingRescue extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Defeat a unit with 2 or less health. Create a Mandalorian token.',
+            title: 'Defeat a unit with 2 or less HP. Create a Mandalorian token.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
-                    activePromptTitle: 'Defeat a unit with 2 or less health',
+                    activePromptTitle: 'Defeat a unit with 2 or less HP',
+                    canChooseNoCards: true,
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardCondition: (card, _) => card.isUnit() && card.remainingHp <= 2,
                     immediateEffect: AbilityHelper.immediateEffects.defeat(),
                 }),
-                AbilityHelper.immediateEffects.createMandalorian((context) => ({ target: context.player })),
+                AbilityHelper.immediateEffects.createMandalorian(),
             ])
         });
     }

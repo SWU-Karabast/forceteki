@@ -14,19 +14,17 @@ export default class GrandAdmiralThrawnVictoryIsMine extends LeaderUnitCard {
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'Attack with a unit. It gains Restore 2 for this attack if you control the same number of units as the defending player.',
+            contextTitle: (context) => `Attack with a unit. It gains Restore 2 for this attack if you control ${context.player.opponent.getArenaUnits().length} unit(s).`,
             cost: AbilityHelper.costs.exhaustSelf(),
-            targetResolver: {
-                controller: RelativePlayer.Self,
-                cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.attack({
-                    attackerLastingEffects: {
-                        condition: (_, context) => context.player.getArenaUnits().length === context.player.opponent.getArenaUnits().length,
-                        effect: AbilityHelper.ongoingEffects.gainKeyword({
-                            keyword: KeywordName.Restore,
-                            amount: 2
-                        })
-                    }
-                })
+            initiateAttack: {
+                attackerLastingEffects: {
+                    condition: (_, context) => context.player.getArenaUnits().length === context.player.opponent.getArenaUnits().length,
+                    effect: AbilityHelper.ongoingEffects.gainKeyword({
+                        keyword: KeywordName.Restore,
+                        amount: 2
+                    })
+                }
+
             }
         });
     }

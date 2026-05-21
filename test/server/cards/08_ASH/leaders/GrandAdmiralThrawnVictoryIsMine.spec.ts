@@ -17,7 +17,7 @@ describe('Grand Admiral Thrawn, Victory Is Mine', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawn);
-                context.player1.clickPrompt('Attack with a unit. It gains Restore 2 for this attack if you control the same number of units as the defending player.');
+                context.player1.clickPrompt('Attack with a unit. It gains Restore 2 for this attack if you control 1 unit(s).');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -42,7 +42,7 @@ describe('Grand Admiral Thrawn, Victory Is Mine', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawn);
-                context.player1.clickPrompt('Attack with a unit. It gains Restore 2 for this attack if you control the same number of units as the defending player.');
+                context.player1.clickPrompt('Attack with a unit. It gains Restore 2 for this attack if you control 0 unit(s).');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -70,7 +70,7 @@ describe('Grand Admiral Thrawn, Victory Is Mine', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawn);
-                context.player1.clickPrompt('Attack with a unit. It gains Restore 2 for this attack if you control the same number of units as the defending player.');
+                context.player1.clickPrompt('Attack with a unit. It gains Restore 2 for this attack if you control 2 unit(s).');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -98,9 +98,9 @@ describe('Grand Admiral Thrawn, Victory Is Mine', function() {
                 context.player1.clickCard(context.grandAdmiralThrawn);
 
                 expect(context.player1).toHavePrompt('Play Grand Admiral Thrawn:');
-                context.player1.clickPrompt('(No effect) Attack with a unit. It gains Restore 2 for this attack if you control the same number of units as the defending player.');
+                context.player1.clickPrompt('(No effect) Attack with a unit. It gains Restore 2 for this attack if you control 1 unit(s).');
 
-                expect(context.player1).toHavePrompt('The ability "Attack with a unit. It gains Restore 2 for this attack if you control the same number of units as the defending player." will have no effect. Are you sure you want to use it?');
+                expect(context.player1).toHavePrompt('The ability "Attack with a unit. It gains Restore 2 for this attack if you control 1 unit(s)." will have no effect. Are you sure you want to use it?');
                 context.player1.clickPrompt('Cancel');
 
                 expect(context.grandAdmiralThrawn.exhausted).toBeFalse();

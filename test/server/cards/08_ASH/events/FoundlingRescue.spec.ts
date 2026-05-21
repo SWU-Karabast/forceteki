@@ -18,13 +18,13 @@ describe('Foundling Rescue', function() {
                 });
             });
 
-            it('should defeat an enemy unit with 2 or less health and make a Mandalorian token', function () {
+            it('should defeat an enemy unit with 2 or less HP and make a Mandalorian token', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.foundlingRescue);
-                expect(context.player1).toHavePrompt('Defeat a unit with 2 or less health');
+                expect(context.player1).toHavePrompt('Defeat a unit with 2 or less HP');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.grandInquisitor, context.atst, context.lukeSkywalker]);
-                expect(context.player1).not.toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.atst);
 
                 expect(context.atst).toBeInZone('discard', context.player2);
@@ -37,7 +37,7 @@ describe('Foundling Rescue', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should defeat a friendly unit with 2 or less health and make a Mandalorian token', function () {
+            it('should defeat a friendly unit with 2 or less hp and make a Mandalorian token', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.foundlingRescue);
@@ -54,7 +54,7 @@ describe('Foundling Rescue', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should defeat an enemy leader unit with 2 or less health and make a Mandalorian token', function () {
+            it('should defeat an enemy leader unit with 2 or less hp and make a Mandalorian token', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.foundlingRescue);
@@ -71,7 +71,7 @@ describe('Foundling Rescue', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should defeat a friendly leader unit with 2 or less health and make a Mandalorian token', function () {
+            it('should defeat a friendly leader unit with 2 or less hp and make a Mandalorian token', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.foundlingRescue);
@@ -84,6 +84,26 @@ describe('Foundling Rescue', function() {
                 expect(mandalorians.length).toBe(1);
                 expect(mandalorians[0]).toBeInZone('groundArena');
                 expect(mandalorians[0].exhausted).toBeTrue();
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should pass on the defeat and make a Mandalorian token', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.foundlingRescue);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.grandInquisitor, context.atst, context.lukeSkywalker]);
+                context.player1.clickPrompt('Choose Nothing');
+
+                const mandalorians = context.player1.findCardsByName('mandalorian');
+                expect(mandalorians.length).toBe(1);
+                expect(mandalorians[0]).toBeInZone('groundArena');
+                expect(mandalorians[0].exhausted).toBeTrue();
+
+                expect(context.grandInquisitor.deployed).toBeTrue();
+                expect(context.lukeSkywalker.deployed).toBeTrue();
+                expect(context.atst).toBeInZone('groundArena', context.player2);
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
 
                 expect(context.player2).toBeActivePlayer();
             });
