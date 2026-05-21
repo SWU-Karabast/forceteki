@@ -3,7 +3,6 @@ import type { Lobby } from '../../gamenode/Lobby';
 import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { Attack } from './attack/Attack';
-import type { AttackRulesVersion } from './attack/AttackFlow';
 import type { EventWindow } from './event/EventWindow';
 import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
@@ -24,7 +23,6 @@ export interface GameConfiguration {
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     userTimeoutDisconnect: (userId: string) => void;
     undoMode?: UndoMode;
-    attackRulesVersion?: AttackRulesVersion;
 
     /** Player ID who gets to choose who starts with initiative, or undefined for random selection */
     preselectedFirstPlayerId?: string;

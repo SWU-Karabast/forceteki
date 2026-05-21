@@ -4,7 +4,6 @@ describe('Boba Fett, Krayt\'s Claw Commander', function() {
             beforeEach(async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         leader: 'boba-fett#krayts-claw-commander',
                         hand: ['change-of-heart'],
@@ -141,7 +140,6 @@ describe('Boba Fett, Krayt\'s Claw Commander', function() {
             beforeEach(async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         leader: { card: 'boba-fett#krayts-claw-commander', deployed: true },
                         hand: ['change-of-heart'],
