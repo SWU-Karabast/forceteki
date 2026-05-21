@@ -88,9 +88,8 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
 
         // Capture the attacker's LKI on the OnAttackEnd event just before combat damage events
-        // resolve. All "On Attack" / "On Defense" abilities have finished by this point, so
-        // power/HP/trait modifiers from them (Raid, "while attacking" buffs, etc.) are
-        // reflected. Read by triggers that resolve at/after OnAttackEnd (e.g. Whistling Birds).
+        // resolve. Read by triggers that resolve after attack ends and my need to reference information
+        // from before the attacker was defeated in combat (e.g. Whistling Birds).
         (attackCompleteEvent as any).attackerLastKnownInformation = buildLastKnownInformation(this.attack.attacker);
 
         const inPlayTargets = [];
