@@ -114,7 +114,6 @@ export class ByoyomiTimer implements IByoyomiTimer {
         // so mainTimeRemainingSeconds always has a value
         this.mainTimer.start();
         this.mainTimer.pause();
-        // start() set status to NoAlert; pause() preserves it, so we're already clean here.
     }
 
     /**

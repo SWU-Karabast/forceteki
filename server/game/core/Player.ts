@@ -48,7 +48,6 @@ import { ByoyomiTimer } from './actionTimer/ByoyomiTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
 import type { IByoyomiTimer } from './actionTimer/IByoyomiTimer';
 import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
-import { TimerVisibility } from '../../services/DynamoDBInterfaces';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
@@ -274,22 +273,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             return;
         }
 
-        if (!this.anyPlayerHasTimerFullyHidden()) {
-            return;
-        }
-
         const secondsRemaining = status === PlayerTimeRemainingStatus.Danger
             ? ByoyomiTimer.MainTimeDangerSeconds
             : ByoyomiTimer.MainTimeWarningSeconds;
         const alertType = status === PlayerTimeRemainingStatus.Danger ? AlertType.Danger : AlertType.Warning;
 
         this.game.addAlert(alertType, `${this.name} has ${secondsRemaining} seconds of main time remaining.`);
-    }
-
-    private anyPlayerHasTimerFullyHidden(): boolean {
-        const isHidden = (player: Player) =>
-            player.lobbyUser?.getPreferences()?.gameOptions?.timerVisibility === TimerVisibility.HideAll;
-        return isHidden(this) || (this.opponent != null && isHidden(this.opponent));
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {

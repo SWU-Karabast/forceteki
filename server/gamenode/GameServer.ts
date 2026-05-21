@@ -45,8 +45,7 @@ import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
-    IModerationAction,
-    IUserPreferences } from '../services/DynamoDBInterfaces';
+    IModerationAction } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
@@ -926,11 +925,6 @@ export class GameServer {
                     });
                 }
                 await this.userFactory.updateUserPreferencesAsync(userId, preferences);
-                // Update in-memory preferences so live sessions (e.g. the active game socket)
-                // see the new values without requiring a reconnect. Without this, mid-game
-                // preference toggles only apply on next login.
-                user.setPreferences(preferences);
-                this.updateLivePreferencesForUser(userId, preferences);
                 return res.status(200).json({
                     success: true,
                     message: 'Preferences saved successfully',
@@ -1924,20 +1918,6 @@ export class GameServer {
 
     public getUserLobbyId(userId: string): string | undefined {
         return this.userLobbyMap.get(userId)?.lobbyId;
-    }
-
-    /**
-     * Propagates updated preferences to any active socket-connected User instance for
-     * the given userId. The HTTP-request User and socket User are separate instances,
-     * so updating one does not automatically update the other.
-     */
-    private updateLivePreferencesForUser(userId: string, preferences: IUserPreferences): void {
-        for (const socket of this.io.sockets.sockets.values()) {
-            const socketUser = socket.data?.user as User | undefined;
-            if (socketUser?.getId() === userId) {
-                socketUser.setPreferences(preferences);
-            }
-        }
     }
 
     /**
