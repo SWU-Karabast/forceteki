@@ -5,11 +5,11 @@ describe('Gar Saxon, Coveting Power', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['electrostaff', 'jedi-lightsaber', 'snapshot-reflexes'],
+                        hand: ['electrostaff', 'jedi-lightsaber', 'infiltrators-skill'],
                         groundArena: ['gar-saxon#coveting-power', 'battlefield-marine'],
                     },
                     player2: {
-                        hand: ['academy-training'],
+                        hand: ['academy-training', 'devotion'],
                         groundArena: ['wampa']
                     }
                 });
@@ -45,14 +45,20 @@ describe('Gar Saxon, Coveting Power', function () {
             it('should not trigger when an upgrade is played on another unit or by the opponent', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.snapshotReflexes);
+                context.player1.clickCard(context.infiltratorsSkill);
                 context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.findCardsByName('mandalorian').length).toBe(0);
 
                 context.player2.clickCard(context.academyTraining);
                 context.player2.clickCard(context.wampa);
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1.findCardsByName('mandalorian').length).toBe(0);
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.devotion);
+                context.player2.clickCard(context.garSaxon);
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player1.findCardsByName('mandalorian').length).toBe(0);
             });
@@ -67,9 +73,8 @@ describe('Gar Saxon, Coveting Power', function () {
 
                 context.player2.passAction();
 
-                context.player1.clickCard(context.snapshotReflexes);
+                context.player1.clickCard(context.infiltratorsSkill);
                 context.player1.clickCard(context.garSaxon);
-                context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.findCardsByName('mandalorian').length).toBe(1);
 
