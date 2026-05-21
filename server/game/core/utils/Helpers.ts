@@ -380,6 +380,14 @@ export namespace Helpers {
         return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
+    export function pluralize(count: number, singular: string, plural: string): string {
+        if (count === 1) {
+            return singular;
+        }
+
+        return `${count.toString()} ${plural}`;
+    }
+
     export function setIntersection<T>(setA: Set<T>, setB: Set<T>): Set<T> {
         const intersection = new Set<T>();
         for (const item of setA) {
