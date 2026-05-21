@@ -28,21 +28,18 @@ export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
                 activePromptTitle: 'Attack with a unit even if it is exhausted. It can\'t attack bases for this attack',
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) =>
-                    card !== context.source &&
-                    !chosenCards.some((chosen) => chosen.card === card && chosen.inPlayId === (card as IUnitCard).inPlayId),
+                cardCondition: (card, context) => card !== context.source && !chosenCards.some((chosen) => chosen.card === card && card.isUnit() && chosen.inPlayId === card.inPlayId),
                 immediateEffect: AbilityHelper.immediateEffects.attack({
                     targetCondition: (card) => !card.isBase(),
                     allowExhaustedAttacker: true,
                 })
             },
             ifYouDo: (context) => {
-                const target = context.target as IUnitCard;
-                const targetInPlayId = target.isInPlay() ? target.inPlayId : target.mostRecentInPlayId;
+                const targetInPlayId = context.target.isUnit() && context.target.isInPlay() ? context.target.inPlayId : context.target.mostRecentInPlayId;
 
                 return {
                     title: 'Attack with a unit even if it is exhausted. It can\'t attack bases for this attack',
-                    ...this.attackWithUnitAbility([...chosenCards, { card: target, inPlayId: targetInPlayId }], AbilityHelper),
+                    ...this.attackWithUnitAbility([...chosenCards, { card: context.target, inPlayId: targetInPlayId }], AbilityHelper),
                 };
             },
         };
