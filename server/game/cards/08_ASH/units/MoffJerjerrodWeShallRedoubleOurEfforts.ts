@@ -37,13 +37,14 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
             // Replacement only happens if Jerjerrod is defeated
             onlyIfYouDoEffect: AbilityHelper.immediateEffects.defeat(),
             replaceWith: (context) => ({
-                replacementImmediateEffect: this.buildDoubledTokenSystem(context, AbilityHelper),
+                replacementImmediateEffect: this.buildAdditionalTokenSystem(context, AbilityHelper),
+                cancelOriginalEvent: false,
                 effect: `create ${context.event.amount * 2} ${EnumHelpers.tokenTitle[context.event.tokenType]} tokens instead`
             }),
         });
     }
 
-    private buildDoubledTokenSystem(
+    private buildAdditionalTokenSystem(
         context: TriggeredAbilityContext<NonLeaderUnitCard>,
         AbilityHelper: IAbilityHelper
     ): GameSystem<TriggeredAbilityContext<NonLeaderUnitCard>> {
@@ -51,18 +52,18 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
 
         const systemForToken: Record<TokenName, GameSystem<TriggeredAbilityContext<NonLeaderUnitCard>>> = {
             // Units
-            [TokenUnitName.BattleDroid]: AbilityHelper.immediateEffects.createBattleDroid({ amount: amount * 2, target: player }),
-            [TokenUnitName.CloneTrooper]: AbilityHelper.immediateEffects.createCloneTrooper({ amount: amount * 2, target: player }),
-            [TokenUnitName.XWing]: AbilityHelper.immediateEffects.createXWing({ amount: amount * 2, target: player }),
-            [TokenUnitName.TIEFighter]: AbilityHelper.immediateEffects.createTieFighter({ amount: amount * 2, target: player }),
-            [TokenUnitName.Spy]: AbilityHelper.immediateEffects.createSpy({ amount: amount * 2, target: player }),
-            [TokenUnitName.Mandalorian]: AbilityHelper.immediateEffects.createMandalorian({ amount: amount * 2, target: player }),
+            [TokenUnitName.BattleDroid]: AbilityHelper.immediateEffects.createBattleDroid({ amount, target: player }),
+            [TokenUnitName.CloneTrooper]: AbilityHelper.immediateEffects.createCloneTrooper({ amount, target: player }),
+            [TokenUnitName.XWing]: AbilityHelper.immediateEffects.createXWing({ amount, target: player }),
+            [TokenUnitName.TIEFighter]: AbilityHelper.immediateEffects.createTieFighter({ amount, target: player }),
+            [TokenUnitName.Spy]: AbilityHelper.immediateEffects.createSpy({ amount, target: player }),
+            [TokenUnitName.Mandalorian]: AbilityHelper.immediateEffects.createMandalorian({ amount, target: player }),
             // Upgrades
-            [TokenUpgradeName.Shield]: AbilityHelper.immediateEffects.giveShield({ amount: amount * 2, target: card }),
-            [TokenUpgradeName.Experience]: AbilityHelper.immediateEffects.giveExperience({ amount: amount * 2, target: card }),
-            [TokenUpgradeName.Advantage]: AbilityHelper.immediateEffects.giveAdvantage({ amount: amount * 2, target: card }),
+            [TokenUpgradeName.Shield]: AbilityHelper.immediateEffects.giveShield({ amount, target: card }),
+            [TokenUpgradeName.Experience]: AbilityHelper.immediateEffects.giveExperience({ amount, target: card }),
+            [TokenUpgradeName.Advantage]: AbilityHelper.immediateEffects.giveAdvantage({ amount, target: card }),
             // Miscellaneous
-            [TokenCardName.Credit]: AbilityHelper.immediateEffects.createCreditToken({ amount: amount * 2, target: player }),
+            [TokenCardName.Credit]: AbilityHelper.immediateEffects.createCreditToken({ amount, target: player }),
             [TokenCardName.Force]: AbilityHelper.immediateEffects.theForceIsWithYou({ target: player }),
         };
 

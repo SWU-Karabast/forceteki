@@ -14,6 +14,9 @@ export interface IReplacementEffectSystemProperties<TContext extends TriggeredAb
 
     /** The immediate effect to replace the original effect with or `null` to indicate that the original effect should be cancelled with no replacement */
     replacementImmediateEffect?: GameSystem<TContext>;
+
+    /** Whether the original event should be cancelled after creating the replacement event. */
+    cancelOriginalEvent?: boolean;
 }
 
 export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext, TProperties extends IReplacementEffectSystemProperties<TContext> = IReplacementEffectSystemProperties<TContext>> extends GameSystem<TContext, TProperties> {
@@ -33,6 +36,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         }
 
         const eventBeingReplaced = event.context.event;
+        const { cancelOriginalEvent } = this.generatePropertiesFromContext(event.context, additionalProperties);
         const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
             const eventWindow = eventBeingReplaced.window;
@@ -50,7 +54,11 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
                 events.forEach((replacementEvent) => {
                     replacementEvent.order = eventBeingReplaced.order;
                     event.context.game.queueSimpleStep(() => {
-                        eventBeingReplaced.setReplacementEvent(replacementEvent);
+                        if (cancelOriginalEvent !== false) {
+                            eventBeingReplaced.setReplacementEvent(replacementEvent);
+                        } else {
+                            replacementEvent.setReplacesEvent(eventBeingReplaced);
+                        }
                         eventWindow.addEvent(replacementEvent);
                         triggerWindow.addReplacementEffectEvent(replacementEvent);
                     }, 'replacementEffect: replace window event');
@@ -58,7 +66,9 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             }, 'replacementEffect: add replacement event to window');
         }
 
-        event.context.cancel();
+        if (cancelOriginalEvent !== false) {
+            event.context.cancel();
+        }
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}) {
