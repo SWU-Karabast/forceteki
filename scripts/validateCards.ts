@@ -233,31 +233,30 @@ function printReport(violations: Violation[], cardCount: number, testCount: numb
         return;
     }
 
-    // Column widths.
-    const headers = ['File', 'Check', 'Detail'];
-    const rows = violations.map((v) => [v.file, v.check, v.detail]);
-    const widths = headers.map((h, i) =>
-        Math.max(h.length, ...rows.map((r) => r[i].length))
-    );
-
-    const pad = (s: string, w: number) => s + ' '.repeat(w - s.length);
-    const formatRow = (cells: string[]) =>
-        '| ' + cells.map((c, i) => pad(c, widths[i])).join(' | ') + ' |';
-    const separator =
-        '| ' + widths.map((w) => '-'.repeat(w)).join(' | ') + ' |';
-
-
     console.log(`\nCard validation found ${violations.length} violation(s):\n`);
 
-    console.log(formatRow(headers));
-
-    console.log(separator);
-    for (const row of rows) {
-        console.log(formatRow(row));
+    // Group violations by file so each card is reported once with all of its
+    // failures listed underneath. Order of first appearance is preserved.
+    const grouped = new Map<string, Violation[]>();
+    for (const v of violations) {
+        const list = grouped.get(v.file);
+        if (list === undefined) {
+            grouped.set(v.file, [v]);
+        } else {
+            list.push(v);
+        }
     }
 
+    grouped.forEach((fileViolations, file) => {
+        console.log(`**${file}**`);
+        for (const v of fileViolations) {
+            console.log(`  - [${v.check}] ${v.detail}`);
+        }
+        console.log('');
+    });
+
     console.log(
-        `\nChecked ${cardCount} card files${exemptSuffix} and ${testCount} test files.`
+        `Checked ${cardCount} card files${exemptSuffix} and ${testCount} test files.`
     );
 }
 
