@@ -131,7 +131,7 @@ describe('Hold Them Off', function() {
         });
 
         describe('Hold Them Off\'s ability, with Jango Leader', function() {
-            it('should do nothing', async function () {
+            it('should exhaust the unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

@@ -13,11 +13,11 @@ export default class GroguYesYesYes extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Attack with a unit',
+            optional: true,
             when: {
                 onClaimInitiative: (event, context) => event.player === context.player,
             },
             targetResolver: {
-                canChooseNoCards: true,
                 immediateEffect: abilityHelper.immediateEffects.attack(),
             },
         });

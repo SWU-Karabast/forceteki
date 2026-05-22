@@ -18,7 +18,7 @@ describe('Grogu, Yes. Yes. Yes.', function() {
 
             expect(context.player1).toHavePrompt('Attack with a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.grogu, context.wampa, context.greenSquadronAwing]);
-            expect(context.player1).toHaveChooseNothingButton();
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.p2Base);
             expect(context.p2Base.damage).toBe(4);
@@ -65,7 +65,7 @@ describe('Grogu, Yes. Yes. Yes.', function() {
             context.player1.claimInitiative();
 
             expect(context.player1).toBeAbleToSelectExactly([context.grogu, context.wampa, context.greenSquadronAwing]);
-            context.player1.clickPrompt('Choose nothing');
+            context.player1.clickPrompt('Pass');
             expect(context.p2Base.damage).toBe(0);
             expect(context.player2).toBeActivePlayer();
         });
