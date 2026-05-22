@@ -22,7 +22,7 @@ export default class HoldThemOff extends EventCard {
                     canChooseNoTargets: true,
                     controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card) => card !== context.target,
+                    zoneFilter: context.target?.zoneName,
                     source: context.target
                 }))
             },
