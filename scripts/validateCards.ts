@@ -160,13 +160,13 @@ function checkCards(violations: Violation[]): number {
             violations.push({
                 file: relPath,
                 check: CLASS_NAME_CHECK,
-                detail: `no \`export default class\` declaration found (expected class \`${baseName}\`)`,
+                detail: `no 'export default class' declaration found (expected class '${baseName}')`,
             });
         } else if (!classNameMatchesBaseName(match[1], baseName)) {
             violations.push({
                 file: relPath,
                 check: CLASS_NAME_CHECK,
-                detail: `default class is \`${match[1]}\` but file name implies \`${baseName}\``,
+                detail: `card class is '${match[1]}' but file name is '${baseName}', they must match (ignoring hyphens and leading underscores)`,
             });
         }
 
@@ -183,7 +183,7 @@ function checkCards(violations: Violation[]): number {
                 violations.push({
                     file: relPath,
                     check: UNUSED_EXEMPTION_CHECK,
-                    detail: `test file \`${expectedRel}\` exists; remove the \`@no-test-required\` marker`,
+                    detail: `test file '${expectedRel}' exists; remove the '@no-test-required' marker`,
                 });
             } else {
                 exemptedCount++;
@@ -192,14 +192,14 @@ function checkCards(violations: Violation[]): number {
             violations.push({
                 file: relPath,
                 check: EXEMPTION_MISSING_REASON_CHECK,
-                detail: '`@no-test-required` marker must be of the form `// @no-test-required: <reason>` with a non-empty reason',
+                detail: '\'@no-test-required\' marker must be of the form \'// @no-test-required: <reason>\' with a non-empty reason',
             });
         } else if (!isInTokensDir(relFromCards) && !extendsCommonBase(source)) {
             if (!fileExists(expectedTest)) {
                 violations.push({
                     file: relPath,
                     check: MISSING_TEST_CHECK,
-                    detail: `expected test file \`${expectedRel}\`. If this card is exempt from having its own test file, add a line like \`// @no-test-required: <reason>\` to the .ts file with an explanation.`,
+                    detail: `expected test file named '${expectedRel}' but none was found (check for typos). If this card is exempt from having its own test file, add a line like '// @no-test-required: <reason>' to the .ts file with an explanation.`,
                 });
             }
         }
@@ -217,7 +217,7 @@ function checkTests(violations: Violation[]): number {
             violations.push({
                 file: relPath,
                 check: STRAY_TEST_CHECK,
-                detail: 'test file must end with `.spec.ts`',
+                detail: 'test file must end with \'.spec.ts\'',
             });
         }
     }
@@ -248,15 +248,15 @@ function printReport(violations: Violation[], cardCount: number, testCount: numb
     }
 
     // GitHub Actions log viewer (and most terminals) render ANSI escape codes
-    // but not Markdown, so use ANSI bold for the file path. Respect NO_COLOR.
+    // but not Markdown, so use ANSI bold + red for the file path. Respect NO_COLOR.
     const useColor = !process.env.NO_COLOR;
-    const bold = useColor ? '\u001b[1m' : '';
+    const boldRed = useColor ? '\u001b[1;31m' : '';
     const reset = useColor ? '\u001b[0m' : '';
 
     grouped.forEach((fileViolations, file) => {
-        console.log(`${bold}${file}${reset}`);
+        console.log(`${boldRed}${file}${reset}`);
         for (const v of fileViolations) {
-            console.log(`  - [${v.check}] ${v.detail}`);
+            console.log(`    • [${v.check}] ${v.detail}`);
         }
         console.log('');
     });
