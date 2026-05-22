@@ -12,6 +12,7 @@ import {
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { Helpers } from '../core/utils/Helpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
 import { Contract } from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
 import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
@@ -293,7 +294,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         super.updateEvent(event, card, context, additionalProperties);
 
         if (!card.isBase()) {
-            this.addLastKnownInformationToEvent(event, card);
+            addLastKnownInformationToEvent(event, card);
         }
     }
 

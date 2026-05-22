@@ -5,7 +5,7 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 
-export default class LuthenRaelDontYouToFightForReal extends LeaderUnitCard {
+export default class LuthenRaelDontYouWantToFightForReal extends LeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '8780923793',

@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
 
-export default class AtAtSuppressor extends NonLeaderUnitCard {
+export default class ATATSuppressor extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '6663619377',
