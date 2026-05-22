@@ -13,11 +13,14 @@
 //        - files whose `extends` clause references a class imported from a
 //          `../common/...` (or deeper) module (those cards share a test under
 //          their common superclass).
+//        - files containing a line `// @no-test-required: <reason>` where
+//          <reason> is non-empty. An exemption without a reason is itself a
+//          violation, and an exemption alongside an existing test is flagged
+//          as `unused-exemption` so stale markers get cleaned up.
 //   3. Every `.ts` file under `test/server/cards/` ends in `.spec.ts`.
 //
 // Skipped from all checks (mirrors server/game/cards/Index.ts loader semantics):
 //   - `common/` directories (abstract base classes / shared impls)
-//   - Files whose basename starts with `_`
 //   - The cards-root `Index.ts` registration file
 //
 // Prints a markdown table of violations (if any) and exits with code 1 so a
@@ -40,20 +43,30 @@ interface Violation {
 const CLASS_NAME_CHECK = 'default-class-name';
 const MISSING_TEST_CHECK = 'missing-test-file';
 const STRAY_TEST_CHECK = 'test-file-extension';
+const EXEMPTION_MISSING_REASON_CHECK = 'exemption-missing-reason';
+const UNUSED_EXEMPTION_CHECK = 'unused-exemption';
+
+// Matches a well-formed exemption marker: `// @no-test-required: <reason>`.
+// The colon and a non-empty reason are required. Capture group 1 is the reason.
+const NO_TEST_REQUIRED_RE = /^[ \t]*\/\/[ \t]*@no-test-required[ \t]*:[ \t]*(\S.*?)[ \t]*$/m;
+
+// Matches any line that looks like an attempt to use the marker, well-formed
+// or not. Used to surface malformed markers (missing/empty reason) as a
+// distinct violation rather than silently treating them as `missing-test-file`.
+const NO_TEST_REQUIRED_MARKER_RE = /^[ \t]*\/\/[ \t]*@no-test-required\b.*$/m;
 
 function isSkippedDir(name: string): boolean {
     return name === 'common';
-}
-
-function isSkippedFile(name: string): boolean {
-    return name.startsWith('_');
 }
 
 function walkTsFiles(root: string): string[] {
     const results: string[] = [];
     const stack: string[] = [root];
     while (stack.length > 0) {
-        const current = stack.pop()!;
+        const current = stack.pop();
+        if (current === undefined) {
+            break;
+        }
         let entries: string[];
         try {
             entries = readdirSync(current);
@@ -69,9 +82,6 @@ function walkTsFiles(root: string): string[] {
                 }
                 stack.push(full);
             } else if (stat.isFile() && entry.endsWith('.ts')) {
-                if (isSkippedFile(entry)) {
-                    continue;
-                }
                 results.push(full);
             }
         }
@@ -128,6 +138,8 @@ function classNameMatchesBaseName(className: string, baseName: string): boolean 
     return normalizedBase === normalizedClass;
 }
 
+let exemptedCount = 0;
+
 function checkCards(violations: Violation[]): number {
     const cardFiles = walkTsFiles(cardsDir).filter((f) => {
         // Exclude the cards-root Index.ts registration file.
@@ -139,7 +151,7 @@ function checkCards(violations: Violation[]): number {
     for (const filePath of cardFiles) {
         const relPath = relative(repoRoot, filePath).split(sep)
             .join('/');
-        const baseName = filePath.split(sep).pop()!.replace(/\.ts$/, '');
+        const baseName = (filePath.split(sep).pop() ?? '').replace(/\.ts$/, '');
 
         // Check 1: default class name matches file name (after normalization).
         const source = readFileSync(filePath, 'utf8');
@@ -160,15 +172,34 @@ function checkCards(violations: Violation[]): number {
 
         // Check 2: matching test file exists (tokens and common-base subclasses exempt).
         const relFromCards = relative(cardsDir, filePath);
-        if (!isInTokensDir(relFromCards) && !extendsCommonBase(source)) {
-            const expectedTest = join(testsDir, relFromCards).replace(/\.ts$/, '.spec.ts');
+        const exemptionMatch = source.match(NO_TEST_REQUIRED_RE);
+        const hasMalformedMarker = exemptionMatch === null && NO_TEST_REQUIRED_MARKER_RE.test(source);
+        const expectedTest = join(testsDir, relFromCards).replace(/\.ts$/, '.spec.ts');
+        const expectedRel = relative(repoRoot, expectedTest).split(sep)
+            .join('/');
+
+        if (exemptionMatch !== null) {
+            if (fileExists(expectedTest)) {
+                violations.push({
+                    file: relPath,
+                    check: UNUSED_EXEMPTION_CHECK,
+                    detail: `test file \`${expectedRel}\` exists; remove the \`@no-test-required\` marker`,
+                });
+            } else {
+                exemptedCount++;
+            }
+        } else if (hasMalformedMarker) {
+            violations.push({
+                file: relPath,
+                check: EXEMPTION_MISSING_REASON_CHECK,
+                detail: '`@no-test-required` marker must be of the form `// @no-test-required: <reason>` with a non-empty reason',
+            });
+        } else if (!isInTokensDir(relFromCards) && !extendsCommonBase(source)) {
             if (!fileExists(expectedTest)) {
-                const expectedRel = relative(repoRoot, expectedTest).split(sep)
-                    .join('/');
                 violations.push({
                     file: relPath,
                     check: MISSING_TEST_CHECK,
-                    detail: `expected test file \`${expectedRel}\``,
+                    detail: `expected test file \`${expectedRel}\`. If this card is exempt from having its own test file, add a line like \`// @no-test-required: <reason>\` to the .ts file with an explanation.`,
                 });
             }
         }
@@ -194,9 +225,10 @@ function checkTests(violations: Violation[]): number {
 }
 
 function printReport(violations: Violation[], cardCount: number, testCount: number): void {
+    const exemptSuffix = exemptedCount > 0 ? ` (${exemptedCount} exempt)` : '';
     if (violations.length === 0) {
         console.log(
-            `All card validations passed (${cardCount} card files, ${testCount} test files checked).`
+            `All card validations passed (${cardCount} card files${exemptSuffix}, ${testCount} test files checked).`
         );
         return;
     }
@@ -225,7 +257,7 @@ function printReport(violations: Violation[], cardCount: number, testCount: numb
     }
 
     console.log(
-        `\nChecked ${cardCount} card files and ${testCount} test files.`
+        `\nChecked ${cardCount} card files${exemptSuffix} and ${testCount} test files.`
     );
 }
 
