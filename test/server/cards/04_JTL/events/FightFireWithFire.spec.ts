@@ -87,5 +87,28 @@ describe('Fight Fire With Fire', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('Fight Fire With Fire should have no effect if there is no friendly unit in the same arena as enemy unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['fight-fire-with-fire'],
+                    spaceArena: ['awing']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                }
+            });
+            const { context } = contextRef;
+
+            // Play Vanquish to defeat the enemy unit
+            context.player1.clickCard(context.fightFireWithFire);
+            expect(context.player1).toHavePrompt('Playing Fight Fire With Fire will have no effect. Are you sure you want to play it?');
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.awing.damage).toBe(0);
+            expect(context.wampa.damage).toBe(0);
+        });
     });
 });
