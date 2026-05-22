@@ -1,4 +1,4 @@
-import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
+import type { ILastKnownInformation } from '../event/LastKnownInformation';
 import { Contract } from '../utils/Contract';
 import { Helpers } from '../utils/Helpers';
 import { CostAdjustStage } from './CostInterfaces';
