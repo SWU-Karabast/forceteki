@@ -117,6 +117,7 @@ export class DeckService {
                         favourite: unsyncedDeck.favourite,
                         deckLink: unsyncedDeck.deckLink,
                         deckLinkID: unsyncedDeck.deckLinkID ?? unsyncedDeck.deckID,
+                        deckJson: unsyncedDeck.deckJson,
                         source: unsyncedDeck.source
                     },
                     stats: {

@@ -87,6 +87,7 @@ export interface ILocalStorageDeckData {
     favourite: boolean;
     deckLink: string;
     deckLinkID?: string;
+    deckJson?: Record<string, any>;
     deckID?: string; // we need this for backwards compatibility
     source?: string;
 }
@@ -102,6 +103,7 @@ export interface IDeckDataEntity {
         favourite: boolean;
         deckLink: string;
         deckLinkID: string;
+        deckJson?: Record<string, any>;
         source?: string;
     };
     stats?: IDeckStatsEntity;

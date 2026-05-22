@@ -37,6 +37,7 @@ export const IDeckDataEntitySchema = z.object({
         favourite: z.boolean(),
         deckLink: z.string(),
         deckLinkID: z.string(),
+        deckJson: z.record(z.any()).optional(),
         source: z.string().optional(),
     }),
     stats: IDeckStatsEntitySchema.optional(),

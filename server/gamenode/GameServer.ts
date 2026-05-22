@@ -1148,6 +1148,13 @@ export class GameServer {
                     };
                 } else if (deck) {
                     deckEntity = deck;
+                    if (deckEntity.deck?.source === 'JSON' && !deckEntity.deck.deckJson && typeof deckEntity.deck.deckLink === 'string') {
+                        try {
+                            deckEntity.deck.deckJson = JSON.parse(deckEntity.deck.deckLink);
+                        } catch {
+                            return res.status(400).json({ success: false, error: 'Invalid JSON deck' });
+                        }
+                    }
                 } else {
                     return res.status(400).json({ success: false, error: 'No deck or swudbLink provided' });
                 }
@@ -2856,4 +2863,3 @@ export class GameServer {
         return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
-
