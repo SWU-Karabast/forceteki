@@ -247,8 +247,14 @@ function printReport(violations: Violation[], cardCount: number, testCount: numb
         }
     }
 
+    // GitHub Actions log viewer (and most terminals) render ANSI escape codes
+    // but not Markdown, so use ANSI bold for the file path. Respect NO_COLOR.
+    const useColor = !process.env.NO_COLOR;
+    const bold = useColor ? '\u001b[1m' : '';
+    const reset = useColor ? '\u001b[0m' : '';
+
     grouped.forEach((fileViolations, file) => {
-        console.log(`**${file}**`);
+        console.log(`${bold}${file}${reset}`);
         for (const v of fileViolations) {
             console.log(`  - [${v.check}] ${v.detail}`);
         }
