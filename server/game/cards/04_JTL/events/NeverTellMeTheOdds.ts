@@ -3,7 +3,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventName, WildcardCardType } from '../../../core/Constants';
 
-export default class NeverTellMeTheodds extends EventCard {
+export default class NeverTellMeTheOdds extends EventCard {
     protected override getImplementationId() {
         return {
             id: '8833191722',
