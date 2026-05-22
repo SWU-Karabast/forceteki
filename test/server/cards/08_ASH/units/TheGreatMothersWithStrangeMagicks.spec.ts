@@ -21,6 +21,29 @@ describe('The Great Mothers, With Strange Magicks', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('should not defeat a non-leader unit with a shield because no combat damage was dealt to it', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['the-great-mothers#with-strange-magicks']
+                },
+                player2: {
+                    groundArena: [{ card: 'wampa', upgrades: ['shield'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.theGreatMothers);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.theGreatMothers.damage).toBe(4);
+            expect(context.wampa.damage).toBe(0);
+            expect(context.shield).not.toBeAttachedTo(context.wampa);
+            expect(context.wampa).toBeInZone('groundArena', context.player2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('should not defeat anything if it dealt combat damage to a base', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -84,6 +107,33 @@ describe('The Great Mothers, With Strange Magicks', function() {
 
             expect(context.scavengingSandcrawler.damage).toBe(6);
             expect(context.maul).toBeInZone('discard', context.player2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should grant its When Attack Ends ability through Support and defeat each non-leader unit Darth Maul dealt combat damage to', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-great-mothers#with-strange-magicks'],
+                    groundArena: ['darth-maul#revenge-at-last'],
+                    resources: 10
+                },
+                player2: {
+                    groundArena: ['atst', 'consular-security-force']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.theGreatMothers);
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.atst);
+            context.player1.clickCard(context.consularSecurityForce);
+            context.player1.clickDone();
+
+            expect(context.darthMaul).toBeInZone('discard', context.player1);
+            expect(context.atst).toBeInZone('discard', context.player2);
+            expect(context.consularSecurityForce).toBeInZone('discard', context.player2);
             expect(context.player2).toBeActivePlayer();
         });
     });
