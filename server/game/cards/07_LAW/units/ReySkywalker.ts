@@ -3,7 +3,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 
-export default class ReySkylwaker extends NonLeaderUnitCard {
+export default class ReySkywalker extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '4947826569',
