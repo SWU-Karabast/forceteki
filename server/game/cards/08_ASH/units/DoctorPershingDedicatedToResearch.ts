@@ -14,7 +14,7 @@ export default class DoctorPershingDedicatedToResearch extends NonLeaderUnitCard
         registrar.addOnAttackAbility({
             title: 'Draw a card',
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: () => true,
+                condition: (context) => context.source.remainingHp >= 3,
                 onTrue: abilityHelper.immediateEffects.draw()
             })
         });
