@@ -940,6 +940,75 @@ const mockCards = [
         unique: false,
         internalName: 'hold-them-off',
     }),
+    buildMockCard({
+        title: 'The Mandalorian',
+        subtitle: 'We Can\'t Keep Running',
+        cost: 6,
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['leader'],
+        traits: ['mandalorian'],
+        keywords: ['support'],
+        setId: {
+            set: 'ASH',
+            number: 14
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-mandalorian#we-cant-keep-running',
+    }),
+    buildMockCard({
+        title: 'Green Leader',
+        subtitle: 'Crynyd\'s Sacrifice',
+        cost: 2,
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'vehicle', 'fighter'],
+        setId: {
+            set: 'ASH',
+            number: 153
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'green-leader#crynys-sacrifice',
+    }),
+    buildMockCard({
+        title: 'Zeb Orrelios',
+        subtitle: 'Fists Work Every Time',
+        cost: 7,
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['rebel', 'spectre'],
+        setId: {
+            set: 'ASH',
+            number: 161
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'zeb-orrelios#fists-work-every-time',
+    }),
+    buildMockCard({
+        title: 'Reckless Sacrifice',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['event'],
+        traits: ['gambit'],
+        setId: {
+            set: 'ASH',
+            number: 163
+        },
+        unique: false,
+        internalName: 'reckless-sacrifice',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
