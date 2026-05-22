@@ -30,7 +30,10 @@ describe('Whistling Birds', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'battlefield-marine', upgrades: ['whistling-birds'] }]
+                        groundArena: [
+                            { card: 'battlefield-marine', upgrades: ['whistling-birds'] },
+                            'warrior-of-clan-ordo'
+                        ]
                     },
                     player2: {
                         groundArena: ['wampa', 'mandalorian-warrior'],
@@ -53,6 +56,10 @@ describe('Whistling Birds', function() {
 
                 // Enemy space unit is unaffected (different arena)
                 expect(context.cartelSpacer.damage).toBe(0);
+
+                // Does not damage itself or friendly units
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.warriorOfClanOrdo.damage).toBe(0);
 
                 expect(context.player2).toBeActivePlayer();
             });
