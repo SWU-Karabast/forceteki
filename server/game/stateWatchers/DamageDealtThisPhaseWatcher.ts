@@ -22,7 +22,6 @@ export interface DamageDealtEntry {
     damageSourceCardType: CardType;
     damageSourcePlayer: GameObjectId<Player>;
     damageSourceEventId: number;
-    target: GameObjectId<Card>;
     targets: GameObjectId<Card>[];
     targetType: CardType;
     targetController: GameObjectId<Player>;
@@ -45,7 +44,6 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
         return stateValue.map((x) => ({
             ...x,
             damageSourceCard: this.game.getFromId(x.damageSourceCard),
-            target: this.game.getFromId(x.target),
             targets: x.targets.map((y) => this.game.getFromId(y)),
             targetController: this.game.getFromId(x.targetController),
             damageSourcePlayer: this.game.getFromId(x.damageSourcePlayer)
@@ -89,10 +87,9 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                 entry.activeAttackId === context.event.attack.id &&
                 entry.damageType === DamageType.Combat &&
                 entry.amount > 0 &&
-                entry.target !== context.event.attack.attacker &&
-                entry.target.isNonLeaderUnit()
+                entry.targets.some((target) => target !== context.event.attack.attacker && target.isNonLeaderUnit())
             )
-            .map((entry) => entry.target);
+            .flatMap((entry) => entry.targets.filter((target) => target !== context.event.attack.attacker && target.isNonLeaderUnit()));
     }
 
     protected override setupWatcher() {
@@ -111,7 +108,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                     damageSourceCard = event.damageSource.attack?.attacker.getObjectId();
                     damageSourceInPlayId = this.getCardId(event.damageSource.attack?.attacker);
                     damageSourceCardType = event.damageSource.attack?.attacker.type;
-                    targets = event.damageSource.attack?.getAllTargets().map((x) => x.getObjectId());
+                    targets = [event.card.getObjectId()];
                     activeAttackId = event.damageSource.attack?.id;
                 } else if (event.type === DamageType.Overwhelm) {
                     damageSourceCard = event.damageSource.attack?.attacker.getObjectId();
@@ -136,7 +133,6 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                     targets,
                     damageSourcePlayer: event.damageSource.player?.getObjectId(),
                     damageSourceEventId: event.damageSource.eventId,
-                    target: event.card.getObjectId(),
                     targetType: event.card.type,
                     targetController: event.card.controller?.getObjectId(),
                     amount: event.damageDealt,
