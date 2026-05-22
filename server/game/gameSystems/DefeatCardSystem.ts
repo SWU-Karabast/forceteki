@@ -1,13 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
-import type { IUpgradeCard } from '../core/card/CardInterfaces';
-import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { MsgArg } from '../core/chat/GameChat';
-import type { Trait } from '../core/Constants';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
+import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
-import type { Player } from '../core/Player';
 import { Contract } from '../core/utils/Contract';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
@@ -26,21 +23,7 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
     defeatSource?: IDamageSource | DefeatSourceType.Ability;
 }
 
-/** Records the "last known information" of a card before it left the arena, in case ability text needs to refer back to it. See SWU 8.12. */
-export interface ILastKnownInformation {
-    card: Card;
-    title: string;
-    controller: Player;
-    arena: ZoneName;
-    power?: number;
-    hp?: number;
-    type?: CardType;
-    damage?: number;
-    parentCard?: IUnitCard;
-    upgrades?: IUpgradeCard[];
-    traits: Set<Trait>;
-    exhausted?: boolean;
-}
+export type { ILastKnownInformation } from '../core/event/LastKnownInformation';
 
 export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IDefeatCardPropertiesBase = IDefeatCardProperties> extends CardTargetSystem<TContext, TProperties> {
     public override readonly name = 'defeat';
@@ -185,6 +168,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         }
 
-        this.addLastKnownInformationToEvent(event, card);
+        addLastKnownInformationToEvent(event, card);
     }
 }
