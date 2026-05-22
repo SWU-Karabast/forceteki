@@ -975,7 +975,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'space',
-        internalName: 'green-leader#crynys-sacrifice',
+        internalName: 'green-leader#crynyds-sacrifice',
     }),
     buildMockCard({
         title: 'Zeb Orrelios',
