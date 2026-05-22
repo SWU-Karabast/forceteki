@@ -20,6 +20,28 @@ describe('Scramble Fighters', function() {
                 expect(context.player2.getArenaCards().length).toBe(0);
             });
 
+            it('should create 16 readied TIE fighters when doubled by Moff Jerjerrod', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['scramble-fighters'],
+                        groundArena: ['moff-jerjerrod#we-shall-redouble-our-efforts']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.scrambleFighters);
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 16 TIE Fighter tokens instead');
+                context.player1.clickPrompt('Trigger');
+
+                const tieFighters = context.player1.findCardsByName('tie-fighter', 'spaceArena');
+                expect(context.moffJerjerrod).toBeInZone('discard');
+                expect(tieFighters.length).toBe(16);
+                expect(tieFighters).toAllBeInZone('spaceArena');
+                expect(tieFighters.every((tieFighter) => tieFighter.exhausted)).toBeFalse();
+            });
+
             it('should create TIE fighters that cannot attack the base the phase they were created', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
