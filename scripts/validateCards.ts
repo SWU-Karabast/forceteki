@@ -90,8 +90,15 @@ function walkTsFiles(root: string): string[] {
 }
 
 function fileExists(path: string): boolean {
+    // Case-insensitive existence check. Cannot rely on `lstatSync(path)` alone
+    // because Linux is case-sensitive and we want this script to behave
+    // identically on Windows/macOS (where the filesystem is case-insensitive
+    // by default) and Linux CI. Casing-only renames are not safely tracked by
+    // git, so we treat any case variant in the parent directory as a match.
+    const dir = join(path, '..');
+    const base = (path.split(sep).pop() ?? '').toLowerCase();
     try {
-        return lstatSync(path).isFile();
+        return readdirSync(dir).some((entry) => entry.toLowerCase() === base);
     } catch {
         return false;
     }
@@ -199,7 +206,7 @@ function checkCards(violations: Violation[]): number {
                 violations.push({
                     file: relPath,
                     check: MISSING_TEST_CHECK,
-                    detail: `expected test file named '${expectedRel}' but none was found (check for typos). If this card is exempt from having its own test file, add a line like '// @no-test-required: <reason>' to the .ts file with an explanation.`,
+                    detail: `expected test file named '${expectedRel}' but none was found (check for typos). If this card is exempt from having its own test file, add a line like '// @no-test-required: <reason>' to the .ts file.`,
                 });
             }
         }
