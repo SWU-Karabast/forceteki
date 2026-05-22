@@ -130,6 +130,32 @@ describe('Hold Them Off', function() {
             });
         });
 
+        describe('Hold Them Off\'s ability, with Jango Leader', function() {
+            it('should do nothing', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['hold-them-off'],
+                        leader: { card: 'jango-fett#concealing-the-conspiracy', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.holdThemOff);
+                context.player1.clickCard(context.jangoFett);
+                context.player1.setDistributeDamagePromptState(new Map([[context.consularSecurityForce, 3]]));
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.holdThemOff).toBeInZone('discard');
+                expect(context.consularSecurityForce.damage).toBe(3);
+                expect(context.consularSecurityForce.exhausted).toBe(true);
+            });
+        });
+
         describe('Hold Them Off\'s ability, if played on Blue Leader in ground', function() {
             it('should not be able to hit space', async function () {
                 await contextRef.setupTestAsync({
