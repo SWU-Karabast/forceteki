@@ -93,6 +93,30 @@ describe('The Mandalorian, We Can\'t Keep Running', function () {
                 expect(context.player1.hand.length).toBe(1);
             });
 
+            it('should draw a card when attacking if player has initiative (support)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-mandalorian#we-cant-keep-running',
+                        groundArena: ['ardent-sympathizer'],
+                        hasInitiative: true,
+                    },
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theMandalorian);
+                context.player1.clickPrompt('Deploy The Mandalorian');
+                context.player1.clickCard(context.ardentSympathizer);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePassAbilityPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.hand.length).toBe(1);
+                expect(context.p2Base.damage).toBe(5);
+            });
+
             it('should not draw a card when attacking if player does not have initiative', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
