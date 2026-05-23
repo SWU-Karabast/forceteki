@@ -21,9 +21,7 @@ export default class TheMandalorianWeCantKeepRunning extends LeaderUnitCard {
             when: {
                 onClaimInitiative: (event, context) => event.player === context.player,
             },
-            targetResolver: {
-                immediateEffect: abilityHelper.immediateEffects.payResources({ amount: 1 }),
-            },
+            immediateEffect: abilityHelper.immediateEffects.payResources((context) => ({ amount: 1, target: context.player })),
             ifYouDo: {
                 title: 'Draw a card',
                 immediateEffect: abilityHelper.immediateEffects.draw(),
