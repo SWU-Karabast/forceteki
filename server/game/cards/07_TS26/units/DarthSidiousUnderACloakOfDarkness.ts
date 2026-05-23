@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers.js';
 
-export default class DarthSidiousUndeerACloakOfDarkness extends NonLeaderUnitCard {
+export default class DarthSidiousUnderACloakOfDarkness extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '9473986821',

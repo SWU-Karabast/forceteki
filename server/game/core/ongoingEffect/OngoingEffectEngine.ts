@@ -10,7 +10,6 @@ import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
-import { AttackRulesVersion } from '../attack/AttackFlow';
 import type { MsgArg } from '../chat/GameChat';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
@@ -83,7 +82,6 @@ export class OngoingEffectEngine extends GameObjectBase {
         super(game);
         this.events = new EventRegistrar(game, this);
         this.events.register([
-            EventName.OnAttackEnd,
             EventName.OnPhaseEnded,
             EventName.OnRoundEnded
         ]);
@@ -271,12 +269,6 @@ export class OngoingEffectEngine extends GameObjectBase {
 
     public unregisterOnAttackEffects() {
         this.effectsChangedSinceLastCheck = this.unapplyAndRemove((effect) => effect.duration === Duration.UntilEndOfAttack);
-    }
-
-    private onAttackEnd() {
-        if (this.game.attackRulesVersion === AttackRulesVersion.CR6) {
-            this.unregisterOnAttackEffects();
-        }
     }
 
     private onPhaseEnded() {

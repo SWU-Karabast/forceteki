@@ -1,14 +1,13 @@
 import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { EventName, MetaEventName } from '../Constants';
-import { GameStateChangeRequired, ZoneName } from '../Constants';
+import { GameStateChangeRequired } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player';
 import { Helpers } from '../utils/Helpers';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { Contract } from '../utils/Contract';
 import type { GameObject } from '../GameObject';
-import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 import type { MsgArg } from '../chat/GameChat';
 
 export type PlayerOrCard = Player | Card;
@@ -104,58 +103,6 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
     protected canAffectInternal(target: GameObject | GameObject[], context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.isTargetTypeValid(target);
-    }
-
-    protected addLastKnownInformationToEvent(event: any, card: Card): void {
-        // build last known information for the card before event window resolves to ensure that no state has yet changed
-        event.setPreResolutionEffect((event) => {
-            event.lastKnownInformation = this.buildLastKnownInformation(card);
-        });
-    }
-
-    protected buildLastKnownInformation(card: Card): ILastKnownInformation {
-        if (card.zoneName !== ZoneName.GroundArena && card.zoneName !== ZoneName.SpaceArena) {
-            return {
-                card,
-                title: card.title,
-                controller: card.controller,
-                arena: card.zoneName,
-                traits: card.traits
-            };
-        }
-        Contract.assertTrue(card.canBeInPlay());
-
-        if (card.isUnit() && !card.isAttached()) {
-            return {
-                card,
-                title: card.title,
-                power: card.getPower(),
-                hp: card.getHp(),
-                type: card.type,
-                arena: card.zoneName,
-                controller: card.controller,
-                damage: card.damage,
-                upgrades: card.upgrades,
-                traits: card.traits,
-                exhausted: card.exhausted
-            };
-        }
-
-        if (card.isUpgrade()) {
-            return {
-                card,
-                title: card.title,
-                power: card.getPower(),
-                hp: card.getHp(),
-                type: card.type,
-                arena: card.zoneName,
-                controller: card.controller,
-                parentCard: card.parentCard,
-                traits: card.traits
-            };
-        }
-
-        Contract.fail(`Unexpected card type: ${card.type}`);
     }
 
     /**

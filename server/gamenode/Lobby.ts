@@ -44,7 +44,6 @@ import {
     StatsSource,
     updateStatsMessage
 } from '../utils/stats/statsMessages';
-import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -1088,6 +1087,7 @@ export class Lobby {
                 player2Leader: player2.deck.leader,
                 player2Base: player2.deck.base,
                 format: this.gameFormat,
+                cardPool: this.cardPool,
                 gamesToWinMode: this.gamesToWinMode,
             };
         } catch (error) {
@@ -1261,6 +1261,10 @@ export class Lobby {
                 this.server.registerDisconnect(user.socket, user.id);
             });
 
+            // Ask each player's client for their screen resolution so we can log it for analytics.
+            // Fire-and-forget; clients reply via the `reportScreenResolution` lobby command.
+            this.requestScreenResolutionsForGameStart();
+
             // For each user, if they have a deck, select it in the game
             this.users.forEach((user) => {
                 Contract.assertNotNullLike(user.deck, `User ${user.id} doesn't have a deck assigned at game start for lobby ${this.id}`);
@@ -1370,7 +1374,6 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
-            attackRulesVersion: AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
@@ -2250,6 +2253,58 @@ export class Lobby {
 
     private assertSettingType(settingName: string, settingValue: any, expectedType: string): void {
         Contract.assertTrue(typeof settingValue === expectedType, `Invalid setting value for ${settingName}, expected ${expectedType} but received: ` + settingValue);
+    }
+
+    /**
+     * Sends a `requestScreenResolution` socket event to every connected player at game start.
+     * Players reply via the `reportScreenResolution` lobby command, which logs the result.
+     */
+    private requestScreenResolutionsForGameStart(): void {
+        for (const user of this.users) {
+            try {
+                user.socket?.send('requestScreenResolution');
+            } catch (error) {
+                logger.warn('Lobby: failed to send requestScreenResolution to user', {
+                    lobbyId: this.id,
+                    userId: user.id,
+                    error: { message: error?.message, stack: error?.stack },
+                });
+            }
+        }
+    }
+
+    /**
+     * Lobby command handler invoked by clients in response to `requestScreenResolution`.
+     * Logs the player's screen resolution as a structured field for log aggregation.
+     */
+    private reportScreenResolution(socket: Socket, payload: any): void {
+        const userId = socket.user.getId();
+        const user = this.getUser(userId);
+        if (!user || !this.game) {
+            return;
+        }
+
+        const width = payload?.width;
+        const height = payload?.height;
+        if (
+            !Number.isInteger(width) || !Number.isInteger(height) ||
+            width <= 0 || height <= 0
+        ) {
+            logger.warn('Lobby: received invalid screen resolution payload', {
+                lobbyId: this.id,
+                userId,
+                payload,
+            });
+            return;
+        }
+
+        logger.info(`[Lobby] Player screen resolution at game start: ${width}x${height}`, {
+            lobbyId: this.id,
+            gameId: this.game.id,
+            userId,
+            username: user.username,
+            screenResolution: { width, height },
+        });
     }
 
     private async submitReport(socket: Socket, ...args: any[]): Promise<void> {
