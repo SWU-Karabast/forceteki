@@ -4,7 +4,6 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         groundArena: ['wampa'],
                         spaceArena: ['green-squadron-awing', 'hounds-tooth#hunters-approach']
@@ -78,7 +77,6 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         spaceArena: ['hounds-tooth#hunters-approach']
                     },
@@ -123,7 +121,6 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
         it('Hound\'s Tooth\'s ability should not trigger if he is defeated while attacking and replayed instantly', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     spaceArena: ['hounds-tooth#hunters-approach']
                 },
@@ -153,7 +150,6 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
         it('Hound\'s Tooth\'s should defeat a unit with less power than him (power modified by upgrades)', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     spaceArena: [{ card: 'hounds-tooth#hunters-approach', upgrades: ['twice-the-pride', 'twice-the-pride'] }]
                 },
@@ -175,7 +171,6 @@ describe('Hound\'s Tooth, Hunter\'s Approach', function () {
         it('Hound\'s Tooth\'s should defeat a unit with less power than him (power modified by ability only for this attack)', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     spaceArena: [{ card: 'hounds-tooth#hunters-approach' }],
                     leader: 'anakin-skywalker#what-it-takes-to-win',

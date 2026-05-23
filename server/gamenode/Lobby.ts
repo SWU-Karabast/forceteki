@@ -13,7 +13,7 @@ import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
@@ -44,7 +44,6 @@ import {
     StatsSource,
     updateStatsMessage
 } from '../utils/stats/statsMessages';
-import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -947,22 +946,33 @@ export class Lobby {
     }
 
     private changeDeck(socket: Socket, ...args) {
-        // Changing decks is not allowed after game 1 in a Bo3 set
-        Contract.assertFalse(
-            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
-            'Changing decks is not allowed after game 1 in a Bo3 set'
-        );
+        this.changeDeckForUser(socket.user.getId(), args[0]);
+    }
 
-        const activeUser = this.users.find((u) => u.id === socket.user.getId());
+    /**
+     * Applies a deck-change for the given user in this lobby. Used by both the
+     * `changeDeck` socket handler and the lobby-scoped REST endpoint
+     * (`POST /api/lobby/:lobbyId/change-deck`). Throws if the lobby is in a
+     * Bo3 game ≥ 2 state where deck-changes are disallowed; callers should
+     * translate that to an appropriate user-facing error.
+     */
+    public changeDeckForUser(userId: string, deck: ISwuDbFormatDecklist): IDeckValidationFailures | undefined {
+        // Changing decks is not allowed after game 1 in a Bo3 set
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2) {
+            throw new Error('Changing decks is not allowed after game 1 in a Bo3 set');
+        }
+
+        const activeUser = this.users.find((u) => u.id === userId);
+        Contract.assertNotNullLike(activeUser, `Lobby.changeDeckForUser: user ${userId} not found in lobby ${this.id}`);
 
         // we check if the deck is valid.
         const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
         // if the deck doesn't have any errors that block import, set it as active
         const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
         if (Object.keys(filteredErrors).length === 0) {
-            activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.deck = new Deck(deck, this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 validationProperties
@@ -976,6 +986,8 @@ export class Lobby {
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
         this.updateUserLastActivity(activeUser.id);
+
+        return activeUser.importDeckValidationErrors;
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -1075,6 +1087,7 @@ export class Lobby {
                 player2Leader: player2.deck.leader,
                 player2Base: player2.deck.base,
                 format: this.gameFormat,
+                cardPool: this.cardPool,
                 gamesToWinMode: this.gamesToWinMode,
             };
         } catch (error) {
@@ -1248,6 +1261,10 @@ export class Lobby {
                 this.server.registerDisconnect(user.socket, user.id);
             });
 
+            // Ask each player's client for their screen resolution so we can log it for analytics.
+            // Fire-and-forget; clients reply via the `reportScreenResolution` lobby command.
+            this.requestScreenResolutionsForGameStart();
+
             // For each user, if they have a deck, select it in the game
             this.users.forEach((user) => {
                 Contract.assertNotNullLike(user.deck, `User ${user.id} doesn't have a deck assigned at game start for lobby ${this.id}`);
@@ -1357,7 +1374,6 @@ export class Lobby {
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
-            attackRulesVersion: AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
@@ -2237,6 +2253,58 @@ export class Lobby {
 
     private assertSettingType(settingName: string, settingValue: any, expectedType: string): void {
         Contract.assertTrue(typeof settingValue === expectedType, `Invalid setting value for ${settingName}, expected ${expectedType} but received: ` + settingValue);
+    }
+
+    /**
+     * Sends a `requestScreenResolution` socket event to every connected player at game start.
+     * Players reply via the `reportScreenResolution` lobby command, which logs the result.
+     */
+    private requestScreenResolutionsForGameStart(): void {
+        for (const user of this.users) {
+            try {
+                user.socket?.send('requestScreenResolution');
+            } catch (error) {
+                logger.warn('Lobby: failed to send requestScreenResolution to user', {
+                    lobbyId: this.id,
+                    userId: user.id,
+                    error: { message: error?.message, stack: error?.stack },
+                });
+            }
+        }
+    }
+
+    /**
+     * Lobby command handler invoked by clients in response to `requestScreenResolution`.
+     * Logs the player's screen resolution as a structured field for log aggregation.
+     */
+    private reportScreenResolution(socket: Socket, payload: any): void {
+        const userId = socket.user.getId();
+        const user = this.getUser(userId);
+        if (!user || !this.game) {
+            return;
+        }
+
+        const width = payload?.width;
+        const height = payload?.height;
+        if (
+            !Number.isInteger(width) || !Number.isInteger(height) ||
+            width <= 0 || height <= 0
+        ) {
+            logger.warn('Lobby: received invalid screen resolution payload', {
+                lobbyId: this.id,
+                userId,
+                payload,
+            });
+            return;
+        }
+
+        logger.info(`[Lobby] Player screen resolution at game start: ${width}x${height}`, {
+            lobbyId: this.id,
+            gameId: this.game.id,
+            userId,
+            username: user.username,
+            screenResolution: { width, height },
+        });
     }
 
     private async submitReport(socket: Socket, ...args: any[]): Promise<void> {

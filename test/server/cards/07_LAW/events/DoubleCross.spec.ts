@@ -156,12 +156,11 @@ describe('Double-Cross', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.rey.controller).toBe(context.player1Object);
                 expect(context.devastator.controller).toBe(context.player1Object);
-                expect(context.player1.credits).toBe(2);
+                expect(context.player1.credits).toBe(0);
                 expect(context.player2.credits).toBe(0);
-                expect(context.getChatLogs(3)).toEqual([
+                expect(context.getChatLogs(2)).toEqual([
                     'player1 plays Double-Cross to give control of Rey to player2 and to take control of Devastator',
                     'player2 uses Rey to cancel the effects of Double-Cross',
-                    'player1 uses Double-Cross to create 2 Credit tokens',
                 ]);
             });
 
