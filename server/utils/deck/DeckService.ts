@@ -71,12 +71,16 @@ export class DeckService {
             }
 
             return decks
-                .map((deckData) => ({
-                    // Extract just the inner deck object which matches ILocalStorageDeckData
-                    ...deckData.deck,
-                    deckID: deckData.id,
-                    stats: deckData.stats,
-                }));
+                .map((deckData) => {
+                    // just pick results data to avoid sending anything else from the stats object
+                    const stats = deckData.stats ? Util.pick(deckData.stats, 'wins', 'losses', 'draws') : undefined;
+                    return {
+                        // Extract just the inner deck object which matches ILocalStorageDeckData
+                        ...deckData.deck,
+                        deckID: deckData.id,
+                        ...(stats ? { stats } : {}),
+                    };
+                });
         } catch (error) {
             logger.error(`Error retrieving decks for user ${userId}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
