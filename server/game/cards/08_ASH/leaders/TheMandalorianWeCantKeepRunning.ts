@@ -32,6 +32,7 @@ export default class TheMandalorianWeCantKeepRunning extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Draw a card',
+            optional: true,
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasInitiative(),
                 onTrue: abilityHelper.immediateEffects.draw()

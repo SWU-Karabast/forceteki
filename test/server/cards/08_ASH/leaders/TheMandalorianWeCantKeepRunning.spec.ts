@@ -87,6 +87,9 @@ describe('The Mandalorian, We Can\'t Keep Running', function () {
                 context.player1.clickCard(context.theMandalorian);
                 context.player1.clickCard(context.wampa);
 
+                expect(context.player1).toHavePassAbilityPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
+
                 expect(context.player1.hand.length).toBe(1);
             });
 
