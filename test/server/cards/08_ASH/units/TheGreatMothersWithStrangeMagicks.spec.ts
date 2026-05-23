@@ -135,6 +135,36 @@ describe('The Great Mothers, With Strange Magicks', function() {
             expect(context.atst).toBeInZone('discard', context.player2);
             expect(context.consularSecurityForce).toBeInZone('discard', context.player2);
             expect(context.player2).toBeActivePlayer();
+            expect(context.getChatLogs(1)).toContain('player1 uses Darth Maul\'s gained ability from The Great Mothers to defeat AT-ST and Consular Security Force');
+        });
+
+        it('should use the defending unit title in simultaneous trigger prompts', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-great-mothers#with-strange-magicks'],
+                    spaceArena: ['hounds-tooth#hunters-approach'],
+                    resources: 10
+                },
+                player2: {
+                    spaceArena: ['lambda-shuttle']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.theGreatMothers);
+            context.player1.clickCard(context.houndsTooth);
+            context.player1.clickCard(context.lambdaShuttle);
+
+            expect(context.player1).toHaveExactPromptButtons([
+                'Defeat Lambda Shuttle',
+                'If this unit survived, you may defeat a unit with less power than this unit'
+            ]);
+            context.player1.clickPrompt('Defeat Lambda Shuttle');
+
+            expect(context.lambdaShuttle).toBeInZone('discard', context.player2);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

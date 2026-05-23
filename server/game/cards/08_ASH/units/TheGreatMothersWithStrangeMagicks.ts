@@ -49,7 +49,7 @@ export default class TheGreatMothersWithStrangeMagicks extends NonLeaderUnitCard
     }
 
     private getDamagedNonLeaderDefendingUnits(source: IUnitCard, context: TriggeredAbilityContext): Card[] {
-        return Array.from(new Set(this.damageDealtThisPhaseWatcher.getNonLeaderUnitsDealtCombatDamageByUnitThisAttack(source, context)));
+        return this.damageDealtThisPhaseWatcher.getNonLeaderUnitsDealtCombatDamageByUnitThisAttack(source, context);
     }
 
     private formatCardTitles(cards: Card[]): string {

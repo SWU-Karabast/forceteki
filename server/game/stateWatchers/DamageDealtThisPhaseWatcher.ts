@@ -80,16 +80,19 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
     }
 
     public getNonLeaderUnitsDealtCombatDamageByUnitThisAttack(card: IUnitCard, context: TriggeredAbilityContext): Card[] {
-        return this.getCurrentValue()
+        const damagedNonLeaderUnits = this.getCurrentValue()
             .filter((entry) =>
                 (entry.damageSourceCard as Card) === card &&
                 entry.damageSourceInPlayId === this.getCardId(card) &&
                 entry.activeAttackId === context.event.attack.id &&
                 entry.damageType === DamageType.Combat &&
                 entry.amount > 0 &&
+                entry.targetController !== card.controller &&
                 entry.targets.some((target) => target !== context.event.attack.attacker && target.isNonLeaderUnit())
             )
             .flatMap((entry) => entry.targets.filter((target) => target !== context.event.attack.attacker && target.isNonLeaderUnit()));
+
+        return [...new Set(damagedNonLeaderUnits)];
     }
 
     protected override setupWatcher() {
@@ -108,7 +111,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                     damageSourceCard = event.damageSource.attack?.attacker.getObjectId();
                     damageSourceInPlayId = this.getCardId(event.damageSource.attack?.attacker);
                     damageSourceCardType = event.damageSource.attack?.attacker.type;
-                    targets = [event.card.getObjectId()];
+                    targets = event.damageSource.attack?.getAllTargets().map((x) => x.getObjectId());
                     activeAttackId = event.damageSource.attack?.id;
                 } else if (event.type === DamageType.Overwhelm) {
                     damageSourceCard = event.damageSource.attack?.attacker.getObjectId();
