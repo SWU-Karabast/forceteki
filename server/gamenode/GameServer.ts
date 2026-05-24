@@ -412,8 +412,7 @@ export class GameServer {
 
                 return res.json({
                     cards: this.deckValidator.getUnimplementedCards(),
-                    lastUpdated: cardDataVersionInfo?.lastUpdated ?? null,
-                    cardDataVersion: cardDataVersionInfo?.version ?? null
+                    lastUpdated: cardDataVersionInfo?.lastUpdated ?? null
                 });
             } catch (err) {
                 logger.error('GameServer (get-unimplemented) Server error: ', err);

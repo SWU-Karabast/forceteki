@@ -4,10 +4,7 @@ describe('CardDataVersion', function() {
     it('parses the last updated date from the card data version', function() {
         const versionInfo = parseCardDataVersion('20260423_00\n');
 
-        expect(versionInfo).toEqual({
-            lastUpdated: '2026-04-23',
-            version: '20260423_00'
-        });
+        expect(versionInfo).toEqual({ lastUpdated: '2026-04-23' });
     });
 
     it('throws for unexpected card data version formats', function() {
