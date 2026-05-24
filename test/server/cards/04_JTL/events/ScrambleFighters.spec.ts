@@ -20,7 +20,7 @@ describe('Scramble Fighters', function() {
                 expect(context.player2.getArenaCards().length).toBe(0);
             });
 
-            it('should create 8 readied restricted TIE fighters and 8 exhausted unrestricted TIE fighters when doubled by Moff Jerjerrod', async function() {
+            it('should create 16 readied restricted TIE fighters when doubled by Moff Jerjerrod', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -45,27 +45,17 @@ describe('Scramble Fighters', function() {
                 expect(context.moffJerjerrod).toBeInZone('discard');
                 expect(tieFighters.length).toBe(16);
                 expect(tieFighters).toAllBeInZone('spaceArena');
-
-                const readyTieFighters = tieFighters.filter((tieFighter) => !tieFighter.exhausted);
-                const exhaustedTieFighters = tieFighters.filter((tieFighter) => tieFighter.exhausted);
-                expect(readyTieFighters.length).toBe(8);
-                expect(exhaustedTieFighters.length).toBe(8);
+                expect(tieFighters.every((tieFighter) => !tieFighter.exhausted)).toBeTrue();
 
                 context.player2.passAction();
-                context.player1.clickCard(readyTieFighters[0]);
+                context.player1.clickCard(tieFighters[0]);
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
                 context.player1.clickCard(context.cartelSpacer);
 
                 context.player2.passAction();
-                context.player1.clickCard(context.governorPryce);
-                context.player1.clickPrompt('Ready a token unit');
-                context.player1.clickCard(exhaustedTieFighters[0]);
-                expect(exhaustedTieFighters[0].exhausted).toBeFalse();
-
-                context.player2.passAction();
-                context.player1.clickCard(exhaustedTieFighters[0]);
-                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.p2Base]);
-                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(tieFighters[1]);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
             });
 
             it('should create TIE fighters that cannot attack the base the phase they were created', async function() {
