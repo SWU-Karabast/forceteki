@@ -1,10 +1,6 @@
 import { logger } from '../../logger';
 
-export interface ICardDataVersionInfo {
-    lastUpdated: string;
-}
-
-export function parseCardDataVersion(version: string): ICardDataVersionInfo {
+export function parseCardDataVersion(version: string): string {
     const trimmedVersion = version.trim();
     const versionMatch = trimmedVersion.match(/^(\d{4})(\d{2})(\d{2})_/);
 
@@ -13,12 +9,10 @@ export function parseCardDataVersion(version: string): ICardDataVersionInfo {
     }
 
     const [, year, month, day] = versionMatch;
-    return {
-        lastUpdated: `${year}-${month}-${day}`
-    };
+    return `${year}-${month}-${day}`;
 }
 
-export async function getCardDataVersionInfo(): Promise<ICardDataVersionInfo | null> {
+export async function getCardDataVersionInfo(): Promise<string | null> {
     const versionUrl = process.env.CARD_DATA_VERSION_URL;
 
     if (!versionUrl) {
