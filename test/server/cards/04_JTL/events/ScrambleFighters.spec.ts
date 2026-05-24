@@ -25,10 +25,7 @@ describe('Scramble Fighters', function() {
                     phase: 'action',
                     player1: {
                         hand: ['scramble-fighters'],
-                        groundArena: ['moff-jerjerrod#we-shall-redouble-our-efforts'],
-                        base: 'data-vault',
-                        leader: 'governor-pryce#tyrant-of-lothal',
-                        resources: 8
+                        groundArena: ['moff-jerjerrod#we-shall-redouble-our-efforts']
                     },
                     player2: {
                         spaceArena: ['cartel-spacer']
