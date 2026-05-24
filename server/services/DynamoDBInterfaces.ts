@@ -89,6 +89,7 @@ export interface ILocalStorageDeckData {
     deckLinkID?: string;
     deckID?: string; // we need this for backwards compatibility
     source?: string;
+    stats?: IDeckStatsEntity;
 }
 
 // Interface for deck data
