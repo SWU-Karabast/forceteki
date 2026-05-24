@@ -43,6 +43,7 @@ import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
+import { getCardDataVersionInfo as fetchCardDataVersionInfo } from '../utils/cardData/CardDataVersion';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
     IModerationAction } from '../services/DynamoDBInterfaces';
@@ -211,6 +212,7 @@ export class GameServer {
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly modActionService?: ModActionService;
+    private cardDataVersionInfoPromise?: ReturnType<typeof fetchCardDataVersionInfo>;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -398,10 +400,21 @@ export class GameServer {
         }
     }
 
+    private getCardDataVersionInfo(): ReturnType<typeof fetchCardDataVersionInfo> {
+        this.cardDataVersionInfoPromise ??= fetchCardDataVersionInfo();
+        return this.cardDataVersionInfoPromise;
+    }
+
     private setupAppRoutes(app: express.Application) {
-        app.get('/api/get-unimplemented', (req, res, next) => {
+        app.get('/api/get-unimplemented', async (req, res, next) => {
             try {
-                return res.json(this.deckValidator.getUnimplementedCards());
+                const cardDataVersionInfo = await this.getCardDataVersionInfo();
+
+                return res.json({
+                    cards: this.deckValidator.getUnimplementedCards(),
+                    lastUpdated: cardDataVersionInfo?.lastUpdated ?? null,
+                    cardDataVersion: cardDataVersionInfo?.version ?? null
+                });
             } catch (err) {
                 logger.error('GameServer (get-unimplemented) Server error: ', err);
                 next(err);
@@ -2856,4 +2869,3 @@ export class GameServer {
         return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
-
