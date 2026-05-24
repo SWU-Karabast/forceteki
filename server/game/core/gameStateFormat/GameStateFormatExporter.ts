@@ -144,17 +144,23 @@ function exportPlayerState(player: Player, game: Game, players: [Player, Player]
     }
 
     // Arenas — controlled by this player, excluding attached upgrades and the
-    // deployed leader (which is serialised under `leader` above).
+    // leader card itself (serialised under `leader` above).
+    //
+    // We identify the leader card by object identity rather than `isLeaderUnit()`.
+    // A vehicle hosting a pilot leader also returns `isLeaderUnit() === true` and
+    // overrides `getType()` to `NonTokenLeaderUnit`, so a type-based check would
+    // incorrectly drop the vehicle from the output.
+    const leaderCard = player.leader as unknown as Card;
     const groundCards = game.groundArena
         .getCards({ controller: player })
-        .filter((c) => !c.isAttached() && !c.isLeaderUnit());
+        .filter((c) => !c.isAttached() && c !== leaderCard);
     if (groundCards.length > 0) {
         state.groundArena = groundCards.map((c) => exportCardEntry(c, player, players));
     }
 
     const spaceCards = game.spaceArena
         .getCards({ controller: player })
-        .filter((c) => !c.isAttached() && !c.isLeaderUnit());
+        .filter((c) => !c.isAttached() && c !== leaderCard);
     if (spaceCards.length > 0) {
         state.spaceArena = spaceCards.map((c) => exportCardEntry(c, player, players));
     }
@@ -207,9 +213,17 @@ function exportLeaderState(leader: ILeaderCard, players: [Player, Player]): Card
     const state: IExportedLeaderState = { card: id };
 
     if (leader.isLeaderUnit()) {
+        // Regular deployed leader: in the arena as a standalone unit.
         state.deployed = true;
         exportDeployedLeaderState(leader, state, players);
+    } else if ((leader as any).deployed === true) {
+        // Pilot leader: deployed as an upgrade attached to a vehicle.
+        // `isLeaderUnit()` returns false here because `isAttached()` is true, but
+        // `_deployed` is still set. Damage and upgrades are tracked on the host
+        // vehicle (via `exportCardEntry`), so we only record `deployed: true`.
+        state.deployed = true;
     } else {
+        // Undeployed leader.
         if (leader.exhausted) {
             state.exhausted = true;
         }

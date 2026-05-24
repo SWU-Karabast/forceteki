@@ -157,6 +157,62 @@ describe('GameStateFormatValidator', function () {
         });
     });
 
+    // ── Pilot leaders ─────────────────────────────────────────────────────────
+    //
+    // A pilot leader is deployed as an upgrade on a vehicle rather than as a
+    // standalone unit. The correct export shape is:
+    //   - `leader` state carries `deployed: true` (and `epicActionSpent: true`)
+    //   - the host vehicle is in the arena with the leader's card ID in `upgrades`
+    //   - no damage or upgrades directly on the leader state; those belong to
+    //     the host vehicle
+    //
+    // This documents the intended format for import/export round-trips involving
+    // pilot leaders.
+
+    describe('pilot leaders deployed as upgrades', function () {
+        const PILOT_LEADER = 'JTL_001';
+        const HOST_VEHICLE = 'JTL_042b';
+
+        it('accepts a pilot leader: deployed: true with the leader in a vehicle upgrade slot', function () {
+            expect(validateGameState({
+                player1: {
+                    leader: { card: PILOT_LEADER, deployed: true, epicActionSpent: true },
+                    base: 'SOR_229',
+                    spaceArena: [{ card: HOST_VEHICLE, upgrades: [PILOT_LEADER] }],
+                },
+                player2: MINIMAL_PLAYER,
+            })).toEqual([]);
+        });
+
+        it('accepts a pilot leader with epicActionSpent omitted when the epic action has not been used', function () {
+            expect(validateGameState({
+                player1: {
+                    leader: { card: PILOT_LEADER, deployed: true },
+                    base: 'SOR_229',
+                    spaceArena: [{ card: HOST_VEHICLE, upgrades: [PILOT_LEADER] }],
+                },
+                player2: MINIMAL_PLAYER,
+            })).toEqual([]);
+        });
+
+        it('accepts damage and upgrades on the host vehicle, not on the leader state', function () {
+            // The pilot leader card has no separate HP — damage belongs to the vehicle.
+            // Upgrades on the vehicle (e.g. an experience token) are also on the vehicle.
+            expect(validateGameState({
+                player1: {
+                    leader: { card: PILOT_LEADER, deployed: true, epicActionSpent: true },
+                    base: 'SOR_229',
+                    spaceArena: [{
+                        card: HOST_VEHICLE,
+                        damage: 3,
+                        upgrades: [PILOT_LEADER, 'experience'],
+                    }],
+                },
+                player2: MINIMAL_PLAYER,
+            })).toEqual([]);
+        });
+    });
+
     // ── Error path formatting ─────────────────────────────────────────────────
     //
     // formatZodPath is custom logic — verify it produces readable dot/bracket paths.
