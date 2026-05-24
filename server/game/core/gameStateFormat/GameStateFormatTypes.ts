@@ -216,16 +216,16 @@ export interface IExportedGameState {
  *   phaseStart      — "Round: {round} – {phase} Phase"
  */
 export type ActionType =
-    | 'playCard'
-    | 'attack'
-    | 'useAbility'
-    | 'pass'
-    | 'claimInitiative'
-    | 'resource'
-    | 'mulligan'
-    | 'keepHand'
-    | 'concede'
-    | 'phaseStart';
+  | 'playCard'
+  | 'attack'
+  | 'useAbility'
+  | 'pass'
+  | 'claimInitiative'
+  | 'resource'
+  | 'mulligan'
+  | 'keepHand'
+  | 'concede'
+  | 'phaseStart';
 
 export interface IActionSummary {
     type: ActionType;
@@ -255,6 +255,7 @@ export interface IActionSummary {
 }
 
 export interface IGameHistoryAction {
+
     /** Monotonically increasing sequence number across the whole game (1-based). */
     seq: number;
 
@@ -276,6 +277,7 @@ export interface IGameResult {
 }
 
 export interface IGameHistory {
+
     /** Ordered list of action entries. Entry at index 0 is the post-setup
      *  initial state (seq 1, no `action` field). */
     entries: IGameHistoryAction[];

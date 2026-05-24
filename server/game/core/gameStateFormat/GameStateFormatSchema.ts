@@ -168,8 +168,12 @@ const ExportedPlayerStateSchema = z
 export const ExportedGameStateSchema = z
     .object({
         phase: z.string().optional(),
-        round: z.number().int().positive().optional(),
-        actionNumber: z.number().int().positive().optional(),
+        round: z.number().int()
+            .positive()
+            .optional(),
+        actionNumber: z.number().int()
+            .positive()
+            .optional(),
         player1: ExportedPlayerStateSchema,
         player2: ExportedPlayerStateSchema,
     })
@@ -226,8 +230,10 @@ const ActionSummarySchema = z
 
 const GameHistoryActionSchema = z
     .object({
-        seq: z.number().int().positive(),
-        round: z.number().int().positive(),
+        seq: z.number().int()
+            .positive(),
+        round: z.number().int()
+            .positive(),
         action: ActionSummarySchema.optional(),
         state: ExportedGameStateSchema,
     })

@@ -360,14 +360,18 @@ describe('parseGameHistory', function () {
         let capturedErrors: IGameStateValidationError[] = [];
         parseGameHistory(
             { entries: [historyEntry({ seq: -1 })] },
-            (errors) => { capturedErrors = errors; }
+            (errors) => {
+                capturedErrors = errors;
+            }
         );
         expect(capturedErrors.length).toBeGreaterThan(0);
     });
 
     it('does not call onError when the input is valid', function () {
         let callCount = 0;
-        parseGameHistory(minimalHistory(), () => { callCount++; });
+        parseGameHistory(minimalHistory(), () => {
+            callCount++;
+        });
         expect(callCount).toBe(0);
     });
 });
