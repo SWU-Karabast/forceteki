@@ -14,10 +14,10 @@ export default class SabineWrenILearnedTheHardWay extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Exhaust a ground unit',
+            collectiveTrigger: true,
             when: {
-                onUpgradeAttached: (event, context) => {
-                    return event.parentCard === context.source;
-                }
+                onUpgradeAttached: (event, context) =>
+                    event.parentCard === context.source
             },
             optional: true,
             targetResolver: {
