@@ -134,6 +134,21 @@ export class UserFactory {
         }
     }
 
+    public async setTimerPopupSeenStatus(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+            await dbService.updateUserProfileAsync(userId, {
+                timerPopupSeenDate: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            logger.error('Error setting timerPopupSeen status:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
     /**
      * • Unlimited username changes during the first week (7 days) after account creation.
      * • After that, a 1‑month (30‑days) cooldown between changes.
@@ -380,6 +395,7 @@ export class UserFactory {
                 swubaseRefreshToken: null,
                 moderation: null,
                 undoPopupSeenDate: null,
+                timerPopupSeenDate: null,
             };
 
             // Create OAuth link

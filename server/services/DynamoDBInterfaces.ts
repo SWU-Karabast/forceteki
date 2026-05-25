@@ -35,6 +35,7 @@ export interface IUserDataEntity {
     reportingDisabled?: ModerationFieldState;
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
+    timerPopupSeenDate?: string;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {
