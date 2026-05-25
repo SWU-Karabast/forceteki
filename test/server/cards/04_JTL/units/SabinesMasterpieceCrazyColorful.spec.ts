@@ -132,6 +132,43 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
                 expect(context.player1.readyResourceCount).toBe(readyResourceCount + 1);
             });
 
+            it('should exhaust a resource if you control a cunning unit (bi-color unit from LAW)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['kanan-jarrus#spectre-one'],
+                        spaceArena: ['sabines-masterpiece#crazy-colorful'],
+                        base: { card: 'echo-base', damage: 9 }
+                    },
+                    player2: {
+                        base: { card: 'jabbas-palace', damage: 5 }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabinesMasterpiece);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p1Base);
+
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust a resource', 'Ready a resource']);
+                expect(context.player1).not.toHavePassAbilityButton();
+
+                context.player1.clickPrompt('Exhaust a resource');
+
+                expect(context.player1).toHavePrompt('Choose a player to exhaust a resource');
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+
+                const opponentExhaustedResourceCount = context.player2.exhaustedResourceCount;
+                context.player1.clickPrompt('Opponent');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p1Base.damage).toBe(7);
+                expect(context.player2.exhaustedResourceCount).toBe(opponentExhaustedResourceCount + 1);
+            });
+
             it('should trigger all abilities if you control a unit for each aspect', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
