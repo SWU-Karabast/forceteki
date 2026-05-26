@@ -88,13 +88,13 @@ export function addLastKnownInformationToEvent(event: GameEvent, card: Card): vo
 
 /**
  * Registers a pre-resolution hook on `event` that captures the attacker's and defender's last known information
- * onto `event.attackerLastKnownInformation` and `event.defenderLastKnownInformation`, respectively. The snapshot
+ * onto `event.attackerLastKnownInformation` and `event.defendersLastKnownInformation`, respectively. The snapshot
  * is taken right before the event's EventWindow resolves its events, so the captured state reflects the attacker
  * and defender immediately before any in-window changes (e.g. defeat from damage events sharing the same window).
  */
 export function addAttackLastKnownInformationToEvent(event: GameEvent, attack: Attack): void {
     event.setPreResolutionEffect((event) => {
         event.attackerLastKnownInformation = buildLastKnownInformation(attack.attacker);
-        event.defenderLastKnownInformation = attack.getLegalTargets().map((target) => buildLastKnownInformation(target));
+        event.defendersLastKnownInformation = attack.getLegalTargets().map((target) => buildLastKnownInformation(target));
     });
 }
