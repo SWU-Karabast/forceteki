@@ -638,9 +638,13 @@ export class PlayerInteractionWrapper {
     public clickPrompt(text: string) {
         text = text.toString();
         const currentPrompt = this.player.currentPrompt();
-        const promptButton = currentPrompt.buttons.find(
+        let promptButton = currentPrompt.buttons.find(
             (button: { text: { toString: () => string } }) => button.text.toString().toLowerCase() === text.toLowerCase()
         );
+
+        if (!promptButton && text.toLowerCase() === 'done') {
+            promptButton = currentPrompt.buttons.find((button: { arg: string }) => button.arg === 'done');
+        }
 
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
@@ -914,10 +918,17 @@ export class PlayerInteractionWrapper {
      * Player clicks Done prompt
      */
     public clickDone() {
-        if (!this.currentButtons.includes('Done')) {
-            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt`);
+        const currentPrompt = this.player.currentPrompt();
+        const doneButton = currentPrompt.buttons.find((button: { arg: string; text: { toString: () => string } }) =>
+            button.arg === 'done' || button.text.toString().toLowerCase() === 'done'
+        );
+
+        if (!doneButton || doneButton.disabled) {
+            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt:\n${Util.formatBothPlayerPrompts(this.testContext)}`);
         }
-        this.clickPrompt('Done');
+
+        this.game.menuButton(this.player.id, doneButton.arg, doneButton.uuid, doneButton.method);
+        this.game.continue();
     }
 
     /**
