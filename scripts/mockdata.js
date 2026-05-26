@@ -1009,6 +1009,76 @@ const mockCards = [
         unique: false,
         internalName: 'reckless-sacrifice',
     }),
+    buildMockCard({
+        title: 'Sabine Wren',
+        subtitle: 'Bargaining On Belief',
+        cost: 5,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['leader'],
+        traits: ['jedi', 'mandalorian', 'spectre'],
+        setId: {
+            set: 'ASH',
+            number: 6
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sabine-wren#bargaining-on-belief',
+    }),
+    buildMockCard({
+        title: 'Sabine Wren',
+        subtitle: 'I Learned the Hard Way',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['jedi', 'mandalorian', 'spectre'],
+        keywords: ['shielded'],
+        setId: {
+            set: 'ASH',
+            number: 208
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sabine-wren#i-learned-the-hard-way',
+    }),
+    buildMockCard({
+        title: 'Sabine\'s Lightsaber',
+        subtitle: 'Not Alone',
+        cost: 2,
+        upgradeHp: 2,
+        upgradePower: 2,
+        hp: 0,
+        power: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['upgrade'],
+        traits: ['item', 'weapon', 'lightsaber'],
+        setId: {
+            set: 'ASH',
+            number: 114
+        },
+        unique: true,
+        internalName: 'sabines-lightsaber#not-alone',
+    }),
+    buildMockCard({
+        title: 'Get Lost',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'ASH',
+            number: 67
+        },
+        unique: false,
+        internalName: 'get-lost',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */

@@ -127,7 +127,7 @@ class HandlerMenuPrompt extends UiPrompt {
         return [{
             type: 'targeting',
             source: this.context.source.getShortSummary(),
-            targets: targets.map((target) => target.getShortSummaryForControls(this.player))
+            targets: targets.filter((x) => x != null).map((target) => target.getShortSummaryForControls(this.player))
         }];
     }
 
