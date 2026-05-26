@@ -17,17 +17,20 @@ export default class SabineWrenBargainingOnBelief extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'An opponent gives 2 Advantage tokens to a unit they control. If they do, the next you play this phase gains Shielded for this phase',
+            title: 'An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains Shielded for this phase',
             cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                activePromptTitle: 'Choose a unit to give 2 Advantage tokens. The next unit your opponent plays this unit gains Shielded for this phase',
+                activePromptTitle: 'Choose a unit to give 2 Advantage tokens. The next unit your opponent plays this phase gains Shielded for this phase',
+                waitingPromptTitle: 'Waiting for opponent to select a unit for Sabine Wren\'s ability',
                 cardTypeFilter: WildcardCardType.Unit,
                 choosingPlayer: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
                 immediateEffect: abilityHelper.immediateEffects.giveAdvantage({ amount: 2 })
             },
+            effect: 'have {1} give 2 Advantage tokens to {0} to create a delayed effect',
+            effectArgs: (context) => [context.player.opponent.name],
             ifYouDo: {
-                title: 'Draw a card',
+                title: 'The next unit you play this phase gains Shielded for this phase',
                 immediateEffect: abilityHelper.immediateEffects.delayedPlayerEffect({
                     title: 'The next unit you play this phase gains Shielded for this phase',
                     when: {

@@ -18,10 +18,10 @@ describe('Sabine Wren, Bargaining On Belief', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.sabineWren);
-                context.player1.clickPrompt('An opponent gives 2 Advantage tokens to a unit they control. If they do, the next you play this phase gains Shielded for this phase');
+                context.player1.clickPrompt('An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains Shielded for this phase');
 
-                expect(context.player1).toHavePrompt('Waiting for opponent to take an action or pass');
-                expect(context.player2).toHavePrompt('Choose a unit to give 2 Advantage tokens. The next unit your opponent plays this unit gains Shielded for this phase');
+                expect(context.player1).toHavePrompt('Waiting for opponent to select a unit for Sabine Wren\'s ability');
+                expect(context.player2).toHavePrompt('Choose a unit to give 2 Advantage tokens. The next unit your opponent plays this phase gains Shielded for this phase');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.atst, context.awing]);
                 expect(context.player2).not.toHavePassAbilityButton();
@@ -31,6 +31,8 @@ describe('Sabine Wren, Bargaining On Belief', function() {
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst).toHaveExactUpgradeNames(['advantage', 'advantage']);
+                expect(context.getChatLog(1)).toBe('player1 uses Sabine Wren, exhausting Sabine Wren to have player2 give 2 Advantage tokens to AT-ST to create a delayed effect');
+                expect(context.getChatLog()).toBe('player1 uses Sabine Wren to give Shielded to the next unit they play this phase');
 
                 context.player2.passAction();
 
@@ -70,7 +72,7 @@ describe('Sabine Wren, Bargaining On Belief', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.sabineWren);
-                context.player1.clickPrompt('An opponent gives 2 Advantage tokens to a unit they control. If they do, the next you play this phase gains Shielded for this phase');
+                context.player1.clickPrompt('An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains Shielded for this phase');
                 context.player2.clickCard(context.atst);
 
                 expect(context.atst).toHaveExactUpgradeNames(['advantage', 'advantage']);
@@ -94,7 +96,7 @@ describe('Sabine Wren, Bargaining On Belief', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.sabineWren);
-                context.player1.clickPrompt('(No effect) An opponent gives 2 Advantage tokens to a unit they control. If they do, the next you play this phase gains Shielded for this phase');
+                context.player1.clickPrompt('(No effect) An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains Shielded for this phase');
 
                 expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
