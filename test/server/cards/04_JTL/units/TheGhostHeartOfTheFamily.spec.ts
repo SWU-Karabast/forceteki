@@ -345,7 +345,7 @@ describe('The Ghost, Heart of the Family', () => {
                 // The Ghost is upgraded, so it has Sentinel, which The Ghost's constant ability
                 // grants to Ezra (Spectre). Support's lasting effect then grants Ezra's keywords
                 // (including that Sentinel) back to The Ghost, creating a mutual keyword-grant loop
-                // in the ongoing effect engine. This test ensures that loop does not infinite-loop.
+                // in the ongoing effect engine. This test ensures that loop does not continue indefinitely.
                 context.player1.clickCard(context.ezraBridger);
 
                 // Support: select The Ghost as the attacking unit
@@ -354,12 +354,12 @@ describe('The Ghost, Heart of the Family', () => {
                 // The Ghost attacks p2Base
                 context.player1.clickCard(context.p2Base);
 
-                // Support grants The Ghost Ezra's non-keyword abilities for the attack,
+                // Support grants The Ghost Ezra's non-Support abilities for the attack,
                 // including Ezra's optional "Give a unit -3/-0" on-attack ability. Skip it.
                 context.player1.clickPrompt('Pass');
 
-                // The Ghost (power 5 + 1 from experience = 6) attacks the base
-                expect(context.p2Base.damage).toBe(6);
+                // Attack completed, it is now P2's action
+                expect(context.p2Base.damage).toBe(6); // 5 base power plus experience token
                 expect(context.player2).toBeActivePlayer();
             });
         });
