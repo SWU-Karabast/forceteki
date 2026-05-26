@@ -136,10 +136,12 @@ export class MeleeDeckParser {
     }
 
     private static normalizeCardName(cardName: string): string {
-        return cardName.replace(/\s+/g, ' ').trim().toLowerCase();
+        return cardName.replace(/\s+/g, ' ').trim()
+            .toLowerCase();
     }
 
     private static normalizeSectionName(sectionName: string): string {
-        return sectionName.replace(/\s+/g, '').trim().toLowerCase();
+        return sectionName.replace(/\s+/g, '').trim()
+            .toLowerCase();
     }
 }

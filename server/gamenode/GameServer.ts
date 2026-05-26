@@ -1287,7 +1287,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/resolve-melee-deck', this.buildAuthMiddleware('resolve-melee-deck'), async (req, res, next) => {
+        app.post('/api/resolve-melee-deck', this.buildAuthMiddleware('resolve-melee-deck'), (req, res, next) => {
             try {
                 const { deckText } = req.body;
                 if (typeof deckText !== 'string' || deckText.trim().length === 0) {
