@@ -31,14 +31,14 @@ export const authMiddleware = (gameServer: GameServer, routeName?: string, serve
             const token = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
             if (!token) {
                 if (routeName) {
-                    logger.info(`Auth ${routeName}: no token found in cookies. Proceeding with anonymous user`);
+                    logger.verbose(`Auth ${routeName}: no token found in cookies. Proceeding with anonymous user`);
                 }
 
                 // No token found, so no user info. We let the request proceed with an attached anon user.
                 req.user = userFactory.createAnonymousUserFromQuery(req.body);
 
                 if (routeName) {
-                    logger.info(`Auth ${routeName}: anonymous user created for id ${req.user.id}`);
+                    logger.verbose(`Auth ${routeName}: anonymous user created for id ${req.user.id}`);
                 }
 
                 return next();

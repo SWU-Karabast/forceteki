@@ -17,6 +17,7 @@ export interface IPlayerPromptStateProperties {
     displayCards?: IDisplayCard[];
     perCardButtons?: IButton[];
     isOpponentEffect?: boolean;
+    delayMs?: number;
 
     // not included in the state passed to the FE
     attackTargetingHighlightAttacker?: Card;
@@ -42,6 +43,7 @@ export class PlayerPromptState {
     public displayCards: IDisplayCard[] = [];
     public perCardButtons: IButton[] = [];
     public isOpponentEffect = null;
+    public delayMs: number | null = null;
     public playerIsNewlyActive = false;
 
     // not included in the state passed to the FE
@@ -89,6 +91,7 @@ export class PlayerPromptState {
         this.displayCards = prompt.displayCards ?? [];
         this.perCardButtons = prompt.perCardButtons ?? [];
         this.isOpponentEffect = prompt.isOpponentEffect;
+        this.delayMs = prompt.delayMs ?? null;
         this.playerIsNewlyActive = prompt.playerIsNewlyActive;
 
         // not included in the state passed to the FE
@@ -139,6 +142,7 @@ export class PlayerPromptState {
             displayCards: this.displayCards,
             perCardButtons: this.perCardButtons,
             isOpponentEffect: this.isOpponentEffect,
+            delayMs: this.delayMs,
             playerIsNewlyActive: this.playerIsNewlyActive,
             // attackTargetingHighlightAttacker is explicitly not included, it's not for passing to the FE
         };

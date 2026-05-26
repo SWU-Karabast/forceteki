@@ -11,12 +11,20 @@ export const checkServerRoleUserPrivileges = (
     apiPath: string,
     userId: string,
     role: ServerRole,
-    cache: ServerRoleUsersCache
+    cache: ServerRoleUsersCache | undefined
 ): IAuthResponse => {
     if (!userId) {
         return {
             success: false,
             message: 'Authentication required'
+        };
+    }
+
+    if (!cache) {
+        // Cache is unavailable (e.g. local dev without DynamoDB) — grant access
+        return {
+            success: true,
+            message: 'Role cache unavailable, access granted for local development'
         };
     }
 
