@@ -1079,6 +1079,75 @@ const mockCards = [
         unique: false,
         internalName: 'get-lost',
     }),
+    buildMockCard({
+        title: 'Far Far Away',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['gambit'],
+        setId: {
+            set: 'ASH',
+            number: 236
+        },
+        unique: false,
+        internalName: 'far-far-away',
+    }),
+    buildMockCard({
+        title: 'Bothan-5',
+        subtitle: 'New Republic Prison Ship',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['new republic', 'vehicle', 'transport'],
+        setId: {
+            set: 'ASH',
+            number: 128
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'bothan-5#new-republic-prison-ship',
+    }),
+    buildMockCard({
+        title: 'Rukh',
+        subtitle: 'From the Shadows',
+        cost: 3,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial'],
+        keywords: ['support'],
+        setId: {
+            set: 'ASH',
+            number: 36
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rukh#from-the-shadows',
+    }),
+    buildMockCard({
+        title: 'Hera Syndulla',
+        subtitle: 'Renegade General',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression', 'heroism'],
+        types: ['unit'],
+        traits: ['new republic', 'twi\'lek', 'spectre'],
+        setId: {
+            set: 'ASH',
+            number: 31
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'hera-syndulla#renegade-general',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
