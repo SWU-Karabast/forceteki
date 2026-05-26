@@ -1109,7 +1109,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'space',
-        internalName: 'bothan-5#new-republic-prison-ship',
+        internalName: 'bothan5#new-republic-prison-ship',
     }),
     buildMockCard({
         title: 'Rukh',
