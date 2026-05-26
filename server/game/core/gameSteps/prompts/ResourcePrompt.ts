@@ -57,6 +57,9 @@ export class ResourcePrompt extends AllPlayerPrompt {
 
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         let promptText = null;
+        const selectedCount = this.selectedCards[player.name].length;
+        const selectCardMode = this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple;
+
         if (this.nCardsToResource !== 1) {
             promptText = `Select ${this.nCardsToResource} cards to resource`;
         } else {
@@ -66,9 +69,13 @@ export class ResourcePrompt extends AllPlayerPrompt {
         const hasEnoughSelected = this.hasEnoughSelected(player);
 
         return {
-            selectCardMode: this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
+            selectCardMode,
             menuTitle: promptText,
-            buttons: [{ text: 'Done', arg: 'done', disabled: !hasEnoughSelected }],
+            buttons: [{
+                text: selectedCount === 0 && selectCardMode === SelectCardMode.Single ? 'Skip Resourcing' : 'Confirm Resources',
+                arg: 'done',
+                disabled: !hasEnoughSelected,
+            }],
             promptTitle: 'Resource Step',
             promptUuid: this.uuid,
             promptType: PromptType.Resource
