@@ -8,11 +8,9 @@ type CardWithDamageProperty = import('../../server/game/core/card/CardTypes').Ca
 type Game = import('../../server/game/core/Game');
 type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
-type PlayerInteractionWrapper = import('./PlayerInteractionWrapper');
+type PlayerInteractionWrapper = import('./PlayerInteractionWrapper').PlayerInteractionWrapper;
 type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
 type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
-type IGetSnapshotSettings = import('../../server/game/core/snapshot/SnapshotInterfaces').IGetSnapshotSettings;
-type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
 type QuickUndoAvailableState = import('../../server/game/core/snapshot/SnapshotInterfaces').QuickUndoAvailableState;
 
 declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;

@@ -89,7 +89,6 @@ import { PerGameUndoLimit, UnlimitedUndoLimit } from './snapshot/UndoLimit';
 import type { UndoLimit } from './snapshot/UndoLimit';
 import UndoConfirmationPrompt from './gameSteps/prompts/UndoConfirmationPrompt';
 import type { AdditionalPhaseEffect } from './ongoingEffect/effectImpl/AdditionalPhaseEffect';
-import { AttackRulesVersion } from './attack/AttackFlow';
 import type { IStep } from './gameSteps/IStep';
 import type { ITokenCard } from './card/propertyMixins/Token';
 import type { IClientUIProperties, ISerializedGameState } from '../Interfaces';
@@ -308,7 +307,6 @@ export class Game extends EventEmitter {
 
     // #region ──── Instance Fields ────────────────────────────────────────────
 
-    public readonly attackRulesVersion: AttackRulesVersion;
     private readonly _snapshotManager: SnapshotManager;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
@@ -366,7 +364,6 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
-        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR7;
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
         this._router = options.router;
@@ -2132,7 +2129,6 @@ export class Game extends EventEmitter {
 
         return {
             phase: this.currentPhase,
-            attackRulesVersion: this.attackRulesVersion,
             player1: Helpers.safeSerialize(this, () => player1.capturePlayerState('player1'), null),
             player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
         };

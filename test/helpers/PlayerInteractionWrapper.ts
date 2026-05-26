@@ -118,7 +118,7 @@ export class PlayerInteractionWrapper {
         return this.player.filterCardsInPlay(() => true);
     }
 
-    public setLeaderStatus(leaderOptions: { card: any; deployed: boolean; damage: number; exhausted: boolean; upgrades: any; capturedUnits: any; flipped: any }) {
+    public setLeaderStatus(leaderOptions: { card: any; deployed?: boolean; damage?: number; exhausted?: boolean; upgrades?: any; capturedUnits?: any; flipped?: any }) {
         if (!leaderOptions) {
             return;
         }
@@ -251,7 +251,7 @@ export class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
-    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits: any }) {
+    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits?: any }) {
         if (!baseOptions) {
             return;
         }
@@ -724,9 +724,13 @@ export class PlayerInteractionWrapper {
     public clickPrompt(text: string) {
         text = text.toString();
         const currentPrompt = this.player.currentPrompt();
-        const promptButton = currentPrompt.buttons.find(
+        let promptButton = currentPrompt.buttons.find(
             (button: { text: { toString: () => string } }) => button.text.toString().toLowerCase() === text.toLowerCase()
         );
+
+        if (!promptButton && text.toLowerCase() === 'done') {
+            promptButton = currentPrompt.buttons.find((button: { arg: string }) => button.arg === 'done');
+        }
 
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
@@ -834,17 +838,15 @@ export class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    public clickCardNonChecking(card: any, zone = 'any', side = 'self') {
+    public clickCardNonChecking(card: Pick<Card, 'name' | 'internalName' | 'uuid'> | string, zone = 'any', side = 'self') {
         this.clickCard(card, zone, side, false);
     }
 
-    public clickCard(card: {
-        name: string; internalName: any; uuid: any;
-    }, zone = 'any', side = 'self', expectChange = true) {
+    public clickCard(card: Pick<Card, 'name' | 'internalName' | 'uuid'> | string, zone = 'any', side = 'self', expectChange = true) {
         Util.checkNullCard(card);
 
         if (typeof card === 'string') {
-            card = this.findCardByName(card, zone, side);
+            card = this.findCardByName(card, zone, side) as { name: string; internalName: string; uuid: string };
         }
 
         if (expectChange && !this.currentActionTargets.includes(card)) {
@@ -1002,10 +1004,17 @@ export class PlayerInteractionWrapper {
      * Player clicks Done prompt
      */
     public clickDone() {
-        if (!this.currentButtons.includes('Done')) {
-            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt`);
+        const currentPrompt = this.player.currentPrompt();
+        const doneButton = currentPrompt.buttons.find((button: { arg: string; text: { toString: () => string } }) =>
+            button.arg === 'done' || button.text.toString().toLowerCase() === 'done'
+        );
+
+        if (!doneButton || doneButton.disabled) {
+            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt:\n${Util.formatBothPlayerPrompts(this.testContext)}`);
         }
-        this.clickPrompt('Done');
+
+        this.game.menuButton(this.player.id, doneButton.arg, doneButton.uuid, doneButton.method);
+        this.game.continue();
     }
 
     /**

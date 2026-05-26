@@ -330,6 +330,15 @@ export namespace EnumHelpers {
         [TokenCardName.Credit]: 'Credit',
         [TokenCardName.Force]: 'The Force'
     };
+
+    export const arenaName = (zone: ZoneName.GroundArena | ZoneName.SpaceArena): string => {
+        switch (zone) {
+            case ZoneName.GroundArena:
+                return 'ground arena';
+            case ZoneName.SpaceArena:
+                return 'space arena';
+        }
+    };
 }
 
 export const isTimedModAction = (actionType: ModActionType): actionType is TimedModActionType => {

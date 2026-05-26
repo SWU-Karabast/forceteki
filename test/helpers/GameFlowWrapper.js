@@ -85,7 +85,7 @@ class GameFlowWrapper {
         this.guardCurrentPhase('setup');
         for (const player of this.allPlayersInInitiativeOrder()) {
             player.clickAnyOfSelectableCards(2);
-            player.clickPrompt('Done');
+            player.clickDone();
         }
 
         this.game.continue();
@@ -190,7 +190,7 @@ class GameFlowWrapper {
     skipRegroupPhase() {
         this.guardCurrentPhase('regroup');
         var playersInPromptedOrder = [...this.allPlayers].sort((player) => player.hasPrompt('Waiting for opponent to choose cards to resource'));
-        playersInPromptedOrder.forEach((player) => player.clickPrompt('Done'));
+        playersInPromptedOrder.forEach((player) => player.clickDone());
         this.guardCurrentPhase('action');
     }
 

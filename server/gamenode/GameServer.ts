@@ -28,6 +28,7 @@ import { Contract } from '../game/core/utils/Contract';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import { SwuDbDeckFetcher, SwuDbFetchError } from '../utils/deck/SwuDbDeckFetcher';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import { Helpers } from '../game/core/utils/Helpers';
@@ -43,6 +44,7 @@ import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { IActiveModActionCacheEntry,
+    IDeckDataEntity,
     IModerationAction } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
@@ -204,6 +206,7 @@ export class GameServer {
     public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
     public readonly swuBaseHandler: SwuBaseHandler;
+    public readonly swuDbDeckFetcher: SwuDbDeckFetcher = new SwuDbDeckFetcher();
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
@@ -492,6 +495,7 @@ export class GameServer {
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
+                    timerPopupSeenDate: user.getTimerPopupSeenDate(),
                     preferences: user.getPreferences(),
                     mustRequestUsernameChange: user.mustRequestUsernameChange(),
                     reportingDisabled: user.reportingDisabled(),
@@ -633,6 +637,27 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (undo-popup-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.put('/api/user/:userId/timer-popup-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (timer-popup-seen): Anonymous user ${user.getId()} is attempting to retrieve timer-popup-seen info`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve timer-popup-seen info'
+                    });
+                }
+                const result = await this.userFactory.setTimerPopupSeenStatus(user.getId());
+                return res.status(200).json({
+                    success: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (timer-popup-seen) Server Error: ', err);
                 next(err);
             }
         });
@@ -1108,17 +1133,49 @@ export class GameServer {
 
         app.post('/api/save-deck', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck } = req.body;
+                const { deck, swudbLink } = req.body;
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (save-deck): A anonymous user ${user.getId()} attempted to save deck ${deck.id}`);
+                    logger.error(`GameServer (save-deck): A anonymous user ${user.getId()} attempted to save deck`);
                     return res.status(401).json({
                         success: false,
                         message: 'Authentication error'
                     });
                 }
+
+                let deckEntity: IDeckDataEntity;
+                if (typeof swudbLink === 'string' && swudbLink.trim().length > 0) {
+                    let resolved;
+                    try {
+                        resolved = await this.swuDbDeckFetcher.fetchAsync(swudbLink);
+                    } catch (err) {
+                        if (err instanceof SwuDbFetchError) {
+                            return res.status(err.status).json({ success: false, error: err.message });
+                        }
+                        logger.error('GameServer (save-deck): unexpected error resolving swudbLink', err);
+                        return res.status(500).json({ success: false, error: 'Failed to resolve swudb deck link' });
+                    }
+                    deckEntity = {
+                        id: '',
+                        userId: user.getId(),
+                        deck: {
+                            leader: { id: resolved.leader?.id ?? '' },
+                            base: { id: resolved.base?.id ?? '' },
+                            name: resolved.metadata?.name || 'Untitled Deck',
+                            favourite: false,
+                            deckLink: swudbLink,
+                            deckLinkID: resolved.deckID ?? '',
+                            source: 'SWUDB',
+                        },
+                    };
+                } else if (deck) {
+                    deckEntity = deck;
+                } else {
+                    return res.status(400).json({ success: false, error: 'No deck or swudbLink provided' });
+                }
+
                 // we save the deck
-                const newDeck = await this.deckService.saveDeckAsync(deck, user);
+                const newDeck = await this.deckService.saveDeckAsync(deckEntity, user);
                 return res.status(200).json({
                     success: true,
                     message: 'Deck saved successfully',
@@ -1200,6 +1257,77 @@ export class GameServer {
             }
         });
 
+        // Resolves a swudb.com deck-share URL into a full decklist payload.
+        // Used by the FE to preview decks before submitting them to other
+        // endpoints (create-lobby, enter-queue, save-deck) and to re-render
+        // saved decks on the deck view page.
+        app.post('/api/resolve-deck-link', this.buildAuthMiddleware('resolve-deck-link'), async (req, res, next) => {
+            try {
+                const { deckLink } = req.body;
+                if (typeof deckLink !== 'string' || deckLink.trim().length === 0) {
+                    return res.status(400).json({ success: false, error: 'Missing deckLink' });
+                }
+                if (!deckLink.includes('swudb.com')) {
+                    return res.status(400).json({ success: false, error: 'Only swudb.com links are supported by this endpoint' });
+                }
+
+                try {
+                    const resolvedDeck = await this.swuDbDeckFetcher.fetchAsync(deckLink);
+                    return res.status(200).json({ success: true, deck: resolvedDeck });
+                } catch (err) {
+                    if (err instanceof SwuDbFetchError) {
+                        return res.status(err.status).json({ success: false, error: err.message });
+                    }
+                    throw err;
+                }
+            } catch (err) {
+                logger.error('GameServer (resolve-deck-link) Server error :', err);
+                next(err);
+            }
+        });
+
+        // Lobby-scoped deck change. Mirrors the `changeDeck` socket message
+        // but accepts an optional `swudbLink` for server-side deck resolution.
+        // The caller must be a Player currently in `:lobbyId`.
+        app.post('/api/lobby/:lobbyId/change-deck', this.buildAuthMiddleware('lobby-change-deck'), async (req, res, next) => {
+            try {
+                const { lobbyId } = req.params;
+                const { deck, swudbLink } = req.body;
+                const user = req.user as User;
+
+                const mapping = this.userLobbyMap.get(user.getId());
+                if (!mapping || mapping.lobbyId !== lobbyId || mapping.role !== UserRole.Player) {
+                    return res.status(403).json({
+                        success: false,
+                        error: 'Not a player in this lobby',
+                        errorCode: 'NotLobbyMember',
+                    });
+                }
+
+                const lobby = this.lobbies.get(lobbyId);
+                if (!lobby) {
+                    return res.status(404).json({ success: false, error: 'Lobby not found' });
+                }
+
+                const resolvedDeck = await this.resolveDeckInputAsync({ deck, swudbLink }, res);
+                if (!resolvedDeck) {
+                    return;
+                }
+
+                try {
+                    const importDeckErrors = lobby.changeDeckForUser(user.getId(), resolvedDeck);
+                    lobby.sendLobbyState();
+                    return res.status(200).json({ success: true, importDeckErrors });
+                } catch (err) {
+                    const message = err instanceof Error ? err.message : 'Failed to change deck';
+                    return res.status(400).json({ success: false, error: message });
+                }
+            } catch (err) {
+                logger.error('GameServer (lobby-change-deck) Server error :', err);
+                next(err);
+            }
+        });
+
         app.get('/api/ongoing-games', (_, res, next) => {
             try {
                 return res.json(this.getOngoingGamesData());
@@ -1211,7 +1339,7 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { deck, format, isPrivate, gamesToWinMode, lobbyName, cardPool } = req.body;
+                const { deck, swudbLink, format, isPrivate, gamesToWinMode, lobbyName, cardPool } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1265,8 +1393,15 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, true, { format, cardPool }, res, () => {
-                    this.createLobby(lobbyName, user, deck, format, gamesToWinMode, isPrivate, cardPool);
+                const resolvedDeck = await this.resolveDeckInputAsync({ deck, swudbLink }, res);
+                if (!resolvedDeck) {
+                    return;
+                }
+
+                await this.processDeckValidation(resolvedDeck, true, { format, cardPool }, res, () => {
+                    // createLobby's `deck` parameter is mistyped as `Deck` but receives the raw
+                    // decklist at runtime; cast preserves the pre-existing behavior.
+                    this.createLobby(lobbyName, user, resolvedDeck as any, format, gamesToWinMode, isPrivate, cardPool);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -1367,7 +1502,7 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
-                const { format, cardPool, gamesToWinMode, deck } = req.body;
+                const { format, cardPool, gamesToWinMode, deck, swudbLink } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1397,8 +1532,13 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: bo3AccessError });
                 }
 
-                await this.processDeckValidation(deck, false, { format, cardPool }, res, () => {
-                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, deck);
+                const resolvedDeck = await this.resolveDeckInputAsync({ deck, swudbLink }, res);
+                if (!resolvedDeck) {
+                    return;
+                }
+
+                await this.processDeckValidation(resolvedDeck, false, { format, cardPool }, res, () => {
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1778,6 +1918,43 @@ export class GameServer {
 
     public getUserLobbyId(userId: string): string | undefined {
         return this.userLobbyMap.get(userId)?.lobbyId;
+    }
+
+    /**
+     * Resolves the deck input for endpoints that accept either a pre-resolved
+     * `deck` payload or a `swudbLink` to be fetched server-side.
+     *
+     * If `swudbLink` is provided, fetches the deck from swudb.com via
+     * {@link SwuDbDeckFetcher}. On failure, writes the appropriate error
+     * response to `res` and returns `null` so the caller can short-circuit.
+     *
+     * If only `deck` is provided, returns it unchanged. If neither is
+     * provided, writes a 400 to `res` and returns `null`.
+     */
+    private async resolveDeckInputAsync(
+        body: { deck?: ISwuDbFormatDecklist; swudbLink?: string },
+        res: express.Response
+    ): Promise<ISwuDbFormatDecklist | null> {
+        if (typeof body.swudbLink === 'string' && body.swudbLink.trim().length > 0) {
+            try {
+                return await this.swuDbDeckFetcher.fetchAsync(body.swudbLink);
+            } catch (err) {
+                if (err instanceof SwuDbFetchError) {
+                    res.status(err.status).json({ success: false, error: err.message });
+                    return null;
+                }
+                logger.error('GameServer (resolveDeckInputAsync): unexpected error resolving swudbLink', err);
+                res.status(500).json({ success: false, error: 'Failed to resolve swudb deck link' });
+                return null;
+            }
+        }
+
+        if (body.deck) {
+            return body.deck;
+        }
+
+        res.status(400).json({ success: false, error: 'No deck or swudbLink provided' });
+        return null;
     }
 
     // method for validating the deck via API

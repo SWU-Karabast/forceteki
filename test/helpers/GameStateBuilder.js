@@ -8,7 +8,6 @@ const fs = require('fs');
 const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager');
 const { StateWatcherLibrary } = require('../../server/game/stateWatchers/StateWatcherLibrary');
-const { AttackRulesVersion } = require('../../server/game/core/attack/AttackFlow');
 
 class GameStateBuilder {
     constructor() {
@@ -110,7 +109,6 @@ class GameStateBuilder {
 
         context.game.gameMode = options.gameMode ?? GameMode.OneVsOne;
         context.game.format = options.format ?? SwuGameFormat.Premier;
-        context.game.attackRulesVersion = options.attackRulesVersion ?? AttackRulesVersion.CR7;
 
         if (options.hasOwnProperty('enableConfirmationToUndo')) {
             context.game.setUndoConfirmationRequired(!!options.enableConfirmationToUndo);
@@ -336,7 +334,6 @@ class GameStateBuilder {
             'autoSingleTarget',
             'testUndo',
             'enableConfirmationToUndo',
-            'attackRulesVersion',
             'gameMode',
             'format'
         ];
