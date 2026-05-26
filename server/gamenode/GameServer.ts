@@ -36,6 +36,7 @@ import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
+import { MeleeDeckParser, MeleeDeckParseError } from '../utils/deck/MeleeDeckParser';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
@@ -1282,6 +1283,28 @@ export class GameServer {
                 }
             } catch (err) {
                 logger.error('GameServer (resolve-deck-link) Server error :', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/resolve-melee-deck', this.buildAuthMiddleware('resolve-melee-deck'), async (req, res, next) => {
+            try {
+                const { deckText } = req.body;
+                if (typeof deckText !== 'string' || deckText.trim().length === 0) {
+                    return res.status(400).json({ success: false, error: 'Missing deckText' });
+                }
+
+                try {
+                    const resolvedDeck = new MeleeDeckParser(this.cardDataGetter).parse(deckText);
+                    return res.status(200).json({ success: true, deck: resolvedDeck });
+                } catch (err) {
+                    if (err instanceof MeleeDeckParseError) {
+                        return res.status(400).json({ success: false, error: err.message });
+                    }
+                    throw err;
+                }
+            } catch (err) {
+                logger.error('GameServer (resolve-melee-deck) Server error :', err);
                 next(err);
             }
         });
@@ -2878,4 +2901,3 @@ export class GameServer {
         return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
-
