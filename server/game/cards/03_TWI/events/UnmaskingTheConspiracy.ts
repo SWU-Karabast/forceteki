@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
-export default class UnmaskingTheConspirancy extends EventCard {
+export default class UnmaskingTheConspiracy extends EventCard {
     protected override getImplementationId() {
         return {
             id: '0959549331',
