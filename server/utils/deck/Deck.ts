@@ -86,6 +86,8 @@ export class Deck {
                 return DeckSource.SWUStats;
             } else if (deckLink.includes('swudb.com')) {
                 return DeckSource.SWUDB;
+            } else if (deckLink.includes('melee.gg')) {
+                return DeckSource.Melee;
             } else if (deckLink.includes('swunlimiteddb.com')) {
                 return DeckSource.SWUnlimitedDB;
             } else if (deckLink.includes('swubase.com')) {

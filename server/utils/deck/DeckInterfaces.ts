@@ -25,6 +25,7 @@ export enum ScoreType {
 export enum DeckSource {
     SWUStats = 'swuStats',
     SWUDB = 'swuDb',
+    Melee = 'melee',
     SWUnlimitedDB = 'swUnlimitedDb',
     SWUBase = 'swuBase',
     SWUCardHub = 'swuCardHub',
