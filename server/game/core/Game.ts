@@ -24,19 +24,15 @@ import { cards } from '../cards/Index';
 
 import {
     AlertType,
-    DamageType,
-    DeckZoneDestination,
     EffectName,
     EventName,
     GameEndReason,
     GameErrorSeverity,
     PhaseName,
-    RelativePlayer,
     RollbackRoundEntryPoint,
     RollbackSetupEntryPoint,
     SnapshotType,
     SwuGameFormat,
-    TargetMode,
     TokenCardName,
     TokenUpgradeName,
     TokenUnitName,
@@ -92,7 +88,6 @@ import type { AdditionalPhaseEffect } from './ongoingEffect/effectImpl/Additiona
 import type { IStep } from './gameSteps/IStep';
 import type { ITokenCard } from './card/propertyMixins/Token';
 import type { IClientUIProperties, ISerializedGameState } from '../Interfaces';
-import { SelectCardMode } from './gameSteps/PromptInterfaces';
 import type {
     IDisplayCardsWithButtonsPromptProperties,
     IDisplayCardsSelectProperties,
@@ -106,11 +101,10 @@ import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
-import * as CardSelectorFactory from './cardSelector/CardSelectorFactory';
-import { DamageSystem } from '../gameSystems/DamageSystem';
+import { ClaimBlastTokenSystem } from '../gameSystems/ClaimBlastTokenSystem';
+import { ClaimPlanTokenSystem } from '../gameSystems/ClaimPlanTokenSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
-import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -1364,63 +1358,11 @@ export class Game extends EventEmitter {
         this.isPlanTokenClaimed = true;
         player.passedActionPhase = true;
 
-        // Capture which cards are about to be drawn so we can reference them in the
-        // OnCardsDrawn event that fires after the put-to-bottom prompt.
-        const cardsBeingDrawn = player.drawDeck.slice(0, 1);
-        const frameworkContext = this.getFrameworkContext(player);
-
-        // Draw 1 card into hand - we'll fire the draw event later
-        player.drawCardsToHand(1);
-
-        // If the deck was empty (or too small), deal 3 damage per missed draw to the player's own base.
-        const cannotDrawCount = 1 - cardsBeingDrawn.length;
-        if (cannotDrawCount > 0) {
-            new DamageSystem({
-                type: DamageType.Ability,
-                amount: 3 * cannotDrawCount,
-            }).resolve(player.base, frameworkContext, TriggerHandlingMode.CannotHaveTriggers);
-        }
-
-        if (player.hand.length > 0) {
-            const selector = CardSelectorFactory.create({
-                mode: TargetMode.Single,
-                zoneFilter: ZoneName.Hand,
-                controller: RelativePlayer.Self,
-            });
-
-            this.promptForSelect(player, {
-                activePromptTitle: 'Choose a card from your hand to put on the bottom of your deck',
-                source: 'Plan Token',
-                selector,
-                isOpponentEffect: false,
-                selectCardMode: SelectCardMode.Single,
-                onSelect: (card: Card | Card[]) => {
-                    const target = Array.isArray(card) ? card[0] : card;
-
-                    // TODO: determine how to handle this, as this doesn't seem to be working
-                    new MoveCardSystem({
-                        target: target,
-                        destination: DeckZoneDestination.DeckBottom
-                    }).resolve(player, frameworkContext, TriggerHandlingMode.ResolvesTriggers);
-
-                    this.registerMovedCard(target);
-
-                    // Fire OnCardsDrawn after the full Plan effect has resolved so that
-                    // triggered abilities (Rey, Seasoned Fleet Admiral, etc.) respond
-                    // in the correct order.
-                    if (cardsBeingDrawn.length > 0) {
-                        this.createEventAndOpenWindow(
-                            EventName.OnCardsDrawn,
-                            frameworkContext,
-                            { player, amount: cardsBeingDrawn.length, cards: cardsBeingDrawn },
-                            TriggerHandlingMode.ResolvesTriggers
-                        );
-                    }
-
-                    return true;
-                },
-            });
-        }
+        new ClaimPlanTokenSystem({}).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
     }
 
     public claimBlastToken(player: Player): void {
@@ -1428,13 +1370,8 @@ export class Game extends EventEmitter {
         player.passedActionPhase = true;
 
         // TSTODO: update to blast all opponents
-        // Route damage through DamageSystem so that prevention effects
-        // (e.g. Close the Shield Gate) can intercept the OnDamageDealt event.
-        new DamageSystem({
-            type: DamageType.Ability,
-            amount: 1,
-        }).resolve(
-            player.opponent.base,
+        new ClaimBlastTokenSystem({}).resolve(
+            player,
             this.getFrameworkContext(player),
             TriggerHandlingMode.ResolvesTriggers
         );

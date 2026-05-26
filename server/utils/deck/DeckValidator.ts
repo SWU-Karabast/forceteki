@@ -207,7 +207,7 @@ export class DeckValidator {
     // update this function if anything affects the sideboard count
     public getMaxSideboardSize(format: SwuGameFormat, cardPool: CardPool): number {
         // Sideboard is only restricted in Premier and Eternal. We relax the restriction in other modes.
-        if (format === SwuGameFormat.Premier || format === SwuGameFormat.Eternal) {
+        if ((format === SwuGameFormat.Premier || format === SwuGameFormat.Eternal) && cardPool === CardPool.Current) {
             return 10;
         }
         return -1;
