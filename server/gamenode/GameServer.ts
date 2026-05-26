@@ -495,6 +495,7 @@ export class GameServer {
                     username: user.getUsername(),
                     showWelcomeMessage: user.getShowWelcomeMessage(),
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
+                    timerPopupSeenDate: user.getTimerPopupSeenDate(),
                     preferences: user.getPreferences(),
                     mustRequestUsernameChange: user.mustRequestUsernameChange(),
                     reportingDisabled: user.reportingDisabled(),
@@ -636,6 +637,27 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (undo-popup-seen) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        app.put('/api/user/:userId/timer-popup-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (timer-popup-seen): Anonymous user ${user.getId()} is attempting to retrieve timer-popup-seen info`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve timer-popup-seen info'
+                    });
+                }
+                const result = await this.userFactory.setTimerPopupSeenStatus(user.getId());
+                return res.status(200).json({
+                    success: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (timer-popup-seen) Server Error: ', err);
                 next(err);
             }
         });
