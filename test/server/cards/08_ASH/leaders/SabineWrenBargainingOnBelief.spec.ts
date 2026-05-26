@@ -98,6 +98,8 @@ describe('Sabine Wren, Bargaining On Belief', function() {
                 context.player1.clickCard(context.sabineWren);
                 context.player1.clickPrompt('(No effect) An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains Shielded for this phase');
 
+                expect(context.getChatLog(1)).toBe('player1 attempted to use Sabine Wren, but there are insufficient legal targets');
+
                 expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
 
