@@ -8,14 +8,8 @@ import { DamageSystem } from './DamageSystem.js';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IClaimBlastTokenProperties extends IPlayerTargetSystemProperties {}
 
-/**
- * System that applies the Blast token effect: deal 1 ability damage to the claiming player's opponent's base.
- * Routes the damage through {@link DamageSystem} so that prevention effects (e.g. Close the Shield Gate)
- * and triggered abilities (e.g. Boba Fett) respond correctly.
- */
 export class ClaimBlastTokenSystem<TContext extends AbilityContext = AbilityContext>
     extends PlayerTargetSystem<TContext, IClaimBlastTokenProperties> {
-
     public override readonly name = 'claimBlastToken';
     public override readonly eventName = EventName.OnBlastTokenClaimed;
 

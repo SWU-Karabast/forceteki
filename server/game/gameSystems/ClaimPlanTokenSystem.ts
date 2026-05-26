@@ -8,28 +8,15 @@ import type { Card } from '../core/card/Card.js';
 import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory.js';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces.js';
 import { DamageSystem } from './DamageSystem.js';
-import { MoveCardSystem } from './MoveCardSystem.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IClaimPlanTokenProperties extends IPlayerTargetSystemProperties {}
 
-/**
- * System that applies the Plan token effect:
- * 1. Draw 1 card.
- * 2. Put a card from hand on the bottom of your deck.
- * 3. Fire {@link EventName.OnCardsDrawn} after the put-on-bottom prompt resolves so that
- *    triggered abilities (e.g. Rey, Seasoned Fleet Admiral) respond in the correct order.
- *
- * If the deck is empty, deals 3 damage to the player's own base per missed draw instead.
- */
 export class ClaimPlanTokenSystem<TContext extends AbilityContext = AbilityContext>
     extends PlayerTargetSystem<TContext, IClaimPlanTokenProperties> {
-
     public override readonly name = 'claimPlanToken';
     public override readonly eventName = EventName.OnPlanTokenClaimed;
 
-    // event is typed as `any` to match the codebase pattern — PlayerTargetSystem.addPropertiesToEvent
-    // dynamically adds `event.player` which is not declared on the GameEvent type.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public override eventHandler(event: any): void {
         const player = event.player as Player;
@@ -66,11 +53,10 @@ export class ClaimPlanTokenSystem<TContext extends AbilityContext = AbilityConte
                 onSelect: (card: Card | Card[]) => {
                     const target = Array.isArray(card) ? card[0] : card;
 
-                    // TODO: determine how to handle this, as this doesn't seem to be working
-                    new MoveCardSystem({ target, destination: DeckZoneDestination.DeckBottom })
-                        .resolve(player, context, TriggerHandlingMode.ResolvesTriggers);
-
-                    game.registerMovedCard(target);
+                    // Move the card directly to the bottom of the deck (synchronous, same pattern as drawCardsToHand).
+                    // Using MoveCardSystem.resolve() would queue the move into the event pipeline, but the event
+                    // window for it can't be guaranteed to execute before the pipeline moves on after onSelect.
+                    target.moveTo(DeckZoneDestination.DeckBottom);
 
                     // Fire OnCardsDrawn after the full Plan effect has resolved so that
                     // triggered abilities (Rey, Seasoned Fleet Admiral, etc.) respond

@@ -74,8 +74,7 @@ describe('Twin Suns Plan token', function () {
         });
 
         describe('Claim Plan token with an empty deck and cards already in hand', function () {
-            // TODO - Having issues getting the card to move to the bottom
-            xit('takes 3 base damage from the empty-deck draw and still prompts to put the hand card on the bottom', async function () {
+            it('takes 3 base damage from the empty-deck draw, prompts to put the hand card on the bottom, then ends the action phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     format: 'fauxSuns',
@@ -91,13 +90,11 @@ describe('Twin Suns Plan token', function () {
                         base: 'administrators-tower',
                         hand: ['death-star-stormtrooper'],
                         deck: [],
+                        hasInitiative: true
                     }
                 });
 
                 const { context } = contextRef;
-
-                // Use Initiative (no damage) to hand the turn to player2
-                context.player1.clickPrompt('Claim Initiative');
 
                 // player2 now active: empty deck, one card in hand
                 expect(context.player2.deck.length).toBe(0);
@@ -112,10 +109,14 @@ describe('Twin Suns Plan token', function () {
                 // The hand card is still there and player is prompted to put it on the bottom
                 expect(context.player2).toHavePrompt('Choose a card from your hand to put on the bottom of your deck');
                 context.player2.clickCard(context.deathStarStormtrooper);
-
-                // Card is now the only card in the (previously empty) deck
-                // expect(context.player2.deck.length).toBe(1);
                 expect(context.deathStarStormtrooper).toBeInZone('deck');
+
+                context.player1.clickPrompt('Claim Initiative');
+
+                // P2 draws 1 card and takes 3 damage
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(context.p2Base.damage).toBe(6);
+                expect(context.deathStarStormtrooper).toBeInZone('hand');
             });
         });
     });
