@@ -8,6 +8,14 @@ export enum ModerationFieldState {
     EnabledAndSeen = 'enabledAndSeen',
 }
 
+export enum CardImageLocale {
+    English = 'en',
+    French = 'fr',
+    German = 'de',
+    Spanish = 'es',
+    Italian = 'it',
+}
+
 export interface IModerationAction {
     daysRemaining: number;
     endDate?: string;
@@ -27,6 +35,7 @@ export interface IUserDataEntity {
     reportingDisabled?: ModerationFieldState;
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
+    timerPopupSeenDate?: string;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {
@@ -67,6 +76,7 @@ export interface IUserPreferences {
     };
     gameOptions?: {
         muteChat?: boolean;
+        cardLanguage?: CardImageLocale;
     };
 }
 

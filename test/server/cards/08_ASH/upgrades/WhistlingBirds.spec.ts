@@ -26,6 +26,34 @@ describe('Whistling Birds', function() {
         });
 
         describe('its When Attack Ends ability', function() {
+            it('calls out the specific arena in its context title', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['whistling-birds', 'advantage'] }]
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Battlefield Marine attacks p2Base
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat Advantage token',
+                    // Ground arena is called out specifically in the title
+                    'Deal 2 damage to each unit that opponent controls in the ground arena'
+                ]);
+                context.player1.clickPrompt('Deal 2 damage to each unit that opponent controls in the ground arena');
+
+                expect(context.wampa.damage).toBe(2);
+            });
+
             it('should deal 2 damage to each enemy unit in the attacker\'s arena when the attached unit attacks a base', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
