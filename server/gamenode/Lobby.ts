@@ -1087,6 +1087,7 @@ export class Lobby {
                 player2Leader: player2.deck.leader,
                 player2Base: player2.deck.base,
                 format: this.gameFormat,
+                cardPool: this.cardPool,
                 gamesToWinMode: this.gamesToWinMode,
             };
         } catch (error) {

@@ -10,6 +10,7 @@ import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployabl
 import type { Card } from '../core/card/Card';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
 import { registerState, type GameObjectId } from '../core/GameObjectUtils';
@@ -76,6 +77,22 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                 entry.activeAttackId === context.event.attack.id &&
                 ((entry.damageType === DamageType.Combat && entry.targets.some((target) => target.isBase())) || entry.damageType === DamageType.Overwhelm)
         );
+    }
+
+    public getNonLeaderUnitsDealtCombatDamageByUnitThisAttack(card: IUnitCard, context: TriggeredAbilityContext): Card[] {
+        const damagedNonLeaderUnits = this.getCurrentValue()
+            .filter((entry) =>
+                (entry.damageSourceCard as Card) === card &&
+                entry.damageSourceInPlayId === this.getCardId(card) &&
+                entry.activeAttackId === context.event.attack.id &&
+                entry.damageType === DamageType.Combat &&
+                entry.amount > 0 &&
+                entry.targetController !== card.controller &&
+                entry.targets.some((target) => target !== context.event.attack.attacker && target.isNonLeaderUnit())
+            )
+            .flatMap((entry) => entry.targets.filter((target) => target !== context.event.attack.attacker && target.isNonLeaderUnit()));
+
+        return [...new Set(damagedNonLeaderUnits)];
     }
 
     protected override setupWatcher() {

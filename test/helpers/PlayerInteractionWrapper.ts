@@ -103,7 +103,7 @@ export class PlayerInteractionWrapper {
         return this.player.filterCardsInPlay(() => true);
     }
 
-    public setLeaderStatus(leaderOptions: { card: any; deployed: boolean; damage: number; exhausted: boolean; upgrades: any; capturedUnits: any; flipped: any }) {
+    public setLeaderStatus(leaderOptions: { card: any; deployed?: boolean; damage?: number; exhausted?: boolean; upgrades?: any; capturedUnits?: any; flipped?: any }) {
         if (!leaderOptions) {
             return;
         }
@@ -165,7 +165,7 @@ export class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
-    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits: any }) {
+    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits?: any }) {
         if (!baseOptions) {
             return;
         }
@@ -748,17 +748,15 @@ export class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    public clickCardNonChecking(card: any, zone = 'any', side = 'self') {
+    public clickCardNonChecking(card: Pick<Card, 'name' | 'internalName' | 'uuid'> | string, zone = 'any', side = 'self') {
         this.clickCard(card, zone, side, false);
     }
 
-    public clickCard(card: {
-        name: string; internalName: any; uuid: any;
-    }, zone = 'any', side = 'self', expectChange = true) {
+    public clickCard(card: Pick<Card, 'name' | 'internalName' | 'uuid'> | string, zone = 'any', side = 'self', expectChange = true) {
         Util.checkNullCard(card);
 
         if (typeof card === 'string') {
-            card = this.findCardByName(card, zone, side);
+            card = this.findCardByName(card, zone, side) as { name: string; internalName: string; uuid: string };
         }
 
         if (expectChange && !this.currentActionTargets.includes(card)) {

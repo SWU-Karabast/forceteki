@@ -6,7 +6,8 @@ describe('Fleet Lieutenant', function() {
                     phase: 'action',
                     player1: {
                         hand: ['fleet-lieutenant'],
-                        groundArena: ['wampa', 'mon-mothma#voice-of-the-rebellion']
+                        groundArena: ['wampa', 'mon-mothma#voice-of-the-rebellion'],
+                        base: 'energy-conversion-lab'
                     },
                     player2: {
                         groundArena: ['sundari-peacekeeper'],
@@ -72,6 +73,27 @@ describe('Fleet Lieutenant', function() {
                 context.player1.clickPrompt('Pass attack');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.monMothma.exhausted).toBe(false);
+            });
+
+            it('cannot buff itself when played with Ambush', function() {
+                const { context } = contextRef;
+                context.player1.clickCard(context.energyConversionLab);
+                context.player1.clickCard(context.fleetLieutenant);
+
+                expect(context.player1).toHaveEnabledPromptButtons(['Attack with a unit', 'Ambush']);
+                context.player1.clickPrompt('Attack with a unit');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.monMothma]);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.p2Base);
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper]);
+                context.player1.clickCard(context.sundariPeacekeeper);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.sundariPeacekeeper.damage).toBe(3);
             });
         });
     });
