@@ -70,7 +70,7 @@ describe('Corellian Hounds', function() {
             expect(context.corellianHounds.exhausted).toBeTrue();
         });
 
-        it('should not enter play ready when played by opponent via Vermillion and opponent\'s opponent has ground units', async function () {
+        it('should enter play ready when played from opponent\'s deck via Vermillion when opponent has no ground units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -107,7 +107,7 @@ describe('Corellian Hounds', function() {
             expect(context.corellianHounds.exhausted).toBeFalse();
         });
 
-        it('should enter play exhausted when played by opponent via Vermillion and opponent\'s opponent has no ground units but card owner\'s opponent does', async function () {
+        it('should not enter play ready when played from opponent\'s deck via Vermillion and opponent controls ground units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

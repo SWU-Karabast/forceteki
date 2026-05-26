@@ -9,13 +9,12 @@ import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';
 import type { ReplacementEffectContext } from './ReplacementEffectContext';
-import type { ConstantAbility } from './ConstantAbility';
 
 export interface IAbilityContextProperties {
     game: Game;
     source?: any;
     player?: Player;
-    ability?: PlayerOrCardAbility | ConstantAbility;
+    ability?: PlayerOrCardAbility;
     ongoingEffect?: IOngoingEffectProps<any>;
     costs?: any;
     costAspects?: Aspect[];
@@ -38,7 +37,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public game: Game;
     public source: TSource;
     public player: Player;
-    public ability?: PlayerOrCardAbility | ConstantAbility;
+    public ability?: PlayerOrCardAbility;
     public ongoingEffect?: IOngoingEffectProps<any>;
     public costs: any;
     public costAspects: Aspect[];

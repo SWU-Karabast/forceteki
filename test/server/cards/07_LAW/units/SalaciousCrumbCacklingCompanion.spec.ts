@@ -85,7 +85,7 @@ describe('Salacious Crumb, Cackling Companion', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should NOT be ready when not controlling and Jabba leaders or units ', async function() {
+        it('should NOT enter play ready when not controlling and Jabba leaders or units ', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -121,7 +121,7 @@ describe('Salacious Crumb, Cackling Companion', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should NOT be ready when played by opponent via Vermillion and opponent does not control Jabba', async function() {
+        it('should NOT enter play ready when played from opponent\'s deck via Vermillion and the player does not control Jabba', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -157,7 +157,7 @@ describe('Salacious Crumb, Cackling Companion', function() {
             expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeTrue();
         });
 
-        it('should be ready when played by opponent via Vermillion and opponent controls Jabba', async function() {
+        it('should enter play ready when played from opponent\'s deck via Vermillion and the player controls Jabba', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

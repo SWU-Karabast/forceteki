@@ -76,7 +76,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
         event.entersReady = entersReady ||
-          this.checkEntersPlayReady(card, newController, event) ||
+          this.checkEntersPlayReady(card, newController) ||
           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
         event.newController = newController;
         event.setPreResolutionEffect((event) => {
@@ -87,7 +87,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
                 }
                 context.game.queueSimpleStep(() => {
                     if (!event.entersReady) {
-                        event.entersReady = this.checkEntersPlayReady(card, newController, event) ||
+                        event.entersReady = this.checkEntersPlayReady(card, newController) ||
                           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
                     }
                 }, `Update onUnitEntersPlay event after resolving pre-enter play abilities for ${card.internalName}`);
@@ -100,24 +100,21 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     }
 
     /**
-     * Checks whether a card should enter play ready by examining its constant abilities.
-     * This evaluates conditions using a context with the new controller's player
-     * rather than the effect's own context (which uses the card owner's player).
-     * This is important when a player plays an opponent's card (e.g., via Vermillion).
+     * Evaluates EntersPlayReady constant ability conditions using the new controller as
+     * `context.player`, rather than the card's current controller (which is the original
+     * owner when an opponent plays the card via e.g. Vermillion).
      */
-    private checkEntersPlayReady(card: Card, newController: Player, event): boolean {
+    private checkEntersPlayReady(card: Card, newController: Player): boolean {
         for (const ability of card.getConstantAbilities()) {
             for (const effect of ability.registeredEffects) {
-                if (effect.type === EffectName.EntersPlayReady) {
-                    if (!effect.impl.isConditional) {
-                        return true;
-                    }
-
-                    const abilityContext = ability.createContext(newController, event);
-
-                    if (effect.condition(abilityContext)) {
-                        return true;
-                    }
+                if (effect.type !== EffectName.EntersPlayReady) {
+                    continue;
+                }
+                if (!effect.impl.isConditional) {
+                    return true;
+                }
+                if (effect.condition(effect.context.copy({ player: newController }))) {
+                    return true;
                 }
             }
         }

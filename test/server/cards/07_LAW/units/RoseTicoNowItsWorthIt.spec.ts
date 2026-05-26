@@ -101,7 +101,7 @@ describe('Rose Tico, Now It\'s Worth It', function () {
             expect(context.roseTico.exhausted).toBeFalse();
         });
 
-        it('should not enter play ready when played by opponent via Vermillion and opponent has no non-unique units', async function () {
+        it('should not enter play ready when played from opponent\'s deck via Vermillion and the player has no non-unique units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -136,7 +136,7 @@ describe('Rose Tico, Now It\'s Worth It', function () {
             expect(context.roseTico.exhausted).toBeTrue();
         });
 
-        it('should enter play ready when played by opponent via Vermillion and opponent has a non-unique unit', async function () {
+        it('should enter play ready when played from opponent\'s deck via Vermillion and the player has a non-unique unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
