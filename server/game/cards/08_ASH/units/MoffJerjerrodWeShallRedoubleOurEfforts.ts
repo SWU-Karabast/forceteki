@@ -5,8 +5,10 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { TokenName } from '../../../core/Constants';
 import { TokenCardName, TokenUnitName, TokenUpgradeName } from '../../../core/Constants';
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
+import type { IPlayerTargetSystemProperties } from '../../../core/gameSystem/PlayerTargetSystem';
 import { Contract } from '../../../core/utils/Contract';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
+import type { ICreateTokenUnitRequiredProperties } from '../../../gameSystems/CreateTokenUnitSystem';
 
 export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -48,7 +50,11 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
         AbilityHelper: IAbilityHelper
     ): GameSystem<TriggeredAbilityContext<NonLeaderUnitCard>> {
         const { tokenType, amount, player, card } = context.event;
-        const doubledUnitTokenProperties = { amount: amount * 2, target: player, entersReady: context.event.entersReady };
+        const doubledUnitTokenProperties: ICreateTokenUnitRequiredProperties & Pick<IPlayerTargetSystemProperties, 'target'> = {
+            amount: amount * 2,
+            entersReady: context.event.entersReady,
+            target: player
+        };
 
         const systemForToken: Record<TokenName, GameSystem<TriggeredAbilityContext<NonLeaderUnitCard>>> = {
             // Units
