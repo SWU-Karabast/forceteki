@@ -717,7 +717,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
-        return keywordInstances;
+        return KeywordHelpers.dedupeKeywords(keywordInstances, this);
     }
 
     public getKeywordsWithCostValues(keywordName: KeywordName): KeywordWithCostValues[] {
