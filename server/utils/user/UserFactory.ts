@@ -7,7 +7,7 @@ import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity } from '../../services/DynamoDBInterfaces';
-import { ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';
+import { CardImageLocale, ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
 
@@ -26,6 +26,7 @@ const getDefaultCosmeticsPreferences = () => ({
 
 const getDefaultGameOptionsPreferences = () => ({
     muteChat: false,
+    cardLanguage: CardImageLocale.English,
 });
 
 export const getDefaultPreferences = (): IUserPreferences => ({
@@ -129,6 +130,21 @@ export class UserFactory {
             return true;
         } catch (error) {
             logger.error('Error setting undoPopupSeen status:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
+    public async setTimerPopupSeenStatus(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+            await dbService.updateUserProfileAsync(userId, {
+                timerPopupSeenDate: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            logger.error('Error setting timerPopupSeen status:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -379,6 +395,7 @@ export class UserFactory {
                 swubaseRefreshToken: null,
                 moderation: null,
                 undoPopupSeenDate: null,
+                timerPopupSeenDate: null,
             };
 
             // Create OAuth link
