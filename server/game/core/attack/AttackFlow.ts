@@ -5,7 +5,7 @@ import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { GameEvent } from '../event/GameEvent';
-import { buildLastKnownInformation } from '../event/LastKnownInformation';
+import { addAttackLastKnownInformationToEvent } from '../event/LastKnownInformation';
 import type { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
@@ -45,10 +45,10 @@ export class AttackFlow extends BaseStepWithPipeline {
     private declareAttack() {
         const event = this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
 
-        // Capture the attacker's LKI on the event itself, before any "On Attack" / "On Defense"
+        // Capture the attacker and defender's LKI on the event itself, before any "On Attack" / "On Defense"
         // abilities can mutate or defeat the attacker. Read by triggers that resolve during the
         // OnAttackDeclared window (e.g. Kragan Gorr's target resolver).
-        (event as any).attackerLastKnownInformation = buildLastKnownInformation(this.attack.attacker);
+        addAttackLastKnownInformationToEvent(event, this.attack);
     }
 
     private dealDamageAndCompleteAttack(): void {
@@ -61,17 +61,18 @@ export class AttackFlow extends BaseStepWithPipeline {
         // ensure that this resolves after the damage events
         attackCompleteEvent.order = 1;
 
-        // The OnAttackDamageResolved event currently does not carry an `attackerLastKnownInformation`.
-        // If a future ability triggers on this event and needs the attacker's pre-damage state,
-        // attach LKI here in the same shape as OnAttackDeclared / OnAttackEnd (capture occurs
-        // for OnAttackEnd inside dealDamage just before the damage window opens).
-        this.context.game.createEventAndOpenWindow(
+        const dealDamageEvent = this.context.game.createEventAndOpenWindow(
             EventName.OnAttackDamageResolved,
             this.context,
             { attack: this.attack },
             TriggerHandlingMode.ResolvesTriggers,
             () => this.dealDamage(attackCompleteEvent)
         );
+
+        // Capture the attacker and defender's LKI on the OnAttackDamageResolved event, which resolves before the OnAttackEnd event.
+        // Read by triggers that resolve during the OnAttackDamageResolved window that may need to reference information from before
+        // the attacker was defeated in combat
+        addAttackLastKnownInformationToEvent(dealDamageEvent, this.attack);
     }
 
     private dealDamage(attackCompleteEvent: GameEvent): void {
@@ -87,10 +88,10 @@ export class AttackFlow extends BaseStepWithPipeline {
             return;
         }
 
-        // Capture the attacker's LKI on the OnAttackEnd event just before combat damage events
-        // resolve. Read by triggers that resolve after attack ends and my need to reference information
+        // Capture the attacker and defender's LKI on the OnAttackEnd event just before combat damage events
+        // resolve. Read by triggers that resolve after attack ends and may need to reference information
         // from before the attacker was defeated in combat (e.g. Whistling Birds).
-        (attackCompleteEvent as any).attackerLastKnownInformation = buildLastKnownInformation(this.attack.attacker);
+        addAttackLastKnownInformationToEvent(attackCompleteEvent, this.attack);
 
         const inPlayTargets = [];
         let directOverwhelmDamage = 0;
