@@ -327,6 +327,43 @@ describe('The Ghost, Heart of the Family', () => {
             });
         });
 
+        describe('ongoing effect loop with Ezra Bridger Support', function() {
+            it('does not infinite loop in the ongoing effect engine when Ezra Bridger uses Support to attack with The Ghost while The Ghost is upgraded', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['ezra-bridger#the-force-is-all-i-need'],
+                        spaceArena: [
+                            { card: 'the-ghost#heart-of-the-family', upgrades: ['experience'] }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Ezra Bridger — Support triggers, prompting to attack with another unit.
+                // The Ghost is upgraded, so it has Sentinel, which The Ghost's constant ability
+                // grants to Ezra (Spectre). Support's lasting effect then grants Ezra's keywords
+                // (including that Sentinel) back to The Ghost, creating a mutual keyword-grant loop
+                // in the ongoing effect engine. This test ensures that loop does not infinite-loop.
+                context.player1.clickCard(context.ezraBridger);
+
+                // Support: select The Ghost as the attacking unit
+                context.player1.clickCard(context.theGhost);
+
+                // The Ghost attacks p2Base
+                context.player1.clickCard(context.p2Base);
+
+                // Support grants The Ghost Ezra's non-keyword abilities for the attack,
+                // including Ezra's optional "Give a unit -3/-0" on-attack ability. Skip it.
+                context.player1.clickPrompt('Pass');
+
+                // The Ghost (power 5 + 1 from experience = 6) attacks the base
+                expect(context.p2Base.damage).toBe(6);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('When The Ghost gains', function() {
             it('Hidden, it shares that keyword with other friendly Spectre units', async function() {
                 await contextRef.setupTestAsync({
