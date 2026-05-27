@@ -1357,6 +1357,7 @@ const mockCards = [
         aspects: ['cunning'],
         types: ['unit'],
         traits: ['imperial', 'vehicle', 'fighter'],
+        keywords: ['support'],
         setId: {
             set: 'ASH',
             number: 215
@@ -1382,7 +1383,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: '8d8#daimoys-majordomo',
+        internalName: '8d8#daimyos-majordomo',
     }),
     buildMockCard({
         title: 'Alphabet Squadron U-Wing',
@@ -1401,7 +1402,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'space',
-        internalName: 'alphabet-squadron-uwing',
+        internalName: 'alphabet-squadron-uwing#quiet-devotion',
     }),
     buildMockCard({
         title: 'Emperor\'s Messenger',
@@ -1489,7 +1490,7 @@ const mockCards = [
             set: 'ASH',
             number: 88
         },
-        unique: true,
+        unique: false,
         internalName: 'the-conflict-within',
     }),
     buildMockCard({
