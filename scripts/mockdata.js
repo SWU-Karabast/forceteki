@@ -1511,6 +1511,24 @@ const mockCards = [
         unique: true,
         internalName: 'nowhere-to-hide',
     }),
+    buildMockCard({
+        title: 'Ewok Warrior',
+        power: 2,
+        hp: 3,
+        cost: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression'],
+        types: ['unit'],
+        traits: ['ewok'],
+        keywords: ['hidden'],
+        setId: {
+            set: 'ASH',
+            number: 168
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ewok-warrior',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
