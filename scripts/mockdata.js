@@ -361,7 +361,7 @@ const mockCards = [
             set: 'ASH',
             number: 221
         },
-        unique: true,
+        unique: false,
         arena: 'space',
         internalName: 'helix-starfighter',
     }),
@@ -1147,6 +1147,24 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'hera-syndulla#renegade-general',
+    }),
+    buildMockCard({
+        title: 'Moff Gideon',
+        subtitle: 'Indomitable Warload',
+        cost: 7,
+        power: 5,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['leader'],
+        traits: ['imperial', 'official'],
+        setId: {
+            set: 'ASH',
+            number: 8
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'moff-gideon#indomitable-warlord',
     }),
 ];
 
