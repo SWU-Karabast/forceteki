@@ -368,6 +368,55 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(2);
             });
+
+            it('should trigger when enemy upgrade which had been took control is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['evidence-of-the-crime'],
+                        groundArena: ['zeb-orrelios#fists-work-every-time']
+                    },
+                    player2: {
+                        hand: ['outer-rim-constable'],
+                        groundArena: [{ card: 'sabine-wren#explosives-artist', upgrades: ['sabines-lightsaber#not-alone'] }]
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.evidenceOfTheCrime);
+                context.player1.clickCard(context.sabinesLightsaber);
+                context.player1.clickCard(context.zebOrrelios);
+
+                context.player2.clickCard(context.outerRimConstable);
+                context.player2.clickCard(context.sabinesLightsaber);
+
+                // Should prompt to deal 1 damage to a base
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(1);
+            });
+
+            it('should not trigger when a friendly upgrade is protected from defeat by a replacement effect', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'willrow-hood#on-the-run', upgrades: ['experience'] }, 'zeb-orrelios#fists-work-every-time']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['outer-rim-constable'],
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.outerRimConstable);
+                context.player2.clickCard(context.experience);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(0);
+            });
         });
     });
 });
