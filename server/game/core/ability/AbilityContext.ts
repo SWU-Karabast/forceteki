@@ -26,6 +26,7 @@ export interface IAbilityContextProperties {
     targetAbility?: any;
     playType?: PlayType;
     selectedPromptCards?: Card[];
+    skipOptionalPrompt?: boolean;
 }
 
 /**
@@ -55,6 +56,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public cardStateWhenInitiated: any = null;
     public selectedPromptCards: Card[] = [];
     public activeAttackId?: number;
+    public skipOptionalPrompt = false;
 
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
@@ -69,6 +71,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
         this.selectedPromptCards = properties.selectedPromptCards || [];
+        this.skipOptionalPrompt = properties.skipOptionalPrompt || false;
         this.events = properties.events || [];
         // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
@@ -101,6 +104,7 @@ export class AbilityContext<TSource extends Card = Card> {
         copy.playType = this.playType;
         copy.events = this.events;
         copy.activeAttackId = this.activeAttackId;
+        copy.skipOptionalPrompt = this.skipOptionalPrompt;
         return copy;
     }
 
@@ -124,6 +128,7 @@ export class AbilityContext<TSource extends Card = Card> {
             targetAbility: this.targetAbility,
             playType: this.playType,
             selectedPromptCards: this.selectedPromptCards,
+            skipOptionalPrompt: this.skipOptionalPrompt,
         };
     }
 }
