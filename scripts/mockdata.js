@@ -1166,6 +1166,56 @@ const mockCards = [
         arena: 'ground',
         internalName: 'moff-gideon#indomitable-warlord',
     }),
+    buildMockCard({
+        title: 'Mouse Droid',
+        cost: 1,
+        power: 1,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'droid'],
+        keywords: ['raid 1'],
+        setId: {
+            set: 'ASH',
+            number: 237
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'mouse-droid',
+    }),
+    buildMockCard({
+        title: 'Imperial Armored Commando',
+        cost: 4,
+        power: 4,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'trooper'],
+        keywords: ['sentinel', 'shielded'],
+        setId: {
+            set: 'ASH',
+            number: 48
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'imperial-armored-commando',
+    }),
+    buildMockCard({
+        title: 'Long Live the Empire',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        types: ['event'],
+        traits: ['imperial'],
+        setId: {
+            set: 'ASH',
+            number: 103
+        },
+        unique: false,
+        internalName: 'long-live-the-empire',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
