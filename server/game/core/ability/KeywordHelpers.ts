@@ -52,6 +52,47 @@ export function parseKeywords(
     return keywords;
 }
 
+/**
+ * Deduplicates keyword instances per CR 7.5.4 stacking rules:
+ * - Non-stacking keywords (Ambush, Grit, Hidden, Overwhelm, Plot, Saboteur, Sentinel, Shielded, Support):
+ *   collapse to a single instance per name.
+ * - Numeric-stacking keywords (Raid, Restore, Exploit): collapse to a single instance per name with summed value.
+ * - Cost-bearing keywords (Smuggle, Piloting) and ability-definition keywords (Bounty, Coordinate):
+ *   each instance is its own independent ability, so all are kept.
+ *
+ * @param card The card whose keyword list is being deduped; used as the owning card for any new instances created here.
+ */
+export function dedupeKeywords(instances: KeywordInstance[], card: Card): KeywordInstance[] {
+    const result: KeywordInstance[] = [];
+    const seenNonStacking = new Set<KeywordName>();
+    const numericTotals = new Map<NumericKeywordName, number>();
+
+    for (const instance of instances) {
+        if (instance.hasNumericValue()) {
+            const existing = numericTotals.get(instance.name);
+            numericTotals.set(instance.name, (existing ?? 0) + instance.value);
+            continue;
+        }
+
+        if (instance.hasCostValue() || instance.hasAbilityDefinition()) {
+            result.push(instance);
+            continue;
+        }
+
+        if (seenNonStacking.has(instance.name)) {
+            continue;
+        }
+        seenNonStacking.add(instance.name);
+        result.push(instance);
+    }
+
+    for (const [name, sum] of numericTotals) {
+        result.push(new KeywordWithNumericValue(name, card, sum));
+    }
+
+    return result;
+}
+
 export function keywordFromProperties(properties: IKeywordProperties, card: Card) {
     switch (properties.keyword) {
         case KeywordName.Restore:
