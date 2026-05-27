@@ -1456,7 +1456,7 @@ const mockCards = [
         },
         unique: false,
         arena: 'space',
-        internalName: 'gozanti-assault-cruiser',
+        internalName: 'gozanti-assault-carrier',
     }),
     buildMockCard({
         title: 'Battered Haulcraft',
