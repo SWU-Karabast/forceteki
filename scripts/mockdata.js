@@ -1150,7 +1150,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Moff Gideon',
-        subtitle: 'Indomitable Warload',
+        subtitle: 'Indomitable Warlord',
         cost: 7,
         power: 5,
         hp: 8,
