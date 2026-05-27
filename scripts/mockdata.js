@@ -1529,6 +1529,23 @@ const mockCards = [
         arena: 'ground',
         internalName: 'ewok-warrior',
     }),
+    buildMockCard({
+        title: 'Ant Droid',
+        cost: 1,
+        power: 1,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['droid'],
+        setId: {
+            set: 'ASH',
+            number: 116
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ant-droid',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
