@@ -26,9 +26,8 @@ export default class ZebOrreliosFistsWorkEveryTime extends NonLeaderUnitCard {
             title: 'Deal 1 damage to a base',
             when: {
                 onCardDefeated: (event, context) =>
-                    EnumHelpers.isUnit(event.lastKnownInformation.type) &&
-                    event.lastKnownInformation.controller === context.player &&
-                    event.lastKnownInformation.upgrades.length > 0
+                    EnumHelpers.isUpgrade(event.lastKnownInformation.type) &&
+                    event.lastKnownInformation.controller === context.player
             },
             targetResolver: {
                 cardTypeFilter: CardType.Base,
