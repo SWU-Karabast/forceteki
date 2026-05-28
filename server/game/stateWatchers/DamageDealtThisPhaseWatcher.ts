@@ -79,6 +79,19 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
         );
     }
 
+    public getDamageDealtToBaseByUnitThisAttack(card: Card, context: TriggeredAbilityContext): number {
+        return this.getCurrentValue()
+            .filter((entry) =>
+                EnumHelpers.isUnit(entry.damageSourceCardType) &&
+                entry.damageSourceCard === card &&
+                card.canBeInPlay() &&
+                entry.damageSourceInPlayId === this.getCardId(card) &&
+                entry.activeAttackId === context.event.attack.id &&
+                ((entry.damageType === DamageType.Combat && entry.targets.some((target) => target.isBase())) || entry.damageType === DamageType.Overwhelm)
+            )
+            .reduce((total, entry) => total + entry.amount, 0);
+    }
+
     public getNonLeaderUnitsDealtCombatDamageByUnitThisAttack(card: IUnitCard, context: TriggeredAbilityContext): Card[] {
         const damagedNonLeaderUnits = this.getCurrentValue()
             .filter((entry) =>
