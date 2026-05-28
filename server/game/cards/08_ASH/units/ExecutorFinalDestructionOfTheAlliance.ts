@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ExecutorFinalDestructionOfTheAlliance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'executor#final-destruction-of-the-alliance-id',
+            id: '6139617442',
             internalName: 'executor#final-destruction-of-the-alliance',
         };
     }

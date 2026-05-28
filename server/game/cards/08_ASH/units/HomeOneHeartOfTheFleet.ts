@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class HomeOneHeartOfTheFleet extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'home-one#heart-of-the-fleet-id',
+            id: '0334778925',
             internalName: 'home-one#heart-of-the-fleet',
         };
     }
