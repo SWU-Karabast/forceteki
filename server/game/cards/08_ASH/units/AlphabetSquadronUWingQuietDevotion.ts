@@ -3,10 +3,10 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { PhaseName, WildcardCardType } from '../../../core/Constants';
 
-export default class AlphabetSquadronUWing extends NonLeaderUnitCard {
+export default class AlphabetSquadronUWingQuietDevotion extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'alphabet-squadron-uwing#quiet-devotion-id',
+            id: '5203773671',
             internalName: 'alphabet-squadron-uwing#quiet-devotion',
         };
     }

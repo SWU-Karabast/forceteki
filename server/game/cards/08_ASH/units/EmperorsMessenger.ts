@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class EmperorsMessenger extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'emperors-messenger-id',
+            id: '6725068449',
             internalName: 'emperors-messenger',
         };
     }
