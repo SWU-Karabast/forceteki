@@ -11,7 +11,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'moff-jerjerrod#we-shall-redouble-our-efforts-id',
+            id: '9995040018',
             internalName: 'moff-jerjerrod#we-shall-redouble-our-efforts',
         };
     }
