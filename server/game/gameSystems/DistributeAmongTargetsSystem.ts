@@ -12,6 +12,7 @@ import type { HealSystem } from './HealSystem';
 import { Contract } from '../core/utils/Contract';
 import { Helpers } from '../core/utils/Helpers';
 import type { GiveExperienceSystem } from './GiveExperienceSystem';
+import type { GiveAdvantageSystem } from './GiveAdvantageSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IDistributeAmongTargetsSystemProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
@@ -51,7 +52,7 @@ export abstract class DistributeAmongTargetsSystem<
 
     public abstract promptType: DistributePromptType;
     protected abstract canDistributeLessDefault(): boolean;
-    protected abstract generateEffectSystem(target?: Card, amount?: number, properties?): DamageSystem | HealSystem | GiveExperienceSystem;
+    protected abstract generateEffectSystem(target?: Card, amount?: number, properties?): DamageSystem | HealSystem | GiveExperienceSystem | GiveAdvantageSystem;
     protected abstract getDistributedAmountFromEvent(event: any): number;
     protected abstract getDistributionType(amount: number): string | FormatMessage;
 
