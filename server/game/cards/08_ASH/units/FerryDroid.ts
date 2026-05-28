@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class FerryDroid extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ferry-droid-id',
+            id: '5271028285',
             internalName: 'ferry-droid',
         };
     }

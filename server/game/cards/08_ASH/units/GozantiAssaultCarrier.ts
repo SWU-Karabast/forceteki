@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class GozantiAssaultCarrier extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'gozanti-assault-carrier-id',
+            id: '8244257655',
             internalName: 'gozanti-assault-carrier',
         };
     }
