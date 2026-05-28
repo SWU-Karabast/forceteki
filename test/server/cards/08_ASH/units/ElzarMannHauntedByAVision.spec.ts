@@ -119,7 +119,6 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                             groundArena: ['cloud-city-wing-guard', 'consular-security-force'],
                             spaceArena: ['cartel-spacer'],
                             leader: 'luke-skywalker#i-can-save-him', // Force leader — Elzar enters ready, no conflict triggers
-                            base: 'echo-base'
                         },
                         player2: {
                             // 10-card deck: events at positions 1–5, non-events at positions 6–10
@@ -272,7 +271,6 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                         hand: ['elzar-mann#haunted-by-a-vision'],
                         groundArena: ['cloud-city-wing-guard'],
                         leader: 'luke-skywalker#i-can-save-him',
-                        base: 'echo-base'
                     },
                     player2: {
                         // 7-card deck: events at positions 1, 4, 6; non-events at positions 2, 3, 5, 7
@@ -313,6 +311,37 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should skip the deck search entirely when the opponent has an empty deck', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['elzar-mann#haunted-by-a-vision'],
+                        groundArena: ['cloud-city-wing-guard'],
+                        leader: 'luke-skywalker#i-can-save-him',
+                    },
+                    player2: {
+                        deck: []
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p2HandSizeBefore = context.player2.hand.length;
+
+                // Distribute all 5 tokens onto the one other friendly unit
+                context.player1.clickCard(context.elzarMann);
+                context.player1.setDistributeAmongTargetsPromptState(new Map([
+                    [context.cloudCityWingGuard, 5]
+                ]), 'distributeAdvantage');
+
+                // Advantage tokens were placed
+                expect(context.cloudCityWingGuard).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage', 'advantage', 'advantage']);
+
+                // Opponent's empty deck means the search step is skipped — no search prompt
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player2.hand.length).toBe(p2HandSizeBefore);
+            });
+
             it('should not draw any card if no events exist in the searched portion of the deck', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -320,7 +349,6 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                         hand: ['elzar-mann#haunted-by-a-vision'],
                         groundArena: ['cloud-city-wing-guard'],
                         leader: 'luke-skywalker#i-can-save-him',
-                        base: 'echo-base'
                     },
                     player2: {
                         // All non-events
