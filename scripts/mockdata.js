@@ -1203,18 +1203,57 @@ const mockCards = [
         internalName: 'imperial-armored-commando',
     }),
     buildMockCard({
-        title: 'Long Live the Empire',
-        cost: 2,
+        title: 'Elzar Mann',
+        subtitle: 'Haunted by a Vision',
+        cost: 6,
+        power: 3,
+        hp: 7,
         hasNonKeywordAbility: true,
-        aspects: ['command', 'villainy'],
-        types: ['event'],
-        traits: ['imperial'],
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['force', 'jedi'],
         setId: {
             set: 'ASH',
-            number: 103
+            number: 224
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'elzar-mann#haunted-by-a-vision',
+    }),
+    buildMockCard({
+        title: 'Womp Rat',
+        cost: 1,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['creature'],
+        keywords: ['hidden'],
+        setId: {
+            set: 'ASH',
+            number: 213
         },
         unique: false,
-        internalName: 'long-live-the-empire',
+        arena: 'ground',
+        internalName: 'womp-rat',
+    }),
+    buildMockCard({
+        title: 'LEP Ratcatcher',
+        cost: 1,
+        power: 1,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: [],
+        types: ['unit'],
+        traits: ['droid'],
+        setId: {
+            set: 'ASH',
+            number: 259
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'lep-ratcatcher',
     }),
 ];
 
