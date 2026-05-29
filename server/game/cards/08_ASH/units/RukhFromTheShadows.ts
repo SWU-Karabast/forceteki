@@ -11,7 +11,7 @@ export default class RukhFromTheShadows extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'rukh#from-the-shadows-id',
+            id: '5334076199',
             internalName: 'rukh#from-the-shadows',
         };
     }
