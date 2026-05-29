@@ -49,7 +49,7 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
         });
 
         describe('Zeb Orrelios\'s triggered ability', function () {
-            it('should deal 1 damage to a base when a unit you control with token upgrades is defeated', async function () {
+            it('should deal 1 damage to a base when a unit you control with upgrade is defeated', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -76,7 +76,7 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
                 expect(context.p2Base.damage).toBe(1);
             });
 
-            it('should deal 1 damage to a base when an enemy unit with token upgrades is defeated (No Glory Only Results)', async function () {
+            it('should deal 1 damage to a base when an enemy unit with upgrade is defeated (No Glory Only Results)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
