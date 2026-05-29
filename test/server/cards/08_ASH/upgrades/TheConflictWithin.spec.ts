@@ -1,0 +1,177 @@
+describe('The Conflict Within', function() {
+    integration(function(contextRef) {
+        describe('The Conflict Within\'s attached triggered ability', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'emperor-palpatine#galactic-ruler',
+                        hand: ['the-conflict-within', 'the-tree-remembers'],
+                        spaceArena: ['green-squadron-awing'],
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'frontier-atrt', damage: 1 },
+                            'consular-security-force'
+                        ],
+                        hand: ['bravado']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theConflictWithin);
+                context.player1.clickCard(context.frontierAtrt);
+            });
+
+            it('should prompt controller of exhausted unit on regroup to select an option', function () {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.frontierAtrt);
+                context.player2.clickCard(context.p1Base);
+                expect(context.frontierAtrt.exhausted).toBeTrue();
+
+                context.player1.claimInitiative();
+                context.player2.passAction();
+
+                context.player1.clickDone();
+                context.player2.clickDone();
+
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+                context.player2.clickPrompt('Exhaust');
+
+                expect(context.frontierAtrt.exhausted).toBeTrue();
+            });
+
+            it('should unexhaust a unit when the controller pays 3 resources', function() {
+                const { context } = contextRef;
+
+                context.player2.setResourceCount(4);
+
+                context.player2.clickCard(context.frontierAtrt);
+                context.player2.clickCard(context.p1Base);
+                expect(context.frontierAtrt.exhausted).toBeTrue();
+
+                context.player1.claimInitiative();
+                context.player2.passAction();
+
+                context.player1.clickDone();
+                context.player2.clickDone();
+
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+                context.player2.clickPrompt('Pay');
+
+                expect(context.frontierAtrt.exhausted).toBeFalse();
+                expect(context.player2.readyResourceCount).toBe(1);
+            });
+
+            it('should trigger when the unit is readied outside of the regroup phase', function() {
+                const { context } = contextRef;
+                context.player2.setResourceCount(10);
+
+                context.player2.clickCard(context.frontierAtrt);
+                context.player2.clickCard(context.p1Base);
+                expect(context.frontierAtrt.exhausted).toBeTrue();
+
+                context.player1.claimInitiative();
+
+                context.player2.clickCard(context.bravado);
+                context.player2.clickCard(context.frontierAtrt);
+
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+                context.player2.clickPrompt('Pay');
+
+                expect(context.frontierAtrt.exhausted).toBeFalse();
+                expect(context.player2.readyResourceCount).toBe(0);
+            });
+
+            it('should not trigger if abilities are wiped from the unit', function() {
+                const { context } = contextRef;
+                context.player2.setResourceCount(10);
+
+                context.player2.clickCard(context.frontierAtrt);
+                context.player2.clickCard(context.p1Base);
+                expect(context.frontierAtrt.exhausted).toBeTrue();
+
+                context.player1.clickCard(context.theTreeRemembers);
+                context.player1.clickCard(context.frontierAtrt);
+
+                context.player2.clickCard(context.bravado);
+                context.player2.clickCard(context.frontierAtrt);
+
+                expect(context.player1).toBeActivePlayer();
+
+                expect(context.frontierAtrt.exhausted).toBeFalse();
+                expect(context.player2.readyResourceCount).toBe(3);
+            });
+
+            it('makes the controller pay 3 resources, even if the unit has changed controller', function () {
+                const { context } = contextRef;
+                context.player2.passAction();
+
+                // Deploy Emperor Palpatine and take control of the Frontier AT-RT
+                context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
+                context.player1.clickCard(context.frontierAtrt);
+
+                context.player2.passAction();
+
+                // Attack with the Frontier AT-RT to exhaust it
+                context.player1.clickCard(context.frontierAtrt);
+                context.player1.clickCard(context.p2Base);
+                expect(context.frontierAtrt.exhausted).toBeTrue();
+
+                // Move to the regroup phase
+                context.player2.passAction();
+                context.player1.claimInitiative();
+
+                // Click through resourcing step
+                context.player1.clickDone();
+                context.player2.clickDone();
+
+                // Player 1 should be prompted for The Conflict Within's ability
+                expect(context.player1).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+                context.player1.clickPrompt('Pay');
+
+                // Player 1 should be the one paying the resources
+                expect(context.frontierAtrt.exhausted).toBeFalse();
+                expect(context.player1.exhaustedResourceCount).toBe(3);
+            });
+        });
+
+        it('The Conflict Within\'s attached triggered ability should prompt owner if attached to friendly unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-conflict-within'],
+                    spaceArena: ['green-squadron-awing'],
+                },
+                player2: {
+                    groundArena: ['frontier-atrt', 'consular-security-force'],
+                    hand: ['bravado']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.theConflictWithin);
+            context.player1.clickCard(context.greenSquadronAwing);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.greenSquadronAwing);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.claimInitiative();
+            context.player1.passAction();
+
+            context.player2.clickDone();
+            context.player1.clickDone();
+
+            expect(context.player1).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
+            context.player1.clickPrompt('Exhaust');
+
+            expect(context.greenSquadronAwing.exhausted).toBeTrue();
+        });
+    });
+});
