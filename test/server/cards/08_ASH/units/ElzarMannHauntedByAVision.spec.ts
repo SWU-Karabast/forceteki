@@ -7,7 +7,6 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                     player1: {
                         hand: ['elzar-mann#haunted-by-a-vision'],
                         leader: 'luke-skywalker#i-can-save-him', // Force trait leader
-                        base: 'echo-base'
                     },
                     player2: {
                         groundArena: ['wampa']
@@ -31,7 +30,6 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                     player1: {
                         hand: ['elzar-mann#haunted-by-a-vision'],
                         leader: 'the-mandalorian#we-cant-keep-running', // No Force trait
-                        base: 'echo-base'
                     },
                     player2: {
                         groundArena: ['wampa']
@@ -49,64 +47,9 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // These tests document intended behavior for cross-control scenarios and are pending due to a
-            // known engine bug: the constant ability's condition evaluates context.player.leader, which
-            // always refers to p1's leader regardless of who actually played Elzar. They should be
-            // activated when the engine supports controller-relative evaluation for WildcardZoneName.Any
-            // constant abilities.
-            xit('should enter play ready for the opponent when they play it while controlling a Force leader', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['cloud-city-wing-guard']
-                    },
-                    player2: {
-                        hand: ['elzar-mann#haunted-by-a-vision'],
-                        groundArena: ['consular-security-force'],
-                        leader: 'luke-skywalker#i-can-save-him', // Force leader
-                        base: 'echo-base'
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.passAction();
-
-                // Play Elzar Mann as p2 — Force leader condition is met
-                context.player2.clickCard(context.elzarMann);
-                context.player2.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
-
-                // Elzar should enter play ready for p2
-                expect(context.elzarMann.exhausted).toBeFalse();
-                expect(context.elzarMann).toBeInZone('groundArena');
-            });
-
-            xit('should enter play exhausted for the opponent when they play it without a Force leader', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['cloud-city-wing-guard']
-                    },
-                    player2: {
-                        hand: ['elzar-mann#haunted-by-a-vision'],
-                        groundArena: ['consular-security-force'],
-                        leader: 'the-mandalorian#we-cant-keep-running', // No Force trait
-                        base: 'echo-base'
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.passAction();
-
-                // Play Elzar Mann as p2 — Force leader condition is not met
-                context.player2.clickCard(context.elzarMann);
-                context.player2.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
-
-                // Elzar should enter play exhausted for p2
-                expect(context.elzarMann.exhausted).toBeTrue();
-                expect(context.elzarMann).toBeInZone('groundArena');
-            });
+            // TODO: After PR #2457 is merged, add tests where Elzar is played by the opposing player via
+            // a card like Vermillion, to ensure the condition checks the player playing the card, not the
+            // card's owner
         });
 
         describe('its When Played ability', function() {
