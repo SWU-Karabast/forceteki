@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../
 export default class HoldThemOff extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'hold-them-off-id',
+            id: '0912750156',
             internalName: 'hold-them-off',
         };
     }
