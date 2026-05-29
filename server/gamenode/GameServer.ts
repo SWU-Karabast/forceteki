@@ -1925,7 +1925,7 @@ export class GameServer {
         return this.userLobbyMap.get(userId)?.lobbyId;
     }
 
-    private async fetchDeckLinkAsync(deckLink: string): Promise<ISwuDbFormatDecklist> {
+    private fetchDeckLinkAsync(deckLink: string): Promise<ISwuDbFormatDecklist> {
         if (deckLink.includes('swudb.com')) {
             return this.swuDbDeckFetcher.fetchAsync(deckLink);
         }
