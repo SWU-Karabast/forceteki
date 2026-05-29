@@ -41,10 +41,10 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
                 this.distributeType = 'healing';
                 break;
             case StatefulPromptType.DistributeExperience:
-                this.distributeType = 'experience';
+                this.distributeType = 'Experience tokens';
                 break;
             case StatefulPromptType.DistributeAdvantage:
-                this.distributeType = 'advantage';
+                this.distributeType = 'Advantage tokens';
                 break;
             default:
                 Contract.fail(`Unknown prompt type: ${this.properties.type}`);

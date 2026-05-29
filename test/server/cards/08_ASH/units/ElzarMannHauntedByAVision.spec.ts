@@ -30,6 +30,7 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                     player1: {
                         hand: ['elzar-mann#haunted-by-a-vision'],
                         leader: 'the-mandalorian#we-cant-keep-running', // No Force trait
+                        groundArena: ['secretive-sage'] // Force unit - should not satisfy the condition on its own
                     },
                     player2: {
                         groundArena: ['wampa']
@@ -44,12 +45,94 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                 // Elzar enters play exhausted
                 expect(context.elzarMann.exhausted).toBeTrue();
                 expect(context.elzarMann).toBeInZone('groundArena');
+
+                // Elzar's ability triggers - decline to distribute tokens
+                expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
+                context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // TODO: After PR #2457 is merged, add tests where Elzar is played by the opposing player via
-            // a card like Vermillion, to ensure the condition checks the player playing the card, not the
-            // card's owner
+            it('should enter play ready when played from opponent\'s deck via Vermillion and the player controls a Force leader', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['vermillion#qiras-auction-house'],
+                        leader: 'avar-kriss#marshal-of-starlight' // Force leader
+                    },
+                    player2: {
+                        deck: ['elzar-mann#haunted-by-a-vision'],
+                        leader: 'gar-saxon#viceroy-of-mandalore' // Non Force leader
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 attacks with Vermillion
+                context.player1.clickCard(context.vermillion);
+                context.player1.clickCard(context.p2Base);
+
+                // Choose opponent's deck
+                context.player1.clickPrompt('Opponent\'s deck');
+
+                // View revealed card
+                context.player1.clickDone();
+
+                // Choose yourself to play Elzar Mann
+                context.player1.clickPrompt('You');
+
+                // Choose to play the card for free
+                context.player1.clickPrompt('Trigger');
+
+                // Elzar Mann SHOULD enter play ready: P1 controls a Force leader
+                expect(context.elzarMannHauntedByAVision).toBeInZone('groundArena', context.player1);
+                expect(context.elzarMannHauntedByAVision.exhausted).toBeFalse();
+
+                // Elzar's ability triggers - decline to distribute tokens
+                expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
+                context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should NOT enter play ready when played from opponent\'s deck via Vermillion and the player does not control a Force leader', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['vermillion#qiras-auction-house'],
+                        leader: 'gar-saxon#viceroy-of-mandalore' // Non Force leader
+                    },
+                    player2: {
+                        deck: ['elzar-mann#haunted-by-a-vision'],
+                        leader: 'avar-kriss#marshal-of-starlight' // Force leader
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 attacks with Vermillion
+                context.player1.clickCard(context.vermillion);
+                context.player1.clickCard(context.p2Base);
+
+                // Choose opponent's deck
+                context.player1.clickPrompt('Opponent\'s deck');
+
+                // View revealed card
+                context.player1.clickDone();
+
+                // Choose yourself to play Elzar Mann
+                context.player1.clickPrompt('You');
+
+                // Choose to play the card for free
+                context.player1.clickPrompt('Trigger');
+
+                // Elzar Mann enter play exhausted: P1 does not control a Force leader
+                expect(context.elzarMannHauntedByAVision).toBeInZone('groundArena', context.player1);
+                expect(context.elzarMannHauntedByAVision.exhausted).toBeTrue();
+
+                // Elzar's ability triggers - decline to distribute tokens
+                expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
+                context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         describe('its When Played ability', function() {
