@@ -76,7 +76,7 @@ describe('Long Live the Empire', function() {
 
             const { context } = contextRef;
 
-            const startingResources = context.player1.readyResourceCount;
+            const startingResources = context.player1.resources.length;
 
             context.player1.clickCard(context.longLiveTheEmpire);
             expect(context.player1).toHavePrompt('Defeat a friendly Imperial unit');
@@ -106,7 +106,7 @@ describe('Long Live the Empire', function() {
 
             const { context } = contextRef;
 
-            const startingResources = context.player1.readyResourceCount;
+            const startingResources = context.player1.resources.length;
 
             context.player1.clickCard(context.longLiveTheEmpire);
             context.player1.clickPrompt('Play anyway');

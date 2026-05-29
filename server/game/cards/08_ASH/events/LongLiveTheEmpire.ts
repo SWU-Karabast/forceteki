@@ -13,7 +13,7 @@ export default class LongLiveTheEmpire extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Defeat a friendly unit. If you do, resource the top card of your deck',
+            title: 'Defeat a friendly Imperial unit. If you do, resource the top card of your deck',
             targetResolver: {
                 activePromptTitle: 'Defeat a friendly Imperial unit',
                 cardTypeFilter: WildcardCardType.Unit,

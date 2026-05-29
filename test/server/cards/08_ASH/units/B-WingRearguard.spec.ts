@@ -100,5 +100,31 @@ describe('B-Wing Rear Guard', function() {
             expect(context.p1Base.damage).toBe(2);
             expect(context.awing).toBeInZone('spaceArena', context.player2);
         });
+
+        it('should have Sentinel if the current friendly ground unit is Blue Leader after moving to ground', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['bwing-rearguard'],
+                    hand: ['blue-leader#scarif-air-support']
+                },
+                player2: {
+                    spaceArena: ['awing'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.blueLeader);
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
+            context.player1.clickPrompt('Trigger');
+
+            context.player2.clickCard(context.awing);
+            expect(context.player2).toBeAbleToSelectExactly([context.bwingRearguard]);
+            expect(context.bwingRearguard.hasSomeKeyword('sentinel')).toBe(true);
+            context.player2.clickCard(context.bwingRearguard);
+            expect(context.bwingRearguard.damage).toBe(2);
+            expect(context.awing).toBeInZone('discard', context.player2);
+        });
     });
 });

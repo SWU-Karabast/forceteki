@@ -37,6 +37,7 @@ describe('The Conflict Within', function() {
                 context.player1.clickDone();
                 context.player2.clickDone();
 
+                expect(context.player2).toHavePrompt('[Exhaust] Frontier AT-RT or [Pay] 3 resources');
                 expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
                 context.player2.clickPrompt('Exhaust');
 
@@ -62,7 +63,7 @@ describe('The Conflict Within', function() {
                 context.player2.clickPrompt('Pay');
 
                 expect(context.frontierAtrt.exhausted).toBeFalse();
-                expect(context.player2.readyResourceCount).toBe(1);
+                expect(context.player2.exhaustedResourceCount).toBe(3);
             });
 
             it('should trigger when the unit is readied outside of the regroup phase', function() {
@@ -82,7 +83,7 @@ describe('The Conflict Within', function() {
                 context.player2.clickPrompt('Pay');
 
                 expect(context.frontierAtrt.exhausted).toBeFalse();
-                expect(context.player2.readyResourceCount).toBe(0);
+                expect(context.player2.exhaustedResourceCount).toBe(10);
             });
 
             it('should not trigger if abilities are wiped from the unit', function() {
@@ -102,7 +103,7 @@ describe('The Conflict Within', function() {
                 expect(context.player1).toBeActivePlayer();
 
                 expect(context.frontierAtrt.exhausted).toBeFalse();
-                expect(context.player2.readyResourceCount).toBe(3);
+                expect(context.player2.exhaustedResourceCount).toBe(7);
             });
 
             it('makes the controller pay 3 resources, even if the unit has changed controller', function () {
