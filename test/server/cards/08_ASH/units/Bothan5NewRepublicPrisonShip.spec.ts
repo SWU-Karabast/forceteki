@@ -19,7 +19,7 @@ describe('Bothan-5, New Republic Prison Ship', function() {
             context.player2.clickCard(context.takedown);
             context.player2.clickCard(context.wampa);
 
-            expect(context.player1).toHavePassAbilityPrompt('Bothan-5 capture Wampa from your discard pile');
+            expect(context.player1).toHavePassAbilityPrompt('Bothan-5 captures Wampa from your discard pile');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeActivePlayer();
@@ -155,7 +155,7 @@ describe('Bothan-5, New Republic Prison Ship', function() {
 
             expect(context.player1).toHaveExactPromptButtons([
                 'Put Superlaser Technician into play as a resource and ready it',
-                'Bothan-5 capture Superlaser Technician from your discard pile'
+                'Bothan-5 captures Superlaser Technician from your discard pile'
             ]);
 
             context.player1.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
