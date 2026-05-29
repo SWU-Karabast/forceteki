@@ -67,7 +67,7 @@ describe('Bothan-5, New Republic Prison Ship', function() {
             expect(context.atst).toBeInZone('discard');
         });
 
-        it('Bothan-5\'s ability should capture a defeated enemy non-vehicle unit from discard', async function() {
+        it('Bothan-5\'s ability should not capture a defeated enemy non-vehicle unit from discard', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
