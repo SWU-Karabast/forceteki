@@ -40,6 +40,10 @@ function populateMissingData(attributes, id) {
             attributes.upgradeHp = 0;
             attributes.upgradePower = 0;
             break;
+        case '5844562972': // advantage
+            attributes.upgradeHp = 0;
+            attributes.upgradePower = 1;
+            break;
         case '8015500527': // Credit token
         case '4571900905': // The Force
             attributes.cost = 0;

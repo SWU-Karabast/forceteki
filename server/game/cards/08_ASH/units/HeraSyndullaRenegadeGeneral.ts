@@ -9,7 +9,7 @@ export default class HeraSyndullaRenegadeGeneral extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'hera-syndulla#renegade-general-id',
+            id: '5557320306',
             internalName: 'hera-syndulla#renegade-general',
         };
     }

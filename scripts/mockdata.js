@@ -18,61 +18,6 @@ const mockCards = [
         arena: 'ground',
         internalName: 'mandalorian',
     }),
-    // Advantage
-    buildMockCard({
-        title: 'Advantage',
-        cost: 0,
-        hp: 0,
-        power: 0,
-        upgradePower: 1,
-        upgradeHp: 0,
-        hasNonKeywordAbility: true,
-        types: ['token', 'upgrade'],
-        traits: ['innate'],
-        setId: {
-            set: 'ASH'
-        },
-        unique: false,
-        internalName: 'advantage'
-    }),
-    // Luke Skywalker, I Can Save Him
-    buildMockCard({
-        title: 'Luke Skywalker',
-        subtitle: 'I Can Save Him',
-        power: 6,
-        hp: 7,
-        cost: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'heroism'],
-        types: ['leader'],
-        traits: ['force', 'jedi', 'rebel'],
-        setId: {
-            set: 'ASH',
-            number: 5
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'luke-skywalker#i-can-save-him',
-    }),
-    // Emperor Palpatine, According to My Design
-    buildMockCard({
-        title: 'Emperor Palpatine',
-        subtitle: 'According to My Design',
-        power: 4,
-        hp: 8,
-        cost: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['leader'],
-        traits: ['force', 'imperial', 'sith', 'official'],
-        setId: {
-            set: 'ASH',
-            number: 15
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'emperor-palpatine#according-to-my-design',
-    }),
     // Grogu, Charming Companion
     buildMockCard({
         title: 'Grogu',
@@ -131,26 +76,6 @@ const mockCards = [
         unique: true,
         internalName: 'blade-of-talzin#a-gift-of-shadows',
     }),
-    // Leia Organa, Vigilant for Danger
-    buildMockCard({
-        title: 'Leia Organa',
-        subtitle: 'Vigilant for Danger',
-        power: 3,
-        hp: 4,
-        cost: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'heroism'],
-        types: ['unit'],
-        traits: ['rebel', 'official'],
-        keywords: ['support'],
-        setId: {
-            set: 'ASH',
-            number: 59
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'leia-organa#vigilant-for-danger',
-    }),
     // The Armorer, Secrecy is Our Survival
     buildMockCard({
         title: 'The Armorer',
@@ -171,162 +96,6 @@ const mockCards = [
         arena: 'ground',
         internalName: 'the-armorer#secrecy-is-our-survival',
     }),
-    // Luke's Jedi Lightsaber, Constructed by Hand
-    buildMockCard({
-        title: 'Luke\'s Jedi Lightsaber',
-        subtitle: 'Constructed by Hand',
-        power: 0,
-        hp: 0,
-        upgradePower: 3,
-        upgradeHp: 3,
-        cost: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'heroism'],
-        types: ['upgrade'],
-        traits: ['item', 'weapon', 'lightsaber'],
-        setId: {
-            set: 'ASH',
-            number: 66
-        },
-        unique: true,
-        internalName: 'lukes-jedi-lightsaber#constructed-by-hand',
-    }),
-    // Moff Jerjerrod, We Shall Redouble Our Efforts
-    buildMockCard({
-        title: 'Moff Jerjerrod',
-        subtitle: 'We Shall Redouble Our Efforts',
-        power: 1,
-        hp: 3,
-        cost: 2,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'villainy'],
-        types: ['unit'],
-        traits: ['imperial', 'official'],
-        setId: {
-            set: 'ASH',
-            number: 94
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'moff-jerjerrod#we-shall-redouble-our-efforts',
-    }),
-    // Forest Patroller
-    buildMockCard({
-        title: 'Forest Patroller',
-        power: 3,
-        hp: 4,
-        cost: 3,
-        hasNonKeywordAbility: false,
-        aspects: ['command', 'villainy'],
-        types: ['unit'],
-        traits: ['imperial', 'trooper'],
-        keywords: ['overwhelm', 'restore 1'],
-        setId: {
-            set: 'ASH',
-            number: 96
-        },
-        unique: false,
-        arena: 'ground',
-        internalName: 'forest-patroller',
-    }),
-    // Moff Gideon, Remnant Commander
-    buildMockCard({
-        title: 'Moff Gideon',
-        subtitle: 'Remnant Commander',
-        power: 2,
-        hp: 5,
-        cost: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'villainy'],
-        types: ['unit'],
-        traits: ['imperial', 'official'],
-        keywords: ['sentinel'],
-        setId: {
-            set: 'ASH',
-            number: 97
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'moff-gideon#remnant-commander',
-    }),
-    // R5-D4, Built For Adventure
-    buildMockCard({
-        title: 'R5-D4',
-        subtitle: 'Built For Adventure',
-        power: 3,
-        hp: 4,
-        cost: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression', 'heroism'],
-        types: ['unit'],
-        traits: ['droid'],
-        keywords: ['support'],
-        setId: {
-            set: 'ASH',
-            number: 156
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'r5d4#built-for-adventure',
-    }),
-    // Han Solo, It'll Work
-    buildMockCard({
-        title: 'Han Solo',
-        subtitle: 'It\'ll Work',
-        power: 3,
-        hp: 7,
-        cost: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression', 'heroism'],
-        types: ['unit'],
-        traits: ['rebel', 'official'],
-        keywords: ['saboteur'],
-        setId: {
-            set: 'ASH',
-            number: 158
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'han-solo#itll-work',
-    }),
-    // Executor, Final Destruction of the Alliance
-    buildMockCard({
-        title: 'Executor',
-        subtitle: 'Final Destruction of the Alliance',
-        power: 5,
-        hp: 12,
-        cost: 8,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['unit'],
-        traits: ['imperial', 'vehicle', 'capital ship'],
-        setId: {
-            set: 'ASH',
-            number: 197
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'executor#final-destruction-of-the-alliance',
-    }),
-    // There Is No Conflict
-    buildMockCard({
-        title: 'There Is No Conflict',
-        power: 0,
-        hp: 0,
-        upgradePower: 2,
-        upgradeHp: 2,
-        cost: 2,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['upgrade'],
-        traits: ['innate'],
-        setId: {
-            set: 'ASH',
-            number: 199
-        },
-        unique: false,
-        internalName: 'there-is-no-conflict',
-    }),
     // Ezra Bridger, The Force Is All I Need
     buildMockCard({
         title: 'Ezra Bridger',
@@ -346,64 +115,6 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'ezra-bridger#the-force-is-all-i-need',
-    }),
-    // Helix Starfighter
-    buildMockCard({
-        title: 'Helix Starfighter',
-        power: 3,
-        hp: 3,
-        cost: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning'],
-        types: ['unit'],
-        traits: ['underworld', 'vehicle', 'fighter'],
-        setId: {
-            set: 'ASH',
-            number: 221
-        },
-        unique: false,
-        arena: 'space',
-        internalName: 'helix-starfighter',
-    }),
-    // Darth Vader, Meet Your Destiny
-    buildMockCard({
-        title: 'Darth Vader',
-        subtitle: 'Meet Your Destiny',
-        power: 4,
-        hp: 6,
-        cost: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['villainy'],
-        types: ['unit'],
-        traits: ['force', 'imperial', 'sith'],
-        keywords: ['shielded'],
-        setId: {
-            set: 'ASH',
-            number: 243
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'darth-vader#meet-your-destiny',
-    }),
-    // Anakin Skywalker, You Were Right About Me
-    buildMockCard({
-        title: 'Anakin Skywalker',
-        subtitle: 'You Were Right About Me',
-        power: 6,
-        hp: 4,
-        cost: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['heroism'],
-        types: ['unit'],
-        traits: ['force', 'jedi'],
-        keywords: ['hidden', 'saboteur'],
-        setId: {
-            set: 'ASH',
-            number: 255
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'anakin-skywalker#you-were-right-about-me',
     }),
     buildMockCard({
         title: 'Jod Na Nawood',
@@ -572,25 +283,6 @@ const mockCards = [
         internalName: 't6-shuttle-1974#with-a-mentors-dedication',
     }),
     buildMockCard({
-        title: 'Cobb Vanth',
-        subtitle: 'Let Me Handle This',
-        cost: 4,
-        power: 2,
-        hp: 6,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'heroism'],
-        types: ['unit'],
-        traits: ['official'],
-        keywords: ['grit'],
-        setId: {
-            set: 'ASH',
-            number: 60
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'cobb-vanth#let-me-handle-this',
-    }),
-    buildMockCard({
         title: 'Ahsoka Tano',
         subtitle: 'Trust in The Force',
         cost: 6,
@@ -644,25 +336,6 @@ const mockCards = [
         unique: true,
         arena: 'space',
         internalName: 'chimaera#a-frightening-reality',
-    }),
-    buildMockCard({
-        title: 'Home One',
-        subtitle: 'Heart of the Fleet',
-        cost: 8,
-        power: 7,
-        hp: 10,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'heroism'],
-        types: ['unit'],
-        traits: ['rebel', 'vehicle', 'capital ship'],
-        keywords: ['sentinel'],
-        setId: {
-            set: 'ASH',
-            number: 65
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'home-one#heart-of-the-fleet',
     }),
     buildMockCard({
         title: 'Protectorate Fighter',
@@ -817,43 +490,6 @@ const mockCards = [
         internalName: 'scion-shuttle#at-morgans-bidding',
     }),
     buildMockCard({
-        title: 'Shin Hati\'s Fiend Fighter',
-        subtitle: 'Compact and Agile',
-        cost: 2,
-        power: 3,
-        hp: 1,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'villainy'],
-        types: ['unit'],
-        traits: ['vehicle', 'fighter'],
-        setId: {
-            set: 'ASH',
-            number: 191
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'shin-hatis-fiend-fighter#compact-and-agile',
-    }),
-    buildMockCard({
-        title: 'Doctor Pershing',
-        subtitle: 'Dedicated to Research',
-        cost: 2,
-        power: 0,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        keywords: ['support'],
-        aspects: ['vigilance'],
-        types: ['unit'],
-        traits: ['new republic'],
-        setId: {
-            set: 'ASH',
-            number: 72
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'doctor-pershing#dedicated-to-research',
-    }),
-    buildMockCard({
         title: 'Gar Saxon',
         subtitle: 'Coveting Power',
         cost: 3,
@@ -890,25 +526,6 @@ const mockCards = [
         internalName: 'grogu#yes-yes-yes',
     }),
     buildMockCard({
-        title: 'The Great Mothers',
-        subtitle: 'With Strange Magicks',
-        cost: 7,
-        power: 6,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        keywords: ['support'],
-        aspects: ['command', 'villainy'],
-        types: ['unit'],
-        traits: ['force', 'night'],
-        setId: {
-            set: 'ASH',
-            number: 101
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'the-great-mothers#with-strange-magicks',
-    }),
-    buildMockCard({
         title: 'Eye of Sion',
         subtitle: 'Delivered from Exile',
         cost: 7,
@@ -925,20 +542,6 @@ const mockCards = [
         unique: true,
         arena: 'space',
         internalName: 'eye-of-sion#delivered-from-exile',
-    }),
-    buildMockCard({
-        title: 'Hold Them Off',
-        cost: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['command'],
-        types: ['event'],
-        traits: ['tactic'],
-        setId: {
-            set: 'ASH',
-            number: 139
-        },
-        unique: false,
-        internalName: 'hold-them-off',
     }),
     buildMockCard({
         title: 'The Mandalorian',
@@ -960,24 +563,6 @@ const mockCards = [
         internalName: 'the-mandalorian#we-cant-keep-running',
     }),
     buildMockCard({
-        title: 'Green Leader',
-        subtitle: 'Crynyd\'s Sacrifice',
-        cost: 2,
-        power: 3,
-        hp: 1,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression', 'heroism'],
-        types: ['unit'],
-        traits: ['rebel', 'vehicle', 'fighter'],
-        setId: {
-            set: 'ASH',
-            number: 153
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'green-leader#crynyds-sacrifice',
-    }),
-    buildMockCard({
         title: 'Zeb Orrelios',
         subtitle: 'Fists Work Every Time',
         cost: 7,
@@ -994,20 +579,6 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'zeb-orrelios#fists-work-every-time',
-    }),
-    buildMockCard({
-        title: 'Reckless Sacrifice',
-        cost: 2,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression', 'heroism'],
-        types: ['event'],
-        traits: ['gambit'],
-        setId: {
-            set: 'ASH',
-            number: 163
-        },
-        unique: false,
-        internalName: 'reckless-sacrifice',
     }),
     buildMockCard({
         title: 'Sabine Wren',
@@ -1094,61 +665,6 @@ const mockCards = [
         internalName: 'far-far-away',
     }),
     buildMockCard({
-        title: 'Bothan-5',
-        subtitle: 'New Republic Prison Ship',
-        cost: 5,
-        power: 4,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['command'],
-        types: ['unit'],
-        traits: ['new republic', 'vehicle', 'transport'],
-        setId: {
-            set: 'ASH',
-            number: 128
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'bothan5#new-republic-prison-ship',
-    }),
-    buildMockCard({
-        title: 'Rukh',
-        subtitle: 'From the Shadows',
-        cost: 3,
-        power: 1,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['command', 'cunning', 'villainy'],
-        types: ['unit'],
-        traits: ['imperial'],
-        keywords: ['support'],
-        setId: {
-            set: 'ASH',
-            number: 36
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'rukh#from-the-shadows',
-    }),
-    buildMockCard({
-        title: 'Hera Syndulla',
-        subtitle: 'Renegade General',
-        cost: 3,
-        power: 3,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'aggression', 'heroism'],
-        types: ['unit'],
-        traits: ['new republic', 'twi\'lek', 'spectre'],
-        setId: {
-            set: 'ASH',
-            number: 31
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'hera-syndulla#renegade-general',
-    }),
-    buildMockCard({
         title: 'Moff Gideon',
         subtitle: 'Indomitable Warlord',
         cost: 7,
@@ -1203,18 +719,57 @@ const mockCards = [
         internalName: 'imperial-armored-commando',
     }),
     buildMockCard({
-        title: 'Long Live the Empire',
-        cost: 2,
+        title: 'Elzar Mann',
+        subtitle: 'Haunted by a Vision',
+        cost: 6,
+        power: 3,
+        hp: 7,
         hasNonKeywordAbility: true,
-        aspects: ['command', 'villainy'],
-        types: ['event'],
-        traits: ['imperial'],
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['force', 'jedi'],
         setId: {
             set: 'ASH',
-            number: 103
+            number: 224
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'elzar-mann#haunted-by-a-vision',
+    }),
+    buildMockCard({
+        title: 'Womp Rat',
+        cost: 1,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['creature'],
+        keywords: ['hidden'],
+        setId: {
+            set: 'ASH',
+            number: 213
         },
         unique: false,
-        internalName: 'long-live-the-empire',
+        arena: 'ground',
+        internalName: 'womp-rat',
+    }),
+    buildMockCard({
+        title: 'LEP Ratcatcher',
+        cost: 1,
+        power: 1,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: [],
+        types: ['unit'],
+        traits: ['droid'],
+        setId: {
+            set: 'ASH',
+            number: 259
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'lep-ratcatcher',
     }),
 ];
 
