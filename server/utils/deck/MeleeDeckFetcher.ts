@@ -133,7 +133,8 @@ export class MeleeDeckFetcher {
         return value.trim()
             .replace(/"/g, '\'')
             .replace(/\s+/g, ' ')
-            .replace(/\bOrellios\b/g, 'Orrelios');
+            .replace(/\bOrellios\b/g, 'Orrelios')
+            .replace(/^Die Jedi Dogs!$/, 'Die, Jedi Dogs!');
     }
 
     private extractClassBlocks(html: string, className: string): string[] {
