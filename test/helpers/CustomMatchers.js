@@ -905,7 +905,13 @@ var customMatchers = {
                     throw new TestSetupError(`Parameter 'options' is not an array: ${expectedOptions}`);
                 }
 
-                const actualOptions = player.currentPrompt().dropdownListOptions;
+                const currentPrompt = player.currentPrompt();
+                const actualOptions = currentPrompt.selectNumber
+                    ? Array.from(
+                        { length: currentPrompt.selectNumber.max - currentPrompt.selectNumber.min + 1 },
+                        (_x, i) => `${currentPrompt.selectNumber.min + i}`
+                    )
+                    : currentPrompt.dropdownListOptions;
 
                 result.pass = stringArraysEqual(actualOptions, expectedOptions);
 

@@ -15,8 +15,9 @@ export default class CuriousFlock extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'Pay up to 6 resources. For each resource paid this way, give an Experience token to this unit',
             targetResolver: {
-                mode: TargetMode.DropdownList,
-                options: (context) => Array.from({ length: Math.min(6, context.player.readyResourceCount) + 1 }, (_x, i) => `${i}`),
+                mode: TargetMode.Number,
+                min: 0,
+                max: (context) => Math.min(6, context.player.readyResourceCount),
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.payResourcesWithoutAdjustment((context) => ({
                         amount: parseInt(context.select),

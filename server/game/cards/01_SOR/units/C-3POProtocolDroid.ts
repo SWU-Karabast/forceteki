@@ -19,8 +19,9 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
                 onAttack: true,
             },
             targetResolver: {
-                mode: TargetMode.DropdownList,
-                options: Array.from({ length: 21 }, (x, i) => `${i}`),  // array of strings from 0 to 20
+                mode: TargetMode.Number,
+                min: 0,
+                max: 20,
                 condition: (context) => context.player.drawDeck.length > 0   // skip ability if deck is empty
             },
             then: (thenContext) => ({
