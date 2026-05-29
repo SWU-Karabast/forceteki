@@ -8,7 +8,7 @@ import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 export default class ShinHatisFiendFighterCompactAndAgile extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'shin-hatis-fiend-fighter#compact-and-agile-id',
+            id: '0834554190',
             internalName: 'shin-hatis-fiend-fighter#compact-and-agile',
         };
     }

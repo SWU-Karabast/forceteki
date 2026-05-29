@@ -63,6 +63,18 @@ describe('Kit Fisto\'s Aethersprite, Good Hunting', function() {
                 expect(context.imperialInterceptor).toHaveExactUpgradeNames(['academy-training', 'shield']);
                 expect(context.pykeSentinel).toHaveExactUpgradeNames(['entrenched', 'devotion']);
             });
+
+            it('should be pass on unit\'s selection', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kitFistosAethersprite);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.imperialInterceptor).toHaveExactUpgradeNames(['academy-training', 'shield']);
+                expect(context.pykeSentinel).toHaveExactUpgradeNames(['entrenched', 'devotion']);
+            });
         });
     });
 });

@@ -6,6 +6,7 @@ import type { IUpgradeCard } from '../card/CardInterfaces';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
 import type { GameEvent } from './GameEvent';
+import type { Attack } from '../attack/Attack';
 
 /** Records the "last known information" of a card before it left the arena, in case ability text needs to refer back to it. See SWU 8.12. */
 export interface ILastKnownInformation {
@@ -81,6 +82,19 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
  */
 export function addLastKnownInformationToEvent(event: GameEvent, card: Card): void {
     event.setPreResolutionEffect((event) => {
-        (event as any).lastKnownInformation = buildLastKnownInformation(card);
+        event.lastKnownInformation = buildLastKnownInformation(card);
+    });
+}
+
+/**
+ * Registers a pre-resolution hook on `event` that captures the attacker's and defender's last known information
+ * onto `event.attackerLastKnownInformation` and `event.defendersLastKnownInformation`, respectively. The snapshot
+ * is taken right before the event's EventWindow resolves its events, so the captured state reflects the attacker
+ * and defender immediately before any in-window changes (e.g. defeat from damage events sharing the same window).
+ */
+export function addAttackLastKnownInformationToEvent(event: GameEvent, attack: Attack): void {
+    event.setPreResolutionEffect((event) => {
+        event.attackerLastKnownInformation = buildLastKnownInformation(attack.attacker);
+        event.defendersLastKnownInformation = attack.getLegalTargets().map((target) => buildLastKnownInformation(target));
     });
 }
