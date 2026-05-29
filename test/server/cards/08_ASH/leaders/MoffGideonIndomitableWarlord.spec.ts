@@ -244,6 +244,69 @@ describe('Moff Gideon, Indomitable Warlord', function () {
                 expect(context.p1Base.damage).toBe(5);
                 expect(context.p2Base.damage).toBe(5);
             });
+
+            it('should allow paying 1 resource to draw a card when claiming initiative', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'moff-gideon#indomitable-warlord',
+                        groundArena: ['battlefield-marine'],
+                        discard: ['occupier-siege-tank', 'eye-of-sion#to-peridea', 'imperial-armored-commando', 'rukh#from-the-shadows', 'seventh-sister#implacable-inquisitor'],
+                        resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'cinta-kaz#the-struggle-comes-first'],
+                        base: { card: 'tarkintown', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'echo-base-defender', 'porg']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.moffGideon);
+                context.player1.clickPrompt('Deploy Moff Gideon');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Play Cinta Kaz using Plot',
+                    'Ambush',
+                    'Shielded',
+                    'Support',
+                ]);
+
+                context.player1.clickPrompt('Play Cinta Kaz using Plot');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHavePrompt('Attack with a unit');
+                context.player1.clickCard(context.moffGideon);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.echoBaseDefender, context.porg, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Ambush',
+                    'Shielded',
+                    'Support',
+                ]);
+                context.player1.clickPrompt('Shielded');
+                context.player1.clickPrompt('Support');
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.echoBaseDefender, context.porg, context.p2Base]);
+                context.player1.clickCard(context.porg);
+
+                expect(context.p2Base.damage).toBe(7);// 5+2
+
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.echoBaseDefender]);
+
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.porg).toBeInZone('discard');
+                expect(context.battlefieldMarine.exhausted).toBeTrue()
+                expect(context.moffGideon.exhausted).toBeTrue()
+                expect(context.cintaKaz).toBeInZone('groundArena');
+                expect(context.moffGideon).toHaveExactUpgradeNames([])
+            });
         });
     });
 });
