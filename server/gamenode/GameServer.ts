@@ -28,7 +28,9 @@ import { Contract } from '../game/core/utils/Contract';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
-import { SwuDbDeckFetcher, SwuDbFetchError } from '../utils/deck/SwuDbDeckFetcher';
+import { SwuDbDeckFetcher } from '../utils/deck/SwuDbDeckFetcher';
+import { MeleeDeckFetcher } from '../utils/deck/MeleeDeckFetcher';
+import { DeckFetchError } from '../utils/deck/DeckFetchError';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import { Helpers } from '../game/core/utils/Helpers';
@@ -206,7 +208,8 @@ export class GameServer {
     public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
     public readonly swuBaseHandler: SwuBaseHandler;
-    public readonly swuDbDeckFetcher: SwuDbDeckFetcher = new SwuDbDeckFetcher();
+    public readonly swuDbDeckFetcher: SwuDbDeckFetcher;
+    public readonly meleeDeckFetcher: MeleeDeckFetcher;
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
@@ -224,6 +227,11 @@ export class GameServer {
         app.use(express.json());
         const server = http.createServer(app);
 
+        this.cardDataGetter = cardDataGetter;
+        this.testGameBuilder = testGameBuilder;
+        this.deckValidator = deckValidator;
+        this.swuDbDeckFetcher = new SwuDbDeckFetcher();
+        this.meleeDeckFetcher = new MeleeDeckFetcher(cardDataGetter);
         this.serverRoleUsersCache = serverRoleUsersCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
@@ -359,9 +367,6 @@ export class GameServer {
             }
         });
 
-        this.cardDataGetter = cardDataGetter;
-        this.testGameBuilder = testGameBuilder;
-        this.deckValidator = deckValidator;
         this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
         this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
 
@@ -1147,13 +1152,13 @@ export class GameServer {
                 if (typeof swudbLink === 'string' && swudbLink.trim().length > 0) {
                     let resolved;
                     try {
-                        resolved = await this.swuDbDeckFetcher.fetchAsync(swudbLink);
+                        resolved = await this.fetchDeckLinkAsync(swudbLink);
                     } catch (err) {
-                        if (err instanceof SwuDbFetchError) {
+                        if (err instanceof DeckFetchError) {
                             return res.status(err.status).json({ success: false, error: err.message });
                         }
-                        logger.error('GameServer (save-deck): unexpected error resolving swudbLink', err);
-                        return res.status(500).json({ success: false, error: 'Failed to resolve swudb deck link' });
+                        logger.error('GameServer (save-deck): unexpected error resolving deck link', err);
+                        return res.status(500).json({ success: false, error: 'Failed to resolve deck link' });
                     }
                     deckEntity = {
                         id: '',
@@ -1165,7 +1170,7 @@ export class GameServer {
                             favourite: false,
                             deckLink: swudbLink,
                             deckLinkID: resolved.deckID ?? '',
-                            source: 'SWUDB',
+                            source: swudbLink.includes('melee.gg') ? 'Melee' : 'SWUDB',
                         },
                     };
                 } else if (deck) {
@@ -1257,7 +1262,7 @@ export class GameServer {
             }
         });
 
-        // Resolves a swudb.com deck-share URL into a full decklist payload.
+        // Resolves backend-supported deck-share URLs into a full decklist payload.
         // Used by the FE to preview decks before submitting them to other
         // endpoints (create-lobby, enter-queue, save-deck) and to re-render
         // saved decks on the deck view page.
@@ -1267,15 +1272,15 @@ export class GameServer {
                 if (typeof deckLink !== 'string' || deckLink.trim().length === 0) {
                     return res.status(400).json({ success: false, error: 'Missing deckLink' });
                 }
-                if (!deckLink.includes('swudb.com')) {
-                    return res.status(400).json({ success: false, error: 'Only swudb.com links are supported by this endpoint' });
+                if (!deckLink.includes('swudb.com') && !deckLink.includes('melee.gg')) {
+                    return res.status(400).json({ success: false, error: 'Only swudb.com and melee.gg links are supported by this endpoint' });
                 }
 
                 try {
-                    const resolvedDeck = await this.swuDbDeckFetcher.fetchAsync(deckLink);
+                    const resolvedDeck = await this.fetchDeckLinkAsync(deckLink);
                     return res.status(200).json({ success: true, deck: resolvedDeck });
                 } catch (err) {
-                    if (err instanceof SwuDbFetchError) {
+                    if (err instanceof DeckFetchError) {
                         return res.status(err.status).json({ success: false, error: err.message });
                     }
                     throw err;
@@ -1920,12 +1925,23 @@ export class GameServer {
         return this.userLobbyMap.get(userId)?.lobbyId;
     }
 
+    private async fetchDeckLinkAsync(deckLink: string): Promise<ISwuDbFormatDecklist> {
+        if (deckLink.includes('swudb.com')) {
+            return this.swuDbDeckFetcher.fetchAsync(deckLink);
+        }
+        if (deckLink.includes('melee.gg')) {
+            return this.meleeDeckFetcher.fetchAsync(deckLink);
+        }
+
+        throw new DeckFetchError(400, 'Only swudb.com and melee.gg links are supported by this endpoint');
+    }
+
     /**
      * Resolves the deck input for endpoints that accept either a pre-resolved
-     * `deck` payload or a `swudbLink` to be fetched server-side.
+     * `deck` payload or a supported deck link to be fetched server-side.
      *
-     * If `swudbLink` is provided, fetches the deck from swudb.com via
-     * {@link SwuDbDeckFetcher}. On failure, writes the appropriate error
+     * If `swudbLink` is provided, fetches the deck from the matching backend
+     * resolver. On failure, writes the appropriate error
      * response to `res` and returns `null` so the caller can short-circuit.
      *
      * If only `deck` is provided, returns it unchanged. If neither is
@@ -1937,14 +1953,14 @@ export class GameServer {
     ): Promise<ISwuDbFormatDecklist | null> {
         if (typeof body.swudbLink === 'string' && body.swudbLink.trim().length > 0) {
             try {
-                return await this.swuDbDeckFetcher.fetchAsync(body.swudbLink);
+                return await this.fetchDeckLinkAsync(body.swudbLink);
             } catch (err) {
-                if (err instanceof SwuDbFetchError) {
+                if (err instanceof DeckFetchError) {
                     res.status(err.status).json({ success: false, error: err.message });
                     return null;
                 }
-                logger.error('GameServer (resolveDeckInputAsync): unexpected error resolving swudbLink', err);
-                res.status(500).json({ success: false, error: 'Failed to resolve swudb deck link' });
+                logger.error('GameServer (resolveDeckInputAsync): unexpected error resolving deck link', err);
+                res.status(500).json({ success: false, error: 'Failed to resolve deck link' });
                 return null;
             }
         }
@@ -2878,4 +2894,3 @@ export class GameServer {
         return { stopped: cpuResult.stopped || heapResult.stopped };
     }
 }
-
