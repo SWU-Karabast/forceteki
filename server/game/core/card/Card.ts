@@ -1439,6 +1439,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     public override getShortSummary() {
         return {
             ...super.getShortSummary(),
+            subtitle: this.subtitle,
             controllerId: this.controller.id,
             setId: this.setId,
             type: ChatObjectType.Card,
