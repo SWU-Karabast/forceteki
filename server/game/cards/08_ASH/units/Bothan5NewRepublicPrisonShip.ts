@@ -14,8 +14,8 @@ export default class Bothan5NewRepublicPrisonShip extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'This unit capture the defeated unit from your discard pile',
-            contextTitle: (context) => `${context.source.title} capture ${context.event.card.title} from your discard pile`,
+            title: 'This unit captures the defeated unit from your discard pile',
+            contextTitle: (context) => `${context.source.title} captures ${context.event.card.title} from your discard pile`,
             when: {
                 onCardDefeated: (event, context) =>
                     EnumHelpers.isUnit(event.lastKnownInformation.type) &&
