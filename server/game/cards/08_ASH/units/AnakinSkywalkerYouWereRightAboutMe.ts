@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class AnakinSkywalkerYouWereRightAboutMe extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'anakin-skywalker#you-were-right-about-me-id',
+            id: '6510578496',
             internalName: 'anakin-skywalker#you-were-right-about-me',
         };
     }
