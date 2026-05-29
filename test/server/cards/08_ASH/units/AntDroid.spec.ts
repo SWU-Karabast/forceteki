@@ -7,7 +7,8 @@ describe('Ant Droid', function() {
                     groundArena: ['ant-droid'],
                 },
                 player2: {
-                    hand: ['vanquish']
+                    hand: ['vanquish'],
+                    hasInitiative: true
                 }
             });
 
@@ -16,7 +17,6 @@ describe('Ant Droid', function() {
             const startingHandSize = context.player1.hand.length;
             const startingDeckSize = context.player1.deck.length;
 
-            context.player1.passAction();
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.antDroid);
 
@@ -32,7 +32,8 @@ describe('Ant Droid', function() {
                     groundArena: ['ant-droid']
                 },
                 player2: {
-                    hand: ['no-glory-only-results']
+                    hand: ['no-glory-only-results'],
+                    hasInitiative: true
                 }
             });
 
@@ -41,7 +42,6 @@ describe('Ant Droid', function() {
             const startingHandSize = context.player2.hand.length - 1; // No Glory Only Results is in hand
             const startingDeckSize = context.player2.deck.length;
 
-            context.player1.passAction();
             context.player2.clickCard(context.noGloryOnlyResults);
             context.player2.clickCard(context.antDroid);
 

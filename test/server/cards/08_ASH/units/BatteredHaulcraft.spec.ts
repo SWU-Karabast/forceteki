@@ -10,6 +10,7 @@ describe('Battered Haulcraft', function () {
                 },
                 player2: {
                     spaceArena: ['green-squadron-awing', 'tieln-fighter'],
+                    groundArena: ['fleet-lieutenant']
                 }
             });
 
