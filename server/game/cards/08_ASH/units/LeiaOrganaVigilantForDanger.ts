@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class LeiaOrganaVigilantForDanger extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'leia-organa#vigilant-for-danger-id',
+            id: '8288798287',
             internalName: 'leia-organa#vigilant-for-danger',
         };
     }
