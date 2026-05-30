@@ -62,7 +62,7 @@ export default class MoffGideonIndomitableWarlord extends LeaderUnitCard {
 
     private addKeywordCopyAbility(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, keyword: NonParameterKeywordName) {
         registrar.addConstantAbility({
-            title: `This unit gains ${KeywordHelpers.keywordDescription(keyword)} while a friendly unit has ${KeywordHelpers.keywordDescription(keyword)}`,
+            title: `This unit gains ${KeywordHelpers.keywordDescription(keyword)} if it is on an Imperial unit in your discard pile`,
             condition: (context) => context.player.discard.some((x) =>
                 x.isUnit() && x.hasSomeTrait(Trait.Imperial) && x.hasSomeKeyword(keyword)
             ),
