@@ -9,9 +9,12 @@ import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 import { Helpers } from '../core/utils/Helpers';
 import type { FormatMessage } from '../core/chat/GameChat';
 
-export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties {
-    amount?: number;
-    entersReady?: boolean;
+export interface ICreateTokenUnitRequiredProperties {
+    amount: number;
+    entersReady: boolean;
+}
+
+export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties, Partial<ICreateTokenUnitRequiredProperties> {
 }
 
 /** Base class for managing the logic for creating token units and putting them into play */

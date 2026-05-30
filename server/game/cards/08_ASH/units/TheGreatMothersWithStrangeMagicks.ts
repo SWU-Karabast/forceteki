@@ -12,7 +12,7 @@ export default class TheGreatMothersWithStrangeMagicks extends NonLeaderUnitCard
 
     protected override getImplementationId() {
         return {
-            id: 'the-great-mothers#with-strange-magicks-id',
+            id: '5392982470',
             internalName: 'the-great-mothers#with-strange-magicks',
         };
     }

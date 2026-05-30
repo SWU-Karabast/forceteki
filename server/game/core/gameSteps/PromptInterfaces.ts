@@ -44,6 +44,7 @@ export enum StatefulPromptType {
     DistributeIndirectDamage = 'distributeIndirectDamage',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
+    DistributeAdvantage = 'distributeAdvantage',
 }
 
 export enum SelectCardMode {
@@ -55,6 +56,7 @@ export type DistributePromptType =
   | StatefulPromptType.DistributeDamage
   | StatefulPromptType.DistributeIndirectDamage
   | StatefulPromptType.DistributeExperience
+  | StatefulPromptType.DistributeAdvantage
   | StatefulPromptType.DistributeHealing;
 
 export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;

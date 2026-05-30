@@ -76,7 +76,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
         event.entersReady = entersReady ||
-          card.hasOngoingEffect(EffectName.EntersPlayReady) ||
+          this.checkEntersPlayReady(card, newController) ||
           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
         event.newController = newController;
         event.setPreResolutionEffect((event) => {
@@ -87,7 +87,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
                 }
                 context.game.queueSimpleStep(() => {
                     if (!event.entersReady) {
-                        event.entersReady = card.hasOngoingEffect(EffectName.EntersPlayReady) ||
+                        event.entersReady = this.checkEntersPlayReady(card, newController) ||
                           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
                     }
                 }, `Update onUnitEntersPlay event after resolving pre-enter play abilities for ${card.internalName}`);
@@ -97,5 +97,27 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
         return context.player || card.owner;
+    }
+
+    /**
+     * Evaluates EntersPlayReady constant ability conditions using the new controller as
+     * `context.player`, rather than the card's current controller (which is the original
+     * owner when an opponent plays the card via e.g. Vermillion).
+     */
+    private checkEntersPlayReady(card: Card, newController: Player): boolean {
+        for (const ability of card.getConstantAbilities()) {
+            for (const effect of ability.registeredEffects) {
+                if (effect.type !== EffectName.EntersPlayReady) {
+                    continue;
+                }
+                if (!effect.impl.isConditional) {
+                    return true;
+                }
+                if (effect.condition(effect.context.copy({ player: newController }))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

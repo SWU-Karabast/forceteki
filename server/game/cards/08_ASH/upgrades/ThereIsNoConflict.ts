@@ -6,7 +6,7 @@ import { TargetMode } from '../../../core/Constants';
 export default class ThereIsNoConflict extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'there-is-no-conflict-id',
+            id: '8773190295',
             internalName: 'there-is-no-conflict',
         };
     }
