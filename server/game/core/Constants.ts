@@ -339,6 +339,7 @@ export enum MetaEventName {
     DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
+    DistributeAdvantage = 'distributeAdvantage',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',

@@ -6,7 +6,7 @@ import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core
 export default class MoffGideonRemnantCommander extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'moff-gideon#remnant-commander-id',
+            id: '4641653534',
             internalName: 'moff-gideon#remnant-commander'
         };
     }

@@ -5,7 +5,7 @@ import { TokenUpgradeCard } from '../../../core/card/TokenCards';
 export default class Advantage extends TokenUpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'advantage-id',
+            id: '5844562972',
             internalName: 'advantage',
         };
     }

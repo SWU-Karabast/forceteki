@@ -13,7 +13,7 @@ export default class LukeSkywalkerICanSaveHim extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'luke-skywalker#i-can-save-him-id',
+            id: '6397550626',
             internalName: 'luke-skywalker#i-can-save-him',
         };
     }

@@ -100,5 +100,76 @@ describe('Rose Tico, Now It\'s Worth It', function () {
             expect(context.roseTico).toBeInZone('groundArena', context.player1);
             expect(context.roseTico.exhausted).toBeFalse();
         });
+
+        it('should not enter play ready when played from opponent\'s deck via Vermillion and the player has no non-unique units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['vermillion#qiras-auction-house']
+                },
+                player2: {
+                    deck: ['rose-tico#now-its-worth-it'],
+                    groundArena: ['crafty-smuggler']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks with Vermillion
+            context.player1.clickCard(context.vermillion);
+            context.player1.clickCard(context.p2Base);
+
+            // Choose opponent's deck
+            context.player1.clickPrompt('Opponent\'s deck');
+
+            // View revealed card
+            context.player1.clickDone();
+
+            // Choose yourself to play Rose Tico
+            context.player1.clickPrompt('You');
+
+            // Choose to play the card for free
+            context.player1.clickPrompt('Trigger');
+
+            // Rose should NOT enter play ready because P1 does not control any non-unique units
+            expect(context.roseTico).toBeInZone('groundArena', context.player1);
+            expect(context.roseTico.exhausted).toBeTrue();
+        });
+
+        it('should enter play ready when played from opponent\'s deck via Vermillion and the player has a non-unique unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['vermillion#qiras-auction-house'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    deck: ['rose-tico#now-its-worth-it'],
+                    groundArena: ['crafty-smuggler']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks with Vermillion
+            context.player1.clickCard(context.vermillion);
+            context.player1.clickCard(context.p2Base);
+
+            // Choose opponent's deck
+            context.player1.clickPrompt('Opponent\'s deck');
+
+            // View revealed card
+            context.player1.clickDone();
+
+            // Choose yourself to play Rose Tico
+            context.player1.clickPrompt('You');
+
+            // Choose to play the card for free
+            context.player1.clickPrompt('Trigger');
+
+            // Rose SHOULD enter play ready because P1 controls a non-unique unit (Battlefield Marine)
+            expect(context.roseTico).toBeInZone('groundArena', context.player1);
+            expect(context.roseTico.exhausted).toBeFalse();
+        });
     });
 });
