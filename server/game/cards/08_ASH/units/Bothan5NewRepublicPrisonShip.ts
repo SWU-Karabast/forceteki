@@ -7,7 +7,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class Bothan5NewRepublicPrisonShip extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bothan5#new-republic-prison-ship-id',
+            id: '8459332679',
             internalName: 'bothan5#new-republic-prison-ship',
         };
     }

@@ -38,7 +38,7 @@ describe('Bothan-5, New Republic Prison Ship', function() {
             context.player2.clickCard(context.atst);
             context.player2.clickCard(context.gungi);
 
-            expect(context.player1).toHavePassAbilityPrompt('Bothan-5 capture Gungi from your discard pile');
+            expect(context.player1).toHavePassAbilityPrompt('Bothan-5 captures Gungi from your discard pile');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeActivePlayer();
