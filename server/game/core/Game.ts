@@ -1675,6 +1675,7 @@ export class Game extends EventEmitter {
                     clientUIProperties: {},
                     spectators: {},
                     winners: [],
+                    constantEffects: [],
                 };
             }
 
@@ -1683,7 +1684,7 @@ export class Game extends EventEmitter {
                 for (const player of this.getPlayers()) {
                     playerState[player.id] = player.getStateSummary(activePlayer);
                 }
-
+                const constantEffects = this.ongoingEffectEngine.summarizeConstantEffectsForState();
                 const allMessages = this.gameChat.messages;
                 const totalMessages = allMessages.length;
                 const newMessages = allMessages.slice(lastMessageOffset);
@@ -1710,6 +1711,7 @@ export class Game extends EventEmitter {
                     gameMode: this.gameMode,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
+                    constantEffects,
                 };
 
                 // Advance the offset for this participant

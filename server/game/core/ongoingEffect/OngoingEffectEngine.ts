@@ -11,6 +11,8 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
 import type { MsgArg } from '../chat/GameChat';
+import type { IConstantEffectSummary } from '../../Interfaces';
+import { StaticOngoingEffectImpl } from './effectImpl/StaticOngoingEffectImpl';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
@@ -94,6 +96,99 @@ export class OngoingEffectEngine extends GameObjectBase {
         }
         this.effectsChangedSinceLastCheck = true;
         return effect;
+    }
+
+    /**
+     * Returns the currently active constant effects in a shape the FE renders directly.
+     * Includes ALL effect types — narrow via the type allowlist if the panel gets noisy.
+     */
+    public summarizeConstantEffectsForState(): IConstantEffectSummary[] {
+        return this.effects
+            .filter((effect) => {
+                if (!effect.isEffectActive()) {
+                    return false;
+                }
+                if (!effect.source?.isCard?.()) {
+                    return false;
+                }
+                if (
+                    effect.impl instanceof StaticOngoingEffectImpl &&
+                    effect.impl?.type === EffectName.EntersPlayReady
+                ) {
+                    return false;
+                }
+                return true;
+            })
+            .map((effect) => {
+                const source = effect.source as any;
+                const readEffectDescription = (effect: any, source: any): string | undefined => {
+                    // Lasting effects — most descriptive when set by card author
+                    const lastingDesc = effect?.ongoingEffect?.ongoingEffectDescription;
+                    if (typeof lastingDesc === 'string') {
+                        return lastingDesc;
+                    }
+                    if (lastingDesc?.format) {
+                        return lastingDesc.format;
+                    }
+
+                    // Delayed effects
+                    const delayedDesc = effect?.ongoingEffect?.effectDescription;
+                    if (typeof delayedDesc === 'string') {
+                        return delayedDesc;
+                    }
+                    if (delayedDesc?.format) {
+                        return delayedDesc.format;
+                    }
+
+                    // Static/dynamic via impl getter
+                    const implDesc = effect?.impl?.effectDescription;
+                    if (typeof implDesc === 'string') {
+                        return implDesc;
+                    }
+                    if (implDesc?.format) {
+                        return implDesc.format;
+                    }
+
+                    // Final fallback
+                    return source?.text ?? source?.printedText;
+                };
+                // targets can be Card | Card[] | Player | Player[]; we only keep cards
+                const targetsArray = Array.isArray(effect.targets)
+                    ? effect.targets
+                    : [effect.targets];
+                const cardTargets = targetsArray
+                    .filter((t: any) => t && typeof t.isCard === 'function' && t.isCard())
+                    .map((target: any) => ({
+                        uuid: target.uuid,
+                        id: target.id,
+                        name: target.printedName ?? target.name,
+                        type: target.type,
+                        setId: target.setId,
+                        controllerId: target.controller?.id ?? target.owner?.id,
+                        zone: target.zoneName,
+                    }));
+
+                return {
+                    sourceCardUuid: source.uuid,
+                    cardData: {
+                        uuid: source.uuid,
+                        id: source.id,
+                        name: source.printedName ?? source.name,
+                        type: source.type,
+                        setId: source.setId,
+                        controllerId: source.controller?.id ?? source.owner?.id,
+                        ownerId: source.owner?.id,
+                        sourceZone: source.zoneName,
+                        effectMetadata: {
+                            effectTitle: source.printedName ?? source.name,
+                            effectSubtitle: source.title,  // unit subtitle, undefined for events
+                            effectDescription: readEffectDescription(effect, source),
+                            effectName: String(effect.impl?.type ?? ''),
+                        },
+                    },
+                    targets: cardTargets,
+                };
+            });
     }
 
     public checkDelayedEffects(events: GameEvent[]) {
