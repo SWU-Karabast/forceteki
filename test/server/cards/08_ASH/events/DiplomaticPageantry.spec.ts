@@ -78,7 +78,7 @@ describe('Diplomatic Pageantry', function() {
             context.player1.clickCard(context.battlefieldMarine);
 
             expect(context.battlefieldMarine.exhausted).toBeTrue();
-            expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
+            expect(context.battlefieldMarine.isUpgraded()).toBe(false);
             expect(context.player2).toBeActivePlayer();
             expect(context.getChatLogs()).toEqual([
                 'player1 plays Diplomatic Pageantry to exhaust Battlefield Marine',
@@ -104,6 +104,7 @@ describe('Diplomatic Pageantry', function() {
             context.player1.clickCard(context.atst);
 
             expect(context.atst.exhausted).toBeTrue();
+            expect(context.battlefieldMarine.isUpgraded()).toBe(false);
             expect(context.player2).toBeActivePlayer();
             expect(context.getChatLogs()).toEqual([
                 'player1 plays Diplomatic Pageantry to exhaust AT-ST',

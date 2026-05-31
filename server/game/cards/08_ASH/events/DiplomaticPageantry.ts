@@ -19,14 +19,12 @@ export default class DiplomaticPageantry extends EventCard {
                     activePromptTitle: 'Choose a friendly unit to exhaust',
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
-                    cardCondition: (card) => card.canBeExhausted() && !card.exhausted,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 },
                 enemyUnit: {
                     activePromptTitle: 'Choose an enemy unit to exhaust',
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
-                    cardCondition: (card) => card.canBeExhausted() && !card.exhausted,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }
             },
