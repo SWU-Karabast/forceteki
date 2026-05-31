@@ -15,7 +15,7 @@ export default class FollowMe extends EventCard {
         registrar.setEventAbility({
             title: 'Attack with a unit. After completing the attack, give 3 Advantage tokens to a unit',
             initiateAttack: {},
-            then: {
+            ifYouDo: {
                 title: 'Give 3 Advantage tokens to a unit',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
