@@ -276,11 +276,7 @@ describe('Moff Gideon, Indomitable Warlord', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.echoBaseDefender, context.porg, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Ambush',
-                    'Shielded',
-                    'Support',
-                ]);
+                expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Shielded', 'Support']);
                 context.player1.clickPrompt('Shielded');
 
                 // Use Support to attack with another friendly ability (should give all other Keyword)
@@ -334,7 +330,7 @@ describe('Moff Gideon, Indomitable Warlord', function () {
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.moffGideon]);
                 context.player2.clickCard(context.p1Base);
 
-                expect(context.moffGideon).toHaveExactUpgradeNames([])
+                expect(context.moffGideon).toHaveExactUpgradeNames([]);
             });
 
             it('should not copy anything from non-Imperial friendly unit on discard', async function () {
@@ -355,7 +351,7 @@ describe('Moff Gideon, Indomitable Warlord', function () {
                 context.player1.clickPrompt('Deploy Moff Gideon');
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.moffGideon).toHaveExactUpgradeNames([])
+                expect(context.moffGideon).toHaveExactUpgradeNames([]);
 
                 context.player2.passAction();
 
