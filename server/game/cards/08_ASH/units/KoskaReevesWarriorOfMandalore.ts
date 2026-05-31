@@ -22,13 +22,12 @@ export default class KoskaReevesWarriorOfMandalore extends NonLeaderUnitCard {
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While you control a token unit, this unit gains Sentinel',
-            matchTarget: (card, context) => card === context.source,
             condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isTokenUnit() }),
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
 
         registrar.addWhenPlayedAbility({
-            title: 'If a friendly unit was defeated this phase, create a Mandalorian token',
+            title: 'Create a Mandalorian token',
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) =>
                     this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),

@@ -23,7 +23,7 @@ export default class CrixMadineStrikeTeamStrategist extends NonLeaderUnitCard {
                     const firstPart = `Play a ${TextHelper.aspect(Aspect.Heroism)} unit from your hand.`;
                     const costAdjustment = this.computeCost(context.player);
                     const secondPart = costAdjustment === 0
-                        ? 'As your opponent controls more or equal units than you in both arena, there is no cost reduction.'
+                        ? '(No cost reduction)'
                         : `It costs ${TextHelper.resource(this.computeCost(context.player))} less.`;
 
                     return `${firstPart} ${secondPart}`;
