@@ -5,6 +5,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import { Contract } from '../core/utils/Contract';
 import { GameEvent } from '../core/event/GameEvent';
 import type { ILeaderUnitCard } from '../core/card/LeaderUnitCard';
+import { promptForPlotCardsToReveal } from './DeployLeaderSystem';
 
 export interface IDeployAndAttachLeaderPilotProperties extends ICardTargetSystemProperties {
     leaderPilotCard: ILeaderUnitCard;
@@ -27,6 +28,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
             type: DeployType.LeaderUpgrade,
             parentCard: event.leaderAttachTarget
         });
+        promptForPlotCardsToReveal(event);
     }
 
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): [string, any[]] {
