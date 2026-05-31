@@ -614,3 +614,41 @@ export interface ICardAttributes {
     // TODO: Add more attributes as needed
     traits: Set<Trait>;
 }
+
+
+/** Constant effects */
+export interface IConstantEffectMetadataSummary {
+    effectTitle: string;
+    effectDescription?: string;
+    effectType?: 'static' | 'dynamic' | 'detached';
+    effectName?: string;          // mirrors EffectName enum value
+    isOpponentEffect?: boolean;   // FE convenience flag, optional
+}
+
+export interface IConstantEffectSourceCardSummary {
+    uuid: string;
+    setId: { set: string; number: number };
+    id?: string;
+    name?: string;
+    type?: string;
+    controllerId: string;
+    ownerId?: string;
+    sourceZone?: string;
+    effectMetadata: IConstantEffectMetadataSummary;
+}
+
+export interface IConstantEffectTargetSummary {
+    uuid: string;
+    setId: { set: string; number: number };
+    id?: string;
+    name?: string;
+    type?: string;
+    controllerId: string;
+    zone?: string;
+}
+
+export interface IConstantEffectSummary {
+    sourceCardUuid: string;
+    cardData: IConstantEffectSourceCardSummary;
+    targets: IConstantEffectTargetSummary[];
+}
