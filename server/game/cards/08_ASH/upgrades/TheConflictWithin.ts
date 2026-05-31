@@ -35,7 +35,8 @@ export default class TheConflictWithin extends UpgradeCard {
                         target: context.source
                     }),
                     promptButtonText: NamedAction.Exhaust
-                }
+                },
+                highlightCards: (context) => context.source,
             }
         });
     }
