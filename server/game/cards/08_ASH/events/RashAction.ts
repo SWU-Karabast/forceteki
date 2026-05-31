@@ -14,7 +14,7 @@ export default class RashAction extends EventCard {
 
     protected override getImplementationId() {
         return {
-            id: 'rash-action-id',
+            id: '7252605094',
             internalName: 'rash-action',
         };
     }
