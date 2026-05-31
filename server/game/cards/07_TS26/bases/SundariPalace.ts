@@ -19,7 +19,7 @@ export default class SundariPalace extends BaseCard {
                 zoneFilter: ZoneName.Hand,
                 numCardsFunc: (context) => context.player.getArenaUnits({ condition: (c) => c.isLeaderUnit() }).length,
                 canChooseNoCards: true,
-                immediateEffect: abilityHelper.immediateEffects.resourceCard()
+                immediateEffect: abilityHelper.immediateEffects.resourceCard({ readyResource: true })
             },
             ifYouDo: (ifYouDoContext) => {
                 return ({
