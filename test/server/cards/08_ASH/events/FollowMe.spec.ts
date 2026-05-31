@@ -21,8 +21,8 @@ describe('Follow Me', function() {
             expect(context.player1).not.toHaveChooseNothingButton();
             expect(context.player1).not.toHavePassAbilityButton();
 
-            context.player1.clickCard(context.awing)
-            context.player1.clickCard(context.p2Base)
+            context.player1.clickCard(context.awing);
+            context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.awing, context.atst, context.consularSecurityForce]);
             expect(context.player1).not.toHaveChooseNothingButton();
@@ -30,8 +30,8 @@ describe('Follow Me', function() {
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.p2Base.damage).toBe(2)
-            expect(context.wampa).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage'])
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.wampa).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage']);
         });
 
         it('should give 3 Advantage tokens to a unit even if we cannot attack', async function() {
@@ -39,7 +39,7 @@ describe('Follow Me', function() {
                 phase: 'action',
                 player1: {
                     hand: ['follow-me'],
-                    spaceArena: [{card: 'awing', exhausted: true }]
+                    spaceArena: [{ card: 'awing', exhausted: true }]
                 },
                 player2: {
                     groundArena: ['atst', 'consular-security-force'],
@@ -58,7 +58,7 @@ describe('Follow Me', function() {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p2Base.damage).toBe(0);
-            expect(context.awing).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage'])
+            expect(context.awing).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage']);
         });
     });
 });
