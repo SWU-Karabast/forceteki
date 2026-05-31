@@ -27,6 +27,7 @@ describe('Sundari Palace', function() {
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.wampa).toBeInZone('resource', context.player1);
+                expect(context.wampa.exhausted).toBeFalse();
                 expect(context.sundariPalace.epicActionSpent).toBeTrue();
 
                 context.moveToRegroupPhase();
