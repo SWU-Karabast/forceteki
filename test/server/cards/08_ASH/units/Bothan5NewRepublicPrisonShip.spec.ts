@@ -164,5 +164,39 @@ describe('Bothan-5, New Republic Prison Ship', function() {
             expect(context.player1).toBeActivePlayer();
             expect(context.superlaserTechnician).toBeInZone('resource');
         });
+
+        it('Bothan-5\'s ability should capture a defeated friendly unit (further movements should not be triggered)', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['superlaser-technician'],
+                    spaceArena: ['bothan5#new-republic-prison-ship']
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['takedown'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            const resourceCount = context.player1.resources.length;
+
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.superlaserTechnician);
+
+            expect(context.player1).toHaveExactPromptButtons([
+                'Put Superlaser Technician into play as a resource and ready it',
+                'Bothan-5 captures Superlaser Technician from your discard pile'
+            ]);
+
+            context.player1.clickPrompt('Bothan-5 captures Superlaser Technician from your discard pile');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.superlaserTechnician).not.toBeInZone('resource');
+            expect(context.player1.resources.length).toBe(resourceCount);
+            expect(context.superlaserTechnician).toBeCapturedBy(context.bothan5);
+        });
     });
 });
