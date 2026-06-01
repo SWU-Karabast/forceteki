@@ -1,5 +1,23 @@
 const mockCards = [
     // Add mock cards here
+    buildMockCard({
+        title: 'Qi\'ra',
+        subtitle: 'Master of Teräs Käsi',
+        cost: 7,
+        power: 9,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'ASH',
+            number: 226 // temporary guess
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'qira#master-of-teras-kasi',
+    }),
     // Mandalorian
     buildMockCard({
         title: 'Mandalorian',
