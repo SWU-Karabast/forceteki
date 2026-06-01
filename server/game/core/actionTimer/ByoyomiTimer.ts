@@ -63,7 +63,21 @@ export class ByoyomiTimer implements IByoyomiTimer {
     }
 
     public get timeRemainingStatus(): PlayerTimeRemainingStatus {
-        return this.isOnMainTimer ? this.mainTimer.timeRemainingStatus : PlayerTimeRemainingStatus.NoAlert;
+        // Derived from current main-time remaining rather than handler-set state so the warning/danger
+        // icon reappears every time the player is actively burning low main time, not just the first
+        // crossing of each threshold. (One-shot handlers above still drive chat alerts.)
+        if (!this.isOnMainTimer || !this.mainTimer.isRunning) {
+            return PlayerTimeRemainingStatus.NoAlert;
+        }
+
+        const remainingSeconds = this.mainTimer.timeRemainingSeconds ?? ByoyomiTimer.MainTimeLimitSeconds;
+        if (remainingSeconds <= ByoyomiTimer.MainTimeDangerSeconds) {
+            return PlayerTimeRemainingStatus.Danger;
+        }
+        if (remainingSeconds <= ByoyomiTimer.MainTimeWarningSeconds) {
+            return PlayerTimeRemainingStatus.Warning;
+        }
+        return PlayerTimeRemainingStatus.NoAlert;
     }
 
     public constructor(
