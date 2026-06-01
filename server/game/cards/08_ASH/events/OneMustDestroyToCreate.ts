@@ -30,7 +30,8 @@ export default class OneMustDestroyToCreate extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     target: this.getTarget(thenContext),
                     playAsType: WildcardCardType.Unit,
-                    adjustCost: { costAdjustType: CostAdjustType.Free }
+                    adjustCost: { costAdjustType: CostAdjustType.Free },
+                    nested: true
                 })
             })
         });
