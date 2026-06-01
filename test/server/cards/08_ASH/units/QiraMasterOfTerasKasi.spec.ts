@@ -15,7 +15,7 @@ describe('Qira, Master Of Teras Kasi', function() {
                 });
             });
 
-            it('', function () {
+            it('can discard a card when played to deal 3 damage to a unit, and gets -1/-0 for each card in hand', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.qira);
@@ -39,7 +39,7 @@ describe('Qira, Master Of Teras Kasi', function() {
                 expect(context.qira.getHp()).toBe(7);
             });
 
-            it('', function () {
+            it('can pass discard', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.qira);
