@@ -180,6 +180,7 @@ export enum TargetMode {
     ExactlyVariable = 'exactlyVariable',
     MaxStat = 'maxStat',
     MultiplePlayers = 'multiplePlayers',
+    Number = 'number',
     Player = 'player',
     Select = 'select',
     SelectUnless = 'selectUnless',
@@ -661,4 +662,3 @@ export enum RematchMode {
     Bo1ConvertToBo3 = 'bo1ConvertToBo3',
     NewBo3 = 'newBo3',
 }
-

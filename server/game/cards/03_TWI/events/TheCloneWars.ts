@@ -20,8 +20,9 @@ export default class TheCloneWars extends EventCard {
             title: 'Pay any number of resources.',
             cannotTargetFirst: true,
             targetResolver: {
-                mode: TargetMode.DropdownList,
-                options: (context) => Array.from({ length: this.readyResourcesCount(context) + 1 }, (x, i) => `${i}`),
+                mode: TargetMode.Number,
+                min: 0,
+                max: (context) => this.readyResourcesCount(context),
                 condition: (context) => this.readyResourcesCount(context) > 0   // skip ability if there is no resources available
             },
             then: (thenContext) => ({
