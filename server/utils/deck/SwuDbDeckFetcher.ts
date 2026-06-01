@@ -1,18 +1,16 @@
 import { logger } from '../../logger';
 import type { ISwuDbFormatDecklist } from './DeckInterfaces';
+import { DeckFetchError } from './DeckFetchError';
 
 /**
  * Typed error returned from {@link SwuDbDeckFetcher.fetchAsync}. The HTTP
  * `status` and user-facing `message` are designed to be passed through to the
  * client unchanged so the existing FE error-handling UX is preserved.
  */
-export class SwuDbFetchError extends Error {
-    public readonly status: number;
-
+export class SwuDbFetchError extends DeckFetchError {
     public constructor(status: number, message: string) {
-        super(message);
+        super(status, message);
         this.name = 'SwuDbFetchError';
-        this.status = status;
     }
 }
 
