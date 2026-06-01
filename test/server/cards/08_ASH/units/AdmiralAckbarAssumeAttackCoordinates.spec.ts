@@ -24,7 +24,7 @@ describe('Admiral Ackbar, Assume Attack Coordinates', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.admiralAckbarAssumeAttackCoordinates);
-                expect(context.player1).toHavePrompt('Trigger the ability \'Defeat this unit. If you do, search the top 10 cards of your deck for any number of space units with combined cost 5 or less and play each of them for free.\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Defeat this unit. If you do, search the top 10 cards of your deck for any number of space units with combined cost 5 or less and play each of them for free.');
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
 
@@ -67,8 +67,7 @@ describe('Admiral Ackbar, Assume Attack Coordinates', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.admiralAckbarAssumeAttackCoordinates);
-                expect(context.player1).toHavePrompt('Trigger the ability \'Defeat this unit. If you do, search the top 10 cards of your deck for any number of space units with combined cost 5 or less and play each of them for free.\' or pass');
-                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHavePassAbilityPrompt('Defeat this unit. If you do, search the top 10 cards of your deck for any number of space units with combined cost 5 or less and play each of them for free.');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHavePrompt('Choose any Space units with combined cost 5 or less to play for free');

@@ -85,6 +85,36 @@ describe('Paz Vizsla, For a Brighter Future', function() {
 
                 expect(context.player1).toBeActivePlayer();
             });
+
+            it('should create Mandalorian tokens if killed by on attack ping', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine', { card: 'paz-vizsla#for-a-brighter-future', damage: 6 }],
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        groundArena: ['sabine-wren#explosives-artist'],
+                        resources: 10,
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.sabineWren);
+                context.player2.clickCard(context.pazVizslaForABrighterFuture);
+                context.player2.clickCard(context.pazVizslaForABrighterFuture);
+                context.player1.clickPrompt('Shielded');
+
+                const mandalorians = context.player1.findCardsByName('mandalorian');
+
+                expect(mandalorians.length).toBe(2);
+                expect(mandalorians).toAllBeInZone('groundArena');
+                expect(mandalorians.every((m) => m.exhausted)).toBeTrue();
+
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });
