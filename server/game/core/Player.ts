@@ -136,6 +136,15 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this._leader;
     }
 
+    @stateRef() private accessor _secondLeader: ILeaderCard | null = null;
+    public get secondLeader(): ILeaderCard | null {
+        return this._secondLeader;
+    }
+
+    public get leaders(): ILeaderCard[] {
+        return [this._leader, this._secondLeader].filter((l): l is ILeaderCard => l !== null);
+    }
+
     @stateRef() private accessor _base: IBaseCard | null = null;
     public get base(): IBaseCard {
         return this._base;
@@ -724,6 +733,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
         this._base = this.game.getFromId(preparedDecklist.base);
         this._leader = this.game.getFromId(preparedDecklist.leader);
+        if (preparedDecklist.secondLeader) {
+            this._secondLeader = this.game.getFromId(preparedDecklist.secondLeader);
+        }
 
         this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromId(x)));
 
@@ -741,7 +753,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this._baseZone = new BaseZone(this.game, this, this.base, this.leader);
+        this._baseZone = new BaseZone(this.game, this, this.base, this.leaders);
 
         this._decklist = preparedDecklist;
     }
@@ -804,7 +816,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * Returns the aspects for this player (derived from base and leader)
      */
     public getAspects() {
-        return this.leader.aspects.concat(this.base.aspects);
+        return this.leaders.flatMap((l) => l.aspects).concat(this.base.aspects);
     }
 
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
@@ -1178,6 +1190,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
             leader: this.leader?.getSummary(activePlayer),
+            secondLeader: this.secondLeader?.getSummary(activePlayer),
             base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
@@ -1308,8 +1321,11 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                     )));
             }
 
-            // Leader
+            // Leader(s)
             state.leader = Helpers.safeSerialize(this.game, () => this.leader.captureCardState(), null);
+            if (this._secondLeader) {
+                state.secondLeader = Helpers.safeSerialize(this.game, () => this._secondLeader.captureCardState(), null);
+            }
 
             // Base
             state.base = Helpers.safeSerialize(this.game, () => this.base.captureCardState(), null);

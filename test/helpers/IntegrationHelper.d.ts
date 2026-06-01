@@ -67,8 +67,10 @@ interface SwuTestContext {
     player2: PlayerInteractionWrapper;
     p1Base: IBaseCard;
     p1Leader: ILeaderCard;
+    p1SecondLeader: ILeaderCard | null;
     p2Base: IBaseCard;
     p2Leader: ILeaderCard;
+    p2SecondLeader: ILeaderCard | null;
 
     ignoreUnresolvedActionPhasePrompts: boolean;
     requireResolvedRegroupPhasePrompts: boolean;
@@ -107,6 +109,12 @@ interface SwuSetupTestOptions extends ISerializedGameState {
     phaseTransitionHandler?: (phase: PhaseName) => void;
     testUndo?: boolean;
     enableConfirmationToUndo?: boolean;
+
+    /** Player structure: OneVsOne (default) or Multiplayer. */
+    gameMode?: import('../../server/GameMode').GameMode;
+
+    /** Deck/rules format being played. Defaults to Premier. Use 'fauxSuns' for 1v1 Twin Suns. Accepts SwuGameFormat enum values or their string equivalents. */
+    format?: import('../../server/game/core/Constants').SwuGameFormat | string;
 
     [field: string]: any;
 }

@@ -32,6 +32,7 @@ import {
     RollbackRoundEntryPoint,
     RollbackSetupEntryPoint,
     SnapshotType,
+    SwuGameFormat,
     TokenCardName,
     TokenUpgradeName,
     TokenUnitName,
@@ -100,6 +101,8 @@ import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
+import { ClaimBlastTokenSystem } from '../gameSystems/ClaimBlastTokenSystem';
+import { ClaimPlanTokenSystem } from '../gameSystems/ClaimPlanTokenSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 
@@ -143,6 +146,29 @@ export class Game extends EventEmitter {
 
     public set isInitiativeClaimed(value: boolean) {
         this.state.isInitiativeClaimed = value;
+    }
+
+    public get isPlanTokenClaimed() {
+        return this.state.isPlanTokenClaimed;
+    }
+
+    public set isPlanTokenClaimed(value: boolean) {
+        this.state.isPlanTokenClaimed = value;
+    }
+
+    public get isBlastTokenClaimed() {
+        return this.state.isBlastTokenClaimed;
+    }
+
+    public set isBlastTokenClaimed(value: boolean) {
+        this.state.isBlastTokenClaimed = value;
+    }
+
+    public allClaimTokensClaimed(): boolean {
+        if (this.format === SwuGameFormat.FauxSuns) {
+            return this.isInitiativeClaimed && this.isPlanTokenClaimed && this.isBlastTokenClaimed;
+        }
+        return true;
     }
 
     public get roundNumber() {
@@ -304,6 +330,7 @@ export class Game extends EventEmitter {
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
     public gameMode: GameMode;
+    public format: SwuGameFormat;
     public currentlyResolving: ICurrentlyResolving;
     public state: IGameState;
     public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
@@ -372,6 +399,7 @@ export class Game extends EventEmitter {
 
         this.manualMode = false;
         this.gameMode = details.gameMode;
+        this.format = details.format ?? SwuGameFormat.Premier;
 
         this.initializeCurrentlyResolving();
 
@@ -381,6 +409,8 @@ export class Game extends EventEmitter {
             actionPhaseActivePlayer: null,
             roundNumber: 0,
             isInitiativeClaimed: false,
+            isPlanTokenClaimed: false,
+            isBlastTokenClaimed: false,
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
@@ -1324,6 +1354,29 @@ export class Game extends EventEmitter {
         this.resolveGameState();
     }
 
+    public claimPlanToken(player: Player): void {
+        this.isPlanTokenClaimed = true;
+        player.passedActionPhase = true;
+
+        new ClaimPlanTokenSystem({}).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
+    }
+
+    public claimBlastToken(player: Player): void {
+        this.isBlastTokenClaimed = true;
+        player.passedActionPhase = true;
+
+        // TSTODO: update to blast all opponents
+        new ClaimBlastTokenSystem({}).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
+    }
+
     /**
      * Adds a step to the pipeline queue
      */
@@ -1696,6 +1749,7 @@ export class Game extends EventEmitter {
                     }),
                     started: this.started,
                     gameMode: this.gameMode,
+                    format: this.format,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                 };

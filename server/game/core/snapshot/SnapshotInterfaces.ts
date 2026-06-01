@@ -139,6 +139,8 @@ export interface IGameState {
     initiativePlayer: GameObjectId<Player> | null;
     actionPhaseActivePlayer: GameObjectId<Player> | null;
     isInitiativeClaimed: boolean;
+    isPlanTokenClaimed: boolean;
+    isBlastTokenClaimed: boolean;
     allCards: GameObjectId<Card>[];
     actionNumber: number;
     lastGameEventId: number;

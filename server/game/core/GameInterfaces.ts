@@ -1,4 +1,5 @@
 import type { GameMode } from '../../GameMode';
+import type { SwuGameFormat } from './Constants';
 import type { Lobby } from '../../gamenode/Lobby';
 import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
@@ -17,6 +18,9 @@ export interface GameConfiguration {
     spectators?: IUser[];
     allowSpectators: boolean;
     gameMode: GameMode;
+
+    /** The deck/rules format being played. Defaults to Premier when omitted. */
+    format?: SwuGameFormat;
     cardDataGetter: CardDataGetter;
     useActionTimer?: boolean;
     pushUpdate: () => void;

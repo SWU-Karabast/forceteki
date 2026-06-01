@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { EventName, EffectName, SnapshotType, SubStepCheck } from '../Constants.js';
+import { EffectName, EventName, SnapshotType, SubStepCheck, SwuGameFormat } from '../Constants.js';
 import { EnumHelpers } from '../utils/EnumHelpers.js';
 import { Contract } from '../utils/Contract.js';
 import type { Game } from '../Game.js';
@@ -137,12 +137,20 @@ export class ActionWindow extends UiPrompt {
 
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
+        const isFauxSuns = this.game.format === SwuGameFormat.FauxSuns;
+        const mustClaimToken = isFauxSuns && !this.game.allClaimTokensClaimed();
 
         const buttons: IButton[] = [
-            { text: 'Pass', arg: 'pass', disabled: mustTakeCardAction },
+            { text: 'Pass', arg: 'pass', disabled: mustTakeCardAction || mustClaimToken },
         ];
         if (!this.game.isInitiativeClaimed) {
             buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative', disabled: mustTakeCardAction });
+        }
+        if (isFauxSuns && !this.game.isPlanTokenClaimed) {
+            buttons.push({ text: 'Claim Plan', arg: 'claimPlan', disabled: mustTakeCardAction });
+        }
+        if (isFauxSuns && !this.game.isBlastTokenClaimed) {
+            buttons.push({ text: 'Claim Blast', arg: 'claimBlast', disabled: mustTakeCardAction });
         }
         if (this.game.manualMode) {
             buttons.unshift({ text: 'Manual Action', arg: 'manual', disabled: mustTakeCardAction });
@@ -185,6 +193,14 @@ export class ActionWindow extends UiPrompt {
                 this.claimInitiative();
                 return true;
 
+            case 'claimPlan':
+                this.claimPlan();
+                return true;
+
+            case 'claimBlast':
+                this.claimBlast();
+                return true;
+
             default:
                 Contract.fail(`Unknown menu command: ${choice}`);
         }
@@ -195,13 +211,23 @@ export class ActionWindow extends UiPrompt {
             this.game.addMessage('{0} passes', this.activePlayer);
         }
 
+        const allTokensClaimed = this.game.allClaimTokensClaimed();
+
         if (this.prevPlayerPassed) {
-            // in the (unusual) case that both players pass without claiming initiative, phase ends and initiative stays where it is
-            this.activePlayer.passedActionPhase = true;
-            this.activePlayer.opponent.passedActionPhase = true;
+            if (allTokensClaimed) {
+                // Both players have consecutively passed (or claimed tokens) and all tokens are claimed → action phase ends
+                this.activePlayer.passedActionPhase = true;
+                this.activePlayer.opponent.passedActionPhase = true;
+            } else {
+                // Tokens are still unclaimed; treat this pass as a token-claim pass and continue the phase
+                this.setPassStatus(true);
+            }
         } else if (this.activePlayer.opponent.passedActionPhase) {
-            // if opponent already claimed initiative, we're done
-            this.activePlayer.passedActionPhase = true;
+            if (allTokensClaimed) {
+                // Opponent has already passed (e.g. claimed initiative) and all tokens are claimed → active player is done too
+                this.activePlayer.passedActionPhase = true;
+            }
+            // If tokens are still unclaimed the active player must keep claiming; don't update pass status
         } else {
             this.setPassStatus(true);
         }
@@ -222,6 +248,22 @@ export class ActionWindow extends UiPrompt {
     public claimInitiative() {
         this.game.addMessage('{0} claims initiative and passes', this.activePlayer);
         this.game.claimInitiative(this.activePlayer);
+
+        // Calls this.complete()
+        this.pass(false);
+    }
+
+    public claimPlan() {
+        this.game.addMessage('{0} claims the Plan token and passes', this.activePlayer);
+        this.game.claimPlanToken(this.activePlayer);
+
+        // Calls this.complete()
+        this.pass(false);
+    }
+
+    public claimBlast() {
+        this.game.addMessage('{0} claims the Blast token and passes', this.activePlayer);
+        this.game.claimBlastToken(this.activePlayer);
 
         // Calls this.complete()
         this.pass(false);

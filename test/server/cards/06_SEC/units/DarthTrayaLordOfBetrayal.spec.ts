@@ -1,3 +1,4 @@
+﻿
 describe('Darth Traya, Lord of Betrayal', function() {
     integration(function(contextRef) {
         describe('Darth Traya\'s attack ability', function() {
@@ -129,5 +130,82 @@ describe('Darth Traya, Lord of Betrayal', function() {
                 expect(context.allianceXwing.exhausted).toBe(true);
             });
         });
+
+        describe('Darth Traya\'s attack ability - Twin Suns dual-leader interactions', function() {
+            it('should be able to target both p1 leaders alongside p2\'s leader', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        leader: { card: 'grand-inquisitor#hunting-the-jedi', exhausted: true },
+                        secondLeader: { card: 'saw-gerrera#bring-down-the-empire', exhausted: true },
+                        groundArena: ['darth-traya#lord-of-betrayal'],
+                        base: 'kestro-city',
+                    },
+                    player2: {
+                        leader: { card: 'yoda#sensing-darkness', exhausted: true },
+                        base: 'administrators-tower',
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthTraya);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.grandInquisitor, context.sawGerrera, context.yoda]);
+                context.player1.clickPrompt('Pass');
+            });
+
+            it('should ready the second leader when targeted', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        leader: 'grand-inquisitor#hunting-the-jedi',
+                        secondLeader: { card: 'saw-gerrera#bring-down-the-empire', exhausted: true },
+                        groundArena: ['darth-traya#lord-of-betrayal'],
+                        base: 'kestro-city',
+                    },
+                    player2: {
+                        leader: { card: 'yoda#sensing-darkness', exhausted: true },
+                        base: 'administrators-tower',
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthTraya);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.sawGerrera);
+                expect(context.sawGerrera.exhausted).toBe(false);
+                expect(context.yoda.exhausted).toBe(true);
+            });
+
+            it('should not be able to target the second leader when it is deployed', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        leader: { card: 'grand-inquisitor#hunting-the-jedi', exhausted: true },
+                        secondLeader: { card: 'saw-gerrera#bring-down-the-empire', exhausted: true, deployed: true },
+                        groundArena: ['darth-traya#lord-of-betrayal'],
+                        base: 'kestro-city',
+                    },
+                    player2: {
+                        leader: { card: 'yoda#sensing-darkness', exhausted: true },
+                        base: 'administrators-tower',
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthTraya);
+                context.player1.clickCard(context.p2Base);
+                // Saw is now a LeaderUnit â€” not a valid target; only grandInquisitor and yoda qualify
+                expect(context.player1).toBeAbleToSelectExactly([context.grandInquisitor, context.yoda]);
+                context.player1.clickPrompt('Pass');
+            });
+        });
     });
 });
+

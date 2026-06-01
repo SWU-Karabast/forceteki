@@ -174,6 +174,10 @@ import type { IGiveAdvantageProperties } from './GiveAdvantageSystem';
 import { GiveAdvantageSystem } from './GiveAdvantageSystem';
 import { CreateMandalorianSystem } from './CreateMandalorianSystem';
 import type { ICreateMandalorianProperties } from './CreateMandalorianSystem';
+import type { IClaimBlastTokenProperties } from './ClaimBlastTokenSystem';
+import { ClaimBlastTokenSystem } from './ClaimBlastTokenSystem';
+import type { IClaimPlanTokenProperties } from './ClaimPlanTokenSystem';
+import { ClaimPlanTokenSystem } from './ClaimPlanTokenSystem';
 import type { PropsFactory } from '../Interfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -196,6 +200,14 @@ export function capture<TContext extends AbilityContext = AbilityContext>(proper
 }
 export function cardLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardLastingEffectProperties, TContext>) {
     return new CardLastingEffectSystem<TContext>(propertyFactory);
+}
+/** Applies the Blast token effect: deals 1 ability damage to the target player's opponent's base */
+export function claimBlastToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IClaimBlastTokenProperties, TContext> = {}) {
+    return new ClaimBlastTokenSystem<TContext>(propertyFactory);
+}
+/** Applies the Plan token effect: draw 1 card, then put a card from hand on the bottom of your deck */
+export function claimPlanToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IClaimPlanTokenProperties, TContext> = {}) {
+    return new ClaimPlanTokenSystem<TContext>(propertyFactory);
 }
 export function collectBounty<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICollectBountyProperties, TContext>) {
     return new CollectBountySystem<TContext>(propertyFactory);

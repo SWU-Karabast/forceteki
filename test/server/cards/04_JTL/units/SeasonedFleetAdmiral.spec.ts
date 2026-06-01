@@ -74,5 +74,43 @@ describe('Seasoned Fleet Admiral', function () {
                 expect(context.player1).toHavePrompt('Choose an action');
             });
         });
+
+        it('should trigger when an opponent claims the Plan token in FauxSuns format', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    leader: 'luke-skywalker#faithful-friend',
+                    secondLeader: 'saw-gerrera#bring-down-the-empire',
+                    base: 'kestro-city',
+                    hand: [],
+                    deck: ['battlefield-marine', 'moment-of-peace'],
+                },
+                player2: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'administrators-tower',
+                    groundArena: ['seasoned-fleet-admiral'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickPrompt('Claim Plan');
+
+            // The Plan token's put-a-card-on-bottom prompt fires before Seasoned Fleet Admiral's trigger.
+            // Player1 drew battlefield-marine; they put it on the bottom first.
+            expect(context.player1).toHavePrompt('Choose a card from your hand to put on the bottom of your deck');
+            context.player1.clickCard(context.battlefieldMarine);
+
+            // Now Seasoned Fleet Admiral's trigger fires for player2 (opponent drew a card)
+            expect(context.player2).toHavePrompt('Give an Experience token to a unit');
+            expect(context.player2).toBeAbleToSelectExactly([context.seasonedFleetAdmiral]);
+            context.player2.clickCard(context.seasonedFleetAdmiral);
+
+            expect(context.seasonedFleetAdmiral).toHaveExactUpgradeNames(['experience']);
+
+            // Turn passes to player2
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
