@@ -1,7 +1,7 @@
 describe('Moff Gideon, Indomitable Warlord', function () {
     integration(function (contextRef) {
         describe('leader side ability', function () {
-            it('should allow paying 1 resource to draw a card when claiming initiative', async function () {
+            it('should play a unit from 1 hand. There is no cost reduction because no friendly Imperial unit was defeated this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -20,7 +20,7 @@ describe('Moff Gideon, Indomitable Warlord', function () {
                 expect(context.moffGideon.exhausted).toBeTrue();
             });
 
-            it('should allow paying 1 resource to draw a card when claiming initiative', async function () {
+            it('should play a unit from 1 hand. It costs 1 resource less as a friendly Imperial unit was defeated this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
