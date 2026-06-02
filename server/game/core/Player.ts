@@ -265,8 +265,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
     /**
      * Called by ByoyomiTimer when this player's main timer crosses a warning threshold.
-     * Emits a chat alert, but only when at least one player has the timer fully hidden —
-     * players with a visible clock already have their own warning signal.
+     * Emits a chat alert, so that the player and their opponent are aware of the time
+     * remaining, even for players that have the timer interface hidden.
      */
     private onMainTimerWarning(status: PlayerTimeRemainingStatus): void {
         if (status === PlayerTimeRemainingStatus.NoAlert) {
