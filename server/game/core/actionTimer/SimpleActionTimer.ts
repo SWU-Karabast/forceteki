@@ -53,6 +53,15 @@ export class SimpleActionTimer {
         return this._timeRemainingStatus;
     }
 
+    /**
+     * Resets the warning status back to NoAlert without affecting the underlying timer.
+     * Useful when the timer becomes inactive (e.g. paused or stopped) and any displayed
+     * warning state should be cleared.
+     */
+    public resetStatus(): void {
+        this._timeRemainingStatus = PlayerTimeRemainingStatus.NoAlert;
+    }
+
     public constructor(
         timeLimitSeconds: number,
         buildSafeTimeout: SafeTimeoutBuilder
