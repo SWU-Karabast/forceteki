@@ -196,7 +196,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
                 return new SelectTargetResolver(name, properties, this);
             case TargetMode.DropdownList:
                 return new DropdownListTargetResolver(name, properties, this);
-            case TargetMode.Number:
+            case TargetMode.ChooseNumber:
                 return new NumberTargetResolver(name, properties, this);
             case TargetMode.Player:
             case TargetMode.MultiplePlayers:

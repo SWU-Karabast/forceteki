@@ -180,7 +180,7 @@ export enum TargetMode {
     ExactlyVariable = 'exactlyVariable',
     MaxStat = 'maxStat',
     MultiplePlayers = 'multiplePlayers',
-    Number = 'number',
+    ChooseNumber = 'chooseNumber',
     Player = 'player',
     Select = 'select',
     SelectUnless = 'selectUnless',

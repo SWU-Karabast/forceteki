@@ -69,7 +69,7 @@ export interface ISelectUnlessTargetResolver<TContext extends AbilityContext> ex
 }
 
 export interface INumberTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
-    mode: TargetMode.Number;
+    mode: TargetMode.ChooseNumber;
     min: number | ((context: TContext) => number);
     max: number | ((context: TContext) => number);
     condition?: (context: AbilityContext) => boolean;

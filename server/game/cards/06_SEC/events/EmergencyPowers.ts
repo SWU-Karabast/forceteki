@@ -22,7 +22,7 @@ export default class EmergencyPowers extends EventCard {
                 thenCondition: (context) =>
                     context.player.readyResourceCount > 0 && context.game.hasSomeArenaUnit(),
                 targetResolver: {
-                    mode: TargetMode.Number,
+                    mode: TargetMode.ChooseNumber,
                     min: 0,
                     max: (context) => context.player.readyResourceCount,
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
