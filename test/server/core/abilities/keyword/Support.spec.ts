@@ -191,6 +191,30 @@ describe('Support keyword', function() {
             });
         });
 
+        it('the Raid value is captured when the attack is initiated, not updated dynamically during the attack', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['ezra-bridger#the-force-is-all-i-need'],
+                    spaceArena: ['the-ghost#heart-of-the-family', 'red-three#unstoppable']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Ezra (Raid 2: 1 from Red Three, 1 from Ghost)
+            context.player1.clickCard(context.ezraBridger);
+
+            // Select The Ghost
+            expect(context.player1).toBeAbleToSelectExactly([context.theGhost, context.redThree]);
+            context.player1.clickCard(context.theGhost);
+            context.player1.clickCard(context.p2Base);
+
+            // The Ghost should gain Raid 3 (1 from Red Three, 2 from Ezra via Support)
+            expect(context.p2Base.damage).toBe(8);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         describe('When the Support unit gains triggered abilities from another source', function() {
             it('the Support target gains the triggered ability for the attack', async function() {
                 await contextRef.setupTestAsync({

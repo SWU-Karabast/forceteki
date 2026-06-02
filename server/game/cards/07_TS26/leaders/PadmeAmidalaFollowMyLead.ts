@@ -1,8 +1,8 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import type { IInPlayCard } from '../../../core/card/baseClasses/InPlayCard';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsEnteredPlayThisPhaseWatcher } from '../../../stateWatchers/CardsEnteredPlayThisPhaseWatcher';
 
@@ -25,9 +25,13 @@ export default class PadmeAmidalaFollowMyLead extends LeaderUnitCard {
             title: 'Attack with a friendly unit that entered play this phase even if it\'s exhausted. It can\'t attack bases for this attack',
             cost: abilityHelper.costs.exhaustSelf(),
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => this.friendlyUnitsThatEnteredPlayThisPhase(context).length >= 2,
+                condition: (context) => this.friendlyUnitsEnteredPlayThisPhaseCount(context) >= 2,
                 onTrue: abilityHelper.immediateEffects.selectCard({
-                    cardCondition: (card, context) => card.isUnit() && this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
+                    cardCondition: (card, context) => card.isUnit() && this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
+                        entry.card.controller === context.player &&
+                        entry.playedBy === context.player &&
+                        entry.card.isInPlay()
+                    ).includes(card),
                     immediateEffect: abilityHelper.immediateEffects.attack({
                         targetCondition: (target) => target.isUnit(),
                         allowExhaustedAttacker: true,
@@ -42,9 +46,14 @@ export default class PadmeAmidalaFollowMyLead extends LeaderUnitCard {
             title: 'Attack with a friendly unit that entered play this phase even if it\'s exhausted. It can\'t attack bases for this attack',
             optional: true,
             targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Self,
                 cardCondition: (card, context) =>
-                    card.isUnit() && card !== context.source &&
-                    this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
+                    card !== context.source &&
+                    card.canBeInPlay() &&
+                    this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
+                        entry.card.controller === context.player
+                    ).includes(card),
                 immediateEffect: abilityHelper.immediateEffects.attack({
                     targetCondition: (target) => target.isUnit(),
                     allowExhaustedAttacker: true,
@@ -53,10 +62,9 @@ export default class PadmeAmidalaFollowMyLead extends LeaderUnitCard {
         });
     }
 
-    private friendlyUnitsThatEnteredPlayThisPhase(context: AbilityContext): IInPlayCard[] {
+    private friendlyUnitsEnteredPlayThisPhaseCount(context: AbilityContext): number {
         return this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
-            entry.card.controller === context.player &&
-            entry.card.isInPlay()
-        );
+            entry.playedBy === context.player
+        ).length;
     }
 }
