@@ -257,5 +257,31 @@ describe('Support keyword', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('Supported unit should copy Saboteur keyword immediately', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'moff-gideon#indomitable-warlord',
+                    discard: ['seventh-sister#implacable-inquisitor', 'rukh#from-the-shadows'],
+                    groundArena: ['wampa']
+                },
+                player2: {
+                    groundArena: ['echo-base-defender']
+                }
+            });
+            const { context } = contextRef;
+
+            // Deploy Moff Gideon, he gains Saboteur & Support from Imperial units on discard
+            context.player1.clickCard(context.moffGideon);
+            context.player1.clickPrompt('Deploy Moff Gideon');
+
+            // Attack with Wampa, it can ignore Sentinel because it gains Saboteur from Support
+            context.player1.clickCard(context.wampa);
+            expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.echoBaseDefender]);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
