@@ -6,6 +6,7 @@ describe('One Must Destroy To Create', function() {
                 player1: {
                     hand: ['one-must-destroy-to-create'],
                     groundArena: ['clan-wren-rescuer', 'wampa'],
+                    spaceArena: ['awing'],
                     leader: { card: 'boba-fett#collecting-the-bounty', deployed: true }
                 },
                 player2: {
@@ -19,7 +20,7 @@ describe('One Must Destroy To Create', function() {
             context.player1.clickCard(context.oneMustDestroyToCreate);
             expect(context.player1).toHavePrompt('Defeat a friendly non-leader unit');
             expect(context.player1).not.toHavePassAbilityButton();
-            expect(context.player1).toBeAbleToSelectExactly([context.clanWrenRescuer, context.wampa]); // Leaders should not be selectable
+            expect(context.player1).toBeAbleToSelectExactly([context.clanWrenRescuer, context.wampa, context.awing]); // Leaders should not be selectable
 
             context.player1.clickCard(context.clanWrenRescuer);
 
@@ -32,6 +33,7 @@ describe('One Must Destroy To Create', function() {
 
             expect(context.clanWrenRescuer).toBeInZone('groundArena', context.player1);
             expect(context.wampa).toHaveExactUpgradeNames(['experience']);
+            expect(context.player1.exhaustedResourceCount).toBe(3);
             expect(context.player2).toBeActivePlayer();
         });
 

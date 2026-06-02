@@ -106,6 +106,7 @@ describe('Pre Vizsla, Strong-Willed Ruler', function () {
                 context.outlandTieVanguard,
             ]);
             context.player1.clickCard(context.outlandTieVanguard);
+            context.player1.clickCardNonChecking(context.porg);
 
             context.player1.clickPrompt('Done');
 
@@ -517,6 +518,78 @@ describe('Pre Vizsla, Strong-Willed Ruler', function () {
             expect(context.wampa).toBeInZone('groundArena', context.player1);
             expect(context.awing).toBeInZone('spaceArena', context.player1);
             expect(context.corellianFreighter).toBeInZone('spaceArena', context.player2);
+            expect(context.grandInquisitor).toBeInZone('groundArena', context.player1);
+            expect(context.hanSolo).toBeInZone('groundArena', context.player2);
+            expect(context.preVizsla).toBeInZone('groundArena', context.player1);
+            expect(context.consularSecurityForce).toBeInZone('groundArena', context.player2);
+            expect(context.snowspeeder).toBeInZone('groundArena', context.player2);
+        });
+
+        it('should not defeat lurking tie and also not make the token', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['pre-vizsla#strongwilled-ruler'],
+                    groundArena: [
+                        'porg',
+                        'wampa',
+                        'jedha-agitator',
+                        'death-star-stormtrooper',
+                        'jawa-scavenger',
+                    ],
+                    spaceArena: ['awing', 'vanguard-ace', 'wing-leader', 'outland-tie-vanguard'],
+                    leader: { card: 'grand-inquisitor#hunting-the-jedi', deployed: true }
+                },
+                player2: {
+                    groundArena: [
+                        { card: 'atst', damage: 1 },
+                        'consular-security-force',
+                        'snowspeeder'
+                    ],
+                    spaceArena: ['lurking-tie-phantom'],
+                    leader: { card: 'han-solo#audacious-smuggler', deployed: true }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.preVizsla);
+            expect(context.player1).toHavePrompt('Choose any number of non-leader units with a total of 6 or less remaining HP');
+            expect(context.player1).toHaveChooseNothingButton();
+
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.preVizsla,
+                context.porg,
+                context.wampa,
+                context.awing,
+                context.jedhaAgitator,
+                context.deathStarStormtrooper,
+                context.vanguardAce,
+                context.jawaScavenger,
+                context.wingLeader,
+                context.outlandTieVanguard,
+                context.snowspeeder,
+                context.lurkingTiePhantom,
+                context.atst
+            ]);
+            context.player1.clickCard(context.lurkingTiePhantom);
+            context.player1.clickPrompt('Done');
+
+            const mandalorians = context.player1.findCardsByName('mandalorian');
+
+            expect(mandalorians.length).toBe(0);
+
+            expect(context.atst).toBeInZone('groundArena', context.player2);
+            expect(context.jedhaAgitator).toBeInZone('groundArena', context.player1);
+            expect(context.deathStarStormtrooper).toBeInZone('groundArena', context.player1);
+            expect(context.vanguardAce).toBeInZone('spaceArena', context.player1);
+            expect(context.jawaScavenger).toBeInZone('groundArena', context.player1);
+            expect(context.wingLeader).toBeInZone('spaceArena', context.player1);
+            expect(context.outlandTieVanguard).toBeInZone('spaceArena', context.player1);
+            expect(context.porg).toBeInZone('groundArena', context.player1);
+            expect(context.wampa).toBeInZone('groundArena', context.player1);
+            expect(context.awing).toBeInZone('spaceArena', context.player1);
+            expect(context.lurkingTiePhantom).toBeInZone('spaceArena', context.player2);
             expect(context.grandInquisitor).toBeInZone('groundArena', context.player1);
             expect(context.hanSolo).toBeInZone('groundArena', context.player2);
             expect(context.preVizsla).toBeInZone('groundArena', context.player1);
