@@ -21,6 +21,7 @@ export type IActionTargetResolver<TContext extends AbilityContext = AbilityConte
   | ICardTargetResolver<TContext>
   | ISelectTargetResolver<TContext>
   | ISelectUnlessTargetResolver<TContext>
+  | INumberTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
@@ -28,6 +29,7 @@ export type ITriggeredAbilityTargetResolver<TContext extends TriggeredAbilityCon
   | ICardTargetResolver<TContext>
   | ISelectTargetResolver<TContext>
   | ISelectUnlessTargetResolver<TContext>
+  | INumberTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
@@ -37,6 +39,7 @@ export type IActionTargetsResolverInner<TContext extends AbilityContext = Abilit
   | ICardTargetsResolver<TContext>
   | ISelectTargetResolver<TContext>
   | ISelectUnlessTargetResolver<TContext>
+  | INumberTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
@@ -44,6 +47,7 @@ export type ITriggeredAbilityTargetsResolverInner<TContext extends TriggeredAbil
   | ICardTargetsResolver<TContext>
   | ISelectTargetResolver<TContext>
   | ISelectUnlessTargetResolver<TContext>
+  | INumberTargetResolver<TContext>
   | IDropdownListTargetResolver<TContext>
   | IPlayerTargetResolver<TContext>;
 
@@ -62,6 +66,14 @@ export interface ISelectUnlessTargetResolver<TContext extends AbilityContext> ex
     unlessEffect: ISelectUnlessEffect<TContext>;
     /** The effect to resolve if the choosing player declines or cannot pay the unless effect (SelectUnless mode only) */
     defaultEffect: ISelectUnlessEffect<TContext>;
+}
+
+export interface INumberTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
+    mode: TargetMode.ChooseNumber;
+    min: number | ((context: TContext) => number);
+    max: number | ((context: TContext) => number);
+    condition?: (context: AbilityContext) => boolean;
+    logSelection?: boolean;
 }
 
 export interface IDropdownListTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
