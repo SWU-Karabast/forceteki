@@ -1,5 +1,5 @@
 import type { Card } from './card/Card';
-import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
+import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, INumberPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
 import type { Player } from './Player';
 
 export interface IPlayerPromptStateProperties {
@@ -12,6 +12,7 @@ export interface IPlayerPromptStateProperties {
 
     selectCardMode?: SelectCardMode;
     selectOrder?: boolean;
+    selectNumber?: INumberPromptData;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
     dropdownListOptions?: string[];
     displayCards?: IDisplayCard[];
@@ -32,6 +33,7 @@ export interface ICardSelectionState {
 export class PlayerPromptState {
     public selectCardMode? = null;
     public selectOrder = false;
+    public selectNumber?: INumberPromptData = null;
     public distributeAmongTargets?: IDistributeAmongTargetsPromptData = null;
     public menuTitle = '';
     public promptTitle = '';
@@ -81,6 +83,7 @@ export class PlayerPromptState {
         this.promptType = prompt.promptType;
         this.selectCardMode = prompt.selectCardMode;
         this.selectOrder = prompt.selectOrder ?? false;
+        this.selectNumber = prompt.selectNumber;
         this.menuTitle = prompt.menuTitle ?? '';
         this.distributeAmongTargets = prompt.distributeAmongTargets;
         this.dropdownListOptions = prompt.dropdownListOptions ?? [];
@@ -129,6 +132,7 @@ export class PlayerPromptState {
         return {
             selectCardMode: this.selectCardMode,
             selectOrder: this.selectOrder,
+            selectNumber: this.selectNumber,
             distributeAmongTargets: this.distributeAmongTargets,
             dropdownListOptions: this.dropdownListOptions,
             menuTitle: this.menuTitle,

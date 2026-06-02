@@ -16,6 +16,7 @@ export enum DisplayCardSelectionState {
 
 export enum PromptType {
     Initiative = 'initiative',
+    Number = 'number',
     Resource = 'resource',
     ActionWindow = 'actionWindow',
     DisplayCards = 'displayCards',
@@ -28,6 +29,11 @@ export interface IButton {
     arg: string;
     command?: string;
     disabled?: boolean;
+}
+
+export interface INumberPromptData {
+    min: number;
+    max: number;
 }
 
 export interface IDisplayCard {
