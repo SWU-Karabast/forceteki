@@ -27,10 +27,11 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Contract } from '../game/core/utils/Contract';
 import { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import { DeckSource, type IDeckValidationProperties, type ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { SwuDbDeckFetcher } from '../utils/deck/SwuDbDeckFetcher';
 import { MeleeDeckFetcher } from '../utils/deck/MeleeDeckFetcher';
 import { DeckFetchError } from '../utils/deck/DeckFetchError';
+import { DeckLinkResolver } from '../utils/deck/DeckLinkResolver';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import { Helpers } from '../game/core/utils/Helpers';
@@ -1170,7 +1171,7 @@ export class GameServer {
                             favourite: false,
                             deckLink: swudbLink,
                             deckLinkID: resolved.deckID ?? '',
-                            source: swudbLink.includes('melee.gg') ? 'Melee' : 'SWUDB',
+                            source: DeckLinkResolver.getDeckSource(swudbLink) === DeckSource.Melee ? 'Melee' : 'SWUDB',
                         },
                     };
                 } else if (deck) {
@@ -1272,8 +1273,8 @@ export class GameServer {
                 if (typeof deckLink !== 'string' || deckLink.trim().length === 0) {
                     return res.status(400).json({ success: false, error: 'Missing deckLink' });
                 }
-                if (!deckLink.includes('swudb.com') && !deckLink.includes('melee.gg')) {
-                    return res.status(400).json({ success: false, error: 'Only swudb.com and melee.gg links are supported by this endpoint' });
+                if (!DeckLinkResolver.isSupportedDeckLink(deckLink)) {
+                    return res.status(400).json({ success: false, error: DeckLinkResolver.unsupportedLinkMessage });
                 }
 
                 try {
@@ -1926,14 +1927,7 @@ export class GameServer {
     }
 
     private fetchDeckLinkAsync(deckLink: string): Promise<ISwuDbFormatDecklist> {
-        if (deckLink.includes('swudb.com')) {
-            return this.swuDbDeckFetcher.fetchAsync(deckLink);
-        }
-        if (deckLink.includes('melee.gg')) {
-            return this.meleeDeckFetcher.fetchAsync(deckLink);
-        }
-
-        throw new DeckFetchError(400, 'Only swudb.com and melee.gg links are supported by this endpoint');
+        return DeckLinkResolver.fetchDeckLinkAsync(deckLink, this.swuDbDeckFetcher, this.meleeDeckFetcher);
     }
 
     /**

@@ -6,6 +6,7 @@ import type { ISwuDbFormatCardEntry, IDecklistInternal, IInternalCardEntry, ILea
 import { DeckSource } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards } from '../../game/cards/Index';
+import { DeckLinkResolver } from './DeckLinkResolver';
 
 export class Deck {
     private static buildDecklistEntry(cardId: string, count: number, cardDataGetter: CardDataGetter): IInternalCardEntry {
@@ -82,18 +83,17 @@ export class Deck {
         }
         // Fallback to determining from deckLink
         if (deckLink) {
+            const supportedDeckSource = DeckLinkResolver.getDeckSource(deckLink);
             if (deckLink.includes('swustats.net')) {
                 return DeckSource.SWUStats;
-            } else if (deckLink.includes('swudb.com')) {
-                return DeckSource.SWUDB;
+            } else if (supportedDeckSource !== DeckSource.Unknown) {
+                return supportedDeckSource;
             } else if (deckLink.includes('swunlimiteddb.com')) {
                 return DeckSource.SWUnlimitedDB;
             } else if (deckLink.includes('swubase.com')) {
                 return DeckSource.SWUBase;
             } else if (deckLink.includes('swucardhub.fr')) {
                 return DeckSource.SWUCardHub;
-            } else if (deckLink.includes('melee.gg')) {
-                return DeckSource.Melee;
             }
         }
 

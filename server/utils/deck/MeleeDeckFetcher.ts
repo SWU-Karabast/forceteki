@@ -13,26 +13,20 @@ export class MeleeFetchError extends DeckFetchError {
 export class MeleeDeckFetcher {
     private static readonly TIMEOUT_MS = 8000;
     private static readonly MAX_ATTEMPTS = 2; // 1 initial + 1 retry on 5xx / network
+    private static readonly DECK_LINK_REGEX = /^https?:\/\/(?:www\.)?melee\.gg\/Decklist\/View\/([^/?#]+)\/?(?:[?#].*)?$/i;
 
     public constructor(private readonly cardDataGetter: CardDataGetter) {
     }
 
     public async fetchAsync(deckLink: string): Promise<ISwuDbFormatDecklist> {
-        if (typeof deckLink !== 'string' || deckLink.trim().length === 0) {
-            throw new MeleeFetchError(400, 'Invalid deckLink format');
-        }
-
-        if (!deckLink.includes('melee.gg')) {
-            throw new MeleeFetchError(400, 'Invalid deckLink format');
-        }
-
-        const match = deckLink.match(/\/Decklist\/View\/([^/?#]+)\/?/i);
+        const normalizedDeckLink = typeof deckLink === 'string' ? deckLink.trim() : '';
+        const match = normalizedDeckLink.match(MeleeDeckFetcher.DECK_LINK_REGEX);
         const deckId = match ? match[1] : null;
         if (!deckId) {
             throw new MeleeFetchError(400, 'Invalid deckLink format');
         }
 
-        const response = await this.fetchWithRetryAsync(deckLink);
+        const response = await this.fetchWithRetryAsync(normalizedDeckLink);
 
         if (!response.ok) {
             if (response.status === 404) {
@@ -42,17 +36,30 @@ export class MeleeDeckFetcher {
             throw new MeleeFetchError(502, `Melee API error: ${response.statusText || response.status}`);
         }
 
-        const html = await response.text();
-        const deck = this.parseDeckHtml(html, deckId, deckLink);
+        let html: string;
+        try {
+            html = await response.text();
+        } catch (err) {
+            logger.error('MeleeDeckFetcher: Failed to read melee.gg response body', err);
+            throw new MeleeFetchError(502, 'Melee deck import failed: invalid response body');
+        }
 
-        if (!deck.leader?.id || !deck.base?.id) {
-            throw new MeleeFetchError(502, 'Melee deck import failed: leader or base was not found');
+        let deck: ISwuDbFormatDecklist | null;
+        try {
+            deck = this.parseDeckHtml(html, deckId, normalizedDeckLink);
+        } catch (err) {
+            logger.error('MeleeDeckFetcher: Failed to parse melee.gg deck page', err);
+            throw new MeleeFetchError(502, 'Melee deck import failed: invalid deck page format');
+        }
+
+        if (!deck) {
+            throw new MeleeFetchError(502, 'Melee deck import failed: invalid deck page format');
         }
 
         return deck;
     }
 
-    private parseDeckHtml(html: string, deckId: string, deckLink: string): ISwuDbFormatDecklist {
+    private parseDeckHtml(html: string, deckId: string, deckLink: string): ISwuDbFormatDecklist | null {
         const deck: ISwuDbFormatDecklist = {
             metadata: {
                 name: this.extractFirstClassText(html, 'decklist-title') ?? '',
@@ -68,6 +75,11 @@ export class MeleeDeckFetcher {
         };
 
         const categories = this.extractClassBlocks(html, 'decklist-category');
+        if (categories.length === 0) {
+            logger.error('MeleeDeckFetcher: deck page did not contain decklist categories');
+            return null;
+        }
+
         for (const category of categories) {
             const categoryTitle = this.extractFirstClassText(category, 'decklist-category-title') ?? '';
             const records = this.extractClassBlocks(category, 'decklist-record');
@@ -100,6 +112,11 @@ export class MeleeDeckFetcher {
                     deck.deck.push(card);
                 }
             }
+        }
+
+        if (!deck.leader?.id || !deck.base?.id) {
+            logger.error('MeleeDeckFetcher: deck page did not contain a parseable leader and base');
+            return null;
         }
 
         return deck;
