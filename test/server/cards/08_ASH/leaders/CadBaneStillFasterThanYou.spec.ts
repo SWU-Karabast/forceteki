@@ -5,7 +5,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: 'cad-bane#still-faster-than-you',
                         groundArena: ['battlefield-marine']
                     },
@@ -40,7 +39,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: 'cad-bane#still-faster-than-you',
                         groundArena: ['battlefield-marine']
                     },
@@ -75,7 +73,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: 'cad-bane#still-faster-than-you',
                         groundArena: ['battlefield-marine']
                     },
@@ -110,7 +107,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: 'cad-bane#still-faster-than-you',
                         groundArena: ['battlefield-marine']
                     },
@@ -144,7 +140,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: 'cad-bane#still-faster-than-you',
                     },
                     player2: {
@@ -170,7 +165,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
                         groundArena: ['battlefield-marine']
                     },
@@ -206,7 +200,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
                         groundArena: ['battlefield-marine']
                     },
@@ -242,7 +235,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
                         groundArena: ['battlefield-marine']
                     },
@@ -278,7 +270,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
                         groundArena: ['battlefield-marine']
                     },
@@ -314,7 +305,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
                         groundArena: ['battlefield-marine']
                     },
@@ -349,7 +339,6 @@ describe('Cad Bane, Still Faster Than You', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa', 'yoda#old-master', 'the-armorer#secrecy-is-our-survival'],
                         leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
                         groundArena: ['battlefield-marine']
                     },
