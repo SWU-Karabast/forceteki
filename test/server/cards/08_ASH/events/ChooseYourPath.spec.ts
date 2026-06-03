@@ -53,7 +53,7 @@ describe('Choose Your Path', function() {
             });
         });
 
-        it('should not allow choosing the Force option when not controlling a Force unit', async function () {
+        it('should allow choosing the Force option when not controlling a Force unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -68,18 +68,22 @@ describe('Choose Your Path', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.chooseYourPath);
+            expect(context.player1).toHavePrompt('Select one');
+            expect(context.player1).toHaveExactPromptButtons([
+                'If you control a Force unit, heal 5 damage from your base',
+                'If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it'
+            ]);
+
+            context.player1.clickPrompt('If you control a Force unit, heal 5 damage from your base');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(5);
 
             const mandalorians = context.player1.findCardsByName('mandalorian');
-            expect(mandalorians.length).toBe(1);
-            expect(mandalorians[0]).toBeInZone('groundArena');
-            expect(mandalorians[0].exhausted).toBeTrue();
-            expect(mandalorians[0]).toHaveExactUpgradeNames(['shield', 'advantage']);
+            expect(mandalorians.length).toBe(0);
         });
 
-        it('should not allow choosing the Mandalorian option when not controlling a Mandalorian unit', async function () {
+        it('should allow choosing the Mandalorian option when not controlling a Mandalorian unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -94,9 +98,16 @@ describe('Choose Your Path', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.chooseYourPath);
+            expect(context.player1).toHavePrompt('Select one');
+            expect(context.player1).toHaveExactPromptButtons([
+                'If you control a Force unit, heal 5 damage from your base',
+                'If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it'
+            ]);
+
+            context.player1.clickPrompt('If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it');
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.p1Base.damage).toBe(5);
+            expect(context.p1Base.damage).toBe(10);
 
             const mandalorians = context.player1.findCardsByName('mandalorian');
             expect(mandalorians.length).toBe(0);

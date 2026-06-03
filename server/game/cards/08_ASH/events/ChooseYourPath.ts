@@ -16,6 +16,7 @@ export default class ChooseYourPath extends EventCard {
             title: 'Choose one: If you control a Force Unit, heal 5 damage from your base. If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it.',
             targetResolver: {
                 mode: TargetMode.Select,
+                showUnresolvable: true,
                 choices: {
                     ['If you control a Force unit, heal 5 damage from your base']:
                         abilityHelper.immediateEffects.conditional({
