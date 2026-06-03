@@ -12,7 +12,7 @@ export default class WhistlingBirds extends UpgradeCard {
 
     protected override getImplementationId() {
         return {
-            id: 'whistling-birds-id',
+            id: '6813624612',
             internalName: 'whistling-birds',
         };
     }

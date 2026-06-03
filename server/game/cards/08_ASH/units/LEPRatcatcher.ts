@@ -6,7 +6,7 @@ import { ZoneName, WildcardCardType } from '../../../core/Constants';
 export default class LEPRatcatcher extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lep-ratcatcher-id',
+            id: '2632789465',
             internalName: 'lep-ratcatcher',
         };
     }

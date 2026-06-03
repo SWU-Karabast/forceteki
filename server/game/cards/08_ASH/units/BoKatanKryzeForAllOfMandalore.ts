@@ -6,7 +6,7 @@ import { KeywordName, Trait } from '../../../core/Constants';
 export default class BoKatanKryzeForAllOfMandalore extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bokatan-kryze#for-all-of-mandalore-id',
+            id: '4358572595',
             internalName: 'bokatan-kryze#for-all-of-mandalore',
         };
     }

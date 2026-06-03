@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class KelleranBeqWhereAreTheOthers extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'kelleran-beq#where-are-the-others-id',
+            id: '2037046615',
             internalName: 'kelleran-beq#where-are-the-others',
         };
     }

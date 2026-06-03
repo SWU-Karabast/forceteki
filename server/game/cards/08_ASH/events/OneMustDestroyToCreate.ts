@@ -9,7 +9,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 export default class OneMustDestroyToCreate extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'one-must-destroy-to-create-id',
+            id: '8188741082',
             internalName: 'one-must-destroy-to-create',
         };
     }
