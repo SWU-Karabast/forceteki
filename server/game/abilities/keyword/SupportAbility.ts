@@ -29,15 +29,10 @@ export class SupportAbility extends TriggeredAbilityBase {
                     const keywords = context.source.keywords.filter((instance) => instance.name !== KeywordName.Support);
                     return {
                         attackerCondition: (card) => card !== context.source,
-                        attackerLastingEffects: {
-                            effect: [
-                                context.game.abilityHelper.ongoingEffects
-                                    .gainNonKeywordAbilitiesFromUnit(context.source),
-                                context.game.abilityHelper.ongoingEffects.gainKeywords(() =>
-                                    keywords.map((keyword) => keyword.toProperties())
-                                )
-                            ]
-                        }
+                        attackerLastingEffects: [
+                            { effect: context.game.abilityHelper.ongoingEffects.gainNonKeywordAbilitiesFromUnit(context.source) },
+                            ...keywords.map((x) => ({ effect: context.game.abilityHelper.ongoingEffects.gainKeyword(x.toProperties()) }))
+                        ]
                     };
                 })
             }

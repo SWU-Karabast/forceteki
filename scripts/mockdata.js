@@ -909,6 +909,75 @@ const mockCards = [
         arena: 'ground',
         internalName: 'bokatan-kryze#reclaiming-mandalore',
     }),
+    buildMockCard({
+        title: 'Baylan Skoll',
+        subtitle: 'Power Beyond Dream',
+        cost: 5,
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['leader'],
+        traits: ['force'],
+        setId: {
+            set: 'ASH',
+            number: 3
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'baylan-skoll#power-beyond-dream',
+    }),
+    buildMockCard({
+        title: 'Morgan Elsbeth',
+        subtitle: 'Life Abandoned',
+        cost: 6,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'night'],
+        keywords: ['support'],
+        setId: {
+            set: 'ASH',
+            number: 50
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'morgan-elsbeth#life-abandoned',
+    }),
+    buildMockCard({
+        title: 'Pre Vizsla',
+        subtitle: 'Strong-Willed Ruler',
+        cost: 8,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['mandalorian', 'official'],
+        setId: {
+            set: 'ASH',
+            number: 53
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'pre-vizsla#strongwilled-ruler',
+    }),
+    buildMockCard({
+        title: 'One Must Destroy to Create',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        types: ['event'],
+        traits: ['plan'],
+        setId: {
+            set: 'ASH',
+            number: 247
+        },
+        unique: false,
+        internalName: 'one-must-destroy-to-create',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
