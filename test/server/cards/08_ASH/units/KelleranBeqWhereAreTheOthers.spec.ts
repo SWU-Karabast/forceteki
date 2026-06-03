@@ -1,4 +1,4 @@
-describe('Kelleran Beq, The Blade Of Bardan', function() {
+describe('Kelleran Beq, Where are the Others?', function() {
     integration(function(contextRef) {
         describe('Constant ability', function() {
             it('should give +1/+0 for each other units with 0 power', async function() {
