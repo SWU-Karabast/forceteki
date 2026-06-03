@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class JustifierRelentless extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'justifier#relentless-id',
+            id: '9490691949',
             internalName: 'justifier#relentless',
         };
     }

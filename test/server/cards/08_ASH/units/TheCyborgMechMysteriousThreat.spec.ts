@@ -320,7 +320,7 @@ describe('The Cyborg Mech, Mysterious Threat', function() {
             expect(context.jangoFett.damage).toBe(1);
         });
 
-        it('The Cyborg Mech\'s ability allow selecting the 5 damage option even without legal targets', async function() {
+        it('The Cyborg Mech\'s ability force the 2 if there are no options for damaged units', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -337,12 +337,13 @@ describe('The Cyborg Mech, Mysterious Threat', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.theCyborgMech);
-            context.player1.clickPrompt('(No effect) Deal 5 damage to a damaged ground unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.theCyborgMech, context.consularSecurityForce, context.wampa]);
+            context.player1.clickCard(context.wampa);
 
             expect(context.theCyborgMech.damage).toBe(0);
             expect(context.consularSecurityForce.damage).toBe(0);
             expect(context.soullessOne.damage).toBe(0);
-            expect(context.wampa.damage).toBe(0);
+            expect(context.wampa.damage).toBe(2);
             expect(context.awing.damage).toBe(0);
             expect(context.gracefulPurrgil.damage).toBe(1);
         });
