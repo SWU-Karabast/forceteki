@@ -95,7 +95,7 @@ describe('Finn, On the Run', function () {
 
             expect(context.player1).toHaveExactPromptButtons([
                 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
-                'Defeat shield to prevent attached unit from taking damage'
+                'Defeat Shield to prevent Chewbacca from taking damage'
             ]);
             context.player1.clickPrompt('For this phase, if damage would be dealt to that unit, prevent 1 of that damage');
             expect(context.chewbacca.damage).toBe(0);
@@ -246,7 +246,7 @@ describe('Finn, On the Run', function () {
             // finn replacement prompt
             expect(context.player1).toHaveExactPromptButtons([
                 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
-                'Defeat shield to prevent attached unit from taking damage'
+                'Defeat Shield to prevent Chewbacca from taking damage'
             ]);
             context.player1.clickPrompt('For this phase, if damage would be dealt to that unit, prevent 1 of that damage');
             expect(context.chewbacca.damage).toBe(0);
