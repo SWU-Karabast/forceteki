@@ -36,6 +36,39 @@ describe('Dedra Meero, Not Wasting Time', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
 
+            it('should let opponent choose to deal 2 damage to the chosen unit (and apply costs)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'dedra-meero#not-wasting-time',
+                        resources: 3,
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        spaceArena: ['lurking-tie-phantom']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const startingHand = context.player1.handSize;
+
+                // Activate leader action ability
+                context.player1.clickCard(context.dedraMeero);
+                context.player1.clickCard(context.lurkingTiePhantom);
+
+                // Opponent should now have a choice between damaging that unit or letting P1 draw
+                expect(context.player2).toHaveExactPromptButtons(['Damage', 'Draw']);
+                context.player2.clickPrompt('Damage');
+
+                // LTP ability prevents the damage, no card is drawn because it's a replacement effect and still satisfies the condition
+                // of having done damage
+                expect(context.lurkingTiePhantom.damage).toBe(0);
+                expect(context.dedraMeeroNotWastingTime.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.player1.handSize).toBe(startingHand);
+            });
+
             it('should let opponent choose to let P1 draw a card (no damage dealt)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
