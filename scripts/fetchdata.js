@@ -212,6 +212,25 @@ function populateMissingData(attributes, id) {
     }
 }
 
+const promoPrefixes = ['C', 'G', 'J', 'P', 'MV'];
+const promoRegex = new RegExp(`^(${promoPrefixes.join('|')})\\d\\d$`);
+
+function isPromoSetCode(setCode) {
+    // Promos/Convention Exclusives - e.g., 'C24', 'P25', 'MV25'
+    if (promoRegex.test(setCode)) {
+        return true;
+    }
+    // Gamegenic promo bases
+    if (setCode === 'GG') {
+        return true;
+    }
+    // OP Promos (codes that are 4 or 5 characters and end in P or OP)
+    if ((/^\w{2,3}O?P$/).test(setCode)) {
+        return true;
+    }
+    return false;
+}
+
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
         return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
@@ -232,14 +251,7 @@ function buildSetCodeList(card) {
                 number: reprint.attributes.cardNumber
             };
         })
-        .filter((setId) => {
-            // Filter out reprints that are Promos/Convention Exclusives - e.g., 'C24', 'P25'
-            return !(/^[a-zA-Z]\d\d$/g).test(setId.set) &&
-            // Filter out Gamegenic promo bases
-              setId.set !== 'GG' &&
-            // Filter out OP Promos (These codes are 4 or 5 characters and end in P or OP)
-              !(/^\w{2,3}O?P$/g).test(setId.set);
-        });
+        .filter((setId) => !isPromoSetCode(setId.set));
 
     return [card.setId].concat(reprintSetIds);
 }
@@ -256,8 +268,7 @@ function filterValues(card) {
             return null;
         }
 
-        // filtering out convention exclusives - e.g., 'C24', 'P25'
-        if ((/^[a-zA-Z]\d\d$/g).test(card.attributes.expansion.data.attributes.code)) {
+        if (isPromoSetCode(card.attributes.expansion.data.attributes.code)) {
             return null;
         }
 

@@ -978,6 +978,259 @@ const mockCards = [
         unique: false,
         internalName: 'one-must-destroy-to-create',
     }),
+    buildMockCard({
+        title: 'Shin Hati',
+        subtitle: 'Eager Adversary',
+        cost: 6,
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['leader'],
+        traits: ['force'],
+        setId: {
+            set: 'ASH',
+            number: 16
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'shin-hati#eager-adversary',
+    }),
+    buildMockCard({
+        title: 'Baylan Skoll',
+        subtitle: 'Fallen Jedi',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning', 'villainy'],
+        keywords: ['overwhelm'],
+        types: ['unit'],
+        traits: ['force'],
+        setId: {
+            set: 'ASH',
+            number: 39
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'baylan-skoll#fallen-jedi',
+    }),
+    buildMockCard({
+        title: 'Kelleran Beq',
+        subtitle: 'Where Are the Others?',
+        cost: 4,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['ambush'],
+        types: ['unit'],
+        traits: ['force', 'jedi'],
+        setId: {
+            set: 'ASH',
+            number: 206
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kelleran-beq#where-are-the-others',
+    }),
+    buildMockCard({
+        title: 'Marrok\'s Fiend Fighter',
+        subtitle: 'Formidable Pursuer',
+        cost: 3,
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        keywords: ['support', 'overwhelm'],
+        types: ['unit'],
+        traits: ['vehicle', 'fighter'],
+        setId: {
+            set: 'ASH',
+            number: 241
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'marroks-fiend-fighter#formidable-pursuer',
+    }),
+    buildMockCard({
+        title: 'Heroic Purrgil',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['ambush'],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'ASH',
+            number: 207
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'heroic-purrgil',
+    }),
+    buildMockCard({
+        title: 'Masterstroke',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'ASH',
+            number: 234
+        },
+        unique: false,
+        internalName: 'masterstroke',
+    }),
+    buildMockCard({
+        title: 'Choose Your Path',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['event'],
+        traits: ['force', 'mandalorian'],
+        setId: {
+            set: 'ASH',
+            number: 257
+        },
+        unique: false,
+        internalName: 'choose-your-path',
+    }),
+    // Cad Bane, Still Faster Than You
+    buildMockCard({
+        title: 'Cad Bane',
+        subtitle: 'Still Faster Than You',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['leader'],
+        traits: ['underworld', 'bounty hunter'],
+        keywords: ['overwhelm'],
+        setId: {
+            set: 'ASH',
+            number: 11
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cad-bane#still-faster-than-you',
+    }),
+    // Helgait, Dooku Was a Visionary
+    buildMockCard({
+        title: 'Helgait',
+        subtitle: 'Dooku Was a Visionary',
+        cost: 5,
+        power: 6,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['separatist'],
+        setId: {
+            set: 'ASH',
+            number: 195
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'helgait#dooku-was-a-visionary',
+    }),
+    // Rehabilitation
+    buildMockCard({
+        title: 'Rehabilitation',
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'ASH',
+            number: 200
+        },
+        unique: false,
+        internalName: 'rehabilitation',
+    }),
+    // Gorian Shard's Corsair, Pirate Warship
+    buildMockCard({
+        title: 'Gorian Shard\'s Corsair',
+        subtitle: 'Pirate Warship',
+        cost: 6,
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'ASH',
+            number: 196
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'gorian-shards-corsair#pirate-warship',
+    }),
+    // Justifier, Relentless
+    buildMockCard({
+        title: 'Justifier',
+        subtitle: 'Relentless',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'ASH',
+            number: 146
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'justifier#relentless',
+    }),
+    // The Cyborg Mech, Mysterious Threat
+    buildMockCard({
+        title: 'The Cyborg Mech',
+        subtitle: 'Mysterious Threat',
+        cost: 6,
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['fringe'],
+        keywords: ['grit'],
+        setId: {
+            set: 'ASH',
+            number: 147
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-cyborg-mech#mysterious-threat',
+    }),
+    // Deadly Vulnerability
+    buildMockCard({
+        title: 'Deadly Vulnerability',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['upgrade'],
+        traits: ['condition'],
+        setId: {
+            set: 'ASH',
+            number: 150
+        },
+        unique: false,
+        internalName: 'deadly-vulnerability',
+    }),
+    // -------- End Mock Cards --------
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
