@@ -666,14 +666,14 @@ describe('Damage Modification Effects', function() {
 
                     expect(context.player1).toHaveExactPromptButtons([
                         'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
-                        'Defeat shield to prevent attached unit from taking damage',
+                        'Defeat Shield to prevent Boba Fett from taking damage',
                         'Reduce all damage dealt to friendly non-Vigil units by 1',
                         'For this phase, if damage would be dealt to that unit, prevent 1 of that damage'
                     ]);
 
                     context.player1.clickPrompt('If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage');
                     expect(context.player1).toHaveExactPromptButtons([
-                        'Defeat shield to prevent attached unit from taking damage',
+                        'Defeat Shield to prevent Boba Fett from taking damage',
                         'Reduce all damage dealt to friendly non-Vigil units by 1',
                         'For this phase, if damage would be dealt to that unit, prevent 1 of that damage'
                     ]);
@@ -681,7 +681,7 @@ describe('Damage Modification Effects', function() {
                     context.player1.clickPrompt('Reduce all damage dealt to friendly non-Vigil units by 1');
 
                     expect(context.player1).toHaveExactPromptButtons([
-                        'Defeat shield to prevent attached unit from taking damage',
+                        'Defeat Shield to prevent Boba Fett from taking damage',
                         'For this phase, if damage would be dealt to that unit, prevent 1 of that damage'
                     ]);
 
@@ -713,11 +713,11 @@ describe('Damage Modification Effects', function() {
 
                     expect(context.player1).toHaveExactPromptButtons([
                         'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
-                        'Defeat shield to prevent attached unit from taking damage',
+                        'Defeat Shield to prevent Boba Fett from taking damage',
                         'Reduce all damage dealt to friendly non-Vigil units by 1'
                     ]);
 
-                    context.player1.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+                    context.player1.clickPrompt('Defeat Shield to prevent Boba Fett from taking damage');
 
                     expect(context.player1).toBeActivePlayer();
                     expect(context.bobaFett.damage).toBe(0);

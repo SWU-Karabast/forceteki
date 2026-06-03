@@ -131,7 +131,7 @@ describe('Aayla Secura, Master of the Blade', function() {
                 context.player1.clickCard(context.consularSecurityForce);
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Defeat shield to prevent attached unit from taking damage',
+                    'Defeat Shield to prevent Aayla Secura from taking damage',
                     'Prevent all combat damage that would be dealt to this unit'
                 ]);
 
@@ -152,11 +152,11 @@ describe('Aayla Secura, Master of the Blade', function() {
                 context.player1.clickCard(context.consularSecurityForce);
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Defeat shield to prevent attached unit from taking damage',
+                    'Defeat Shield to prevent Aayla Secura from taking damage',
                     'Prevent all combat damage that would be dealt to this unit'
                 ]);
 
-                context.player1.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+                context.player1.clickPrompt('Defeat Shield to prevent Aayla Secura from taking damage');
 
                 expect(context.aaylaSecura.damage).toBe(0);
                 expect(context.aaylaSecura.isUpgraded()).toBeFalse();
