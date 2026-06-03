@@ -6,7 +6,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class MorganElsbethLifeAbandoned extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'morgan-elsbeth#life-abandoned-id',
+            id: '3100960073',
             internalName: 'morgan-elsbeth#life-abandoned',
         };
     }

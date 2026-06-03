@@ -14,7 +14,7 @@ export default class MoffGideonIndomitableWarlord extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'moff-gideon#indomitable-warlord-id',
+            id: '3621912835',
             internalName: 'moff-gideon#indomitable-warlord',
         };
     }

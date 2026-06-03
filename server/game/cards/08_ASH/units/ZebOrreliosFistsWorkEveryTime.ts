@@ -7,7 +7,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class ZebOrreliosFistsWorkEveryTime extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'zeb-orrelios#fists-work-every-time-id',
+            id: '1805238104',
             internalName: 'zeb-orrelios#fists-work-every-time',
         };
     }

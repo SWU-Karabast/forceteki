@@ -6,7 +6,7 @@ import { WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 export default class FoundlingRescue extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'foundling-rescue-id',
+            id: '2405496593',
             internalName: 'foundling-rescue',
         };
     }

@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class CadBaneStillFasterThanYou extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cad-bane#still-faster-than-you-id',
+            id: '5648009238',
             internalName: 'cad-bane#still-faster-than-you',
         };
     }

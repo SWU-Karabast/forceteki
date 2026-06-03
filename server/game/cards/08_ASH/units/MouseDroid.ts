@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class MouseDroid extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mouse-droid-id',
+            id: '2588977937',
             internalName: 'mouse-droid',
         };
     }

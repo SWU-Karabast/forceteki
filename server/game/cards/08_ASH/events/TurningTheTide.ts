@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class TurningTheTide extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'turning-the-tide-id',
+            id: '1886651714',
             internalName: 'turning-the-tide',
         };
     }
