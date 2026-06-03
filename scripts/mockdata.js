@@ -1099,6 +1099,7 @@ const mockCards = [
         unique: false,
         internalName: 'choose-your-path',
     }),
+    // Cad Bane, Still Faster Than You
     buildMockCard({
         title: 'Cad Bane',
         subtitle: 'Still Faster Than You',
@@ -1106,10 +1107,10 @@ const mockCards = [
         power: 4,
         hp: 7,
         hasNonKeywordAbility: true,
-        keywords: ['overwhelm'],
         aspects: ['aggression', 'villainy'],
         types: ['leader'],
         traits: ['underworld', 'bounty hunter'],
+        keywords: ['overwhelm'],
         setId: {
             set: 'ASH',
             number: 11
@@ -1118,6 +1119,118 @@ const mockCards = [
         arena: 'ground',
         internalName: 'cad-bane#still-faster-than-you',
     }),
+    // Helgait, Dooku Was a Visionary
+    buildMockCard({
+        title: 'Helgait',
+        subtitle: 'Dooku Was a Visionary',
+        cost: 5,
+        power: 6,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['separatist'],
+        setId: {
+            set: 'ASH',
+            number: 195
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'helgait#dooku-was-a-visionary',
+    }),
+    // Rehabilitation
+    buildMockCard({
+        title: 'Rehabilitation',
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'ASH',
+            number: 200
+        },
+        unique: false,
+        internalName: 'rehabilitation',
+    }),
+    // Gorian Shard's Corsair, Pirate Warship
+    buildMockCard({
+        title: 'Gorian Shard\'s Corsair',
+        subtitle: 'Pirate Warship',
+        cost: 6,
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'capital ship'],
+        setId: {
+            set: 'ASH',
+            number: 196
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'gorian-shards-corsair#pirate-warship',
+    }),
+    // Justifier, Relentless
+    buildMockCard({
+        title: 'Justifier',
+        subtitle: 'Relentless',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'ASH',
+            number: 146
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'justifier#relentless',
+    }),
+    // The Cyborg Mech, Mysterious Threat
+    buildMockCard({
+        title: 'The Cyborg Mech',
+        subtitle: 'Mysterious Threat',
+        cost: 6,
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['fringe'],
+        keywords: ['grit'],
+        setId: {
+            set: 'ASH',
+            number: 147
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-cyborg-mech#mysterious-threat',
+    }),
+    // Deadly Vulnerability
+    buildMockCard({
+        title: 'Deadly Vulnerability',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['upgrade'],
+        traits: ['condition'],
+        setId: {
+            set: 'ASH',
+            number: 150
+        },
+        unique: false,
+        internalName: 'deadly-vulnerability',
+    }),
+    // -------- End Mock Cards --------
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
