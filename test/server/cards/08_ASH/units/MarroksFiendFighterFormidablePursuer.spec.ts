@@ -24,6 +24,7 @@ describe('Marrok\'s Fiend Fighter, Formidable Pursuer', function() {
                 expect(context.awing).toBeInZone('discard', context.player2);
                 expect(context.marroksFiendFighter.damage).toBe(1);
                 expect(context.marroksFiendFighter.getPower()).toBe(3);
+                expect(context.p2Base.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -37,12 +38,11 @@ describe('Marrok\'s Fiend Fighter, Formidable Pursuer', function() {
                     },
                     player2: {
                         spaceArena: [{ card: 'awing', damage: 1 }],
-                        base: { card: 'dagobah-swamp', damage: 5 }
                     },
                 });
             });
 
-            it('Marrok\'s Fiend Fighter should receive and +2/+0, defeating the Bright Hope and dealing 4 damage to opponents base.', function () {
+            it('Marrok\'s Fiend Fighter should receive and +2/+0, defeating the a-wing dealing 4 damage to opponents base.', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.marroksFiendFighter);
@@ -52,12 +52,11 @@ describe('Marrok\'s Fiend Fighter, Formidable Pursuer', function() {
                 expect(context.awing).toBeInZone('discard', context.player2);
                 expect(context.marroksFiendFighter.damage).toBe(1);
                 expect(context.marroksFiendFighter.getPower()).toBe(3);
-                expect(context.p2Base.damage).toBe(9);
+                expect(context.p2Base.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
 
                 // Reset state
-                context.player2.passAction();
-                context.readyCard(context.marroksFiendFighter);
+                context.moveToNextActionPhase();
 
                 // Case 2: Attacking base and not receiving +2/+0
                 context.player1.clickCard(context.marroksFiendFighter);
@@ -66,7 +65,7 @@ describe('Marrok\'s Fiend Fighter, Formidable Pursuer', function() {
                 // Check board state
                 expect(context.marroksFiendFighter.exhausted).toBe(true);
                 expect(context.marroksFiendFighter.damage).toBe(1);
-                expect(context.p2Base.damage).toBe(12);
+                expect(context.p2Base.damage).toBe(7);
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -81,12 +80,11 @@ describe('Marrok\'s Fiend Fighter, Formidable Pursuer', function() {
                     },
                     player2: {
                         spaceArena: [{ card: 'awing', damage: 1 }],
-                        base: { card: 'dagobah-swamp', damage: 5 }
                     },
                 });
             });
 
-            it('Marrok\'s Fiend Fighter should receive and +2/+0, defeating the Bright Hope and dealing 4 damage to opponents base.', function () {
+            it('Marrok\'s Fiend Fighter should receive and +2/+0, defeating the a-wing and dealing 4 damage to opponents base.', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.marroksFiendFighter);
@@ -97,12 +95,11 @@ describe('Marrok\'s Fiend Fighter, Formidable Pursuer', function() {
                 expect(context.awing).toBeInZone('discard', context.player2);
                 expect(context.phoenixSquadronAwing.damage).toBe(1);
                 expect(context.phoenixSquadronAwing.getPower()).toBe(3);
-                expect(context.p2Base.damage).toBe(9);
+                expect(context.p2Base.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
 
                 // Reset state
-                context.player2.passAction();
-                context.readyCard(context.phoenixSquadronAwing);
+                context.moveToNextActionPhase();
 
                 // Case 2: Attacking base and not receiving +2/+0
                 context.player1.clickCard(context.phoenixSquadronAwing);
@@ -111,7 +108,7 @@ describe('Marrok\'s Fiend Fighter, Formidable Pursuer', function() {
                 // Check board state
                 expect(context.phoenixSquadronAwing.exhausted).toBe(true);
                 expect(context.phoenixSquadronAwing.damage).toBe(1);
-                expect(context.p2Base.damage).toBe(12);
+                expect(context.p2Base.damage).toBe(7);
                 expect(context.player2).toBeActivePlayer();
             });
         });
