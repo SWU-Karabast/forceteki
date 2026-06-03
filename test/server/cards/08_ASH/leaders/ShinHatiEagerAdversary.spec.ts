@@ -161,6 +161,41 @@ describe('Shin Hati, Eager Adversary', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.shinHati.exhausted).toBeFalse();
             });
+
+            it('should allow exhausting a unit when a stolen enemy unit deals combat damage to base (even if he dies)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['change-of-heart'],
+                        leader: 'shin-hati#eager-adversary'
+                    },
+                    player2: {
+                        groundArena: [{ card: 'wampa', damage: 4 }, 'porg', 'battlefield-marine'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.wampa);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.porg);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust a unit that costs less than 3');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.wampa).toBeInZone('discard', context.player2);
+                expect(context.battlefieldMarine.exhausted).toBeTrue();
+                expect(context.shinHati.exhausted).toBeTrue();
+            });
         });
 
         describe('Leader unit side triggered ability', function() {
@@ -321,6 +356,37 @@ describe('Shin Hati, Eager Adversary', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should allow exhausting a unit when a stolen enemy unit deals combat damage to base (even if he dies)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['change-of-heart'],
+                        leader: { card: 'shin-hati#eager-adversary', deployed: true }
+                    },
+                    player2: {
+                        groundArena: [{ card: 'wampa', damage: 4 }, 'porg', 'battlefield-marine'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.wampa);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.porg);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.wampa).toBeInZone('discard', context.player2);
+                expect(context.battlefieldMarine.exhausted).toBeTrue();
             });
         });
     });

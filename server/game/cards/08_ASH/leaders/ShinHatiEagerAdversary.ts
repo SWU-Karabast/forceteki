@@ -26,7 +26,7 @@ export default class ShinHatiEagerAdversary extends LeaderUnitCard {
             contextTitle: (context) => this.getContextTitle(context),
             when: {
                 onAttackEnd: (event, context) =>
-                    event.attack.attacker.controller === context.player &&
+                    event.attack.attackingPlayer === context.player &&
                     this.damageDealtThisPhaseWatcher.unitHasDealtCombatDamageToBaseThisAttack(event.attack.attacker, context)
             },
             optional: true,
@@ -52,7 +52,7 @@ export default class ShinHatiEagerAdversary extends LeaderUnitCard {
             contextTitle: (context) => this.getContextTitle(context),
             when: {
                 onAttackEnd: (event, context) =>
-                    event.attack.attacker.controller === context.player &&
+                    event.attack.attackingPlayer === context.player &&
                     this.damageDealtThisPhaseWatcher.unitHasDealtCombatDamageToBaseThisAttack(event.attack.attacker, context)
             },
             optional: true,
