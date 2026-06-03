@@ -17,10 +17,11 @@ export default class CadBaneNowItsMyTurn extends NonLeaderUnitCard {
             title: 'Defeat any number of friendly Credit tokens',
             targetResolver: {
                 activePromptTitle: 'Defeat any number of friendly Credit tokens',
-                mode: TargetMode.DropdownList,
+                mode: TargetMode.ChooseNumber,
                 condition: (context) => context.source.controller.creditTokenCount > 0,
                 logSelection: false,
-                options: (context) => Array.from({ length: context.source.controller.creditTokenCount + 1 }, (_x, i) => `${i}`),
+                min: 0,
+                max: (context) => context.source.controller.creditTokenCount,
                 immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({
                     target: context.source.controller.baseZone.credits.slice(0, parseInt(context.select))
                 })),

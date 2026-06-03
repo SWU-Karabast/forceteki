@@ -61,6 +61,11 @@ export interface IDeckStatsEntity {
     statsByMatchup?: IMatchupStatEntity[];
 }
 
+export enum TimerVisibility {
+    Standard = 'standard',
+    HideTurnTimer = 'hideTurnTimer',
+    HideAll = 'hideAll',
+}
 
 export interface IUserPreferences {
     sound?: {
@@ -77,6 +82,7 @@ export interface IUserPreferences {
     gameOptions?: {
         muteChat?: boolean;
         cardLanguage?: CardImageLocale;
+        timerVisibility?: TimerVisibility;
     };
 }
 
