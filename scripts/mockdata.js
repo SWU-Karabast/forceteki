@@ -1172,6 +1172,65 @@ const mockCards = [
         arena: 'space',
         internalName: 'gorian-shards-corsair#pirate-warship',
     }),
+    // Justifier, Relentless
+    buildMockCard({
+        title: 'Justifier',
+        subtitle: 'Relentless',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        setId: {
+            set: 'ASH',
+            number: 146
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'justifier#relentless',
+    }),
+    // The Cyborg Mech, Mysterious Threat
+    buildMockCard({
+        title: 'The Cyborg Mech',
+        subtitle: 'Mysterious Threat',
+        cost: 6,
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['fringe'],
+        keywords: ['grit'],
+        setId: {
+            set: 'ASH',
+            number: 147
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-cyborg-mech#mysterious-threat',
+    }),
+    // Deadly Vulnerability
+    buildMockCard({
+        title: 'Deadly Vulnerability',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['upgrade'],
+        traits: ['condition'],
+        setId: {
+            set: 'ASH',
+            number: 150
+        },
+        unique: false,
+        internalName: 'deadly-vulnerability',
+    }),
+    // -------- End Mock Cards --------
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
