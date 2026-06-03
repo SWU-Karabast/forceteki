@@ -1099,6 +1099,25 @@ const mockCards = [
         unique: false,
         internalName: 'choose-your-path',
     }),
+    buildMockCard({
+        title: 'Cad Bane',
+        subtitle: 'Still Faster Than You',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        keywords: ['overwhelm'],
+        aspects: ['aggression', 'villainy'],
+        types: ['leader'],
+        traits: ['underworld', 'bounty hunter'],
+        setId: {
+            set: 'ASH',
+            number: 11
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cad-bane#still-faster-than-you',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
