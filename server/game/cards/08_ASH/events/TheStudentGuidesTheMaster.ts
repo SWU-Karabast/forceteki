@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { RelativePlayer } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class TheStudentGuidesTheMaster extends EventCard {
     protected override getImplementationId () {
@@ -16,7 +16,7 @@ export default class TheStudentGuidesTheMaster extends EventCard {
             title: 'Give a friendly unit +1/+0 for this phase for each other friendly unit with less power than it',
             targetResolver: {
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card.isUnit(),
+                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     effect: abilityHelper.ongoingEffects.modifyStats({
                         power: context.player.getArenaUnits({

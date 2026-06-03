@@ -15,7 +15,7 @@ describe('Rash Action', function () {
                 });
             });
 
-            it('should allow attacking with a unit that gets +1/+0 for the attack', function () {
+            it('should allow attacking with a unit that gets +1/+0 for the attack and cause opponent to discard as unit deals combat damage to their base', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.rashAction);
@@ -38,7 +38,7 @@ describe('Rash Action', function () {
                 expect(context.yoda).toBeInZone('discard');
             });
 
-            it('should cause opponent to discard a card if the attacking unit deals combat damage to their base', function () {
+            it('should allow attacking with a unit that gets +1/+0 for the attack and cause opponent to discard as unit deals combat damage to their base (from overwhelm)', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.rashAction);
