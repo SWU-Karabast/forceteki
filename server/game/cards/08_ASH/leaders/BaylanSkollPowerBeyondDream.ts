@@ -25,7 +25,6 @@ export default class BaylanSkollPowerBeyondDream extends LeaderUnitCard {
                     condition: (context) => !context.player.hasSomeArenaUnit({
                         arena: context.target.zoneName,
                         otherThan: context.target,
-                        condition: (card) => card.isNonLeaderUnit()
                     }),
                     onTrue: abilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
@@ -41,7 +40,7 @@ export default class BaylanSkollPowerBeyondDream extends LeaderUnitCard {
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
-                cardTypeFilter: WildcardCardType.Unit,
+                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: abilityHelper.immediateEffects.conditional({
                     condition: (context) => !context.player.hasSomeArenaUnit({
                         arena: context.target.zoneName,

@@ -129,7 +129,7 @@ describe('Baylan Skoll, Power Beyond Dream', function () {
                 context.player2.clickCard(context.p1Base);
             });
 
-            it('should give +2/+2 and Sentinel for this phase on a friendly unit which is alone (leader unit excluded) in its arena (can select leader unit if he is alone)', async function () {
+            it('should give +2/+2 and Sentinel for this phase on a friendly unit which is alone (leader unit cannot be selected even if he is alone)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -145,27 +145,13 @@ describe('Baylan Skoll, Power Beyond Dream', function () {
                 context.player1.clickCard(context.baylanSkoll);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.baylanSkoll, context.awing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.awing]);
                 expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickCard(context.baylanSkoll);
+                context.player1.clickCard(context.awing);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.baylanSkoll.getPower()).toBe(6);
-                expect(context.baylanSkoll.getHp()).toBe(8);
-
-                context.player2.clickCard(context.battlefieldMarine);
-                expect(context.player2).toBeAbleToSelectExactly([context.baylanSkoll]);
-                context.player2.clickCard(context.baylanSkoll);
-
-                context.moveToNextActionPhase();
-
-                expect(context.baylanSkoll.getPower()).toBe(4);
-                expect(context.baylanSkoll.getHp()).toBe(6);
-                context.player1.passAction();
-
-                context.player2.clickCard(context.porg);
-                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.baylanSkoll]);
-                context.player2.clickCard(context.p1Base);
+                expect(context.awing.getPower()).toBe(3);
+                expect(context.awing.getHp()).toBe(4);
             });
 
             it('should give +2/+2 and Sentinel for this phase on a friendly unit which is alone (leader unit excluded) in its arena (ground arena have multiple friendly units)', async function () {
