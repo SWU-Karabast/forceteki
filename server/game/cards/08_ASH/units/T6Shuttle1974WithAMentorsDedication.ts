@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class T6Shuttle1974WithAMentorsDedication extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 't6-shuttle-1974#with-a-mentors-dedication-id',
+            id: '8889715574',
             internalName: 't6-shuttle-1974#with-a-mentors-dedication',
         };
     }

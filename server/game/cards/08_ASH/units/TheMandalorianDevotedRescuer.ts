@@ -6,7 +6,7 @@ import { DamageModificationType } from '../../../core/Constants';
 export default class TheMandalorianDevotedRescuer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-mandalorian#devoted-rescuer-id',
+            id: '1288292674',
             internalName: 'the-mandalorian#devoted-rescuer',
         };
     }

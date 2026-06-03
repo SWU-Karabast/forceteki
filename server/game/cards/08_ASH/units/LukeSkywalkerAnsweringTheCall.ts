@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class LukeSkywalkerAnsweringTheCall extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'luke-skywalker#answering-the-call-id',
+            id: '5301694614',
             internalName: 'luke-skywalker#answering-the-call',
         };
     }

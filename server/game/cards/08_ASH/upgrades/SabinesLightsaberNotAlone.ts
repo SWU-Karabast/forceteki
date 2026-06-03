@@ -6,7 +6,7 @@ import { KeywordName, Trait } from '../../../core/Constants';
 export default class SabinesLightsaberNotAlone extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'sabines-lightsaber#not-alone-id',
+            id: '3331025130',
             internalName: 'sabines-lightsaber#not-alone',
         };
     }

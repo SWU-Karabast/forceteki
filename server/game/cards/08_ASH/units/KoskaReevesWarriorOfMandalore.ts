@@ -10,7 +10,7 @@ export default class KoskaReevesWarriorOfMandalore extends NonLeaderUnitCard {
 
     protected override getImplementationId () {
         return {
-            id: 'koska-reeves#warrior-of-mandalore-id',
+            id: '6057506500',
             internalName: 'koska-reeves#warrior-of-mandalore',
         };
     }

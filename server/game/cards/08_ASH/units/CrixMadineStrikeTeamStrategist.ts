@@ -9,7 +9,7 @@ import type { Player } from '../../../core/Player';
 export default class CrixMadineStrikeTeamStrategist extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'crix-madine#strike-team-strategist-id',
+            id: '1334131376',
             internalName: 'crix-madine#strike-team-strategist',
         };
     }

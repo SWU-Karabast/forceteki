@@ -9,7 +9,7 @@ import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Con
 export default class BaylanSkollPowerBeyondDream extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'baylan-skoll#power-beyond-dream-id',
+            id: '1629218824',
             internalName: 'baylan-skoll#power-beyond-dream',
         };
     }

@@ -9,7 +9,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class AhsokaTanoTrustInTheForce extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ahsoka-tano#trust-in-the-force-id',
+            id: '3086126864',
             internalName: 'ahsoka-tano#trust-in-the-force',
         };
     }
