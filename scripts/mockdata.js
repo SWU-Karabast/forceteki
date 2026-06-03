@@ -978,6 +978,127 @@ const mockCards = [
         unique: false,
         internalName: 'one-must-destroy-to-create',
     }),
+    buildMockCard({
+        title: 'Shin Hati',
+        subtitle: 'Eager Adversary',
+        cost: 6,
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['leader'],
+        traits: ['force'],
+        setId: {
+            set: 'ASH',
+            number: 16
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'shin-hati#eager-adversary',
+    }),
+    buildMockCard({
+        title: 'Baylan Skoll',
+        subtitle: 'Fallen Jedi',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning', 'villainy'],
+        keywords: ['overwhelm'],
+        types: ['unit'],
+        traits: ['force'],
+        setId: {
+            set: 'ASH',
+            number: 39
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'baylan-skoll#fallen-jedi',
+    }),
+    buildMockCard({
+        title: 'Kelleran Beq',
+        subtitle: 'Where Are the Others?',
+        cost: 4,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['ambush'],
+        types: ['unit'],
+        traits: ['force', 'jedi'],
+        setId: {
+            set: 'ASH',
+            number: 206
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kelleran-beq#where-are-the-others',
+    }),
+    buildMockCard({
+        title: 'Marrok\'s Fiend Fighter',
+        subtitle: 'Formidable Pursuer',
+        cost: 3,
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        keywords: ['support', 'overwhelm'],
+        types: ['unit'],
+        traits: ['vehicle', 'fighter'],
+        setId: {
+            set: 'ASH',
+            number: 241
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'marroks-fiend-fighter#formidable-pursuer',
+    }),
+    buildMockCard({
+        title: 'Heroic Purrgil',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['ambush'],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'ASH',
+            number: 207
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'heroic-purrgil',
+    }),
+    buildMockCard({
+        title: 'Masterstroke',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'ASH',
+            number: 234
+        },
+        unique: false,
+        internalName: 'masterstroke',
+    }),
+    buildMockCard({
+        title: 'Choose Your Path',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['event'],
+        traits: ['force', 'mandalorian'],
+        setId: {
+            set: 'ASH',
+            number: 257
+        },
+        unique: false,
+        internalName: 'choose-your-path',
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
