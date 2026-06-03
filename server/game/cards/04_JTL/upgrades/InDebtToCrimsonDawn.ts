@@ -35,7 +35,8 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
                         target: context.source.parentCard
                     }),
                     promptButtonText: NamedAction.Exhaust
-                }
+                },
+                highlightCards: (context) => context.source.parentCard
             }
         });
     }
