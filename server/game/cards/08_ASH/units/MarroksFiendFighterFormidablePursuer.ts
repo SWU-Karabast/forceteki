@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class MarroksFiendFighterFormidablePursuer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'marroks-fiend-fighter#formidable-pursuer-id',
+            id: '2817799723',
             internalName: 'marroks-fiend-fighter#formidable-pursuer',
         };
     }

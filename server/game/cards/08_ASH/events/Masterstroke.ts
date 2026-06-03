@@ -6,7 +6,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class Masterstroke extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'masterstroke-id',
+            id: '6315733621',
             internalName: 'masterstroke',
         };
     }

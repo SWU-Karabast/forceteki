@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class HeroicPurrgil extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'heroic-purrgil-id',
+            id: '2147688448',
             internalName: 'heroic-purrgil',
         };
     }
