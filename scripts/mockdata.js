@@ -1057,7 +1057,7 @@ const mockCards = [
         title: 'Heroic Purrgil',
         cost: 5,
         power: 3,
-        hp: 5,
+        hp: 6,
         hasNonKeywordAbility: true,
         aspects: ['cunning', 'heroism'],
         keywords: ['ambush'],
