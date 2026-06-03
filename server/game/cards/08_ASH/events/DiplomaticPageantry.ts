@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class DiplomaticPageantry extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'diplomatic-pageantry-id',
+            id: '6089557572',
             internalName: 'diplomatic-pageantry',
         };
     }

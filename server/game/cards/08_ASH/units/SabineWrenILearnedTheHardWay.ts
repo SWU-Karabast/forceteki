@@ -6,7 +6,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class SabineWrenILearnedTheHardWay extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sabine-wren#i-learned-the-hard-way-id',
+            id: '6033198879',
             internalName: 'sabine-wren#i-learned-the-hard-way',
         };
     }

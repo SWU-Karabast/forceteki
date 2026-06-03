@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class TheStudentGuidesTheMaster extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'the-student-guides-the-master-id',
+            id: '0002611789',
             internalName: 'the-student-guides-the-master',
         };
     }

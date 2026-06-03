@@ -6,7 +6,7 @@ import { TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants'
 export default class MortarTrooper extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mortar-trooper-id',
+            id: '0538012086',
             internalName: 'mortar-trooper',
         };
     }

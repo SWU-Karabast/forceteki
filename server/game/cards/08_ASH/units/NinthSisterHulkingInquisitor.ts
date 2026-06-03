@@ -6,7 +6,7 @@ import { WildcardCardType, WildcardRelativePlayer } from '../../../core/Constant
 export default class NinthSisterHulkingInquisitor extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ninth-sister#hulking-inquisitor-id',
+            id: '7852298661',
             internalName: 'ninth-sister#hulking-inquisitor',
         };
     }

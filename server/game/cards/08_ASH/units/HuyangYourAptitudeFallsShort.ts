@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class HuyangYourAptitudeFallsShort extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'huyang#your-aptitude-falls-short-id',
+            id: '5606840637',
             internalName: 'huyang#your-aptitude-falls-short',
         };
     }

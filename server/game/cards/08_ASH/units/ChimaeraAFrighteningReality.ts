@@ -7,7 +7,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class ChimaeraAFrighteningReality extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'chimaera#a-frightening-reality-id',
+            id: '6078486694',
             internalName: 'chimaera#a-frightening-reality',
         };
     }

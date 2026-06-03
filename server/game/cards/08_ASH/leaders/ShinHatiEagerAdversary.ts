@@ -11,7 +11,7 @@ export default class ShinHatiEagerAdversary extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'shin-hati#eager-adversary-id',
+            id: '7358789406',
             internalName: 'shin-hati#eager-adversary',
         };
     }

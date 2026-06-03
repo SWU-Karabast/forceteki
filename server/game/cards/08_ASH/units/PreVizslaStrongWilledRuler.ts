@@ -8,7 +8,7 @@ import { EventResolutionStatus } from '../../../core/event/GameEvent';
 export default class PreVizslaStrongWilledRuler extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'pre-vizsla#strongwilled-ruler-id',
+            id: '8508289226',
             internalName: 'pre-vizsla#strongwilled-ruler'
         };
     }
