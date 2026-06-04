@@ -81,5 +81,51 @@ describe('Reanimated Night Trooper', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('When Defeated ability with Grand Admiral Thrawn, How Unfortunate', function() {
+            const thrawnPrompt = 'Exhaust Grand Admiral Thrawn to use Reanimated Night Trooper\'s "When Defeated" ability again';
+
+            it('should be able to discard the top card from each player\'s deck in the same action', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        groundArena: ['reanimated-night-trooper'],
+                        deck: ['battlefield-marine', 'wampa']
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        deck: ['daring-raid', 'open-fire'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.reanimatedNightTrooper);
+
+                expect(context.player1).toHavePrompt('Choose a deck to look at the top card');
+                context.player1.clickPrompt('Your deck');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
+                context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'discard');
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.player1.deck).toEqual([context.wampa]);
+
+                expect(context.player1).toHavePassAbilityPrompt(thrawnPrompt);
+                context.player1.clickPrompt('Trigger');
+                expect(context.grandAdmiralThrawn.exhausted).toBe(true);
+
+                expect(context.player1).toHavePrompt('Choose a deck to look at the top card');
+                context.player1.clickPrompt('Opponent\'s deck');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daringRaid]);
+                context.player1.clickDisplayCardPromptButton(context.daringRaid.uuid, 'discard');
+
+                expect(context.daringRaid).toBeInZone('discard');
+                expect(context.player2.deck).toEqual([context.openFire]);
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
     });
 });
