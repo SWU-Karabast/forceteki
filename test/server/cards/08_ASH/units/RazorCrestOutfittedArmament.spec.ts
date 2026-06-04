@@ -24,12 +24,17 @@ describe('Razor Crest: Outfitted Armament', function() {
 
                 // Player selects which card to discard
                 expect(context.player1).toBeAbleToSelectExactly([context.takedown, context.surpriseStrike]);
+                expect(context.player1).not.toHaveChooseNothingButton();
+                expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.takedown);
 
                 // Razor Crest deals 5 damage (3 base power + 2 from buff)
                 expect(context.p2Base.damage).toBe(5);
                 expect(context.takedown).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
+
+                // Razor Crest is back down to 3 power
+                expect(context.razorCrest.getPower()).toBe(3);
             });
 
             it('should deal only 3 damage when the player declines to discard', function() {
