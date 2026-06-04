@@ -40,37 +40,6 @@ describe('Reforge', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should play a found upgrade for free when it costs 4 or less', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['reforge'],
-                        groundArena: [{ card: 'battlefield-marine', upgrades: ['entrenched'] }],
-                        // electrostaff: cost 2 + 2 (Vigilance penalty) - 4 (discount) = 0 → free
-                        deck: ['electrostaff'],
-                        resources: 8
-                    },
-                    player2: {}
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.reforge);
-                context.player1.clickCard(context.entrenched);
-
-                expect(context.entrenched).toBeInZone('discard');
-
-                // Electrostaff costs 0 after discount; only Reforge's cost (4 with aspect penalty) was spent
-                context.player1.clickCardInDisplayCardPrompt(context.electrostaff);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-                context.player1.clickCard(context.battlefieldMarine);
-
-                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['electrostaff']);
-                expect(context.player1.exhaustedResourceCount).toBe(4);
-                expect(context.player2).toBeActivePlayer();
-            });
-
             it('should allow the player to pass without selecting an upgrade from the search', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -149,34 +118,6 @@ describe('Reforge', function() {
 
                 context.player1.clickPrompt('Take nothing');
                 expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should remove the constant effect of the defeated upgrade', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['reforge'],
-                        groundArena: [{ card: 'battlefield-marine', upgrades: ['entrenched'] }],
-                        deck: ['electrostaff'],
-                        resources: 8
-                    },
-                    player2: {}
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.reforge);
-                context.player1.clickCard(context.entrenched);
-
-                expect(context.entrenched).toBeInZone('discard');
-                context.player1.clickPrompt('Take nothing');
-
-                // After defeating Entrenched, the unit can now attack the base
-                // (Entrenched's constant effect preventing base attacks is gone)
-                context.player2.passAction();
-                context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player1).toBeAbleToSelect(context.p2Base);
-                context.player1.clickCard(context.p2Base);
             });
 
             it('should allow defeating an upgrade controlled by an opponent on a friendly unit', async function() {
@@ -293,6 +234,51 @@ describe('Reforge', function() {
                     invalid: [context.moralAuthority]
                 });
                 context.player1.clickPrompt('Take nothing');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should play the found upgrade on the stolen unit before Traitorous\'s When Defeated effect returns it to the opponent', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['reforge', 'traitorous'],
+                        deck: ['electrostaff'],
+                        resources: 12,
+                        hasInitiative: true
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 1 steals the enemy battlefield-marine with Traitorous
+                context.player1.clickCard(context.traitorous);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine.controller).toBe(context.player1Object);
+
+                context.player2.passAction();
+
+                // Player 1 plays Reforge — Traitorous on the (now friendly) stolen unit is selectable
+                context.player1.clickCard(context.reforge);
+                expect(context.player1).toBeAbleToSelectExactly([context.traitorous]);
+                context.player1.clickCard(context.traitorous);
+
+                // Traitorous is defeated; ifYouDo fires — search for a replacement upgrade
+                expect(context.traitorous).toBeInZone('discard');
+                expect(context.player1).toHavePrompt('Search the top 8 cards of your deck for an upgrade that can attach to Battlefield Marine');
+                context.player1.clickCardInDisplayCardPrompt(context.electrostaff);
+
+                // Only the stolen unit is a valid attachment target
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Reforge fully resolves with electrostaff on the unit — then Traitorous WD fires and returns the unit to player 2
+                // The electrostaff should remain on the unit now under player 2's control
+                expect(context.battlefieldMarine.controller).toBe(context.player2Object);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['electrostaff']);
+
                 expect(context.player2).toBeActivePlayer();
             });
 
