@@ -28,5 +28,28 @@ describe('Snub Fighter Squadron', function() {
             expect(context.player2).toBeActivePlayer();
             expect(context.greenSquadronAwing.damage).toBe(1);
         });
+
+        it('Snub Fighter Squadron\'s ability should force dealing one to itself if only space uit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['snub-fighter-squadron']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.snubFighterSquadron);
+            context.player1.clickPrompt('Deal 1 damage to a space unit');
+
+            expect(context.player1).toBeAbleToSelectExactly([context.snubFighterSquadron]);
+            expect(context.player1).not.toHavePassAbilityButton();
+            context.player1.clickCard(context.snubFighterSquadron);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.snubFighterSquadron.damage).toBe(1);
+        });
     });
 });
