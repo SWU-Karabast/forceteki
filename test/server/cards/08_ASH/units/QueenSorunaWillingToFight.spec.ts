@@ -34,6 +34,11 @@ describe('Queen Soruna, Willing to Fight', function() {
                         // Opponent dismisses the card display after viewing the revealed unit
                         context.player2.clickDone();
 
+                        // Validate Chatlog message for revealed card
+                        expect(context.getChatLogs()).toEqual([
+                            'player1 uses Queen Soruna to reveal Wampa'
+                        ]);
+
                         // After revealing wampa (cost 4), must target a unit with cost 4
                         expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.resistanceBlueSquadron]);
                         context.player1.clickCard(context.consularSecurityForce);
@@ -187,6 +192,11 @@ describe('Queen Soruna, Willing to Fight', function() {
 
                         // Opponent dismisses the card display after viewing the revealed unit
                         context.player2.clickDone();
+
+                        // Validate Chatlog message for revealed card
+                        expect(context.getChatLogs()).toEqual([
+                            'player1 uses Queen Soruna to reveal Wampa'
+                        ]);
 
                         // After revealing wampa (cost 4), must target a unit with cost 4
                         expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.resistanceBlueSquadron]);
