@@ -1,0 +1,22 @@
+{
+  "phase": "action",
+  "player1": {
+    "groundArena": [
+      "reanimated-night-trooper"
+    ],
+    "deck": [
+      "battlefield-marine",
+      "wampa"
+    ]
+  },
+  "player2": {
+    "hand": [
+      "vanquish"
+    ],
+    "deck": [
+      "daring-raid",
+      "open-fire"
+    ],
+    "hasInitiative": true
+  }
+}
