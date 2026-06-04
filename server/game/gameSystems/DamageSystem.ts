@@ -282,8 +282,13 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             abilityDamageSource.controller = context.event.lastKnownInformation.controller;
         }
 
+        const sourceCard = properties.source ?? context.source;
+        const sourceMakesDamageUnpreventable =
+            sourceCard?.hasOngoingEffect?.(EffectName.DamageDealtByThisCardIsUnpreventable) ?? false;
+
         event.isIndirect = properties.isIndirect;
-        event.isUnpreventable = properties.isUnpreventable || properties.isIndirect;
+        event.isUnpreventable =
+            properties.isUnpreventable || properties.isIndirect || sourceMakesDamageUnpreventable;
         event.damageSource = abilityDamageSource;
 
         Contract.assertNotNullLike(properties.amount);

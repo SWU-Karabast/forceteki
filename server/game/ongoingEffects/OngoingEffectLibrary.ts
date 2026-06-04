@@ -46,6 +46,7 @@ import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/Addition
 export = {
     assignIndirectDamageDealtToOpponents: () => OngoingEffectBuilder.player.static(EffectName.AssignIndirectDamageDealtToOpponents),
     assignIndirectDamageDealtByUnit: () => OngoingEffectBuilder.card.static(EffectName.AssignIndirectDamageDealtByUnit),
+    damageDealtByThisCardIsUnpreventable: () => OngoingEffectBuilder.card.static(EffectName.DamageDealtByThisCardIsUnpreventable),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
     // additionalTriggerCostForCard: (func) => OngoingEffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
