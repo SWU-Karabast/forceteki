@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
-import { WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { TextHelper } from '../../../core/utils/TextHelper';
 

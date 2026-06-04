@@ -267,6 +267,35 @@ describe('Reforge', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should not allow playing a found upgrade if its attachment restriction is not met', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['reforge'],
+                        // battlefield-marine is non-unique; Moral Authority requires a unique unit
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['entrenched'] }],
+                        deck: ['moral-authority'],
+                        resources: 8
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.reforge);
+                context.player1.clickCard(context.entrenched);
+
+                expect(context.entrenched).toBeInZone('discard');
+
+                // Moral Authority requires a unique unit — battlefield-marine is non-unique, so it's invalid
+                expect(context.player1).toHavePrompt('Search the top 8 cards of your deck for an upgrade that can attach to Battlefield Marine');
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.moralAuthority]
+                });
+                context.player1.clickPrompt('Take nothing');
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should not find a pilot unit when searching the top 8', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
