@@ -10,10 +10,10 @@ export default class ZealousSoldier extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Give an Advantage token to this unit',
-            immediateEffect: AbilityHelper.immediateEffects.giveAdvantage()
+            immediateEffect: abilityHelper.immediateEffects.giveAdvantage()
         });
     }
 }

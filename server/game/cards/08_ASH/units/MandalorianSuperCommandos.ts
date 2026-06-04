@@ -10,11 +10,11 @@ export default class MandalorianSuperCommandos extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While you control a leader unit, this unit gets +2/+0',
             condition: (context) => context.player.hasSomeArenaUnit({ condition: (c) => c.isLeaderUnit() }),
-            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
+            ongoingEffect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
         });
     }
 }

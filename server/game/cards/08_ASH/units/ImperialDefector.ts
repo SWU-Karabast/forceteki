@@ -10,10 +10,10 @@ export default class ImperialDefector extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Look at an opponent\'s hand',
-            immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
+            immediateEffect: abilityHelper.immediateEffects.lookAt((context) => ({
                 target: context.player.opponent.hand,
                 useDisplayPrompt: true
             }))
