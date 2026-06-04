@@ -1,7 +1,7 @@
 describe('Fennec Shand, Ready for War', function () {
     integration(function (contextRef) {
         const playUnitReadyPrompt = 'Play a unit from your hand. It enters play ready';
-        const exhaustFriendlyUnitPrompt = 'Choose a unit to exhaust';
+        const exhaustFriendlyUnitPrompt = 'Choose a friendly unit to exhaust';
 
         describe('leader side ability', function () {
             it('exhausts Fennec and a friendly unit to play a unit from hand ready', async function () {
