@@ -1,10 +1,10 @@
-describe('Regional Governor', function () {
+describe('Ryder Azadi, Restored Governor', function () {
     integration(function (contextRef) {
-        it('Regional Governor\'s ability should name a card and opponent can\'t play named cards', async function () {
+        it('Ryder Azadi\'s ability should name a card and opponent can\'t play named cards', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['regional-governor', 'millennium-falcon#landos-pride', 'millennium-falcon#get-out-and-push', 'take-captive'],
+                    hand: ['ryder-azadi#restored-governor', 'millennium-falcon#landos-pride', 'millennium-falcon#get-out-and-push', 'take-captive'],
                 },
                 player2: {
                     hand: ['millennium-falcon#piece-of-junk', 'millennium-falcon#landos-pride', 'green-squadron-awing', 'vanquish', 'change-of-heart', 'palpatines-return', 'triple-dark-raid'],
@@ -24,11 +24,11 @@ describe('Regional Governor', function () {
             const player2Falcon2Hand = context.player2.findCardByName('millennium-falcon#landos-pride', 'hand');
             const player2Falcon2Resources = context.player2.findCardByName('millennium-falcon#landos-pride', 'resource');
 
-            // play regional governor and say millenium falcon
-            context.player1.clickCard(context.regionalGovernor);
+            // play ryder azadi and say millenium falcon
+            context.player1.clickCard(context.ryderAzadi);
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Millennium Falcon');
-            expect(context.getChatLogs(2)).toContain('player1 names Millennium Falcon using Regional Governor');
+            expect(context.getChatLogs(2)).toContain('player1 names Millennium Falcon using Ryder Azadi');
 
             expect(context.player2).toBeActivePlayer();
 
@@ -66,9 +66,9 @@ describe('Regional Governor', function () {
             context.moveToNextActionPhase();
             context.player1.passAction();
 
-            // player 2 takes control of regional governor
+            // player 2 takes control of ryder azadi
             context.player2.clickCard(context.changeOfHeart);
-            context.player2.clickCard(context.regionalGovernor);
+            context.player2.clickCard(context.ryderAzadi);
 
             // player 1 can still play falcon
             context.player1.clickCard(player1Falcon4Hand);
@@ -80,9 +80,9 @@ describe('Regional Governor', function () {
             context.moveToNextActionPhase();
             context.player1.passAction();
 
-            // player 2 kill regional governor
+            // player 2 kill ryder azadi
             context.player2.clickCard(context.vanquish);
-            context.player2.clickCard(context.regionalGovernor);
+            context.player2.clickCard(context.ryderAzadi);
 
             context.player1.passAction();
 
@@ -96,12 +96,12 @@ describe('Regional Governor', function () {
             context.player1.clickCard(player2Falcon1Hand);
             expect(player2Falcon1Hand).toBeCapturedBy(player1Falcon2Hand);
 
-            context.player1.moveCard(context.regionalGovernor, 'hand');
+            context.player1.moveCard(context.ryderAzadi, 'hand');
             context.player2.moveCard(context.vanquish, 'hand');
             context.player2.passAction();
 
-            // play regional governor and say millenium falcon
-            context.player1.clickCard(context.regionalGovernor);
+            // play ryder azadi and say millenium falcon
+            context.player1.clickCard(context.ryderAzadi);
             context.player1.chooseListOption('Millennium Falcon');
 
             // kill player 1 falcon to rescue captured falcon
@@ -110,11 +110,11 @@ describe('Regional Governor', function () {
             expect(player2Falcon1Hand).toBeInZone('spaceArena');
         });
 
-        it('Regional Governor\'s ability should disallow playing a unit as a pilot', async function () {
+        it('Ryder Azadi\'s ability should disallow playing a unit as a pilot', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['regional-governor'],
+                    hand: ['ryder-azadi#restored-governor'],
                 },
                 player2: {
                     hand: ['dagger-squadron-pilot'],
@@ -124,8 +124,8 @@ describe('Regional Governor', function () {
 
             const { context } = contextRef;
 
-            // play regional governor and say dagger squadron pilot
-            context.player1.clickCard(context.regionalGovernor);
+            // play ryder azadi and say dagger squadron pilot
+            context.player1.clickCard(context.ryderAzadi);
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Dagger Squadron Pilot');
             context.player2.passAction();
