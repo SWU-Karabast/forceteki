@@ -19,39 +19,39 @@ describe('Poe Dameron, I\'ll Come Back For You', function () {
             const { context } = contextRef;
             context.player1.clickCard(context.battlefieldMarine);
 
-            // everyone loose Sentinel
-            expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender, context.wampa, context.p1Base]);
+            // everyone loses Sentinel
+            expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender, context.wampa, context.p2Base]);
             context.player1.clickCard(context.echoBaseDefender);
 
             expect(context.player2).toBeActivePlayer();
+
+            // but units are not Saboteur
             expect(context.echoBaseDefender.damage).toBe(0);
         });
 
-        it('Poe Dameron\'s ability should make lose Sentinel to every unit', function () {
+        it('Poe Dameron\'s ability should make lose Sentinel to every unit (space arena)', function () {
             const { context } = contextRef;
             context.player1.clickCard(context.awing);
 
-            // everyone loose Sentinel
-            expect(context.player1).toBeAbleToSelectExactly([context.concordDawnInterceptors, context.p1Base]);
-            context.player1.clickCard(context.p1Base);
+            expect(context.player1).toBeAbleToSelectExactly([context.concordDawnInterceptors, context.p2Base]);
+            context.player1.clickCard(context.p2Base);
 
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Poe Dameron\'s ability should make lose Sentinel to every unit', function () {
+        it('Poe Dameron\'s ability should make lose Sentinel to every unit (friendly units too)', function () {
             const { context } = contextRef;
 
             context.player1.passAction();
             context.player2.clickCard(context.wampa);
 
-            // everyone loose Sentinel
             expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.poeDameron, context.captainTypho, context.p1Base]);
-            context.player1.clickCard(context.p1Base);
+            context.player2.clickCard(context.p1Base);
 
-            expect(context.player2).toBeActivePlayer();
+            expect(context.player1).toBeActivePlayer();
         });
 
-        it('Poe Dameron\'s ability should make lose Sentinel to every unit', function () {
+        it('Poe Dameron\'s ability should make lose Sentinel to every unit and they cannot gain it again', function () {
             const { context } = contextRef;
 
             context.player1.passAction();

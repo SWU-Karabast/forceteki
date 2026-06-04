@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName } from '../../../core/Constants';
+import { KeywordName, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class PoeDameronIllComeBackForYou extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,6 +15,7 @@ export default class PoeDameronIllComeBackForYou extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: 'All units lose Sentinel',
             matchTarget: () => true,
+            targetController: WildcardRelativePlayer.Any,
             ongoingEffect: abilityHelper.ongoingEffects.loseKeyword(KeywordName.Sentinel)
         });
     }
