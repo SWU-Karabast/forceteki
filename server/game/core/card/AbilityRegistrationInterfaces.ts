@@ -51,6 +51,7 @@ export type IUpgradeAbilityRegistrar = IBasicAbilityRegistrar<UpgradeCard> &
       addGainActionAbilityTargetingAttached(properties: IActionAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>): void;
       addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>): void;
       addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>): void;
+      addGainWhenAttackEndsAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>): void;
       addGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<UpgradeCard>): void;
       setAttachCondition(attachCondition: (context: IAttachCardContext<UpgradeCard>) => boolean): void;
   };
