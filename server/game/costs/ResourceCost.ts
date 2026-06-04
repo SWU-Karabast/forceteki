@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, PlayType } from '../core/Constants';
+import { EventName, PlayType, ZoneName } from '../core/Constants';
 import type { ICost, ICostResult } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import { Contract } from '../core/utils/Contract.js';
@@ -262,6 +262,11 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
                 if (event.context.source.canBeExhausted() && !event.context.source.exhausted) {
                     priorityExhaustList.push(event.context.source);
                 }
+            }
+
+            // When playing a card from the resource row, we want to prioritize paying with itself
+            if(context.playType === PlayType.PlayFromOutOfPlay && context.source.zone.name === ZoneName.Resource) {
+                priorityExhaustList.push(context.source);
             }
 
             this.payingPlayer(context).exhaustResources(amount, priorityExhaustList);
