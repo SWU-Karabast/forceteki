@@ -265,7 +265,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             }
 
             // When playing a card from the resource row, we want to prioritize paying with itself
-            if(context.playType === PlayType.PlayFromOutOfPlay && context.source.zone.name === ZoneName.Resource) {
+            if (context.playType === PlayType.PlayFromOutOfPlay && context.source.zone.name === ZoneName.Resource) {
                 priorityExhaustList.push(context.source);
             }
 
