@@ -38,6 +38,7 @@ describe('Grand Admiral Sloane, Holding the Empire Together', function() {
 
                 context.player2.passAction();
                 context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.wampa]);
                 context.player1.clickCard(context.battleDroid);
                 expect(context.p2Base.damage).toBe(2);
 

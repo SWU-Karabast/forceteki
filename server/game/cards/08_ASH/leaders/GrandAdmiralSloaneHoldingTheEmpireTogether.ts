@@ -20,8 +20,8 @@ export default class GrandAdmiralSloaneHoldingTheEmpireTogether extends LeaderUn
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose an arena',
                 choices: {
-                    ['Ground']: this.giveArenaUnitsKeywordsForThisPhase(ZoneName.GroundArena, abilityHelper),
                     ['Space']: this.giveArenaUnitsKeywordsForThisPhase(ZoneName.SpaceArena, abilityHelper),
+                    ['Ground']: this.giveArenaUnitsKeywordsForThisPhase(ZoneName.GroundArena, abilityHelper),
                 }
             }
         });
