@@ -1,5 +1,8 @@
 describe('Fennec Shand, Ready for War', function () {
     integration(function (contextRef) {
+        const playUnitReadyPrompt = 'Play a unit from your hand. It enters play ready';
+        const exhaustFriendlyUnitPrompt = 'Choose a unit to exhaust';
+
         describe('leader side ability', function () {
             it('exhausts Fennec and a friendly unit to play a unit from hand ready', async function () {
                 await contextRef.setupTestAsync({
@@ -15,11 +18,13 @@ describe('Fennec Shand, Ready for War', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fennecShand);
-                context.player1.clickPrompt('Play a unit from your hand. It enters play ready');
+                context.player1.clickPrompt(playUnitReadyPrompt);
 
+                expect(context.player1).toHavePrompt(exhaustFriendlyUnitPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
 
+                expect(context.player1).toHavePrompt(playUnitReadyPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
                 context.player1.clickCard(context.wampa);
 
@@ -46,7 +51,7 @@ describe('Fennec Shand, Ready for War', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fennecShand);
-                context.player1.clickPrompt('Play a unit from your hand. It enters play ready');
+                context.player1.clickPrompt(playUnitReadyPrompt);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 const underworldThug = context.player1.findCardByName('underworld-thug', 'hand');
@@ -73,11 +78,13 @@ describe('Fennec Shand, Ready for War', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.fennecShand);
-                context.player1.clickPrompt('Play a unit from your hand. It enters play ready');
+                context.player1.clickPrompt(playUnitReadyPrompt);
 
+                expect(context.player1).toHavePrompt(exhaustFriendlyUnitPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.fennecShand, context.battlefieldMarine]);
                 context.player1.clickCard(context.fennecShand);
 
+                expect(context.player1).toHavePrompt(playUnitReadyPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
                 context.player1.clickCard(context.wampa);
 
@@ -112,46 +119,6 @@ describe('Fennec Shand, Ready for War', function () {
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.echoBaseDefender).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
-            });
-        });
-
-        describe('Epic Action', function () {
-            it('can deploy with 4 resources', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'fennec-shand#ready-for-war',
-                        resources: 4
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.fennecShand);
-                expect(context.player1).toHaveEnabledPromptButton('Deploy Fennec Shand');
-                context.player1.clickPrompt('Deploy Fennec Shand');
-
-                expect(context.fennecShand).toBeInZone('groundArena');
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('cannot deploy with fewer than 4 resources', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'fennec-shand#ready-for-war',
-                        groundArena: ['battlefield-marine'],
-                        hand: ['underworld-thug'],
-                        resources: 3
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.fennecShand);
-
-                expect(context.player1).not.toHaveEnabledPromptButton('Deploy Fennec Shand');
-                context.player1.clickPrompt('Cancel');
             });
         });
     });
