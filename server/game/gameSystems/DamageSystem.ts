@@ -188,6 +188,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
                 Contract.fail(`Unexpected damage type: ${properties['type']}`);
         }
 
+        const explicitlyUnpreventable = 'isUnpreventable' in properties && properties.isUnpreventable;
+        const isIndirect = 'isIndirect' in properties && properties.isIndirect;
+        event.isUnpreventable = explicitlyUnpreventable || isIndirect || this.sourcesMakeDamageUnpreventable(event);
+
         Contract.assertTrue(card.canBeDamaged());
 
         const damageAmount = this.getDamageAmountFromEvent(event);
@@ -282,17 +286,29 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             abilityDamageSource.controller = context.event.lastKnownInformation.controller;
         }
 
-        const sourceCard = properties.source ?? context.source;
-        const sourceMakesDamageUnpreventable =
-            sourceCard?.hasOngoingEffect?.(EffectName.DamageDealtByThisCardIsUnpreventable) ?? false;
-
         event.isIndirect = properties.isIndirect;
-        event.isUnpreventable =
-            properties.isUnpreventable || properties.isIndirect || sourceMakesDamageUnpreventable;
         event.damageSource = abilityDamageSource;
 
         Contract.assertNotNullLike(properties.amount);
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
+    }
+
+    private sourcesMakeDamageUnpreventable(event: any): boolean {
+        const damageSource = event.damageSource;
+        if (!damageSource) {
+            return false;
+        }
+
+        const hasUnpreventableEffect = (source: Card | null | undefined) =>
+            source?.hasOngoingEffect?.(EffectName.DamageDealtByThisCardIsUnpreventable) ?? false;
+
+        if (damageSource.type === DamageSourceType.Attack) {
+            const attackSource = damageSource as IDamagedOrDefeatedByAttack;
+            return attackSource.damageDealtBy.some(hasUnpreventableEffect);
+        }
+
+        const abilitySource = damageSource as IDamagedOrDefeatedByAbility;
+        return hasUnpreventableEffect(abilitySource.card);
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
