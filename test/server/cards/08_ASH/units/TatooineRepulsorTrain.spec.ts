@@ -92,6 +92,7 @@ describe('Tatooine Repulsor Train', function () {
                 context.player1.clickCard(context.tatooineRepulsorTrain);
                 context.player1.clickCard(context.p2Base);
 
+                expect(context.player1).toHavePrompt('Choose a ground unit to deal 6 damage to');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.tatooineRepulsorTrain,
                     context.battlefieldMarine,
