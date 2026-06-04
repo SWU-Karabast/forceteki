@@ -1,0 +1,26 @@
+{
+  "phase": "action",
+  "player1": {
+    "groundArena": [
+      "domesticated-lothcat",
+      "escort-skiff",
+      "doctor-pershing#dedicated-to-research"
+    ],
+    "spaceArena": [
+      "patrolling-vwing"
+    ]
+  },
+  "player2": {
+    "hand": [
+      "takedown"
+    ],
+    "groundArena": [
+      "escort-skiff",
+      "doctor-pershing#dedicated-to-research"
+    ],
+    "spaceArena": [
+      "patrolling-vwing"
+    ],
+    "hasInitiative": true
+  }
+}
