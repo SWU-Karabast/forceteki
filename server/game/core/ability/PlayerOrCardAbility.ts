@@ -5,6 +5,7 @@ import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck, GameState
 import { Contract } from '../utils/Contract.js';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
 import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetResolver.js';
+import { NumberTargetResolver } from './abilityTargets/NumberTargetResolver.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { Helpers } from '../utils/Helpers.js';
 import { AbilityContext } from './AbilityContext.js';
@@ -195,6 +196,8 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
                 return new SelectTargetResolver(name, properties, this);
             case TargetMode.DropdownList:
                 return new DropdownListTargetResolver(name, properties, this);
+            case TargetMode.ChooseNumber:
+                return new NumberTargetResolver(name, properties, this);
             case TargetMode.Player:
             case TargetMode.MultiplePlayers:
                 return new PlayerTargetResolver(name, properties, this);
@@ -446,4 +449,3 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return false;
     }
 }
-

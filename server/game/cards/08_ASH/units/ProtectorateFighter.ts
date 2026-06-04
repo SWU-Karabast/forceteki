@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ProtectorateFighter extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'protectorate-fighter-id',
+            id: '2808330391',
             internalName: 'protectorate-fighter'
         };
     }

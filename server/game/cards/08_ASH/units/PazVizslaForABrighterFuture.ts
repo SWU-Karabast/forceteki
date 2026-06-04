@@ -6,7 +6,7 @@ import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 export default class PazVizslaForABrighterFuture extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'paz-vizsla#for-a-brighter-future-id',
+            id: '7107655724',
             internalName: 'paz-vizsla#for-a-brighter-future',
         };
     }

@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class EzraBridgerTheForceIsAllINeed extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ezra-bridger#the-force-is-all-i-need-id',
+            id: '8765396756',
             internalName: 'ezra-bridger#the-force-is-all-i-need',
         };
     }

@@ -5,7 +5,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 export default class BladeThreeBaneOfTheDevastator extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'blade-three#bane-of-the-devastator-id',
+            id: '7634552408',
             internalName: 'blade-three#bane-of-the-devastator',
         };
     }

@@ -6,7 +6,7 @@ import { KeywordName, ZoneName } from '../../../core/Constants';
 export default class ShinHatiGoingSomewhere extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'shin-hati#going-somewhere-id',
+            id: '1043323645',
             internalName: 'shin-hati#going-somewhere',
         };
     }

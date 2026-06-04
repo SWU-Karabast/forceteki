@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class QiraMasterOfTerasKasi extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'qira#master-of-teras-kasi-id',
+            id: '7886747371',
             internalName: 'qira#master-of-teras-kasi',
         };
     }

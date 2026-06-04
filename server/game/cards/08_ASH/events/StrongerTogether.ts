@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class StrongerTogether extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'stronger-together-id',
+            id: '5181800767',
             internalName: 'stronger-together',
         };
     }
