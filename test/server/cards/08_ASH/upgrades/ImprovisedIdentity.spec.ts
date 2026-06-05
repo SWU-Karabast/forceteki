@@ -54,11 +54,12 @@ describe('Improvised Identity', function() {
                     });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                    // Clean up the prompt
+                    // Clean up the prompts — Take nothing, then pass the follow-up attack
                     context.player1.clickPrompt('Take nothing');
+                    context.player1.clickPrompt('Pass attack');
                 });
 
-                it('should discard the selected ground unit', function() {
+                it('should discard the selected ground unit and allow passing on the attack', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.wampa);
@@ -73,10 +74,8 @@ describe('Improvised Identity', function() {
                     context.player1.clickPrompt('Pass attack');
                 });
 
-                it('should allow the player to decline the search (Take nothing) and end the action without discarding', function() {
+                it('should allow the player to decline the search (Take nothing) and still offer the optional attack', function() {
                     const { context } = contextRef;
-
-                    const p2BaseDamageBefore = context.p2Base.damage;
 
                     context.player1.clickCard(context.wampa);
                     context.player1.clickPrompt(abilityTitle);
@@ -84,9 +83,14 @@ describe('Improvised Identity', function() {
                     // Decline to select any card
                     context.player1.clickPrompt('Take nothing');
 
-                    // No discard occurred and no base damage was dealt
-                    expect(context.battlefieldMarine).toBeInZone('deck');
-                    expect(context.p2Base.damage).toBe(p2BaseDamageBefore);
+                    // No discard occurred — all top-three cards are still in deck
+                    expect([context.battlefieldMarine, context.cartelSpacer, context.takedown]).toAllBeInZone('deck');
+
+                    // The optional attack is still offered even with no discard; player declines
+                    expect(context.player1).toHavePrompt('Attack with Wampa');
+                    context.player1.clickPrompt('Pass attack');
+
+                    expect(context.wampa.exhausted).toBeFalse();
                     expect(context.player2).toBeActivePlayer();
                 });
             });
@@ -96,8 +100,8 @@ describe('Improvised Identity', function() {
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', upgrades: ['improvised-identity'] }],
-                        // Only space units and events in top 3 — no ground units
-                        deck: ['cartel-spacer', 'tie-advanced', 'takedown']
+                        // Only space units, events, and upgrades in top 3 — no ground units
+                        deck: ['cartel-spacer', 'resilient', 'takedown']
                     }
                 });
 
@@ -109,13 +113,17 @@ describe('Improvised Identity', function() {
                 // No selectable cards — only "Take nothing"
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [],
-                    invalid: [context.cartelSpacer, context.tieAdvanced, context.takedown]
+                    invalid: [context.cartelSpacer, context.resilient, context.takedown]
                 });
 
                 context.player1.clickPrompt('Take nothing');
 
-                // No discard and no attack
+                // The optional attack is still offered even when nothing was discarded; player declines
+                expect(context.player1).toHavePrompt('Attack with Wampa');
+                context.player1.clickPrompt('Pass attack');
+
                 expect(context.p2Base.damage).toBe(0);
+                expect(context.wampa.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -290,10 +298,11 @@ describe('Improvised Identity', function() {
                 it('should not allow the action to be used a second time in the same round', function() {
                     const { context } = contextRef;
 
-                    // Use the action once this round
+                    // Use the action once this round (take nothing, pass the optional attack)
                     context.player1.clickCard(context.wampa);
                     context.player1.clickPrompt(abilityTitle);
                     context.player1.clickPrompt('Take nothing');
+                    context.player1.clickPrompt('Pass attack');
 
                     // Wampa is still ready (no exhaust cost on the action).
                     // Clicking Wampa again goes directly to attack targeting since the once-per-round
@@ -306,15 +315,6 @@ describe('Improvised Identity', function() {
 
                     // Cancel out of the attack prompt to end cleanly
                     context.player1.clickPrompt('Cancel');
-                });
-
-                it('should be available again in the next round', function() {
-                    const { context } = contextRef;
-
-                    // Use the action once this round
-                    context.player1.clickCard(context.wampa);
-                    context.player1.clickPrompt(abilityTitle);
-                    context.player1.clickPrompt('Take nothing');
 
                     // Advance to the next round
                     context.moveToNextActionPhase();
@@ -323,8 +323,10 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.wampa);
                     expect(context.player1).toHaveEnabledPromptButton(abilityTitle);
 
-                    // Cancel out of the menu to end cleanly
-                    context.player1.clickPrompt('Cancel');
+                    // Resolve it by taking nothing and passing the optional attack
+                    context.player1.clickPrompt(abilityTitle);
+                    context.player1.clickPrompt('Take nothing');
+                    context.player1.clickPrompt('Pass attack');
                 });
             });
 
@@ -356,6 +358,28 @@ describe('Improvised Identity', function() {
                 // Wampa is exhausted so no attack is offered — action completes without attacking
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should still allow the attack when the deck is empty and nothing is discarded', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', upgrades: ['improvised-identity'] }],
+                        deck: []
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickPrompt(abilityTitle);
+
+                // Deck is empty so we skip right to the attack
+                expect(context.player1).toHavePrompt('Attack with Wampa');
+                context.player1.clickCard(context.p2Base);
+
+                // Wampa deals its base 4 damage — no discard means no gained abilities, but the attack still happens
+                expect(context.p2Base.damage).toBe(4);
             });
         });
     });
