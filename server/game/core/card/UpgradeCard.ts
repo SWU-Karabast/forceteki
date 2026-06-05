@@ -164,6 +164,17 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         }, registrar);
     }
 
+    private addGainOnDefenseAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+        const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.OnDefense]: true };
+
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give ability to the attached card',
+            condition: this.addZoneCheckToGainCondition(gainCondition),
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties, when })
+        }, registrar);
+    }
+
     // TODO THRAWN2: update the below to use the whenDefeated property
 
     /**
@@ -242,6 +253,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             addDamageModificationAbilityTargetingAttached: (properties) => this.addDamageModificationAbilityTargetingAttached(properties, registrar),
             addGainActionAbilityTargetingAttached: (properties) => this.addGainActionAbilityTargetingAttached(properties, registrar),
             addGainOnAttackAbilityTargetingAttached: (properties) => this.addGainOnAttackAbilityTargetingAttached(properties, registrar),
+            addGainOnDefenseAbilityTargetingAttached: (properties) => this.addGainOnAttackAbilityTargetingAttached(properties, registrar),
             addGainWhenDefeatedAbilityTargetingAttached: (properties) => this.addGainWhenDefeatedAbilityTargetingAttached(properties, registrar),
             addGainWhenAttackEndsAbilityTargetingAttached: (properties) => this.addGainWhenAttackEndsAbilityTargetingAttached(properties, registrar),
             addGainKeywordTargetingAttached: (properties) => this.addGainKeywordTargetingAttached(properties, registrar),
