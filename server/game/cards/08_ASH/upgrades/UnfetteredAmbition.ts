@@ -13,6 +13,15 @@ export default class UnfetteredAmbition extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Give Advantage tokens for each upgrade which is not Advantage',
+            contextTitle: (context) => {
+                const parentCard = context.source.parentCard;
+                if (!parentCard || !parentCard.upgrades) {
+                    return 'Give Advantage tokens for each upgrade which is not Advantage';
+                }
+
+                const nonAdvantageUpgrades = parentCard.upgrades.filter((u) => !u.isAdvantage());
+                return `Give ${nonAdvantageUpgrades.length} Advantage tokens to ${context.source.title}`;
+            },
             immediateEffect: AbilityHelper.immediateEffects.giveAdvantage((context) => {
                 const parentCard = context.source.parentCard;
                 if (!parentCard || !parentCard.upgrades) {

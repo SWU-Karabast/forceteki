@@ -53,28 +53,39 @@ describe('Eviscerator, Burn Them Away', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: [],
+                    hand: ['eviscerator#burn-them-away'],
                     groundArena: ['wampa', 'porg'],
-                    spaceArena: [{ card: 'awing', upgrades: ['advantage', 'advantage'] }, 'eviscerator#burn-them-away']
+                    spaceArena: [{ card: 'awing', upgrades: ['advantage', 'advantage'] }]
                 },
                 player2: {
+                    hand: ['rivals-fall'],
                     groundArena: [{ card: 'sundari-peacekeeper', upgrades: ['advantage'] }],
                 }
             });
             const { context } = contextRef;
 
-            context.player1.clickCard(context.awing);
-            context.player1.clickCard(context.p2Base);
-
-            expect(context.player2).toBeActivePlayer();
-            expect(context.awing).toHaveExactUpgradeNames(['advantage', 'advantage']);
-            expect(context.p2Base.damage).toBe(4);
+            context.player1.clickCard(context.eviscerator);
 
             context.player2.clickCard(context.sundariPeacekeeper);
             context.player2.clickCard(context.p1Base);
-
-            expect(context.player1).toBeActivePlayer();
             expect(context.sundariPeacekeeper).toHaveExactUpgradeNames([]);
+
+            context.player1.clickCard(context.awing);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.awing).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage', 'advantage']);
+
+            context.player2.clickCard(context.rivalsFall);
+            context.player2.clickCard(context.eviscerator);
+
+            expect(context.wampa).toHaveExactUpgradeNames(['advantage', 'advantage']);
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Defeat Advantage token');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.wampa).toHaveExactUpgradeNames([]);
         });
     });
 });
