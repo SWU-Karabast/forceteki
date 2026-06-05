@@ -19,13 +19,13 @@ describe('Nebulon-C Frigate', function() {
             it('can heal a unit', function () {
                 const { context } = contextRef;
 
-                context.setDamage(context.wampa, 3);
+                context.setDamage(context.wampa, 4);
                 context.player1.clickCard(context.nebuloncFrigate);
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.p1Base, context.wampa, context.imperialInterceptor, context.p2Base, context.nebuloncFrigate]);
 
                 context.player1.clickCard(context.wampa);
-                expect(context.wampa.damage).toBe(0);
+                expect(context.wampa.damage).toBe(1);
             });
 
             it('can heal a base', function () {
