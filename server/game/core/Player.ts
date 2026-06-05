@@ -8,6 +8,7 @@ import { PlayerPromptState } from './PlayerPromptState.js';
 import { Contract } from './utils/Contract';
 import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
 import {
+    AlertType,
     ChatObjectType,
     EffectName,
     GameEndReason,
@@ -46,6 +47,7 @@ import { logger } from '../../logger';
 import { ByoyomiTimer } from './actionTimer/ByoyomiTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
 import type { IByoyomiTimer } from './actionTimer/IByoyomiTimer';
+import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
@@ -218,7 +220,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                 this.game,
                 () => this.game.onGameTimerExpired(this),
                 (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId),
-                () => this.game.sendTimerUpdatedGameStateToPlayers()
+                () => this.game.sendTimerUpdatedGameStateToPlayers(),
+                (status) => this.onMainTimerWarning(status)
             );
         } else {
             this.actionTimer = new NoopActionTimer();
@@ -267,6 +270,24 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.game.getCurrentOpenPrompt().uuid === promptUuid &&
           playerActionId === this._lastActionId &&
           !this.game.isEnded;
+    }
+
+    /**
+     * Called by ByoyomiTimer when this player's main timer crosses a warning threshold.
+     * Emits a chat alert, so that the player and their opponent are aware of the time
+     * remaining, even for players that have the timer interface hidden.
+     */
+    private onMainTimerWarning(status: PlayerTimeRemainingStatus): void {
+        if (status === PlayerTimeRemainingStatus.NoAlert) {
+            return;
+        }
+
+        const secondsRemaining = status === PlayerTimeRemainingStatus.Danger
+            ? ByoyomiTimer.MainTimeDangerSeconds
+            : ByoyomiTimer.MainTimeWarningSeconds;
+        const alertType = status === PlayerTimeRemainingStatus.Danger ? AlertType.Danger : AlertType.Warning;
+
+        this.game.addAlert(alertType, `${this.name} has ${secondsRemaining} seconds of main time remaining.`);
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
@@ -747,9 +768,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
             new PlayableZone(PlayType.Plot, this.resourceZone),
-            new PlayableZone(PlayType.Piloting, this.deckZone), // TODO: interaction with Ezra
+            new PlayableZone(PlayType.Piloting, this.deckZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
-            new PlayableZone(PlayType.Piloting, this.discardZone), // TODO: interactions with Fine Addition
+            new PlayableZone(PlayType.Piloting, this.discardZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
@@ -1208,6 +1229,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             credits: this.getCreditsSummary(activePlayer),
             turnTimeRemainingSeconds: this.actionTimer.turnTimeRemainingSeconds,
             mainTimeRemainingSeconds: this.actionTimer.mainTimeRemainingSeconds,
+            timeRemainingStatus: this.actionTimer.timeRemainingStatus,
             timerIsRunning: this.actionTimer.isRunning,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),

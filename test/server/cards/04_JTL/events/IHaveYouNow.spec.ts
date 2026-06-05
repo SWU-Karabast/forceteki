@@ -47,7 +47,7 @@ describe('I Have You Now', function() {
             context.player1.clickCard(context.wampa);
 
             // Player should be prompted to choose which ability to resolve first
-            expect(context.player1).toHaveExactPromptButtons(['Defeat shield to prevent attached unit from taking damage', 'Prevent all damage that would be dealt to it during this attack']);
+            expect(context.player1).toHaveExactPromptButtons(['Defeat Shield to prevent AT-ST from taking damage', 'Prevent all damage that would be dealt to it during this attack']);
             context.player1.clickPrompt('Prevent all damage that would be dealt to it during this attack');
 
             // Assert prevented damage
@@ -77,8 +77,8 @@ describe('I Have You Now', function() {
             context.player1.clickCard(context.wampa);
 
             // Player should be prompted to choose which ability to resolve first
-            expect(context.player1).toHaveExactPromptButtons(['Defeat shield to prevent attached unit from taking damage', 'Prevent all damage that would be dealt to it during this attack']);
-            context.player1.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+            expect(context.player1).toHaveExactPromptButtons(['Defeat Shield to prevent AT-ST from taking damage', 'Prevent all damage that would be dealt to it during this attack']);
+            context.player1.clickPrompt('Defeat Shield to prevent AT-ST from taking damage');
 
             // Assert prevented damage
             expect(context.atst.damage).toBe(0);

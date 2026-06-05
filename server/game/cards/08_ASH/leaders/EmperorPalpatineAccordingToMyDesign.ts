@@ -9,7 +9,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class EmperorPalpatineAccordingToMyDesign extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'emperor-palpatine#according-to-my-design-id',
+            id: '9261531867',
             internalName: 'emperor-palpatine#according-to-my-design',
         };
     }

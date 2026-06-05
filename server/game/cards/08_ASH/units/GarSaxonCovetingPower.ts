@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class GarSaxonCovetingPower extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'gar-saxon#coveting-power-id',
+            id: '6754905608',
             internalName: 'gar-saxon#coveting-power',
         };
     }

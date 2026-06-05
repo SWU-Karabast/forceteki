@@ -46,6 +46,8 @@ import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmon
 import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
 import { DropdownListPrompt } from './gameSteps/prompts/DropdownListPrompt';
 import type { IDropdownListPromptProperties } from './gameSteps/prompts/DropdownListPrompt';
+import { NumberPrompt } from './gameSteps/prompts/NumberPrompt';
+import type { INumberPromptProperties } from './gameSteps/prompts/NumberPrompt';
 import { UnitPropertiesCard } from './card/propertyMixins/UnitProperties';
 import type { Card } from './card/Card';
 import { GroundArenaZone } from './zone/GroundArenaZone';
@@ -1047,6 +1049,15 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DropdownListPrompt(this, player, properties));
+    }
+
+    /**
+     * Prompts a player with a bounded number input
+     */
+    public promptWithNumberMenu(player: Player, properties: INumberPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new NumberPrompt(this, player, properties));
     }
 
     /**

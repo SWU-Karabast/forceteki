@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class R5D4BuiltForAdventure extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'r5d4#built-for-adventure-id',
+            id: '3708951358',
             internalName: 'r5d4#built-for-adventure',
         };
     }

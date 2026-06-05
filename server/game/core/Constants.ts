@@ -98,6 +98,7 @@ export enum EffectName {
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
+    DamageDealtByThisCardIsUnpreventable = 'damageDealtByThisCardIsUnpreventable',
     DealsCombatDamageFirst = 'dealsCombatDamageFirst',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
@@ -180,6 +181,7 @@ export enum TargetMode {
     ExactlyVariable = 'exactlyVariable',
     MaxStat = 'maxStat',
     MultiplePlayers = 'multiplePlayers',
+    ChooseNumber = 'chooseNumber',
     Player = 'player',
     Select = 'select',
     SelectUnless = 'selectUnless',
@@ -341,6 +343,7 @@ export enum MetaEventName {
     DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
+    DistributeAdvantage = 'distributeAdvantage',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
@@ -663,4 +666,3 @@ export enum RematchMode {
     Bo1ConvertToBo3 = 'bo1ConvertToBo3',
     NewBo3 = 'newBo3',
 }
-

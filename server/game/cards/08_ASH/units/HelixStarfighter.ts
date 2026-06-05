@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class HelixStarfighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'helix-starfighter-id',
+            id: '4212933603',
             internalName: 'helix-starfighter',
         };
     }
