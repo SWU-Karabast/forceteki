@@ -17,6 +17,12 @@ export interface IInitiateAttackProperties<TContext extends AbilityContext = Abi
 
     /** By default, the system will inherit the `optional` property from the activating ability. Use this to override the behavior. */
     optional?: boolean;
+
+    /**
+     * Overrides the prompt title shown to the player when selecting the attack target. Useful for modified
+     * attack actions that want to communicate context (e.g. gained abilities) at the picker step.
+     */
+    activePromptTitle?: string;
 }
 
 /**
