@@ -98,8 +98,6 @@ describe('Reanimated Night Trooper', function() {
                 });
 
                 const { context } = contextRef;
-                context.player1.setDeck([context.battlefieldMarine, context.wampa]);
-                context.player2.setDeck([context.daringRaid, context.openFire]);
 
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.reanimatedNightTrooper);
