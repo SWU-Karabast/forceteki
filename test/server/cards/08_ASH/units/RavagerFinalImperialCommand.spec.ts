@@ -7,7 +7,7 @@ describe('Ravager, Final Imperial Command', function () {
                     player1: {
                         spaceArena: ['ravager#final-imperial-command', 'cartel-spacer'],
                         groundArena: ['wampa'],
-                        hand: ['tieln-fighter', 'battlefield-marine', 'entrenched', 'drop-in'],
+                        hand: ['tieln-fighter', 'battlefield-marine', 'entrenched', 'drop-in', 'cantina-braggart'],
                         leader: { card: 'rey#more-than-a-scavenger', deployed: false },
                     },
                     player2: {
@@ -150,6 +150,17 @@ describe('Ravager, Final Imperial Command', function () {
                 // Does not triggger
                 const cloneTroopers = context.player1.findCardsByName('clone-trooper');
                 expect(cloneTroopers.length).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not tigger when a 0 power unit is played', function () {
+                const { context } = contextRef;
+
+                // Play a 0 power unit
+                context.player1.clickCard(context.cantinaBraggart);
+
+                // Does not trigger
+                expect(context.cantinaBraggart).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
         });
