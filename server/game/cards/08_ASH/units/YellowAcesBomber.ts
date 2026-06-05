@@ -13,9 +13,8 @@ export default class YellowAcesBomber extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Deal 2 damage to a base if Yellow Aces Bomber is upgraded',
+            title: 'Deal 2 damage to a base',
             targetResolver: {
-                activePromptTitle: 'Deal 2 damage to a base',
                 cardTypeFilter: CardType.Base,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.isUpgraded(),
