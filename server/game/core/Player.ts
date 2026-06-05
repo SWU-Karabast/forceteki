@@ -754,8 +754,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         this.playableZones = [
             new PlayableZone(PlayType.PlayFromHand, this.handZone),
             new PlayableZone(PlayType.Piloting, this.handZone),
-            new PlayableZone(PlayType.Plot, this.resourceZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
+            new PlayableZone(PlayType.Plot, this.resourceZone),
             new PlayableZone(PlayType.Piloting, this.deckZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
             new PlayableZone(PlayType.Piloting, this.discardZone),

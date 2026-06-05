@@ -7,7 +7,7 @@ describe('The Armorer, Steel Shapes Us', function () {
                     player1: {
                         leader: 'the-armorer#steel-shapes-us',
                         hand: ['porg'],
-                        resources: ['protector', 'underworld-thug', 'underworld-thug', 'underworld-thug'],
+                        resources: ['protector', 'underworld-thug', 'underworld-thug', 'underworld-thug', 'underworld-thug', 'underworld-thug'],
                         groundArena: ['wampa'],
                         deck: ['moisture-farmer']
                     },
@@ -21,6 +21,8 @@ describe('The Armorer, Steel Shapes Us', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.theArmorer);
+                expect(context.player1).toHaveEnabledPromptButton('Play an upgrade from your resources on a unit that entered play this phase');
+                context.player1.clickPrompt('Play an upgrade from your resources on a unit that entered play this phase');
 
                 // select upgrade from resources (only protector is an upgrade)
                 expect(context.player1).toBeAbleToSelectExactly([context.protector]);
@@ -35,7 +37,7 @@ describe('The Armorer, Steel Shapes Us', function () {
                 expect(context.porg).toHaveExactUpgradeNames(['protector']);
                 expect(context.moistureFarmer).toBeInZone('resource', context.player1);
                 expect(context.player1.exhaustedResourceCount).toBe(3);
-                expect(context.player1.readyResourceCount).toBe(1);
+                expect(context.player1.readyResourceCount).toBe(3);
             });
 
             it('allows attaching to any unit (friendly or enemy) that entered play this phase', async function () {
@@ -105,7 +107,35 @@ describe('The Armorer, Steel Shapes Us', function () {
                 expect(context.moistureFarmer).toBeInZone('resource', context.player1);
             });
 
-            it('cannot be activated if no units entered play this phase', async function () {
+            it('cannot target upgrades in hand or discard — only resources are valid sources', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-armorer#steel-shapes-us',
+                        hand: ['protector', 'wampa'],
+                        discard: ['entrenched'],
+                        deck: ['moisture-farmer']
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // play a unit so there is a valid attach target this phase
+                context.player1.clickCard(context.wampa);
+                context.player2.passAction();
+
+                // ability has no legal targets — only underworld-thugs (units) are in resources
+                context.player1.clickCard(context.theArmorer);
+                expect(context.player1).toHaveEnabledPromptButton('(No effect) Play an upgrade from your resources on a unit that entered play this phase');
+                context.player1.clickPrompt('(No effect) Play an upgrade from your resources on a unit that entered play this phase');
+                context.player1.clickPrompt('Use it anyway');
+
+                expect(context.theArmorer.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('can be activated as a soft pass if no units entered play this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
