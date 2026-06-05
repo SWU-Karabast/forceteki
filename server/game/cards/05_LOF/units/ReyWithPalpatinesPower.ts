@@ -21,11 +21,15 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
             },
             zoneFilter: ZoneName.Hand,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.base.aspects.concat(context.player.leader.aspects).includes(Aspect.Aggression) && context.source.zoneName === ZoneName.Hand,
+                condition: (context) =>
+                    this.aggressionAspectCondition(context) &&
+                    context.source.zoneName === ZoneName.Hand,
                 onTrue: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.reveal((context) => ({ promptedPlayer: RelativePlayer.Opponent,
+                    AbilityHelper.immediateEffects.reveal((context) => ({
+                        promptedPlayer: RelativePlayer.Opponent,
                         useDisplayPrompt: true,
-                        target: context.source })),
+                        target: context.source
+                    })),
                     AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Unit,
@@ -39,6 +43,17 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
                 ])
             })
         });
+    }
+
+    private aggressionAspectCondition(context: TriggeredAbilityContext) {
+        const arenaLeaders = context.player.getArenaCards({ type: WildcardCardType.LeaderUnit });
+        const baseZoneLeaderOrBase = context.player.baseZone.cards.filter((card) =>
+            card.type === CardType.Leader || card.type === CardType.Base
+        );
+
+        const allCardsToCheck = [...arenaLeaders, ...baseZoneLeaderOrBase];
+
+        return allCardsToCheck.some((card) => card.hasSomeAspect(Aspect.Aggression));
     }
 
     // Checks that the drawn card is Rey and that it is the action phase
