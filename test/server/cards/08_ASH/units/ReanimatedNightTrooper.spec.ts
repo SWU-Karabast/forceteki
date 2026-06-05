@@ -123,18 +123,16 @@ describe('Reanimated Night Trooper', function() {
                     phase: 'action',
                     player1: {
                         groundArena: ['reanimated-night-trooper'],
-                        deck: ['battlefield-marine', 'wampa']
+                        deck: []
                     },
                     player2: {
                         hand: ['vanquish'],
-                        deck: ['daring-raid', 'open-fire'],
+                        deck: [],
                         hasInitiative: true
                     }
                 });
 
                 const { context } = contextRef;
-                context.player1.setDeck([]);
-                context.player2.setDeck([]);
 
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.reanimatedNightTrooper);
