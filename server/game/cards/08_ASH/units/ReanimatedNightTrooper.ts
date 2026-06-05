@@ -16,7 +16,7 @@ export default class ReanimatedNightTrooper extends NonLeaderUnitCard {
         registrar.addWhenDefeatedAbility({
             title: 'Look at the top card of a deck',
             targetResolver: {
-                activePromptTitle: 'Choose a deck to look at the top card',
+                activePromptTitle: 'Look at the top card of a deck',
                 mode: TargetMode.Select,
                 showUnresolvable: true,
                 choices: (context) => ({
