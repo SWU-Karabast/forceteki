@@ -17,7 +17,7 @@ export default class DangerSquadronWingmen extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => card !== context?.source,
+                cardCondition: (card, context) => card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.giveAdvantage()
             }
         });
