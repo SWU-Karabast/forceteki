@@ -4,14 +4,14 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class FlarestarAttackShuttle extends NonLeaderUnitCard {
-    protected override getImplementationId() {
+    protected override getImplementationId () {
         return {
             id: '7534790849',
             internalName: 'flarestar-attack-shuttle',
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Give an Advantage token to a unit.',
             optional: true,
@@ -20,10 +20,11 @@ export default class FlarestarAttackShuttle extends NonLeaderUnitCard {
                 whenDefeated: true,
             },
             targetResolver: {
-                            cardTypeFilter: WildcardCardType.Unit,
-                            immediateEffect: AbilityHelper.immediateEffects.giveAdvantage({ amount: 1
-                            })
-                    }
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.giveAdvantage({
+                    amount: 1
+                })
+            }
         });
     }
 }

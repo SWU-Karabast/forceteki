@@ -1,6 +1,6 @@
-describe('Flarestar Attack Shuttle', function() {
-    integration(function(contextRef) {
-        it('should give an Advantage token to a unit when played', async function() {
+describe('Flarestar Attack Shuttle', function () {
+    integration(function (contextRef) {
+        it('should give an Advantage token to a unit when played', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -13,28 +13,20 @@ describe('Flarestar Attack Shuttle', function() {
                 },
             });
 
-    
             const { context } = contextRef;
 
             context.player1.clickCard(context.flarestarAttackShuttle);
-            
+
             expect(context.player1).toHavePassAbilityButton();
-            expect(context.player1).toBeAbleToSelectExactly([
-                    context.awing,
-                    context.wampa,
-                    context.atst,
-                    context.tieFighter,
-                    context.flarestarAttackShuttle,
-            ]);
+            expect(context.player1).toBeAbleToSelectExactly([context.awing, context.wampa, context.atst, context.tieFighter, context.flarestarAttackShuttle]);
 
             context.player1.clickCard(context.awing);
-                expect(context.awing).toHaveExactUpgradeNames(['advantage']);
-                expect(context.player2).toBeActivePlayer();
 
+            expect(context.player2).toBeActivePlayer();
+            expect(context.awing).toHaveExactUpgradeNames(['advantage']);
         });
 
-
-        it('should give an Advantage token to a unit when defeated', async function() {
+        it('should give an Advantage token to a unit when defeated', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -46,23 +38,18 @@ describe('Flarestar Attack Shuttle', function() {
                 },
             });
 
-    
             const { context } = contextRef;
 
             context.player1.clickCard(context.flarestarAttackShuttle);
             context.player1.clickCard(context.tieFighter);
-            
+
             expect(context.player1).toHavePassAbilityButton();
-            expect(context.player1).toBeAbleToSelectExactly([
-                    context.awing,
-                    context.wampa,
-                    context.atst,
-            ]);
+            expect(context.player1).toBeAbleToSelectExactly([context.awing, context.wampa, context.atst]);
 
             context.player1.clickCard(context.wampa);
-                expect(context.wampa).toHaveExactUpgradeNames(['advantage']);
-                expect(context.player2).toBeActivePlayer();
 
+            expect(context.player2).toBeActivePlayer();
+            expect(context.wampa).toHaveExactUpgradeNames(['advantage']);
         });
 
         it('should work with No Glory, Only Results', async function () {
@@ -82,11 +69,12 @@ describe('Flarestar Attack Shuttle', function() {
 
             context.player2.clickCard(context.noGloryOnlyResults);
             context.player2.clickCard(context.flarestarAttackShuttle);
+
             expect(context.player2).toBeAbleToSelectExactly([context.maul, context.wampa]);
             context.player2.clickCard(context.maul);
-            expect(context.maul).toHaveExactUpgradeNames(['advantage']);
 
             expect(context.player1).toBeActivePlayer();
+            expect(context.maul).toHaveExactUpgradeNames(['advantage']);
         });
     });
 });
