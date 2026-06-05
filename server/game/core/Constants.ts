@@ -513,6 +513,7 @@ export type PlayRestriction =
 export enum DamageModificationType {
     PreventAll = 'all',
     Increase = 'increase',
+    Multiply = 'multiply',
     Reduce = 'reduce',
     Replace = 'replace'
 }
