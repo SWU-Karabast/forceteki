@@ -51,9 +51,7 @@ describe('The Darksaber, Icon of Leadership', function() {
                 expect(context.leiaOrgana).toHaveExactUpgradeNames(['the-darksaber#icon-of-leadership']);
             });
         });
-    });
 
-    integration(function(contextRef) {
         describe('its leader unit and Mandalorian trait grant', function() {
             describe('when attached to a unit that already has the Mandalorian trait', function() {
                 beforeEach(async function() {
@@ -309,10 +307,52 @@ describe('The Darksaber, Icon of Leadership', function() {
                 expect(context.wampa.damage).toBe(3);
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
-        });
-    });
 
-    integration(function(contextRef) {
+            it('because attached unit is a leader unit, LOF Rey\'s ability should count its Aggression aspect', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy', // Cunning+Heroism
+                        base: 'echo-base', // Command
+                        hand: ['patrolling-vwing'],
+                        deck: ['rey#with-palpatines-power'],
+                        groundArena: [{
+                            card: 'quinlan-vos#dark-disciple', // Aggression
+                            upgrades: ['the-darksaber#icon-of-leadership']
+                        }]
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Patrolling V-Wing to draw a card and trigger Rey's ability
+                context.player1.clickCard(context.patrollingVwing);
+
+                // Ability triggers because Quinlan Vos is a leader unit with the Aggression aspect
+                expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
+                context.player1.clickPrompt('Trigger');
+
+                // Rey is revealed
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.rey]);
+                context.player2.clickDone();
+
+                // Resolve damage
+                expect(context.player1).toBeAbleToSelectExactly([context.patrollingVwing, context.quinlanVos, context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+
+                // Check final state
+                expect(context.battlefieldMarine.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.rey).toBeInZone('hand');
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('its aspect provision ability', function() {
             it('should cover one unmatched aspect, allowing a Heroism card to be played at printed cost', async function() {
                 await contextRef.setupTestAsync({
@@ -405,28 +445,51 @@ describe('The Darksaber, Icon of Leadership', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });
 
-            describe('when attached to a neutral unit (no aspects)', function() {
-                it('aspect penalties are applied as expected', async function() {
-                    await contextRef.setupTestAsync({
-                        phase: 'action',
-                        player1: {
-                            hand: ['rebel-pathfinder'],
-                            groundArena: [{ card: 'lady-proxima#white-worm-matriarch', upgrades: ['the-darksaber#icon-of-leadership'] }],
-                            leader: 'boba-fett#collecting-the-bounty',
-                            base: 'kestro-city',
-                            resources: 4
-                        }
-                    });
-
-                    const { context } = contextRef;
-
-                    // 4 resources is exactly enough to pay cost 2 + 2 Heroism penalty
-                    expect(context.player1).toBeAbleToSelect(context.rebelPathfinder);
-                    context.player1.clickCard(context.rebelPathfinder);
-
-                    expect(context.rebelPathfinder).toBeInZone('groundArena');
-                    expect(context.player1.exhaustedResourceCount).toBe(4);
+            it('should not double-count the leader\'s own aspects when attached to a deployed leader', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['enterprising-lackeys'], // Command+Command unit, cost 4
+                        base: 'kestro-city', // Aggression
+                        leader: {
+                            card: 'boba-fett#daimyo', // Command+Heroism
+                            deployed: true,
+                            upgrades: ['the-darksaber#icon-of-leadership']
+                        },
+                        resources: 6
+                    }
                 });
+
+                const { context } = contextRef;
+
+                // Leader provides 1 Command; one Command icon remains unmatched.
+                expect(context.player1).toBeAbleToSelect(context.enterprisingLackeys);
+                context.player1.clickCard(context.enterprisingLackeys);
+
+                expect(context.enterprisingLackeys).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(6); // Single aspect penalty
+            });
+
+            it('when attached to a neutral unit (no aspects), aspect penalties are applied as expected', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['rebel-pathfinder'],
+                        groundArena: [{ card: 'lady-proxima#white-worm-matriarch', upgrades: ['the-darksaber#icon-of-leadership'] }],
+                        leader: 'boba-fett#collecting-the-bounty',
+                        base: 'kestro-city',
+                        resources: 4
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // 4 resources is exactly enough to pay cost 2 + 2 Heroism penalty
+                expect(context.player1).toBeAbleToSelect(context.rebelPathfinder);
+                context.player1.clickCard(context.rebelPathfinder);
+
+                expect(context.rebelPathfinder).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(4);
             });
 
             it('should stop providing aspects after the Darksaber is defeated', async function() {
@@ -531,6 +594,55 @@ describe('The Darksaber, Icon of Leadership', function() {
 
                 // Exactly 3 resources were exhausted (the Piloting cost with aspects covered by Bo-Katan)
                 expect(context.player1.exhaustedResourceCount).toBe(3);
+            });
+
+            it('should recompute provided aspects when the Darksaber moves to a new attached unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'zuckuss#the-findsman', // Cunning+Cunning unit, cost 5
+                            'dume#redeem-the-future' // Vigilance+Vigilance unit, cost 4
+                        ],
+                        groundArena: [
+                            {
+                                card: 'hondo-ohnaka#superfluous-swindler', // Vigilance+Vigilance
+                                upgrades: ['the-darksaber#icon-of-leadership']
+                            },
+                            'bodhi-rook#imperial-defector', // Cunning+Cunning
+                        ],
+                        spaceArena: ['survivors-gauntlet'],
+                        leader: 'boba-fett#daimyo', // Command+Heroism
+                        base: 'kestro-city', // Aggression
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Dume first to verify it can be played with no aspect penalty
+                context.player1.clickCard(context.dume);
+                expect(context.dume).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+                context.player2.passAction();
+
+                // Attack with Survivor's Gauntlet — On Attack lets us move an upgrade
+                context.player1.clickCard(context.survivorsGauntlet);
+                context.player1.clickCard(context.p2Base);
+
+                // Move the Darksaber from Hondo Ohnaka to Bodhi
+                context.player1.clickCard(context.theDarksaber);
+                context.player1.clickCard(context.bodhiRook);
+
+                expect(context.bodhiRook).toHaveExactUpgradeNames(['the-darksaber#icon-of-leadership']);
+                expect(context.hondoOhnaka).toHaveExactUpgradeNames([]);
+                context.player2.passAction();
+
+                // Bodhi now provides Cunning+Cunning via Darksaber, fully covering Zuckuss's penalty
+                expect(context.player1).toBeAbleToSelect(context.zuckuss);
+                context.player1.clickCard(context.zuckuss);
+
+                expect(context.zuckuss).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(9); // 5 cost + 4 from Dume = 9 total exhausted resources
             });
         });
     });

@@ -26,9 +26,7 @@ export default class TheDarksaberIconOfLeadership extends UpgradeCard {
 
         registrar.addGainConstantAbilityTargetingAttached({
             title: 'While you are paying costs, this unit provides its aspect icons',
-            ongoingEffect: AbilityHelper.ongoingEffects.provideAspects({
-                providedAspects: (source) => source.aspects,
-            }),
+            ongoingEffect: AbilityHelper.ongoingEffects.providesAspectIcons(),
         });
     }
 }

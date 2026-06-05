@@ -29,7 +29,6 @@ export enum CostAdjustType {
     IgnoreAllAspects = 'ignoreAllAspects',
     IgnoreSpecificAspects = 'ignoreSpecificAspect',
     IgnoreWildcardAspects = 'ignoreWildcardAspects',
-    ProvideAspects = 'provideAspects',
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
     ExhaustUnits = 'exhaustUnits',
@@ -106,17 +105,6 @@ export interface IIgnoreWildcardAspectsCostAdjusterProperties extends ICostAdjus
     ignoreCount: number;
 }
 
-export interface IProvideAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
-    costAdjustType: CostAdjustType.ProvideAspects;
-
-    /**
-     * The aspect icons provided during cost payment, consumed one-to-one against penalty
-     * entries the same way leader/base aspects are. Provide a function to resolve aspects
-     * dynamically from the source card (e.g. the attached unit's current aspects).
-     */
-    providedAspects: Aspect[] | ((source: Card) => Aspect[]);
-}
-
 export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.ModifyPayStage;
 
@@ -134,7 +122,6 @@ export type ICostAdjusterProperties =
   | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties
   | IIgnoreWildcardAspectsCostAdjusterProperties
-  | IProvideAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
