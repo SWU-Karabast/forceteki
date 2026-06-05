@@ -253,7 +253,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             addDamageModificationAbilityTargetingAttached: (properties) => this.addDamageModificationAbilityTargetingAttached(properties, registrar),
             addGainActionAbilityTargetingAttached: (properties) => this.addGainActionAbilityTargetingAttached(properties, registrar),
             addGainOnAttackAbilityTargetingAttached: (properties) => this.addGainOnAttackAbilityTargetingAttached(properties, registrar),
-            addGainOnDefenseAbilityTargetingAttached: (properties) => this.addGainOnAttackAbilityTargetingAttached(properties, registrar),
+            addGainOnDefenseAbilityTargetingAttached: (properties) => this.addGainOnDefenseAbilityTargetingAttached(properties, registrar),
             addGainWhenDefeatedAbilityTargetingAttached: (properties) => this.addGainWhenDefeatedAbilityTargetingAttached(properties, registrar),
             addGainWhenAttackEndsAbilityTargetingAttached: (properties) => this.addGainWhenAttackEndsAbilityTargetingAttached(properties, registrar),
             addGainKeywordTargetingAttached: (properties) => this.addGainKeywordTargetingAttached(properties, registrar),
