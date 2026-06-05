@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
 
-export default class Summaverminoth extends NonLeaderUnitCard {
+export default class SummaVerminoth extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '8724833287',
