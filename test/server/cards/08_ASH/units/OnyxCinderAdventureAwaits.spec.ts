@@ -42,7 +42,7 @@ describe('Onyx Cinder Adventure Awaits', function() {
 
             context.player1.clickCard(context.wampa);
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.battlefieldMarine]);
-            context.player2.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.battlefieldMarine);
         });
 
         it('Onyx Cinder\'s ability should give Hidden to other friendly units while he is in play (can be reactivated with Dooku)', async function() {
