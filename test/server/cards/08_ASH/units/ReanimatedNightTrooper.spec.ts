@@ -80,7 +80,6 @@ describe('Reanimated Night Trooper', function() {
                 expect(context.daringRaid).toBeInZone('deck');
                 expect(context.player1).toBeActivePlayer();
             });
-
         });
 
         describe('When Defeated ability edge cases', function() {
