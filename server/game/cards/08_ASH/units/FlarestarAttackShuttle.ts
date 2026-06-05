@@ -13,7 +13,7 @@ export default class FlarestarAttackShuttle extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Give an Advantage token to a unit.',
+            title: 'Give an Advantage token to a unit',
             optional: true,
             when: {
                 whenPlayed: true,
@@ -21,9 +21,7 @@ export default class FlarestarAttackShuttle extends NonLeaderUnitCard {
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.giveAdvantage({
-                    amount: 1
-                })
+                immediateEffect: AbilityHelper.immediateEffects.giveAdvantage()
             }
         });
     }

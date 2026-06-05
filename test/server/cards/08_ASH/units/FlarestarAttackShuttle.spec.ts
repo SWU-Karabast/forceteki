@@ -17,6 +17,7 @@ describe('Flarestar Attack Shuttle', function () {
 
             context.player1.clickCard(context.flarestarAttackShuttle);
 
+            expect(context.player1).toHavePrompt('Give an Advantage token to a unit');
             expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.awing, context.wampa, context.atst, context.tieFighter, context.flarestarAttackShuttle]);
 
