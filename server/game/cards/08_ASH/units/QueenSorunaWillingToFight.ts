@@ -18,7 +18,6 @@ export default class QueenSorunaWillingToFight extends NonLeaderUnitCard {
                 whenPlayed: true,
                 onAttack: true,
             },
-            optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
@@ -32,7 +31,7 @@ export default class QueenSorunaWillingToFight extends NonLeaderUnitCard {
                 const revealedCost = ifYouDoContext.target.cost;
 
                 return {
-                    title: 'Deal 3 damage to a unit with the same cost as the revealed unit',
+                    title: `Deal 3 damage to a unit that costs ${revealedCost}.`,
                     targetResolver: {
                         cardTypeFilter: WildcardCardType.Unit,
                         cardCondition: (card) => card.hasCost() && card.cost === revealedCost,

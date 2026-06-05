@@ -23,7 +23,7 @@ describe('Queen Soruna, Willing to Fight', function() {
                         context.player1.clickCard(context.queenSoruna);
 
                         // Ability triggers — select the unit from hand to reveal
-                        expect(context.player1).toHavePassAbilityButton();
+                        expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                         expect(context.player1).toHavePrompt('Reveal a unit from your hand');
 
                         // Non-units in hand aren't selectable
@@ -34,14 +34,17 @@ describe('Queen Soruna, Willing to Fight', function() {
                         // Opponent dismisses the card display after viewing the revealed unit
                         context.player2.clickDone();
 
-                        // Validate Chatlog message for revealed card
-                        expect(context.getChatLogs()).toEqual([
-                            'player1 uses Queen Soruna to reveal Wampa'
-                        ]);
+                        expect(context.player1).toHavePrompt('Deal 3 damage to a unit that costs 4.');
 
                         // After revealing wampa (cost 4), must target a unit with cost 4
                         expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.resistanceBlueSquadron]);
                         context.player1.clickCard(context.consularSecurityForce);
+
+                        // Validate Chatlog
+                        expect(context.getChatLogs(2)).toEqual([
+                            'player1 uses Queen Soruna to reveal Wampa',
+                            'player1 uses Queen Soruna to deal 3 damage to Consular Security Force'
+                        ]);
 
                         // 3 damage dealt to the matching-cost unit
                         expect(context.consularSecurityForce.damage).toBe(3);
@@ -54,7 +57,7 @@ describe('Queen Soruna, Willing to Fight', function() {
                         context.player1.clickCard(context.queenSoruna);
 
                         // Ability triggers — select the unit from hand to reveal
-                        expect(context.player1).toHavePassAbilityButton();
+                        expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                         expect(context.player1).toHavePrompt('Reveal a unit from your hand');
 
                         // Non-units in hand aren't selectable
@@ -65,9 +68,17 @@ describe('Queen Soruna, Willing to Fight', function() {
                         // Opponent dismisses the card display after viewing the revealed unit
                         context.player2.clickDone();
 
+                        expect(context.player1).toHavePrompt('Deal 3 damage to a unit that costs 4.');
+
                         // After revealing wampa (cost 4), must target a unit with cost 4
                         expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.resistanceBlueSquadron]);
                         context.player1.clickCard(context.resistanceBlueSquadron);
+
+                        // Validate Chatlog
+                        expect(context.getChatLogs(2)).toEqual([
+                            'player1 uses Queen Soruna to reveal Wampa',
+                            'player1 uses Queen Soruna to deal 3 damage to Resistance Blue Squadron'
+                        ]);
 
                         // 3 damage dealt to the matching-cost unit
                         expect(context.resistanceBlueSquadron.damage).toBe(3);
@@ -80,8 +91,8 @@ describe('Queen Soruna, Willing to Fight', function() {
                         context.player1.clickCard(context.queenSoruna);
 
                         // Pass
-                        expect(context.player1).toHavePassAbilityButton();
-                        context.player1.clickPrompt('Pass');
+                        expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                        context.player1.clickPrompt('Choose nothing');
 
                         expect(context.player2).toBeActivePlayer();
                     });
@@ -131,6 +142,7 @@ describe('Queen Soruna, Willing to Fight', function() {
 
                     const { context } = contextRef;
 
+                    // TODO:  Revisit this after the change to mask player not having cards for Disclose is in place
                     context.player1.clickCard(context.queenSoruna);
 
                     expect(context.player2).toBeActivePlayer();
@@ -170,7 +182,7 @@ describe('Queen Soruna, Willing to Fight', function() {
                                 resources: 10
                             },
                             player2: {
-                                groundArena: ['consular-security-force', 'atst'] // costs 4, 6
+                                groundArena: ['consular-security-force', 'atst', 'sundari-peacekeeper'] // costs 4, 6, 3
                             }
                         });
                     });
@@ -182,28 +194,31 @@ describe('Queen Soruna, Willing to Fight', function() {
                         context.player1.clickCard(context.p2Base); // declare attack
 
                         // Ability triggers — select the unit from hand to reveal
-                        expect(context.player1).toHavePassAbilityButton();
+                        expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                         expect(context.player1).toHavePrompt('Reveal a unit from your hand');
 
                         // Non-units in hand aren't selectable
                         expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.echoBaseDefender]);
 
-                        context.player1.clickCard(context.wampa);
+                        context.player1.clickCard(context.echoBaseDefender);
 
                         // Opponent dismisses the card display after viewing the revealed unit
                         context.player2.clickDone();
 
-                        // Validate Chatlog message for revealed card
-                        expect(context.getChatLogs()).toEqual([
-                            'player1 uses Queen Soruna to reveal Wampa'
+                        expect(context.player1).toHavePrompt('Deal 3 damage to a unit that costs 3.');
+
+                        // After revealing Echo Base Defender (cost 3), must target a unit with cost 3
+                        expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper]);
+                        context.player1.clickCard(context.sundariPeacekeeper);
+
+                        // Validate Chatlog
+                        expect(context.getChatLogs(2)).toEqual([
+                            'player1 uses Queen Soruna to reveal Echo Base Defender',
+                            'player1 uses Queen Soruna to deal 3 damage to Sundari Peacekeeper'
                         ]);
 
-                        // After revealing wampa (cost 4), must target a unit with cost 4
-                        expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.resistanceBlueSquadron]);
-                        context.player1.clickCard(context.consularSecurityForce);
-
                         // 3 damage dealt to the matching-cost unit, 5 to base
-                        expect(context.consularSecurityForce.damage).toBe(3);
+                        expect(context.sundariPeacekeeper.damage).toBe(3);
                         expect(context.p2Base.damage).toBe(5);
                         expect(context.player2).toBeActivePlayer();
                     });
@@ -215,7 +230,7 @@ describe('Queen Soruna, Willing to Fight', function() {
                         context.player1.clickCard(context.p2Base);
 
                         // Ability triggers — select the unit from hand to reveal
-                        expect(context.player1).toHavePassAbilityButton();
+                        expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                         expect(context.player1).toHavePrompt('Reveal a unit from your hand');
 
                         // Non-units in hand aren't selectable
@@ -243,8 +258,8 @@ describe('Queen Soruna, Willing to Fight', function() {
                         context.player1.clickCard(context.p2Base);
 
                         // Pass
-                        expect(context.player1).toHavePassAbilityButton();
-                        context.player1.clickPrompt('Pass');
+                        expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                        context.player1.clickPrompt('Choose nothing');
 
                         expect(context.p2Base.damage).toBe(5);
                         expect(context.player2).toBeActivePlayer();
