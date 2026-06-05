@@ -262,10 +262,8 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
                 if (event.context.source.canBeExhausted() && !event.context.source.exhausted) {
                     priorityExhaustList.push(event.context.source);
                 }
-            }
-
-            // When playing a card from the resource row, we want to prioritize paying with itself
-            if (context.playType === PlayType.PlayFromOutOfPlay && context.source.zone.name === ZoneName.Resource) {
+            } else if (context.playType === PlayType.PlayFromOutOfPlay && context.source.zone.name === ZoneName.Resource) {
+                // When playing a card from the resource row, we want to prioritize paying with itself
                 priorityExhaustList.push(context.source);
             }
 
