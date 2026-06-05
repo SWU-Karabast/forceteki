@@ -1,11 +1,11 @@
-describe('R2-D2, Part of the Plan', function() {
+describe('Clan Wren Loyalist', function() {
     integration(function(contextRef) {
-        describe('R2-D2\'s when played ability', function() {
-            it('should search top 5 cards for a unit that shares an aspect with a friendly unit and draw it', async function() {
+        describe('Clan Wren Loyalist\'s when played ability', function() {
+            it('should search top 5 cards for a unit that shares a trait with a friendly unit and draw it', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['r2d2#part-of-the-plan'],
+                        hand: ['clan-wren-loyalist'],
                         groundArena: ['ezra-bridger#spectre-six'],
                         deck: ['chopper#spectre-three', 'wampa', 'atst', 'pyke-sentinel', 'battlefield-marine', 'cartel-spacer']
                     },
@@ -16,11 +16,11 @@ describe('R2-D2, Part of the Plan', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.r2d2);
+                context.player1.clickCard(context.clanWrenLoyalist);
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    selectable: [context.chopper, context.battlefieldMarine, context.pykeSentinel],
-                    invalid: [context.wampa, context.atst]
+                    selectable: [context.chopper, context.battlefieldMarine],
+                    invalid: [context.wampa, context.atst, context.pykeSentinel]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -38,7 +38,7 @@ describe('R2-D2, Part of the Plan', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['r2d2#part-of-the-plan'],
+                        hand: ['clan-wren-loyalist'],
                         groundArena: ['ezra-bridger#spectre-six'],
                         deck: ['chopper#spectre-three', 'wampa', 'atst', 'pyke-sentinel', 'sabine-wren#explosives-artist']
                     }
@@ -46,7 +46,7 @@ describe('R2-D2, Part of the Plan', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.r2d2);
+                context.player1.clickCard(context.clanWrenLoyalist);
 
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                 context.player1.clickPrompt('Take nothing');
@@ -59,7 +59,7 @@ describe('R2-D2, Part of the Plan', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['r2d2#part-of-the-plan'],
+                        hand: ['clan-wren-loyalist'],
                         groundArena: ['ezra-bridger#spectre-six'],
                         deck: ['wampa', 'atst', 'awing', 'cartel-spacer', 'tieln-fighter']
                     }
@@ -67,7 +67,7 @@ describe('R2-D2, Part of the Plan', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.r2d2);
+                context.player1.clickCard(context.clanWrenLoyalist);
 
                 // All cards are invalid, must click Take nothing
                 expect(context.player1).toHaveExactDisplayPromptCards({
@@ -83,7 +83,7 @@ describe('R2-D2, Part of the Plan', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['r2d2#part-of-the-plan'],
+                        hand: ['clan-wren-loyalist'],
                         groundArena: ['battlefield-marine'],
                         deck: []
                     }
@@ -91,9 +91,8 @@ describe('R2-D2, Part of the Plan', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.r2d2);
+                context.player1.clickCard(context.clanWrenLoyalist);
 
-                // With empty deck, ability should auto-pass (no Trigger prompt)
                 expect(context.player2).toBeActivePlayer();
             });
         });
