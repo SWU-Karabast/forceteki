@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { TargetMode } from '../../../core/Constants';
+import type { Player } from '../../../core/Player';
 
 export default class ReanimatedNightTrooper extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,47 +18,37 @@ export default class ReanimatedNightTrooper extends NonLeaderUnitCard {
             targetResolver: {
                 activePromptTitle: 'Choose a deck to look at the top card',
                 mode: TargetMode.Select,
+                showUnresolvable: true,
                 choices: (context) => ({
-                    ['Your deck']: AbilityHelper.immediateEffects.lookAtAndChooseOption(() => {
-                        const topCardOfDeck = context.player.getTopCardOfDeck();
-
-                        return {
-                            target: topCardOfDeck,
-                            perCardButtons: [
-                                {
-                                    text: 'Discard it',
-                                    arg: 'discard',
-                                    immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
-                                },
-                                {
-                                    text: 'Leave it on top',
-                                    arg: 'leave',
-                                    immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
-                                }
-                            ]
-                        };
-                    }),
-                    ['Opponent\'s deck']: AbilityHelper.immediateEffects.lookAtAndChooseOption(() => {
-                        const topCardOfDeck = context.player.opponent.getTopCardOfDeck();
-
-                        return {
-                            target: topCardOfDeck,
-                            perCardButtons: [
-                                {
-                                    text: 'Discard it',
-                                    arg: 'discard',
-                                    immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
-                                },
-                                {
-                                    text: 'Leave it on top',
-                                    arg: 'leave',
-                                    immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
-                                }
-                            ]
-                        };
-                    })
+                    ['Your deck']: this.lookAtTopCardOfDeckAndChooseDiscard(AbilityHelper, context.player),
+                    ['Opponent\'s deck']: this.lookAtTopCardOfDeckAndChooseDiscard(AbilityHelper, context.player.opponent)
                 })
             }
+        });
+    }
+
+    private lookAtTopCardOfDeckAndChooseDiscard(AbilityHelper: IAbilityHelper, player: Player) {
+        return AbilityHelper.immediateEffects.conditional(() => {
+            const topCardOfDeck = player.getTopCardOfDeck();
+
+            return {
+                condition: topCardOfDeck != null,
+                onTrue: AbilityHelper.immediateEffects.lookAtAndChooseOption({
+                    target: topCardOfDeck,
+                    perCardButtons: [
+                        {
+                            text: 'Discard it',
+                            arg: 'discard',
+                            immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
+                        },
+                        {
+                            text: 'Leave it on top',
+                            arg: 'leave',
+                            immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
+                        }
+                    ]
+                })
+            };
         });
     }
 }

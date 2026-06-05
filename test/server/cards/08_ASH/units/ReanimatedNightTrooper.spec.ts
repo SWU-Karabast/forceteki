@@ -80,6 +80,70 @@ describe('Reanimated Night Trooper', function() {
                 expect(context.daringRaid).toBeInZone('deck');
                 expect(context.player1).toBeActivePlayer();
             });
+
+        });
+
+        describe('When Defeated ability edge cases', function() {
+            it('should be resolved by the opponent when defeated with No Glory Only Results', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['reanimated-night-trooper'],
+                        deck: ['battlefield-marine', 'wampa']
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        deck: ['daring-raid', 'open-fire'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+                context.player1.setDeck([context.battlefieldMarine, context.wampa]);
+                context.player2.setDeck([context.daringRaid, context.openFire]);
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.reanimatedNightTrooper);
+
+                expect(context.player2).toHavePrompt('Choose a deck to look at the top card');
+                expect(context.player2).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
+                context.player2.clickPrompt('Opponent\'s deck');
+
+                expect(context.player2).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player2).toHaveExactDisplayPromptPerCardButtons(['Discard it', 'Leave it on top']);
+
+                context.player2.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'discard');
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.player1.deck).toEqual([context.wampa]);
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should do nothing when both decks are empty', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['reanimated-night-trooper'],
+                        deck: ['battlefield-marine', 'wampa']
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        deck: ['daring-raid', 'open-fire'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+                context.player1.setDeck([]);
+                context.player2.setDeck([]);
+
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.reanimatedNightTrooper);
+
+                expect(context.player1.deck).toEqual([]);
+                expect(context.player2.deck).toEqual([]);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
 
         describe('When Defeated ability with Grand Admiral Thrawn, How Unfortunate', function() {
