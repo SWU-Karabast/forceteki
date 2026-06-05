@@ -78,17 +78,33 @@ describe('Reckoning', function() {
                 });
             });
 
-            it('should resolve without a targeting prompt since 0 damage would not change game state', function() {
+            it('should show a "Play anyway" warning when no friendly units have damage, and allow to proceed', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.reckoning);
 
-                // 0 damage total — ability fizzles without prompting to select a target
-                expect(context.reinforcementWalker.damage).toBe(0);
+                // 0 damage total — "Play anyway" warning appears since the ability would have no effect
+                expect(context.player1).toHavePrompt('Playing Reckoning will have no effect. Are you sure you want to play it?');
+                expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+                context.player1.clickPrompt('Play anyway');
+
                 expect(context.getChatLogs()).toEqual([
                     'player1 plays Reckoning'
                 ]);
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should show a "Play anyway" warning when no friendly units have damage, and allow to cancel.', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.reckoning);
+
+                // 0 damage total — "Play anyway" warning appears since the ability would have no effect
+                expect(context.player1).toHavePrompt('Playing Reckoning will have no effect. Are you sure you want to play it?');
+                expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+                context.player1.clickPrompt('Cancel');
+
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

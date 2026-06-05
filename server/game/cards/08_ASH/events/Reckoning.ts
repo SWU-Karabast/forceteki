@@ -22,6 +22,7 @@ export default class Reckoning extends EventCard {
             targetResolver: {
                 activePromptTitle: (context) => `Choose a unit to deal ${this.getDamageAmount(context)} damage to`,
                 cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (_card, context) => this.getDamageAmount(context) > 0,
                 immediateEffect: AbilityHelper.immediateEffects.damage(
                     (context) => ({ amount: this.getDamageAmount(context) })
                 ),
