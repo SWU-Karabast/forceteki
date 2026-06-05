@@ -124,7 +124,7 @@ describe('Regional Governor', function () {
 
             const { context } = contextRef;
 
-            // play regional governor and say millenium falcon
+            // play regional governor and say dagger squadron pilot
             context.player1.clickCard(context.regionalGovernor);
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Dagger Squadron Pilot');

@@ -756,9 +756,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
             new PlayableZone(PlayType.Plot, this.resourceZone),
-            new PlayableZone(PlayType.Piloting, this.deckZone), // TODO: interaction with Ezra
+            new PlayableZone(PlayType.Piloting, this.deckZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
-            new PlayableZone(PlayType.Piloting, this.discardZone), // TODO: interactions with Fine Addition
+            new PlayableZone(PlayType.Piloting, this.discardZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
