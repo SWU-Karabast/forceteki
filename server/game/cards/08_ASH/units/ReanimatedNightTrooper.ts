@@ -14,7 +14,7 @@ export default class ReanimatedNightTrooper extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: 'Look at the top card of a deck. You may discard it.',
+            title: 'Look at the top card of a deck',
             targetResolver: {
                 activePromptTitle: 'Choose a deck to look at the top card',
                 mode: TargetMode.Select,
@@ -28,26 +28,23 @@ export default class ReanimatedNightTrooper extends NonLeaderUnitCard {
     }
 
     private lookAtTopCardOfDeckAndChooseDiscard(AbilityHelper: IAbilityHelper, player: Player) {
-        return AbilityHelper.immediateEffects.conditional(() => {
+        return AbilityHelper.immediateEffects.lookAtAndChooseOption(() => {
             const topCardOfDeck = player.getTopCardOfDeck();
 
             return {
-                condition: topCardOfDeck != null,
-                onTrue: AbilityHelper.immediateEffects.lookAtAndChooseOption({
-                    target: topCardOfDeck,
-                    perCardButtons: [
-                        {
-                            text: 'Discard it',
-                            arg: 'discard',
-                            immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
-                        },
-                        {
-                            text: 'Leave it on top',
-                            arg: 'leave',
-                            immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
-                        }
-                    ]
-                })
+                target: topCardOfDeck,
+                perCardButtons: [
+                    {
+                        text: 'Discard it',
+                        arg: 'discard',
+                        immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
+                    },
+                    {
+                        text: 'Leave it on top',
+                        arg: 'leave',
+                        immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
+                    }
+                ]
             };
         });
     }
