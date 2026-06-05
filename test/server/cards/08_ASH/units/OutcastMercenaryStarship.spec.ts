@@ -112,6 +112,60 @@ describe('Outcast, Mercenary Starship', function() {
                 expect(context.grandInquisitor.getPower()).toBe(4);
             });
 
+            it('should trigger when a friendly unit is rescued from capture', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'cad-bane#hostage-taker', capturedUnits: ['battlefield-marine'] }]
+                    },
+                    player2: {
+                        spaceArena: ['outcast#mercenary-starship']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.battlefieldMarine).toBeCapturedBy(context.cadBane);
+
+                // Player 1 attacks Player 2's base with Cad Bane — triggers the rescue ability
+                context.player1.clickCard(context.cadBane);
+                context.player1.clickCard(context.p2Base);
+
+                // Player 2 rescues Battlefield Marine — it enters play and Outcast's ability triggers
+                context.player2.clickPrompt('Trigger');
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
+                expect(context.battlefieldMarine.getPower()).toBe(4);
+
+                // Move to next action phase — the buff from Outcast's trigger should have expired
+                context.moveToNextActionPhase();
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+            });
+
+            it('should not trigger when an enemy unit changes control to the friendly player', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['outcast#mercenary-starship']
+                    },
+                    player2: {
+                        spaceArena: ['mercenary-gunship']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 1 takes control of the enemy Mercenary Gunship — no enters-play event fires
+                context.player1.clickCard(context.mercenaryGunship);
+
+                expect(context.mercenaryGunship).toBeInZone('spaceArena', context.player1);
+
+                // Mercenary Gunship's printed power (3) is unchanged — Outcast did not trigger
+                expect(context.mercenaryGunship.getPower()).toBe(3);
+                expect(context.outcast.getPower()).toBe(1);
+            });
+
             it('should not trigger when a Piloting unit is played as an upgrade', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
