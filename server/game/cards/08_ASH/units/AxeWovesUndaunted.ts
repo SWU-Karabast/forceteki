@@ -13,6 +13,7 @@ export default class AxeWovesUndaunted extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Give an Advantage token to Axe Woves, Undaunted',
+            contextTitle: (context) => `Give an Advantage token to ${context.source.title}`,
             collectiveTrigger: true,
             when: {
                 onCardsDrawn: (event, context) => event.player === context.player,
