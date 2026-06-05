@@ -263,6 +263,56 @@ describe('Gorian Shard\'s Corsair, Pirate Warship', function () {
                 expect(context.p2Base.damage).toBe(2);
             });
 
+            it('should deal the damage to units that cannot be damaged by enemy card abilities (Lurking TIE Phantom)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['gorian-shards-corsair#pirate-warship'],
+                    },
+                    player2: {
+                        spaceArena: ['lurking-tie-phantom']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Attack the base with Corsair; use the On Attack ability to deal 2 damage to the Lurking TIE Phantom
+                context.player1.clickCard(context.gorianShardsCorsair);
+                context.player1.clickCard(context.p2Base);
+
+                // Target the Lurking TIE Phantom with the On Attack ability
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.lurkingTiePhantom);
+
+                // Damage cannot be prevented, so it takes the damage and is defeated
+                expect(context.lurkingTiePhantom).toBeInZone('discard');
+            });
+
+            it('should deal the full amount of damage even if enemy units have partial damage prevention (Vigil)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['gorian-shards-corsair#pirate-warship'],
+                    },
+                    player2: {
+                        spaceArena: ['vigil#securing-the-future'],
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Attack the base with Corsair; use the On Attack ability to deal 2 damage to Battlefield Marine
+                context.player1.clickCard(context.gorianShardsCorsair);
+                context.player1.clickCard(context.p2Base);
+
+                // Target the Battlefield Marine with the On Attack ability
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Vigil's constant ability does not reduce the damage taken by Battlefield Marine
+                expect(context.battlefieldMarine.damage).toBe(2);
+            });
+
             it('should NOT make damage from an enemy Underworld card bypass a friendly Shield token', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

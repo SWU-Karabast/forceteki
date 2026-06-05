@@ -302,13 +302,16 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const hasUnpreventableEffect = (source: Card | null | undefined) =>
             source?.hasOngoingEffect?.(EffectName.DamageDealtByThisCardIsUnpreventable) ?? false;
 
-        if (damageSource.type === DamageSourceType.Attack) {
-            const attackSource = damageSource as IDamagedOrDefeatedByAttack;
-            return attackSource.damageDealtBy.some(hasUnpreventableEffect);
+        switch (damageSource.type) {
+            case DamageSourceType.Attack:
+                const attackSource = damageSource as IDamagedOrDefeatedByAttack;
+                return attackSource.damageDealtBy.some(hasUnpreventableEffect);
+            case DamageSourceType.Ability:
+                const abilitySource = damageSource as IDamagedOrDefeatedByAbility;
+                return hasUnpreventableEffect(abilitySource.card);
+            default:
+                Contract.fail(`Unexpected damage source type: ${damageSource.type}`);
         }
-
-        const abilitySource = damageSource as IDamagedOrDefeatedByAbility;
-        return hasUnpreventableEffect(abilitySource.card);
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
