@@ -5,6 +5,7 @@ import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Contract } from '../core/utils/Contract';
 import type { IAttackProperties } from './AttackStepsSystem';
+import { AttackStepsSystem } from './AttackStepsSystem';
 import { MetaEventName } from '../core/Constants';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
@@ -38,6 +39,12 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         const context = event.context as AbilityContext;
         const player = event.player;
         const newContext = (event.attackAbility as InitiateAttackAction).createContext(player);
+
+        // CR 6.3.1.1: Abilities granted to the attacker by a modified "Attack With a Unit" action are active at
+        // "Declare Intent" — before target selection. Apply unconditional attacker lasting effects now so they're
+        // visible to target legality checks inside AttackStepsSystem.canAffectInternal.
+        AttackStepsSystem.queueEarlyAttackerLastingEffects(newContext, newContext.source, event.attackerLastingEffects);
+
         context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
         context.game.queueSimpleStep(() => {
             if (context.activeAttackId !== undefined) {
@@ -55,6 +62,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
 
         event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties, context.source);
         event.optional = properties.optional ?? context.ability.optional;
+        event.attackerLastingEffects = properties.attackerLastingEffects;
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): boolean {
