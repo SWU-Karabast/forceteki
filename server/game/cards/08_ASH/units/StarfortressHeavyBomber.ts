@@ -13,7 +13,7 @@ export default class StarfortressHeavyBomber extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Deal 6 damage to a non-unique unit',
+            title: 'Deal 6 damage to a non-unique ground unit',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

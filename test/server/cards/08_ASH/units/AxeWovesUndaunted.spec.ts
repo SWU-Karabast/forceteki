@@ -5,7 +5,7 @@ describe('Axe Woves, Undaunted', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['no-bargain', 'kreias-whispers'],
+                        hand: ['no-bargain', 'kreias-whispers', 'prepare-for-takeoff'],
                         groundArena: ['axe-woves#undaunted', 'battlefield-marine'],
                         deck: ['sabine-wren#explosives-artist', 'supercommando-squad', 'atst', 'vigilance']
                     },
@@ -44,6 +44,21 @@ describe('Axe Woves, Undaunted', function () {
                 context.player1.clickCard(context.kreiasWhispers);
                 context.player1.clickCard(context.sabineWrenExplosivesArtist);
                 context.player1.clickCard(context.supercommandoSquad);
+
+                expect(context.axeWovesUndaunted).toHaveExactUpgradeNames(['advantage']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should give only one advantage token if we draw a card using deck search ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.prepareForTakeoff);
+                context.player1.clickCardInDisplayCardPrompt(context.atst);
+
+                context.player1.clickDone();
+
+                // P2 is prompted to see the revealed cards
+                context.player2.clickDone();
 
                 expect(context.axeWovesUndaunted).toHaveExactUpgradeNames(['advantage']);
                 expect(context.player2).toBeActivePlayer();
