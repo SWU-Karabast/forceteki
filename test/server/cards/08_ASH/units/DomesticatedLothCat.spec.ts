@@ -8,9 +8,7 @@ describe('Domesticated Loth-Cat', function() {
                         groundArena: ['domesticated-lothcat']
                     },
                     player2: {
-                        hand: ['escort-skiff'],
-                        spaceArena: ['patrolling-vwing'],
-                        groundArena: ['wampa'],
+                        hand: ['mace-windu#party-crasher'],
                         resources: 10,
                         hasInitiative: true
                     }
@@ -18,19 +16,18 @@ describe('Domesticated Loth-Cat', function() {
 
                 const { context } = contextRef;
 
-                context.player2.clickCard(context.escortSkiff);
+                context.player2.clickCard(context.maceWindu);
 
                 expect(context.player1).toBeActivePlayer();
-                expect(context.wampa.damage).toBe(0);
+                expect(context.domesticatedLothcat.damage).toBe(0);
             });
 
             it('should allow friendly units to trigger Ambush when played', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['escort-skiff'],
+                        hand: ['mace-windu#party-crasher'],
                         groundArena: ['domesticated-lothcat'],
-                        spaceArena: ['patrolling-vwing'],
                         resources: 10
                     },
                     player2: {
@@ -40,13 +37,13 @@ describe('Domesticated Loth-Cat', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.escortSkiff);
+                context.player1.clickCard(context.maceWindu);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.wampa.damage).toBe(4);
+                expect(context.wampa).toBeInZone('discard');
             });
 
             it('should prevent enemy units from triggering Support when played', async function () {
