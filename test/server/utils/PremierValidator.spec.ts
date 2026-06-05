@@ -6,6 +6,7 @@ import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestC
 import { makeDeckValidatorHelpers } from './DeckValidatorTestUtils';
 
 const PREMIER_SETS = new Set([...DeckValidator.getLegalSets(SwuGameFormat.Premier, CardPool.Current)].map((s) => s.toUpperCase()));
+const PREMIER_NEXT_SETS = new Set([...DeckValidator.getLegalSets(SwuGameFormat.Premier, CardPool.NextSet)].map((s) => s.toUpperCase()));
 
 describe('Premier validation', function () {
     let validator: DeckValidator;
@@ -85,6 +86,13 @@ describe('Premier validation', function () {
             const failures = validator.validateInternalDeck(deck, premierProps());
             expect(failures[DeckValidationFailureReason.MaxSideboardSizeExceeded]).toBeDefined();
             expect(failures[DeckValidationFailureReason.MaxSideboardSizeExceeded].actualSideboardSize).toBe(11);
+        });
+
+        it('should allow a sideboard of more than 10 cards when using the NextSet card pool', function () {
+            const all = helpers.getDeckFiller(61, PREMIER_NEXT_SETS);
+            const deck = buildDeck(all.slice(0, 50), { sideboard: all.slice(50, 61) });
+            const failures = validator.validateInternalDeck(deck, { format: SwuGameFormat.Premier, cardPool: CardPool.NextSet });
+            expect(failures[DeckValidationFailureReason.MaxSideboardSizeExceeded]).toBeUndefined();
         });
     });
 
