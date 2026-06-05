@@ -12,9 +12,11 @@ export default class OutcastMercenaryStarship extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Give the entering unit +1/+0 for this phase',
+            title: 'Give that unit +1/+0 for this phase',
+            contextTitle: (context) => `Give ${context.event.card.title} +1/+0 for this phase`,
             when: {
-                onUnitEntersPlay: (event, context) => event.card.controller === context.player,
+                onUnitEntersPlay: (event, context) =>
+                    event.card.controller === context.player,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.event.card,

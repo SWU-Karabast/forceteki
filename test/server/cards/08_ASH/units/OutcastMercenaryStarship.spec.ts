@@ -1,48 +1,33 @@
 describe('Outcast, Mercenary Starship', function() {
     integration(function(contextRef) {
         describe('its triggered ability', function() {
-            describe('when a friendly unit enters play', function() {
-                beforeEach(async function() {
-                    await contextRef.setupTestAsync({
-                        phase: 'action',
-                        player1: {
-                            hand: ['outcast#mercenary-starship'],
-                            resources: 4
-                        }
-                    });
+            it('should give +1/+0 to itself for the phase when played', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['outcast#mercenary-starship']
+                    }
                 });
 
-                it('should give +1/+0 to itself when played', function() {
-                    const { context } = contextRef;
+                const { context } = contextRef;
 
-                    // Play Outcast — its own entry triggers the ability
-                    context.player1.clickCard(context.outcast);
+                // Play Outcast — its own entry triggers the ability
+                context.player1.clickCard(context.outcast);
 
-                    expect(context.outcast.getPower()).toBe(2);
-                    expect(context.outcast).toBeInZone('spaceArena');
-                });
+                expect(context.outcast.getPower()).toBe(2);
+                expect(context.outcast).toBeInZone('spaceArena');
 
-                it('should give a buff that expires at end of phase', function() {
-                    const { context } = contextRef;
-
-                    // Play Outcast — receives +1/+0 from its own trigger
-                    context.player1.clickCard(context.outcast);
-                    expect(context.outcast.getPower()).toBe(2);
-
-                    // Advance to the next phase — buff expires
-                    context.moveToNextActionPhase();
-
-                    expect(context.outcast.getPower()).toBe(1);
-                });
+                // Move to next action phase — the buff from Outcast's trigger should have expired
+                context.moveToNextActionPhase();
+                expect(context.outcast.getPower()).toBe(1);
             });
 
-            it('should give +1/+0 to another friendly unit when it enters play', async function() {
+            it('should buff another friendly unit for the phase when it enters play', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['outcast#mercenary-starship'],
-                        hand: ['tieln-fighter'],
-                        resources: 2
+                        hand: ['battlefield-marine']
                     }
                 });
 
@@ -52,10 +37,14 @@ describe('Outcast, Mercenary Starship', function() {
                 expect(context.outcast.getPower()).toBe(1);
 
                 // Play a second friendly unit — Outcast's trigger fires for it
-                context.player1.clickCard(context.tielnFighter);
+                context.player1.clickCard(context.battlefieldMarine);
 
-                // TIE/ln Fighter (printed power 2) gets +1/+0 from Outcast
-                expect(context.tielnFighter.getPower()).toBe(3);
+                // Battlefield Marine gets +1/+0 from Outcast
+                expect(context.battlefieldMarine.getPower()).toBe(4);
+
+                // Move to next action phase — the buff from Outcast's trigger should have expired
+                context.moveToNextActionPhase();
+                expect(context.battlefieldMarine.getPower()).toBe(3);
             });
 
             it('should not give a buff to enemy units entering play', async function() {
@@ -65,8 +54,7 @@ describe('Outcast, Mercenary Starship', function() {
                         spaceArena: ['outcast#mercenary-starship']
                     },
                     player2: {
-                        hand: ['cartel-spacer'],
-                        resources: 4
+                        hand: ['black-sun-patroller']
                     }
                 });
 
@@ -74,10 +62,10 @@ describe('Outcast, Mercenary Starship', function() {
 
                 // Opponent plays a unit — Outcast should NOT trigger for it
                 context.player1.passAction();
-                context.player2.clickCard(context.cartelSpacer);
+                context.player2.clickCard(context.blackSunPatroller);
 
-                // Enemy Cartel Spacer receives no buff; Outcast is also unchanged
-                expect(context.cartelSpacer.getPower()).toBe(2);
+                // Enemy Black Sun Patroller receives no buff; Outcast is also unchanged
+                expect(context.blackSunPatroller.getPower()).toBe(2);
                 expect(context.outcast.getPower()).toBe(1);
             });
 
@@ -97,7 +85,7 @@ describe('Outcast, Mercenary Starship', function() {
                 context.player1.clickCard(context.droidDeployment);
 
                 // Resolve the trigger ordering prompt for the two simultaneous "enters play" triggers
-                context.player1.clickPrompt('Give the entering unit +1/+0 for this phase: Battle Droid');
+                context.player1.clickPrompt('Give Battle Droid +1/+0 for this phase: Battle Droid');
 
                 // Each Battle Droid (printed power 1) should have received +1/+0 from Outcast
                 const battleDroids = context.player1.findCardsByName('battle-droid');
@@ -110,8 +98,7 @@ describe('Outcast, Mercenary Starship', function() {
                     phase: 'action',
                     player1: {
                         spaceArena: ['outcast#mercenary-starship'],
-                        leader: 'grand-inquisitor#hunting-the-jedi',
-                        resources: 6
+                        leader: 'grand-inquisitor#hunting-the-jedi'
                     }
                 });
 
@@ -130,8 +117,7 @@ describe('Outcast, Mercenary Starship', function() {
                     phase: 'action',
                     player1: {
                         spaceArena: ['outcast#mercenary-starship', 'n1-starfighter'],
-                        hand: ['independent-smuggler'],
-                        resources: 4
+                        hand: ['independent-smuggler']
                     }
                 });
 
