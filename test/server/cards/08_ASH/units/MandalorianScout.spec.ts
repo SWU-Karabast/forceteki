@@ -26,7 +26,7 @@ describe('Mandalorian Scout', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('should ework with NGOR', async function() {
+        it('should work with NGOR', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
