@@ -1,5 +1,4 @@
 import type { Card } from '../core/card/Card';
-import type { GameObject } from '../core/GameObject';
 import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -8,7 +7,7 @@ import { Contract } from '../core/utils/Contract';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { Helpers } from '../core/utils/Helpers';
-import { AbilityRestriction, CardType, GameStateChangeRequired, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
 import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
@@ -55,12 +54,6 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         nested: false,
         canPlayFromAnyZone: false,
     };
-
-    public override canAffect(target: Card | GameObject, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        // If context.target is a card, use it instead - this means this is being called inside a card selector
-        const cardToPlay = context.target?.isCard?.() ? context.target : target;
-        return super.canAffect(cardToPlay, context, additionalProperties, mustChangeGameState);
-    }
 
     public eventHandler(event): void {
         const availablePlayCardAbilities = event.playCardAbilities as PlayCardAction[];

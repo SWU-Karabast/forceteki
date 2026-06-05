@@ -752,15 +752,14 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         // STATE: This _is_ OK for now, as the gameObject references are still kept, but ideally these would also be changed to Refs in the future.
         /** @type {PlayableZone[]} */
         this.playableZones = [
-            new PlayableZone(PlayType.Piloting, this.deckZone),
-            new PlayableZone(PlayType.Piloting, this.discardZone),
-            new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.PlayFromHand, this.handZone),
-            new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
-            new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
-            new PlayableZone(PlayType.PlayFromOutOfPlay, this.resourceZone),
+            new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Plot, this.resourceZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
+            new PlayableZone(PlayType.Piloting, this.deckZone),
+            new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
+            new PlayableZone(PlayType.Piloting, this.discardZone),
+            new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
         this._baseZone = new BaseZone(this.game, this, this.base, this.leader);
