@@ -40,6 +40,18 @@ describe('Barriss Offee, Redeeming Herself', function() {
                 expect(context.atst.damage).toBe(0);
                 expect(context.atst).toHaveExactUpgradeNames(['advantage']);
             });
+
+            it('does not give an Advantage token when 0 damage is healed from a unit', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.barrissOffeeRedeemingHerself);
+                context.player1.setDistributeHealingPromptState(new Map([
+                    [context.barrissOffeeRedeemingHerself, 1]
+                ]));
+
+                expect(context.barrissOffeeRedeemingHerself.damage).toBe(0);
+                expect(context.barrissOffeeRedeemingHerself).toHaveExactUpgradeNames([]);
+            });
         });
     });
 });

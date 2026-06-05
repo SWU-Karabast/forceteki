@@ -177,6 +177,7 @@ export abstract class DistributeAmongTargetsSystem<
 
         // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets
         if ((!properties.canChooseNoTargets && !context.ability.optional) && legalTargets.length === 1) {
+            distributeEvent.card = legalTargets[0];
             const event = this.generateEffectEvent(legalTargets[0], distributeEvent, context, amountToDistribute);
             if (this.preferLogGameMessageBeforeEventResolution()) {
                 this.generateDistributedEffectMessage([event], context, additionalProperties, false);
@@ -195,6 +196,10 @@ export abstract class DistributeAmongTargetsSystem<
             source: context.source,
             amount: amountToDistribute,
             resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) => {
+                if (results.valueDistribution.size === 1) {
+                    distributeEvent.card = Array.from(results.valueDistribution.keys())[0];
+                }
+
                 const individualEvents = Array.from(results.valueDistribution.entries())
                     .map(([card, amount]) => this.generateEffectEvent(card, distributeEvent, context, amount));
 
