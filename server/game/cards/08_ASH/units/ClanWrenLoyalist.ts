@@ -3,20 +3,20 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
 
-export default class R2D2PartOfThePlan extends NonLeaderUnitCard {
+export default class ClanWrenLoyalist extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '8106453944',
-            internalName: 'r2d2#part-of-the-plan',
+            id: '0447040261',
+            internalName: 'clan-wren-loyalist',
         };
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 5 cards of your deck for a unit that shares an aspect with a friendly unit, reveal it, and draw it',
+            title: 'Search the top 5 cards of your deck for a unit that shares a trait with a friendly unit, reveal it, and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
-                cardCondition: (card, context) => card.isUnit() && context.player.isAspectInPlay([...card.aspects]),
+                cardCondition: (card, context) => card.isUnit() && context.player.isTraitInPlay([...card.traits]),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
                     useDisplayPrompt: true,
                     promptedPlayer: RelativePlayer.Opponent
