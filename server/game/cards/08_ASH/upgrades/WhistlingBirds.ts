@@ -24,12 +24,9 @@ export default class WhistlingBirds extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
-        registrar.addGainTriggeredAbilityTargetingAttached({
+        registrar.addGainWhenAttackEndsAbilityTargetingAttached({
             title: 'Deal 2 damage to each unit that opponent controls in this unit\'s arena',
             contextTitle: (context) => this.makeAbilityTitle(context),
-            when: {
-                onAttackEnd: (event, context) => event.attack.attacker === context.source
-            },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
                     this.damageDealtThisPhaseWatcher.unitHasDealtCombatDamageToBaseThisAttack(context.source, context),
