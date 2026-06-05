@@ -55,7 +55,7 @@ export function exhaustSelf<TContext extends AbilityContext = AbilityContext>():
  * Cost that will exhaust a unit
  */
 export function exhaustFriendlyUnit<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
-    return getSelectCost(new ExhaustSystem<TContext>({ isCost: true }), { controller: RelativePlayer.Self, cardTypeFilter: WildcardCardType.Unit }, 'Choose a unit to exhaust');
+    return getSelectCost(new ExhaustSystem<TContext>({ isCost: true }), { controller: RelativePlayer.Self, cardTypeFilter: WildcardCardType.Unit }, 'Choose a friendly unit to exhaust');
 }
 
 /**
