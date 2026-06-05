@@ -22,7 +22,7 @@ describe('Reanimated Night Trooper', function() {
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.reanimatedNightTrooper);
 
-                expect(context.player1).toHavePrompt('Choose a deck to look at the top card');
+                expect(context.player1).toHavePrompt('Look at the top card of a deck');
                 expect(context.player1).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
                 context.player1.clickPrompt('Your deck');
 
@@ -44,7 +44,7 @@ describe('Reanimated Night Trooper', function() {
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.reanimatedNightTrooper);
 
-                expect(context.player1).toHavePrompt('Choose a deck to look at the top card');
+                expect(context.player1).toHavePrompt('Look at the top card of a deck');
                 context.player1.clickPrompt('Opponent\'s deck');
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daringRaid]);
@@ -66,7 +66,7 @@ describe('Reanimated Night Trooper', function() {
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.reanimatedNightTrooper);
 
-                expect(context.player1).toHavePrompt('Choose a deck to look at the top card');
+                expect(context.player1).toHavePrompt('Look at the top card of a deck');
                 context.player1.clickPrompt('Opponent\'s deck');
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daringRaid]);
@@ -102,7 +102,7 @@ describe('Reanimated Night Trooper', function() {
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.reanimatedNightTrooper);
 
-                expect(context.player2).toHavePrompt('Choose a deck to look at the top card');
+                expect(context.player2).toHavePrompt('Look at the top card of a deck');
                 expect(context.player2).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
                 context.player2.clickPrompt('Opponent\'s deck');
 
@@ -164,7 +164,7 @@ describe('Reanimated Night Trooper', function() {
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.reanimatedNightTrooper);
 
-                expect(context.player1).toHavePrompt('Choose a deck to look at the top card');
+                expect(context.player1).toHavePrompt('Look at the top card of a deck');
                 context.player1.clickPrompt('Your deck');
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
                 context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'discard');
@@ -176,7 +176,7 @@ describe('Reanimated Night Trooper', function() {
                 context.player1.clickPrompt('Trigger');
                 expect(context.grandAdmiralThrawn.exhausted).toBe(true);
 
-                expect(context.player1).toHavePrompt('Choose a deck to look at the top card');
+                expect(context.player1).toHavePrompt('Look at the top card of a deck');
                 context.player1.clickPrompt('Opponent\'s deck');
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.daringRaid]);
                 context.player1.clickDisplayCardPromptButton(context.daringRaid.uuid, 'discard');
