@@ -833,10 +833,17 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     /**
-     * Returns the aspects for this player (derived from base and leader)
+     * Returns the aspects for this player (derived from base, leader, and any
+     * active `ProvidesAspects` ongoing effects on this player — e.g. The
+     * Darksaber, Icon of Leadership).
      */
     public getAspects() {
-        return this.getAllLeaders().flatMap((l) => l.aspects).concat(this.base.aspects);
+        const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspects);
+        return [
+            ...this.getAllLeaders().map((leader) => leader.aspects),
+            ...this.base.aspects,
+            ...provided.flat(),
+        ];
     }
 
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
