@@ -756,9 +756,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
             new PlayableZone(PlayType.Plot, this.resourceZone),
-            new PlayableZone(PlayType.Piloting, this.deckZone), // TODO: interaction with Ezra
+            new PlayableZone(PlayType.Piloting, this.deckZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
-            new PlayableZone(PlayType.Piloting, this.discardZone), // TODO: interactions with Fine Addition
+            new PlayableZone(PlayType.Piloting, this.discardZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
@@ -822,10 +822,17 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     /**
-     * Returns the aspects for this player (derived from base and leader)
+     * Returns the aspects for this player (derived from base, leader, and any
+     * active `ProvidesAspects` ongoing effects on this player — e.g. The
+     * Darksaber, Icon of Leadership).
      */
     public getAspects() {
-        return this.leader.aspects.concat(this.base.aspects);
+        const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspects);
+        return [
+            ...this.leader.aspects,
+            ...this.base.aspects,
+            ...provided.flat(),
+        ];
     }
 
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {

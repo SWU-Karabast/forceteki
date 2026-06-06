@@ -7,7 +7,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class EyeOfSionDeliveredFromExile extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'eye-of-sion#delivered-from-exile-id',
+            id: '0373634743',
             internalName: 'eye-of-sion#delivered-from-exile',
         };
     }

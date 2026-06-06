@@ -9,7 +9,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TheMandalorianWeCantKeepRunning extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-mandalorian#we-cant-keep-running-id',
+            id: '8802018613',
             internalName: 'the-mandalorian#we-cant-keep-running',
         };
     }

@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class MandosN1StarfighterFasterThanAFathier extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mandos-n1-starfighter#faster-than-a-fathier-id',
+            id: '8053076603',
             internalName: 'mandos-n1-starfighter#faster-than-a-fathier',
         };
     }

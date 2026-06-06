@@ -8,7 +8,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class AdmiralAckbarAssumeAttackCoordinates extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'admiral-ackbar#assume-attack-coordinates-id',
+            id: '2541287519',
             internalName: 'admiral-ackbar#assume-attack-coordinates',
         };
     }

@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class GroguYesYesYes extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grogu#yes-yes-yes-id',
+            id: '5918558119',
             internalName: 'grogu#yes-yes-yes',
         };
     }

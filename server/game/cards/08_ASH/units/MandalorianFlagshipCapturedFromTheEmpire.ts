@@ -6,7 +6,7 @@ import { KeywordName, Trait } from '../../../core/Constants';
 export default class MandalorianFlagshipCapturedFromTheEmpire extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mandalorian-flagship#captured-from-the-empire-id',
+            id: '7405707601',
             internalName: 'mandalorian-flagship#captured-from-the-empire',
         };
     }

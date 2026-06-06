@@ -9,7 +9,7 @@ import { Trait, ZoneName } from '../../../core/Constants';
 export default class BoKatanKryzeReclaimingMandalore extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bokatan-kryze#reclaiming-mandalore-id',
+            id: '9315814672',
             internalName: 'bokatan-kryze#reclaiming-mandalore',
         };
     }

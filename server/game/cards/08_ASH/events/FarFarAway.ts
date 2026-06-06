@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class FarFarAway extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'far-far-away-id',
+            id: '6508831546',
             internalName: 'far-far-away',
         };
     }
