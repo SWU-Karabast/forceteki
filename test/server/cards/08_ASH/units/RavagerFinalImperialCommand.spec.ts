@@ -187,11 +187,14 @@ describe('Ravager, Final Imperial Command', function () {
                     'player1 uses Ravager to deal 3 damage to Ravager',
                 ]);
 
+                expect(context.blueLeader).toBeInZone('spaceArena');
+
                 // Pass the ambush and moving to ground
                 context.player1.clickPrompt('Ambush');
                 context.player1.clickPrompt('Pass');
-                context.player1.clickPrompt('Pass');
+                context.player1.clickPrompt('Trigger');
 
+                expect(context.blueLeader).toBeInZone('groundArena');
                 expect(context.ravager.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
@@ -203,6 +206,9 @@ describe('Ravager, Final Imperial Command', function () {
                 context.player1.clickCard(context.blueLeaderScarifAirSupport);
                 context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 context.player1.clickPrompt('Trigger');
+
+                expect(context.blueLeader).toBeInZone('groundArena');
+
                 context.player1.clickPrompt('Deal damage equal to its power to a unit in the same arena');
 
                 // Only ground units selectable
@@ -216,6 +222,7 @@ describe('Ravager, Final Imperial Command', function () {
                 expect(context.player1).toHavePrompt('Deal 5 damage to a unit in the ground arena');
                 context.player1.clickCard(context.reinforcementWalker);
 
+                // Pass the ambush
                 context.player1.clickPrompt('Pass');
 
                 expect(context.getChatLogs()).toEqual([
