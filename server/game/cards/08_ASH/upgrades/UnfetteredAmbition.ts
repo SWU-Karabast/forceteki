@@ -20,7 +20,7 @@ export default class UnfetteredAmbition extends UpgradeCard {
                 }
 
                 const nonAdvantageUpgrades = parentCard.upgrades.filter((u) => !u.isAdvantage());
-                return `Give ${nonAdvantageUpgrades.length} Advantage tokens to ${context.source.title}`;
+                return `Give ${nonAdvantageUpgrades.length} Advantage tokens to ${context.source.parentCard.title}`;
             },
             immediateEffect: AbilityHelper.immediateEffects.giveAdvantage((context) => {
                 const parentCard = context.source.parentCard;

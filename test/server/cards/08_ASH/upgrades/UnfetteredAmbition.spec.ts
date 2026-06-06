@@ -17,11 +17,11 @@ describe('Unfettered Ambition', function() {
 
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Exhaust this leader to exhaust an enemy unit with 4 or less remaining HP',
-                'Give 3 Advantage tokens to Unfettered Ambition'
+                'Give 3 Advantage tokens to Battlefield Marine'
             ]);
 
             // resolve advantage prompt first
-            context.player1.clickPrompt('Give 3 Advantage tokens to Unfettered Ambition');
+            context.player1.clickPrompt('Give 3 Advantage tokens to Battlefield Marine');
 
             // resolve exhaust prompt from leader
             context.player1.clickPrompt('Trigger');
