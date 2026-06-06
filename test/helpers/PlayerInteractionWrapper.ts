@@ -85,7 +85,7 @@ export class PlayerInteractionWrapper {
      * Gets the player's primary leader card
      */
     public get leader() {
-        return this.player.leader;
+        return this.player.getAllLeaders()[0];
     }
 
     /**
@@ -93,7 +93,7 @@ export class PlayerInteractionWrapper {
      * Returns null when playing a single-leader format.
      */
     public get secondLeader() {
-        return this.player.secondLeader;
+        return this.player.getAllLeaders()[1] ?? null;
     }
 
     /**
@@ -125,17 +125,17 @@ export class PlayerInteractionWrapper {
 
         // leader as a string card name is a no-op unless it doesn't match the existing leader, then throw an error
         if (typeof leaderOptions === 'string') {
-            if (leaderOptions !== this.player.leader.internalName) {
-                throw new TestSetupError(`Provided leader name ${leaderOptions} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+            if (leaderOptions !== this.player.getAllLeaders()[0].internalName) {
+                throw new TestSetupError(`Provided leader name ${leaderOptions} does not match player's leader ${this.player.getAllLeaders()[0].internalName}. Do not try to change leader after test has initialized.`);
             }
             return;
         }
 
-        if (leaderOptions.card !== this.player.leader.internalName) {
-            throw new TestSetupError(`Provided leader name ${leaderOptions.card} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+        if (leaderOptions.card !== this.player.getAllLeaders()[0].internalName) {
+            throw new TestSetupError(`Provided leader name ${leaderOptions.card} does not match player's leader ${this.player.getAllLeaders()[0].internalName}. Do not try to change leader after test has initialized.`);
         }
 
-        const leaderCard = this.player.leader;
+        const leaderCard = this.player.getAllLeaders()[0];
 
         if (leaderOptions.deployed) {
             leaderCard.deploy({ type: DeployType.LeaderUnit });
@@ -193,7 +193,7 @@ export class PlayerInteractionWrapper {
             return;
         }
 
-        const secondLeader = this.player.secondLeader;
+        const secondLeader = this.player.getAllLeaders()[1] ?? null;
         if (!secondLeader) {
             throw new TestSetupError('setSecondLeaderStatus called but player has no second leader');
         }

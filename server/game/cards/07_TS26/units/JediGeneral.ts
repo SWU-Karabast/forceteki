@@ -16,7 +16,7 @@ export default class JediGeneral extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'If you control a Republic leader, create a Clone Trooper and give an Experience token to it',
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.leader.hasSomeTrait(Trait.Republic),
+                condition: (context) => context.player.getAllLeaders().some((l) => l.hasSomeTrait(Trait.Republic)),
                 onTrue: abilityHelper.immediateEffects.createCloneTrooper(),
             }),
             ifYouDo: (ifYouDoContext) => ({

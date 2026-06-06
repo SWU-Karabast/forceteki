@@ -20,28 +20,33 @@ describe('Twin Suns dual-leader in-game support', function () {
                 });
             });
 
-            it('player.leader returns the primary leader', function () {
+            it('player.getSingleLeader() throws when there are two leaders', function () {
                 const { context } = contextRef;
-                expect(context.player1Object.leader.internalName).toBe('luke-skywalker#faithful-friend');
-                expect(context.player2Object.leader.internalName).toBe('darth-vader#dark-lord-of-the-sith');
+                expect(() => context.player1Object.getSingleLeader()).toThrow();
             });
 
-            it('player.secondLeader returns the second leader (not null)', function () {
+            it('player.getAllLeaders() returns the primary leader first', function () {
                 const { context } = contextRef;
-                expect(context.player1Object.secondLeader).not.toBeNull();
-                expect(context.player1Object.secondLeader.internalName).toBe('saw-gerrera#bring-down-the-empire');
-                expect(context.player2Object.secondLeader).not.toBeNull();
-                expect(context.player2Object.secondLeader.internalName).toBe('director-krennic#aspiring-to-authority');
+                expect(context.player1Object.getAllLeaders()[0].internalName).toBe('luke-skywalker#faithful-friend');
+                expect(context.player2Object.getAllLeaders()[0].internalName).toBe('darth-vader#dark-lord-of-the-sith');
             });
 
-            it('player.leaders returns both leaders with length 2', function () {
+            it('player.getAllLeaders() returns the second leader at index 1 (not null)', function () {
                 const { context } = contextRef;
-                expect(context.player1Object.leaders.length).toBe(2);
-                const p1Names = context.player1Object.leaders.map((l: any) => l.internalName);
+                expect(context.player1Object.getAllLeaders()[1]).not.toBeNull();
+                expect(context.player1Object.getAllLeaders()[1].internalName).toBe('saw-gerrera#bring-down-the-empire');
+                expect(context.player2Object.getAllLeaders()[1]).not.toBeNull();
+                expect(context.player2Object.getAllLeaders()[1].internalName).toBe('director-krennic#aspiring-to-authority');
+            });
+
+            it('player.getAllLeaders() returns both leaders with length 2', function () {
+                const { context } = contextRef;
+                expect(context.player1Object.getAllLeaders().length).toBe(2);
+                const p1Names = context.player1Object.getAllLeaders().map((l: any) => l.internalName);
                 expect(p1Names).toContain('luke-skywalker#faithful-friend');
                 expect(p1Names).toContain('saw-gerrera#bring-down-the-empire');
 
-                expect(context.player2Object.leaders.length).toBe(2);
+                expect(context.player2Object.getAllLeaders().length).toBe(2);
             });
 
             it('player.getAspects() includes aspects from both leaders and the base', function () {
@@ -118,8 +123,8 @@ describe('Twin Suns dual-leader in-game support', function () {
 
                 it('the second leader remains in the base zone', function () {
                     const { context } = contextRef;
-                    expect(context.player1Object.leader.zoneName).toBe('groundArena');
-                    expect(context.player1Object.secondLeader.zoneName).toBe('base');
+                    expect(context.player1Object.getAllLeaders()[0].zoneName).toBe('groundArena');
+                    expect(context.player1Object.getAllLeaders()[1].zoneName).toBe('base');
                 });
             });
 
@@ -142,8 +147,8 @@ describe('Twin Suns dual-leader in-game support', function () {
 
                 it('the primary leader remains in the base zone', function () {
                     const { context } = contextRef;
-                    expect(context.player1Object.secondLeader.zoneName).toBe('groundArena');
-                    expect(context.player1Object.leader.zoneName).toBe('base');
+                    expect(context.player1Object.getAllLeaders()[1].zoneName).toBe('groundArena');
+                    expect(context.player1Object.getAllLeaders()[0].zoneName).toBe('base');
                 });
             });
         });
@@ -185,7 +190,7 @@ describe('Twin Suns dual-leader in-game support', function () {
             });
         });
 
-        describe('secondLeader is null outside FauxSuns format', function () {
+        describe('second leader outside FauxSuns format', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -200,10 +205,12 @@ describe('Twin Suns dual-leader in-game support', function () {
                 });
             });
 
-            it('player.secondLeader is null in a standard Premier game', function () {
+            it('getAllLeaders() returns only one leader and index 1 is undefined in a standard Premier game', function () {
                 const { context } = contextRef;
-                expect(context.player1Object.secondLeader).toBeNull();
-                expect(context.player2Object.secondLeader).toBeNull();
+                expect(context.player1Object.getAllLeaders().length).toBe(1);
+                expect(context.player1Object.getAllLeaders()[1]).toBeUndefined();
+                expect(context.player2Object.getAllLeaders().length).toBe(1);
+                expect(context.player2Object.getAllLeaders()[1]).toBeUndefined();
             });
         });
 

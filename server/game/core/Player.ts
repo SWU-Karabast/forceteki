@@ -134,16 +134,15 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     @stateRef() private accessor _leader: ILeaderCard | null = null;
-    public get leader(): ILeaderCard {
-        return this._leader;
-    }
-
     @stateRef() private accessor _secondLeader: ILeaderCard | null = null;
-    public get secondLeader(): ILeaderCard | null {
-        return this._secondLeader;
+
+    public getSingleLeader(): ILeaderCard {
+        const leaders = this.getAllLeaders();
+        Contract.assertEqual(leaders.length, 1, `Expected exactly one leader but found ${leaders.length}`);
+        return leaders[0];
     }
 
-    public get leaders(): ILeaderCard[] {
+    public getAllLeaders(): ILeaderCard[] {
         return [this._leader, this._secondLeader].filter((l): l is ILeaderCard => l !== null);
     }
 
@@ -338,7 +337,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
     public controlsLeaderUnitOrUpgradeWithTitle(title: string): boolean {
-        return this.leader.title === title ||
+        return this.getAllLeaders().some((l) => l.title === title) ||
           this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
           this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
     }
@@ -350,7 +349,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @returns { boolean } true if this player controls a card with the trait
      */
     public controlsCardWithTrait(trait: Trait, onlyUnique: boolean = false, otherThan: Card = undefined): boolean {
-        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({
+        return this.getAllLeaders().some((l) => l.hasSomeTrait(trait)) || this.hasSomeArenaCard({
             condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)),
             otherThan: otherThan
         });
@@ -774,7 +773,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this._baseZone = new BaseZone(this.game, this, this.base, this.leaders);
+        this._baseZone = new BaseZone(this.game, this, this.base, this.getAllLeaders());
 
         this._decklist = preparedDecklist;
     }
@@ -837,7 +836,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * Returns the aspects for this player (derived from base and leader)
      */
     public getAspects() {
-        return this.leaders.flatMap((l) => l.aspects).concat(this.base.aspects);
+        return this.getAllLeaders().flatMap((l) => l.aspects).concat(this.base.aspects);
     }
 
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
@@ -1210,8 +1209,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.leader?.getSummary(activePlayer),
-            secondLeader: this.secondLeader?.getSummary(activePlayer),
+            leaders: this.getAllLeaders().map((l) => l.getSummary(activePlayer)),
             base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
@@ -1344,9 +1342,10 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             }
 
             // Leader(s)
-            state.leader = Helpers.safeSerialize(this.game, () => this.leader.captureCardState(), null);
-            if (this._secondLeader) {
-                state.secondLeader = Helpers.safeSerialize(this.game, () => this._secondLeader.captureCardState(), null);
+            const allLeaders = this.getAllLeaders();
+            state.leader = Helpers.safeSerialize(this.game, () => allLeaders[0].captureCardState(), null);
+            if (allLeaders[1]) {
+                state.secondLeader = Helpers.safeSerialize(this.game, () => allLeaders[1].captureCardState(), null);
             }
 
             // Base

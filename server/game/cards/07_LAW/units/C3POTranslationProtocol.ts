@@ -15,7 +15,7 @@ export default class C3POTranslationProtocol extends NonLeaderUnitCard {
             title: 'Give an Experience token to another non-leader unit that shares a Trait with a friendly leader',
             optional: true,
             targetResolver: {
-                cardCondition: (card, context) => card !== context.source && card.isNonLeaderUnit() && card.hasSomeTrait(context.player.leader.traits),
+                cardCondition: (card, context) => card !== context.source && card.isNonLeaderUnit() && context.player.getAllLeaders().some((l) => card.hasSomeTrait(l.traits)),
                 immediateEffect: abilityHelper.immediateEffects.giveExperience()
             }
         });
