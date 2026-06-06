@@ -114,6 +114,8 @@ export = {
     // customDetachedCard: (properties) => OngoingEffectBuilder.card.detached(EffectName.CustomEffect, properties),
     cardDelayedEffect: (properties: ITriggeredAbilityProps) => OngoingEffectBuilder.card.static(EffectName.DelayedEffect, properties),
     playerDelayedEffect: (properties: ITriggeredAbilityProps) => OngoingEffectBuilder.player.static(EffectName.DelayedEffect, properties),
+    matchingPlayedUnitEntersPlayReady: (match: (card: Card, context: AbilityContext) => boolean) =>
+        OngoingEffectBuilder.player.static(EffectName.MatchingPlayedUnitEntersPlayReady, (_game) => match),
     // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
     // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
     // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),

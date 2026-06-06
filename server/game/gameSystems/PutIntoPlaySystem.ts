@@ -77,7 +77,8 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.originalZone = overrideZone || card.zoneName;
         event.entersReady = entersReady ||
           this.checkEntersPlayReady(card, newController) ||
-          (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
+          (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type)) ||
+          this.checkMatchingPlayedUnitEntersPlayReady(card, newController, context);
         event.newController = newController;
         event.setPreResolutionEffect((event) => {
             const card: Card = event.card;
@@ -88,7 +89,8 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
                 context.game.queueSimpleStep(() => {
                     if (!event.entersReady) {
                         event.entersReady = this.checkEntersPlayReady(card, newController) ||
-                          (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type));
+                          (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type)) ||
+                          this.checkMatchingPlayedUnitEntersPlayReady(card, newController, context);
                     }
                 }, `Update onUnitEntersPlay event after resolving pre-enter play abilities for ${card.internalName}`);
             }
@@ -97,6 +99,22 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
         return context.player || card.owner;
+    }
+
+    /**
+     * Evaluates pending `MatchingPlayedUnitEntersPlayReady` player effects against the entering card.
+     * Stops at the first match. Each effect's predicate is responsible for its own consumption
+     * semantics (typically via a closure-captured flag) — cards like Neel that read "the next unit
+     * you play..." rely on this to fire only once per registration.
+     */
+    private checkMatchingPlayedUnitEntersPlayReady(card: Card, newController: Player, context: AbilityContext): boolean {
+        if (!newController.hasOngoingEffect(EffectName.MatchingPlayedUnitEntersPlayReady)) {
+            return false;
+        }
+        const matches = newController.getOngoingEffectValues<(card: Card, context: AbilityContext) => boolean>(
+            EffectName.MatchingPlayedUnitEntersPlayReady
+        );
+        return matches.some((match) => match(card, context));
     }
 
     /**

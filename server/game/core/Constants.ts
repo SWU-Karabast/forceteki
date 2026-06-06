@@ -109,6 +109,7 @@ export enum EffectName {
     IsLeader = 'isLeader',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
+    MatchingPlayedUnitEntersPlayReady = 'matchingPlayedUnitEntersPlayReady',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
