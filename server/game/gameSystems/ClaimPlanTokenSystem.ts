@@ -23,6 +23,9 @@ export class ClaimPlanTokenSystem<TContext extends AbilityContext = AbilityConte
         const context = event.context;
         const game = context.game;
 
+        game.isPlanTokenClaimed = true;
+        player.passedActionPhase = true;
+
         // We use PassesTriggersToParentWindow so that triggered abilities (Rey, Seasoned Fleet Admiral, etc.)
         // are collected by the outer OnPlanTokenClaimed window and fire AFTER the put-on-bottom prompt —
         // i.e. the full Plan token effect resolves before any triggers respond.

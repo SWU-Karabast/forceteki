@@ -104,6 +104,7 @@ import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import { ClaimBlastTokenSystem } from '../gameSystems/ClaimBlastTokenSystem';
+import { ClaimInitiativeSystem } from '../gameSystems/ClaimInitiativeSystem';
 import { ClaimPlanTokenSystem } from '../gameSystems/ClaimPlanTokenSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
@@ -1360,19 +1361,14 @@ export class Game extends EventEmitter {
     }
 
     public claimInitiative(player: Player): void {
-        this.initiativePlayer = player;
-        this.isInitiativeClaimed = true;
-        player.passedActionPhase = true;
-        this.createEventAndOpenWindow(EventName.OnClaimInitiative, null, { player }, TriggerHandlingMode.ResolvesTriggers);
-
-        // update game state for the sake of constant abilities that check initiative
-        this.resolveGameState();
+        new ClaimInitiativeSystem({}).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
     }
 
     public claimPlanToken(player: Player): void {
-        this.isPlanTokenClaimed = true;
-        player.passedActionPhase = true;
-
         new ClaimPlanTokenSystem({}).resolve(
             player,
             this.getFrameworkContext(player),
@@ -1381,9 +1377,6 @@ export class Game extends EventEmitter {
     }
 
     public claimBlastToken(player: Player): void {
-        this.isBlastTokenClaimed = true;
-        player.passedActionPhase = true;
-
         // TSTODO: update to blast all opponents
         new ClaimBlastTokenSystem({}).resolve(
             player,

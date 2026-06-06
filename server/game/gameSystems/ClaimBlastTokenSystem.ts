@@ -3,6 +3,7 @@ import { DamageType, EventName } from '../core/Constants.js';
 import { TriggerHandlingMode } from '../core/event/EventWindow.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
+import type { Player } from '../core/Player.js';
 import { DamageSystem } from './DamageSystem.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -16,7 +17,13 @@ export class ClaimBlastTokenSystem<TContext extends AbilityContext = AbilityCont
     // TSTODO: damage all opponents' bases
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public override eventHandler(event: any): void {
+        const player = event.player as Player;
+        const game = event.context.game;
+
+        game.isBlastTokenClaimed = true;
+        player.passedActionPhase = true;
+
         new DamageSystem({ type: DamageType.Ability, amount: 1 })
-            .resolve(event.player.opponent.base, event.context, TriggerHandlingMode.ResolvesTriggers);
+            .resolve(player.opponent.base, event.context, TriggerHandlingMode.ResolvesTriggers);
     }
 }
