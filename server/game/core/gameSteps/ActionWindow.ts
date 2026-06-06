@@ -209,25 +209,14 @@ export class ActionWindow extends UiPrompt {
     public pass(showMessage = true) {
         if (showMessage) {
             this.game.addMessage('{0} passes', this.activePlayer);
-        }
-
-        const allTokensClaimed = this.game.allClaimTokensClaimed();
 
         if (this.prevPlayerPassed) {
-            if (allTokensClaimed) {
-                // Both players have consecutively passed (or claimed tokens) and all tokens are claimed → action phase ends
-                this.activePlayer.passedActionPhase = true;
-                this.activePlayer.opponent.passedActionPhase = true;
-            } else {
-                // Tokens are still unclaimed; treat this pass as a token-claim pass and continue the phase
-                this.setPassStatus(true);
-            }
+            // Both players have consecutively passed → action phase ends
+            this.activePlayer.passedActionPhase = true;
+            this.activePlayer.opponent.passedActionPhase = true;
         } else if (this.activePlayer.opponent.passedActionPhase) {
-            if (allTokensClaimed) {
-                // Opponent has already passed (e.g. claimed initiative) and all tokens are claimed → active player is done too
-                this.activePlayer.passedActionPhase = true;
-            }
-            // If tokens are still unclaimed the active player must keep claiming; don't update pass status
+            // Opponent has already permanently passed (e.g. claimed a token) → active player is done too
+            this.activePlayer.passedActionPhase = true;
         } else {
             this.setPassStatus(true);
         }

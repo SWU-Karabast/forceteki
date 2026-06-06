@@ -366,6 +366,11 @@ export class DeckValidator {
                         }
                     }
                 }
+            } else {
+                const secondLeaderEntry = (deck as IDecklistInternal).secondLeader;
+                if (secondLeaderEntry) {
+                    failures[DeckValidationFailureReason.TooManyLeaders] = true;
+                }
             }
 
             // Validate base.

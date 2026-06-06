@@ -168,7 +168,11 @@ export class Game extends EventEmitter {
 
     public allClaimTokensClaimed(): boolean {
         if (this.format === SwuGameFormat.FauxSuns) {
-            return this.isInitiativeClaimed && this.isPlanTokenClaimed && this.isBlastTokenClaimed;
+            // In a 2-player game only 2 of the 3 tokens can ever be claimed (one per player).
+            // TSTODO: update this threshold for 3+ player games where all 3 tokens may be claimable.
+            const claimedCount = [this.isInitiativeClaimed, this.isPlanTokenClaimed, this.isBlastTokenClaimed]
+                .filter(Boolean).length;
+            return claimedCount >= 2;
         }
         return true;
     }

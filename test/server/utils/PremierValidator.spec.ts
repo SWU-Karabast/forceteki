@@ -153,4 +153,14 @@ describe('Premier validation', function () {
             expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.RotatedOut);
         });
     });
+
+    describe('leader', function () {
+        it('should reject a deck with a second leader in a non-TwinSuns format', function () {
+            const filler = helpers.getDeckFiller(50, PREMIER_SETS);
+            const secondLeader = helpers.getFirstLeader(PREMIER_SETS);
+            const deck = buildDeck(filler, { secondLeader: helpers.entry(secondLeader.internalName) });
+            const failures = validator.validateInternalDeck(deck, premierProps());
+            expect(failures[DeckValidationFailureReason.TooManyLeaders]).toBeDefined();
+        });
+    });
 });

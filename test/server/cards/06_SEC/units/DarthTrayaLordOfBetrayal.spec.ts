@@ -132,7 +132,7 @@ describe('Darth Traya, Lord of Betrayal', function() {
         });
 
         describe('Darth Traya\'s attack ability - Twin Suns dual-leader interactions', function() {
-            it('should be able to target both p1 leaders alongside p2\'s leader', async function() {
+            it('should be able to target all four leaders across both players', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     format: 'fauxSuns',
@@ -144,6 +144,7 @@ describe('Darth Traya, Lord of Betrayal', function() {
                     },
                     player2: {
                         leader: { card: 'yoda#sensing-darkness', exhausted: true },
+                        secondLeader: { card: 'luke-skywalker#faithful-friend', exhausted: true },
                         base: 'administrators-tower',
                     }
                 });
@@ -152,7 +153,7 @@ describe('Darth Traya, Lord of Betrayal', function() {
 
                 context.player1.clickCard(context.darthTraya);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.grandInquisitor, context.sawGerrera, context.yoda]);
+                expect(context.player1).toBeAbleToSelectExactly([context.grandInquisitor, context.sawGerrera, context.yoda, context.lukeSkywalker]);
                 context.player1.clickPrompt('Pass');
             });
 
@@ -168,6 +169,7 @@ describe('Darth Traya, Lord of Betrayal', function() {
                     },
                     player2: {
                         leader: { card: 'yoda#sensing-darkness', exhausted: true },
+                        secondLeader: { card: 'luke-skywalker#faithful-friend', exhausted: true },
                         base: 'administrators-tower',
                     }
                 });
@@ -193,6 +195,7 @@ describe('Darth Traya, Lord of Betrayal', function() {
                     },
                     player2: {
                         leader: { card: 'yoda#sensing-darkness', exhausted: true },
+                        secondLeader: { card: 'luke-skywalker#faithful-friend', exhausted: true },
                         base: 'administrators-tower',
                     }
                 });
@@ -201,8 +204,8 @@ describe('Darth Traya, Lord of Betrayal', function() {
 
                 context.player1.clickCard(context.darthTraya);
                 context.player1.clickCard(context.p2Base);
-                // Saw is now a LeaderUnit â€” not a valid target; only grandInquisitor and yoda qualify
-                expect(context.player1).toBeAbleToSelectExactly([context.grandInquisitor, context.yoda]);
+                // Saw is now a LeaderUnit — not a valid target; only grandInquisitor, yoda, and lukeSkywalker qualify
+                expect(context.player1).toBeAbleToSelectExactly([context.grandInquisitor, context.yoda, context.lukeSkywalker]);
                 context.player1.clickPrompt('Pass');
             });
         });
