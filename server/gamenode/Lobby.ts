@@ -16,7 +16,6 @@ import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
-import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import type { CardPool } from '../game/core/Constants';
 import {
@@ -1373,7 +1372,6 @@ export class Lobby {
             id: uuidv4(),
             allowSpectators: false,
             owner: 'Order66',
-            gameMode: GameMode.OneVsOne,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,

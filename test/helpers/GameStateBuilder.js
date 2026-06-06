@@ -1,6 +1,5 @@
 const { Contract } = require('../../server/game/core/utils/Contract');
 const { SwuGameFormat } = require('../../server/game/core/Constants.js');
-const { GameMode } = require('../../server/GameMode.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
@@ -107,7 +106,6 @@ class GameStateBuilder {
         this.validatePlayerOptions(options.player1, 'player1', options.phase);
         this.validatePlayerOptions(options.player2, 'player2', options.phase);
 
-        context.game.gameMode = options.gameMode ?? GameMode.OneVsOne;
         context.game.format = options.format ?? SwuGameFormat.Premier;
 
         if (options.hasOwnProperty('enableConfirmationToUndo')) {
@@ -334,7 +332,6 @@ class GameStateBuilder {
             'autoSingleTarget',
             'testUndo',
             'enableConfirmationToUndo',
-            'gameMode',
             'format'
         ];
 

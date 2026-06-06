@@ -110,9 +110,6 @@ interface SwuSetupTestOptions extends ISerializedGameState {
     testUndo?: boolean;
     enableConfirmationToUndo?: boolean;
 
-    /** Player structure: OneVsOne (default) or Multiplayer. */
-    gameMode?: import('../../server/GameMode').GameMode;
-
     /** Deck/rules format being played. Defaults to Premier. Use 'fauxSuns' for 1v1 Twin Suns. Accepts SwuGameFormat enum values or their string equivalents. */
     format?: import('../../server/game/core/Constants').SwuGameFormat | string;
 

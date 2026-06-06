@@ -1,4 +1,3 @@
-import type { GameMode } from '../../GameMode';
 import type { SwuGameFormat } from './Constants';
 import type { Lobby } from '../../gamenode/Lobby';
 import type { IUser } from '../../Settings';
@@ -17,7 +16,6 @@ export interface GameConfiguration {
     players: IUser[];
     spectators?: IUser[];
     allowSpectators: boolean;
-    gameMode: GameMode;
 
     /** The deck/rules format being played. Defaults to Premier when omitted. */
     format?: SwuGameFormat;
@@ -47,7 +45,6 @@ export function validateGameConfiguration(configuration: GameConfiguration): voi
     Contract.assertNotNullLike(configuration.id);
     Contract.assertNotNullLike(configuration.owner);
     Contract.assertNotNullLike(configuration.players);
-    Contract.assertNotNullLike(configuration.gameMode);
     Contract.assertNotNullLike(configuration.cardDataGetter);
     Contract.assertNotNullLike(configuration.pushUpdate);
     Contract.assertNotNullLike(configuration.buildSafeTimeout);
