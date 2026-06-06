@@ -13,12 +13,12 @@ export default class KachirhoMilitia extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Ready when an enemy ground unit attacks base',
+            title: 'Ready Kachirho Militia',
             limit: AbilityHelper.limit.perRound(1),
             when: {
                 onAttackDeclared: (event, context) =>
-                    event.attack.attacker.controller !== context.player &&
-                    event.attack.attacker.zoneName === ZoneName.GroundArena &&
+                    event.attackerLastKnownInformation.controller !== context.player &&
+                    event.attackerLastKnownInformation.arena === ZoneName.GroundArena &&
                     event.attack.getAllTargets().some((target) => target.isBase()),
             },
             immediateEffect: AbilityHelper.immediateEffects.ready(),

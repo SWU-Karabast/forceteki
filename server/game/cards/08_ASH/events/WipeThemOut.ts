@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import { Contract } from '../../../core/utils/Contract';
 import { AbilityType, DamageType, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
@@ -37,15 +38,15 @@ export default class WipeThemOut extends EventCard {
                                 }
 
                                 const arena = context.event.lastKnownInformation.arena;
-                                return arena != null && card.zoneName === arena && card !== context.source;
+                                return card.zoneName === arena && card !== context.source;
                             },
                             immediateEffect: AbilityHelper.immediateEffects.excessDamage((context) => {
-                                const triggeredContext = context as TriggeredAbilityContext;
+                                Contract.assertTrue(context.isTriggered());
                                 return {
                                     type: DamageType.Excess,
-                                    sourceEventForExcessDamage: triggeredContext.event.defeatSource.event
+                                    sourceEventForExcessDamage: context.event.defeatSource.event
                                 };
-                            }) as unknown as never
+                            })
                         }
                     })
                 }]
