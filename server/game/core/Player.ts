@@ -840,7 +840,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     public getAspects() {
         const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspects);
         return [
-            ...this.getAllLeaders().map((leader) => leader.aspects),
+            ...this.getAllLeaders().flatMap((leader) => leader.aspects),
             ...this.base.aspects,
             ...provided.flat(),
         ];
