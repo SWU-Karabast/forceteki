@@ -1,12 +1,12 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { Trait } from '../../../core/Constants';
+import { EventName, TokenUnitName, Trait } from '../../../core/Constants';
 
 export default class ChooseYourPath extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'choose-your-path-id',
+            id: '2613847155',
             internalName: 'choose-your-path',
         };
     }
@@ -25,15 +25,29 @@ export default class ChooseYourPath extends EventCard {
                     ['If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it']:
                         abilityHelper.immediateEffects.conditional({
                             condition: (c) => c.player.hasSomeArenaUnit({ trait: Trait.Mandalorian }),
-                            onTrue: abilityHelper.immediateEffects.sequential([
-                                abilityHelper.immediateEffects.createMandalorian(),
-                                abilityHelper.immediateEffects.giveAdvantage((context) => {
-                                    console.log(context.events[0]?.generatedTokens?.length); //TODO GET GENERATION EVENT
-                                    return ({ target: context.events[1]?.generatedTokens[0] });
-                                })
-                            ])
+                            onTrue: abilityHelper.immediateEffects.createMandalorian(),
                         })
                 }
+            }),
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Give an Advantage token to the created Mandalorian',
+                ifYouDoCondition: () => {
+                    const event = ifYouDoContext.events.find((e) =>
+                        e.name === EventName.OnTokensCreated &&
+                        e.isResolved &&
+                        e.player === ifYouDoContext.player &&
+                        e.tokenType === TokenUnitName.Mandalorian
+                    );
+                    return event != null && event.generatedTokens?.length > 0;
+                },
+                immediateEffect: abilityHelper.immediateEffects.giveAdvantage({
+                    target: ifYouDoContext.events.find((e) =>
+                        e.name === EventName.OnTokensCreated &&
+                        e.isResolved &&
+                        e.player === ifYouDoContext.player &&
+                        e.tokenType === TokenUnitName.Mandalorian
+                    )?.generatedTokens[0]
+                })
             })
         });
     }
