@@ -18,7 +18,6 @@ export default class HelgaitDookuWasAVisionary extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.distributeAdvantageAmong((context) => ({
                 amountToDistribute: context.event.lastKnownInformation.power,
                 canChooseNoTargets: true,
-                canDistributeLess: true,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
             }))

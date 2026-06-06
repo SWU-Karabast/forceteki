@@ -21,6 +21,13 @@ describe('Helgait, Dooku was a Visionary', function () {
 
             expect(context.player1).toHavePrompt('Distribute 6 Advantage tokens among targets');
             expect(context.player1).toBeAbleToSelectExactly([context.awing, context.wampa, context.battlefieldMarine]);
+            expect(context.player1).toHaveEnabledPromptButton('Done');
+
+            expect(() => context.player1.setDistributeAmongTargetsPromptState(new Map([
+                [context.awing, 2],
+                [context.wampa, 2],
+                [context.battlefieldMarine, 1]
+            ]), 'distributeAdvantage')).toThrowError('Contract assertion failure: Illegal prompt results for \'Distribute 6 Advantage tokens among targets\', distributed Advantage tokens should be equal to 6 but instead received a total of 5');
 
             context.player1.setDistributeAmongTargetsPromptState(new Map([
                 [context.awing, 2],
@@ -32,6 +39,38 @@ describe('Helgait, Dooku was a Visionary', function () {
             expect(context.wampa).toHaveExactUpgradeNames(['advantage', 'advantage']);
             expect(context.awing).toHaveExactUpgradeNames(['advantage', 'advantage']);
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['advantage', 'advantage']);
+        });
+
+        it('Helgait\'s ability may not give any Advantage tokens', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['helgait#dooku-was-a-visionary', 'wampa', 'battlefield-marine'],
+                    spaceArena: ['awing']
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['rivals-fall'],
+                    groundArena: ['atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.rivalsFall);
+            context.player2.clickCard(context.helgait);
+
+            expect(context.player1).toHavePrompt('Distribute 6 Advantage tokens among targets');
+            context.player1.setDistributeAmongTargetsPromptState(new Map([
+                [context.awing, 0],
+                [context.wampa, 0],
+                [context.battlefieldMarine, 0]
+            ]), 'distributeAdvantage');
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.wampa).toHaveExactUpgradeNames([]);
+            expect(context.awing).toHaveExactUpgradeNames([]);
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
         });
 
         it('Helgait\'s ability should distribute Advantage tokens equal to this unit\'s power among friendly units (No Glory Only Results)', async function () {
