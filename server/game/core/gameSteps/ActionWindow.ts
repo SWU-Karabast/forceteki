@@ -209,6 +209,7 @@ export class ActionWindow extends UiPrompt {
     public pass(showMessage = true) {
         if (showMessage) {
             this.game.addMessage('{0} passes', this.activePlayer);
+        }
 
         if (this.prevPlayerPassed) {
             // Both players have consecutively passed → action phase ends
