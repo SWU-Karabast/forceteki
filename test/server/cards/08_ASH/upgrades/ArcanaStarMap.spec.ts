@@ -327,7 +327,7 @@ describe('Arcana Star Map', function () {
                     invalid: [
                         context.isbAgent, context.deathStarStormtrooper, context.superlaserTechnician,
                         context.vanguardInfantry, context.huntingNexu, context.daringRaid, context.protector,
-                        context.battlefieldMarine, context.yoda,
+                        context.battlefieldMarine, context.yoda, context.scoutBikePursuer,
                         context.gungi
                     ]
                 });
@@ -336,9 +336,12 @@ describe('Arcana Star Map', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.avenger);
                 context.player1.clickDone();
 
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.avenger, context.raddus]);
+                context.player2.clickDone();
+
                 expect(context.player2).toBeActivePlayer();
-                expect(context.raddus).toBeInZone('groundArena');
-                expect(context.avenger).toBeInZone('groundArena');
+                expect(context.raddus).toBeInZone('hand');
+                expect(context.avenger).toBeInZone('hand');
 
                 expect([
                     context.isbAgent, context.deathStarStormtrooper, context.superlaserTechnician,
