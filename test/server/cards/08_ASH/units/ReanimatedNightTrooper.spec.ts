@@ -139,6 +139,34 @@ describe('Reanimated Night Trooper', function() {
                 expect(context.player2.deck).toEqual([]);
                 expect(context.player1).toBeActivePlayer();
             });
+
+            it('should do nothing when the selected deck is empty', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['reanimated-night-trooper'],
+                        deck: []
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        deck: ['daring-raid', 'open-fire'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.reanimatedNightTrooper);
+
+                expect(context.player1).toHavePrompt('Look at the top card of a deck');
+                expect(context.player1).toHaveEnabledPromptButtons(['Your deck', 'Opponent\'s deck']);
+                context.player1.clickPrompt('Your deck');
+
+                expect(context.player1.deck).toEqual([]);
+                expect(context.player2.deck).toEqual([context.daringRaid, context.openFire]);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
 
         describe('When Defeated ability with Grand Admiral Thrawn, How Unfortunate', function() {
