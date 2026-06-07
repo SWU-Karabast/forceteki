@@ -14,7 +14,7 @@ export default class ArcanaStarMap extends UpgradeCard {
         registrar.addReplacementEffectAbilityTargetingAttached({
             title: 'If you would search a number of cards from your deck, search twice that number of cards instead',
             when: {
-                onDeckSearch: (event, context) => event.player === context.source.controller,
+                onDeckSearch: (event, context) => event.player === context.source.controller && event.amount > 0,
             },
             replaceWith: {
                 replacementImmediateEffect: AbilityHelper.immediateEffects.deckSearch(
