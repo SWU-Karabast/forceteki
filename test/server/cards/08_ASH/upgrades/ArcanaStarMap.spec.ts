@@ -160,7 +160,69 @@ describe('Arcana Star Map', function () {
                 context.player2.clickPrompt('Take nothing');
             });
 
-            it('', async function () {
+            it('should double the correct number of cards when searchCount is determined by a function (Bounty Hunter\'s Quarry)', async function () {
+                // BHQ searches top 5 for non-unique targets and top 10 for unique targets.
+                // With Arcana Star Map those become top 10 and top 20 respectively.
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', upgrades: ['arcana-star-map#path-to-peridea'] }],
+                        // 20-card deck — top 10 exposed for non-unique attack, all 20 exposed for unique attack
+                        deck: [
+                            'scout-bike-pursuer', 'waylay', 'battlefield-marine', 'devotion', 'echo-base-defender',         // 1-5
+                            'resupply', 'consular-security-force', 'takedown', 'inferno-four#unforgetting', 'protector',    // 6-10
+                            'isb-agent', 'rivals-fall', 'death-star-stormtrooper', 'daring-raid', 'vanguard-infantry',     // 11-15
+                            'force-throw', 'tieln-fighter', 'repair', 'swoop-racer', 'bamboozle',                          // 16-20
+                        ],
+                        resources: 3,
+                    },
+                    player2: {
+                        groundArena: [
+                            // non-unique — bounty search normally shows top 5, doubled to top 10
+                            { card: 'specforce-soldier', upgrades: ['bounty-hunters-quarry'] },
+                            // unique — bounty search normally shows top 10, doubled to top 20
+                            { card: 'benthic-two-tubes#partisan-lieutenant', upgrades: ['bounty-hunters-quarry'] },
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Attack 1: kill the non-unique target — BHQ should search top 10 (doubled from 5)
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.specforceSoldier);
+                context.player1.clickPrompt('Trigger');
+
+                // Cards 1-10 shown — confirms the search was doubled from 5 to 10
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.scoutBikePursuer, context.battlefieldMarine, context.echoBaseDefender, context.consularSecurityForce, context.infernoFour],
+                    invalid: [context.waylay, context.devotion, context.resupply, context.takedown, context.protector],
+                });
+                context.player1.clickPrompt('Take nothing');
+
+                // Attack 2: kill the unique target — BHQ should search top 20 (doubled from 10)
+                context.readyCard(context.wampa);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.benthicTwoTubes);
+                context.player1.clickPrompt('Trigger');
+
+                // All 20 deck cards shown — confirms the search was doubled from 10 to 20
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [
+                        context.scoutBikePursuer, context.battlefieldMarine, context.echoBaseDefender, context.consularSecurityForce, context.infernoFour,
+                        context.isbAgent, context.deathStarStormtrooper, context.vanguardInfantry, context.tielnFighter, context.swoopRacer,
+                    ],
+                    invalid: [
+                        context.waylay, context.devotion, context.resupply, context.takedown, context.protector,
+                        context.rivalsFall, context.daringRaid, context.forceThrow, context.repair, context.bamboozle,
+                    ],
+                });
+                context.player1.clickPrompt('Take nothing');
+            });
+
+            it('should not double entire-deck searches', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -188,7 +250,7 @@ describe('Arcana Star Map', function () {
                 expect(context.player1.deck.length).toBe(2);
             });
 
-            it('', async function() {
+            it('should not double entire-deck searches of the opponent\'s deck (Annihilator)', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -226,34 +288,34 @@ describe('Arcana Star Map', function () {
                 expect(inDeckPilotBoba).toBeInZone('discard');
             });
 
-            it('', async function () {
+            it('should double the search count for effects that deploy units from the deck (Darth Vader)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', upgrades: ['arcana-star-map#path-to-peridea'] }],
                         hand: ['darth-vader#commanding-the-first-legion'],
                         deck: [
-                            'battlefield-marine', // 1
-                            'vanguard-infantry', // 2
-                            'scout-bike-pursuer', // 3
-                            'hunting-nexu', // 4
-                            'tieln-fighter', // 5
-                            'daring-raid', // 6
-                            'protector', // 7
-                            'isb-agent', // 8
-                            'death-star-stormtrooper', // 9
-                            'superlaser-technician', // 10
-                            'atst', // 11
-                            'awing', // 12
-                            'yoda#old-master', // 13
-                            'gungi#finding-himself', // 14
-                            'takedown', // 15
-                            'rivals-fall', // 16
-                            'avenger#hunting-star-destroyer', // 17
-                            'tie-striker', // 18
-                            'peridea-bandit', // 19
-                            'mouse-droid', // 20
-                            'lothwolf'// 21
+                            'battlefield-marine',           // 1  — Rebel unit (not Imperial → invalid)
+                            'vanguard-infantry',            // 2  — Rebel unit (not Imperial → invalid)
+                            'scout-bike-pursuer',           // 3  — Imperial unit, cost 1 ✓
+                            'hunting-nexu',                 // 4  — non-Imperial unit → invalid
+                            'tieln-fighter',                // 5  — Imperial unit, cost 1 ✓
+                            'daring-raid',                  // 6  — event → invalid
+                            'protector',                    // 7  — non-unit → invalid
+                            'isb-agent',                    // 8  — Imperial unit, cost 2 ✓
+                            'death-star-stormtrooper',      // 9  — Imperial unit, cost 1 ✓
+                            'superlaser-technician',        // 10 — Imperial unit, cost 2 ✓
+                            'atst',                         // 11 — Imperial unit but cost 6 → invalid (cost cap enforced)
+                            'awing',                        // 12 — Rebel unit → invalid
+                            'yoda#old-master',              // 13 — non-Imperial → invalid
+                            'gungi#finding-himself',        // 14 — non-Imperial → invalid
+                            'takedown',                     // 15 — event → invalid
+                            'rivals-fall',                  // 16 — event → invalid
+                            'avenger#hunting-star-destroyer', // 17 — Imperial ship but cost 8 → invalid (cost cap enforced)
+                            'tie-striker',                  // 18 — Imperial unit, cost 3 ✓
+                            'peridea-bandit',               // 19 — Imperial unit, cost 1 ✓
+                            'mouse-droid',                  // 20 — Imperial unit, cost 1 ✓
+                            'lothwolf'                      // 21 — beyond top 20, not shown
                         ],
                     }
                 });
@@ -289,7 +351,7 @@ describe('Arcana Star Map', function () {
                 ]).toAllBeInBottomOfDeck(context.player1, 18);
             });
 
-            it('', async function () {
+            it('should double multi-select ship searches (Prepare for Takeoff)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
