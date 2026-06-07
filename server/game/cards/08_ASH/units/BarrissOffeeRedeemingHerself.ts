@@ -26,7 +26,7 @@ export default class BarrissOffeeRedeemingHerself extends NonLeaderUnitCard {
                 ifYouDoCondition: () => ifYouDoContext.events[0].totalDistributed > 0,
                 immediateEffect: abilityHelper.immediateEffects.giveAdvantage({
                     amount: ifYouDoContext.events[0].totalDistributed,
-                    target: ifYouDoContext.events[0].card
+                    target: ifYouDoContext.events[0].individualEvents[0].card
                 })
             })
         });

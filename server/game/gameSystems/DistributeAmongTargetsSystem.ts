@@ -196,10 +196,6 @@ export abstract class DistributeAmongTargetsSystem<
             source: context.source,
             amount: amountToDistribute,
             resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) => {
-                if (results.valueDistribution.size === 1) {
-                    distributeEvent.card = Array.from(results.valueDistribution.keys())[0];
-                }
-
                 const individualEvents = Array.from(results.valueDistribution.entries())
                     .map(([card, amount]) => this.generateEffectEvent(card, distributeEvent, context, amount));
 
