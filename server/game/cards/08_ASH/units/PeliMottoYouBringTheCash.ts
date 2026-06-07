@@ -32,11 +32,11 @@ export default class PeliMottoYouBringTheCash extends NonLeaderUnitCard {
     }
 
     private isFirstNonUnitCardPlayedThisPhase(card: Card): boolean {
-        return !card.isUnit() && 
-            !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
-                playedCardEntry.playedBy === card.controller &&
-                !playedCardEntry.card.isUnit() &&
-                playedCardEntry.card !== card
-            );
+        return !card.isUnit() &&
+          !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+              playedCardEntry.playedBy === card.controller &&
+              !playedCardEntry.card.isUnit() &&
+              playedCardEntry.card !== card
+          );
     }
 }
