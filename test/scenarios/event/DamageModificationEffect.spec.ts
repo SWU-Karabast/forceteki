@@ -640,6 +640,159 @@ describe('Damage Modification Effects', function() {
                 });
             });
 
+            describe('An ability that caps incoming damage', function() {
+                it('should cap total damage above the limit to the limit', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: ['at-attin-safety-droid'],
+                        },
+                        player2: {
+                            groundArena: ['atst'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player2.clickCard(context.atst);
+                    context.player2.clickCard(context.p1Base);
+
+                    expect(context.p1Base.damage).toBe(4);
+                    expect(context.getChatLogs(5)).toContain('player1 uses At Attin Safety Droid to prevent all but 4 damage to their base');
+                });
+
+                it('should not fire when damage equals the limit', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: ['at-attin-safety-droid'],
+                        },
+                        player2: {
+                            groundArena: ['wampa'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.p1Base);
+
+                    expect(context.p1Base.damage).toBe(4);
+                    expect(context.getChatLogs(5)).not.toContain('player1 uses At Attin Safety Droid');
+                });
+
+                it('should not fire when damage is below the limit', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: ['at-attin-safety-droid'],
+                        },
+                        player2: {
+                            groundArena: ['battlefield-marine'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player2.clickCard(context.battlefieldMarine);
+                    context.player2.clickCard(context.p1Base);
+
+                    expect(context.p1Base.damage).toBe(3);
+                    expect(context.getChatLogs(5)).not.toContain('player1 uses At Attin Safety Droid');
+                });
+
+                it('should not cap damage to the opponent\'s base', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: ['at-attin-safety-droid', 'atst'],
+                        },
+                        player2: {}
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.atst);
+                    context.player1.clickCard(context.p2Base);
+
+                    expect(context.p2Base.damage).toBe(6);
+                    expect(context.getChatLogs(5)).not.toContain('player1 uses At Attin Safety Droid');
+                });
+
+                it('should not cap damage to units', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: ['at-attin-safety-droid', 'atst'],
+                        },
+                        player2: {
+                            groundArena: ['wampa'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.atst);
+
+                    expect(context.atst.damage).toBe(4);
+                    expect(context.getChatLogs(5)).not.toContain('player1 uses At Attin Safety Droid');
+                });
+
+                it('should not reduce indirect damage', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: ['at-attin-safety-droid'],
+                        },
+                        player2: {
+                            hand: ['torpedo-barrage'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player2.clickCard(context.torpedoBarrage);
+                    context.player2.clickPrompt('Deal indirect damage to opponent');
+
+                    context.player1.setDistributeIndirectDamagePromptState(new Map([
+                        [context.p1Base, 5],
+                    ]));
+
+                    expect(context.p1Base.damage).toBe(5);
+                    expect(context.getChatLogs(5)).not.toContain('player1 uses At Attin Safety Droid to prevent all but 4 damage');
+                });
+
+                it('should not reduce unpreventable damage', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: ['at-attin-safety-droid'],
+                        },
+                        player2: {
+                            spaceArena: ['gorian-shards-corsair#pirate-warship'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player2.clickCard(context.gorianShardsCorsair);
+                    context.player2.clickCard(context.p1Base);
+
+                    expect(context.player2).toHavePassAbilityButton();
+                    context.player2.clickPrompt('Pass');
+
+                    expect(context.p1Base.damage).toBe(6);
+                    expect(context.getChatLogs(5)).toContain('player1 uses At Attin Safety Droid to try to prevent damage but it cannot prevent unpreventable damage');
+                });
+            });
+
             describe('Multiple damage modification effects', function() {
                 it('should stack reductions correctly', async function () {
                     await contextRef.setupTestAsync({

@@ -35,6 +35,11 @@ export class DamageModificationSystem<
             }
 
             switch (properties.modificationType) {
+                case DamageModificationType.Cap:
+                    return {
+                        format: 'prevent all but {0} damage to {1}',
+                        args: [String(properties.amount), this.getTargetMessage(context.event.card, context)],
+                    };
                 case DamageModificationType.PreventAll:
                     return {
                         format: 'prevent all damage to {0}',
@@ -73,6 +78,15 @@ export class DamageModificationSystem<
         }
 
         switch (properties.modificationType) {
+            case DamageModificationType.Cap:
+                Contract.assertPositiveNonZero(properties.amount, `capAmount must be a positive non-zero number for DamageModificationType.Cap. Found: ${properties.amount}`);
+                return new DamageSystem((context) => ({
+                    target: context.event.card,
+                    amount: properties.amount,
+                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
+                    type: context.event.type,
+                    sourceAttack: context.event.damageSource.attack,
+                }));
             case DamageModificationType.PreventAll:
                 return null;
             case DamageModificationType.Reduce:
@@ -110,6 +124,14 @@ export class DamageModificationSystem<
         if (properties.modificationType === DamageModificationType.Increase) {
             return true;
         }
-        return !context.event.isUnpreventable;
+
+        if (context.event.isUnpreventable) {
+            return false;
+        }
+
+        if (properties.modificationType === DamageModificationType.Cap) {
+            return context.event.amount > properties.amount;
+        }
+        return true;
     }
 }
