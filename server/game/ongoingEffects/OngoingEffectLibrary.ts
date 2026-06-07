@@ -141,6 +141,7 @@ export = {
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
+    multiplySearchCount: (multiplier: number) => OngoingEffectBuilder.card.static(EffectName.MultiplySearchCount, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseAllOtherAbilities: (properties: { exceptKeyword: KeywordName }) =>
         OngoingEffectBuilder.card.static(EffectName.BlankExceptKeyword, properties),

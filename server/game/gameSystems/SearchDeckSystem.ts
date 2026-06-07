@@ -3,7 +3,7 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
-import { DeckZoneDestination, EventName, TargetMode, ZoneName } from '../core/Constants.js';
+import { DeckZoneDestination, EffectName, EventName, TargetMode, ZoneName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { GameSystem } from '../core/gameSystem/GameSystem.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -116,7 +116,16 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
         const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties);
-        const searchCountAmount = this.computeSearchCount(searchCount, context);
+        let searchCountAmount = this.computeSearchCount(searchCount, context);
+        if (searchCountAmount > 0) {
+            for (const unit of player.getArenaUnits()) {
+                if (unit.hasOngoingEffect(EffectName.MultiplySearchCount)) {
+                    for (const multiplier of unit.getOngoingEffectValues<number>(EffectName.MultiplySearchCount)) {
+                        searchCountAmount *= multiplier;
+                    }
+                }
+            }
+        }
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = searchCountAmount;
     }
