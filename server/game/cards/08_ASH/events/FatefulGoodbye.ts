@@ -24,22 +24,12 @@ export default class FatefulGoodbye extends EventCard {
             title: 'If a friendly unit left play this phase, distribute 3 Advantage tokens among friendly units. If a friendly leader unit left play this phase, distribute 5 Advantage tokens instead.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player }),
-                onTrue: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => this.cardsLeftPlayThisPhaseWatcher.someLeaderUnitLeftPlay({ controller: context.player }),
-                    onTrue: AbilityHelper.immediateEffects.distributeAdvantageAmong({
-                        amountToDistribute: 5,
-                        canChooseNoTargets: false,
-                        canDistributeLess: false,
-                        cardTypeFilter: WildcardCardType.Unit,
-                        controller: RelativePlayer.Self,
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.distributeAdvantageAmong({
-                        amountToDistribute: 3,
-                        canChooseNoTargets: false,
-                        canDistributeLess: false,
-                        cardTypeFilter: WildcardCardType.Unit,
-                        controller: RelativePlayer.Self,
-                    })
+                onTrue: AbilityHelper.immediateEffects.distributeAdvantageAmong({
+                    amountToDistribute: (context) => (this.cardsLeftPlayThisPhaseWatcher.someLeaderUnitLeftPlay({ controller: context.player }) ? 5 : 3),
+                    canChooseNoTargets: false,
+                    canDistributeLess: false,
+                    cardTypeFilter: WildcardCardType.Unit,
+                    controller: RelativePlayer.Self,
                 }),
             })
         });
