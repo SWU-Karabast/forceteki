@@ -1,5 +1,5 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
-import type { Trait } from '../core/Constants';
+import type { CardType, Trait } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
@@ -16,6 +16,7 @@ import { registerState, type GameObjectId } from '../core/GameObjectUtils';
  */
 export interface IDefeatedUnitLKIEntry {
     traits: Set<Trait>;
+    type: CardType;
     // TODO: Add more fields if needed
 }
 
@@ -48,7 +49,10 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
             controlledBy: this.game.getFromId(x.controlledBy),
             defeatedBy: this.game.getFromId(x.defeatedBy),
             wasDefeatedWhileAttacking: x.wasDefeatedWhileAttacking,
-            lastKnownInformation: { traits: x.lastKnownInformation.traits }
+            lastKnownInformation: {
+                traits: x.lastKnownInformation.traits,
+                type: x.lastKnownInformation.type,
+            }
         }));
     }
 
@@ -109,7 +113,8 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
                     defeatedBy: event.defeatSource.player?.getObjectId(),
                     wasDefeatedWhileAttacking: event.isDefeatedWhileAttacking,
                     lastKnownInformation: {
-                        traits: event.lastKnownInformation.traits
+                        traits: event.lastKnownInformation.traits,
+                        type: event.lastKnownInformation.type,
                     }
                 })
         });
