@@ -13,7 +13,7 @@ export default class Rehabilitation extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.setEventAbility({
-            title: 'Give a unit –3/–0 for this phase.',
+            title: 'Give a unit –3/–0, then take control of it for this phase',
             targetResolver: {
                 activePromptTitle: 'Give a unit –3/–0, then take control of it for this phase',
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

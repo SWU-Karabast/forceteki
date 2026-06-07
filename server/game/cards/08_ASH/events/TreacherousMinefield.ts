@@ -14,7 +14,7 @@ export default class TreacherousMinefield extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Give each unit in an arena-On Attack: Deal 2 damage to this unit',
+            title: 'Give each unit in an arena "On Attack: Deal 2 damage to this unit"',
             targetResolver: {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose an arena',

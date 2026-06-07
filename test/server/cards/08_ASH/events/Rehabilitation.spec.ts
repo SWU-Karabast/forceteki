@@ -141,7 +141,7 @@ describe('Rehabilitation', function () {
             expect(context.awing).toBeInZone('discard', context.player2);
         });
 
-        it('Rehabilitation\'s ability should take a ship, put a leader on it, and have it die when it changes control', async function () {
+        it('Rehabilitation\'s ability should take a ship, put Poe on it, and not die when it changes control', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -177,7 +177,7 @@ describe('Rehabilitation', function () {
             expect(context.awing).toHaveExactUpgradeNames(['poe-dameron#i-can-fly-anything']);
         });
 
-        it('Rehabilitation\'s ability should take a ship, put a leader on it, and have it die when it changes control', async function () {
+        it('Rehabilitation\'s ability should take a token unit, give it -3/-0, and return it', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
