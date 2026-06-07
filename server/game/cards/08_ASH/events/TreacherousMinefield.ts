@@ -38,7 +38,7 @@ export default class TreacherousMinefield extends EventCard {
                         immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                     })
                 ],
-                target: context.game.getPlayers().reduce((units, player) => units.concat(player.getArenaUnits({ arena: arena })), [])
+                target: context.game.getArenaUnits({ arena: arena })
             })),
             onFalse: AbilityHelper.immediateEffects.noAction((context) => {
                 return {
