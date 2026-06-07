@@ -124,8 +124,8 @@ export class DamageModificationSystem<
         if (properties.modificationType === DamageModificationType.Increase) {
             return true;
         }
-        
-        if(context.event.isUnpreventable) {
+
+        if (context.event.isUnpreventable) {
             return false;
         }
 
