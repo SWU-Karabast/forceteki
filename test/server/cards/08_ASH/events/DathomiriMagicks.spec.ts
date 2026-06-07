@@ -124,7 +124,7 @@ describe('Dathomiri Magicks', function () {
                     phase: 'action',
                     player1: {
                         hand: ['dathomiri-magicks'],
-                        groundArena: ['battlefield-marine'], // not a Force unit
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['heightened-awareness'] }], // not a Force unit
                         discard: ['vanguard-infantry'],
                         resources: 10,
                         base: 'command-center',
