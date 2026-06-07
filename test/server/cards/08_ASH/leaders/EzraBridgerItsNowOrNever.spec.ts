@@ -93,9 +93,9 @@ describe('Ezra Bridger, Its Now or Never', function() {
                 context.player1.clickCard(context.ezraBridger);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePrompt('Give an Advantage token to a different unit');
+                expect(context.player1).toHavePrompt('Give an Advantage token to a different unit than Ezra Bridger');
                 expect(context.player1).toBeAbleToSelectExactly([context.porg, context.awing, context.sabineWren, context.yoda, context.battlefieldMarine]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.yoda);
 
@@ -122,14 +122,43 @@ describe('Ezra Bridger, Its Now or Never', function() {
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePrompt('Give an Advantage token to a different unit');
+                expect(context.player1).toHavePrompt('Give an Advantage token to a different unit than AT-ST');
                 expect(context.player1).toBeAbleToSelectExactly([context.porg, context.awing, context.sabineWren, context.yoda, context.battlefieldMarine, context.ezraBridger]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.yoda);
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(6);
+                expect(context.yoda).toHaveExactUpgradeNames(['advantage']);
+            });
+
+            it('should allow to give an Advantage token to a different unit if a unit deals damage to the base due to Overwhelm', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['sabine-wren#explosives-artist', 'atst'],
+                        spaceArena: ['awing'],
+                        leader: { card: 'ezra-bridger#its-now-or-never', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['porg', 'battlefield-marine', 'yoda#old-master'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.porg);
+
+                expect(context.player1).toHavePrompt('Give an Advantage token to a different unit than AT-ST');
+                expect(context.player1).toBeAbleToSelectExactly([context.awing, context.sabineWren, context.yoda, context.battlefieldMarine, context.ezraBridger]);
+                expect(context.player1).toHavePassAbilityButton();
+
+                context.player1.clickCard(context.yoda);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(5);
                 expect(context.yoda).toHaveExactUpgradeNames(['advantage']);
             });
 
@@ -197,9 +226,9 @@ describe('Ezra Bridger, Its Now or Never', function() {
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePrompt('Give an Advantage token to a different unit');
+                expect(context.player1).toHavePrompt('Give an Advantage token to a different unit than AT-ST');
                 expect(context.player1).toBeAbleToSelectExactly([context.porg, context.awing, context.sabineWren, context.yoda, context.battlefieldMarine, context.ezraBridger]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.yoda);
 

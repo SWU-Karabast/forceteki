@@ -36,18 +36,12 @@ export default class EzraBridgerItsNowOrNever extends LeaderUnitCard {
             ifYouDo: {
                 title: 'Give an Advantage token to a different unit',
                 contextTitle: (context) => this.getContextTitle(context),
-                immediateEffect: abilityHelper.immediateEffects.conditional({
-                    condition: (context) => {
-                        const damage = this.damageDealtThisPhaseWatcher.getDamageDealtToBaseByUnitThisAttack(context.event.attack.attacker, context);
-                        return damage >= 3;
-                    },
-                    onTrue: abilityHelper.immediateEffects.selectCard({
-                        activePromptTitle: 'Give an Advantage token to a different unit',
-                        cardTypeFilter: WildcardCardType.Unit,
-                        cardCondition: (card, context) => card !== context.event.attack.attacker,
-                        immediateEffect: abilityHelper.immediateEffects.giveAdvantage(),
-                    })
-                })
+                targetResolver: {
+                    activePromptTitle: (context) => this.getContextTitle(context),
+                    cardTypeFilter: WildcardCardType.Unit,
+                    cardCondition: (card, context) => card !== context.event.attack.attacker,
+                    immediateEffect: abilityHelper.immediateEffects.giveAdvantage(),
+                }
             }
         });
     }
@@ -58,22 +52,16 @@ export default class EzraBridgerItsNowOrNever extends LeaderUnitCard {
             contextTitle: (context) => this.getContextTitle(context),
             when: {
                 onAttackEnd: (event, context) =>
-                    event.attack.attackingPlayer === context.player &&
+                    event.attack.attackingPlayer === context.player && this.damageDealtThisPhaseWatcher.getDamageDealtToBaseByUnitThisAttack(context.event.attack.attacker, context) >= 3 &&
                     this.damageDealtThisPhaseWatcher.unitHasDealtCombatDamageToBaseThisAttack(event.attack.attacker, context)
             },
-            immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => {
-                    const damage = this.damageDealtThisPhaseWatcher.getDamageDealtToBaseByUnitThisAttack(context.event.attack.attacker, context);
-                    return damage >= 3;
-                },
-                onTrue: abilityHelper.immediateEffects.selectCard({
-                    activePromptTitle: 'Give an Advantage token to a different unit',
-                    cardTypeFilter: WildcardCardType.Unit,
-                    optional: true,
-                    cardCondition: (card, context) => card !== context.event.attack.attacker,
-                    immediateEffect: abilityHelper.immediateEffects.giveAdvantage(),
-                })
-            })
+            optional: true,
+            targetResolver: {
+                activePromptTitle: (context) => this.getContextTitle(context),
+                cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card, context) => card !== context.event.attack.attacker,
+                immediateEffect: abilityHelper.immediateEffects.giveAdvantage(),
+            }
         });
     }
 
