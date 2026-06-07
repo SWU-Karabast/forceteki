@@ -13,7 +13,7 @@ export default class EnochSolemnServant extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: 'Deal up to 6 damage to your base',
+            title: 'Deal up to 6 damage to your base. If you do, the next unit you play costs one less for every teo damage dealt this way',
             immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong({
                 amountToDistribute: 6,
                 canDistributeLess: true,
