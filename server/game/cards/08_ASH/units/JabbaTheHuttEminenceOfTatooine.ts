@@ -22,7 +22,7 @@ export default class JabbaTheHuttEminenceOfTatooine extends NonLeaderUnitCard {
             },
             then: (thenContext) => ({
                 title: `Play ${thenContext.target?.title} for free`,
-                thenCondition: () => thenContext.player === thenContext.target?.controller,
+                thenCondition: () => thenContext.player === thenContext.target?.owner,
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     target: thenContext.target,
