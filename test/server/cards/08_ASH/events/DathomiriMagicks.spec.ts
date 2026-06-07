@@ -128,7 +128,7 @@ describe('Dathomiri Magicks', function () {
                         discard: ['vanguard-infantry'],
                         resources: 10,
                         base: 'command-center',
-                        leader: 'grand-moff-tarkin#oversector-governor'
+                        leader: 'morgan-elsbeth#following-the-call'
                     },
                     player2: {
                         hand: ['waylay']
