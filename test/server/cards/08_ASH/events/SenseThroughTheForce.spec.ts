@@ -43,16 +43,48 @@ describe('Sense Through The Force', function() {
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
                 // Ensure that cards have moved to bottom of deck
-                expect(context.cartelSpacer).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.cellBlockGuard).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.pykeSentinel).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.volunteerSoldier).toBeInBottomOfDeck(context.player1, 4);
+                expect([context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]).toAllBeInBottomOfDeck(context.player1, 4);
 
                 expect(context.player1).toHavePrompt('Give 3 Advantage tokens to a Force unit');
+                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.gungi, context.grandInquisitor, context.trayusAcolyte, context.darthVader]);
                 context.player1.clickCard(context.gungi);
 
                 expect(context.gungi).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage']);
+            });
+
+            it('should be able to pass the Advantage token part of the ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.senseThroughTheForce);
+                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                context.player1.chooseListOption('2');
+                expect(context.getChatLogs(3)).toContain('player1 names 2 using Sense Through the Force');
+
+                expect(context.player1).toHavePrompt('Select a card');
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [],
+                    selectable: [context.battlefieldMarine, context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                // Choose Battlefield Marine
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.battlefieldMarine]);
+                context.player2.clickDone();
+
+                expect(context.getChatLog()).toContain('player1 uses Sense Through the Force to reveal and draw Battlefield Marine');
+                expect(context.battlefieldMarine).toBeInZone('hand');
+
+                // Ensure that cards have moved to bottom of deck
+                expect([context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]).toAllBeInBottomOfDeck(context.player1, 4);
+
+                expect(context.player1).toHavePrompt('Give 3 Advantage tokens to a Force unit');
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should prompt to choose a number, search the top 5 cards, reveal one, draw it, give 3 Advantage to a friendly force leader unit and move the rest to the bottom of the deck', function () {
@@ -81,10 +113,7 @@ describe('Sense Through The Force', function() {
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
                 // Ensure that cards have moved to bottom of deck
-                expect(context.cartelSpacer).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.cellBlockGuard).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.pykeSentinel).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.volunteerSoldier).toBeInBottomOfDeck(context.player1, 4);
+                expect([context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]).toAllBeInBottomOfDeck(context.player1, 4);
 
                 expect(context.player1).toHavePrompt('Give 3 Advantage tokens to a Force unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.gungi, context.grandInquisitor, context.trayusAcolyte, context.darthVader]);
@@ -119,10 +148,7 @@ describe('Sense Through The Force', function() {
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
                 // Ensure that cards have moved to bottom of deck
-                expect(context.cartelSpacer).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.cellBlockGuard).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.pykeSentinel).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.volunteerSoldier).toBeInBottomOfDeck(context.player1, 4);
+                expect([context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]).toAllBeInBottomOfDeck(context.player1, 4);
 
                 expect(context.player1).toHavePrompt('Give 3 Advantage tokens to a Force unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.gungi, context.grandInquisitor, context.trayusAcolyte, context.darthVader]);
@@ -157,10 +183,7 @@ describe('Sense Through The Force', function() {
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
                 // Ensure that cards have moved to bottom of deck
-                expect(context.cartelSpacer).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.cellBlockGuard).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.pykeSentinel).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.volunteerSoldier).toBeInBottomOfDeck(context.player1, 4);
+                expect([context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]).toAllBeInBottomOfDeck(context.player1, 4);
 
                 expect(context.player1).toHavePrompt('Give 3 Advantage tokens to a Force unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.gungi, context.grandInquisitor, context.trayusAcolyte, context.darthVader]);
@@ -195,10 +218,7 @@ describe('Sense Through The Force', function() {
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
                 // Ensure that cards have moved to bottom of deck
-                expect(context.cartelSpacer).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.cellBlockGuard).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.pykeSentinel).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.volunteerSoldier).toBeInBottomOfDeck(context.player1, 4);
+                expect([context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]).toAllBeInBottomOfDeck(context.player1, 4);
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -263,7 +283,7 @@ describe('Sense Through The Force', function() {
             });
         });
 
-        describe('Mon Mothma\'s Ability', function() {
+        describe('Sense Through the Force\'s Ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -301,10 +321,7 @@ describe('Sense Through The Force', function() {
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
                 // Ensure that cards have moved to bottom of deck
-                expect(context.cartelSpacer).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.cellBlockGuard).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.pykeSentinel).toBeInBottomOfDeck(context.player1, 4);
-                expect(context.volunteerSoldier).toBeInBottomOfDeck(context.player1, 4);
+                expect([context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]).toAllBeInBottomOfDeck(context.player1, 4);
 
                 expect(context.player2).toBeActivePlayer();
             });

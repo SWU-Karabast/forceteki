@@ -32,6 +32,7 @@ export default class SenseThroughTheForce extends EventCard {
                         AbilityHelper.immediateEffects.conditional({
                             condition: (context) => context.selectedPromptCards[0].hasCost() && context.selectedPromptCards[0].cost === parseInt(thenContext.select),
                             onTrue: AbilityHelper.immediateEffects.selectCard({
+                                optional: true,
                                 activePromptTitle: 'Give 3 Advantage tokens to a Force unit',
                                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Force),
                                 immediateEffect: AbilityHelper.immediateEffects.giveAdvantage({ amount: 3 })

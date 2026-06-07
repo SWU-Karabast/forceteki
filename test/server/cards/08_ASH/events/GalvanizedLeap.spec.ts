@@ -224,5 +224,37 @@ describe('Glavanized Leap', function() {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Galvanized Leap\'s ability should work if p1 is attacking to make the damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['galvanized-leap'],
+                    groundArena: ['battlefield-marine'],
+                    spaceArena: ['awing'],
+                },
+                player2: {
+                    hand: ['daring-raid'],
+                    groundArena: [{ card: 'atst', upgrades: ['pointless-to-resist'] }],
+                    spaceArena: [{ card: 'green-squadron-awing', exhausted: true }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.awing);
+            context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.awing.damage).toBe(1);
+            expect(context.awing.exhausted).toBeTrue();
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.galvanizedLeap);
+            context.player1.clickCard(context.awing);
+
+            expect(context.awing.exhausted).toBeFalse();
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
