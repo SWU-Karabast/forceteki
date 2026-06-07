@@ -90,6 +90,51 @@ describe('Peli Motto, You Bring the Cash?', function() {
             });
         });
 
+        describe('with pilot upgrades', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'echo-base',
+                        leader: 'luke-skywalker#faithful-friend',
+                        groundArena: ['peli-motto#you-bring-the-cash'],
+                        spaceArena: ['green-squadron-awing', 'xwing'],
+                        hand: ['independent-smuggler', 'daring-raid'],
+                        resources: 10
+                    },
+                    player2: {}
+                });
+            });
+
+            it('ignores the aspect penalty on a pilot played as the first non-unit (upgrade) card', function () {
+                const { context } = contextRef;
+
+                // independent-smuggler (Cunning) is off-aspect; played as a pilot upgrade it should cost 1 instead of 3
+                context.player1.clickCard(context.independentSmuggler);
+                context.player1.clickPrompt('Play Independent Smuggler with Piloting');
+                context.player1.clickCard(context.xwing);
+
+                expect(context.xwing).toHaveExactUpgradeNames(['independent-smuggler']);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('counts a pilot upgrade as the first non-unit card, so later non-unit cards pay the penalty', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.independentSmuggler);
+                context.player1.clickPrompt('Play Independent Smuggler with Piloting');
+                context.player1.clickCard(context.xwing);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+
+                context.player2.passAction();
+
+                // the pilot upgrade consumed the first non-unit slot, so daring-raid pays the penalty (cost 3)
+                context.player1.clickCard(context.daringRaid);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+            });
+        });
+
         describe('when it enters play after a non-unit card was already played this phase', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
