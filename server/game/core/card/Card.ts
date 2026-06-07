@@ -53,6 +53,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
 import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
+import type Advantage from '../../cards/08_ASH/tokens/Advantage';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -636,6 +637,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     public isShield(): this is Shield {
+        return false;
+    }
+
+    public isAdvantage(): this is Advantage {
         return false;
     }
 

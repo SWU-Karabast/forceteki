@@ -21,4 +21,8 @@ export default class Advantage extends TokenUpgradeCard {
             immediateEffect: AbilityHelper.immediateEffects.defeat()
         });
     }
+
+    public override isAdvantage(): this is Advantage {
+        return true;
+    }
 }
