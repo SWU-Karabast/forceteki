@@ -71,6 +71,20 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             .map((entry) => entry.card).length > 0;
     }
 
+    public someLeaderUnitLeftPlay({ controller, filter }: {
+        controller?: Player;
+        filter?: (event: UnwrapRef<CardLeftPlayEntry>) => boolean;
+    }) {
+        const leaderUnitFilter = (entry: UnwrapRef<CardLeftPlayEntry>) => EnumHelpers.isLeaderUnit(entry.cardType);
+
+        return this.someUnitLeftPlay({
+            controller,
+            filter: filter != null
+                ? (entry) => leaderUnitFilter(entry) && filter(entry)
+                : leaderUnitFilter
+        });
+    }
+
     protected override setupWatcher() {
         this.addUpdater({
             when: {
