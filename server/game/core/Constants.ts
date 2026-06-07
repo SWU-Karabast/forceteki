@@ -116,7 +116,6 @@ export enum EffectName {
     ModifyPower = 'modifyPower',
     ModifyStats = 'modifyStats',
     MultiplyNumericKeyword = 'multiplyNumericKeyword',
-    MultiplySearchCount = 'multiplySearchCount',
     MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',

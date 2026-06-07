@@ -11,9 +11,20 @@ export default class ArcanaStarMap extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addGainConstantAbilityTargetingAttached({
+        registrar.addReplacementEffectAbilityTargetingAttached({
             title: 'If you would search a number of cards from your deck, search twice that number of cards instead',
-            ongoingEffect: AbilityHelper.ongoingEffects.multiplySearchCount(2),
+            when: {
+                onDeckSearch: (event, context) => event.player === context.source.controller,
+            },
+            replaceWith: {
+                replacementImmediateEffect: AbilityHelper.immediateEffects.deckSearch(
+                    (context) => ({
+                        ...context.event.searchProperties,
+                        target: context.player,
+                        searchCount: context.event.amount * 2,
+                    })
+                ),
+            },
         });
     }
 }
