@@ -515,6 +515,7 @@ export type PlayRestriction =
   | AbilityRestriction.EnterPlay;
 
 export enum DamageModificationType {
+    Cap = 'cap',
     PreventAll = 'all',
     Increase = 'increase',
     Reduce = 'reduce',
