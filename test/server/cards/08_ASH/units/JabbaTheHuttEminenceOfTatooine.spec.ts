@@ -16,7 +16,7 @@ describe('Jabba The Hutt, Eminence Of Tatooine', function() {
                 });
             });
 
-            it('should return an upgrade to its owner\'s hand and play it for free if upgrade return to AP\'s hand (friendly token upgrade)', function() {
+            it('should return a friendly token upgrade to its owner\'s hand', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbaTheHutt);
@@ -41,7 +41,7 @@ describe('Jabba The Hutt, Eminence Of Tatooine', function() {
                 expect(context.atst).toHaveExactUpgradeNames(['mastery']);
             });
 
-            it('should return an upgrade to its owner\'s hand and play it for free if upgrade return to AP\'s hand (enemy upgrade)', function() {
+            it('should return an enemy upgrade to its owner\'s hand (not playable as not returned to AP\'s hand', function() {
                 const { context } = contextRef;
                 context.player1.clickCard(context.jabbaTheHutt);
                 context.player1.clickCard(context.mastery);
@@ -51,7 +51,7 @@ describe('Jabba The Hutt, Eminence Of Tatooine', function() {
                 expect(context.mastery).toBeInZone('hand', context.player2);
             });
 
-            it('should return an upgrade to its owner\'s hand and play it for free if upgrade return to AP\'s hand (friendly upgrade)', function() {
+            it('should return a friendly upgrade to its owner\'s hand and play it for free', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbaTheHutt);
@@ -67,7 +67,7 @@ describe('Jabba The Hutt, Eminence Of Tatooine', function() {
                 expect(context.jabbaTheHutt).toHaveExactUpgradeNames(['fulcrum']);
             });
 
-            it('should return an upgrade to its owner\'s hand and play it for free if upgrade return to AP\'s hand (the second part is optional too)', function() {
+            it('the second part of playing the upgrade for free is optional', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jabbaTheHutt);
@@ -80,7 +80,7 @@ describe('Jabba The Hutt, Eminence Of Tatooine', function() {
                 expect(context.fulcrum).toBeInZone('hand', context.player1);
             });
 
-            it('should return an upgrade to its owner\'s hand and play it for free if upgrade return to AP\'s hand (friendly upgrade on enemy unit)', function() {
+            it('should return a friendly upgrade on an enemy unit to its owner\'s hand and play it for free', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.condemn);
@@ -98,7 +98,7 @@ describe('Jabba The Hutt, Eminence Of Tatooine', function() {
                 expect(context.phoenixSquadronAwing).toHaveExactUpgradeNames(['condemn']);
             });
 
-            it('should return an upgrade to its owner\'s hand and play it for free if upgrade return to AP\'s hand (pilot upgrade)', function() {
+            it('should return a pilot upgrade to its owner\'s hand and play it for free', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chewbacca);
@@ -118,7 +118,7 @@ describe('Jabba The Hutt, Eminence Of Tatooine', function() {
             });
         });
 
-        it('should return an upgrade to its owner\'s hand and play it for free if upgrade return to AP\'s hand (pilot leader upgrade)', async function() {
+        it('should return a pilot leader upgrade to its owner\'s hand (leader is defeated)', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
