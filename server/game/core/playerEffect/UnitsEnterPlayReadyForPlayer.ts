@@ -2,11 +2,13 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
-import type { CardTypeFilter, EntryType } from '../Constants';
+import type { CardTypeFilter } from '../Constants';
+import type { EntryType } from '../Constants';
 import { WildcardCardType } from '../Constants';
 import type { Game } from '../Game';
 import { registerState } from '../GameObjectUtils';
 import { OngoingEffectValueWrapperBase } from '../ongoingEffect/effectImpl/OngoingEffectValueWrapper';
+import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 
@@ -66,12 +68,17 @@ export class UnitsEnterPlayReadyForPlayer extends OngoingEffectValueWrapperBase<
         this.limit?.unregisterEvents();
     }
 
-    public canApplyTo(card: Card, context: AbilityContext, entryType: EntryType): boolean {
+    public canApplyTo(
+        card: Card,
+        player: Player,
+        context: AbilityContext,
+        entryType: EntryType
+    ): boolean {
         if (!card.isUnit()) {
             Contract.fail('UnitsEnterPlayReadyForPlayer can only apply to units');
         }
 
-        if (this.limit && this.limit.isAtMax(context.player)) {
+        if (this.limit && this.limit.isAtMax(player)) {
             return false;
         }
         if (!this.entryTypes.has(entryType)) {
@@ -86,7 +93,7 @@ export class UnitsEnterPlayReadyForPlayer extends OngoingEffectValueWrapperBase<
         return true;
     }
 
-    public applyTo(_card: Card, context: AbilityContext): void {
-        this.limit?.increment(context.player);
+    public applyTo(_card: Card, player: Player): void {
+        this.limit?.increment(player);
     }
 }

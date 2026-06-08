@@ -122,8 +122,8 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         );
         let didApply = false;
         for (const matcher of matchers) {
-            if (matcher.canApplyTo(card, context, entryType)) {
-                matcher.applyTo(card, context);
+            if (matcher.canApplyTo(card, newController, context, entryType)) {
+                matcher.applyTo(card, newController);
                 didApply = true;
             }
         }

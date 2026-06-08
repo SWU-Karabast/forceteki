@@ -147,7 +147,7 @@ describe('Neel, The Cutest Boy', function() {
                         phase: 'action',
                         player1: {
                             hand: ['warrior-drone'],
-                            groundArena: [{ card: 'neel#the-cutest-boy', exhausted: false }],
+                            groundArena: ['neel#the-cutest-boy'],
                         },
                     });
                 });
@@ -186,83 +186,181 @@ describe('Neel, The Cutest Boy', function() {
                 });
             });
 
-            describe('enters-play timing', function() {
-                it('should apply the ready effect at entry, before Ambush fires', async function() {
-                    // Mysterious Hermit (printed power 1, Ambush). Under a correct "enters play ready"
-                    // implementation, Neel's effect applies at entry — no separate trigger appears in
-                    // the When Played window, so the player cannot pick "Ambush, then ready me" to get
-                    // two attacks. The hermit's Ambush attack should be his only attack this turn.
-                    await contextRef.setupTestAsync({
-                        phase: 'action',
-                        player1: {
-                            hand: ['mysterious-hermit'],
-                            groundArena: [{ card: 'neel#the-cutest-boy', exhausted: false }],
-                        },
-                        player2: {
-                            groundArena: ['battlefield-marine'],
-                        }
-                    });
-
-                    const { context } = contextRef;
-
-                    // Attack with Neel, triggering the On Attack effect
-                    context.player1.clickCard(context.neel);
-                    context.player1.clickCard(context.p2Base);
-                    context.player2.passAction();
-
-                    // Play Mysterious Hermit — should enter ready and surface only the Ambush prompt
-                    context.player1.clickCard(context.mysteriousHermit);
-
-                    // Hermit is ready in the ground arena when Ambush triggers
-                    expect(context.mysteriousHermit).toBeInZone('groundArena');
-                    expect(context.mysteriousHermit.exhausted).toBe(false);
-
-                    // Resolve Ambush attack
-                    expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                    expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
-                    context.player1.clickPrompt('Trigger');
-                    context.player1.clickCard(context.battlefieldMarine);
-
-                    // Hermit's one attack came from Ambush — he must be exhausted afterward.
-                    expect(context.mysteriousHermit.exhausted).toBe(true);
-                });
-
-                it('should not apply to created token units, and should leave the effect available for later', async function() {
-                    // Per CR 3.7.2 tokens are CREATED, not PLAYED. Neel says "the next unit you PLAY",
-                    // so token creation must neither receive the ready nor consume the pending matcher.
-                    // Kraken creates 2 Battle Droid tokens (printed power 1) when played; Kraken
-                    // himself is printed power 2 and does not match the predicate.
-                    await contextRef.setupTestAsync({
-                        phase: 'action',
-                        player1: {
-                            hand: ['kraken#confederate-tactician', 'warrior-drone'],
-                            groundArena: [{ card: 'neel#the-cutest-boy', exhausted: false }]
-                        },
-                    });
-
-                    const { context } = contextRef;
-
-                    // Attack with Neel, queuing the matcher (one pending)
-                    context.player1.clickCard(context.neel);
-                    context.player1.clickCard(context.p2Base);
-
-                    // Play Kraken — its When Played creates 2 Battle Droid tokens. The tokens
-                    // must enter exhausted (token creation is not "playing").
-                    context.player2.passAction();
-                    context.player1.clickCard(context.kraken);
-
-                    const battleDroidTokens = context.player1.findCardsByName('battle-droid');
-                    expect(battleDroidTokens.length).toBe(2);
-                    for (const token of battleDroidTokens) {
-                        expect(token.exhausted).toBe(true);
+            it('should apply the ready effect at entry, before Ambush fires', async function() {
+                // Mysterious Hermit (printed power 1, Ambush). Under a correct "enters play ready"
+                // implementation, Neel's effect applies at entry — no separate trigger appears in
+                // the When Played window, so the player cannot pick "Ambush, then ready me" to get
+                // two attacks. The hermit's Ambush attack should be his only attack this turn.
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['mysterious-hermit'],
+                        groundArena: ['neel#the-cutest-boy'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
                     }
-
-                    // Matcher must still be available — confirmed by playing a 1-power unit next.
-                    context.player2.passAction();
-                    context.player1.clickCard(context.warriorDrone);
-                    expect(context.warriorDrone).toBeInZone('groundArena');
-                    expect(context.warriorDrone.exhausted).toBe(false);
                 });
+
+                const { context } = contextRef;
+
+                // Attack with Neel, triggering the On Attack effect
+                context.player1.clickCard(context.neel);
+                context.player1.clickCard(context.p2Base);
+                context.player2.passAction();
+
+                // Play Mysterious Hermit — should enter ready and surface only the Ambush prompt
+                context.player1.clickCard(context.mysteriousHermit);
+
+                // Hermit is ready in the ground arena when Ambush triggers
+                expect(context.mysteriousHermit).toBeInZone('groundArena');
+                expect(context.mysteriousHermit.exhausted).toBe(false);
+
+                // Resolve Ambush attack
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Hermit's one attack came from Ambush — he must be exhausted afterward.
+                expect(context.mysteriousHermit.exhausted).toBe(true);
+            });
+
+            it('should not apply to created token units, and should leave the effect available for later', async function() {
+                // Per CR 3.7.2 tokens are CREATED, not PLAYED. Neel says "the next unit you PLAY",
+                // so token creation must neither receive the ready nor consume the pending matcher.
+                // Kraken creates 2 Battle Droid tokens (printed power 1) when played; Kraken
+                // himself is printed power 2 and does not match the predicate.
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['kraken#confederate-tactician', 'warrior-drone'],
+                        groundArena: ['neel#the-cutest-boy']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Attack with Neel, queuing the matcher (one pending)
+                context.player1.clickCard(context.neel);
+                context.player1.clickCard(context.p2Base);
+
+                // Play Kraken — its When Played creates 2 Battle Droid tokens. The tokens
+                // must enter exhausted (token creation is not "playing").
+                context.player2.passAction();
+                context.player1.clickCard(context.kraken);
+
+                const battleDroidTokens = context.player1.findCardsByName('battle-droid');
+                expect(battleDroidTokens.length).toBe(2);
+                for (const token of battleDroidTokens) {
+                    expect(token.exhausted).toBe(true);
+                }
+
+                // Matcher must still be available — confirmed by playing a 1-power unit next.
+                context.player2.passAction();
+                context.player1.clickCard(context.warriorDrone);
+                expect(context.warriorDrone).toBeInZone('groundArena');
+                expect(context.warriorDrone.exhausted).toBe(false);
+            });
+
+            it('should ready only one unit when both When Played/On Attack fire from Ambush', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'energy-conversion-lab',
+                        hand: ['neel#the-cutest-boy', 'ant-droid', 'moisture-farmer']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // ECL Epic Action plays Neel with Ambush. Resolve Neel's When Played first.
+                context.player1.clickCard(context.energyConversionLab);
+                context.player1.clickCard(context.neel);
+                context.player1.clickPrompt('The next unit you play this phase with 1 or less power enters play ready');
+
+                // Resolve Ambush
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // First 1-power unit enters ready — both matchers' limits increment
+                context.player2.passAction();
+                context.player1.clickCard(context.antDroid);
+                expect(context.antDroid.exhausted).toBe(false);
+
+                // Second 1-power unit enters exhausted — both matchers consumed
+                context.player2.passAction();
+                context.player1.clickCard(context.moistureFarmer);
+                expect(context.moistureFarmer.exhausted).toBe(true);
+            });
+
+            it('should not consume the matcher when a 1-power leader is deployed (leaders are deployed, not played)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'c3po#humancyborg-relations',
+                        hand: ['warrior-drone'],
+                        groundArena: ['neel#the-cutest-boy']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Attack with Neel, registering the matcher
+                context.player1.clickCard(context.neel);
+                context.player1.clickCard(context.p2Base);
+
+                // Deploy C-3PO (1 power) — must not consume the matcher
+                context.player2.passAction();
+                context.player1.clickCard(context.c3po);
+                context.player1.clickPrompt('Deploy C-3PO');
+
+                // Matcher still active — warrior-drone (1 power) entering ready confirms this
+                context.player2.passAction();
+                context.player1.clickCard(context.warriorDrone);
+                expect(context.warriorDrone.exhausted).toBe(false);
+            });
+
+            it('should not consume the matcher when a 1-power unit re-enters via rescue from capture', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['fell-the-dragon', 'warrior-drone'],
+                        groundArena: ['neel#the-cutest-boy']
+                    },
+                    player2: {
+                        groundArena: [
+                            {
+                                card: 'cad-bane#hostage-taker',
+                                capturedUnits: [{ card: 'ant-droid', owner: 'player1' }],
+                            },
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Attack with Neel, registering the matcher
+                context.player1.clickCard(context.neel);
+                context.player1.clickCard(context.p2Base);
+
+                // Defeat Cad Bane — captured ant-droid is rescued to P1's ground arena
+                context.player2.passAction();
+                context.player1.clickCard(context.fellTheDragon);
+                context.player1.clickCard(context.cadBane);
+
+                // Rescued unit enters exhausted (per CR 8.34) and the matcher is not consumed
+                expect(context.antDroid).toBeInZone('groundArena', context.player1);
+                expect(context.antDroid.exhausted).toBe(true);
+
+                // Matcher still active — warrior-drone (1 power) entering ready confirms this
+                context.player2.passAction();
+                context.player1.clickCard(context.warriorDrone);
+                expect(context.warriorDrone.exhausted).toBe(false);
             });
 
             describe('printed power checks', function() {
