@@ -384,12 +384,6 @@ describe('Improvised Identity', function() {
 
             describe('with unusual gained abilities', function() {
                 it('should suppress the optional attack after gaining Loth-Wolf\'s "can\'t attack" ability', async function() {
-                    // Loth-Wolf's printed text is "Sentinel\nThis unit can't attack." The "can't attack" portion
-                    // is a constant ability and is transferred to the attacker as an attackerLastingEffect.
-                    // Unconditional attackerLastingEffects are applied at the "Declare Intent" step (CR 6.3.1.1),
-                    // so the gained "can't attack" is active by the time "Check Restrictions" (CR 6.3.2) runs.
-                    // Per CR 8.3, "can't" overrides "may", so the optional attack from Improvised Identity is
-                    // silently dropped — the search/discard portion of the action still resolves and the turn passes.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -403,17 +397,16 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.dinosaurTurtle);
                     context.player1.clickPrompt(abilityTitle);
 
+                    // Discard Loth-Wolf — its "can't attack" ability is gained, suppressing the optional attack
                     context.player1.clickCardInDisplayCardPrompt(context.lothwolf);
                     expect(context.lothwolf).toBeInZone('discard');
 
-                    // No base damage — the gained "can't attack" constant ability prevented the attack from proceeding
+                    // "Can't" overrides "may" — attack is silently skipped, turn passes
                     expect(context.p2Base.damage).toBe(0);
                     expect(context.player2).toBeActivePlayer();
                 });
 
                 it('should fire Blizzard Assault AT-AT\'s triggered ability, letting the player route excess damage to another ground unit', async function() {
-                    // Blizzard Assault AT-AT: "When this unit attacks and defeats a unit: You may deal the excess damage from this attack to an enemy ground unit."
-                    // Dinosaur Turtle (7 power) defeats Battlefield Marine (3 HP) leaving 4 excess damage.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -430,13 +423,14 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.dinosaurTurtle);
                     context.player1.clickPrompt(abilityTitle);
 
+                    // Discard Blizzard Assault AT-AT — gain its "defeats a unit: route excess damage" triggered ability
                     context.player1.clickCardInDisplayCardPrompt(context.blizzardAssaultAtat);
                     expect(context.blizzardAssaultAtat).toBeInZone('discard');
 
-                    // Attack Battlefield Marine (3 HP) — Dinosaur Turtle deals 7, defeating it with 4 excess
+                    // Attack Battlefield Marine (3 HP) — Dinosaur Turtle (7 power) defeats it with 4 excess damage
                     context.player1.clickCard(context.battlefieldMarine);
 
-                    // The gained "When this unit attacks and defeats a unit" ability fires — route excess to Wampa
+                    // Gained trigger fires — route excess damage to Wampa
                     expect(context.player1).toHavePrompt('Deal the excess damage from the attack to an enemy ground unit');
                     context.player1.clickCard(context.wampa);
 
@@ -445,8 +439,6 @@ describe('Improvised Identity', function() {
                 });
 
                 it('should allow the attacker (a ground unit) to target an enemy space unit after gaining Retrofitted Airspeeder\'s abilities', async function() {
-                    // Retrofitted Airspeeder: "This unit can attack space units. While attacking a space unit, this unit gets -1/-0."
-                    // Dinosaur Turtle (7 power - 1 = 6 while attacking space) should defeat Cartel Spacer (3 HP).
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -463,10 +455,11 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.dinosaurTurtle);
                     context.player1.clickPrompt(abilityTitle);
 
+                    // Discard Retrofitted Airspeeder — gain its "can attack space units" ability
                     context.player1.clickCardInDisplayCardPrompt(context.retrofittedAirspeeder);
                     expect(context.retrofittedAirspeeder).toBeInZone('discard');
 
-                    // Dinosaur Turtle should now be able to target the space unit
+                    // Dinosaur Turtle can now target the enemy space unit
                     expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.p2Base]);
                     context.player1.clickCard(context.cartelSpacer);
 
@@ -475,8 +468,7 @@ describe('Improvised Identity', function() {
                 });
 
                 it('should grant Grit from The Stranger, increasing power based on existing damage on the attacker', async function() {
-                    // The Stranger: "Ambush, Grit, While attacking, you may have the defending unit deal combat damage before this unit."
-                    // Dinosaur Turtle has 3 pre-existing damage, so Grit gives +3 power: 7 + 3 = 10 damage to base.
+                    // Dinosaur Turtle has 3 pre-existing damage; Grit adds +3 power: 7 + 3 = 10 damage to base
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -490,17 +482,16 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.dinosaurTurtle);
                     context.player1.clickPrompt(abilityTitle);
 
+                    // Discard The Stranger — gain Grit
                     context.player1.clickCardInDisplayCardPrompt(context.theStranger);
                     expect(context.theStranger).toBeInZone('discard');
 
-                    // Attack p2Base — Grit adds +3 power (3 damage on attacker): 7 base + 3 = 10
+                    // Attack p2Base — Grit adds +3 power from the 3 existing damage counters
                     context.player1.clickCard(context.p2Base);
                     expect(context.p2Base.damage).toBe(10);
                 });
 
                 it('should allow attacking 2 enemy units after gaining Darth Maul\'s ability', async function() {
-                    // Darth Maul: "This unit can attack 2 units instead of 1."
-                    // Dinosaur Turtle (7 power) attacks both units; both 3 HP units are defeated.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -517,10 +508,11 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.dinosaurTurtle);
                     context.player1.clickPrompt(abilityTitle);
 
+                    // Discard Darth Maul — gain "can attack 2 units instead of 1"
                     context.player1.clickCardInDisplayCardPrompt(context.darthMaul);
                     expect(context.darthMaul).toBeInZone('discard');
 
-                    // Multi-target attack — click first target, then second, then Done
+                    // Multi-target attack — select both defenders, then confirm
                     context.player1.clickCard(context.battlefieldMarine);
                     context.player1.clickCard(context.wampa);
                     context.player1.clickDone();
@@ -531,15 +523,8 @@ describe('Improvised Identity', function() {
                 });
 
                 it('should offer to attach the attacker as a pilot when it would be defeated, after gaining L3-37\'s replacement effect', async function() {
-                    // L3-37#get-out-of-my-seat: "If this unit would be defeated, you may instead attach her as an
-                    // upgrade to a friendly Vehicle unit without a Pilot on it."
-                    // When Dinosaur Turtle gains this ability via Improvised Identity, "this unit" becomes Dinosaur
-                    // Turtle. If it would be defeated during the attack, the player is offered to attach
-                    // Dinosaur Turtle as an upgrade to a friendly Vehicle (AT-ST).
-                    //
-                    // Note: Improvised Identity adds +3 HP to the attached unit (printed upgradeHp: 3),
-                    // so Dinosaur Turtle's effective HP is 10. Pre-damage it by 3 so Rathtar's 8 power
-                    // in combat is enough to push it past its modified HP and trigger the replacement.
+                    // Improvised Identity adds +3 HP, so Dinosaur Turtle's effective HP is 10.
+                    // Pre-damage it by 3 so Ravenous Rathtar's 8 power is enough to trigger the replacement.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -559,26 +544,23 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.dinosaurTurtle);
                     context.player1.clickPrompt(abilityTitle);
 
+                    // Discard L3-37 — gain her "would be defeated: attach to a friendly Vehicle" replacement effect
                     context.player1.clickCardInDisplayCardPrompt(context.l337);
                     expect(context.l337).toBeInZone('discard');
 
-                    // Attack the enemy Ravenous Rathtar (8/5) — both would be defeated by mutual combat damage.
-                    // The gained "would be defeated" replacement effect should offer attaching Dinosaur Turtle to AT-ST.
+                    // Attack Ravenous Rathtar — mutual combat damage would defeat Dinosaur Turtle
                     context.player1.clickCard(context.ravenousRathtar);
 
-                    // Accept the replacement: attach attacker to AT-ST instead of defeating it
+                    // Replacement effect fires — attach Dinosaur Turtle to AT-ST instead of defeating it
                     expect(context.player1).toHavePassAbilityPrompt('Attach to a friendly Vehicle unit without a pilot on it');
                     context.player1.clickPrompt('Trigger');
                     context.player1.clickCard(context.atst);
 
-                    // Defender is defeated; attacker is now an upgrade on AT-ST instead of in the discard pile
                     expect(context.ravenousRathtar).toBeInZone('discard');
                     expect(context.atst).toHaveExactUpgradeNames(['dinosaur-turtle']);
                 });
 
                 it('should fire Ahsoka Tano\'s triggered ability after the attack, enabling a second attack by a different unit', async function() {
-                    // Ahsoka: "When this unit completes an attack (and survives): You may disclose CommandHeroism. If you do, attack with another unit."
-                    // Dinosaur Turtle attacks p2Base, survives, then we disclose Command+Heroism (Battlefield Marine) to attack again with Wampa.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -596,36 +578,34 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.dinosaurTurtle);
                     context.player1.clickPrompt(abilityTitle);
 
+                    // Discard Ahsoka Tano — gain her "when attack completes: disclose Command+Heroism to attack again" ability
                     context.player1.clickCardInDisplayCardPrompt(context.ahsokaTano);
                     expect(context.ahsokaTano).toBeInZone('discard');
 
-                    // Attack p2Base — Dinosaur Turtle survives (attacking a base doesn't kill the attacker)
+                    // Attack p2Base — Dinosaur Turtle survives
                     context.player1.clickCard(context.p2Base);
                     expect(context.p2Base.damage).toBe(7);
 
-                    // Ahsoka's "When this unit completes an attack (and survives)" triggers — disclose Command+Heroism
+                    // Gained trigger fires — disclose Battlefield Marine (provides both Command and Heroism)
                     expect(context.player1).toHavePrompt('Disclose Command, Heroism to attack with another unit');
-                    // Battlefield Marine provides both Command and Heroism aspects, satisfying the disclose requirement
                     context.player1.clickCard(context.battlefieldMarine);
-                    // Player2 views the disclosed cards and clicks Done
                     context.player2.clickDone();
 
-                    // Choose Wampa for the follow-up attack, target p2Base
+                    // Follow-up attack with Wampa
                     context.player1.clickCard(context.wampa);
                     context.player1.clickCard(context.p2Base);
 
-                    // p2Base now has 7 (Dinosaur Turtle) + 4 (Wampa) = 11 damage
+                    // p2Base: 7 (Dinosaur Turtle) + 4 (Wampa) = 11
                     expect(context.p2Base.damage).toBe(11);
                 });
 
                 it('should draw a card twice when Jango Fett gains his own abilities and attacks a Bounty unit (printed + gained trigger both fire)', async function() {
-                    // Jango Fett (Renowned Bounty Hunter): "+3/+0 and Overwhelm while attacking a unit with a Bounty" + "When this unit attacks and defeats a unit: Draw a card."
-                    // In-play Jango already has these abilities. Gaining them again from the discarded Jango should double "Draw a card."
-                    // Clone Deserter (Bounty, 3 HP): Jango printed +3 = 6, gained +3 = 9 power while attacking the Bounty unit.
+                    // In-play Jango already has "When this unit attacks and defeats a unit: Draw a card."
+                    // Gaining it again from the discarded Jango doubles the trigger.
+                    // Clone Deserter has a Bounty — Jango printed +3 = 6, gained +3 = 9 power while attacking it.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            hand: [],
                             groundArena: [{ card: 'jango-fett#renowned-bounty-hunter', upgrades: ['improvised-identity'] }],
                             deck: ['jango-fett#renowned-bounty-hunter', 'cartel-spacer', 'takedown']
                         },
@@ -636,41 +616,29 @@ describe('Improvised Identity', function() {
 
                     const { context } = contextRef;
 
-                    // There are two Jango Fetts: one in play (p1's), one in the deck.
+                    // Two Jango Fetts: one in play, one in the deck
                     const [p1Jango] = context.player1.findCardsByName('jango-fett#renowned-bounty-hunter', 'groundArena');
                     const [deckJango] = context.player1.findCardsByName('jango-fett#renowned-bounty-hunter', 'deck');
 
                     context.player1.clickCard(p1Jango);
                     context.player1.clickPrompt(abilityTitle);
 
-                    // The deck's Jango should be in the display prompt
+                    // Discard the deck Jango — gain his abilities on top of the printed ones
                     context.player1.clickCardInDisplayCardPrompt(deckJango);
                     expect(deckJango).toBeInZone('discard');
 
-                    // Attack Clone Deserter (has Bounty) — Jango gains +3 (printed) + +3 (gained) = 9 power total while attacking
+                    // Attack Clone Deserter (Bounty, 3 HP) — Jango has +3+3 = 9 power, defeating it
                     context.player1.clickCard(context.cloneDeserter);
-
-                    // Clone Deserter (3 HP) is defeated; two "Draw a card" triggers fire (printed + gained).
-                    // Clone Deserter also has a Bounty — since player1 defeated their own Bounty unit, player2
-                    // (the opponent) resolves the Bounty. Player1 has multiple triggers to order: resolve both "Draw a card".
                     expect(context.cloneDeserter).toBeInZone('discard');
 
-                    // Player1 must choose the order for the two "Draw a card" triggers.
-                    // Resolve the first "Draw a card" trigger.
+                    // Two "Draw a card" triggers fire (printed + gained) — resolve both
+                    context.player1.clickPrompt('Draw a card');
                     context.player1.clickPrompt('Draw a card');
 
-                    // Resolve the second "Draw a card" trigger.
-                    context.player1.clickPrompt('Draw a card');
-
-                    // Clone Deserter has a Bounty. Player2 (controller of Clone Deserter) has their opponent (player1)
-                    // collect it. Player1 is prompted to trigger the Bounty ability (draw a card for player1).
-                    // Note: Bounty is controller-independent; it's always the defeater's/capturer's choice to collect.
+                    // Clone Deserter's Bounty — player1 (the defeater) collects it
                     context.player1.clickPrompt('Trigger');
 
-                    // Player 1 should have drawn 2 cards (printed + gained trigger)
-                    // TODO: If the gained "When this unit attacks and defeats a unit" ability does NOT fire a second
-                    // time (engine does not double-trigger gained non-keyword abilities), player1 will only have 1 card
-                    // in hand and this assertion will fail. A failing assertion here indicates an engine limitation.
+                    // Player1 drew 2 cards from the doubled trigger
                     expect(context.player1.hand.length).toBe(2);
                     expect(context.player2).toBeActivePlayer();
                 });
