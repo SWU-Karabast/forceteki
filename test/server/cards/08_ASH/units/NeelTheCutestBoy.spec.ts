@@ -6,9 +6,7 @@ describe('Neel, The Cutest Boy', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            hand: ['neel#the-cutest-boy', 'warrior-drone'],
-                            leader: 'leia-organa#alliance-general',
-                            resources: 5,
+                            hand: ['neel#the-cutest-boy', 'warrior-drone']
                         },
                     });
 
@@ -35,9 +33,7 @@ describe('Neel, The Cutest Boy', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            hand: ['neel#the-cutest-boy', 'moisture-farmer'],
-                            leader: 'leia-organa#alliance-general',
-                            resources: 5,
+                            hand: ['neel#the-cutest-boy', 'moisture-farmer']
                         },
                     });
 
@@ -58,9 +54,7 @@ describe('Neel, The Cutest Boy', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            hand: ['neel#the-cutest-boy', 'reckless-rebel'],
-                            leader: 'leia-organa#alliance-general',
-                            resources: 5,
+                            hand: ['neel#the-cutest-boy', 'reckless-rebel']
                         },
                     });
 
@@ -81,9 +75,7 @@ describe('Neel, The Cutest Boy', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            hand: ['neel#the-cutest-boy', 'reckless-rebel', 'warrior-drone', 'ant-droid'],
-                            leader: 'leia-organa#alliance-general',
-                            resources: 10,
+                            hand: ['neel#the-cutest-boy', 'reckless-rebel', 'warrior-drone', 'ant-droid']
                         },
                     });
 
@@ -112,9 +104,7 @@ describe('Neel, The Cutest Boy', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            hand: ['neel#the-cutest-boy'],
-                            leader: 'leia-organa#alliance-general',
-                            resources: 5,
+                            hand: ['neel#the-cutest-boy']
                         },
                     });
 
@@ -131,9 +121,7 @@ describe('Neel, The Cutest Boy', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            hand: ['neel#the-cutest-boy', 'warrior-drone'],
-                            leader: 'leia-organa#alliance-general',
-                            resources: 5,
+                            hand: ['neel#the-cutest-boy', 'warrior-drone']
                         },
                     });
 
@@ -160,7 +148,6 @@ describe('Neel, The Cutest Boy', function() {
                         player1: {
                             hand: ['warrior-drone'],
                             groundArena: [{ card: 'neel#the-cutest-boy', exhausted: false }],
-                            resources: 5,
                         },
                     });
                 });
@@ -210,7 +197,6 @@ describe('Neel, The Cutest Boy', function() {
                         player1: {
                             hand: ['mysterious-hermit'],
                             groundArena: [{ card: 'neel#the-cutest-boy', exhausted: false }],
-                            resources: 5,
                         },
                         player2: {
                             groundArena: ['battlefield-marine'],
@@ -222,18 +208,22 @@ describe('Neel, The Cutest Boy', function() {
                     // Attack with Neel, triggering the On Attack effect
                     context.player1.clickCard(context.neel);
                     context.player1.clickCard(context.p2Base);
+                    context.player2.passAction();
 
                     // Play Mysterious Hermit — should enter ready and surface only the Ambush prompt
-                    context.player2.passAction();
                     context.player1.clickCard(context.mysteriousHermit);
 
+                    // Hermit is ready in the ground arena when Ambush triggers
+                    expect(context.mysteriousHermit).toBeInZone('groundArena');
+                    expect(context.mysteriousHermit.exhausted).toBe(false);
+
+                    // Resolve Ambush attack
+                    expect(context.player1).toHavePassAbilityPrompt('Ambush');
                     expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
                     context.player1.clickPrompt('Trigger');
                     context.player1.clickCard(context.battlefieldMarine);
 
                     // Hermit's one attack came from Ambush — he must be exhausted afterward.
-                    // Under the broken "ready after entry" approach, the player could resolve Neel's
-                    // ready effect AFTER Ambush and have a ready Hermit available for another action.
                     expect(context.mysteriousHermit.exhausted).toBe(true);
                 });
 
@@ -246,8 +236,7 @@ describe('Neel, The Cutest Boy', function() {
                         phase: 'action',
                         player1: {
                             hand: ['kraken#confederate-tactician', 'warrior-drone'],
-                            groundArena: [{ card: 'neel#the-cutest-boy', exhausted: false }],
-                            resources: 10,
+                            groundArena: [{ card: 'neel#the-cutest-boy', exhausted: false }]
                         },
                     });
 
@@ -271,22 +260,18 @@ describe('Neel, The Cutest Boy', function() {
                     // Matcher must still be available — confirmed by playing a 1-power unit next.
                     context.player2.passAction();
                     context.player1.clickCard(context.warriorDrone);
+                    expect(context.warriorDrone).toBeInZone('groundArena');
                     expect(context.warriorDrone.exhausted).toBe(false);
                 });
             });
 
             describe('printed power checks', function() {
                 it('should use printed power, not modified power — a 1-printed-power unit buffed to 2+ still qualifies', async function() {
-                    // Outcast#mercenary-starship gives any friendly unit +1/+0 when it enters play,
-                    // so warrior-drone has modified power 2 while in play, but printed power 1.
-                    // Neel's ability checks printed power, so warrior-drone still qualifies.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['neel#the-cutest-boy', 'warrior-drone'],
-                            spaceArena: ['outcast#mercenary-starship'],
-                            leader: 'leia-organa#alliance-general',
-                            resources: 10,
+                            spaceArena: ['outcast#mercenary-starship']
                         },
                     });
 
@@ -312,9 +297,7 @@ describe('Neel, The Cutest Boy', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            hand: ['neel#the-cutest-boy', 'battlefield-marine'],
-                            leader: 'leia-organa#alliance-general',
-                            resources: 10,
+                            hand: ['neel#the-cutest-boy', 'battlefield-marine']
                         },
                         player2: {
                             groundArena: ['supreme-leader-snoke#shadow-ruler'],
