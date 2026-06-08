@@ -25,23 +25,28 @@ export default class EzraBridgerItsNowOrNever extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Give an Advantage token to a different unit',
+            title: 'If you dealt 3 or more combat damage to a base, give an Advantage token to a different unit',
             when: {
                 onAttackEnd: (event, context) =>
-                    event.attack.attackingPlayer === context.player && this.damageDealtThisPhaseWatcher.getDamageDealtToBaseByUnitThisAttack(context.event.attack.attacker, context) >= 3 &&
-                    this.damageDealtThisPhaseWatcher.unitHasDealtCombatDamageToBaseThisAttack(event.attack.attacker, context)
+                    event.attack.attackingPlayer === context.player
             },
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
                 title: 'Give an Advantage token to a different unit',
                 contextTitle: (context) => this.getContextTitle(context),
-                targetResolver: {
-                    activePromptTitle: (context) => this.getContextTitle(context),
-                    cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card, context) => card !== context.event.attack.attacker,
-                    immediateEffect: abilityHelper.immediateEffects.giveAdvantage(),
-                }
+                immediateEffect: abilityHelper.immediateEffects.conditional({
+                    condition: (context) => {
+                        const damage = this.damageDealtThisPhaseWatcher.getDamageDealtToBaseByUnitThisAttack(context.event.attack.attacker, context);
+                        return damage >= 3;
+                    },
+                    onTrue: abilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Give an Advantage token to a different unit',
+                        cardTypeFilter: WildcardCardType.Unit,
+                        cardCondition: (card, context) => card !== context.event.attack.attacker,
+                        immediateEffect: abilityHelper.immediateEffects.giveAdvantage(),
+                    })
+                }),
             }
         });
     }
@@ -52,20 +57,25 @@ export default class EzraBridgerItsNowOrNever extends LeaderUnitCard {
             contextTitle: (context) => this.getContextTitle(context),
             when: {
                 onAttackEnd: (event, context) =>
-                    event.attack.attackingPlayer === context.player && this.damageDealtThisPhaseWatcher.getDamageDealtToBaseByUnitThisAttack(context.event.attack.attacker, context) >= 3 &&
-                    this.damageDealtThisPhaseWatcher.unitHasDealtCombatDamageToBaseThisAttack(event.attack.attacker, context)
+                    event.attack.attackingPlayer === context.player
             },
             optional: true,
-            targetResolver: {
-                activePromptTitle: (context) => this.getContextTitle(context),
-                cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => card !== context.event.attack.attacker,
-                immediateEffect: abilityHelper.immediateEffects.giveAdvantage(),
-            }
+            immediateEffect: abilityHelper.immediateEffects.conditional({
+                condition: (context) => {
+                    const damage = this.damageDealtThisPhaseWatcher.getDamageDealtToBaseByUnitThisAttack(context.event.attack.attacker, context);
+                    return damage >= 3;
+                },
+                onTrue: abilityHelper.immediateEffects.selectCard({
+                    activePromptTitle: 'Give an Advantage token to a different unit',
+                    cardTypeFilter: WildcardCardType.Unit,
+                    cardCondition: (card, context) => card !== context.event.attack.attacker,
+                    immediateEffect: abilityHelper.immediateEffects.giveAdvantage(),
+                })
+            }),
         });
     }
 
     private getContextTitle(context: TriggeredAbilityContext): string {
-        return `Give an Advantage token to a different unit than ${context.event.attack.attacker.title}`;
+        return `If you dealt 3 or more combat damage to a base, give an Advantage token to a different unit than ${context.event.attack.attacker.title}`;
     }
 }
