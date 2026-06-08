@@ -467,13 +467,15 @@ describe('Improvised Identity', function() {
                     expect(context.cartelSpacer).toBeInZone('discard');
                 });
 
-                it('should grant Grit from The Stranger, increasing power based on existing damage on the attacker', async function() {
-                    // Dinosaur Turtle has 3 pre-existing damage; Grit adds +3 power: 7 + 3 = 10 damage to base
+                it('should grant The Stranger\'s "defender deals damage first" ability, letting Grit\'s clap-back defeat a high-HP defender', async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            groundArena: [{ card: 'dinosaur-turtle', damage: 3, upgrades: ['improvised-identity'] }],
+                            groundArena: [{ card: 'dinosaur-turtle', upgrades: ['improvised-identity'] }],
                             deck: ['the-stranger#no-survivors', 'cartel-spacer', 'takedown']
+                        },
+                        player2: {
+                            groundArena: ['chewbacca#pykesbane']
                         }
                     });
 
@@ -482,13 +484,18 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.dinosaurTurtle);
                     context.player1.clickPrompt(abilityTitle);
 
-                    // Discard The Stranger — gain Grit
+                    // Discard The Stranger — gain Grit + the "defender deals first" replacement
                     context.player1.clickCardInDisplayCardPrompt(context.theStranger);
                     expect(context.theStranger).toBeInZone('discard');
 
-                    // Attack p2Base — Grit adds +3 power from the 3 existing damage counters
-                    context.player1.clickCard(context.p2Base);
-                    expect(context.p2Base.damage).toBe(10);
+                    // Attack Chewbacca and elect to have him deal damage first
+                    context.player1.clickCard(context.chewbacca);
+                    expect(context.player1).toHavePrompt('Choose how damage is dealt for this attack');
+                    context.player1.clickPrompt('Defender deals damage first');
+
+                    // Chewbacca hits Dinosaur Turtle for 4; Grit's +4 makes the return swing 11, defeating him
+                    expect(context.chewbacca).toBeInZone('discard');
+                    expect(context.dinosaurTurtle.damage).toBe(4);
                 });
 
                 it('should allow attacking 2 enemy units after gaining Darth Maul\'s ability', async function() {
@@ -520,17 +527,20 @@ describe('Improvised Identity', function() {
                     // Dinosaur Turtle (7 power) defeats both defenders
                     expect(context.battlefieldMarine).toBeInZone('discard');
                     expect(context.wampa).toBeInZone('discard');
+                    expect(context.dinosaurTurtle.damage).toBe(7);
                 });
 
                 it('should offer to attach the attacker as a pilot when it would be defeated, after gaining L3-37\'s replacement effect', async function() {
-                    // Improvised Identity adds +3 HP, so Dinosaur Turtle's effective HP is 10.
-                    // Pre-damage it by 3 so Ravenous Rathtar's 8 power is enough to trigger the replacement.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             groundArena: [
-                                { card: 'dinosaur-turtle', damage: 3, upgrades: ['improvised-identity'] },
-                                'atst'
+                                'atst',
+                                {
+                                    card: 'dinosaur-turtle',
+                                    damage: 3,
+                                    upgrades: ['improvised-identity']
+                                },
                             ],
                             deck: ['l337#get-out-of-my-seat', 'cartel-spacer', 'takedown']
                         },
@@ -556,8 +566,11 @@ describe('Improvised Identity', function() {
                     context.player1.clickPrompt('Trigger');
                     context.player1.clickCard(context.atst);
 
+                    // Dinosaur Turtle is now an upgrade on AT-ST, but provides no stat modifiers
                     expect(context.ravenousRathtar).toBeInZone('discard');
                     expect(context.atst).toHaveExactUpgradeNames(['dinosaur-turtle']);
+                    expect(context.atst.getPower()).toBe(6);
+                    expect(context.atst.getHp()).toBe(7);
                 });
 
                 it('should fire Ahsoka Tano\'s triggered ability after the attack, enabling a second attack by a different unit', async function() {
@@ -606,8 +619,17 @@ describe('Improvised Identity', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            groundArena: [{ card: 'jango-fett#renowned-bounty-hunter', upgrades: ['improvised-identity'] }],
-                            deck: ['jango-fett#renowned-bounty-hunter', 'cartel-spacer', 'takedown']
+                            groundArena: [{
+                                card: 'jango-fett#renowned-bounty-hunter',
+                                upgrades: ['improvised-identity']
+                            }],
+                            deck: [
+                                'jango-fett#renowned-bounty-hunter',
+                                'cartel-spacer',
+                                'takedown',
+                                'confiscate',
+                                'restock'
+                            ]
                         },
                         player2: {
                             groundArena: ['clone-deserter']
@@ -639,7 +661,7 @@ describe('Improvised Identity', function() {
                     context.player1.clickPrompt('Trigger');
 
                     // Player1 drew 2 cards from the doubled trigger
-                    expect(context.player1.hand.length).toBe(2);
+                    expect(context.player1.hand.length).toBe(3); // 3 cards drawn: 2 from Jango's abilities, 1 from the Bounty
                     expect(context.player2).toBeActivePlayer();
                 });
             });
