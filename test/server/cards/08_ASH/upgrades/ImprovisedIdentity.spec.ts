@@ -541,22 +541,17 @@ describe('Improvised Identity', function() {
                     // L3-37#get-out-of-my-seat: "If this unit would be defeated, you may instead attach her as an
                     // upgrade to a friendly Vehicle unit without a Pilot on it."
                     // When Dinosaur Turtle gains this ability via Improvised Identity, "this unit" becomes Dinosaur
-                    // Turtle. If it would be defeated during the attack, the player should be offered to attach
+                    // Turtle. If it would be defeated during the attack, the player is offered to attach
                     // Dinosaur Turtle as an upgrade to a friendly Vehicle (AT-ST).
                     //
-                    // Setup: friendly AT-ST as the pilot-target. Enemy dinosaur-turtle (7/7) as the defender so
-                    // both units would be defeated in combat.
-                    //
-                    // TODO: Currently expected to FAIL. L3-37#get-out-of-my-seat has the Piloting keyword and the
-                    // engine's `KeywordHelpers.keywordFromProperties` throws "Keyword 'piloting' is not implemented
-                    // yet" when `gainKeywords` enumerates the discarded card's keywords. Until Piloting keyword
-                    // handling is added (or the gain-abilities path skips unimplemented keywords gracefully), this
-                    // test will crash before reaching the attack step. Leave failing — do not work around.
+                    // Note: Improvised Identity adds +3 HP to the attached unit (printed upgradeHp: 3),
+                    // so Dinosaur Turtle's effective HP is 10. Pre-damage it by 3 so Rathtar's 8 power
+                    // in combat is enough to push it past its modified HP and trigger the replacement.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             groundArena: [
-                                { card: 'dinosaur-turtle', upgrades: ['improvised-identity'] },
+                                { card: 'dinosaur-turtle', damage: 3, upgrades: ['improvised-identity'] },
                                 'atst'
                             ],
                             deck: ['l337#get-out-of-my-seat', 'cartel-spacer', 'takedown']
