@@ -7,7 +7,7 @@ import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
-import { entersPlayReadyMatching } from './EntersPlayReadyMatching';
+import { unitsEnterPlayReady } from './UnitsEnterPlayReady';
 import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { PhaseName, RelativePlayerFilter, Trait, StandardTriggeredAbilityType } from '../core/Constants';
@@ -115,7 +115,7 @@ export = {
     // customDetachedCard: (properties) => OngoingEffectBuilder.card.detached(EffectName.CustomEffect, properties),
     cardDelayedEffect: (properties: ITriggeredAbilityProps) => OngoingEffectBuilder.card.static(EffectName.DelayedEffect, properties),
     playerDelayedEffect: (properties: ITriggeredAbilityProps) => OngoingEffectBuilder.player.static(EffectName.DelayedEffect, properties),
-    entersPlayReadyMatching,
+    unitsEnterPlayReady,
     // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
     // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
     // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),

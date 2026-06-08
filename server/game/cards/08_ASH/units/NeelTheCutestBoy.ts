@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
+import { EntryType, WildcardCardType } from '../../../core/Constants';
 
 export default class NeelTheCutestBoy extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -19,11 +19,12 @@ export default class NeelTheCutestBoy extends NonLeaderUnitCard {
                 onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
-                effect: AbilityHelper.ongoingEffects.entersPlayReadyMatching({
+                effect: AbilityHelper.ongoingEffects.unitsEnterPlayReady({
                     cardTypeFilter: WildcardCardType.Unit,
+                    entryType: EntryType.Played,
                     limit: AbilityHelper.limit.perPlayerPerGame(1),
-                    match: (card) => card.isUnit() && card.getPrintedPower() <= 1,
-                })
+                    match: (unit) => unit.getPower() <= 1,
+                }),
             })
         });
     }

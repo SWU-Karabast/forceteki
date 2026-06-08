@@ -78,7 +78,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
                     controller: player,
                     target: token,
                     entersReady: event.entersReady || player.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady),
-                    entryType: EntryType.TokenCreated,
+                    entryType: EntryType.Created,
                 }).generateEvent(event.context);
 
                 putIntoPlayEvent.order = event.order + 1;

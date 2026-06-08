@@ -3,7 +3,6 @@ import { GameObject } from './GameObject';
 import type { Deck } from '../../utils/deck/Deck.js';
 import type { IDeckListForLoading } from '../../utils/deck/DeckInterfaces';
 import type { CostAdjuster } from './cost/CostAdjuster';
-import type { EntersPlayReadyMatcher } from './playerEffect/EntersPlayReadyMatcher';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
 import { Contract } from './utils/Contract';
@@ -69,7 +68,6 @@ export interface IPlayerState extends IGameObjectState {
     // IDeckList is made up of arrays and GameObjectIds, so it's serializable.
     decklist: IDeckListForLoading;
     costAdjusters: GameObjectId<CostAdjuster>[];
-    entersPlayReadyMatchers: GameObjectId<EntersPlayReadyMatcher>[];
 }
 
 @registerState()
@@ -148,11 +146,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     @stateRefArray() private accessor _costAdjusters: readonly CostAdjuster[] = [];
     private get costAdjusters(): readonly CostAdjuster[] {
         return this._costAdjusters;
-    }
-
-    @stateRefArray() private accessor _entersPlayReadyMatchers: readonly EntersPlayReadyMatcher[] = [];
-    public get entersPlayReadyMatchers(): readonly EntersPlayReadyMatcher[] {
-        return this._entersPlayReadyMatchers;
     }
 
     @stateValue() public accessor passedActionPhase: boolean | null = null;
@@ -800,16 +793,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.cancel();
             this._costAdjusters = this.costAdjusters.filter((r) => r !== adjuster);
-        }
-    }
-
-    public addEntersPlayReadyMatcher(matcher: EntersPlayReadyMatcher) {
-        this._entersPlayReadyMatchers = [...this._entersPlayReadyMatchers, matcher];
-    }
-
-    public removeEntersPlayReadyMatcher(matcher: EntersPlayReadyMatcher) {
-        if (this._entersPlayReadyMatchers.includes(matcher)) {
-            this._entersPlayReadyMatchers = this._entersPlayReadyMatchers.filter((m) => m !== matcher);
         }
     }
 

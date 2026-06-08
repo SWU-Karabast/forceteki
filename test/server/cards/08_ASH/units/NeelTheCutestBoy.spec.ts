@@ -133,7 +133,7 @@ describe('Neel, The Cutest Boy', function() {
                         player1: {
                             hand: ['neel#the-cutest-boy', 'warrior-drone'],
                             leader: 'leia-organa#alliance-general',
-                            resources: 10,
+                            resources: 5,
                         },
                     });
 
@@ -199,12 +199,12 @@ describe('Neel, The Cutest Boy', function() {
                 });
             });
 
-            describe('entry-time semantics (vs. post-entry ready)', function() {
-                it('should ready the played unit BEFORE its Ambush trigger fires, leaving no ordering loophole', async function() {
-                // Mysterious Hermit (printed power 1, Ambush). Under a correct "enters play ready"
-                // implementation, Neel's effect applies at entry — no separate trigger appears in
-                // the When Played window, so the player cannot pick "Ambush, then ready me" to get
-                // two attacks. The hermit's Ambush attack should be his only attack this turn.
+            describe('enters-play timing', function() {
+                it('should apply the ready effect at entry, before Ambush fires', async function() {
+                    // Mysterious Hermit (printed power 1, Ambush). Under a correct "enters play ready"
+                    // implementation, Neel's effect applies at entry — no separate trigger appears in
+                    // the When Played window, so the player cannot pick "Ambush, then ready me" to get
+                    // two attacks. The hermit's Ambush attack should be his only attack this turn.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -237,7 +237,7 @@ describe('Neel, The Cutest Boy', function() {
                     expect(context.mysteriousHermit.exhausted).toBe(true);
                 });
 
-                it('should not fire on token units (created, not played) — and should not consume the matcher', async function() {
+                it('should not apply to created token units, and should leave the effect available for later', async function() {
                     // Per CR 3.7.2 tokens are CREATED, not PLAYED. Neel says "the next unit you PLAY",
                     // so token creation must neither receive the ready nor consume the pending matcher.
                     // Kraken creates 2 Battle Droid tokens (printed power 1) when played; Kraken

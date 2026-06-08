@@ -62,15 +62,18 @@ export enum PlayType {
 }
 
 /**
- * How a unit entered play. Used by `EntersPlayReadyMatcher` (and any future
- * entry-time effects) to scope themselves to the right rules-text verb:
- * "play" vs "create" vs "rescue" vs "put into play (other)".
+ * How a unit entered play.
+ *
+ * Used to scope "enters play ready" effects that only apply to certain entry
+ * paths, e.g. "the next unit you play this phase enters play ready" should only apply to units that
+ * entered play via the "played" path, not tokens created by abilities or units put into play by other
+ * means.
  */
 export enum EntryType {
     Played = 'played',
-    TokenCreated = 'tokenCreated',
+    Created = 'created',
     Rescued = 'rescued',
-    Other = 'other',
+    Deployed = 'deployed'
 }
 
 export enum StatType {
@@ -121,7 +124,7 @@ export enum EffectName {
     IsLeader = 'isLeader',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
-    MatchingPlayedUnitEntersPlayReady = 'matchingPlayedUnitEntersPlayReady',
+    UnitsEntersPlayReady = 'unitsEnterPlayReady',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
