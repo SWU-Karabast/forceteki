@@ -441,6 +441,58 @@ describe('Neel, The Cutest Boy', function() {
                     expect(context.battlefieldMarine).toBeInZone('groundArena');
                     expect(context.battlefieldMarine.exhausted).toBe(true);
                 });
+
+                it('should enter ready when the played unit has its own constant power-buff ability and its printed power qualifies', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['97th-legion#keeping-the-peace-on-sullust'],
+                            groundArena: ['neel#the-cutest-boy'],
+                            resources: 10,
+                        },
+                    });
+
+                    const { context } = contextRef;
+
+                    // Attack with Neel, registering the matcher
+                    context.player1.clickCard(context.neel);
+                    context.player1.clickCard(context.p2Base);
+                    context.player2.passAction();
+
+                    // Play 97th Legion — printed power 0 qualifies; modified power is 10 once it enters play
+                    context.player1.clickCard(context._97thLegion);
+
+                    expect(context._97thLegion).toBeInZone('groundArena');
+                    expect(context._97thLegion.getPower()).toBe(10);
+                    expect(context._97thLegion.exhausted).toBe(false);
+                });
+
+                it('should enter ready when a friendly unit\'s constant ability buffs the played unit and its printed power qualifies', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['alliance-dispatcher'],
+                            groundArena: [
+                                'neel#the-cutest-boy',
+                                { card: 'wampa', upgrades: ['fulcrum'] },
+                            ],
+                        },
+                    });
+
+                    const { context } = contextRef;
+
+                    // Attack with Neel, registering the matcher
+                    context.player1.clickCard(context.neel);
+                    context.player1.clickCard(context.p2Base);
+                    context.player2.passAction();
+
+                    // Play Alliance Dispatcher — printed power 1 qualifies; modified power is 3 once it enters play
+                    context.player1.clickCard(context.allianceDispatcher);
+
+                    expect(context.allianceDispatcher).toBeInZone('groundArena');
+                    expect(context.allianceDispatcher.getPower()).toBe(3);
+                    expect(context.allianceDispatcher.exhausted).toBe(false);
+                });
             });
         });
     });
