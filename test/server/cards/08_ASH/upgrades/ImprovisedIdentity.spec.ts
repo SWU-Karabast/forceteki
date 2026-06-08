@@ -383,18 +383,13 @@ describe('Improvised Identity', function() {
             });
 
             describe('with unusual gained abilities', function() {
-                it('should still resolve the attack after gaining Loth-Wolf\'s "can\'t attack" ability (restrictions already passed)', async function() {
-                    // Loth-Wolf has Sentinel + "This unit can't attack."
-                    // The "gainNonKeywordAbilitiesFromUnit" effect grants the "can't attack" constant ability as an
-                    // attackerLastingEffect. Per CR 6.3.2 (Check Restrictions) vs 6.3.3 (Begin Attack), restriction
-                    // checks happen BEFORE "while attacking" abilities/lasting effects apply. By the time the gained
-                    // "can't attack" takes effect, the attack has already passed its restriction check, so the
-                    // attack should resolve normally and deal 7 damage to the base.
-                    //
-                    // TODO: The engine currently skips the attack entirely after discarding Loth-Wolf — likely
-                    // applying the "can't attack" effect during restriction checks instead of at begin-attack time.
-                    // This test is expected to FAIL until the engine treats attackerLastingEffects as taking effect
-                    // at the "Begin Attack" step rather than retroactively during restriction checks.
+                it('should suppress the optional attack after gaining Loth-Wolf\'s "can\'t attack" ability', async function() {
+                    // Loth-Wolf's printed text is "Sentinel\nThis unit can't attack." The "can't attack" portion
+                    // is a constant ability and is transferred to the attacker as an attackerLastingEffect.
+                    // Unconditional attackerLastingEffects are applied at the "Declare Intent" step (CR 6.3.1.1),
+                    // so the gained "can't attack" is active by the time "Check Restrictions" (CR 6.3.2) runs.
+                    // Per CR 8.3, "can't" overrides "may", so the optional attack from Improvised Identity is
+                    // silently dropped — the search/discard portion of the action still resolves and the turn passes.
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -411,11 +406,9 @@ describe('Improvised Identity', function() {
                     context.player1.clickCardInDisplayCardPrompt(context.lothwolf);
                     expect(context.lothwolf).toBeInZone('discard');
 
-                    // Attack should still be offered because restrictions were checked before the gained ability applied
-                    context.player1.clickCard(context.p2Base);
-
-                    // Dinosaur Turtle's printed 7 power lands on the base
-                    expect(context.p2Base.damage).toBe(7);
+                    // No base damage — the gained "can't attack" constant ability prevented the attack from proceeding
+                    expect(context.p2Base.damage).toBe(0);
+                    expect(context.player2).toBeActivePlayer();
                 });
 
                 it('should fire Blizzard Assault AT-AT\'s triggered ability, letting the player route excess damage to another ground unit', async function() {
