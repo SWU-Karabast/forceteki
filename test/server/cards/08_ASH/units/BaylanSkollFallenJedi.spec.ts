@@ -31,7 +31,6 @@ describe('Baylan Skoll, Fallen Jedi', function() {
                     expect(context.wampa).toHaveExactUpgradeNames([]);
 
                     // Play Baylan — both conditions are met
-                    context.player2.passAction();
                     context.player1.clickCard(context.baylanSkoll);
 
                     // Advantage prompt — valid targets are all units
@@ -287,11 +286,10 @@ describe('Baylan Skoll, Fallen Jedi', function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
-                            leader: { card: 'shin-hati#eager-adversary', deployed: true },
+                            leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
                             hand: ['baylan-skoll#fallen-jedi'],
                             groundArena: ['wampa'],
-                            spaceArena: ['cartel-spacer'],
-                            resources: 10
+                            spaceArena: ['cartel-spacer']
                         },
                         player2: {
                             leader: { card: 'satine-kryze#standing-on-principles', deployed: true },
@@ -311,8 +309,9 @@ describe('Baylan Skoll, Fallen Jedi', function() {
                     context.player1.clickCard(context.baylanSkoll);
 
                     // All units (friendly and enemy, both arenas, including leaders) are valid Advantage targets
+                    expect(context.player1).toHavePrompt(advantagePromptTitle);
                     expect(context.player1).toBeAbleToSelectExactly([
-                        context.shinHati,
+                        context.cadBane,
                         context.baylanSkoll,
                         context.wampa,
                         context.cartelSpacer,
@@ -321,9 +320,9 @@ describe('Baylan Skoll, Fallen Jedi', function() {
                         context.tielnFighter
                     ]);
 
-                    // Place Advantage on the enemy AT-ST
-                    context.player1.clickCard(context.shinHati);
-                    expect(context.shinHati).toHaveExactUpgradeNames(['advantage']);
+                    // Place Advantage on the friendly leader unit
+                    context.player1.clickCard(context.cadBane);
+                    expect(context.cadBane).toHaveExactUpgradeNames(['advantage']);
 
                     expect(context.player2).toBeActivePlayer();
                 });
