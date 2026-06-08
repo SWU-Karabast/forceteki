@@ -363,6 +363,33 @@ describe('Neel, The Cutest Boy', function() {
                 expect(context.warriorDrone.exhausted).toBe(false);
             });
 
+            it('should still consume the matcher when a qualifying unit enters ready via its own ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jabba-the-hutt#wonderful-human-being',
+                        hand: ['salacious-crumb#cackling-companion', 'warrior-drone'],
+                        groundArena: ['neel#the-cutest-boy']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Attack with Neel, registering the matcher
+                context.player1.clickCard(context.neel);
+                context.player1.clickCard(context.p2Base);
+                context.player2.passAction();
+
+                // Play Salacious Crumb — enters ready via his own ability
+                context.player1.clickCard(context.salaciousCrumb);
+                expect(context.salaciousCrumb.exhausted).toBe(false);
+
+                // Matcher was consumed even though Crumb didn't need it — warrior-drone enters exhausted
+                context.player2.passAction();
+                context.player1.clickCard(context.warriorDrone);
+                expect(context.warriorDrone.exhausted).toBe(true);
+            });
+
             describe('printed power checks', function() {
                 it('should use printed power, not modified power — a 1-printed-power unit buffed to 2+ still qualifies', async function() {
                     await contextRef.setupTestAsync({

@@ -82,10 +82,11 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
         event.entryType = entryType;
+        const matchersApply = this.checkEntersPlayReadyEffectsForPlayer(card, newController, context, entryType);
         event.entersReady = entersReady ||
           this.checkEntersPlayReady(card, newController) ||
           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type)) ||
-          this.checkEntersPlayReadyEffectsForPlayer(card, newController, context, entryType);
+          matchersApply;
         event.newController = newController;
         event.setPreResolutionEffect((event) => {
             const card: Card = event.card;
@@ -95,9 +96,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
                 }
                 context.game.queueSimpleStep(() => {
                     if (!event.entersReady) {
+                        const matchersApply = this.checkEntersPlayReadyEffectsForPlayer(card, newController, context, entryType);
                         event.entersReady = this.checkEntersPlayReady(card, newController) ||
                           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type)) ||
-                          this.checkEntersPlayReadyEffectsForPlayer(card, newController, context, entryType);
+                          matchersApply;
                     }
                 }, `Update onUnitEntersPlay event after resolving pre-enter play abilities for ${card.internalName}`);
             }
