@@ -236,6 +236,43 @@ describe('Neel, The Cutest Boy', function() {
                     // ready effect AFTER Ambush and have a ready Hermit available for another action.
                     expect(context.mysteriousHermit.exhausted).toBe(true);
                 });
+
+                it('should not fire on token units (created, not played) — and should not consume the matcher', async function() {
+                    // Per CR 3.7.2 tokens are CREATED, not PLAYED. Neel says "the next unit you PLAY",
+                    // so token creation must neither receive the ready nor consume the pending matcher.
+                    // Kraken creates 2 Battle Droid tokens (printed power 1) when played; Kraken
+                    // himself is printed power 2 and does not match the predicate.
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['kraken#confederate-tactician', 'warrior-drone'],
+                            groundArena: [{ card: 'neel#the-cutest-boy', exhausted: false }],
+                            resources: 10,
+                        },
+                    });
+
+                    const { context } = contextRef;
+
+                    // Attack with Neel, queuing the matcher (one pending)
+                    context.player1.clickCard(context.neel);
+                    context.player1.clickCard(context.p2Base);
+
+                    // Play Kraken — its When Played creates 2 Battle Droid tokens. The tokens
+                    // must enter exhausted (token creation is not "playing").
+                    context.player2.passAction();
+                    context.player1.clickCard(context.kraken);
+
+                    const battleDroidTokens = context.player1.findCardsByName('battle-droid');
+                    expect(battleDroidTokens.length).toBe(2);
+                    for (const token of battleDroidTokens) {
+                        expect(token.exhausted).toBe(true);
+                    }
+
+                    // Matcher must still be available — confirmed by playing a 1-power unit next.
+                    context.player2.passAction();
+                    context.player1.clickCard(context.warriorDrone);
+                    expect(context.warriorDrone.exhausted).toBe(false);
+                });
             });
 
             describe('printed power checks', function() {

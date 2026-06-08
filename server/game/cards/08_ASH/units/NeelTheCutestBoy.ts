@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class NeelTheCutestBoy extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,22 +18,12 @@ export default class NeelTheCutestBoy extends NonLeaderUnitCard {
                 whenPlayed: true,
                 onAttack: true,
             },
-            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect(() => {
-                // Closure-captured consumption flag ensures the effect fires only on the
-                // *next* qualifying unit, then stops applying for the rest of the phase.
-                let consumed = false;
-                return {
-                    effect: AbilityHelper.ongoingEffects.matchingPlayedUnitEntersPlayReady((card) => {
-                        if (consumed) {
-                            return false;
-                        }
-                        if (card.isUnit() && card.getPrintedPower() <= 1) {
-                            consumed = true;
-                            return true;
-                        }
-                        return false;
-                    })
-                };
+            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+                effect: AbilityHelper.ongoingEffects.entersPlayReadyMatching({
+                    cardTypeFilter: WildcardCardType.Unit,
+                    limit: AbilityHelper.limit.perPlayerPerGame(1),
+                    match: (card) => card.isUnit() && card.getPrintedPower() <= 1,
+                })
             })
         });
     }

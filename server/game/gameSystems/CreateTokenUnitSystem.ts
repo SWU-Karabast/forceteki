@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUnitName } from '../core/Constants';
-import { EffectName, EventName } from '../core/Constants';
+import { EffectName, EntryType, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
@@ -77,7 +77,8 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
                 const putIntoPlayEvent = new PutIntoPlaySystem({
                     controller: player,
                     target: token,
-                    entersReady: event.entersReady || player.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady)
+                    entersReady: event.entersReady || player.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady),
+                    entryType: EntryType.TokenCreated,
                 }).generateEvent(event.context);
 
                 putIntoPlayEvent.order = event.order + 1;

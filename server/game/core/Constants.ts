@@ -61,6 +61,18 @@ export enum PlayType {
     Smuggle = 'smuggle',
 }
 
+/**
+ * How a unit entered play. Used by `EntersPlayReadyMatcher` (and any future
+ * entry-time effects) to scope themselves to the right rules-text verb:
+ * "play" vs "create" vs "rescue" vs "put into play (other)".
+ */
+export enum EntryType {
+    Played = 'played',
+    TokenCreated = 'tokenCreated',
+    Rescued = 'rescued',
+    Other = 'other',
+}
+
 export enum StatType {
     Hp = 'hp',
     Power = 'power'

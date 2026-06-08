@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import {
     AbilityRestriction, EffectName,
+    EntryType,
     EventName,
     PlayType,
     RelativePlayer,
@@ -16,6 +17,9 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: Player | RelativePlayer;
     overrideZone?: ZoneName;
     entersReady?: boolean;
+
+    /** How the unit is entering play. Default is `EntryType.Other` — explicit `Played` / `TokenCreated` / `Rescued` callers should set this. */
+    entryType?: EntryType;
 }
 
 export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPutIntoPlayProperties> {
@@ -28,7 +32,8 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     protected override defaultProperties: IPutIntoPlayProperties = {
         controller: RelativePlayer.Self,
         overrideZone: null,
-        entersReady: false
+        entersReady: false,
+        entryType: EntryType.Other,
     };
 
     public eventHandler(event): void {
@@ -67,7 +72,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IPutIntoPlayProperties>): void {
         // TODO:rename this class and all related classes / methods as PutUnitIntoPlay
-        const { controller, overrideZone, entersReady } = this.generatePropertiesFromContext(
+        const { controller, overrideZone, entersReady, entryType } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IPutIntoPlayProperties;
@@ -75,10 +80,11 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         const newController = EnumHelpers.asConcretePlayer(controller, context.player);
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
+        event.entryType = entryType;
         event.entersReady = entersReady ||
           this.checkEntersPlayReady(card, newController) ||
           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type)) ||
-          this.checkMatchingPlayedUnitEntersPlayReady(card, newController, context);
+          this.checkMatchingPlayedUnitEntersPlayReady(card, newController, context, entryType);
         event.newController = newController;
         event.setPreResolutionEffect((event) => {
             const card: Card = event.card;
@@ -90,7 +96,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
                     if (!event.entersReady) {
                         event.entersReady = this.checkEntersPlayReady(card, newController) ||
                           (newController.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady) && EnumHelpers.isToken(card.type)) ||
-                          this.checkMatchingPlayedUnitEntersPlayReady(card, newController, context);
+                          this.checkMatchingPlayedUnitEntersPlayReady(card, newController, context, entryType);
                     }
                 }, `Update onUnitEntersPlay event after resolving pre-enter play abilities for ${card.internalName}`);
             }
@@ -102,19 +108,19 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     }
 
     /**
-     * Evaluates pending `MatchingPlayedUnitEntersPlayReady` player effects against the entering card.
-     * Stops at the first match. Each effect's predicate is responsible for its own consumption
-     * semantics (typically via a closure-captured flag) — cards like Neel that read "the next unit
-     * you play..." rely on this to fire only once per registration.
+     * Consults any `EntersPlayReadyMatcher`s registered on the new controller. Stops at the
+     * first matcher that accepts the card, applies it (incrementing its use limit if any),
+     * and returns true. Cards like Neel register a matcher with a `perPlayerPerGame(1)` limit
+     * inside a phase-bound duration to get "the next unit you play this phase..." semantics.
      */
-    private checkMatchingPlayedUnitEntersPlayReady(card: Card, newController: Player, context: AbilityContext): boolean {
-        if (!newController.hasOngoingEffect(EffectName.MatchingPlayedUnitEntersPlayReady)) {
-            return false;
+    private checkMatchingPlayedUnitEntersPlayReady(card: Card, newController: Player, context: AbilityContext, entryType: EntryType): boolean {
+        for (const matcher of newController.entersPlayReadyMatchers) {
+            if (matcher.canApplyTo(card, context, entryType)) {
+                matcher.applyTo(card, context);
+                return true;
+            }
         }
-        const matches = newController.getOngoingEffectValues<(card: Card, context: AbilityContext) => boolean>(
-            EffectName.MatchingPlayedUnitEntersPlayReady
-        );
-        return matches.some((match) => match(card, context));
+        return false;
     }
 
     /**
