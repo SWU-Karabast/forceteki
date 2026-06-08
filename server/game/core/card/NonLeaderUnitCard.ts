@@ -1,7 +1,7 @@
 import type { Player } from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import { Contract } from '../utils/Contract';
-import { CardType, PlayType, Trait, ZoneName } from '../Constants';
+import { CardType, PlayType, ZoneName } from '../Constants';
 import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
