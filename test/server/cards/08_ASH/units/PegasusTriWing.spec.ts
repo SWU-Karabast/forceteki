@@ -24,7 +24,7 @@ describe('Pegasus Tri-Wing', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber, context.entrenched]);
                 expect(context.player1).toHavePassAbilityButton();
 
-                // Defeat a firendly upgrade, ready Pegasus Tri-Wing
+                // Defeat a friendly upgrade, ready Pegasus Tri-Wing
                 context.player1.clickCard(context.jediLightsaber);
 
                 expect(context.pegasusTriwing.exhausted).toBeFalse();
@@ -42,7 +42,7 @@ describe('Pegasus Tri-Wing', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber, context.entrenched]);
                 expect(context.player1).toHavePassAbilityButton();
 
-                // Defeat a firendly upgrade, ready Pegasus Tri-Wing
+                // Defeat a friendly upgrade, ready Pegasus Tri-Wing
                 context.player1.clickCard(context.entrenched);
 
                 expect(context.pegasusTriwing.exhausted).toBeFalse();
