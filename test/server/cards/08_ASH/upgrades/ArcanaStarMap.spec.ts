@@ -169,8 +169,8 @@ describe('Arcana Star Map', function () {
                         groundArena: [{ card: 'wampa', upgrades: ['arcana-star-map#path-to-peridea'] }],
                         // 20-card deck — top 10 exposed for non-unique attack, all 20 exposed for unique attack
                         deck: [
-                            'scout-bike-pursuer', 'waylay', 'battlefield-marine', 'devotion', 'echo-base-defender',         // 1-5
-                            'resupply', 'consular-security-force', 'takedown', 'inferno-four#unforgetting', 'protector',    // 6-10
+                            'scout-bike-pursuer', 'waylay', 'battlefield-marine', 'devotion', 'echo-base-defender',     // 1-5
+                            'resupply', 'pyke-sentinel', 'takedown', 'inferno-four#unforgetting', 'protector',          // 6-10
                             'isb-agent', 'rivals-fall', 'death-star-stormtrooper', 'daring-raid', 'vanguard-infantry',     // 11-15
                             'force-throw', 'tieln-fighter', 'repair', 'swoop-racer', 'bamboozle',                          // 16-20
                         ],
@@ -195,7 +195,7 @@ describe('Arcana Star Map', function () {
 
                 // Cards 1-10 shown — confirms the search was doubled from 5 to 10
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    selectable: [context.scoutBikePursuer, context.battlefieldMarine, context.echoBaseDefender, context.consularSecurityForce, context.infernoFour],
+                    selectable: [context.scoutBikePursuer, context.battlefieldMarine, context.echoBaseDefender, context.pykeSentinel, context.infernoFour],
                     invalid: [context.waylay, context.devotion, context.resupply, context.takedown, context.protector],
                 });
                 context.player1.clickPrompt('Take nothing');
@@ -211,7 +211,7 @@ describe('Arcana Star Map', function () {
                 // All 20 deck cards shown — confirms the search was doubled from 10 to 20
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [
-                        context.scoutBikePursuer, context.battlefieldMarine, context.echoBaseDefender, context.consularSecurityForce, context.infernoFour,
+                        context.scoutBikePursuer, context.battlefieldMarine, context.echoBaseDefender, context.pykeSentinel, context.infernoFour,
                         context.isbAgent, context.deathStarStormtrooper, context.vanguardInfantry, context.tielnFighter, context.swoopRacer,
                     ],
                     invalid: [
