@@ -75,7 +75,7 @@ describe('Seasoned Fleet Admiral', function () {
             });
         });
 
-        it('should trigger when an opponent claims the Plan token in FauxSuns format', async function () {
+        it('should trigger when an opponent claims the Plan counter in FauxSuns format', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 format: 'fauxSuns',
@@ -97,7 +97,7 @@ describe('Seasoned Fleet Admiral', function () {
 
             context.player1.clickPrompt('Claim Plan');
 
-            // The Plan token's put-a-card-on-bottom prompt fires before Seasoned Fleet Admiral's trigger.
+            // The Plan counter's put-a-card-on-bottom prompt fires before Seasoned Fleet Admiral's trigger.
             // Player1 drew battlefield-marine; they put it on the bottom first.
             expect(context.player1).toHavePrompt('Choose a card from your hand to put on the bottom of your deck');
             context.player1.clickCard(context.battlefieldMarine);

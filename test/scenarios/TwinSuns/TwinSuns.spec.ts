@@ -70,8 +70,8 @@ describe('Twin Suns format', function () {
                 // In normal play, sequential token-claiming causes the action phase to end when the
                 // third token is claimed. We set the tokens directly to test the button logic.
                 context.game.isInitiativeClaimed = true;
-                context.game.isPlanTokenClaimed = true;
-                context.game.isBlastTokenClaimed = true;
+                context.game.isPlanCounterClaimed = true;
+                context.game.isBlastCounterClaimed = true;
                 context.game.continue();
 
                 // All tokens claimed: only Pass remains, and it is not disabled

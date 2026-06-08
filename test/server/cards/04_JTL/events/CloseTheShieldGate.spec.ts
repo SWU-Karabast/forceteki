@@ -173,7 +173,7 @@ describe('Close the Shield Gate', function () {
             });
         });
 
-        it('should prevent Blast token damage to a base in FauxSuns format', async function () {
+        it('should prevent Blast counter damage to a base in FauxSuns format', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 format: 'fauxSuns',

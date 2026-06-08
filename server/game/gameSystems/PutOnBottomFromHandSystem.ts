@@ -12,13 +12,13 @@ export interface IPutOnBottomFromHandProperties extends IPlayerTargetSystemPrope
 
 /**
  * Prompts the target player to choose a card from their hand and put it on the
- * bottom of their deck. Used as a contingent event of {@link ClaimPlanTokenSystem}.
+ * bottom of their deck. Used as a contingent event of {@link ClaimPlanCounterSystem}.
  * If the player's hand is empty the prompt is skipped.
  */
 export class PutOnBottomFromHandSystem<TContext extends AbilityContext = AbilityContext>
     extends PlayerTargetSystem<TContext, IPutOnBottomFromHandProperties> {
     public override readonly name = 'putOnBottomFromHand';
-    public override readonly eventName = EventName.OnPlanTokenPutOnBottom;
+    public override readonly eventName = EventName.OnPlanCounterPutOnBottom;
 
     public override defaultTargets(context: TContext): Player[] {
         return context.player ? [context.player] : [];
@@ -41,7 +41,7 @@ export class PutOnBottomFromHandSystem<TContext extends AbilityContext = Ability
 
         game.promptForSelect(player, {
             activePromptTitle: 'Choose a card from your hand to put on the bottom of your deck',
-            source: 'Plan Token',
+            source: 'Plan Counter',
             selector,
             isOpponentEffect: false,
             selectCardMode: SelectCardMode.Single,

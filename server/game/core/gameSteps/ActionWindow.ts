@@ -146,10 +146,10 @@ export class ActionWindow extends UiPrompt {
         if (!this.game.isInitiativeClaimed) {
             buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative', disabled: mustTakeCardAction });
         }
-        if (isFauxSuns && !this.game.isPlanTokenClaimed) {
+        if (isFauxSuns && !this.game.isPlanCounterClaimed) {
             buttons.push({ text: 'Claim Plan', arg: 'claimPlan', disabled: mustTakeCardAction });
         }
-        if (isFauxSuns && !this.game.isBlastTokenClaimed) {
+        if (isFauxSuns && !this.game.isBlastCounterClaimed) {
             buttons.push({ text: 'Claim Blast', arg: 'claimBlast', disabled: mustTakeCardAction });
         }
         if (this.game.manualMode) {
@@ -244,16 +244,16 @@ export class ActionWindow extends UiPrompt {
     }
 
     public claimPlan() {
-        this.game.addMessage('{0} claims the Plan token and passes', this.activePlayer);
-        this.game.claimPlanToken(this.activePlayer);
+        this.game.addMessage('{0} claims the Plan counter and passes', this.activePlayer);
+        this.game.claimPlanCounter(this.activePlayer);
 
         // Calls this.complete()
         this.pass(false);
     }
 
     public claimBlast() {
-        this.game.addMessage('{0} claims the Blast token and passes', this.activePlayer);
-        this.game.claimBlastToken(this.activePlayer);
+        this.game.addMessage('{0} claims the Blast counter and passes', this.activePlayer);
+        this.game.claimBlastCounter(this.activePlayer);
 
         // Calls this.complete()
         this.pass(false);

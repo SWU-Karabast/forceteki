@@ -422,7 +422,7 @@ describe('Rey, With Palpatine\'s Power', function() {
 
             context.player1.clickPrompt('Claim Plan');
 
-            // The Plan token's put-a-card-on-the-bottom prompt fires before Rey's triggered ability.
+            // The Plan counter's put-a-card-on-the-bottom prompt fires before Rey's triggered ability.
             // Player1 puts wampa on the bottom, keeping Rey in hand so her trigger can fire.
             expect(context.player1).toHavePrompt('Choose a card from your hand to put on the bottom of your deck');
             context.player1.clickCard(context.wampa);

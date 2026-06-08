@@ -95,8 +95,8 @@ export class ActionPhase extends Phase {
             player.cleanupFromActionPhase();
         }
         this.game.isInitiativeClaimed = false;
-        this.game.isPlanTokenClaimed = false;
-        this.game.isBlastTokenClaimed = false;
+        this.game.isPlanCounterClaimed = false;
+        this.game.isBlastCounterClaimed = false;
         this.game.prevActionPhasePlayerPassed = null;
     }
 }

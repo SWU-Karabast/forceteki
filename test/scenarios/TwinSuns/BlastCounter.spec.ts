@@ -1,6 +1,6 @@
-describe('Twin Suns Blast token', function () {
+describe('Twin Suns Blast counter', function () {
     integration(function (contextRef) {
-        describe('Claim Blast token effect', function () {
+        describe('Claim Blast counter effect', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',

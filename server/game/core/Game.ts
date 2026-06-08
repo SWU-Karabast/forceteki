@@ -102,9 +102,9 @@ import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
-import { ClaimBlastTokenSystem } from '../gameSystems/ClaimBlastTokenSystem';
+import { ClaimBlastCounterSystem } from '../gameSystems/ClaimBlastCounterSystem';
 import { ClaimInitiativeSystem } from '../gameSystems/ClaimInitiativeSystem';
-import { ClaimPlanTokenSystem } from '../gameSystems/ClaimPlanTokenSystem';
+import { ClaimPlanCounterSystem } from '../gameSystems/ClaimPlanCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 
@@ -150,27 +150,27 @@ export class Game extends EventEmitter {
         this.state.isInitiativeClaimed = value;
     }
 
-    public get isPlanTokenClaimed() {
-        return this.state.isPlanTokenClaimed;
+    public get isPlanCounterClaimed() {
+        return this.state.isPlanCounterClaimed;
     }
 
-    public set isPlanTokenClaimed(value: boolean) {
-        this.state.isPlanTokenClaimed = value;
+    public set isPlanCounterClaimed(value: boolean) {
+        this.state.isPlanCounterClaimed = value;
     }
 
-    public get isBlastTokenClaimed() {
-        return this.state.isBlastTokenClaimed;
+    public get isBlastCounterClaimed() {
+        return this.state.isBlastCounterClaimed;
     }
 
-    public set isBlastTokenClaimed(value: boolean) {
-        this.state.isBlastTokenClaimed = value;
+    public set isBlastCounterClaimed(value: boolean) {
+        this.state.isBlastCounterClaimed = value;
     }
 
     public allClaimTokensClaimed(): boolean {
         if (this.format === SwuGameFormat.FauxSuns) {
             // In a 2-player game only 2 of the 3 tokens can ever be claimed (one per player).
             // TSTODO: update this threshold for 3+ player games where all 3 tokens may be claimable.
-            const claimedCount = [this.isInitiativeClaimed, this.isPlanTokenClaimed, this.isBlastTokenClaimed]
+            const claimedCount = [this.isInitiativeClaimed, this.isPlanCounterClaimed, this.isBlastCounterClaimed]
                 .filter(Boolean).length;
             return claimedCount >= 2;
         }
@@ -413,8 +413,8 @@ export class Game extends EventEmitter {
             actionPhaseActivePlayer: null,
             roundNumber: 0,
             isInitiativeClaimed: false,
-            isPlanTokenClaimed: false,
-            isBlastTokenClaimed: false,
+            isPlanCounterClaimed: false,
+            isBlastCounterClaimed: false,
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
@@ -1365,17 +1365,17 @@ export class Game extends EventEmitter {
         );
     }
 
-    public claimPlanToken(player: Player): void {
-        new ClaimPlanTokenSystem({}).resolve(
+    public claimPlanCounter(player: Player): void {
+        new ClaimPlanCounterSystem({}).resolve(
             player,
             this.getFrameworkContext(player),
             TriggerHandlingMode.ResolvesTriggers
         );
     }
 
-    public claimBlastToken(player: Player): void {
+    public claimBlastCounter(player: Player): void {
         // TSTODO: update to blast all opponents
-        new ClaimBlastTokenSystem({}).resolve(
+        new ClaimBlastCounterSystem({}).resolve(
             player,
             this.getFrameworkContext(player),
             TriggerHandlingMode.ResolvesTriggers

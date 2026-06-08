@@ -1,6 +1,6 @@
-describe('Twin Suns Plan token', function () {
+describe('Twin Suns Plan counter', function () {
     integration(function (contextRef) {
-        describe('Claim Plan token effect', function () {
+        describe('Claim Plan counter effect', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -73,7 +73,7 @@ describe('Twin Suns Plan token', function () {
             });
         });
 
-        describe('Claim Plan token with an empty deck and cards already in hand', function () {
+        describe('Claim Plan counter with an empty deck and cards already in hand', function () {
             it('takes 3 base damage from the empty-deck draw, prompts to put the hand card on the bottom, then ends the action phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

@@ -7,12 +7,12 @@ import type { Player } from '../core/Player.js';
 import { DamageSystem } from './DamageSystem.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IClaimBlastTokenProperties extends IPlayerTargetSystemProperties {}
+export interface IClaimBlastCounterProperties extends IPlayerTargetSystemProperties {}
 
-export class ClaimBlastTokenSystem<TContext extends AbilityContext = AbilityContext>
-    extends PlayerTargetSystem<TContext, IClaimBlastTokenProperties> {
-    public override readonly name = 'claimBlastToken';
-    public override readonly eventName = EventName.OnBlastTokenClaimed;
+export class ClaimBlastCounterSystem<TContext extends AbilityContext = AbilityContext>
+    extends PlayerTargetSystem<TContext, IClaimBlastCounterProperties> {
+    public override readonly name = 'claimBlastCounter';
+    public override readonly eventName = EventName.OnBlastCounterClaimed;
 
     // TSTODO: damage all opponents' bases
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,7 +20,7 @@ export class ClaimBlastTokenSystem<TContext extends AbilityContext = AbilityCont
         const player = event.player as Player;
         const game = event.context.game;
 
-        game.isBlastTokenClaimed = true;
+        game.isBlastCounterClaimed = true;
         player.passedActionPhase = true;
 
         new DamageSystem({ type: DamageType.Ability, amount: 1 })
