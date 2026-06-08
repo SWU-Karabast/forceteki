@@ -76,7 +76,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
             this.passButtonText = this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass';
         }
 
-        this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
+        this.passAbilityHandler = (!!this.context.ability.optional || optional) && !this.context.skipOptionalPrompt ? {
             buttonText: this.passButtonText,
             arg: 'passAbility',
             hasBeenShown: false,

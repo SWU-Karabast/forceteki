@@ -169,6 +169,13 @@ export abstract class TriggerWindowBase extends BaseStep {
             abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
         }
 
+        abilitiesToResolve = this.filterUnresolvablePlotAbilities(abilitiesToResolve);
+        this.unresolved.set(this.currentlyResolvingPlayer, abilitiesToResolve);
+
+        if (abilitiesToResolve.length === 0) {
+            return this.promptUnresolvedAbilities();
+        }
+
         // Check to if we're dealing with a multi-selection of the 'same' ability
         const repeatedAbilities = this.getRepeatedAbilityTriggers(abilitiesToResolve);
 
@@ -218,6 +225,17 @@ export abstract class TriggerWindowBase extends BaseStep {
         return title;
     }
 
+    private filterUnresolvablePlotAbilities(abilitiesToResolve: TriggeredAbilityContext[]) {
+        return abilitiesToResolve.filter((context) =>
+            !this.isPlotAbility(context.ability) ||
+            context.event.plotCardsSelected?.includes(context.source)
+        );
+    }
+
+    private isPlotAbility(ability: TriggeredAbilityBase) {
+        return ability.abilityIdentifier?.includes('keyword_plot');
+    }
+
     private getOverrideTitle(context: TriggeredAbilityContext) {
         return `${context.ability.getTitle(context)}: ${context.event.card.title}`;
     }
@@ -262,7 +280,20 @@ export abstract class TriggerWindowBase extends BaseStep {
 
         // If its a multi-select, append the card name at the end of the ability name to differentiate them
         choices = abilitiesToResolve.map((context) => this.getChoiceTitle(context));
-        handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
+        handlers = abilitiesToResolve.map((context) => () => {
+            if (this.isPlotAbility(context.ability)) {
+                context.skipOptionalPrompt = true;
+            }
+
+            this.resolveAbility(context);
+        });
+
+        if (abilitiesToResolve.some((context) => context.ability.optional)) {
+            choices.push('Do not trigger anything');
+            handlers.push(() => {
+                this.unresolved.set(this.currentlyResolvingPlayer, abilitiesToResolve.filter((context) => !context.ability.optional));
+            });
+        }
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
             activePromptTitle: 'You have multiple triggers to resolve. Choose which to resolve first:',
