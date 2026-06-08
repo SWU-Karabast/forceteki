@@ -25,7 +25,7 @@ export interface IUnitsEnterPlayReadyForPlayerProperties {
     /** Additional predicate the entering card must satisfy. */
     match?: (card: IUnitCard, context: AbilityContext) => boolean;
 
-    /** Use limit. Defaults to unlimited. */
+    /** Use limit. Default is no limit. */
     limit?: AbilityLimit;
 }
 

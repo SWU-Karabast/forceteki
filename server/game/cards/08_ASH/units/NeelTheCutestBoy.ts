@@ -23,7 +23,7 @@ export default class NeelTheCutestBoy extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     entryType: EntryType.Played,
                     limit: AbilityHelper.limit.perPlayerPerGame(1),
-                    match: (unit) => unit.getPower() <= 1,
+                    match: (unit) => unit.getPrintedPower() <= 1,
                 }),
             })
         });
