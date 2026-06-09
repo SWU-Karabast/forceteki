@@ -225,6 +225,47 @@ describe('Glavanized Leap', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('Galvanized Leap\'s ability should ready an attacker that took combat damage from two defenders simultaneously', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['galvanized-leap'],
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    // Resilient upgrades ensure both units survive Maul's 5 damage
+                    groundArena: [
+                        { card: 'frontier-atrt', upgrades: ['resilient'] },
+                        { card: 'first-legion-snowtrooper', upgrades: ['resilient'] },
+                    ],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Maul attacks both units simultaneously: deals 5 damage to each,
+            // and takes 3 (frontier-atrt) + 2 (snowtrooper) = 5 return damage (leaving him at 1 HP). All three survive and are damaged.
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.frontierAtrt);
+            context.player1.clickCard(context.firstLegionSnowtrooper);
+            context.player1.clickDone();
+
+            expect(context.darthMaul.damage).toBe(5);
+            expect(context.darthMaul.exhausted).toBeTrue();
+            expect(context.frontierAtrt.damage).toBe(5);
+            expect(context.firstLegionSnowtrooper.damage).toBe(5);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.galvanizedLeap);
+            expect(context.player1).toBeAbleToSelectExactly([context.darthMaul, context.frontierAtrt, context.firstLegionSnowtrooper]);
+            expect(context.player1).not.toHavePassAbilityButton();
+            context.player1.clickCard(context.darthMaul);
+
+            expect(context.darthMaul.exhausted).toBeFalse();
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('Galvanized Leap\'s ability should work if p1 is attacking to make the damage', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
