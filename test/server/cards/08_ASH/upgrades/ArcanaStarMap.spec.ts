@@ -295,26 +295,26 @@ describe('Arcana Star Map', function () {
                         groundArena: [{ card: 'wampa', upgrades: ['arcana-star-map#path-to-peridea'] }],
                         hand: ['darth-vader#commanding-the-first-legion'],
                         deck: [
-                            'battlefield-marine',           // 1  — Rebel unit (not Imperial → invalid)
-                            'vanguard-infantry',            // 2  — Rebel unit (not Imperial → invalid)
-                            'scout-bike-pursuer',           // 3  — Imperial unit, cost 1 ✓
-                            'hunting-nexu',                 // 4  — non-Imperial unit → invalid
-                            'tieln-fighter',                // 5  — Imperial unit, cost 1 ✓
+                            'battlefield-marine',           // 1  — Heroism unit (not Villainy → invalid)
+                            'vanguard-infantry',            // 2  — Heroism unit (not Villainy → invalid)
+                            'scout-bike-pursuer',           // 3  — Villainy unit, cost 1 ✓
+                            'hunting-nexu',                 // 4  — non-Villainy unit → invalid
+                            'tieln-fighter',                // 5  — Villainy unit, cost 1 ✓
                             'daring-raid',                  // 6  — event → invalid
                             'protector',                    // 7  — non-unit → invalid
-                            'isb-agent',                    // 8  — Imperial unit, cost 2 ✓
-                            'death-star-stormtrooper',      // 9  — Imperial unit, cost 1 ✓
-                            'superlaser-technician',        // 10 — Imperial unit, cost 2 ✓
-                            'atst',                         // 11 — Imperial unit but cost 6 → invalid (cost cap enforced)
-                            'awing',                        // 12 — Rebel unit → invalid
-                            'yoda#old-master',              // 13 — non-Imperial → invalid
-                            'gungi#finding-himself',        // 14 — non-Imperial → invalid
+                            'isb-agent',                    // 8  — Villainy unit, cost 2 ✓
+                            'death-star-stormtrooper',      // 9  — Villainy unit, cost 1 ✓
+                            'superlaser-technician',        // 10 — Villainy unit, cost 2 ✓
+                            'atst',                         // 11 — Villainy unit but cost 6 → invalid (cost cap enforced)
+                            'awing',                        // 12 — Heroism unit → invalid
+                            'yoda#old-master',              // 13 — non-Villainy → invalid
+                            'gungi#finding-himself',        // 14 — non-Villainy → invalid
                             'takedown',                     // 15 — event → invalid
                             'rivals-fall',                  // 16 — event → invalid
-                            'avenger#hunting-star-destroyer', // 17 — Imperial ship but cost 8 → invalid (cost cap enforced)
-                            'tie-striker',                  // 18 — Imperial unit, cost 3 ✓
-                            'peridea-bandit',               // 19 — Imperial unit, cost 1 ✓
-                            'mouse-droid',                  // 20 — Imperial unit, cost 1 ✓
+                            'avenger#hunting-star-destroyer', // 17 — Villainy ship but cost 8 → invalid (cost cap enforced)
+                            'tie-striker',                  // 18 — Villainy unit, cost 3 ✓
+                            'peridea-bandit',               // 19 — Villainy unit, cost 1 ✓
+                            'mouse-droid',                  // 20 — Villainy unit, cost 1 ✓
                             'lothwolf'                      // 21 — beyond top 20, not shown
                         ],
                     }
