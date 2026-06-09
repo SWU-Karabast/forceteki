@@ -1,5 +1,36 @@
+import GameFlowWrapper from '../../helpers/GameFlowWrapper';
+import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
+
 describe('Overall game mechanics', function() {
+    describe('game startup state', function() {
+        it('should not serialize player state before game initialization has completed', function() {
+            const gameFlowWrapper = new GameFlowWrapper(
+                new UnitTestCardDataGetter('test/json'),
+                jasmine.createSpyObj('router', ['handleError', 'handleSerializationFailure']),
+                { id: 'player1', username: 'player1' },
+                { id: 'player2', username: 'player2' }
+            );
+
+            expect(gameFlowWrapper.game.started).toBeFalse();
+            expect(gameFlowWrapper.game.getState('player1')).toEqual({});
+        });
+    });
+
     integration(function(contextRef) {
+        describe('Game initialization', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'setup'
+                });
+            });
+
+            it('should mark the game as started after initialization has completed', function () {
+                const { context } = contextRef;
+
+                expect(context.game.started).toBeTrue();
+            });
+        });
+
         describe('Simultaneous lethal damage to both bases', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
