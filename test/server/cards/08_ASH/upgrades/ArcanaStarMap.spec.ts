@@ -412,6 +412,45 @@ describe('Arcana Star Map', function () {
                     context.gungi, context.tielnFighter, context.awing, context.atst,
                 ]).toAllBeInBottomOfDeck(context.player1, 14);
             });
+
+            it('should not double a When Defeated search — the Star Map is gone before the search resolves (Owen Lars)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'owen-lars#devoted-uncle', upgrades: ['arcana-star-map#path-to-peridea'] }],
+                        // top 5: 1 Force unit (selectable) + 4 non-Force/non-unit cards (invalid)
+                        // cards 6-10 should NOT appear — they would only show if the count were doubled
+                        deck: [
+                            'yoda#old-master',      // 1 — Force unit ✓
+                            'wampa',                // 2 — non-Force unit → invalid
+                            'resupply',             // 3 — event → invalid
+                            'battlefield-marine',   // 4 — non-Force unit → invalid
+                            'devotion',             // 5 — upgrade → invalid
+                            'scout-bike-pursuer',   // 6 — would appear if search were doubled; must stay hidden
+                            'isb-agent',            // 7
+                            'waylay',               // 8
+                            'takedown',             // 9
+                            'vanguard-infantry',    // 10
+                        ],
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 attacks Owen Lars with pyke-sentinel (3 power ≥ Owen's 3 HP)
+                context.player2.clickCard(context.pykeSentinel);
+                context.player2.clickCard(context.owenLars);
+
+                // Owen Lars's When Defeated triggers — should show only top 5, NOT top 10
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.yoda],
+                    invalid: [context.wampa, context.resupply, context.player1.findCardByName('battlefield-marine', 'deck'), context.devotion],
+                });
+                context.player1.clickPrompt('Take nothing');
+            });
         });
     });
 });
