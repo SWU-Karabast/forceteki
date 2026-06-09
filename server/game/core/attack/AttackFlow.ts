@@ -5,7 +5,7 @@ import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { GameEvent } from '../event/GameEvent';
-import { addAttackLastKnownInformationToEvent } from '../event/LastKnownInformation';
+import { addAttackLastKnownInformationToEvent, buildAttackLastKnownInformationEffect } from '../event/LastKnownInformation';
 import type { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
@@ -48,14 +48,17 @@ export class AttackFlow extends BaseStepWithPipeline {
             { attack: this.attack }
         );
 
-        declareAttackEvent.setPreResolutionEffect((_event) => this.setCurrentAttack());
-
-        this.context.game.openEventWindow([declareAttackEvent], TriggerHandlingMode.ResolvesTriggers);
-
         // Capture the attacker and defender's LKI on the event itself, before any "On Attack" / "On Defense"
         // abilities can mutate or defeat the attacker. Read by triggers that resolve during the
         // OnAttackDeclared window (e.g. Kragan Gorr's target resolver).
-        addAttackLastKnownInformationToEvent(declareAttackEvent, this.attack);
+        const captureLastKnownInformation = buildAttackLastKnownInformationEffect(this.attack);
+
+        declareAttackEvent.setPreResolutionEffect((event) => {
+            this.setCurrentAttack();
+            captureLastKnownInformation(event);
+        });
+
+        this.context.game.openEventWindow([declareAttackEvent], TriggerHandlingMode.ResolvesTriggers);
     }
 
     private dealDamageAndCompleteAttack(): void {
