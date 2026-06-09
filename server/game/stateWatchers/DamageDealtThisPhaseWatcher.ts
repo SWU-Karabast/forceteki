@@ -17,10 +17,13 @@ import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface DamageDealtEntry {
     damageType: DamageType;
+
     /** The cards that dealt this damage. Typically one card, but may be multiple for return combat damage (all defenders dealing damage to the attacker simultaneously). */
     damageSourceCards: GameObjectId<IPlayableCard>[];
+
     /** In-play IDs for each entry in damageSourceCards, aligned by index. */
     damageSourceInPlayIds: (number | undefined)[];
+
     /** Card types for each entry in damageSourceCards, aligned by index. */
     damageSourceCardTypes: CardType[];
     damageSourcePlayer: GameObjectId<Player>;
