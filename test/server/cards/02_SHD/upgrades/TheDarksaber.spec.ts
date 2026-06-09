@@ -108,19 +108,13 @@ describe('The Darksaber', function() {
 
                     context.player1.clickCard(context.theDarksaber);
 
-                    expect(context.player1).toBeAbleToSelectExactly([
-                        context.clanWrenRescuer,
-                        // TODO: Non-Mandalorian units should not even be selectable in this scenario
-                        // https://github.com/SWU-Karabast/forceteki/issues/1970
-                        context.pykeSentinel
-                    ]);
+                    // Non-Mandalorian units should not be selectable — the aspect penalty cannot be paid
+                    expect(context.player1).toBeAbleToSelectExactly([context.clanWrenRescuer]);
+                    context.player1.clickCard(context.clanWrenRescuer);
 
-                    context.player1.clickCard(context.pykeSentinel);
-
-                    // Action was cancelled
-                    expect(context.theDarksaber).toBeInZone('hand', context.player1);
-                    expect(context.player1.exhaustedResourceCount).toBe(0);
-                    expect(context.player1).toBeActivePlayer();
+                    expect(context.clanWrenRescuer).toHaveExactUpgradeNames(['the-darksaber']);
+                    expect(context.player1.exhaustedResourceCount).toBe(4);
+                    expect(context.player2).toBeActivePlayer();
                 });
 
                 it('cannot be played with the discount if there are no Mandalorian non-vehicle units in play', async function () {
