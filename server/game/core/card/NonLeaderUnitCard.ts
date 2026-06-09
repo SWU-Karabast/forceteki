@@ -1,7 +1,7 @@
 import type { Player } from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import { Contract } from '../utils/Contract';
-import { CardType, PlayType, Trait, ZoneName } from '../Constants';
+import { CardType, PlayType, ZoneName } from '../Constants';
 import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
@@ -89,7 +89,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     public override checkIsAttachable(): void {
-        Contract.assertTrue(this.hasSomeTrait(Trait.Pilot));
+        // canAttach() is the canonical gate for whether a non-leader unit may be attached as an
+        // upgrade — both for the Pilot trait / Piloting keyword paths and for ability-initiated
+        // attachments (e.g. a non-Pilot unit gaining L3-37's "would be defeated: attach to a
+        // Vehicle" replacement effect via Improvised Identity). No additional assertion here.
     }
 
 
