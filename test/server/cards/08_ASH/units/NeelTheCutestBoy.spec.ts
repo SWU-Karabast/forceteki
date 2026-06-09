@@ -117,6 +117,36 @@ describe('Neel, The Cutest Boy', function() {
                     expect(context.neel.exhausted).toBe(true);
                 });
 
+                it('should ready Neel when he is bounced and replayed — the pending matcher applies to him on re-entry', async function() {
+                    // The matcher is a phase-long player effect, so it persists after Neel leaves play.
+                    // When Neel is replayed his printed power 1 qualifies, so the prior matcher readies him on entry.
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['neel#the-cutest-boy']
+                        },
+                        player2: {
+                            hand: ['waylay']
+                        },
+                    });
+
+                    const { context } = contextRef;
+
+                    // Play Neel — registers the matcher; Neel himself enters exhausted (already covered above)
+                    context.player1.clickCard(context.neel);
+
+                    // P2 plays Waylay targeting Neel, returning him to P1's hand
+                    context.player2.clickCard(context.waylay);
+                    context.player2.clickCard(context.neel);
+                    expect(context.neel).toBeInZone('hand', context.player1);
+
+                    // Replay Neel — the still-pending matcher from the first play readies him as he enters
+                    context.player1.clickCard(context.neel);
+
+                    expect(context.neel).toBeInZone('groundArena');
+                    expect(context.neel.exhausted).toBe(false);
+                });
+
                 it('should not apply to units played in the next action phase', async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
