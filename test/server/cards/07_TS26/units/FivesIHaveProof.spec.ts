@@ -365,6 +365,125 @@ describe('Fives, I Have Proof!', function() {
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
             });
+
+            it('should allow Fives to copy Corvus WP and attach a friendly Pilot unit to himself (non-Vehicle parent)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: 'dagobah-swamp',
+                        hand: ['fives#i-have-proof'],
+                        groundArena: ['astromech-pilot'],
+                        spaceArena: ['corvus#inferno-squadron-raider'],
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // Play Fives — Corvus has a WP ability; Astromech Pilot's WP is a piloting ability and not registered as a standard WP
+                context.player1.clickCard(context.fives);
+                expect(context.player1).toHavePrompt(copyPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.corvus]);
+
+                // Copy Corvus's WP: "Attach a friendly Pilot unit or upgrade to this unit"
+                context.player1.clickCard(context.corvus);
+
+                // Corvus's WP fires with Fives as source — Astromech Pilot is a friendly Pilot unit
+                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot]);
+                context.player1.clickCard(context.astromechPilot);
+
+                // Astromech Pilot is now attached to Fives (a non-Vehicle) as an upgrade
+                expect(context.fives).toHaveExactUpgradeNames(['astromech-pilot']);
+                expect(context.astromechPilot).toBeInZone('groundArena');
+            });
+
+            it('should allow Fives to copy Corvus WP and attach a Pilot-trait unit without its own WP ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: 'dagobah-swamp',
+                        hand: ['fives#i-have-proof'],
+                        groundArena: ['sullustan-spacer'],
+                        spaceArena: ['corvus#inferno-squadron-raider'],
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // Play Fives — only Corvus is selectable because Sullustan Spacer has no standard WP ability
+                context.player1.clickCard(context.fives);
+                expect(context.player1).toBeAbleToSelectExactly([context.corvus]);
+
+                // Copy Corvus's WP: the copied ability attaches a friendly Pilot to Fives
+                context.player1.clickCard(context.corvus);
+
+                // Sullustan Spacer (Pilot unit, no WP of its own) is the only valid attach target
+                expect(context.player1).toBeAbleToSelectExactly([context.sullustanSpacer]);
+                context.player1.clickCard(context.sullustanSpacer);
+
+                // Sullustan Spacer is now attached to Fives as an upgrade
+                expect(context.fives).toHaveExactUpgradeNames(['sullustan-spacer']);
+                expect(context.sullustanSpacer).toBeInZone('groundArena');
+            });
+
+            it('should allow Fives to copy Sidon WP and attach himself as an upgrade to an enemy Vehicle', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: 'dagobah-swamp',
+                        hand: ['fives#i-have-proof'],
+                        groundArena: ['sidon-ithano#the-crimson-corsair'],
+                    },
+                    player2: {
+                        spaceArena: ['omicron-strike-craft'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Fives — copy Sidon's WP: "Attach this unit as an upgrade to an enemy Vehicle without a Pilot"
+                context.player1.clickCard(context.fives);
+                context.player1.clickCard(context.sidonIthano);
+
+                // Only the enemy Vehicle in space arena is eligible
+                expect(context.player1).toBeAbleToSelectExactly([context.omicronStrikeCraft]);
+                context.player1.clickCard(context.omicronStrikeCraft);
+
+                // Fives is now attached to the enemy Vehicle as an upgrade
+                expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['fives#i-have-proof']);
+            });
+
+            it('should allow declining the attach prompt when Fives copies Corvus WP', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: 'dagobah-swamp',
+                        hand: ['fives#i-have-proof'],
+                        groundArena: ['astromech-pilot'],
+                        spaceArena: ['corvus#inferno-squadron-raider'],
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // Play Fives, copy Corvus's WP
+                context.player1.clickCard(context.fives);
+                context.player1.clickCard(context.corvus);
+
+                // Decline to attach a Pilot
+                context.player1.clickPrompt('Pass');
+
+                // Fives is in play with no upgrades; Astromech Pilot is unchanged
+                expect(context.fives).toBeInZone('groundArena');
+                expect(context.fives).toHaveExactUpgradeNames([]);
+                expect(context.astromechPilot).toBeInZone('groundArena');
+            });
         });
     });
 });
