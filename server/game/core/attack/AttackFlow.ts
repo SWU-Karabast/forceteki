@@ -213,6 +213,10 @@ export class AttackFlow extends BaseStepWithPipeline {
 
             this.context.game.openEventWindow(damageEvents);
         } else {
+            // Every legal target has left play (e.g. defeated by a debuff from "While this unit
+            // is attacking..." abilities) and the attacker has no Overwhelm to redirect damage
+            // to the base, so no combat damage will be dealt.
+            this.context.game.addMessage('The attack does not resolve because there is no longer a legal target');
             this.context.game.openEventWindow(attackCompleteEvent);
         }
     }
