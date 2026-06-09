@@ -120,7 +120,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
      */
     private checkEntersPlayReadyEffectsForPlayer(card: Card, newController: Player, context: AbilityContext, entryType: EntryType): boolean {
         const matchers = newController.getOngoingEffectValues<UnitsEnterPlayReadyForPlayer>(
-            EffectName.UnitsEntersPlayReady
+            EffectName.UnitsEnterPlayReady
         );
         let didApply = false;
         for (const matcher of matchers) {

@@ -5,7 +5,7 @@ import { UnitsEnterPlayReadyForPlayer } from '../core/playerEffect/UnitsEnterPla
 
 export function unitsEnterPlayReady(properties: IUnitsEnterPlayReadyForPlayerProperties) {
     return OngoingEffectBuilder.player.static(
-        EffectName.UnitsEntersPlayReady,
+        EffectName.UnitsEnterPlayReady,
         // Clone the limit so each registration of the matcher gets its own counter.
         (game) => new UnitsEnterPlayReadyForPlayer(game, { ...properties, limit: properties.limit?.clone() })
     );
