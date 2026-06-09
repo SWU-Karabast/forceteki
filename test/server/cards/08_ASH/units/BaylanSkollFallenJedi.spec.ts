@@ -327,6 +327,37 @@ describe('Baylan Skoll, Fallen Jedi', function() {
                     expect(context.player2).toBeActivePlayer();
                 });
 
+                it('should NOT prompt for exhaust when a friendly upgrade was returned to hand (not defeated)', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['baylan-skoll#fallen-jedi'],
+                            groundArena: [{ card: 'wampa', upgrades: ['entrenched'] }]
+                        },
+                        player2: {
+                            hand: ['criminal-muscle'],
+                            hasInitiative: true,
+                            groundArena: ['atst']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // P2 returns the friendly Entrenched upgrade to P1's hand (NOT defeated)
+                    context.player2.clickCard(context.criminalMuscle);
+                    context.player2.clickCard(context.entrenched);
+                    expect(context.wampa).toHaveExactUpgradeNames([]);
+                    expect(context.entrenched).toBeInZone('hand', context.player1);
+
+                    // Play Baylan — neither condition is met (no base damage, no upgrade *defeated*)
+                    context.player1.clickCard(context.baylanSkoll);
+
+                    // No prompts — turn passes directly to P2
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.baylanSkoll).toHaveExactUpgradeNames([]);
+                    expect(context.atst.exhausted).toBeFalse();
+                });
+
                 it('should count a Shield token defeat as a friendly upgrade defeated this phase', async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',

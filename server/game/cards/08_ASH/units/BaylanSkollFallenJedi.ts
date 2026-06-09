@@ -3,13 +3,12 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { EnumHelpers } from '../../../core/utils/EnumHelpers';
-import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
+import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export default class BaylanSkollFallenJedi extends NonLeaderUnitCard {
-    private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
     private damageDealtThisPhaseWatcher: DamageDealtThisPhaseWatcher;
+    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -19,8 +18,8 @@ export default class BaylanSkollFallenJedi extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsLeftPlayThisPhaseWatcher = AbilityHelper.stateWatchers.cardsLeftPlayThisPhase();
         this.damageDealtThisPhaseWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase();
+        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -64,9 +63,6 @@ export default class BaylanSkollFallenJedi extends NonLeaderUnitCard {
     }
 
     private friendlyUpgradeDefeatedThisPhase(context): boolean {
-        return this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({
-            controller: context.player,
-            filter: (entry) => EnumHelpers.isUpgrade(entry.cardType),
-        });
+        return this.unitsDefeatedThisPhaseWatcher.someUpgradeDefeatedThisPhase({ controller: context.player });
     }
 }
