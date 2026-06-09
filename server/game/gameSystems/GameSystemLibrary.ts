@@ -455,7 +455,7 @@ export function payResourcesWithoutAdjustment<TContext extends AbilityContext = 
 /**
  * default status = ordinary
  */
-export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPutIntoPlayProperties, TContext> = {}) {
+export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPutIntoPlayProperties, TContext>) {
     return new PutIntoPlaySystem<TContext>(propertyFactory);
 }
 // /**
