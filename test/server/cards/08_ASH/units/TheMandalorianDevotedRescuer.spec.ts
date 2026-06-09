@@ -260,6 +260,50 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should only protect one unit when multiple friendly units in the same arena are damaged by Turbolaser Salvo', async function () {
+                // Turbolaser Salvo deals damage to all units in the chosen arena simultaneously.
+                // Mando's ability can only sacrifice one shield per use, so it should only protect
+                // one unit — not all units in the arena.
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield'] },
+                            'battlefield-marine',
+                            'wampa'
+                        ],
+                    },
+                    player2: {
+                        hand: ['turbolaser-salvo'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 plays Turbolaser Salvo targeting ground arena.
+                // Concord Dawn Interceptors has power 1, so each ground unit takes 1 damage.
+                context.player2.clickCard(context.turbolaserSalvo);
+                context.player2.clickPrompt('Ground');
+                context.player2.clickCard(context.concordDawnInterceptors);
+
+                // Three triggers appear simultaneously: Shield token for Mando, Mando's ability for BFM, Mando's ability for Wampa.
+                // Player resolves Mando's ability for Battlefield Marine first (defeating the shield).
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
+
+                const [shield] = context.player1.findCardsByName('shield');
+                context.player1.clickCard(shield);
+
+                // Shield is now gone. Wampa's trigger should be automatically skipped — no shield left to sacrifice.
+                // Wampa takes 1 damage. Mando also takes 1 damage (his shield was already consumed for BFM).
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.wampa.damage).toBe(1);
+                expect(context.player1).toBeActivePlayer(); // player2 used their action (playing Turbolaser Salvo)
+            });
+
             it('should not prevent indirect damage even when shield is defeated — indirect damage bypasses prevention', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
