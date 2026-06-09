@@ -15,15 +15,18 @@ import { Contract } from '../utils/Contract';
 export class AttackFlow extends BaseStepWithPipeline {
     private context: AbilityContext;
     private attack: Attack;
+    private onAttackDeclared?: () => void;
 
     public constructor(
         context: AbilityContext,
-        attack: Attack
+        attack: Attack,
+        onAttackDeclared?: () => void
     ) {
         super(context.game);
 
         this.context = context;
         this.attack = attack;
+        this.onAttackDeclared = onAttackDeclared;
 
         this.pipeline.initialise([
             new SimpleStep(this.game, () => this.declareAttack(), 'declareAttack'),
@@ -56,6 +59,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         declareAttackEvent.setPreResolutionEffect((event) => {
             this.setCurrentAttack();
             captureLastKnownInformation(event);
+            this.onAttackDeclared?.();
         });
 
         this.context.game.openEventWindow([declareAttackEvent], TriggerHandlingMode.ResolvesTriggers);
