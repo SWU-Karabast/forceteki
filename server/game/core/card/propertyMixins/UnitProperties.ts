@@ -1037,18 +1037,24 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * @returns True if this is allowed to attach to the targetCard; false otherwise
          */
         public override canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
-            Contract.assertTrue(this.canBeUpgrade);
-            if (targetCard.isUnit()) {
-                if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
-                    // This is needed for abilities that let you play Pilots from the opponent's discard
-                    const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
-                    return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
-                } else if (this.hasSomeTrait(Trait.Pilot)) {
-                    return targetCard.canAttachPilot(this);
-                }
+            if (!targetCard.isUnit()) {
+                return false;
             }
-            // TODO: Handle Phantom II and Sidon Ithano
-            return false;
+            if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
+                // This is needed for abilities that let you play Pilots from the opponent's discard
+                const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
+                return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
+            }
+            if (this.hasSomeTrait(Trait.Pilot)) {
+                return targetCard.canAttachPilot(this);
+            }
+            // A unit without the Pilot trait or Piloting keyword may still be attached as an upgrade
+            // when driven by an ability that supplies its own attachment restriction — e.g. a non-Pilot
+            // unit that has gained L3-37's "would be defeated: attach to a friendly Vehicle without a
+            // Pilot" ability via Improvised Identity. The ability's target resolver is responsible for
+            // enforcing the restriction; this method just permits the attach to proceed.
+            // TODO: Handle Phantom II and Sidon Ithano (these have card-specific attachment patterns).
+            return true;
         }
 
         /**
