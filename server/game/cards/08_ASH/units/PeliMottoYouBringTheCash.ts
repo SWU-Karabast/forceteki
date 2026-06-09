@@ -4,6 +4,7 @@ import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class PeliMottoYouBringTheCash extends NonLeaderUnitCard {
@@ -32,11 +33,10 @@ export default class PeliMottoYouBringTheCash extends NonLeaderUnitCard {
     }
 
     private isFirstNonUnitCardPlayedThisPhase(card: Card): boolean {
-        return !card.isUnit() &&
-          !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
-              playedCardEntry.playedBy === card.controller &&
-              !playedCardEntry.card.isUnit() &&
-              playedCardEntry.card !== card
-          );
+        return !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+            playedCardEntry.playedBy === card.controller &&
+            !EnumHelpers.isUnit(playedCardEntry.playedAsType) &&
+            playedCardEntry.card !== card
+        );
     }
 }
