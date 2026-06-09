@@ -6,7 +6,7 @@ describe('Vane\'s Snub Fighter, Brash and Proud', function() {
                     phase: 'action',
                     player1: {
                         spaceArena: ['vanes-snub-fighter#brash-and-proud'],
-                        groundArena: ['porg', 'atst', 'cloudrider-veteran']
+                        groundArena: ['porg', 'atst', 'cloudrider-veteran', 'owen-lars#devoted-uncle', 'knight-of-ren'],
                     },
                     player2: {
                         groundArena: ['battlefield-marine']
@@ -64,6 +64,46 @@ describe('Vane\'s Snub Fighter, Brash and Proud', function() {
                 // Vane's Snub Fighter should not have an Advantage token on it
                 expect(context.vanesSnubFighter.isUpgraded()).toBeFalse();
                 expect(context.p2Base.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger when a friendly unit attacks a base but does not deal combat damage', function() {
+                const { context } = contextRef;
+
+                // Owen Lars Devoted Uncle attacks to base
+                context.player1.clickCard(context.owenLarsDevotedUncle);
+                context.player1.clickCard(context.p2Base);
+
+                // Vane's Snub Fighter should not have an Advantage token on it
+                expect(context.vanesSnubFighter.isUpgraded()).toBeFalse();
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger when an enemy unit attacks a base', function() {
+                const { context } = contextRef;
+
+                // Player 2 attacks to base
+                context.player1.passAction();
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.p1Base);
+
+                // Vane's Snub Fighter should not have an Advantage token on it
+                expect(context.vanesSnubFighter.isUpgraded()).toBeFalse();
+                expect(context.p1Base.damage).toBe(3);
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should not trigger if a friendly unit attacks an enemy unit without overwhelm', function() {
+                const { context } = contextRef;
+
+                // Player 1 attacks to enemy unit without overwhelm
+                context.player1.clickCard(context.knightOfRen);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Vane's Snub Fighter should not have an Advantage token on it
+                expect(context.vanesSnubFighter.isUpgraded()).toBeFalse();
+                expect(context.p2Base.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
         });

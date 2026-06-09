@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class PegasusTriWing extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class PegasusTriWing extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card, context) => card.controller === context.player,
+                controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             ifYouDo: {

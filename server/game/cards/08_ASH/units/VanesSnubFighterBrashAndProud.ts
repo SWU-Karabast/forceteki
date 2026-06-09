@@ -20,8 +20,8 @@ export default class VanesSnubFighterBrashAndProud extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'If it dealt combat damage to a base, give an Advantage token to this unit',
-            contextTitle: (context) => `If it dealt combat damage to a base, give an Advantage token to ${context.source}`,
+            title: 'If the attacker dealt combat damage to a base, give an Advantage token to this unit',
+            contextTitle: (context) => `If the attacker dealt combat damage to a base, give an Advantage token to ${context.source}`,
             when: {
                 onAttackEnd: (event, context) =>
                     event.attack.attackingPlayer === context.player &&
