@@ -550,6 +550,7 @@ export enum StateWatcherName {
     LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
     TokensCreatedThisPhase = 'tokensCreatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
+    UnitsDamagedThisPhase = 'unitsDamagedThisPhase',
     BasesHealedThisPhase = 'basesHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
