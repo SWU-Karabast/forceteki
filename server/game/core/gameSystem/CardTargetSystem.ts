@@ -6,6 +6,7 @@ import type { IGameSystemProperties as IGameSystemProperties } from './GameSyste
 import { GameSystem as GameSystem } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import { addLastKnownInformationToEvent, buildLastKnownInformation } from '../event/LastKnownInformation';
+import type { CardTargetGameEvent } from '../event/TypedGameEvent';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
@@ -29,7 +30,7 @@ export type AttachedUpgradeOverrideHandler = (card: IUpgradeCard, context: Abili
  * A {@link GameSystem} which targets a card or cards for its effect
  */
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
-export abstract class CardTargetSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties> extends GameSystem<TContext, TProperties> {
+export abstract class CardTargetSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ICardTargetSystemProperties = ICardTargetSystemProperties, TEvent extends GameEvent = GameEvent> extends GameSystem<TContext, TProperties, TEvent> {
     /** The set of card types that can be legally targeted by the system. Defaults to {@link WildcardCardType.Any} unless overriden. */
     protected readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Any];
 
@@ -136,7 +137,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     // override the base class behavior with a version that forces properties.target to be a scalar value
-    public override generateEvent(context: TContext, additionalProperties: Partial<TProperties> = {}, addLastKnownInformation: boolean = false): GameEvent {
+    public override generateEvent(context: TContext, additionalProperties: Partial<TProperties> = {}, addLastKnownInformation: boolean = false): TEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertNotNullLike(target, 'Attempting to generate card target event with no provided target');
@@ -159,9 +160,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return event;
     }
 
-    public override checkEventCondition(event: any, additionalProperties: Partial<TProperties> = {}): boolean {
+    public override checkEventCondition(event: TEvent, additionalProperties: Partial<TProperties> = {}): boolean {
         // TODO Migrate game state check to somewhere more universal
-        return this.canAffect(event.card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve);
+        return this.canAffect((event as Partial<CardTargetGameEvent>).card, event.context as TContext, additionalProperties, GameStateChangeRequired.MustFullyResolve);
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -174,9 +175,14 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
+    protected override addPropertiesToEvent(event: TEvent, card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.card = card;
+
+        // `card` is the CardTargetGameEvent base property, assigned dynamically since TEvent
+        // is still the untyped GameEvent for unconverted systems. Object.assign keeps this
+        // type-checked against CardTargetGameEvent without casting the event itself.
+        const props: Partial<CardTargetGameEvent> = { card };
+        Object.assign(event, props);
     }
 
     public override defaultTargets(context: TContext): Card[] {
