@@ -121,10 +121,7 @@ export class DamageModificationSystem<
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState): boolean {
-        // Upgrade cards (e.g. Shield tokens) that have been defeated by another effect in the same replacement
-        // window are no longer able to execute their own replacement effect. Non-upgrade cards that defeat
-        // themselves as a cost (e.g. Moff Jerjerrod) are handled differently — they are checked via the
-        // outer ability's immediateEffect legality, not here.
+        // Handles if an upgrade such as Shield is triggered but then defeated by another effect before resolving
         if (context.source.isUpgrade() && !EnumHelpers.isArena(context.source.zoneName)) {
             return false;
         }
