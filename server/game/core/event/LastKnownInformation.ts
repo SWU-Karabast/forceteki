@@ -14,6 +14,7 @@ export interface ILastKnownInformation {
     title: string;
     controller: Player;
     arena: ZoneName;
+    cost?: number;
     power?: number;
     hp?: number;
     type?: CardType;
@@ -34,6 +35,7 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
         return {
             card,
             title: card.title,
+            cost: card.hasCost() ? card.cost : undefined,
             controller: card.controller,
             arena: card.zoneName,
             traits: card.traits
@@ -45,6 +47,7 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
         return {
             card,
             title: card.title,
+            cost: card.cost,
             power: card.getPower(),
             hp: card.getHp(),
             type: card.type,
@@ -61,6 +64,7 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
         return {
             card,
             title: card.title,
+            cost: card.cost,
             power: card.getPower(),
             hp: card.getHp(),
             type: card.type,
@@ -82,6 +86,7 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
  */
 export function addLastKnownInformationToEvent(event: GameEvent, card: Card): void {
     event.setPreResolutionEffect((event) => {
+        console.log(`Capturing last known information for ${card.title} on event ${event.name} (${event.eventId})`);
         event.lastKnownInformation = buildLastKnownInformation(card);
     });
 }

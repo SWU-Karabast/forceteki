@@ -1,7 +1,8 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { EventName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 
 export default class PurrgilUltra extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -25,13 +26,29 @@ export default class PurrgilUltra extends NonLeaderUnitCard {
                 cardCondition: (card, context) => card.isUnit() && card !== context?.source,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
-            ifYouDo: (ifYouDoContext) => ({
-                title: `Deal damage to a unit equal to the cost of ${ifYouDoContext.events[0]?.card?.title} (${ifYouDoContext.events[0]?.card?.printedCost} damage)`,
-                targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0]?.card?.printedCost ?? 0 })
-                }
-            })
+            then: (thenContext) => {
+                const leavesPlayEvent = this.getCardLeavesPlayEvent(thenContext);
+                const lastKnownInformation = leavesPlayEvent?.lastKnownInformation;
+                return {
+                    title: `Deal ${lastKnownInformation?.cost ?? 0} damage to a unit`,
+                    thenCondition: () => !!lastKnownInformation,
+                    targetResolver: {
+                        cardTypeFilter: WildcardCardType.Unit,
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: lastKnownInformation?.cost ?? 0 })
+                    }
+                };
+            }
         });
+    }
+
+    private getCardLeavesPlayEvent(context: TriggeredAbilityContext) {
+        const topLevelEvents = context.events;
+        const triggeredContextEvents = context.event.context.events;
+        const allEvents = [...topLevelEvents, ...triggeredContextEvents];
+
+        return allEvents.find((event) =>
+            event.name === EventName.OnCardLeavesPlay &&
+            event.card === context.target
+        );
     }
 }

@@ -22,7 +22,7 @@ describe('Purrgil Ultra', function() {
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
-            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the cost of Wampa (4 damage)');
+            expect(context.player1).toHavePrompt('Deal 4 damage to a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.purrgilUltra, context.phoenixSquadronAwing, context.atst, context.greenSquadronAwing]);
             expect(context.player1).not.toHavePassAbilityButton();
             expect(context.player1).not.toHaveChooseNothingButton();
@@ -56,7 +56,7 @@ describe('Purrgil Ultra', function() {
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.phoenixSquadronAwing);
 
-            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the cost of Phoenix Squadron A-Wing (2 damage)');
+            expect(context.player1).toHavePrompt('Deal 2 damage to a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.purrgilUltra, context.greenSquadronAwing, context.atst, context.wampa, context.grandInquisitor]);
             context.player1.clickCard(context.grandInquisitor);
 
@@ -123,7 +123,7 @@ describe('Purrgil Ultra', function() {
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.clone);
 
-            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the cost of Clone (4 damage)');
+            expect(context.player1).toHavePrompt('Deal 4 damage to a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.purrgilUltra, context.phoenixSquadronAwing, context.atst, context.greenSquadronAwing, context.wampa]);
             expect(context.player1).not.toHavePassAbilityButton();
             expect(context.player1).not.toHaveChooseNothingButton();
@@ -158,7 +158,7 @@ describe('Purrgil Ultra', function() {
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
-            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the cost of Wampa (4 damage)');
+            expect(context.player1).toHavePrompt('Deal 4 damage to a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.phoenixSquadronAwing, context.atst, context.greenSquadronAwing]);
             context.player1.clickCard(context.atst);
 
@@ -192,7 +192,7 @@ describe('Purrgil Ultra', function() {
             expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.phoenixSquadronAwing);
 
-            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the cost of Phoenix Squadron A-Wing (2 damage)');
+            expect(context.player1).toHavePrompt('Deal 2 damage to a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.atst, context.wampa, context.grandInquisitor]);
             context.player1.clickCard(context.grandInquisitor);
 
@@ -256,7 +256,7 @@ describe('Purrgil Ultra', function() {
             expect(context.player2).toHavePassAbilityButton();
             context.player2.clickCard(context.greenSquadronAwing);
 
-            expect(context.player2).toHavePrompt('Deal damage to a unit equal to the cost of Green Squadron A-Wing (2 damage)');
+            expect(context.player2).toHavePrompt('Deal 2 damage to a unit');
             expect(context.player2).toBeAbleToSelectExactly([context.phoenixSquadronAwing, context.atst, context.wampa, context.grandInquisitor]);
             context.player2.clickCard(context.grandInquisitor);
 
