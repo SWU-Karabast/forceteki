@@ -80,7 +80,7 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
     }
 
     public removeLeader() {
-        Contract.assertNotNullLike(this._leader, `Attempting to remove leader from ${this} but it is in zone ${this.owner.leader.zone}`);
+        Contract.assertNotNullLike(this._leader, `Attempting to remove leader from ${this} but it is in zone ${this.owner.deckLeader.zone}`);
 
         this._leader = null;
     }
