@@ -1,4 +1,4 @@
-import { Duration, EffectName, EventName } from '../Constants';
+import { Duration, EffectName, EventName, ZoneName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
 import type { OngoingEffect } from './OngoingEffect';
 import type { OngoingEffectSourceBase } from './OngoingEffectSource';
@@ -12,10 +12,20 @@ import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
 import type { MsgArg } from '../chat/GameChat';
 import type { IConstantEffectSummary } from '../../Interfaces';
-import { StaticOngoingEffectImpl } from './effectImpl/StaticOngoingEffectImpl';
+import type { Card } from '../card/Card';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
+}
+
+const asText = (desc: unknown): string | undefined =>
+    (typeof desc === 'string' ? desc : (desc as { format?: string })?.format);
+
+function describeEffect(effect: any): string | undefined {
+    return asText(effect.ongoingEffect?.ongoingEffectDescription) ??
+      asText(effect.ongoingEffect?.effectDescription) ??
+      asText(effect.impl?.effectDescription) ??
+      effect.ongoingEffect?.ability?.title;
 }
 
 @registerState()
@@ -98,97 +108,55 @@ export class OngoingEffectEngine extends GameObjectBase {
         return effect;
     }
 
+    // This effect type is not displayed since it gives away hidden information
+    private static readonly effectTypesHiddenFromSummary = new Set<EffectName>([
+        EffectName.EntersPlayReady,
+    ]);
+
+    // These are the zones that contain hidden information
+    private static readonly hiddenZones: ReadonlySet<string> = new Set([
+        ZoneName.Hand,
+        ZoneName.Deck,
+        ZoneName.Resource,
+    ]);
+
     /**
      * Returns the currently active constant effects in a shape the FE renders directly.
-     * Includes ALL effect types — narrow via the type allowlist if the panel gets noisy.
      */
     public summarizeConstantEffectsForState(): IConstantEffectSummary[] {
-        return this.effects
-            .filter((effect) => {
-                if (!effect.isEffectActive()) {
-                    return false;
-                }
-                if (!effect.source?.isCard?.()) {
-                    return false;
-                }
-                if (
-                    effect.impl instanceof StaticOngoingEffectImpl &&
-                    effect.impl?.type === EffectName.EntersPlayReady
-                ) {
-                    return false;
-                }
-                return true;
-            })
-            .map((effect) => {
-                const source = effect.source as any;
-                const readEffectDescription = (effect: any, source: any): string | undefined => {
-                    // Lasting effects — most descriptive when set by card author
-                    const lastingDesc = effect?.ongoingEffect?.ongoingEffectDescription;
-                    if (typeof lastingDesc === 'string') {
-                        return lastingDesc;
-                    }
-                    if (lastingDesc?.format) {
-                        return lastingDesc.format;
-                    }
+        const summaries: IConstantEffectSummary[] = [];
 
-                    // Delayed effects
-                    const delayedDesc = effect?.ongoingEffect?.effectDescription;
-                    if (typeof delayedDesc === 'string') {
-                        return delayedDesc;
-                    }
-                    if (delayedDesc?.format) {
-                        return delayedDesc.format;
-                    }
+        for (const effect of this.effects) {
+            if (!effect.isEffectActive() || !effect.source?.isCard?.()) {
+                continue;
+            }
+            if (OngoingEffectEngine.effectTypesHiddenFromSummary.has(effect.impl?.type)) {
+                continue;
+            }
 
-                    // Static/dynamic via impl getter
-                    const implDesc = effect?.impl?.effectDescription;
-                    if (typeof implDesc === 'string') {
-                        return implDesc;
-                    }
-                    if (implDesc?.format) {
-                        return implDesc.format;
-                    }
-
-                    // Final fallback
-                    return source?.text ?? source?.printedText;
-                };
-                // targets can be Card | Card[] | Player | Player[]; we only keep cards
-                const targetsArray = Array.isArray(effect.targets)
-                    ? effect.targets
-                    : [effect.targets];
-                const cardTargets = targetsArray
-                    .filter((t: any) => t && typeof t.isCard === 'function' && t.isCard())
-                    .map((target: any) => ({
-                        uuid: target.uuid,
-                        id: target.id,
-                        name: target.printedName ?? target.name,
-                        type: target.type,
-                        setId: target.setId,
-                        controllerId: target.controller?.id ?? target.owner?.id,
-                        zone: target.zoneName,
-                    }));
-
-                return {
-                    sourceCardUuid: source.uuid,
-                    cardData: {
-                        uuid: source.uuid,
-                        id: source.id,
-                        name: source.printedName ?? source.name,
-                        type: source.type,
-                        setId: source.setId,
-                        controllerId: source.controller?.id ?? source.owner?.id,
-                        ownerId: source.owner?.id,
-                        sourceZone: source.zoneName,
-                        effectMetadata: {
-                            effectTitle: source.printedName ?? source.name,
-                            effectSubtitle: source.title,  // unit subtitle, undefined for events
-                            effectDescription: readEffectDescription(effect, source),
-                            effectName: String(effect.impl?.type ?? ''),
-                        },
+            const source = effect.source as Card;
+            summaries.push({
+                sourceCardUuid: source.uuid,
+                source: {
+                    type: source.type,
+                    setId: source.setId,
+                    controllerId: source.controller?.id ?? source.owner?.id,
+                    sourceZone: source.zoneName,
+                    metadata: {
+                        title: source.title,
+                        subtitle: source.subtitle,
+                        description: describeEffect(effect),
                     },
-                    targets: cardTargets,
-                };
+                },
+                targets: effect.targets
+                    .filter((effectTarget) =>
+                        effectTarget?.isCard?.() &&
+                        !OngoingEffectEngine.hiddenZones.has(effectTarget.zoneName))
+                    .map((effectTarget) => effectTarget.uuid),
             });
+        }
+
+        return summaries;
     }
 
     public checkDelayedEffects(events: GameEvent[]) {
