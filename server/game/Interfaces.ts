@@ -616,20 +616,15 @@ export interface ICardAttributes {
 }
 
 
-/** Constant effects */
-export interface IConstantEffectMetadataSummary {
-    title: string;
-    subtitle?: string;
-    description?: string;
-}
-
+/* Constant effects */
 export interface IConstantEffectSourceSummary {
     setId: { set: string; number: number };
-    name?: string;
     type?: string;
     controllerId: string;
     sourceZone?: string;
-    metadata: IConstantEffectMetadataSummary;
+    sourceTitle: string;
+    sourceSubtitle?: string;
+    effectDescription?: string;
 }
 
 export interface IConstantEffectSummary {

@@ -142,11 +142,9 @@ export class OngoingEffectEngine extends GameObjectBase {
                     setId: source.setId,
                     controllerId: source.controller?.id ?? source.owner?.id,
                     sourceZone: source.zoneName,
-                    metadata: {
-                        title: source.title,
-                        subtitle: source.subtitle,
-                        description: describeEffect(effect),
-                    },
+                    sourceTitle: source.title,
+                    sourceSubtitle: source.subtitle,
+                    effectDescription: describeEffect(effect),
                 },
                 targets: effect.targets
                     .filter((effectTarget) =>
