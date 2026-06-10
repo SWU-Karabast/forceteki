@@ -842,12 +842,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     /**
-     * Returns the aspects for this player (derived from base, leader, and any
-     * active `ProvidesAspects` ongoing effects on this player — e.g. The
+     * Returns the aspects for this player used for calculating costs (derived from base,
+     * leader, and any active `ProvidesAspectsForCosts` ongoing effects on this player — e.g. The
      * Darksaber, Icon of Leadership).
      */
-    public getAspects() {
-        const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspects);
+    public getAspectsForCosts() {
+        const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspectsForCosts);
         return [
             ...this.deckLeader.aspects,
             ...this.base.aspects,
@@ -855,12 +855,20 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         ];
     }
 
+    /**
+     * Returns the aspects for this player's deck (derived from base and leader only, not including
+     * any active `ProvidesAspectsForCosts` ongoing effects on this player).
+     */
+    public getDeckAspects() {
+        return [...this.deckLeader.aspects, ...this.base.aspects];
+    }
+
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
         if (!costAspects) {
             return [];
         }
 
-        const playerAspects = this.getAspects();
+        const playerAspects = this.getAspectsForCosts();
 
         const penaltyAspects = [];
         for (const aspect of costAspects) {
@@ -1238,7 +1246,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             promptState: promptState,
             isActionPhaseActivePlayer,
             clock: undefined,
-            aspects: this.getAspects(),
+            aspects: this.getDeckAspects(),
             forceToken: this.getForceTokenSummary(),
             credits: this.getCreditsSummary(activePlayer),
             turnTimeRemainingSeconds: this.actionTimer.turnTimeRemainingSeconds,
