@@ -260,7 +260,7 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should only protect one unit when multiple friendly units in the same arena are damaged by Turbolaser Salvo', async function () {
+            it('should only protect one unit when multiple friendly units in the same arena are damaged', async function () {
                 // Turbolaser Salvo deals damage to all units in the chosen arena simultaneously.
                 // Mando's ability can only sacrifice one shield per use, so it should only protect
                 // one unit — not all units in the arena.
