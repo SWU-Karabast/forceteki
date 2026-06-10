@@ -86,7 +86,6 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
  */
 export function addLastKnownInformationToEvent(event: GameEvent, card: Card): void {
     event.setPreResolutionEffect((event) => {
-        console.log(`Capturing last known information for ${card.title} on event ${event.name} (${event.eventId})`);
         event.lastKnownInformation = buildLastKnownInformation(card);
     });
 }

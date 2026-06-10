@@ -94,45 +94,46 @@ describe('Purrgil Ultra', function() {
             expect(context.wampa).toBeInZone('groundArena', context.player1);
         });
 
-        xit('should work with clone when played', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['purrgil-ultra', 'clone'],
-                    groundArena: ['wampa'],
-                    spaceArena: ['phoenix-squadron-awing'],
-                    leader: { card: 'grand-inquisitor#hunting-the-jedi', deployed: true },
-                    resources: 100
-                },
-                player2: {
-                    groundArena: ['atst'],
-                    spaceArena: ['green-squadron-awing']
-                }
-            });
+        // TODO: Uncomment this test once we have LKI working for this ability
+        // it('should work with clone when played', async function() {
+        //     await contextRef.setupTestAsync({
+        //         phase: 'action',
+        //         player1: {
+        //             hand: ['purrgil-ultra', 'clone'],
+        //             groundArena: ['wampa'],
+        //             spaceArena: ['phoenix-squadron-awing'],
+        //             leader: { card: 'grand-inquisitor#hunting-the-jedi', deployed: true },
+        //             resources: 100
+        //         },
+        //         player2: {
+        //             groundArena: ['atst'],
+        //             spaceArena: ['green-squadron-awing']
+        //         }
+        //     });
 
-            const { context } = contextRef;
+        //     const { context } = contextRef;
 
-            context.player1.clickCard(context.clone);
-            context.player1.clickCard(context.wampa);
+        //     context.player1.clickCard(context.clone);
+        //     context.player1.clickCard(context.wampa);
 
-            context.player2.passAction();
+        //     context.player2.passAction();
 
-            context.player1.clickCard(context.purrgilUltra);
+        //     context.player1.clickCard(context.purrgilUltra);
 
-            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.phoenixSquadronAwing, context.clone]);
-            expect(context.player1).toHavePassAbilityButton();
-            context.player1.clickCard(context.clone);
+        //     expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.phoenixSquadronAwing, context.clone]);
+        //     expect(context.player1).toHavePassAbilityButton();
+        //     context.player1.clickCard(context.clone);
 
-            expect(context.player1).toHavePrompt('Deal 4 damage to a unit');
-            expect(context.player1).toBeAbleToSelectExactly([context.purrgilUltra, context.phoenixSquadronAwing, context.atst, context.greenSquadronAwing, context.wampa]);
-            expect(context.player1).not.toHavePassAbilityButton();
-            expect(context.player1).not.toHaveChooseNothingButton();
-            context.player1.clickCard(context.atst);
+        //     expect(context.player1).toHavePrompt('Deal 4 damage to a unit');
+        //     expect(context.player1).toBeAbleToSelectExactly([context.purrgilUltra, context.phoenixSquadronAwing, context.atst, context.greenSquadronAwing, context.wampa]);
+        //     expect(context.player1).not.toHavePassAbilityButton();
+        //     expect(context.player1).not.toHaveChooseNothingButton();
+        //     context.player1.clickCard(context.atst);
 
-            expect(context.player2).toBeActivePlayer();
-            expect(context.atst.damage).toBe(4);
-            expect(context.clone).toBeInZone('hand', context.player1);
-        });
+        //     expect(context.player2).toBeActivePlayer();
+        //     expect(context.atst.damage).toBe(4);
+        //     expect(context.clone).toBeInZone('hand', context.player1);
+        // });
 
         it('should bounce a friendly unit and deal damage to an enemy unit equal to its cost to enemy unit when defeated', async function() {
             await contextRef.setupTestAsync({

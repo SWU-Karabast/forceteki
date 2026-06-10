@@ -1,8 +1,7 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { EventName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class PurrgilUltra extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -26,29 +25,15 @@ export default class PurrgilUltra extends NonLeaderUnitCard {
                 cardCondition: (card, context) => card.isUnit() && card !== context?.source,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
-            then: (thenContext) => {
-                const leavesPlayEvent = this.getCardLeavesPlayEvent(thenContext);
-                const lastKnownInformation = leavesPlayEvent?.lastKnownInformation;
-                return {
-                    title: `Deal ${lastKnownInformation?.cost ?? 0} damage to a unit`,
-                    thenCondition: () => !!lastKnownInformation,
-                    targetResolver: {
-                        cardTypeFilter: WildcardCardType.Unit,
-                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: lastKnownInformation?.cost ?? 0 })
-                    }
-                };
-            }
+            ifYouDo: (ifYouDoContext) => ({
+                // TODO: Update this ability to read cost from LKI, since cards like Clone can copy
+                // another card's printed attributes while in play
+                title: `Deal ${ifYouDoContext.target.cost} damage to a unit`,
+                targetResolver: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.target.cost }),
+                }
+            })
         });
-    }
-
-    private getCardLeavesPlayEvent(context: TriggeredAbilityContext) {
-        const topLevelEvents = context.events;
-        const triggeredContextEvents = context.event.context.events;
-        const allEvents = [...topLevelEvents, ...triggeredContextEvents];
-
-        return allEvents.find((event) =>
-            event.name === EventName.OnCardLeavesPlay &&
-            event.card === context.target
-        );
     }
 }
