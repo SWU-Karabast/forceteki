@@ -1050,12 +1050,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 // "friendly Vehicle without a Pilot upgrade" restriction it acquired when first attached.
                 return targetCard.canAttachPilot(this);
             }
-            // Either a non-Pilot unit being attached via an ability that supplies its own restriction
-            // (e.g. L3-37 gaining "attach to a friendly Vehicle" via Improvised Identity, Sidon Ithano),
-            // or a Pilot-trait unit being attached fresh by an ability that overrides the Piloting
-            // restriction (e.g. Corvus's "attach a Pilot to this unit" — the ability's "this unit"
-            // restriction governs per CR 3.6.3.B, even when the parent is not a Vehicle). The ability's
-            // target resolver is responsible for enforcing the restriction; this method just permits.
+
+            // A unit without the Pilot trait or Piloting keyword may still be attached as an upgrade
+            // when driven by an ability that supplies its own attachment restriction — e.g. a non-Pilot
+            // unit that has gained L3-37's "would be defeated: attach to a friendly Vehicle without a
+            // Pilot" ability via Improvised Identity. The ability's target resolver is responsible for
+            // enforcing the restriction; this method just permits the attach to proceed.
+            // TODO: Handle Phantom II and Sidon Ithano (these have card-specific attachment patterns).
             return true;
         }
 
