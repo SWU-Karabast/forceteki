@@ -3,12 +3,12 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EventName, Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 
 export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -18,7 +18,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -32,7 +32,7 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
                     context.event.name !== EventName.OnAttackEnd ||
-                    AttackHelpers.attackerSurvived(context.event.attack, this.unitsDefeatedThisPhaseWatcher),
+                    AttackHelpers.attackerSurvived(context.event.attack, this.cardsDefeatedThisPhaseWatcher),
                 onTrue: AbilityHelper.immediateEffects.deckSearch({
                     searchCount: 8,
                     cardCondition: (card, _context) => card.isUnit() && card.hasSomeTrait(Trait.Droid),

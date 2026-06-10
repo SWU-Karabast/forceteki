@@ -3,14 +3,14 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EventName, KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 
 export default class CaptainRexIntoTheFirefight extends NonLeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override getImplementationId() {
@@ -30,7 +30,7 @@ export default class CaptainRexIntoTheFirefight extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
                     context.event.name !== EventName.OnAttackEnd ||
-                    AttackHelpers.attackerSurvived(context.event.attack, this.unitsDefeatedThisPhaseWatcher),
+                    AttackHelpers.attackerSurvived(context.event.attack, this.cardsDefeatedThisPhaseWatcher),
                 onTrue: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)

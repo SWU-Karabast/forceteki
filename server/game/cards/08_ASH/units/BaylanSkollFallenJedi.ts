@@ -4,11 +4,11 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class BaylanSkollFallenJedi extends NonLeaderUnitCard {
     private damageDealtThisPhaseWatcher: DamageDealtThisPhaseWatcher;
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -19,7 +19,7 @@ export default class BaylanSkollFallenJedi extends NonLeaderUnitCard {
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.damageDealtThisPhaseWatcher = AbilityHelper.stateWatchers.damageDealtThisPhase();
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -63,6 +63,6 @@ export default class BaylanSkollFallenJedi extends NonLeaderUnitCard {
     }
 
     private friendlyUpgradeDefeatedThisPhase(context): boolean {
-        return this.unitsDefeatedThisPhaseWatcher.someUpgradeDefeatedThisPhase({ controller: context.player });
+        return this.cardsDefeatedThisPhaseWatcher.someUpgradeDefeatedThisPhase({ controller: context.player });
     }
 }

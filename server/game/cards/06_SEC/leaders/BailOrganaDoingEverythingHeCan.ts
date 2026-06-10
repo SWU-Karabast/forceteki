@@ -4,10 +4,10 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { GameStateChangeRequired, RelativePlayer, ZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class BailOrganaDoingEverythingHeCan extends LeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -17,7 +17,7 @@ export default class BailOrganaDoingEverythingHeCan extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override deployActionAbilityProps(AbilityHelper: IAbilityHelper) {
@@ -36,7 +36,7 @@ export default class BailOrganaDoingEverythingHeCan extends LeaderUnitCard {
             title: 'If a friendly unit was defeated this phase, return a friendly resource to its owner\'s hand. If you do, put the top card of your deck into play as a resource.',
             cost: [abilityHelper.costs.abilityActivationResourceCost(1), abilityHelper.costs.exhaustSelf()],
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
+                condition: (context) => this.cardsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
                 onTrue: abilityHelper.immediateEffects.selectCard({
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Resource,

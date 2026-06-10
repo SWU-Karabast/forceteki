@@ -4,11 +4,11 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { PhaseName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class UnnaturalLife extends EventCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -18,7 +18,7 @@ export default class UnnaturalLife extends EventCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -28,7 +28,7 @@ export default class UnnaturalLife extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card.isUnit() && this.unitsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card),
+                cardCondition: (card) => card.isUnit() && this.cardsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     entersReady: true,
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 },
