@@ -618,37 +618,22 @@ export interface ICardAttributes {
 
 /** Constant effects */
 export interface IConstantEffectMetadataSummary {
-    effectTitle: string;
-    effectDescription?: string;
-    effectType?: 'static' | 'dynamic' | 'detached';
-    effectName?: string;          // mirrors EffectName enum value
-    isOpponentEffect?: boolean;   // FE convenience flag, optional
+    title: string;
+    subtitle?: string;
+    description?: string;
 }
 
-export interface IConstantEffectSourceCardSummary {
-    uuid: string;
+export interface IConstantEffectSourceSummary {
     setId: { set: string; number: number };
-    id?: string;
     name?: string;
     type?: string;
     controllerId: string;
-    ownerId?: string;
     sourceZone?: string;
-    effectMetadata: IConstantEffectMetadataSummary;
-}
-
-export interface IConstantEffectTargetSummary {
-    uuid: string;
-    setId: { set: string; number: number };
-    id?: string;
-    name?: string;
-    type?: string;
-    controllerId: string;
-    zone?: string;
+    metadata: IConstantEffectMetadataSummary;
 }
 
 export interface IConstantEffectSummary {
     sourceCardUuid: string;
-    cardData: IConstantEffectSourceCardSummary;
-    targets: IConstantEffectTargetSummary[];
+    source: IConstantEffectSourceSummary;
+    targets: string[];
 }
