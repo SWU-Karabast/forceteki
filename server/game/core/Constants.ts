@@ -532,6 +532,7 @@ export enum DamageModificationType {
     Cap = 'cap',
     PreventAll = 'all',
     Increase = 'increase',
+    Multiply = 'multiply',
     Reduce = 'reduce',
     Replace = 'replace'
 }
