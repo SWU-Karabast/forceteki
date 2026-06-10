@@ -198,5 +198,26 @@ describe('Bothan-5, New Republic Prison Ship', function() {
             expect(context.player1.resources.length).toBe(resourceCount);
             expect(context.superlaserTechnician).toBeCapturedBy(context.bothan5);
         });
+
+        it('Bothan-5\'s ability should not capture a defeated friendly unit that is not in your discard pile', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results'],
+                    spaceArena: ['bothan5#new-republic-prison-ship']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.wampa).toBeInZone('discard', context.player2);
+        });
     });
 });

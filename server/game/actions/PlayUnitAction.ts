@@ -1,4 +1,4 @@
-import { AbilityRestriction, PlayType, ZoneName } from '../core/Constants.js';
+import { AbilityRestriction, EntryType, PlayType, ZoneName } from '../core/Constants.js';
 import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
@@ -36,7 +36,8 @@ export abstract class PlayUnitActionBase extends PlayCardAction {
             new PutIntoPlaySystem({
                 target: context.source,
                 controller: context.player,
-                entersReady: this.entersReady
+                entersReady: this.entersReady,
+                entryType: EntryType.Played,
             }).generateEvent(context),
             this.generateOnPlayEvent(context)
         ];
