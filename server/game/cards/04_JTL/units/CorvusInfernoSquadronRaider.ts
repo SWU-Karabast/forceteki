@@ -13,7 +13,8 @@ export default class CorvusInfernoSquadronRaider extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Attach a friendly pilot unit or upgrade to it',
+            title: 'Attach a friendly Pilot unit or upgrade to this unit',
+            contextTitle: (context) => `Attach a friendly Pilot unit or upgrade to ${context.source.title}`,
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
