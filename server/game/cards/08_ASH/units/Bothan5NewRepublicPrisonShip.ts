@@ -26,7 +26,7 @@ export default class Bothan5NewRepublicPrisonShip extends NonLeaderUnitCard {
             optional: true,
             limit: abilityHelper.limit.perRound(1),
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => context.event.card.zoneName === ZoneName.Discard,
+                condition: (context) => context.event.card.zone === context.player.discardZone,
                 onTrue: abilityHelper.immediateEffects.capture((context) => ({
                     captor: context.source,
                     target: context.event.card,
