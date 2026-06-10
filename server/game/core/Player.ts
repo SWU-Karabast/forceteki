@@ -6,7 +6,8 @@ import type { CostAdjuster } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
 import { Contract } from './utils/Contract';
-import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
+import type { Aspect, KeywordName, MoveZoneDestination, Trait } from './Constants';
+import { CardType } from './Constants';
 import {
     AlertType,
     ChatObjectType,
@@ -54,6 +55,7 @@ import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
 import { registerState, stateRefArray, stateRef, stateValue, type GameObjectId } from './GameObjectUtils';
+import type { IInPlayZoneCardFilterProperties } from './zone/ConcreteOrMetaArenaZone';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectId<HandZone>;
@@ -283,6 +285,22 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
         return this.game.allArenas.getCards({ ...filter, controller: this });
+    }
+
+    public getInPlayCards(filter: IInPlayZoneCardFilterProperties = {}) {
+        const arenaCards = this.game.allArenas.getCards({ ...filter, controller: this });
+        const baseZoneCards = this.baseZone.getCards(filter);
+
+        return [...arenaCards, ...baseZoneCards];
+    }
+
+    public getLeaderCards(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        const leaderFilter = [WildcardCardType.LeaderUnit, CardType.Leader, CardType.LeaderUpgrade];
+        return this.getInPlayCards({ ...filter, type: leaderFilter });
+    }
+
+    public hasSomeLeaderCard(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        return this.getLeaderCards(filter).length > 0;
     }
 
     /**
