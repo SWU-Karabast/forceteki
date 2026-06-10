@@ -3,7 +3,6 @@ import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import type { EventWindow } from './EventWindow';
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { GameEventTypeMap } from './IGameEvent';
 
 export enum EventResolutionStatus {
     CREATED = 'created',
@@ -13,7 +12,7 @@ export enum EventResolutionStatus {
     RESOLVED = 'resolved'
 }
 
-export class GameEvent<TName extends EventName | MetaEventName = EventName | MetaEventName> {
+export class GameEvent {
     public readonly isMetaEvent: boolean;
     public condition = (event) => true;
     public order = 0;
@@ -27,7 +26,7 @@ export class GameEvent<TName extends EventName | MetaEventName = EventName | Met
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
-    private handler?: (event: GameEvent<TName>) => void;
+    private handler?: (event: GameEvent) => void;
     private replacementEventsGenerator?: () => any[] = null;
     private _preResolutionEffect = null;
     private replacementEvents: any[] = [];
@@ -87,10 +86,10 @@ export class GameEvent<TName extends EventName | MetaEventName = EventName | Met
     }
 
     public constructor(
-        name: EventName | MetaEventName,
+        name: string,
         context: AbilityContext,
         params: any,
-        handler?: (event: GameEvent<TName>) => void
+        handler?: (event: GameEvent) => void
     ) {
         if (EnumHelpers.isEnumValue(name, EventName)) {
             this.isMetaEvent = false;
@@ -124,7 +123,7 @@ export class GameEvent<TName extends EventName | MetaEventName = EventName | Met
         this.resolutionStatus = EventResolutionStatus.RESOLVED;
     }
 
-    public setHandler(newHandler: (event: GameEvent<TName>) => void) {
+    public setHandler(newHandler) {
         Contract.assertNotNullLike(newHandler, `Attempting to set null handler for ${this.name}`);
         Contract.assertIsNullLike(this.handler, `Attempting to set handler for ${this.name} but it already has a value`);
 

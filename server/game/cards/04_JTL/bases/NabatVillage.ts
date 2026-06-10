@@ -27,7 +27,7 @@ export default class NabatVillage extends BaseCard {
         registrar.addTriggeredAbility({
             title: 'Put 3 cards from your hand on the bottom of your deck',
             when: {
-                onPhaseStarted: (event, context) => event.phase === PhaseName.Action && context.game.roundNumber === 1
+                onPhaseStarted: (event) => event.phase === PhaseName.Action && event.context.game.roundNumber === 1
             },
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 activePromptTitle: 'Select 3 cards',
