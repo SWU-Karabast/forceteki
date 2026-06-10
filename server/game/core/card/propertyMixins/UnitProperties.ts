@@ -48,7 +48,7 @@ import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration'
 import type Clone from '../../../cards/03_TWI/units/Clone';
 import { stateRefArray, stateRef, statePrimitive, registerStateBase } from '../../GameObjectUtils';
 import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -184,7 +184,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
         private _leadersDeployedThisPhaseWatcher: LeadersDeployedThisPhaseWatcher;
-        private _unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+        private _cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
@@ -306,7 +306,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._tokensCreatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.tokensCreatedThisPhase();
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
-            this._unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+            this._cardsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.cardsDefeatedThisPhase();
 
             this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }

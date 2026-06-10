@@ -3,10 +3,10 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class LastWords extends EventCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -16,7 +16,7 @@ export default class LastWords extends EventCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -25,7 +25,7 @@ export default class LastWords extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
+                    condition: (context) => this.cardsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
                     onTrue: AbilityHelper.immediateEffects.giveExperience({ amount: 2 }),
                 })
             }

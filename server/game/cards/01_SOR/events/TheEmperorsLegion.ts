@@ -1,12 +1,12 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { ZoneName } from '../../../core/Constants';
 
 export default class TheEmperorsLegion extends EventCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId () {
         return {
@@ -16,7 +16,7 @@ export default class TheEmperorsLegion extends EventCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -24,7 +24,7 @@ export default class TheEmperorsLegion extends EventCard {
             title: 'Return each unit in your discard pile that was defeated this phase to your hand.',
             immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => {
                 const friendlyUnitsDefeatedThisPhaseInDiscard =
-                    this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player)
+                    this.cardsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player)
                         .filter(({ unit, inPlayId: defeatedInPlayId }) =>
                             unit.zoneName === ZoneName.Discard &&
                             unit.mostRecentInPlayId === defeatedInPlayId)

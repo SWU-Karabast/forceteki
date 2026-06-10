@@ -13,21 +13,21 @@ import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 
 
 /**
- * Simplified last known information for defeated units
+ * Simplified last known information for defeated cards
  */
-export interface IDefeatedUnitLKIEntry {
+export interface IDefeatedCardLKIEntry {
     traits: Set<Trait>;
     type: CardType;
     // TODO: Add more fields if needed
 }
 
-export interface DefeatedUnitEntry {
-    unit: GameObjectId<IInPlayCard>;
+export interface DefeatedCardEntry {
+    card: GameObjectId<IInPlayCard>;
     inPlayId: number;
     controlledBy: GameObjectId<Player>;
     defeatedBy?: GameObjectId<Player>;
     wasDefeatedWhileAttacking: IDefeatSource;
-    lastKnownInformation: IDefeatedUnitLKIEntry;
+    lastKnownInformation: IDefeatedCardLKIEntry;
 }
 
 interface InPlayUnit {
@@ -40,23 +40,19 @@ interface InPlayUnit {
  * to unit defeats; helpers ending in `Upgrade*` filter to upgrade defeats; the public
  * {@link getCurrentValue} continues to return only unit defeats so existing callers
  * (which assumed unit-only data) are unaffected.
- *
- * TODO: pure-rename follow-up — rename this watcher (file, class, interface, enum value,
- * library method, fields) from `UnitsDefeated*` to `CardsDefeated*` to reflect its broadened
- * scope. Kept out of this PR to limit blast radius (~47 files).
  */
 @registerState()
-export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry> {
+export class CardsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedCardEntry> {
     public constructor(
         game: Game,
         registrar: StateWatcherRegistrar) {
-        super(game, StateWatcherName.UnitsDefeatedThisPhase, registrar);
+        super(game, StateWatcherName.CardsDefeatedThisPhase, registrar);
     }
 
-    protected override mapCurrentValue(stateValue: DefeatedUnitEntry[]): UnwrapRefObject<DefeatedUnitEntry>[] {
+    protected override mapCurrentValue(stateValue: DefeatedCardEntry[]): UnwrapRefObject<DefeatedCardEntry>[] {
         return stateValue.map((x) => ({
             inPlayId: x.inPlayId,
-            unit: this.game.getFromId(x.unit),
+            card: this.game.getFromId(x.card),
             controlledBy: this.game.getFromId(x.controlledBy),
             defeatedBy: this.game.getFromId(x.defeatedBy),
             wasDefeatedWhileAttacking: x.wasDefeatedWhileAttacking,
@@ -68,7 +64,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /**
-     * Returns an array of {@link DefeatedUnitEntry} objects representing every unit defeated
+     * Returns an array of {@link DefeatedCardEntry} objects representing every unit defeated
      * this phase so far, as well as the controlling and defeating player.
      */
     public override getCurrentValue() {
@@ -76,7 +72,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /** Get the list of the units that were defeated this phase */
-    public someUnitDefeatedThisPhase(filter: (entry: UnwrapRef<DefeatedUnitEntry>) => boolean): boolean {
+    public someUnitDefeatedThisPhase(filter: (entry: UnwrapRef<DefeatedCardEntry>) => boolean): boolean {
         return this.getCurrentValue().filter(filter).length > 0;
     }
 
@@ -84,7 +80,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     public getDefeatedUnitsControlledByPlayer(controller: Player): InPlayUnit[] {
         return this.getCurrentValue()
             .filter((entry) => entry.controlledBy === controller)
-            .map((entry) => ({ unit: entry.unit as IUnitCard, inPlayId: entry.inPlayId }));
+            .map((entry) => ({ unit: entry.card as IUnitCard, inPlayId: entry.inPlayId }));
     }
 
     /** Check if a specific copy of a unit was defeated this phase */
@@ -92,7 +88,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         const inPlayIdToCheck = inPlayId ?? (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
 
         return this.getCurrentValue().some(
-            (entry) => entry.unit === card && entry.inPlayId === inPlayIdToCheck
+            (entry) => entry.card === card && entry.inPlayId === inPlayIdToCheck
         );
     }
 
@@ -114,7 +110,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     /** Check if some upgrade matching the given criteria was defeated this phase */
     public someUpgradeDefeatedThisPhase({ controller, filter }: {
         controller?: Player;
-        filter?: (entry: UnwrapRef<DefeatedUnitEntry>) => boolean;
+        filter?: (entry: UnwrapRef<DefeatedCardEntry>) => boolean;
     } = {}): boolean {
         return super.getCurrentValue()
             .filter((entry) => EnumHelpers.isUpgrade(entry.lastKnownInformation.type))
@@ -130,9 +126,9 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
                     EnumHelpers.isUnit(event.lastKnownInformation.type) ||
                     EnumHelpers.isUpgrade(event.lastKnownInformation.type)
             },
-            update: (currentState: DefeatedUnitEntry[], event: any) =>
+            update: (currentState: DefeatedCardEntry[], event: any) =>
                 currentState.concat({
-                    unit: event.card.getObjectId(),
+                    card: event.card.getObjectId(),
                     inPlayId: event.card.mostRecentInPlayId,
                     controlledBy: event.lastKnownInformation.controller.getObjectId(),
                     defeatedBy: event.defeatSource.player?.getObjectId(),
@@ -145,7 +141,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         });
     }
 
-    protected override getResetValue(): DefeatedUnitEntry[] {
+    protected override getResetValue(): DefeatedCardEntry[] {
         return [];
     }
 }
