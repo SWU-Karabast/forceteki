@@ -19,7 +19,7 @@ export default class GravCharge extends UpgradeCard {
             },
             immediateEffect: abilityHelper.immediateEffects.simultaneous([
                 abilityHelper.immediateEffects.damage((context) => ({
-                    amount: 4, target: context.source.parentCard
+                    amount: 4, target: context.source.isAttached() ? context.source.parentCard : null
                 })),
                 abilityHelper.immediateEffects.defeat((context) => ({
                     target: context.source
