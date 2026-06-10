@@ -13,7 +13,8 @@ export default class SidonIthanoTheCrimsonCorsair extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `Attach ${this.title} as an upgrade to an enemy Vehicle unit without a Pilot on it`,
+            title: 'Attach this unit as an upgrade to an enemy Vehicle unit without a Pilot on it',
+            contextTitle: (context) => `Attach ${context.source.title} as an upgrade to an enemy Vehicle unit without a Pilot on it`,
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Opponent,

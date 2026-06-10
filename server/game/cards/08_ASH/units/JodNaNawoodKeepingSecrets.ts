@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class JodNaNawoodKeepingSecrets extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jod-na-nawood#keeping-secrets-id',
+            id: '8838303580',
             internalName: 'jod-na-nawood#keeping-secrets',
         };
     }

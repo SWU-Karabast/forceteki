@@ -23,11 +23,8 @@ import { Helpers } from '../core/utils/Helpers';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
-import type { IOngoingCardEffectGenerator, KeywordNameOrProperties } from '../Interfaces';
-import { KeywordInstance } from '../core/ability/KeywordInstance';
+import type { IOngoingCardEffectGenerator } from '../Interfaces';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
-import type { OngoingCardEffect } from '../core/ongoingEffect/OngoingCardEffect';
-import type { OngoingPlayerEffect } from '../core/ongoingEffect/OngoingPlayerEffect';
 import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
@@ -99,12 +96,26 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         const attack: Attack = event.attack;
 
+        // The chat log emission is deferred to AttackFlow so it runs after `setCurrentAttack`
+        // has marked the attacker as attacking. This lets constant abilities gated on
+        // `isAttacking()` (e.g. Anakin's Podracer) contribute their ongoing effects to
+        // `attackerDealsCombatDamageFirst()` in time for the chat log to reflect them.
+        const emitChatLog = () => this.emitAttackChatLog(context, attack, attackerEffects, defenderEffects);
+        context.game.queueStep(new AttackFlow(context, attack, emitChatLog));
+    }
+
+    private emitAttackChatLog(
+        context: TContext,
+        attack: Attack,
+        attackerEffects: CardLastingEffectSystem | undefined,
+        defenderEffects: Map<Card, CardLastingEffectSystem>
+    ): void {
         const attackMessage: FormatMessage[] = [
             {
                 format: '{0} attacks {1} with {2}{3}',
                 args: [
                     attack.attackingPlayer,
-                    this.getTargetMessage(attack.getAllTargets(), event.context),
+                    this.getTargetMessage(attack.getAllTargets(), context),
                     attack.attacker,
                     attack.attackerDealsCombatDamageFirst() ? ' (dealing damage before the defender)' : ''
                 ]
@@ -134,7 +145,6 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
 
         context.game.addMessage(ChatHelpers.formatWithLength(attackMessage.length), ...attackMessage);
-        context.game.queueStep(new AttackFlow(context, attack));
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}) {
@@ -179,9 +189,12 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             return false; // cannot attack cards with a BeAttacked restriction
         }
 
+        // Per CR 6.3.1.1, abilities granted by a modified "Attack With a Unit" action are active at "Declare Intent",
+        // before this legality check runs. InitiateAttackSystem applies unconditional attacker lasting effects up front,
+        // so we can read them directly off the attacker here.
         const attackerZone = properties.attacker.zoneName === ZoneName.GroundArena ? ZoneName.GroundArena : ZoneName.SpaceArena;
-        const canTargetGround = attackerZone === ZoneName.GroundArena || context.source.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena) || this.attackerGainsEffect(targetCard, context, EffectName.CanAttackGroundArenaFromSpaceArena, additionalProperties);
-        const canTargetSpace = attackerZone === ZoneName.SpaceArena || context.source.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena) || this.attackerGainsEffect(targetCard, context, EffectName.CanAttackSpaceArenaFromGroundArena, additionalProperties);
+        const canTargetGround = attackerZone === ZoneName.GroundArena || properties.attacker.hasOngoingEffect(EffectName.CanAttackGroundArenaFromSpaceArena);
+        const canTargetSpace = attackerZone === ZoneName.SpaceArena || properties.attacker.hasOngoingEffect(EffectName.CanAttackSpaceArenaFromGroundArena);
         if (
             targetCard.zoneName !== attackerZone &&
             targetCard.zoneName !== ZoneName.Base &&
@@ -192,9 +205,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
 
         // If not Saboteur, do a Sentinel check
-        const attackerHasSaboteur =
-            properties.attacker.hasSomeKeyword(KeywordName.Saboteur) ||
-            this.attackerGainsSaboteur(targetCard, context, additionalProperties);
+        const attackerHasSaboteur = properties.attacker.hasSomeKeyword(KeywordName.Saboteur);
         if (!attackerHasSaboteur) {
             if (targetCard.controller.hasSomeArenaUnit({ arena: attackerZone, keyword: KeywordName.Sentinel })) {
                 return targetCard.hasSomeKeyword(KeywordName.Sentinel);
@@ -296,10 +307,16 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         defenderLastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[],
         attack: Attack
     ): { attackerEffects?: CardLastingEffectSystem; defenderEffects: Map<Card, CardLastingEffectSystem> } {
+        // Unconditional, non-factory attacker effects are applied earlier by InitiateAttackSystem so they're
+        // active at "Declare Intent" (CR 6.3.1.1). Only factory-form or conditional entries can be applied here,
+        // because they depend on the chosen target or other attack details that aren't finalized until now.
+        const allAttackerEntries = Helpers.asArray(attackerLastingEffects);
+        const lateAttackerEntries = AttackStepsSystem.partitionLateAttackerLastingEffects(attackerLastingEffects);
+
         // create events for all effects to be generated
         const effectEvents: GameEvent[] = [];
-        const attackerEffects = this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents);
-        let effectsRegistered = attackerEffects != null;
+        const lateAttackerEffects = this.queueCreateLastingEffectsGameSteps(lateAttackerEntries, attack.attacker, context, attack, effectEvents);
+        let effectsRegistered = lateAttackerEffects != null;
         const defenderEffectsMap = new Map<Card, CardLastingEffectSystem>();
         for (const target of attack.getAllTargets()) {
             const defenderEffects = this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), target, context, attack, effectEvents);
@@ -311,6 +328,17 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         if (effectsRegistered) {
             context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for attack effects');
+        }
+
+        // For the chat summary, build a non-queued system that covers every attacker entry (including the ones
+        // applied early by InitiateAttackSystem) so the message lists the full set of granted effects. Skip when
+        // nothing would apply to the attacker (e.g. blanked) — matching legacy behavior of suppressing the message.
+        let attackerEffects: CardLastingEffectSystem | undefined;
+        if (allAttackerEntries.length > 0) {
+            const messageSystem = this.buildCardLastingEffectSystem(allAttackerEntries, context, attack, attack.attacker);
+            if (messageSystem.getApplicableEffects(attack.attacker, context).length > 0) {
+                attackerEffects = messageSystem;
+            }
         }
 
         return { attackerEffects, defenderEffects: defenderEffectsMap };
@@ -338,58 +366,60 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         return effectSystem;
     }
 
-    private attackerGainsSaboteur(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>) {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
-        // If the attacker is blanked or has lost Saboteur, it cannot gain Saboteur
-        const saboteur = new KeywordInstance(KeywordName.Saboteur, properties.attacker);
-        if (saboteur.isBlank) {
-            return false;
-        }
-
-        return this.attackerGains(attackTarget, context, additionalProperties, (effect) => {
-            if (effect.impl.type !== EffectName.GainKeyword) {
-                return false;
-            }
-
-            const keywordProps: KeywordNameOrProperties = effect.impl.getValue(properties.attacker);
-
-            if (!keywordProps) {
-                return false;
-            }
-
-            const keyword = typeof keywordProps === 'string' ? keywordProps : keywordProps.keyword;
-
-            return keyword === KeywordName.Saboteur;
-        });
-    }
-
-    private attackerGainsEffect(attackTarget: IAttackableCard, context: TContext, effect: EffectName, additionalProperties?: Partial<IAttackProperties<TContext>>) {
-        return this.attackerGains(attackTarget, context, additionalProperties, (e) => e.impl.type === effect);
-    }
-
-    /** Checks if there are any lasting effects that would give the attacker Saboteur, for the purposes of targeting */
-    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>, predicate: (effect: OngoingCardEffect | OngoingPlayerEffect) => boolean = () => false): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
-        const attackerLastingEffects = Helpers.asArray(properties.attackerLastingEffects);
-        if (attackerLastingEffects.length === 0) {
-            return false;
-        }
-
-        // construct a hypothetical attack in case it's required for evaluating a condition on the lasting effect
-        const attack = new Attack(
-            context.game,
-            properties.attacker as IUnitCard,
-            [attackTarget],
-            properties.isAmbush,
-            properties.attackerCombatDamageOverride,
+    /**
+     * Returns the subset of attacker lasting effects that depend on the chosen target or some other aspect of
+     * the attack object itself (factory-form or conditional).
+     *
+     * Used by {@link registerAttackEffects} to skip entries that were applied earlier at Declare Intent.
+     */
+    private static partitionLateAttackerLastingEffects<TContext extends AbilityContext>(
+        attackerLastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[] | undefined
+    ): IAttackLastingEffectPropertiesOrFactory<TContext>[] {
+        return Helpers.asArray(attackerLastingEffects).filter((entry) =>
+            typeof entry === 'function' || entry.condition != null
         );
+    }
 
-        const effectSystem = this.buildCardLastingEffectSystem(attackerLastingEffects, context, attack, attackTarget);
-        const applicableEffects = effectSystem.getApplicableEffects(properties.attacker, context);
+    /**
+     * Returns the subset of attacker lasting effects that can be applied before target selection — entries
+     * that are neither factory functions nor carry an attack-dependent condition.
+     */
+    private static partitionEarlyAttackerLastingEffects<TContext extends AbilityContext>(
+        attackerLastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[] | undefined
+    ): IAttackLastingEffectProperties<TContext>[] {
+        return Helpers.asArray(attackerLastingEffects).filter((entry): entry is IAttackLastingEffectProperties<TContext> =>
+            typeof entry !== 'function' && entry.condition == null
+        );
+    }
 
-        return applicableEffects.some((effect) => predicate(effect));
+    /**
+     * Applies attacker lasting effects at "Declare Intent" of a modified attack action (CR 6.3.1.1), so that they're
+     * active during target legality checks performed by {@link canAffectInternal}. Only entries that don't depend on
+     * the chosen target (no factory, no condition) are applied here; the rest run later in {@link registerAttackEffects}.
+     */
+    public static queueEarlyAttackerLastingEffects<TContext extends AbilityContext>(
+        context: TContext,
+        attacker: Card,
+        attackerLastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext> | IAttackLastingEffectPropertiesOrFactory<TContext>[] | undefined
+    ): void {
+        const entries = AttackStepsSystem.partitionEarlyAttackerLastingEffects(attackerLastingEffects);
+        if (entries.length === 0) {
+            return;
+        }
+
+        const effectSystem = new CardLastingEffectSystem<TContext>({
+            duration: Duration.UntilEndOfAttack,
+            target: attacker,
+            effect: entries.flatMap((entry) => Helpers.asArray(entry.effect))
+        });
+
+        if (effectSystem.getApplicableEffects(attacker, context).length === 0) {
+            return;
+        }
+
+        const effectEvents: GameEvent[] = [];
+        effectSystem.queueGenerateEventGameSteps(effectEvents, context);
+        context.game.queueSimpleStep(() => context.game.openEventWindow(effectEvents), 'open event window for early attacker lasting effects');
     }
 
     private buildCardLastingEffectSystem(lastingEffects: IAttackLastingEffectPropertiesOrFactory<TContext>[], context: TContext, attack: Attack, target: Card) {

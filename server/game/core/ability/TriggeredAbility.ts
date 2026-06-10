@@ -107,9 +107,9 @@ export abstract class TriggeredAbilityBase extends CardAbility {
             : GameStateChangeRequired.MustFullyOrPartiallyResolve;
 
         if ('attackerMustSurvive' in properties && properties.attackerMustSurvive) {
-            const unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+            const cardsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.cardsDefeatedThisPhase();
             this.effectCondition = (context: TriggeredAbilityContext) =>
-                AttackHelpers.attackerSurvived(context.event.attack, unitsDefeatedThisPhaseWatcher);
+                AttackHelpers.attackerSurvived(context.event.attack, cardsDefeatedThisPhaseWatcher);
         }
     }
 

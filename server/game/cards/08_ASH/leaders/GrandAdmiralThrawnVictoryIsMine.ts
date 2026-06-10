@@ -8,7 +8,7 @@ import { Helpers } from '../../../core/utils/Helpers';
 export default class GrandAdmiralThrawnVictoryIsMine extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grand-admiral-thrawn#victory-is-mine-id',
+            id: '1997690465',
             internalName: 'grand-admiral-thrawn#victory-is-mine',
         };
     }

@@ -257,5 +257,44 @@ describe('Support keyword', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('Supported unit should copy Saboteur keyword early enough for attack target selection', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['unsanctioned-patrol'],
+                    spaceArena: ['stolen-athauler'],
+                },
+                player2: {
+                    spaceArena: [{
+                        card: 'alkenzi-patroller',
+                        upgrades: ['shield', 'shield']
+                    }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Initiate an attack with Stolen AT-Hauler; it can only target the space Sentinel
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.player1).toBeAbleToSelectExactly([context.alkenziPatroller]);
+            context.player1.clickPrompt('Cancel');
+
+            // Instead, play Unsanctioned Patrol, which should copy Saboteur to Stolen AT-Hauler and initiate an attack with it
+            context.player1.clickCard(context.unsanctionedPatrol);
+            context.player1.clickCard(context.stolenAthauler);
+
+            // Base is targetable because abilities were copied in time for the attack target selection
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.alkenziPatroller,
+                context.p2Base
+            ]);
+
+            context.player1.clickCard(context.alkenziPatroller);
+
+            // Alkenzi Patroller should be defeated because Saboteur allowed Stolen AT-Hauler to defeat Shields on attack
+            expect(context.alkenziPatroller).toBeInZone('discard');
+            expect(context.stolenAthauler.damage).toBe(2);
+        });
     });
 });

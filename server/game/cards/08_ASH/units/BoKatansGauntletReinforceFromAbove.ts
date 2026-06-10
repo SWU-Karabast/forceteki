@@ -6,7 +6,7 @@ import { AbilityType, RelativePlayer } from '../../../core/Constants';
 export default class BoKatansGauntletReinforceFromAbove extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bokatans-gauntlet#reinforce-from-above-id',
+            id: '7898172309',
             internalName: 'bokatans-gauntlet#reinforce-from-above',
         };
     }

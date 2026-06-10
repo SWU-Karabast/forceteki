@@ -7,7 +7,7 @@ import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectB
 export default class ElzarMannHauntedByAVision extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'elzar-mann#haunted-by-a-vision-id',
+            id: '4779843241',
             internalName: 'elzar-mann#haunted-by-a-vision'
         };
     }

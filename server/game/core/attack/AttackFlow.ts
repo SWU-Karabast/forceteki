@@ -5,7 +5,7 @@ import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { GameEvent } from '../event/GameEvent';
-import { addAttackLastKnownInformationToEvent } from '../event/LastKnownInformation';
+import { addAttackLastKnownInformationToEvent, buildAttackLastKnownInformationHandler } from '../event/LastKnownInformation';
 import type { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
@@ -15,18 +15,20 @@ import { Contract } from '../utils/Contract';
 export class AttackFlow extends BaseStepWithPipeline {
     private context: AbilityContext;
     private attack: Attack;
+    private onAttackDeclared?: () => void;
 
     public constructor(
         context: AbilityContext,
-        attack: Attack
+        attack: Attack,
+        onAttackDeclared?: () => void
     ) {
         super(context.game);
 
         this.context = context;
         this.attack = attack;
+        this.onAttackDeclared = onAttackDeclared;
 
         this.pipeline.initialise([
-            new SimpleStep(this.game, () => this.setCurrentAttack(), 'setCurrentAttack'),
             new SimpleStep(this.game, () => this.declareAttack(), 'declareAttack'),
             new SimpleStep(this.game, () => this.dealDamageAndCompleteAttack(), 'dealDamageAndCompleteAttack'),
             new SimpleStep(this.game, () => this.cleanUpAttack(), 'cleanUpAttack'),
@@ -43,12 +45,24 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private declareAttack() {
-        const event = this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
+        const declareAttackEvent = new GameEvent(
+            EventName.OnAttackDeclared,
+            this.context,
+            { attack: this.attack }
+        );
 
         // Capture the attacker and defender's LKI on the event itself, before any "On Attack" / "On Defense"
         // abilities can mutate or defeat the attacker. Read by triggers that resolve during the
         // OnAttackDeclared window (e.g. Kragan Gorr's target resolver).
-        addAttackLastKnownInformationToEvent(event, this.attack);
+        const captureLastKnownInformation = buildAttackLastKnownInformationHandler(this.attack);
+
+        declareAttackEvent.setPreResolutionEffect((event) => {
+            this.setCurrentAttack();
+            captureLastKnownInformation(event);
+            this.onAttackDeclared?.();
+        });
+
+        this.context.game.openEventWindow([declareAttackEvent], TriggerHandlingMode.ResolvesTriggers);
     }
 
     private dealDamageAndCompleteAttack(): void {
@@ -199,6 +213,10 @@ export class AttackFlow extends BaseStepWithPipeline {
 
             this.context.game.openEventWindow(damageEvents);
         } else {
+            // Every legal target has left play (e.g. defeated by a debuff from "While this unit
+            // is attacking..." abilities) and the attacker has no Overwhelm to redirect damage
+            // to the base, so no combat damage will be dealt.
+            this.context.game.addMessage('The attack does not resolve because there is no longer a legal target');
             this.context.game.openEventWindow(attackCompleteEvent);
         }
     }

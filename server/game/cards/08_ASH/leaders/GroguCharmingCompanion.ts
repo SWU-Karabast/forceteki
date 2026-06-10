@@ -9,7 +9,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class GroguCharmingCompanion extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grogu#charming-companion-id',
+            id: '2168426335',
             internalName: 'grogu#charming-companion',
         };
     }

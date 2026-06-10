@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class ScionShuttleAtMorgansBidding extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'scion-shuttle#at-morgans-bidding-id',
+            id: '8573360332',
             internalName: 'scion-shuttle#at-morgans-bidding',
         };
     }
