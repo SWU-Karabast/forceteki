@@ -46,12 +46,8 @@ export default class ReyWithPalpatinesPower extends NonLeaderUnitCard {
     }
 
     private aggressionAspectCondition(context: TriggeredAbilityContext) {
-        const arenaLeaders = context.player.getArenaCards({ type: WildcardCardType.LeaderUnit });
-        const baseZoneLeaderOrBase = context.player.baseZone.cards.filter((card) =>
-            card.type === CardType.Leader || card.type === CardType.Base
-        );
-
-        const allCardsToCheck = [...arenaLeaders, ...baseZoneLeaderOrBase];
+        const leaderCards = context.player.getLeaderCards();
+        const allCardsToCheck = [...leaderCards, context.player.base];
 
         return allCardsToCheck.some((card) => card.hasSomeAspect(Aspect.Aggression));
     }
