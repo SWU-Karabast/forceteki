@@ -3,10 +3,10 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class KoskaReevesWarriorOfMandalore extends NonLeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId () {
         return {
@@ -16,7 +16,7 @@ export default class KoskaReevesWarriorOfMandalore extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers (registrar: StateWatcherRegistrar, abilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = abilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
@@ -30,7 +30,7 @@ export default class KoskaReevesWarriorOfMandalore extends NonLeaderUnitCard {
             title: 'Create a Mandalorian token',
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
+                    this.cardsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
                 onTrue: abilityHelper.immediateEffects.createMandalorian()
             })
         });

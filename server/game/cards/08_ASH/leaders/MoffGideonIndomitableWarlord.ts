@@ -7,10 +7,10 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { TextHelper } from '../../../core/utils/TextHelper';
 import type { NonParameterKeywordName } from '../../../Interfaces';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class MoffGideonIndomitableWarlord extends LeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -20,7 +20,7 @@ export default class MoffGideonIndomitableWarlord extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, abilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = abilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper): void {
@@ -54,7 +54,7 @@ export default class MoffGideonIndomitableWarlord extends LeaderUnitCard {
     }
 
     private friendlyImperialUnitWasDefeatedThisPhase(context): boolean {
-        return this.unitsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((entry) =>
+        return this.cardsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((entry) =>
             entry.controlledBy === context.player &&
             entry.lastKnownInformation.traits.has(Trait.Imperial)
         );
