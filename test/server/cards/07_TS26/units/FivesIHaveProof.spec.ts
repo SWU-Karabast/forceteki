@@ -366,123 +366,133 @@ describe('Fives, I Have Proof!', function() {
                 expect(context.battlefieldMarine.getHp()).toBe(3);
             });
 
-            it('should allow Fives to copy Corvus WP and attach a friendly Pilot unit to himself (non-Vehicle parent)', async function() {
+            it('should allow Fives to copy Corvus\'s WP and attach a Pilot unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
-                        base: 'dagobah-swamp',
-                        hand: ['fives#i-have-proof'],
-                        groundArena: ['astromech-pilot'],
-                        spaceArena: ['corvus#inferno-squadron-raider'],
-                    },
-                    player2: {}
-                });
-
-                const { context } = contextRef;
-
-                // Play Fives — Corvus has a WP ability; Astromech Pilot's WP is a piloting ability and not registered as a standard WP
-                context.player1.clickCard(context.fives);
-                expect(context.player1).toHavePrompt(copyPrompt);
-                expect(context.player1).toBeAbleToSelectExactly([context.corvus]);
-
-                // Copy Corvus's WP: "Attach a friendly Pilot unit or upgrade to this unit"
-                context.player1.clickCard(context.corvus);
-
-                // Corvus's WP fires with Fives as source — Astromech Pilot is a friendly Pilot unit
-                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot]);
-                context.player1.clickCard(context.astromechPilot);
-
-                // Astromech Pilot is now attached to Fives (a non-Vehicle) as an upgrade
-                expect(context.fives).toHaveExactUpgradeNames(['astromech-pilot']);
-                expect(context.astromechPilot).toBeInZone('groundArena');
-            });
-
-            it('should allow Fives to copy Corvus WP and attach a Pilot-trait unit without its own WP ability', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
-                        base: 'dagobah-swamp',
                         hand: ['fives#i-have-proof'],
                         groundArena: ['sullustan-spacer'],
                         spaceArena: ['corvus#inferno-squadron-raider'],
-                    },
-                    player2: {}
+                    }
                 });
 
                 const { context } = contextRef;
 
-                // Play Fives — only Corvus is selectable because Sullustan Spacer has no standard WP ability
+                // Play Fives to copy Corvus's When Played ability
                 context.player1.clickCard(context.fives);
+                expect(context.player1).toHavePrompt(copyPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.corvus]);
-
-                // Copy Corvus's WP: the copied ability attaches a friendly Pilot to Fives
                 context.player1.clickCard(context.corvus);
 
-                // Sullustan Spacer (Pilot unit, no WP of its own) is the only valid attach target
+                // Sullustan Spacer (Pilot unit) is the only valid attach target
+                expect(context.player1).toHavePrompt('Attach a friendly pilot unit or upgrade to Fives');
                 expect(context.player1).toBeAbleToSelectExactly([context.sullustanSpacer]);
                 context.player1.clickCard(context.sullustanSpacer);
 
                 // Sullustan Spacer is now attached to Fives as an upgrade
                 expect(context.fives).toHaveExactUpgradeNames(['sullustan-spacer']);
                 expect(context.sullustanSpacer).toBeInZone('groundArena');
+
+                // Fives gets the stat buff from the pilot's stat modifiers
+                expect(context.fives.getPower()).toBe(7); // 6 + 1 = 7
+                expect(context.fives.getHp()).toBe(7);   // 6 + 1 = 7
             });
 
-            it('should allow Fives to copy Sidon WP and attach himself as an upgrade to an enemy Vehicle', async function() {
+            it('should allow Fives to copy Sidon Ithano\'s WP and attach himself as an upgrade to an enemy Vehicle', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
-                        base: 'dagobah-swamp',
-                        hand: ['fives#i-have-proof'],
+                        hand: ['fives#i-have-proof', 'confiscate'],
                         groundArena: ['sidon-ithano#the-crimson-corsair'],
                     },
                     player2: {
+                        hand: ['sullustan-spacer'],
                         spaceArena: ['omicron-strike-craft'],
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Play Fives — copy Sidon's WP: "Attach this unit as an upgrade to an enemy Vehicle without a Pilot"
+                // Play Fives to copy Sidon's When Played ability
                 context.player1.clickCard(context.fives);
+                expect(context.player1).toHavePrompt(copyPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.sidonIthano]);
                 context.player1.clickCard(context.sidonIthano);
 
                 // Only the enemy Vehicle in space arena is eligible
+                expect(context.player1).toHavePrompt('Attach Fives as an upgrade to an enemy Vehicle unit without a Pilot on it');
                 expect(context.player1).toBeAbleToSelectExactly([context.omicronStrikeCraft]);
                 context.player1.clickCard(context.omicronStrikeCraft);
 
                 // Fives is now attached to the enemy Vehicle as an upgrade
                 expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['fives#i-have-proof']);
+
+                // Fives contributes no stat modifiers as an upgrade
+                expect(context.omicronStrikeCraft.getPower()).toBe(2);
+                expect(context.omicronStrikeCraft.getHp()).toBe(3);
+
+                // The opponent can still play a Pilot upgrade on the Vehicle because Fives himself doesn't have the Pilot trait
+                context.player2.clickCard(context.sullustanSpacer);
+                context.player2.clickPrompt('Play Sullustan Spacer with Piloting');
+                context.player2.clickCard(context.omicronStrikeCraft);
+
+                expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['fives#i-have-proof', 'sullustan-spacer']);
+                expect(context.omicronStrikeCraft.getPower()).toBe(3);
+                expect(context.omicronStrikeCraft.getHp()).toBe(4);
+
+                // Fives can be targeted as an upgrade (e.g. by Confiscate)
+                context.player1.clickCard(context.confiscate);
+                expect(context.player1).toBeAbleToSelectExactly([context.fives, context.sullustanSpacer]);
+                context.player1.clickCard(context.fives);
+
+                expect(context.fives).toBeInZone('discard');
+                expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['sullustan-spacer']);
             });
 
-            it('should allow declining the attach prompt when Fives copies Corvus WP', async function() {
+            it('should allow Fives to copy Pantoran Starship Thief\'s WP and attach himself as an upgrade to an enemy Fighter/Transport and take control of it', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
-                        base: 'dagobah-swamp',
                         hand: ['fives#i-have-proof'],
-                        groundArena: ['astromech-pilot'],
-                        spaceArena: ['corvus#inferno-squadron-raider'],
+                        groundArena: ['pantoran-starship-thief'],
                     },
-                    player2: {}
+                    player2: {
+                        hand: ['confiscate'],
+                        spaceArena: ['desperado-freighter']
+                    }
                 });
 
                 const { context } = contextRef;
 
-                // Play Fives, copy Corvus's WP
+                // Play Fives to copy Pantoran Starship Thief's When Played ability
                 context.player1.clickCard(context.fives);
-                context.player1.clickCard(context.corvus);
+                expect(context.player1).toHavePrompt(copyPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.pantoranStarshipThief]);
+                context.player1.clickCard(context.pantoranStarshipThief);
 
-                // Decline to attach a Pilot
-                context.player1.clickPrompt('Pass');
+                // Ability triggers to allow Fives to attach to the enemy Desperado Freighter and take control of it
+                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources to attach Fives as an upgrade to a Fighter or Transport unit without a Pilot on it. Take control of that unit');
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.desperadoFreighter]);
+                context.player1.clickCard(context.desperadoFreighter);
 
-                // Fives is in play with no upgrades; Astromech Pilot is unchanged
-                expect(context.fives).toBeInZone('groundArena');
-                expect(context.fives).toHaveExactUpgradeNames([]);
-                expect(context.astromechPilot).toBeInZone('groundArena');
+                // Fives is now attached to the enemy unit as an upgrade, and player 1 has control of it
+                expect(context.desperadoFreighter).toHaveExactUpgradeNames(['fives#i-have-proof']);
+                expect(context.desperadoFreighter).toBeInZone('spaceArena', context.player1);
+
+                // Fives contributes no stat modifiers as an upgrade
+                expect(context.desperadoFreighter.getPower()).toBe(5);
+                expect(context.desperadoFreighter.getHp()).toBe(6);
+
+                // Opponent defeats Fives, but they do not regain control of the Transport because Fives did not
+                // gain the Pantoran's other triggered ability to return control
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.fives);
+
+                // Fives is defated; Player 1 keeps control of the Desperado Freighter
+                expect(context.fives).toBeInZone('discard');
+                expect(context.desperadoFreighter).toHaveExactUpgradeNames([]);
+                expect(context.desperadoFreighter).toBeInZone('spaceArena', context.player1);
             });
         });
     });
