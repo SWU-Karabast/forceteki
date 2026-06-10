@@ -3,6 +3,7 @@ import type { CardType, Trait } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
+import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import type { Game } from '../core/Game';
@@ -21,7 +22,7 @@ export interface IDefeatedUnitLKIEntry {
 }
 
 export interface DefeatedUnitEntry {
-    unit: GameObjectId<IUnitCard>;
+    unit: GameObjectId<IInPlayCard>;
     inPlayId: number;
     controlledBy: GameObjectId<Player>;
     defeatedBy?: GameObjectId<Player>;
@@ -34,6 +35,16 @@ interface InPlayUnit {
     inPlayId: number;
 }
 
+/**
+ * Tracks both units and upgrades defeated this phase. Helpers ending in `Unit*` filter
+ * to unit defeats; helpers ending in `Upgrade*` filter to upgrade defeats; the public
+ * {@link getCurrentValue} continues to return only unit defeats so existing callers
+ * (which assumed unit-only data) are unaffected.
+ *
+ * TODO: pure-rename follow-up — rename this watcher (file, class, interface, enum value,
+ * library method, fields) from `UnitsDefeated*` to `CardsDefeated*` to reflect its broadened
+ * scope. Kept out of this PR to limit blast radius (~47 files).
+ */
 @registerState()
 export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntry> {
     public constructor(
@@ -61,7 +72,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
      * this phase so far, as well as the controlling and defeating player.
      */
     public override getCurrentValue() {
-        return super.getCurrentValue();
+        return super.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.lastKnownInformation.type));
     }
 
     /** Get the list of the units that were defeated this phase */
@@ -73,7 +84,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     public getDefeatedUnitsControlledByPlayer(controller: Player): InPlayUnit[] {
         return this.getCurrentValue()
             .filter((entry) => entry.controlledBy === controller)
-            .map((entry) => ({ unit: entry.unit, inPlayId: entry.inPlayId }));
+            .map((entry) => ({ unit: entry.unit as IUnitCard, inPlayId: entry.inPlayId }));
     }
 
     /** Check if a specific copy of a unit was defeated this phase */
@@ -100,10 +111,24 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         return this.getCurrentValue().filter((entry) => entry.controlledBy !== player && entry.defeatedBy === player).length > 0;
     }
 
+    /** Check if some upgrade matching the given criteria was defeated this phase */
+    public someUpgradeDefeatedThisPhase({ controller, filter }: {
+        controller?: Player;
+        filter?: (entry: UnwrapRef<DefeatedUnitEntry>) => boolean;
+    } = {}): boolean {
+        return super.getCurrentValue()
+            .filter((entry) => EnumHelpers.isUpgrade(entry.lastKnownInformation.type))
+            .filter((entry) => controller == null || entry.controlledBy === controller)
+            .filter((entry) => filter == null || filter(entry))
+            .length > 0;
+    }
+
     protected override setupWatcher() {
         this.addUpdater({
             when: {
-                onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type)
+                onCardDefeated: (event) =>
+                    EnumHelpers.isUnit(event.lastKnownInformation.type) ||
+                    EnumHelpers.isUpgrade(event.lastKnownInformation.type)
             },
             update: (currentState: DefeatedUnitEntry[], event: any) =>
                 currentState.concat({
