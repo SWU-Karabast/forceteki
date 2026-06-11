@@ -5,7 +5,6 @@ import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
 import { Contract } from '../core/utils/Contract';
-import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { DamageSystem } from './DamageSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
@@ -118,15 +117,6 @@ export class DamageModificationSystem<
             default:
                 Contract.fail(`Invalid modificationType ${properties.modificationType} for DamageModificationSystem`);
         }
-    }
-
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState): boolean {
-        // Handles if an upgrade such as Shield is triggered but then defeated by another effect before resolving
-        if (context.source.isUpgrade() && !EnumHelpers.isArena(context.source.zoneName)) {
-            return false;
-        }
-
-        return super.hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
     protected override shouldReplace (context: TContext): boolean {
