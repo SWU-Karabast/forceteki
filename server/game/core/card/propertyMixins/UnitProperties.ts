@@ -1045,10 +1045,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
                 return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
             }
-            if (this.hasSomeTrait(Trait.Pilot) && this.isAttached()) {
+            if (this.hasSomeTrait(Trait.Pilot)) {
+                const canAttachPilot = targetCard.canAttachPilot(this);
                 // A pilot upgrade being moved by an ability (e.g. Survivors' Gauntlet) retains the
                 // "friendly Vehicle without a Pilot upgrade" restriction it acquired when first attached.
-                return targetCard.canAttachPilot(this) && targetCard.controller === this.controller;
+                if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                    return canAttachPilot && targetCard.controller === this.controller;
+                } else if (this.isAttached()) {
+                    return canAttachPilot;
+                }
             }
 
             // A unit without the Pilot trait or Piloting keyword may still be attached as an upgrade
