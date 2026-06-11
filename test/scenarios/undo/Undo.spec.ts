@@ -1098,6 +1098,7 @@ describe('Undo', function() {
 
                     // draw a specific cards
                     context.player1.clickCard(context.searchYourFeelings);
+                    context.player1.clickCardInDisplayCardPrompt(context.avenger);
                     context.player2.passAction();
 
                     const exhaustedResourceCount = context.player1.exhaustedResourceCount;

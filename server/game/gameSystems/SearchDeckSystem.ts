@@ -23,12 +23,8 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited;
     activePromptTitle?: string;
 
-    /**
-     * The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck.
-     *
-     * This is currently required while SearchEntireDeckSystem exists, but once the prompt UI issue is fixed we can remove that system and make this optional again.
-     */
-    searchCount: number | ((context: TContext) => number);
+    /** The number of cards from the top of the deck to search, or a function to determine it. Omit to search the whole deck. */
+    searchCount?: number | ((context: TContext) => number);
     canChooseFewer?: boolean;
 
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
@@ -61,7 +57,6 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     public override readonly eventName = EventName.OnDeckSearch;
 
     protected override defaultProperties: ISearchDeckProperties = {
-        searchCount: -1,
         selectCount: 1,
         targetMode: TargetMode.UpTo,
         selectedCardsHandler: null,
@@ -76,7 +71,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     public override eventHandler(event: any, additionalProperties: Partial<TProperties> = {}): void {
         const player = event.player;
         const deckLength = this.getDeck(player).length;
-        const amount = event.amount === -1 ? deckLength : (event.amount > deckLength ? deckLength : event.amount);
+        // event.amount == null indicates a whole-deck search; otherwise it's the requested top-N count.
+        const amount = event.amount == null ? deckLength : Math.min(event.amount, deckLength);
         const cards = this.getDeck(player).slice(0, amount);
         this.promptSelectCards(event, additionalProperties, cards, new Set());
     }
@@ -105,7 +101,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         const targetIsSelf = player === context.player;
         const targetMessage: string | FormatMessage = targetIsSelf ? 'their' : { format: '{0}\'s', args: [player] };
         const verb = searchCountAmount === 1 ? 'look at' : 'search';
-        const searchSpaceMessage: string | FormatMessage = searchCountAmount > 0
+        const searchSpaceMessage: string | FormatMessage = searchCountAmount != null
             ? { format: 'the top {0} of ', args: [ChatHelpers.pluralize(searchCountAmount, 'card', 'cards')] }
             : '';
 
@@ -138,7 +134,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         return typeof numCards === 'function' ? numCards(context) : numCards;
     }
 
-    private computeSearchCount(searchCount: Derivable<number>, context: TContext): number {
+    private computeSearchCount(searchCount: Derivable<number | undefined> | undefined, context: TContext): number | undefined {
         return typeof searchCount === 'function' ? searchCount(context) : searchCount;
     }
 
@@ -254,8 +250,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
         // Shuffle if needed
         if (
-            // Whole deck search always requires a shuffle
-            this.computeSearchCount(properties.searchCount, context) === -1 ||
+            // Whole-deck searches (CR 8.27.2) always shuffle.
+            this.computeSearchCount(properties.searchCount, context) == null ||
             this.shouldShuffle(properties.shuffleWhenDone, context)
         ) {
             this.handleDeckShuffle(properties, context, remainingCardMessages);
@@ -265,6 +261,11 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     protected remainingCardsDefaultHandler(context: TContext, event: any, cardsToMove: Card[], effectMessages: FormatMessage[]) {
+        // Whole-deck searches always shuffle (CR 8.27.2), so moving unchosen cards to the bottom first
+        // would be redundant — and produce an awkward "move N cards to the bottom, and shuffle" chat message.
+        if (event.amount == null) {
+            return;
+        }
         if (cardsToMove.length > 0) {
             this.handleMoveToBottomOfDeck(context, event, cardsToMove, effectMessages);
         }
