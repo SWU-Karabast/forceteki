@@ -3,11 +3,11 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class CaptainPellaeonPlottingFromTheShadows extends NonLeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -17,13 +17,13 @@ export default class CaptainPellaeonPlottingFromTheShadows extends NonLeaderUnit
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, abilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = abilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While a leader unit has been defeated this phase, this unit gains Raid 3',
-            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((e) => EnumHelpers.isLeaderUnit(e.lastKnownInformation.type)),
+            condition: (context) => this.cardsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((e) => EnumHelpers.isLeaderUnit(e.lastKnownInformation.type)),
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 3 })
         });
     }

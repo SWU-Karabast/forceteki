@@ -96,12 +96,26 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         const attack: Attack = event.attack;
 
+        // The chat log emission is deferred to AttackFlow so it runs after `setCurrentAttack`
+        // has marked the attacker as attacking. This lets constant abilities gated on
+        // `isAttacking()` (e.g. Anakin's Podracer) contribute their ongoing effects to
+        // `attackerDealsCombatDamageFirst()` in time for the chat log to reflect them.
+        const emitChatLog = () => this.emitAttackChatLog(context, attack, attackerEffects, defenderEffects);
+        context.game.queueStep(new AttackFlow(context, attack, emitChatLog));
+    }
+
+    private emitAttackChatLog(
+        context: TContext,
+        attack: Attack,
+        attackerEffects: CardLastingEffectSystem | undefined,
+        defenderEffects: Map<Card, CardLastingEffectSystem>
+    ): void {
         const attackMessage: FormatMessage[] = [
             {
                 format: '{0} attacks {1} with {2}{3}',
                 args: [
                     attack.attackingPlayer,
-                    this.getTargetMessage(attack.getAllTargets(), event.context),
+                    this.getTargetMessage(attack.getAllTargets(), context),
                     attack.attacker,
                     attack.attackerDealsCombatDamageFirst() ? ' (dealing damage before the defender)' : ''
                 ]
@@ -131,7 +145,6 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
 
         context.game.addMessage(ChatHelpers.formatWithLength(attackMessage.length), ...attackMessage);
-        context.game.queueStep(new AttackFlow(context, attack));
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}) {

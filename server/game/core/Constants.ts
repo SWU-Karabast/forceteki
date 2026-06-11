@@ -532,6 +532,7 @@ export enum DamageModificationType {
     Cap = 'cap',
     PreventAll = 'all',
     Increase = 'increase',
+    Multiply = 'multiply',
     Reduce = 'reduce',
     Replace = 'replace'
 }
@@ -539,6 +540,7 @@ export enum DamageModificationType {
 export enum StateWatcherName {
     ActionsThisPhase = 'actionsThisPhase',
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDefeatedThisPhase = 'cardsDefeatedThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
@@ -548,8 +550,8 @@ export enum StateWatcherName {
     ForceUsedThisPhase = 'forceUsedThisPhase',
     LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
     TokensCreatedThisPhase = 'tokensCreatedThisPhase',
-    UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
+    UnitsDamagedThisPhase = 'unitsDamagedThisPhase',
     BasesHealedThisPhase = 'basesHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
