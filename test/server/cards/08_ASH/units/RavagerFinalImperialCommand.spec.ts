@@ -1,5 +1,44 @@
 describe('Ravager, Final Imperial Command', function () {
     integration(function (contextRef) {
+        describe('When Ravager comes into play', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['ravager#final-imperial-command'],
+                        spaceArena: ['cartel-spacer']
+                    },
+                    player2: {
+                        spaceArena: ['the-purrgil-king#leading-the-journey']
+                    }
+                });
+            });
+
+            it('should deal damage equal to its power to a targeted unit in the space arena', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.ravager);
+
+                // Only space units selectable
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.ravager,
+                    context.cartelSpacer,
+                    context.thePurrgilKing
+                ]);
+
+                // Deal 8 damage (Ravager has 8 power)
+                expect(context.player1).toHavePrompt('Deal 8 damage to a unit in the space arena');
+                context.player1.clickCard(context.thePurrgilKing);
+
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Ravager',
+                    'player1 uses Ravager to deal 8 damage to The Purrgil King'
+                ]);
+                expect(context.thePurrgilKing.damage).toBe(8);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('When you play a unit ability', function () {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
