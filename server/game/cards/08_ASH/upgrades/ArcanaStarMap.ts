@@ -16,15 +16,14 @@ export default class ArcanaStarMap extends UpgradeCard {
             when: {
                 onDeckSearch: (event, context) => event.player === context.source.controller && event.amount > 0,
             },
-            replaceWith: {
-                replacementImmediateEffect: AbilityHelper.immediateEffects.deckSearch(
-                    (context) => ({
-                        ...context.event.searchProperties,
-                        target: context.player,
-                        searchCount: context.event.amount * 2,
-                    })
-                ),
-            },
+            replaceWith: (context) => ({
+                effect: `search ${context.event.amount * 2} cards instead`,
+                replacementImmediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                    ...context.event.searchProperties,
+                    target: context.player,
+                    searchCount: context.event.amount * 2,
+                }),
+            }),
         });
     }
 }
