@@ -1048,7 +1048,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             if (this.hasSomeTrait(Trait.Pilot) && this.isAttached()) {
                 // A pilot upgrade being moved by an ability (e.g. Survivors' Gauntlet) retains the
                 // "friendly Vehicle without a Pilot upgrade" restriction it acquired when first attached.
-                return targetCard.canAttachPilot(this);
+                return targetCard.canAttachPilot(this) && targetCard.controller === this.controller;
             }
 
             // A unit without the Pilot trait or Piloting keyword may still be attached as an upgrade
