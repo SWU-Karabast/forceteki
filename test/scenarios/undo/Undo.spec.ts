@@ -1478,7 +1478,7 @@ describe('Undo', function() {
             // TODO: LeadersDeployedThisPhaseWatcher is not used directly, need to find an example.
             // describe('LeadersDeployedThisPhaseWatcher', function () { });
 
-            describe('UnitsDefeatedThisPhaseWatcher', function() {
+            describe('CardsDefeatedThisPhaseWatcher', function() {
                 undoIt('Bravado readies unit with cost reduction when smuggled', async function () {
                     await contextRef.setupTestAsync({
                         phase: 'action',

@@ -73,8 +73,13 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         remainingCardsImmediateEffect: null
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event): void { }
+    public override eventHandler(event: any, additionalProperties: Partial<TProperties> = {}): void {
+        const player = event.player;
+        const deckLength = this.getDeck(player).length;
+        const amount = event.amount === -1 ? deckLength : (event.amount > deckLength ? deckLength : event.amount);
+        const cards = this.getDeck(player).slice(0, amount);
+        this.promptSelectCards(event, additionalProperties, cards, new Set());
+    }
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -115,20 +120,16 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
-        const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties);
-        const searchCountAmount = this.computeSearchCount(searchCount, context);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
-        event.amount = searchCountAmount;
+        event.amount = this.computeSearchCount(properties.searchCount, context);
+        event.searchProperties = properties;
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player = this.getSingleTarget(properties.target);
         const event = this.generateRetargetedEvent(player, context, additionalProperties) as any;
-        const deckLength = this.getDeck(player).length;
-        const amount = event.amount === -1 ? deckLength : (event.amount > deckLength ? deckLength : event.amount);
-        const cards = this.getDeck(player).slice(0, amount);
-        this.promptSelectCards(event, additionalProperties, cards, new Set());
         events.push(event);
         context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(player.id);
     }
