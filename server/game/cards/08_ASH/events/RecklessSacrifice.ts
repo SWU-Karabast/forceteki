@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class RecklessSacrifice extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'reckless-sacrifice-id',
+            id: '8814113279',
             internalName: 'reckless-sacrifice',
         };
     }

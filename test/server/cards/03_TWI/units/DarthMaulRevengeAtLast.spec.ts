@@ -436,7 +436,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.moistureFarmer);
             context.player1.clickDone();
 
-            context.player2.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+            context.player2.clickPrompt('Defeat Shield to prevent Wampa from taking damage');
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.moistureFarmer.damage).toBe(0);

@@ -10,7 +10,7 @@ import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbi
 export default class SabineWrenBargainingOnBelief extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sabine-wren#bargaining-on-belief-id',
+            id: '6706120928',
             internalName: 'sabine-wren#bargaining-on-belief',
         };
     }

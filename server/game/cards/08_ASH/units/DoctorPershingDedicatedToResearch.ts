@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class DoctorPershingDedicatedToResearch extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'doctor-pershing#dedicated-to-research-id',
+            id: '2812074334',
             internalName: 'doctor-pershing#dedicated-to-research',
         };
     }

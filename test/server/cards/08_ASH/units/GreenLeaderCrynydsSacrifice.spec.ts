@@ -55,5 +55,42 @@ describe('Green Leader, Crynyd\'s Sacrifice', function () {
             expect(context.player1).toBeActivePlayer();
             expect(context.wampa.damage).toBe(2);
         });
+
+        it('Green Leader\'s ability should trigger for its controller when defeated in combat while an opponent-controlled Grav Charge is attached', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: [
+                        {
+                            card: 'green-leader#crynyds-sacrifice',
+                            upgrades: [{ card: 'grav-charge', ownerAndController: 'player2' }]
+                        }
+                    ]
+                },
+                player2: {
+                    groundArena: [{ card: 'battlefield-marine', damage: 1 }],
+                    spaceArena: ['mynock']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.greenLeader);
+            context.player1.clickCard(context.mynock);
+
+            expect(context.greenLeader).toBeInZone('discard', context.player1);
+            expect(context.mynock).toBeInZone('discard', context.player2);
+            expect(context.gravCharge).toBeInZone('discard', context.player2);
+
+            expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+            context.player1.clickPrompt('You');
+
+            expect(context.player1).toHavePrompt('Deal 2 damage to a unit');
+            expect(context.player1).toHavePassAbilityButton();
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

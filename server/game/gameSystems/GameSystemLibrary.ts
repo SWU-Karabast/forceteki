@@ -47,6 +47,8 @@ import type { IDistributeDamageSystemProperties } from './DistributeDamageSystem
 import { DistributeDamageSystem } from './DistributeDamageSystem';
 import type { IDistributeExperienceSystemProperties } from './DistributeExperienceSystem';
 import { DistributeExperienceSystem } from './DistributeExperienceSystem';
+import type { IDistributeAdvantageSystemProperties } from './DistributeAdvantageSystem';
+import { DistributeAdvantageSystem } from './DistributeAdvantageSystem';
 import type { IDistributeHealingSystemProperties } from './DistributeHealingSystem';
 import { DistributeHealingSystem } from './DistributeHealingSystem';
 import type { IDrawSpecificCardProperties } from './DrawSpecificCardSystem';
@@ -259,6 +261,9 @@ export function distributeHealingAmong<TContext extends AbilityContext = Ability
 export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
     return new DistributeExperienceSystem<TContext>(propertyFactory);
 }
+export function distributeAdvantageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeAdvantageSystemProperties, TContext>) {
+    return new DistributeAdvantageSystem<TContext>(propertyFactory);
+}
 export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
 }
@@ -450,7 +455,7 @@ export function payResourcesWithoutAdjustment<TContext extends AbilityContext = 
 /**
  * default status = ordinary
  */
-export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPutIntoPlayProperties, TContext> = {}) {
+export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPutIntoPlayProperties, TContext>) {
     return new PutIntoPlaySystem<TContext>(propertyFactory);
 }
 // /**

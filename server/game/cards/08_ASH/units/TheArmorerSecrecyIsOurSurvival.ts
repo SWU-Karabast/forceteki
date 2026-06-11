@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class TheArmorerSecrecyIsOurSurvival extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-armorer#secrecy-is-our-survival-id',
+            id: '4809843947',
             internalName: 'the-armorer#secrecy-is-our-survival',
         };
     }

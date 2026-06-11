@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class GreenLeaderCrynydsSacrifice extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'green-leader#crynyds-sacrifice-id',
+            id: '7688684269',
             internalName: 'green-leader#crynyds-sacrifice',
         };
     }

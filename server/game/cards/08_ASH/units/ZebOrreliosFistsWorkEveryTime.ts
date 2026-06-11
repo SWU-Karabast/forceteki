@@ -7,7 +7,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class ZebOrreliosFistsWorkEveryTime extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'zeb-orrelios#fists-work-every-time-id',
+            id: '1805238104',
             internalName: 'zeb-orrelios#fists-work-every-time',
         };
     }
@@ -26,9 +26,8 @@ export default class ZebOrreliosFistsWorkEveryTime extends NonLeaderUnitCard {
             title: 'Deal 1 damage to a base',
             when: {
                 onCardDefeated: (event, context) =>
-                    EnumHelpers.isUnit(event.lastKnownInformation.type) &&
-                    event.lastKnownInformation.controller === context.player &&
-                    event.lastKnownInformation.upgrades.length > 0
+                    EnumHelpers.isUpgrade(event.lastKnownInformation.type) &&
+                    event.lastKnownInformation.controller === context.player
             },
             targetResolver: {
                 cardTypeFilter: CardType.Base,

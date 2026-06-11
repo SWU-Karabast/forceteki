@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class CobbVanthLetMeHandleThis extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cobb-vanth#let-me-handle-this-id',
+            id: '2100091585',
             internalName: 'cobb-vanth#let-me-handle-this',
         };
     }

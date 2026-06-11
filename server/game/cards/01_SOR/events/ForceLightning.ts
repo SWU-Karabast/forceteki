@@ -27,8 +27,9 @@ export default class ForceLightning extends EventCard {
                     context.player.isTraitInPlay(Trait.Force) &&
                     context.player.readyResourceCount > 0,
                 targetResolver: {
-                    mode: TargetMode.DropdownList,
-                    options: (context) => Array.from({ length: context.player.readyResourceCount + 1 }, (_x, i) => `${i}`),
+                    mode: TargetMode.ChooseNumber,
+                    min: 0,
+                    max: (context) => context.player.readyResourceCount,
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.payResourcesWithoutAdjustment((context) => ({
                             amount: parseInt(context.select),

@@ -6,7 +6,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class DarthVaderMeetYourDestiny extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'darth-vader#meet-your-destiny-id',
+            id: '2759135991',
             internalName: 'darth-vader#meet-your-destiny',
         };
     }

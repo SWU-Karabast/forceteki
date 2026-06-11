@@ -659,7 +659,14 @@ export class PlayerInteractionWrapper {
 
     public chooseListOption(text: any) {
         const currentPrompt = this.player.currentPrompt();
-        if (!currentPrompt.dropdownListOptions.includes(text)) {
+        const numberValue = Number(text);
+        const isValidNumberPromptChoice =
+          currentPrompt.selectNumber &&
+          Number.isInteger(numberValue) &&
+          numberValue >= currentPrompt.selectNumber.min &&
+          numberValue <= currentPrompt.selectNumber.max;
+
+        if (!currentPrompt.dropdownListOptions.includes(text) && !isValidNumberPromptChoice) {
             throw new TestSetupError(
                 `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );

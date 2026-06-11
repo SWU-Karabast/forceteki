@@ -6,20 +6,20 @@ import type {
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class LukeSkywalkerICanSaveHim extends LeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
-            id: 'luke-skywalker#i-can-save-him-id',
+            id: '6397550626',
             internalName: 'luke-skywalker#i-can-save-him',
         };
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, abilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = abilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper): void {
@@ -33,7 +33,7 @@ export default class LukeSkywalkerICanSaveHim extends LeaderUnitCard {
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    AttackHelpers.attackerSurvived(context.event.attack, this.unitsDefeatedThisPhaseWatcher),
+                    AttackHelpers.attackerSurvived(context.event.attack, this.cardsDefeatedThisPhaseWatcher),
                 onTrue: abilityHelper.immediateEffects.exhaust(),
             }),
             ifYouDo: (ifYouDoContext) => ({

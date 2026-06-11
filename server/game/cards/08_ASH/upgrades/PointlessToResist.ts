@@ -5,7 +5,7 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 export default class PointlessToResist extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'pointless-to-resist-id',
+            id: '7224867389',
             internalName: 'pointless-to-resist',
         };
     }
