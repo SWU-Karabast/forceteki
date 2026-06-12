@@ -77,10 +77,35 @@ describe('Stolen Landspeeder', function () {
         // Ruling 2024 (Han2): when Han Solo (Worth the Risk) leader plays Stolen Landspeeder, his
         // "deal 2 damage to it" defeats the Landspeeder before its "an opponent takes control" When
         // Played trigger would resolve, so the opponent never takes control of it.
-        xit('is defeated by Han Solo (Worth the Risk) leader before the take-control trigger resolves', function () {
-            // Han Solo (Worth the Risk) uses his leader ability to play Stolen Landspeeder for 1 less
-            // and deal 2 damage to it. The Landspeeder is defeated before the "opponent takes control"
-            // When Played trigger resolves, so control never changes.
+        it('is defeated by Han Solo (Worth the Risk) leader before the take-control trigger resolves', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                    hand: ['stolen-landspeeder'],
+                    resources: 5
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            // Han Solo uses his leader ability to play Stolen Landspeeder (cost 1, -1 = free) and deal
+            // 2 damage to it, defeating it (hp 2).
+            context.player1.clickCard(context.hanSolo);
+            context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+            context.player1.clickCard(context.stolenLandspeeder);
+
+            // Defeating the Landspeeder leaves both the "opponent takes control" trigger (player1) and
+            // the bounty trigger (player2) pending in the same window; resolve player1's first.
+            context.player1.clickPrompt('You');
+
+            // player2's bounty does nothing (they don't own the Landspeeder); pass on it
+            context.player2.clickPrompt('Pass');
+
+            // The Landspeeder was defeated before the take-control trigger could resolve, so control
+            // never changed to player2 — it goes to its owner's (player1's) discard pile.
+            expect(context.stolenLandspeeder).toBeInZone('discard', context.player1);
         });
     });
 });

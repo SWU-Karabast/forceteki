@@ -152,10 +152,36 @@ describe('Sneak Attack', function() {
             // Ruling 2025-03-25: a unit played with Sneak Attack is defeated at the start of the
             // regroup phase as long as it's still in play. Attaching it as a pilot upgrade (e.g. via
             // Corvus) does not remove it from play, so the delayed effect still defeats it.
-            xit('should defeat a unit played via Sneak Attack that was attached as a pilot upgrade before regroup', async function () {
-                // Play a pilot unit (e.g. Iden) via Sneak Attack, then play Corvus and use its When
-                // Played to attach the pilot to a friendly vehicle. At the start of the regroup phase,
-                // the pilot upgrade is still defeated by Sneak Attack's delayed effect.
+            it('should defeat a unit played via Sneak Attack that was attached as a pilot upgrade before regroup', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['sneak-attack', 'iden-versio#adapt-or-die', 'corvus#inferno-squadron-raider'],
+                        base: 'administrators-tower',
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        resources: 12
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // Play Iden (a Pilot unit) via Sneak Attack
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.idenVersio);
+                expect(context.idenVersio).toBeInZone('groundArena');
+
+                context.player2.passAction();
+
+                // Play Corvus and use its When Played to attach Iden as a pilot upgrade
+                context.player1.clickCard(context.corvus);
+                context.player1.clickCard(context.idenVersio);
+                expect(context.idenVersio.parentCard).toBe(context.corvus); // Iden is now an upgrade on Corvus
+
+                // At the start of the regroup phase, Iden is still in play (as an upgrade) and is
+                // defeated by Sneak Attack's delayed effect
+                context.moveToRegroupPhase();
+                expect(context.idenVersio).toBeInZone('discard');
             });
 
             it('should not defeat Sabine if she is waylay back in hand and played back the same phase', async function () {

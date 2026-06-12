@@ -200,10 +200,34 @@ describe('Han Solo, Worth the Risk', function () {
 
             // Ruling 2024: Han's "play a unit from hand" ability combos with Exploit — a unit played
             // via Han's ability can still use its Exploit keyword to discount itself by sacrificing units.
-            xit('can combo with Exploit when playing a unit that has the Exploit keyword', function () {
-                // Use Han Solo's deployed leader ability to play a unit with Exploit from hand. The
-                // Exploit keyword should still be usable, letting the player sacrifice units for the
-                // additional discount (on top of Han's 1-resource reduction).
+            it('can combo with Exploit when playing a unit that has the Exploit keyword', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                        hand: ['infiltrating-demolisher'],
+                        groundArena: ['battlefield-marine'],
+                        resources: 5
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // Use Han's leader ability to play Infiltrating Demolisher (cost 4, -1 from Han)
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+                context.player1.clickCard(context.infiltratingDemolisher);
+
+                // Exploit is still usable: sacrifice Battlefield Marine for a further -2 discount
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('Done');
+
+                // Exploit was usable through Han's ability: Battlefield Marine was defeated as the
+                // Exploit cost, and the Demolisher was played and took Han's 2 damage.
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.infiltratingDemolisher).toBeInZone('groundArena');
+                expect(context.infiltratingDemolisher.damage).toBe(2); // Han's 2 damage
             });
         });
     });

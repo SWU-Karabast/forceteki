@@ -514,10 +514,33 @@ describe('Bossk, Hunting his Prey', function () {
         // Ruling 2024: if Bossk (deployed leader) is defeated simultaneously in the same combat that
         // triggers a Bounty (e.g. trading with the Bounty unit), he is no longer in play to grant the
         // re-collect, so the Bounty is not double-collected.
-        xit('does not double-collect a Bounty if Bossk is simultaneously defeated in combat', function () {
-            // Deployed Bossk attacks a Bounty unit and both are defeated simultaneously. The Bounty is
-            // collected once, but Bossk's "collect the Bounty again" ability does not apply since he
-            // left play in the same combat.
+        it('does not double-collect a Bounty if Bossk is simultaneously defeated in combat', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'bossk#hunting-his-prey', deployed: true }
+                },
+                player2: {
+                    groundArena: [{ card: 'rampaging-wampa', upgrades: ['guild-target'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Bossk (4/6) attacks the Rampaging Wampa (6/3): Bossk's 4 defeats the Wampa, the Wampa's
+            // 6 defeats Bossk — both are defeated simultaneously.
+            context.player1.clickCard(context.bossk);
+            context.player1.clickCard(context.rampagingWampa);
+
+            expect(context.rampagingWampa).toBeInZone('discard');
+            expect(context.bossk).toBeInZone('base'); // defeated deployed leader returns to base, undeployed
+
+            // The bounty is collected once...
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(2);
+
+            // ...but Bossk's "collect the Bounty again" does not apply since he left play simultaneously
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

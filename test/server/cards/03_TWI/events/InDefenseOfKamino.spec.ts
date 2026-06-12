@@ -56,9 +56,38 @@ describe('In Defense of Kamino', function () {
         // Ruling 2024: In Defense of Kamino only applies to friendly Republic units in play when the
         // event resolves. A Republic unit played later in the phase does not get Restore 2 or the
         // "When Defeated: Create a Clone Trooper token" grant.
-        xit('does not apply to Republic units played after the event resolves', function () {
-            // Play In Defense of Kamino, then play another friendly Republic unit later that phase.
-            // The later unit should not have Restore 2 nor the When Defeated Clone Trooper grant.
+        it('does not apply to Republic units played after the event resolves', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: { card: 'echo-base', damage: 5 },
+                    hand: ['in-defense-of-kamino', 'phase-i-clone-trooper'],
+                    groundArena: ['advanced-recon-commando'],
+                    resources: 10
+                },
+                player2: {
+                    groundArena: ['b2-legionnaires']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Resolve In Defense of Kamino while only the ARC is in play
+            context.player1.clickCard(context.inDefenseOfKamino);
+            context.player2.passAction();
+
+            // Play a Republic unit (Phase I Clone Trooper) after the event has resolved
+            context.player1.clickCard(context.phaseICloneTrooper);
+
+            // Player 2 attacks and defeats the later-played clone trooper
+            context.player2.clickCard(context.b2Legionnaires);
+            context.player2.clickCard(context.phaseICloneTrooper);
+
+            expect(context.phaseICloneTrooper).toBeInZone('discard');
+
+            // The later-played unit did not get the "When Defeated: Create a Clone Trooper token" grant
+            const cloneTroopers = context.player1.findCardsByName('clone-trooper').filter((card) => card.zoneName === 'groundArena');
+            expect(cloneTroopers.length).toBe(0); // no token created
         });
     });
 });

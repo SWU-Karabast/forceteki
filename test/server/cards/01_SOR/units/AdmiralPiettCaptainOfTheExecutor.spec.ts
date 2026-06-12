@@ -57,14 +57,38 @@ describe('Admiral Piett, Captain of the Executor\'s Folly', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.clanSaxonGauntlet.damage).toBe(0);
             });
+        });
 
+        describe('Admiral Piett\'s interaction with Exploit', function () {
             // Ruling 2024: Piett's passive goes away before the card finishes being played, so if
             // Piett is sacrificed to pay an Exploit cost while playing a cost-6+ non-leader unit,
             // that unit does not gain Ambush.
-            xit('does not grant Ambush to a unit if Piett is sacrificed to that unit\'s Exploit cost', function () {
-                // Play a cost-6+ non-leader unit with Exploit, sacrificing Piett to pay the Exploit
-                // cost. Since Piett's passive is gone before the play finishes, the unit does not
-                // gain Ambush.
+            it('does not grant Ambush to a unit if Piett is sacrificed to that unit\'s Exploit cost', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['droideka-security'],
+                        groundArena: ['admiral-piett#captain-of-the-executor'],
+                        resources: 6
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play the cost-6 Droideka Security with Exploit, sacrificing Piett to pay the cost
+                context.player1.clickCard(context.droidekaSecurity);
+                context.player1.clickPrompt('Trigger Exploit');
+                context.player1.clickCard(context.admiralPiett);
+                context.player1.clickPrompt('Done');
+
+                // Piett's passive was gone before the play finished, so the Droideka does not gain Ambush
+                expect(context.admiralPiett).toBeInZone('discard');
+                expect(context.droidekaSecurity).toBeInZone('groundArena');
+                expect(context.droidekaSecurity.hasSomeKeyword('ambush')).toBeFalse();
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
