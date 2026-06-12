@@ -1,0 +1,108 @@
+<h2>SWU Portable Game Notation — Full Example</h2>
+<p class="subtitle">Review this sample notation format. Does this capture the right structure and feel?</p>
+
+<div class="mockup">
+  <div class="mockup-header">SWU-PGN Format — Sample Game (Round 1)</div>
+  <div class="mockup-body" style="font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; text-align: left; padding: 20px; background: #1a1a2e; color: #e0e0e0;">
+<span style="color: #7eb8da;">[Game "SWU-PGN v1.0"]</span>
+<span style="color: #7eb8da;">[Date "2026.04.04"]</span>
+<span style="color: #7eb8da;">[Player1 "Anonymous"]</span>
+<span style="color: #7eb8da;">[Player2 "Anonymous"]</span>
+<span style="color: #7eb8da;">[P1Leader "Darth Vader, Commanding the First Legion"]</span>
+<span style="color: #7eb8da;">[P1Base "Command Center"]</span>
+<span style="color: #7eb8da;">[P2Leader "Luke Skywalker, Faithful Friend"]</span>
+<span style="color: #7eb8da;">[P2Base "Echo Base"]</span>
+<span style="color: #7eb8da;">[Winner "Player 1"]</span>
+<span style="color: #7eb8da;">[Reason "Base Destroyed"]</span>
+
+<span style="color: #ffd700; font-weight: bold;">═══ ROUND 1 ═══</span>
+
+<span style="color: #c0c0c0; font-style: italic;">─── Setup Phase ───</span>
+P1 draws 6 cards in starting hand
+P1 will keep their hand
+P2 draws 6 cards in starting hand
+P2 will mulligan
+P2 shuffles their deck
+P2 draws 6 cards in starting hand
+P1 resources 1 card from hand: <span style="color: #ff9966;">Vanquish</span>
+P2 resources 1 card from hand: <span style="color: #ff9966;">Asteroid Sanctuary</span>
+
+<span style="color: #c0c0c0; font-style: italic;">─── Action Phase ───</span>
+<span style="color: #66ccff;">1. P1 plays Viper Probe Droid to Ground Arena (cost 2)</span>
+  <span style="color: #aaa;">1a. P1's Viper Probe Droid triggers When Played: looks at P2's hand</span>
+  <span style="color: #aaa;">1b. P2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace, Surprise Strike, Jedha City</span>
+<span style="color: #66ccff;">2. P2 plays Rebel Pathfinder to Ground Arena (cost 2)</span>
+  <span style="color: #aaa;">2a. P2's Rebel Pathfinder triggers When Played: P2 searches deck</span>
+  <span style="color: #aaa;">2b. P2 finds Snowspeeder and puts it into hand</span>
+  <span style="color: #aaa;">2c. P2 shuffles their deck</span>
+<span style="color: #66ccff;">3. P1 plays Cell Block Guard to Ground Arena (cost 3)</span>
+  <span style="color: #aaa;">3a. P1 triggers Darth Vader leader ability: deals 1 damage to P1's Base</span>
+  <span style="color: #aaa;">3b. P1's Base takes 1 damage (29 remaining HP)</span>
+  <span style="color: #aaa;">3c. P1 draws 1 card due to Darth Vader ability</span>
+<span style="color: #66ccff;">4. P2 passes</span>
+<span style="color: #66ccff;">5. P1 attacks with Viper Probe Droid against P2's Base</span>
+  <span style="color: #aaa;">5a. Viper Probe Droid deals 2 damage to Echo Base</span>
+  <span style="color: #aaa;">5b. Echo Base takes 2 damage (28 remaining HP)</span>
+  <span style="color: #aaa;">5c. Viper Probe Droid is exhausted</span>
+<span style="color: #66ccff;">6. P2 claims initiative and passes</span>
+
+<span style="color: #c0c0c0; font-style: italic;">─── Regroup Phase ───</span>
+P1 draws 2 cards
+P2 draws 2 cards
+P1 resources 1 card from hand: <span style="color: #ff9966;">Admiral Ozzel</span>
+P2 resources 0 cards
+All cards readied
+
+<span style="color: #ffd700; font-weight: bold;">═══ ROUND 2 ═══</span>
+
+<span style="color: #c0c0c0; font-style: italic;">─── Action Phase ───</span>
+<span style="color: #66ccff;">1. P2 plays Wing Leader to Space Arena (cost 3)</span>
+  <span style="color: #aaa;">1a. P2's Wing Leader triggers When Played: creates X-Wing token</span>
+  <span style="color: #aaa;">1b. X-Wing token enters Space Arena (2/3)</span>
+<span style="color: #66ccff;">2. P1 attacks with Cell Block Guard against Rebel Pathfinder</span>
+  <span style="color: #aaa;">2a. Cell Block Guard deals 3 damage to Rebel Pathfinder</span>
+  <span style="color: #aaa;">2b. Rebel Pathfinder deals 2 damage to Cell Block Guard</span>
+  <span style="color: #aaa;">2c. Rebel Pathfinder is defeated (0 remaining HP)</span>
+  <span style="color: #aaa;">2d. Cell Block Guard exhausted (1/3 remaining)</span>
+<span style="color: #66ccff;">...</span>
+
+<span style="color: #ffd700; font-weight: bold;">═══ CARD INDEX ═══</span>
+
+<span style="color: #c0c0c0; font-style: italic;">── P1 Decklist ──</span>
+<span style="color: #88cc88;">Leader:</span> Darth Vader, Commanding the First Legion = <span style="color: #7eb8da;">SOR#010</span>
+<span style="color: #88cc88;">Base:</span> Command Center = <span style="color: #7eb8da;">SOR#028</span>
+<span style="color: #88cc88;">Deck:</span>
+  2x Admiral Ozzel = <span style="color: #7eb8da;">SOR#087</span>
+  3x Cell Block Guard = <span style="color: #7eb8da;">SOR#095</span>
+  3x Vanquish = <span style="color: #7eb8da;">SOR#142</span>
+  2x Viper Probe Droid = <span style="color: #7eb8da;">SOR#108</span>
+  <span style="color: #666;">...remaining cards...</span>
+
+<span style="color: #c0c0c0; font-style: italic;">── P2 Decklist ──</span>
+<span style="color: #88cc88;">Leader:</span> Luke Skywalker, Faithful Friend = <span style="color: #7eb8da;">SOR#005</span>
+<span style="color: #88cc88;">Base:</span> Echo Base = <span style="color: #7eb8da;">SOR#020</span>
+<span style="color: #88cc88;">Deck:</span>
+  2x Asteroid Sanctuary = <span style="color: #7eb8da;">SHD#062</span>
+  1x Jedha City = <span style="color: #7eb8da;">SOR#176</span>
+  2x Moment of Peace = <span style="color: #7eb8da;">SOR#165</span>
+  3x Rebel Pathfinder = <span style="color: #7eb8da;">SOR#045</span>
+  1x Snowspeeder = <span style="color: #7eb8da;">SOR#039</span>
+  2x Surprise Strike = <span style="color: #7eb8da;">SOR#150</span>
+  3x Wing Leader = <span style="color: #7eb8da;">SOR#042</span>
+  <span style="color: #666;">...remaining cards...</span>
+  </div>
+</div>
+
+<div style="margin-top: 24px; padding: 16px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+  <h3 style="margin-top: 0;">Key Format Decisions Shown</h3>
+  <ul style="color: #ccc; line-height: 1.8;">
+    <li><strong>Header:</strong> Chess PGN-style <code>[Tag "Value"]</code> metadata block</li>
+    <li><strong>Round markers:</strong> <code>═══ ROUND N ═══</code> with phase sub-headers</li>
+    <li><strong>Action numbering:</strong> Resets per action phase. Sub-events use <code>1a, 1b, 1c</code></li>
+    <li><strong>Player references:</strong> Always <code>P1</code> / <code>P2</code></li>
+    <li><strong>Card names:</strong> Full title as written on card (human-readable in the notation, unique ID in the index)</li>
+    <li><strong>Hidden info revealed:</strong> Resourced cards named, hands shown when looked at</li>
+    <li><strong>Full cascade:</strong> Every trigger, damage tick, state change gets its own sub-line</li>
+    <li><strong>Card Index:</strong> Full decklists grouped by player with <code>count x Name = SET#NUM</code></li>
+  </ul>
+</div>
