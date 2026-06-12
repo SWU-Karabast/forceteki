@@ -14,7 +14,7 @@ export namespace ProvidedAspects {
         if (!card) {
             return [];
         }
-        if (card === player.leader) {
+        if (card === player.deckLeader) {
             return [];
         }
         return card.aspects;
