@@ -7,6 +7,7 @@ import { DamageDealtThisPhaseWatcher } from './DamageDealtThisPhaseWatcher';
 import { CardsDrawnThisPhaseWatcher } from './CardsDrawnThisPhaseWatcher';
 import { CardsDiscardedThisPhaseWatcher } from './CardsDiscardedThisPhaseWatcher';
 import { UnitsHealedThisPhaseWatcher } from './UnitsHealedThisPhaseWatcher';
+import { UnitsDamagedThisPhaseWatcher } from './UnitsDamagedThisPhaseWatcher';
 import { LeadersDeployedThisPhaseWatcher } from './LeadersDeployedThisPhaseWatcher';
 import { ForceUsedThisPhaseWatcher } from './ForceUsedThisPhaseWatcher';
 import type { Game } from '../core/Game';
@@ -118,6 +119,13 @@ export class StateWatcherLibrary {
         return this.game.stateWatcherRegistrar.registerWatcher(
             StateWatcherName.UnitsHealedThisPhase,
             (registrar: StateWatcherRegistrar) => new UnitsHealedThisPhaseWatcher(this.game, registrar)
+        );
+    }
+
+    public unitsDamagedThisPhase() {
+        return this.game.stateWatcherRegistrar.registerWatcher(
+            StateWatcherName.UnitsDamagedThisPhase,
+            (registrar: StateWatcherRegistrar) => new UnitsDamagedThisPhaseWatcher(this.game, registrar)
         );
     }
 
