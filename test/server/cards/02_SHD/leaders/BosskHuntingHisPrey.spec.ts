@@ -510,5 +510,14 @@ describe('Bossk, Hunting his Prey', function () {
             context.player1.clickPrompt('Trigger');
             expect(context.player1.handSize).toBe(4);
         });
+
+        // Ruling 2024: if Bossk (deployed leader) is defeated simultaneously in the same combat that
+        // triggers a Bounty (e.g. trading with the Bounty unit), he is no longer in play to grant the
+        // re-collect, so the Bounty is not double-collected.
+        xit('does not double-collect a Bounty if Bossk is simultaneously defeated in combat', function () {
+            // Deployed Bossk attacks a Bounty unit and both are defeated simultaneously. The Bounty is
+            // collected once, but Bossk's "collect the Bounty again" ability does not apply since he
+            // left play in the same combat.
+        });
     });
 });

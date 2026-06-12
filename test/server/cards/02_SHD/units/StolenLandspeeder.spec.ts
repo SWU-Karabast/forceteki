@@ -73,5 +73,14 @@ describe('Stolen Landspeeder', function () {
             context.player1.clickCard(context.stolenLandspeeder);
             expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player1);
         });
+
+        // Ruling 2024 (Han2): when Han Solo (Worth the Risk) leader plays Stolen Landspeeder, his
+        // "deal 2 damage to it" defeats the Landspeeder before its "an opponent takes control" When
+        // Played trigger would resolve, so the opponent never takes control of it.
+        xit('is defeated by Han Solo (Worth the Risk) leader before the take-control trigger resolves', function () {
+            // Han Solo (Worth the Risk) uses his leader ability to play Stolen Landspeeder for 1 less
+            // and deal 2 damage to it. The Landspeeder is defeated before the "opponent takes control"
+            // When Played trigger resolves, so control never changes.
+        });
     });
 });

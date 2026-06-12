@@ -72,6 +72,14 @@ describe('Rukh, Thrawn\'s Assassin', function() {
                 expect(context.atst).toBeInZone('discard');
                 expect(context.rukh).toBeInZone('discard');
             });
+
+            // Ruling 2025-04-23: Rukh's ability does not resolve until the end of the combat damage
+            // step, even with Shoot First. Shoot First lets the attacker deal damage first, but does
+            // not pull Rukh's defeat ability earlier.
+            xit('does not resolve until the end of the combat damage step even with Shoot First', function () {
+                // Rukh attacks with Shoot First active. His defeat ability should still resolve at the
+                // end of the combat damage step, not before the defender would have dealt damage.
+            });
         });
     });
 });

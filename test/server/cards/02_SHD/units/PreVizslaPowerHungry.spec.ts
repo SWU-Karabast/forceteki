@@ -168,6 +168,14 @@ describe('Pre Vizsla, Power Hungry', function() {
                 expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.namelessValor).toBeInZone('discard');
             });
+
+            // Ruling (SHD): stealing Entrenched ("cannot attack bases") onto Pre Vizsla via his on
+            // attack ability while he is attacking a base does not stop the already-declared attack.
+            xit('does not stop the attack when stealing Entrenched while attacking a base', function () {
+                // Pre Vizsla attacks the enemy base, and his on attack ability takes Entrenched from a
+                // defender and attaches it to himself. Even though Entrenched prevents attacking bases,
+                // the attack was already declared and still completes, dealing damage to the base.
+            });
         });
 
         describe('Interaction with cost adjustments', function() {

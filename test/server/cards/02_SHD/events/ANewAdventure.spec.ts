@@ -49,6 +49,13 @@ describe('A New Adventure', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(2); // just the cost of A New Adventure
                 expect(context.p1Base.damage).toBe(1);   // from Crumb ability
             });
+
+            // Ruling 2025-02-18: "Unit" applies to the entire ability, so a pilot unit returned by
+            // A New Adventure can only be replayed for free as a unit, not attached as an upgrade.
+            xit('should only allow a returned pilot unit to be replayed as a unit, not as a pilot upgrade', function () {
+                // Play A New Adventure on a friendly pilot unit, returning it to hand. The free replay
+                // should only offer playing it as a unit; attaching it as a pilot upgrade is not allowed.
+            });
         });
 
         it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the owner can play it for free', async function () {

@@ -149,6 +149,15 @@ describe('Sneak Attack', function() {
                 expect(context.game.currentPhase).toBe('regroup');
             });
 
+            // Ruling 2025-03-25: a unit played with Sneak Attack is defeated at the start of the
+            // regroup phase as long as it's still in play. Attaching it as a pilot upgrade (e.g. via
+            // Corvus) does not remove it from play, so the delayed effect still defeats it.
+            xit('should defeat a unit played via Sneak Attack that was attached as a pilot upgrade before regroup', async function () {
+                // Play a pilot unit (e.g. Iden) via Sneak Attack, then play Corvus and use its When
+                // Played to attach the pilot to a friendly vehicle. At the start of the regroup phase,
+                // the pilot upgrade is still defeated by Sneak Attack's delayed effect.
+            });
+
             it('should not defeat Sabine if she is waylay back in hand and played back the same phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

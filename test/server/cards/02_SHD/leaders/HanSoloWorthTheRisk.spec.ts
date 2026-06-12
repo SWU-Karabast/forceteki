@@ -197,6 +197,14 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.anakinSkywalker).toBeInZone('groundArena');
                 expect(context.anakinSkywalker.damage).toBe(2);
             });
+
+            // Ruling 2024: Han's "play a unit from hand" ability combos with Exploit — a unit played
+            // via Han's ability can still use its Exploit keyword to discount itself by sacrificing units.
+            xit('can combo with Exploit when playing a unit that has the Exploit keyword', function () {
+                // Use Han Solo's deployed leader ability to play a unit with Exploit from hand. The
+                // Exploit keyword should still be usable, letting the player sacrifice units for the
+                // additional discount (on top of Han's 1-resource reduction).
+            });
         });
     });
 });

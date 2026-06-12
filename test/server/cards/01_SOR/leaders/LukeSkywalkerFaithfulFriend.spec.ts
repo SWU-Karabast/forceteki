@@ -38,6 +38,15 @@ describe('Luke Skywalker, Faithful Friend', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(resourcesSpentBeforeLukeActivation + 1);
             });
 
+            // Ruling 2025-04-30: "heroic unit played this round" is read holistically — the card
+            // must have been played as a unit. A pilot played as an upgrade that later becomes a
+            // unit (e.g. its vehicle is defeated) does not qualify.
+            xit('should not be able to give a shield to a pilot played as an upgrade this phase that became a unit', function () {
+                // Player 1 plays JTL Luke Skywalker (You Still With Me?) as a pilot upgrade on a
+                // friendly space vehicle. The vehicle is defeated, moving Luke to the ground arena
+                // as a unit. SOR Luke leader's ability must not be able to select him.
+            });
+
             it('should not be able to give a shield to a unit played in the previous phase', function () {
                 const { context } = contextRef;
 

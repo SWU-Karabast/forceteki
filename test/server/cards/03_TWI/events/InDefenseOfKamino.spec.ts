@@ -52,5 +52,13 @@ describe('In Defense of Kamino', function () {
             expect(cloneTroopers).toAllBeInZone('groundArena', context.player1);
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.exhausted)).toBeTrue();
         });
+
+        // Ruling 2024: In Defense of Kamino only applies to friendly Republic units in play when the
+        // event resolves. A Republic unit played later in the phase does not get Restore 2 or the
+        // "When Defeated: Create a Clone Trooper token" grant.
+        xit('does not apply to Republic units played after the event resolves', function () {
+            // Play In Defense of Kamino, then play another friendly Republic unit later that phase.
+            // The later unit should not have Restore 2 nor the When Defeated Clone Trooper grant.
+        });
     });
 });

@@ -251,5 +251,12 @@ describe('DJ, Blatant Thief', function() {
 
         // TODO: test with Endless Legions to confirm that DJ doesn't take control of the card back after it's played
         // TODO: test with Endless Legions to confirm that the DJ ability doesn't trigger if he is played
+
+        // Ruling 2024: defeating DJ via the uniqueness rule (playing a second copy) still counts as
+        // leaving play, so the stolen resource reverts to its owner — you cannot keep it permanently.
+        xit('returns the stolen resource to its owner when DJ is defeated by the uniqueness rule', function () {
+            // Play DJ and take control of an enemy resource, then play a second copy of DJ so the
+            // first is defeated by the uniqueness rule. The stolen resource should revert to its owner.
+        });
     });
 });

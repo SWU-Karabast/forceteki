@@ -57,6 +57,15 @@ describe('Admiral Piett, Captain of the Executor\'s Folly', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.clanSaxonGauntlet.damage).toBe(0);
             });
+
+            // Ruling 2024: Piett's passive goes away before the card finishes being played, so if
+            // Piett is sacrificed to pay an Exploit cost while playing a cost-6+ non-leader unit,
+            // that unit does not gain Ambush.
+            xit('does not grant Ambush to a unit if Piett is sacrificed to that unit\'s Exploit cost', function () {
+                // Play a cost-6+ non-leader unit with Exploit, sacrificing Piett to pay the Exploit
+                // cost. Since Piett's passive is gone before the play finishes, the unit does not
+                // gain Ambush.
+            });
         });
     });
 });

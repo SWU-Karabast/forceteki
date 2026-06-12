@@ -255,6 +255,14 @@ describe('Krayt Dragon', function () {
                 expect(context.kraytDragon.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            // Ruling 2024: Krayt's ability triggers, then is blanked by Force Lightning ("loses all
+            // abilities this phase"), but the already-triggered ability still resolves and the
+            // controller of that ability deals 1 damage.
+            xit('still resolves and deals 1 damage when blanked by Force Lightning after triggering', function () {
+                // Krayt's triggered ability goes on the stack, then Force Lightning blanks Krayt. The
+                // pending ability still resolves, with its controller dealing 1 damage.
+            });
         });
     });
 });

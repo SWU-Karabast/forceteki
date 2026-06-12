@@ -151,6 +151,15 @@ describe('Kylo Ren, Rash And Deadly', function() {
                 expect(context.kyloRenRashAndDeadly.getPower()).toBe(5); // should be 5 power after hand is cleared
                 expect(context.p2Base.damage).toBe(8); // suprise strike and 5 power
             });
+
+            // Ruling (SHD): playing Force Lightning ("loses all abilities for this phase") on your own
+            // deployed Kylo Ren removes his -1/0-per-card-in-hand constant ability, nullifying the
+            // self-debuff and restoring him to 5 power for the phase.
+            xit('can have its -1/0 self-debuff nullified by a friendly Force Lightning', function () {
+                // Deployed Kylo Ren has cards in hand (reducing his power below 5). Play Force Lightning
+                // targeting friendly Kylo: he loses all abilities this phase, so the -1/0 modifier no
+                // longer applies and his power returns to 5.
+            });
         });
     });
 });
