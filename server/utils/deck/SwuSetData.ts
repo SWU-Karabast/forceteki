@@ -77,6 +77,7 @@ export interface IFormatRules {
     rotationBlockCount?: number;
 }
 
+// TODO: Can we clean this up once these rotate out? Are they technically still on the ban list?
 const bannedPremierCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty'],
     ['4002861992', 'dj#blatant-thief'],

@@ -78,6 +78,22 @@ export interface ICardIdAndName {
     name: string;
 }
 
+export enum IllegalInFormatReason {
+
+    /** Card's set is not part of the legal rotation for this format (e.g. a SOR card in Premier). */
+    RotatedOut = 'rotatedOut',
+
+    /** Card is from a set that has not yet been officially released (or whose set code is unrecognized). */
+    Unreleased = 'unreleased',
+
+    /** Card is on this format's suspension list. */
+    Suspended = 'suspended',
+}
+
+export interface IIllegalCardEntry extends ICardIdAndName {
+    reason: IllegalInFormatReason;
+}
+
 export interface IDeckValidationProperties {
     format: SwuGameFormat;
     cardPool: CardPool;
@@ -90,24 +106,65 @@ export enum DecklistLocation {
 }
 
 export enum DeckValidationFailureReason {
+
+    /**
+     * One or more cards are not legal to play in this format. Each entry carries an `IllegalInFormatReason`
+     * indicating why: `RotatedOut` (set outside the current rotation), `Unreleased` (set not yet officially
+     * released or whose set code is unrecognized), or `Suspended` (card is on this format's suspension list).
+     */
     IllegalInFormat = 'illegalInFormat',
-    TooManyLeaders = 'tooManyLeaders',
-    InvalidDecklistLocation = 'invalidCardLocation',
+
+    /** Deck object is null, missing required fields, or contains a negative card count. */
     InvalidDeckData = 'invalidDeckData',
-    MinDecklistSizeNotMet = 'minDecklistSizeNotMet',
-    MinMainboardSizeNotMet = 'minMainboardSizeNotMet',
+
+    /** Card appears in the wrong zone (e.g. a leader in the main deck, or a unit in the leader slot). */
+    InvalidDecklistLocation = 'invalidCardLocation',
+
+    /** Sideboard exceeds the format maximum (10 in Premier/Eternal; unrestricted in Open). */
     MaxSideboardSizeExceeded = 'maxSideboardSizeExceeded',
+
+    /** Total card count (main deck + sideboard) is below the format minimum. */
+    MinDecklistSizeNotMet = 'minDecklistSizeNotMet',
+
+    /** Main deck alone is below the format minimum even though the sideboard brings the combined total up to it. */
+    MinMainboardSizeNotMet = 'minMainboardSizeNotMet',
+
+    /** One or more cards exceed the per-card copy limit for this format (3× Premier/Eternal, with per-card overrides). */
     TooManyCopiesOfCard = 'tooManyCopiesOfCard',
-    UnknownCardId = 'unknownCardId'
+
+    /** SWUDB import: a secondleader field was present in the deck submission. */
+    TooManyLeaders = 'tooManyLeaders',
+
+    /** A card's set code was not found in the card database. */
+    UnknownCardId = 'unknownCardId',
 }
 
 export interface IDeckValidationFailures {
-    [DeckValidationFailureReason.IllegalInFormat]?: ICardIdAndName[];
-    [DeckValidationFailureReason.TooManyLeaders]?: boolean;
-    [DeckValidationFailureReason.InvalidDecklistLocation]?: { card: ICardIdAndName; location: DecklistLocation }[];
+
+    /** Cards that cannot be played in this format. Each entry's `reason` field distinguishes between `RotatedOut`, `Unreleased`, and `Suspended`. */
+    [DeckValidationFailureReason.IllegalInFormat]?: IIllegalCardEntry[];
+
+    /** The deck object itself is malformed — null, missing required fields, or contains a negative card count. */
     [DeckValidationFailureReason.InvalidDeckData]?: boolean;
+
+    /** Cards found in the wrong zone (e.g. a leader in the main deck, or a non-leader in the leader slot). Includes the offending card and the zone it was placed in. */
+    [DeckValidationFailureReason.InvalidDecklistLocation]?: { card: ICardIdAndName; location: DecklistLocation }[];
+
+    /** The sideboard exceeds the format maximum. Includes both the limit and the actual count. */
+    [DeckValidationFailureReason.MaxSideboardSizeExceeded]?: { maxSideboardSize: number; actualSideboardSize: number };
+
+    /** The combined card count (main deck + sideboard) is below the format minimum. Includes both the minimum and the actual count. */
     [DeckValidationFailureReason.MinDecklistSizeNotMet]?: { minDecklistSize: number; actualDecklistSize: number };
+
+    /** The main deck alone is below the format minimum even though the sideboard brings the combined total up to it. Includes both the minimum and the actual boarded count. */
     [DeckValidationFailureReason.MinMainboardSizeNotMet]?: { minBoardedSize: number; actualBoardedSize: number };
+
+    /** One or more cards exceed the per-card copy limit for this format. Each entry includes the card, the limit, and the actual count. */
     [DeckValidationFailureReason.TooManyCopiesOfCard]?: { card: ICardIdAndName; maxCopies: number; actualCopies: number }[];
+
+    /** SWUDB import only: a `secondleader` field was present in the submitted deck. */
+    [DeckValidationFailureReason.TooManyLeaders]?: boolean;
+
+    /** A card's set code could not be found in the card database. Includes the unrecognized set code. */
     [DeckValidationFailureReason.UnknownCardId]?: { id: string }[];
 }
