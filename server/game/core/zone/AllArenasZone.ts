@@ -4,12 +4,12 @@ import { WildcardZoneName } from '../Constants';
 import type { Game } from '../Game';
 import { registerState } from '../GameObjectUtils';
 import type { ConcreteArenaZone } from './ConcreteArenaZone';
-import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
+import type { IInPlayZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
 import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';
 import type { GroundArenaZone } from './GroundArenaZone';
 import type { SpaceArenaZone } from './SpaceArenaZone';
 
-export interface IAllArenasZoneCardFilterProperties extends IArenaZoneCardFilterProperties {
+export interface IAllArenasZoneCardFilterProperties extends IInPlayZoneCardFilterProperties {
     arena?: ZoneName.SpaceArena | ZoneName.GroundArena | WildcardZoneName.AnyArena;
 }
 

@@ -116,6 +116,28 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 context.player1.clickCard(context.majorVonreg);
                 expect(context.corvus).toHaveExactUpgradeNames(['major-vonreg#red-baron']);
             });
+
+            xit('should keep cards captured by a pilot captured by the upgrade if the pilot is grabbed with Corvus', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'iden-versio#adapt-or-die', capturedUnits: ['secretive-sage'] }, 'admiral-ackbar#brilliant-strategist'],
+                        hand: ['corvus#inferno-squadron-raider']
+                    },
+                    player2: {
+                        hand: ['takedown']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.corvus);
+                context.player1.clickCard(context.idenVersio);
+
+                expect(context.corvus).toHaveExactUpgradeNames(['shield', 'iden-versio#adapt-or-die']);
+                expect(context.secretiveSage).not.toBeInZone('groundArena');
+                expect(context.secretiveSage).toBeCapturedBy(context.idenVersio);
+            });
         });
 
         describe('Corvus\'s ability with damaged pilot leader unit', function() {

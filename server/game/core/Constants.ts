@@ -61,6 +61,21 @@ export enum PlayType {
     Smuggle = 'smuggle',
 }
 
+/**
+ * How a unit entered play.
+ *
+ * Used to scope "enters play ready" effects that only apply to certain entry
+ * paths, e.g. "the next unit you play this phase enters play ready" should only apply to units that
+ * entered play via the "played" path, not tokens created by abilities or units put into play by other
+ * means.
+ */
+export enum EntryType {
+    Played = 'played',
+    Created = 'created',
+    Rescued = 'rescued',
+    Deployed = 'deployed'
+}
+
 export enum StatType {
     Hp = 'hp',
     Power = 'power'
@@ -109,6 +124,7 @@ export enum EffectName {
     IsLeader = 'isLeader',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
+    UnitsEnterPlayReady = 'unitsEnterPlayReady',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
@@ -120,7 +136,7 @@ export enum EffectName {
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
     PrintedAttributesOverride = 'printedAttributesOverride',
-    ProvidesAspects = 'providesAspects',
+    ProvidesAspectsForCosts = 'providesAspectsForCosts',
     RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
@@ -516,6 +532,7 @@ export enum DamageModificationType {
     Cap = 'cap',
     PreventAll = 'all',
     Increase = 'increase',
+    Multiply = 'multiply',
     Reduce = 'reduce',
     Replace = 'replace'
 }
@@ -523,6 +540,7 @@ export enum DamageModificationType {
 export enum StateWatcherName {
     ActionsThisPhase = 'actionsThisPhase',
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDefeatedThisPhase = 'cardsDefeatedThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
@@ -532,8 +550,8 @@ export enum StateWatcherName {
     ForceUsedThisPhase = 'forceUsedThisPhase',
     LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
     TokensCreatedThisPhase = 'tokensCreatedThisPhase',
-    UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
+    UnitsDamagedThisPhase = 'unitsDamagedThisPhase',
     BasesHealedThisPhase = 'basesHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed

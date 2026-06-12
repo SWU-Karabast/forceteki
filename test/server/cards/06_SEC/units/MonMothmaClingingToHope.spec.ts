@@ -68,6 +68,47 @@ describe('Mon Mothma, Clinging to Hope', function () {
 
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should allow a returned unit to attack again during the resolution of Mothma', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['ezra-bridger#resourceful-troublemaker', 'battlefield-marine'],
+                        spaceArena: ['cartel-spacer'],
+                        hand: ['mon-mothma#clinging-to-hope'],
+                        deck: ['palpatines-return']
+                    },
+                    player2: {
+                        groundArena: ['atst', 'secretive-sage'],
+                        spaceArena: ['awing']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.monMothma);
+                expect(context.player1).toBeAbleToSelectExactly([context.ezraBridger, context.cartelSpacer, context.battlefieldMarine]);
+                // BF First
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.atst);
+
+                // It dies, follow with Ezra
+                context.player1.clickCard(context.ezraBridger);
+                context.player1.clickCard(context.secretiveSage);
+
+                // Bring it back with Palp return
+                context.player1.clickDisplayCardPromptButton(context.palpatinesReturn.uuid, 'play');
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+
+                // Now we attack with BF again
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.atst);
+                context.player1.clickPrompt('Pass');
+
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

@@ -1,13 +1,13 @@
 import { InitiateAttackSystem, type IInitiateAttackProperties } from '../../gameSystems/InitiateAttackSystem';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import type { Attack } from './Attack';
 
-export function defenderWasDefeated(attack: Attack, watcher: UnitsDefeatedThisPhaseWatcher): boolean {
+export function defenderWasDefeated(attack: Attack, watcher: CardsDefeatedThisPhaseWatcher): boolean {
     const unitTargets = attack.getAllTargets().filter((target) => target.isUnit() || target.isDeployableLeader());
     return unitTargets.length > 0 && unitTargets.some((target) => watcher.wasDefeatedThisPhase(target, attack.targetInPlayMap.get(target)));
 }
 
-export function attackerSurvived(attack: Attack, watcher: UnitsDefeatedThisPhaseWatcher): boolean {
+export function attackerSurvived(attack: Attack, watcher: CardsDefeatedThisPhaseWatcher): boolean {
     return !watcher.wasDefeatedThisPhase(attack.attacker, attack.attackerInPlayId);
 }
 
