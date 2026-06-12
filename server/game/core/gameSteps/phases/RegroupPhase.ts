@@ -81,8 +81,10 @@ export class RegroupPhase extends Phase {
             cardsToReady.push(...player.getArenaUnits({ condition: (card) => !card.hasRestriction(AbilityRestriction.DoesNotReadyDuringRegroup) }));
             cardsToReady.push(...player.resources);
 
-            if (player.leader.zoneName === ZoneName.Base) {
-                cardsToReady.push(player.leader);
+            for (const leader of player.getAllLeaders()) {
+                if (leader.zoneName === ZoneName.Base) {
+                    cardsToReady.push(leader);
+                }
             }
         }
 

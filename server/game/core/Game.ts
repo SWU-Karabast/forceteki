@@ -32,6 +32,7 @@ import {
     RollbackRoundEntryPoint,
     RollbackSetupEntryPoint,
     SnapshotType,
+    SwuGameFormat,
     TokenCardName,
     TokenUpgradeName,
     TokenUnitName,
@@ -97,11 +98,13 @@ import type {
     IDistributeAmongTargetsPromptProperties,
     IStatefulPromptResults
 } from './gameSteps/PromptInterfaces';
-import type { GameMode } from '../../GameMode';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
+import { ClaimBlastCounterSystem } from '../gameSystems/ClaimBlastCounterSystem';
+import { ClaimInitiativeSystem } from '../gameSystems/ClaimInitiativeSystem';
+import { ClaimPlanCounterSystem } from '../gameSystems/ClaimPlanCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 
@@ -145,6 +148,33 @@ export class Game extends EventEmitter {
 
     public set isInitiativeClaimed(value: boolean) {
         this.state.isInitiativeClaimed = value;
+    }
+
+    public get isPlanCounterClaimed() {
+        return this.state.isPlanCounterClaimed;
+    }
+
+    public set isPlanCounterClaimed(value: boolean) {
+        this.state.isPlanCounterClaimed = value;
+    }
+
+    public get isBlastCounterClaimed() {
+        return this.state.isBlastCounterClaimed;
+    }
+
+    public set isBlastCounterClaimed(value: boolean) {
+        this.state.isBlastCounterClaimed = value;
+    }
+
+    public allClaimTokensClaimed(): boolean {
+        if (this.format === SwuGameFormat.FauxSuns) {
+            // In a 2-player game only 2 of the 3 tokens can ever be claimed (one per player).
+            // TSTODO: update this threshold for 3+ player games where all 3 tokens may be claimable.
+            const claimedCount = [this.isInitiativeClaimed, this.isPlanCounterClaimed, this.isBlastCounterClaimed]
+                .filter(Boolean).length;
+            return claimedCount >= 2;
+        }
+        return true;
     }
 
     public get roundNumber() {
@@ -305,7 +335,7 @@ export class Game extends EventEmitter {
     public readonly preselectedFirstPlayerId: string | undefined;
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
-    public gameMode: GameMode;
+    public format: SwuGameFormat;
     public currentlyResolving: ICurrentlyResolving;
     public state: IGameState;
     public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
@@ -373,7 +403,7 @@ export class Game extends EventEmitter {
         this._experimental = {};
 
         this.manualMode = false;
-        this.gameMode = details.gameMode;
+        this.format = details.format ?? SwuGameFormat.Premier;
 
         this.initializeCurrentlyResolving();
 
@@ -383,6 +413,8 @@ export class Game extends EventEmitter {
             actionPhaseActivePlayer: null,
             roundNumber: 0,
             isInitiativeClaimed: false,
+            isPlanCounterClaimed: false,
+            isBlastCounterClaimed: false,
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
@@ -1326,13 +1358,28 @@ export class Game extends EventEmitter {
     }
 
     public claimInitiative(player: Player): void {
-        this.initiativePlayer = player;
-        this.isInitiativeClaimed = true;
-        player.passedActionPhase = true;
-        this.createEventAndOpenWindow(EventName.OnClaimInitiative, null, { player }, TriggerHandlingMode.ResolvesTriggers);
+        new ClaimInitiativeSystem({}).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
+    }
 
-        // update game state for the sake of constant abilities that check initiative
-        this.resolveGameState();
+    public claimPlanCounter(player: Player): void {
+        new ClaimPlanCounterSystem({}).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
+    }
+
+    public claimBlastCounter(player: Player): void {
+        // TSTODO: update to blast all opponents
+        new ClaimBlastCounterSystem({}).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
     }
 
     /**
@@ -1706,7 +1753,7 @@ export class Game extends EventEmitter {
                         };
                     }),
                     started: this.started,
-                    gameMode: this.gameMode,
+                    format: this.format,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                 };

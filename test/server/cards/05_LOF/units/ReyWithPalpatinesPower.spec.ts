@@ -399,5 +399,51 @@ describe('Rey, With Palpatine\'s Power', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('should trigger when the Plan claim token draws a card in FauxSuns format', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    leader: 'luke-skywalker#faithful-friend',
+                    secondLeader: 'saw-gerrera#bring-down-the-empire',
+                    base: 'kestro-city',   // kestro-city has the Aggression aspect
+                    hand: ['wampa'],        // card already in hand to put on bottom, keeping Rey in hand
+                    deck: ['rey#with-palpatines-power'],
+                },
+                player2: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'administrators-tower',
+                    groundArena: ['battlefield-marine'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickPrompt('Claim Plan');
+
+            // The Plan counter's put-a-card-on-the-bottom prompt fires before Rey's triggered ability.
+            // Player1 puts wampa on the bottom, keeping Rey in hand so her trigger can fire.
+            expect(context.player1).toHavePrompt('Choose a card from your hand to put on the bottom of your deck');
+            context.player1.clickCard(context.wampa);
+
+            // Rey is still in hand — her triggered ability fires because player1 has an Aggression base
+            expect(context.player1).toHavePassAbilityPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
+            context.player1.clickPrompt('Trigger');
+
+            // Rey is revealed to the opponent
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.reyWithPalpatinesPower]);
+            context.player2.clickDone();
+
+            // Deal 2 damage to a unit, then 2 damage to a base
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.battlefieldMarine.damage).toBe(2);
+            expect(context.p2Base.damage).toBe(2);
+
+            // Turn passes to player2
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
