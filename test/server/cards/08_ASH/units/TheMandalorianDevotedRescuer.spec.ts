@@ -322,6 +322,45 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('should protect two units when Mando has two shields and multiple friendly units are damaged simultaneously', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield', 'shield'] },
+                            'battlefield-marine',
+                            'wampa'
+                        ],
+                    },
+                    player2: {
+                        hand: ['turbolaser-salvo'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.turbolaserSalvo);
+                context.player2.clickPrompt('Ground');
+                context.player2.clickCard(context.concordDawnInterceptors);
+
+                // Resolve Mando's ability for BFM — auto-defeats first shield
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
+
+                // One shield remains — Mando's ability for Wampa is still valid
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa: Wampa');
+                context.player1.clickPrompt('Trigger');
+
+                // Both shields consumed — Mando takes 1 damage, BFM and Wampa protected
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.theMandalorian.damage).toBe(1);
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('should not prevent indirect damage even when shield is defeated — indirect damage bypasses prevention', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
