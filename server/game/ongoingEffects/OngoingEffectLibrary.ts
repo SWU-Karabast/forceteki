@@ -289,8 +289,8 @@ export = {
     modifyPayStageCost: (properties: Omit<IModifyPayStageCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.ModifyPayStage, ...properties }),
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
-    providesAspectIcons: () => OngoingEffectBuilder.player.dynamic(
-        EffectName.ProvidesAspects,
+    providesAspectIconsForCosts: () => OngoingEffectBuilder.player.dynamic(
+        EffectName.ProvidesAspectsForCosts,
         (target, context) => ProvidedAspects.forCard(context.source, target)
     ),
     ignorePilotingPilotLimit: () => OngoingEffectBuilder.card.static(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit),
