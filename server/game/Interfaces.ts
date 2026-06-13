@@ -101,6 +101,7 @@ export interface IOngoingEffectProps<TTarget> {
     optional?: boolean;
     delayedEffectType?: DelayedEffectType;
     isLastingEffect?: boolean;
+    gainAbilitySource?: Card;
 }
 
 export type IOngoingCardOrPlayerEffectProps<TTarget extends Card | Player> = TTarget extends Card ? IOngoingCardEffectProps : IOngoingPlayerEffectProps;

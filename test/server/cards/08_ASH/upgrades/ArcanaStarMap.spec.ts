@@ -32,6 +32,7 @@ describe('Arcana Star Map', function () {
                     selectable: [context.wampa, context.atst, context.greenSquadronAwing, context.pykeSentinel, context.restoredArc170, context.echoBaseDefender, context.escortSkiff],
                     invalid: [context.waylay, context.devotion, context.resupply]
                 });
+                expect(context.getChatLogs(5)).toContain('player1 uses Battlefield Marine\'s gained ability from Arcana Star Map to search 10 cards instead');
                 context.player1.clickPrompt('Take nothing');
             });
 
@@ -450,6 +451,52 @@ describe('Arcana Star Map', function () {
                     invalid: [context.wampa, context.resupply, context.pykeSentinel, context.devotion],
                 });
                 context.player1.clickPrompt('Take nothing');
+            });
+
+            it('should double Improvised Identity\'s deck search and still grant the discarded unit\'s abilities to the attacker', async function() {
+                // Improvised Identity normally searches the top 3 cards. With Arcana Star Map it should search top 6.
+                // The discarded unit's abilities must still be granted to the attacker for the follow-up attack.
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{
+                            card: 'wampa',
+                            upgrades: ['improvised-identity', 'arcana-star-map#path-to-peridea']
+                        }],
+                        // Top 3 has no ground units; positions 4-6 include kage-elite (Raid 2 + Saboteur).
+                        // Without doubling, II's search would yield no eligible unit.
+                        deck: [
+                            'cartel-spacer', 'takedown', 'resupply',
+                            'kage-elite', 'devotion', 'jedi-sentinel'
+                        ]
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickPrompt('Search the top 3 cards of your deck for a ground unit and discard it. Then, you may attack with this unit. For this attack, this unit gains the discarded unit\'s abilities.');
+
+                // ASM doubles the search: all 6 cards are shown.
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.kageElite, context.jediSentinel],
+                    invalid: [context.cartelSpacer, context.takedown, context.resupply, context.devotion]
+                });
+
+                // Discard Kage Elite (Raid 2 + Saboteur)
+                context.player1.clickCardInDisplayCardPrompt(context.kageElite);
+                expect(context.kageElite).toBeInZone('discard');
+
+                // Follow-up attack prompt should name the discarded unit, proving II read its discard correctly.
+                expect(context.player1).toHavePrompt('Attack with Wampa. It gains Kage Elite\'s abilities for this attack.');
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.p2Base]); // Gains Saboteur, so can target base
+                context.player1.clickCard(context.p2Base);
+
+                // Wampa (4 power) + Raid 2 (from Kage Elite) = 6 damage to base
+                expect(context.p2Base.damage).toBe(6);
             });
         });
     });
