@@ -257,11 +257,14 @@ export abstract class TriggerWindowBase extends BaseStep {
     private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
 
-        let choices: string[] = [];
+        let choices: { text: string; relatedCardId: string }[] = [];
         let handlers: (() => void)[] = [];
 
         // If its a multi-select, append the card name at the end of the ability name to differentiate them
-        choices = abilitiesToResolve.map((context) => this.getChoiceTitle(context));
+        choices = abilitiesToResolve.map((context) => ({
+            text: this.getChoiceTitle(context),
+            relatedCardId: context.source.uuid
+        }));
         handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {

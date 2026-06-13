@@ -29,6 +29,7 @@ export interface IButton {
     arg: string;
     command?: string;
     disabled?: boolean;
+    relatedCardId?: string;
 }
 
 export interface INumberPromptData {
