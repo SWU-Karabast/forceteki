@@ -183,9 +183,10 @@ export abstract class TriggerWindowBase extends BaseStep {
             }
 
             // if an ability is triggered multiple times but does not use a collective trigger, we need to treat it as a multi-select
-            // so we can differentiate which instance is being resolved. If the ability defines a contextTitle, it already
-            // differentiates the instances (e.g. by naming the affected card), so we don't append the override title.
-            if (repeatedAbility.hasContextTitle) {
+            // so we can differentiate which instance is being resolved. If the ability defines a contextTitle, it usually
+            // already differentiates the instances (e.g. by naming the affected card), so we don't append the override title
+            // unless the ability explicitly opts in via appendOverrideTitle.
+            if (!repeatedAbility.shouldAppendOverrideTitle) {
                 continue;
             }
 

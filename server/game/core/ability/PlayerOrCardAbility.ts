@@ -50,6 +50,7 @@ export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
 export abstract class PlayerOrCardAbility extends GameObjectBase {
     private _title: string;
     private _contextTitle?: (context: AbilityContext) => string;
+    private _appendOverrideTitle: boolean;
     public limit?: AbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
@@ -90,6 +91,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
 
         this._title = properties.title;
         this._contextTitle = properties.contextTitle;
+        this._appendOverrideTitle = !!properties.appendOverrideTitle;
         this.type = type;
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
@@ -147,9 +149,17 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return this._title;
     }
 
-    /** Whether this ability provides a context-specific title */
-    public get hasContextTitle(): boolean {
-        return this._contextTitle != null;
+    /**
+     * Whether the affected card's name should be appended to this ability's choice when it is triggered
+     * multiple times in the same window. When a `contextTitle` is set it usually already differentiates the
+     * choices, so the name is not appended unless `appendOverrideTitle` is also set.
+     */
+    public get shouldAppendOverrideTitle(): boolean {
+        if (this._contextTitle == null) {
+            return true;
+        }
+
+        return this._appendOverrideTitle;
     }
 
     public override getGameObjectName() {

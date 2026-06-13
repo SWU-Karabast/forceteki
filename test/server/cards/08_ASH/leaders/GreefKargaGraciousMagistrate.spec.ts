@@ -142,7 +142,7 @@ describe('Greef Karga, Gracious Magistrate', function() {
                 context.player1.clickPrompt(`${abilityTitle('X-Wing')}`);
 
                 // Accept the trigger for the first X-Wing
-                expect(context.player1).toHavePassAbilityPrompt(`${abilityTitle('X-Wing')}: X-Wing`);
+                expect(context.player1).toHavePassAbilityPrompt(`${abilityTitle('X-Wing')}`);
                 context.player1.clickPrompt('Trigger');
                 expect(context.greefKarga.exhausted).toBeTrue();
 
