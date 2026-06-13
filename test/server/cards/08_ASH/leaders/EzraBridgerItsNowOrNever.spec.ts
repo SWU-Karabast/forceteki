@@ -102,6 +102,27 @@ describe('Ezra Bridger, Its Now or Never', function() {
             });
         });
 
+        it('Ezra Bridger leader side ability should still prompt even if no other units on board in case there is an ability which create or play another unit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                    leader: 'ezra-bridger#its-now-or-never'
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toHavePassAbilityPrompt('Give an Advantage token to a different unit than Wampa');
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(4);
+            expect(context.ezraBridger.exhausted).toBeFalse();
+        });
+
         describe('Leader unit side triggered ability', function() {
             it('should allow to give an Advantage token to a different unit if he attacks', async function() {
                 await contextRef.setupTestAsync({
@@ -313,6 +334,23 @@ describe('Ezra Bridger, Its Now or Never', function() {
 
                 context.player1.clickCard(context.yoda);
                 expect(context.yoda).toHaveExactUpgradeNames(['advantage', 'advantage']);
+            });
+
+            it('should not prompt if no other units', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'ezra-bridger#its-now-or-never', deployed: true }
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.ezraBridger);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(3);
             });
         });
     });
