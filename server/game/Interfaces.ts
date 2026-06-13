@@ -119,6 +119,15 @@ export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
 export interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
     contextTitle?: (context: TContext) => string;
+
+    /**
+     * When an ability is triggered multiple times in the same window, the trigger resolution prompt
+     * normally appends the affected card's name to each choice to differentiate them. If `contextTitle`
+     * is set it usually already differentiates the choices, so the appended name is suppressed. Set this
+     * to `true` to force the name to be appended anyway (e.g. when `contextTitle` does not name the card).
+     */
+    appendOverrideTitle?: boolean;
+
     zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
