@@ -9,7 +9,6 @@ import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';
 import type { ReplacementEffectContext } from './ReplacementEffectContext';
-import { AbilityResolutionState } from './AbilityResolutionState';
 
 export interface IAbilityContextProperties {
     game: Game;
@@ -27,8 +26,7 @@ export interface IAbilityContextProperties {
     targetAbility?: any;
     playType?: PlayType;
 
-    /** Pass to share resolution-output state with another context (see {@link AbilityResolutionState}). */
-    resolutionState?: AbilityResolutionState;
+    selectedPromptCards?: Card[];
 }
 
 /**
@@ -57,17 +55,8 @@ export class AbilityContext<TSource extends Card = Card> {
     public playType?: PlayType;
     public cardStateWhenInitiated: any = null;
 
-    /** Output state (prompt results, etc.) that flows between related contexts. See {@link AbilityResolutionState}. */
-    public resolutionState: AbilityResolutionState;
+    public selectedPromptCards: Card[] = [];
     public activeAttackId?: number;
-
-    public get selectedPromptCards(): Card[] {
-        return this.resolutionState.selectedPromptCards;
-    }
-
-    public set selectedPromptCards(value: Card[]) {
-        this.resolutionState.selectedPromptCards = value;
-    }
 
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
@@ -81,7 +70,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.selects = properties.selects || {};
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
-        this.resolutionState = properties.resolutionState ?? new AbilityResolutionState();
+        this.selectedPromptCards = properties.selectedPromptCards || [];
         this.events = properties.events || [];
         // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
@@ -136,7 +125,7 @@ export class AbilityContext<TSource extends Card = Card> {
             stage: this.stage,
             targetAbility: this.targetAbility,
             playType: this.playType,
-            resolutionState: this.resolutionState,
+            selectedPromptCards: this.selectedPromptCards,
         };
     }
 }
