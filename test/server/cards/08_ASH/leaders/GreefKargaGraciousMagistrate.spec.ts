@@ -139,7 +139,7 @@ describe('Greef Karga, Gracious Magistrate', function() {
                 context.player1.clickCard(context.dedicatedWingmen);
 
                 // Both tokens trigger simultaneously — ordering prompt appears first
-                context.player1.clickPrompt(`${abilityTitle('X-Wing')}: X-Wing`);
+                context.player1.clickPrompt(`${abilityTitle('X-Wing')}`);
 
                 // Accept the trigger for the first X-Wing
                 expect(context.player1).toHavePassAbilityPrompt(`${abilityTitle('X-Wing')}: X-Wing`);
@@ -270,7 +270,7 @@ describe('Greef Karga, Gracious Magistrate', function() {
 
                 // Play an event that creates 2 tokens — ordering prompt appears since both trigger simultaneously
                 context.player1.clickCard(context.dedicatedWingmen);
-                context.player1.clickPrompt(`${abilityTitle('X-Wing')}: X-Wing`);
+                context.player1.clickPrompt(`${abilityTitle('X-Wing')}`);
 
                 // Both X-Wing tokens receive an Advantage token automatically (no exhaust cost)
                 const xwings = context.player1.findCardsByName('xwing');

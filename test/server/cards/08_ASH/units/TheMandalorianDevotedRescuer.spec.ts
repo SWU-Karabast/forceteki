@@ -314,12 +314,12 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Defeat Shield to prevent The Mandalorian from taking damage',
-                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine: Battlefield Marine',
-                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa: Wampa',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa',
                 ]);
 
                 // Player resolves Mando's ability for BFM — shield auto-defeated, no card selection prompt.
-                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine: Battlefield Marine');
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine');
                 context.player1.clickPrompt('Trigger');
 
                 // Shield is auto-selected and defeated — no card selection prompt shown.
@@ -356,16 +356,16 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Defeat Shield to prevent The Mandalorian from taking damage',
-                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine: Battlefield Marine',
-                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa: Wampa',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa',
                 ]);
 
                 // Resolve Mando's ability for BFM — auto-defeats first shield.
-                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine: Battlefield Marine');
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine');
                 context.player1.clickPrompt('Trigger');
 
                 // One shield remains — Mando's ability for Wampa is still valid.
-                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa: Wampa');
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa');
                 context.player1.clickPrompt('Trigger');
 
                 // Both shields consumed — Mando takes 1 damage, BFM and Wampa protected

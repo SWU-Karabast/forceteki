@@ -147,6 +147,11 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return this._title;
     }
 
+    /** Whether this ability provides a context-specific title */
+    public get hasContextTitle(): boolean {
+        return this._contextTitle != null;
+    }
+
     public override getGameObjectName() {
         return 'PlayerOrCardAbility';
     }
