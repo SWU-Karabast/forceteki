@@ -14,6 +14,7 @@ export default class SearchYourFeelings extends EventCard {
         registrar.setEventAbility({
             title: 'Search your deck for a card, draw it, then shuffle',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                searchWholeDeck: true,
                 shuffleWhenDone: true,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
             })

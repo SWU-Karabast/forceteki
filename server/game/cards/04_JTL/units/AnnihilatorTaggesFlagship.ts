@@ -48,6 +48,7 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                         }),
                     }),
                     AbilityHelper.immediateEffects.deckSearch({
+                        searchWholeDeck: true,
                         cardCondition: (card) => card.title === this.getTargetTitle(ifYouDoContext),
                         selectedCardsImmediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
                         targetMode: TargetMode.Unlimited,
