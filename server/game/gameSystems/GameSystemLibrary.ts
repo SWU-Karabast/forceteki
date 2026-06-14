@@ -151,8 +151,6 @@ import type { IUseWhenPlayedProperties } from './UseWhenPlayedSystem';
 import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
 import type { IRandomSelectionSystemProperties } from './RandomSelectionSystem';
 import { RandomSelectionSystem } from './RandomSelectionSystem';
-import type { ISearchEntireDeckProperties } from './SearchEntireDeckSystem';
-import { SearchEntireDeckSystem } from './SearchEntireDeckSystem';
 import type { ICreateSpyProperties } from './CreateSpySystem';
 import { CreateSpySystem } from './CreateSpySystem';
 import type { IDiscloseAspectsProperties } from './DiscloseAspectsSystem';
@@ -672,9 +670,6 @@ export function delayedPlayerEffect<TContext extends AbilityContext = AbilityCon
             propertyFactory,
             { delayedEffectType: DelayedEffectType.Player }
         ));
-}
-export function entireDeckSearch<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISearchEntireDeckProperties<TContext>, TContext>) {
-    return new SearchEntireDeckSystem<TContext>(propertyFactory);
 }
 export function loseGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILoseGameProperties, TContext>) {
     return new LoseGameSystem<TContext>(propertyFactory);

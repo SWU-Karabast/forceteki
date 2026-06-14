@@ -233,18 +233,19 @@ describe('Arcana Star Map', function () {
                     },
                 });
 
-                const buildCardName = (card) => `${card.title}${card.subtitle ? ', ' + card.subtitle : ''}`;
-
                 const { context } = contextRef;
 
-                // TODO REFACTOR THIS WHEN ENABLING FULL DECK SEARCH
-
                 context.player1.clickCard(context.searchYourFeelings);
-                expect(context.player1).toHaveExactDropdownListOptions([context.wampa, context.atst, context.yoda].map((card) => buildCardName(card)));
 
-                context.player1.chooseListOption('Wampa');
+                // Whole-deck searches are not amplified by Arcana Star Map — exactly the deck's contents appear
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.wampa, context.atst, context.yoda],
+                });
+
+                context.player1.clickCardInDisplayCardPrompt(context.wampa);
 
                 expect(context.getChatLogs(3).join('\n')).not.toContain('Wampa');
+                expect(context.getChatLogs(3).join('\n')).not.toContain('cards instead');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.searchYourFeelings).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('hand');
@@ -277,7 +278,7 @@ describe('Arcana Star Map', function () {
                 // Player sees the opponent's deck
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [inDeckBoba, inDeckPilotBoba],
-                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                    invalid: [context.cartelSpacer, context.eliteP38Starfighter, context.craftySmuggler]
                 });
 
                 context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
