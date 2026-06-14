@@ -245,6 +245,7 @@ describe('Arcana Star Map', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.wampa);
 
                 expect(context.getChatLogs(3).join('\n')).not.toContain('Wampa');
+                expect(context.getChatLogs(3).join('\n')).not.toContain('cards instead');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.searchYourFeelings).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('hand');

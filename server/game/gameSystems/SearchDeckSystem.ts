@@ -153,7 +153,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     /** Resolves the base search count and applies any active deck-search doubling effects (e.g. Arcana Star Map) on the searching player. */
     private computeModifiedSearchCount(searchCount: Derivable<number>, player: Player, context: TContext): number {
         const baseCount = this.computeSearchCount(searchCount, context);
-        if (baseCount <= 0) {
+        // Whole-deck searches (null count) are never amplified by deck-search doubling effects.
+        if (baseCount == null || baseCount <= 0) {
             return baseCount;
         }
         return player.getOngoingEffectValues<boolean>(EffectName.DoubleDeckSearchCount)
@@ -166,7 +167,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         const context: TContext = event.context;
         const baseCount = this.computeSearchCount(event.searchProperties.searchCount, context);
         const modifiedCount = event.amount;
-        if (baseCount <= 0 || modifiedCount === baseCount) {
+        // Whole-deck searches (null count) are never amplified, so there is no "search N instead" message to emit.
+        if (event.searchWholeDeck || baseCount <= 0 || modifiedCount === baseCount) {
             return;
         }
         for (const { context: effectContext } of player.getOngoingEffectDetails<boolean>(EffectName.DoubleDeckSearchCount)) {
