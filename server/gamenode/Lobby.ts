@@ -1244,7 +1244,6 @@ export class Lobby {
 
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
-            game.started = true;
 
             logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
 

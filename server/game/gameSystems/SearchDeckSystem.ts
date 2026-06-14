@@ -3,7 +3,7 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
-import { DeckZoneDestination, EventName, TargetMode, ZoneName } from '../core/Constants.js';
+import { DeckZoneDestination, EffectName, EventName, TargetMode, ZoneName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { GameSystem } from '../core/gameSystem/GameSystem.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -70,6 +70,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     public override eventHandler(event: any, additionalProperties: Partial<TProperties> = {}): void {
         const player = event.player;
+        this.emitModifiedSearchCountMessage(event);
         const deckLength = this.getDeck(player).length;
         // event.amount == null indicates a whole-deck search; otherwise it's the requested top-N count.
         const amount = event.amount == null ? deckLength : Math.min(event.amount, deckLength);
@@ -79,10 +80,10 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (this.computeSearchCount(properties.searchCount, context) === 0) {
+        const player = this.getSingleTarget(properties.target);
+        if (this.computeModifiedSearchCount(properties.searchCount, player, context) === 0) {
             return false;
         }
-        const player = this.getSingleTarget(properties.target);
         return this.getDeck(player).length > 0 && super.canAffectInternal(player, context);
     }
 
@@ -95,8 +96,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
         const player = this.getSingleTarget(properties.target);
+        const searchCountAmount = this.computeModifiedSearchCount(properties.searchCount, player, context);
 
         const targetIsSelf = player === context.player;
         const targetMessage: string | FormatMessage = targetIsSelf ? 'their' : { format: '{0}\'s', args: [player] };
@@ -118,7 +119,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
-        event.amount = this.computeSearchCount(properties.searchCount, context);
+        event.amount = this.computeModifiedSearchCount(properties.searchCount, this.getSingleTarget(properties.target), context);
         event.searchProperties = properties;
     }
 
@@ -136,6 +137,37 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     private computeSearchCount(searchCount: Derivable<number | undefined> | undefined, context: TContext): number | undefined {
         return typeof searchCount === 'function' ? searchCount(context) : searchCount;
+    }
+
+    /** Resolves the base search count and applies any active deck-search doubling effects (e.g. Arcana Star Map) on the searching player. */
+    private computeModifiedSearchCount(searchCount: Derivable<number>, player: Player, context: TContext): number {
+        const baseCount = this.computeSearchCount(searchCount, context);
+        if (baseCount <= 0) {
+            return baseCount;
+        }
+        return player.getOngoingEffectValues<boolean>(EffectName.DoubleDeckSearchCount)
+            .reduce((count) => count * 2, baseCount);
+    }
+
+    /** Emits a chat message for each source doubling the deck search count, e.g. "player1 uses Battlefield Marine's gained ability from Arcana Star Map to search 10 cards instead". */
+    private emitModifiedSearchCountMessage(event: any): void {
+        const player: Player = event.player;
+        const context: TContext = event.context;
+        const baseCount = this.computeSearchCount(event.searchProperties.searchCount, context);
+        const modifiedCount = event.amount;
+        if (baseCount <= 0 || modifiedCount === baseCount) {
+            return;
+        }
+        for (const { context: effectContext } of player.getOngoingEffectDetails<boolean>(EffectName.DoubleDeckSearchCount)) {
+            const source = effectContext.source;
+            const gainAbilitySource = effectContext.ongoingEffect?.gainAbilitySource;
+            const messageArgs: MsgArg[] = [player, ' uses ', source];
+            if (gainAbilitySource && gainAbilitySource !== source) {
+                messageArgs.push('\'s gained ability from ', gainAbilitySource);
+            }
+            messageArgs.push(` to search ${modifiedCount} cards instead`);
+            context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+        }
     }
 
     private shouldShuffle(shuffle: Derivable<boolean>, context: TContext): boolean {
