@@ -935,7 +935,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._expiredLastingEffectChangedRemainingHp = false;
             }
 
-            this.checkDefeated(source);
+            // Defer the defeat check so simultaneous effects in the same event window (e.g. an
+            // HP-buffing upgrade being attached at the same time) can resolve first. Running the
+            // check inline would set _pendingDefeat mid-window, which CardTargetSystem treats as
+            // an untargetable card — cancelling the very upgrade attachment that would have saved
+            // the unit. The check is invoked at the end of the window's resolveEvents step.
+            if (damageAdded > 0 && this.game.currentEventWindow) {
+                this.game.currentEventWindow.addPostEventResolutionCallback(() => this.checkDefeated(source));
+            } else {
+                this.checkDefeated(source);
+            }
 
             return damageAdded;
         }
