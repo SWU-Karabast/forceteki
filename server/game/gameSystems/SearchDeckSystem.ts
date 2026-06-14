@@ -97,7 +97,11 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         properties.cardCondition = properties.cardCondition || (() => true);
 
         const searchCount = this.computeSearchCount(properties.searchCount, context);
-        Contract.assertTrue(!!properties.searchWholeDeck === (searchCount == null), 'searchCount must be set if and only if searchWholeDeck is false');
+        if (properties.searchWholeDeck) {
+            Contract.assertIsNullLike(searchCount, 'searchCount must not be set when searchWholeDeck is true');
+        } else {
+            Contract.assertNotNullLike(searchCount, 'searchCount is required unless searchWholeDeck is true');
+        }
 
         return properties;
     }
