@@ -83,11 +83,14 @@ export enum IllegalInFormatReason {
     /** Card's set is not part of the legal rotation for this format (e.g. a SOR card in Premier). */
     RotatedOut = 'rotatedOut',
 
-    /** Card is from a set that has not yet been officially released (or whose set code is unrecognized). */
-    Unreleased = 'unreleased',
+    /** Card is from a preview set that has not yet been officially released. */
+    Preview = 'preview',
 
     /** Card is on this format's suspension list. */
     Suspended = 'suspended',
+
+    /** Card's set code is not recognized (e.g. a typo or an unsupported set). */
+    UnknownSet = 'unknownSet',
 }
 
 export interface IIllegalCardEntry extends ICardIdAndName {
@@ -109,8 +112,8 @@ export enum DeckValidationFailureReason {
 
     /**
      * One or more cards are not legal to play in this format. Each entry carries an `IllegalInFormatReason`
-     * indicating why: `RotatedOut` (set outside the current rotation), `Unreleased` (set not yet officially
-     * released or whose set code is unrecognized), or `Suspended` (card is on this format's suspension list).
+     * indicating why: `RotatedOut` (set outside the current rotation), `Preview` (set not yet officially
+     * released), `Suspended` (card is on this format's suspension list), or `UnknownSet` (set code not recognized).
      */
     IllegalInFormat = 'illegalInFormat',
 
@@ -141,7 +144,7 @@ export enum DeckValidationFailureReason {
 
 export interface IDeckValidationFailures {
 
-    /** Cards that cannot be played in this format. Each entry's `reason` field distinguishes between `RotatedOut`, `Unreleased`, and `Suspended`. */
+    /** Cards that cannot be played in this format. Each entry's `reason` field distinguishes between `RotatedOut`, `Preview`, `Suspended`, and `UnknownSet`. */
     [DeckValidationFailureReason.IllegalInFormat]?: IIllegalCardEntry[];
 
     /** The deck object itself is malformed — null, missing required fields, or contains a negative card count. */

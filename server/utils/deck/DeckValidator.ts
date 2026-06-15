@@ -409,7 +409,7 @@ export class DeckValidator {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
                 name: cardData.titleAndSubtitle,
-                reason: this.getIllegalInFormatReason(cardData.sets)
+                reason: DeckValidator.getIllegalInFormatReason(cardData.sets, format)
             });
             return;
         }
@@ -426,23 +426,22 @@ export class DeckValidator {
 
     /**
      * Determines why a card is not legal in the requested format.
-     * - If the card has no recognized sets (unknown set code), it is treated as Unreleased.
-     * - If any of the card's recognized sets are unreleased, the card is Unreleased.
-     * - Otherwise the card's set exists and is released but is outside the legal rotation: RotatedOut.
+     * - If the card has no recognized sets (e.g. a typo or an unsupported set), the set code is UnknownSet.
+     * - If the card would become legal in this format once unreleased sets are included (i.e. it is in a
+     *   preview set that belongs to this format's pool), the card is from a Preview set.
+     * - Otherwise the card's set exists but is outside the format's legal pool entirely: RotatedOut.
      */
-    private getIllegalInFormatReason(sets: SwuSetId[]): IllegalInFormatReason {
+    private static getIllegalInFormatReason(sets: SwuSetId[], format: SwuGameFormat): IllegalInFormatReason {
         if (sets.length === 0) {
-            return IllegalInFormatReason.Unreleased;
+            return IllegalInFormatReason.UnknownSet;
         }
-        const allSets = [
-            ...rotationBlocks.flatMap((b) => b.sets),
-            ...nonRotatingSets
-        ];
-        const isUnreleased = sets.some((setId) => {
-            const setData = allSets.find((s) => s.id === setId);
-            return setData != null && !setData.released;
-        });
-        return isUnreleased ? IllegalInFormatReason.Unreleased : IllegalInFormatReason.RotatedOut;
+
+        // The NextSet pool is the format's legal pool with unreleased (preview) sets included. If the card
+        // has a set in that pool but is illegal now, the only thing keeping it out is that its set is still
+        // a preview; otherwise it is genuinely outside the format's rotation.
+        const previewLegalSets = DeckValidator.getLegalSets(format, CardPool.NextSet);
+        const wouldBeLegalWithPreviews = sets.some((set) => previewLegalSets.has(set));
+        return wouldBeLegalWithPreviews ? IllegalInFormatReason.Preview : IllegalInFormatReason.RotatedOut;
     }
 
     protected checkCardLocation(card: ISwuDbFormatCardEntry, cardData: ICardCheckData, location: DecklistLocation, failures: IDeckValidationFailures) {
