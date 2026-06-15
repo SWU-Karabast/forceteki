@@ -34,6 +34,7 @@
     "eslint": "^9.8.0",
     "eslint-plugin-jasmine": "^4.2.0",
     "express": "^4.21.0",
+    "glob": "^13.0.6",
     "globals": "^15.9.0",
     "jasmine": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
