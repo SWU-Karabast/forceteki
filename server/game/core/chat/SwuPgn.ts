@@ -279,6 +279,12 @@ export class SwuPgn {
             markersByIndex.set(marker.messageIndex, existing);
         }
 
+        // Sequential display number for top-level actions, reset at each round/phase
+        // boundary. Driven by render order (not the marker's raw actionNumber) so the
+        // visible numbering is always 1, 2, 3, \u2026 per phase regardless of how the
+        // underlying action/sub-event counters advanced.
+        let actionDisplayNumber = 0;
+
         for (let i = 0; i < messages.length; i++) {
             const markers = markersByIndex.get(i);
             if (markers) {
@@ -287,9 +293,11 @@ export class SwuPgn {
                         if (lines.length > 0) lines.push('');
                         lines.push(`\u2550\u2550\u2550 ROUND ${marker.round} \u2550\u2550\u2550`);
                         lines.push('');
+                        actionDisplayNumber = 0;
                     } else if (marker.type === 'phase') {
                         if (lines.length > 0 && lines[lines.length - 1] !== '') lines.push('');
                         lines.push(`\u2500\u2500\u2500 ${marker.phase} \u2500\u2500\u2500`);
+                        actionDisplayNumber = 0;
                     }
                 }
             }
@@ -318,8 +326,9 @@ export class SwuPgn {
 
                 if (subEventMarker && subEventMarker.actionNumber && subEventMarker.subEventLetter) {
                     line = `  ${subEventMarker.actionNumber}${subEventMarker.subEventLetter}. ${line}`;
-                } else if (actionMarker && actionMarker.actionNumber) {
-                    line = `${actionMarker.actionNumber}. ${line}`;
+                } else if (actionMarker) {
+                    actionDisplayNumber++;
+                    line = `${actionDisplayNumber}. ${line}`;
                 }
             }
 

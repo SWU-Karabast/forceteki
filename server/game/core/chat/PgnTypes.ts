@@ -1,4 +1,12 @@
 /**
+ * Wire identifier for the SWU-PGN format, emitted verbatim in the `[Game]` header tag
+ * of both files. Bump this (in coordination with the replay-viewer client, which keys
+ * off it) whenever the format changes in a way a parser must be aware of.
+ * The published JSON schema for replay records lives at docs/swu-pgn-replay.schema.json.
+ */
+export const PGN_FORMAT_VERSION = 'SWU-PGN v1.0';
+
+/**
  * Action types for the machine-readable replay data.
  *
  * Values marked "active" have event listeners in PgnReplayRecorder.
@@ -36,10 +44,10 @@ export enum PgnActionType {
     PhaseEnd = 'PHASE_END',
     RoundStart = 'ROUND_START',
     RoundEnd = 'ROUND_END',
-
-    // Reserved — defined in format spec, listeners to be added
     Search = 'SEARCH',
     Reveal = 'REVEAL',
+
+    // Reserved — defined in format spec, listeners to be added
     Move = 'MOVE',
     ShieldGain = 'SHIELD_GAIN',
     ShieldUse = 'SHIELD_USE',

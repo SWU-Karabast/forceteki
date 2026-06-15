@@ -1,4 +1,4 @@
-describe('PGN replay recorder undo retention', function() {
+describe('PGN replay recorder undo handling', function() {
     undoIntegration(function(contextRef) {
         beforeEach(function () {
             return contextRef.setupTestAsync({
@@ -12,28 +12,32 @@ describe('PGN replay recorder undo retention', function() {
             });
         });
 
-        // Regression: postRollbackOperations used to call recorder.reset(), which
-        // discarded the ENTIRE recorded replay (not just the rolled-back action). Any
-        // undo therefore wiped the replay history up to that point, so a downloaded
-        // .swureplay for a game with undos was missing most of the game. The recorder
-        // is now append-only across rollbacks.
-        undoIt('keeps the recorded replay history when an action is undone', function () {
+        // The recorder is rolled back in lockstep with the game on undo: the undone
+        // action's records are dropped, but everything recorded before it is kept.
+        // (Earlier this either wiped the ENTIRE replay on any undo, or kept undone
+        // actions in the stream — both wrong. Now it truncates to the rollback point.)
+        undoIt('drops the undone action from the replay but keeps prior history', function () {
             const { context } = contextRef;
             const game: any = context.game;
             const recorder: any = game._replayRecorder;
+
+            const recordsBeforeAction = recorder.getReplayRecords().length;
 
             // Take a recordable action: attack the opponent's base.
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.p2Base);
 
-            const recordsBeforeUndo = recorder.getReplayRecords().length;
-            expect(recordsBeforeUndo).toBeGreaterThan(0);
+            const recordsAfterAction = recorder.getReplayRecords().length;
+            expect(recordsAfterAction).toBeGreaterThan(recordsBeforeAction);
 
             // Undo player 1's action.
             contextRef.snapshot.quickRollback(context.player1.id);
 
-            // The recorder must NOT have been wiped by the rollback.
-            expect(recorder.getReplayRecords().length).toBeGreaterThanOrEqual(recordsBeforeUndo);
+            const recordsAfterUndo = recorder.getReplayRecords().length;
+            // The undone action's records are gone …
+            expect(recordsAfterUndo).toBeLessThan(recordsAfterAction);
+            // … and the recorder was not wiped: history up to the rollback point remains.
+            expect(recordsAfterUndo).toBeGreaterThanOrEqual(recordsBeforeAction);
         });
     });
 });

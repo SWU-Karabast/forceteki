@@ -1,6 +1,8 @@
 # SWU-PGN: Portable Game Notation for Star Wars Unlimited
 
-**Version 1.1**
+**Format version: `SWU-PGN v1.0`** (the value carried verbatim in each file's `[Game]` header tag).
+A machine-readable JSON Schema for the `.swureplay` records is published at
+[docs/swu-pgn-replay.schema.json](swu-pgn-replay.schema.json).
 
 ## What Is SWU-PGN?
 
@@ -365,7 +367,7 @@ compatibility: a reader should tolerate them, but current files will not contain
 `PLAY`, `PLAY_EVENT`, `PLAY_UPGRADE`, `PLAY_SMUGGLE`, `DEPLOY_LEADER`, `ATTACK`, `PASS`, `CLAIM_INITIATIVE`, `RESOURCE`, `MULLIGAN` (reserved), `KEEP_HAND` (reserved), `MODAL_CHOICE` (reserved), `ABILITY_ACTIVATE` (reserved)
 
 **Game effects:**
-`TRIGGER`, `DAMAGE`, `DEFEAT`, `EXHAUST`, `READY`, `DRAW`, `DISCARD`, `HEAL`, `SHUFFLE`, `CREATE_TOKEN`, `CAPTURE`, `RESCUE`, `TAKE_CONTROL`, `SEARCH` (reserved), `REVEAL` (reserved), `MOVE` (reserved), `OVERWHELM` (reserved), `SHIELD_GAIN` (reserved), `SHIELD_USE` (reserved), `EXPERIENCE_GAIN` (reserved), `STATUS_TOKEN` (reserved)
+`TRIGGER`, `DAMAGE`, `DEFEAT`, `EXHAUST`, `READY`, `DRAW`, `DISCARD`, `HEAL`, `SHUFFLE`, `CREATE_TOKEN`, `CAPTURE`, `RESCUE`, `TAKE_CONTROL`, `SEARCH`, `REVEAL`, `MOVE` (reserved), `OVERWHELM` (reserved), `SHIELD_GAIN` (reserved), `SHIELD_USE` (reserved), `EXPERIENCE_GAIN` (reserved), `STATUS_TOKEN` (reserved)
 
 **Game structure:**
 `PHASE_START`, `PHASE_END`, `ROUND_START`, `ROUND_END`, `GAME_END`
@@ -427,7 +429,7 @@ compatibility: a reader should tolerate them, but current files will not contain
 {"seq":"R1.S.7","type":"RESOURCE","player":"Player 1","card":"SOR#142","cardName":"Vanquish"}
 ```
 
-**Hand reveal** (reserved -- shows the intended shape; not emitted by the recorder yet):
+**Hand reveal:**
 ```json
 {"seq":"R1.A.1b","type":"REVEAL","player":"Player 2","zone":"Hand","cards":["SOR#045","SOR#042","SOR#165","SOR#150","SOR#176"]}
 ```

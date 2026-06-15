@@ -2,6 +2,7 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, PhaseName, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
+import { logger } from '../../../logger';
 import { SwuPgn } from './SwuPgn';
 import { PgnActionType } from './PgnTypes';
 import type { IPgnReplayRecord, IStructureMarker, IPgnGameStateSnapshot, IPgnPlayerStateSnapshot } from './PgnTypes';
@@ -48,6 +49,30 @@ export class PgnReplayRecorder {
     /** Incremented for sub-events within an action; reset when actionCounter increments */
     private subEventCounter: number = 0;
 
+    /** Stable display id per card instance (uuid → e.g. SOR#095 / SOR#095:2) */
+    private readonly cardIdByUuid: Map<string, string> = new Map();
+
+    /** Count of distinct instances seen per base id, for assigning :N copy suffixes */
+    private readonly copyCountByBase: Map<string, number> = new Map();
+
+    /** Caps repeated recorder-error logging so a broken handler can't flood the logs */
+    private loggedErrorCount = 0;
+
+    /** Rollback checkpoints (array lengths + counters) keyed by snapshot id */
+    private readonly checkpoints: {
+        snapshotId: number;
+        recordsLen: number;
+        replayLen: number;
+        markersLen: number;
+        currentRound: number;
+        currentPhase: string;
+        currentPhaseDisplayName: string;
+        actionCounter: number;
+        phaseEventCounter: number;
+        subEventCounter: number;
+        lastGameStateStr: string;
+    }[] = [];
+
     public constructor(game: Game, getStateSnapshot?: () => Record<string, any>) {
         this.game = game;
         this.getStateSnapshot = getStateSnapshot ?? null;
@@ -72,13 +97,65 @@ export class PgnReplayRecorder {
                 winner,
                 reason,
             });
-        } catch {
-            // Recording error — do not crash gameplay
+        } catch (error) {
+            this.logError('event handler', error);
         }
     }
 
     public getStructureMarkers(): IStructureMarker[] {
         return this.structureMarkers;
+    }
+
+    /**
+     * Roll the recorded data back to a prior game state after an undo. `restoredSnapshotId`
+     * is the snapshot the game was restored to (snapshotManager.currentSnapshotId after the
+     * rollback). Truncates records/markers back to the boundary captured when that snapshot
+     * was taken — dropping exactly the undone records — and discards that checkpoint and any
+     * later ones so re-recording the redo starts clean.
+     */
+    public rollbackTo(restoredSnapshotId: number | null): void {
+        try {
+            if (restoredSnapshotId == null) {
+                return;
+            }
+            let idx = -1;
+            for (let i = this.checkpoints.length - 1; i >= 0; i--) {
+                if (this.checkpoints[i].snapshotId === restoredSnapshotId) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx === -1) {
+                return; // nothing was recorded after the restored snapshot
+            }
+            const boundary = this.checkpoints[idx];
+            this.records.length = boundary.recordsLen;
+            this.replayRecords.length = boundary.replayLen;
+            this.structureMarkers.length = boundary.markersLen;
+            this.currentRound = boundary.currentRound;
+            this.currentPhase = boundary.currentPhase;
+            this.currentPhaseDisplayName = boundary.currentPhaseDisplayName;
+            this.actionCounter = boundary.actionCounter;
+            this.phaseEventCounter = boundary.phaseEventCounter;
+            this.subEventCounter = boundary.subEventCounter;
+            this.lastGameStateStr = boundary.lastGameStateStr;
+            // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
+            this.checkpoints.length = idx;
+        } catch (error) {
+            this.logError('rollbackTo', error);
+        }
+    }
+
+    /**
+     * Release the in-memory recorded data once the game's files have been cached as
+     * strings at game end. The cached .swupgn/.swureplay strings are the served
+     * artifacts, so the raw record/marker/checkpoint arrays are redundant afterward.
+     */
+    public clearRecordedData(): void {
+        this.records.length = 0;
+        this.replayRecords.length = 0;
+        this.structureMarkers.length = 0;
+        this.checkpoints.length = 0;
     }
 
     /** Initialize the Player 1/Player 2 player map from game.getPlayers() order. */
@@ -114,17 +191,59 @@ export class PgnReplayRecorder {
         if (!card) {
             return 'unknown';
         }
+
+        // Base id: SET#NUM for normal cards, TOKEN:{name} for tokens, name as last resort.
+        let base: string;
         try {
             if (card.isToken && card.isToken()) {
-                return `TOKEN:${card.title ?? card.name ?? 'unknown'}`;
-            }
-            if (card.setId) {
-                return SwuPgn.formatSetId(card.setId.set, card.setId.number);
+                base = `TOKEN:${card.title ?? card.name ?? 'unknown'}`;
+            } else if (card.setId) {
+                base = SwuPgn.formatSetId(card.setId.set, card.setId.number);
+            } else {
+                base = card.title ?? card.name ?? 'unknown';
             }
         } catch {
-            // Fall through to name-based fallback
+            base = card.title ?? card.name ?? 'unknown';
         }
-        return card.title ?? card.name ?? 'unknown';
+
+        // Disambiguate multiple copies of the same card by appending a stable :N suffix
+        // keyed off the card's instance uuid (first copy = base, second = base:2, …).
+        // Without an instance identity we cannot disambiguate, so fall back to the base.
+        let uuid: string | undefined;
+        try {
+            uuid = card.uuid;
+        } catch {
+            uuid = undefined;
+        }
+        if (uuid == null || base === 'unknown') {
+            return base;
+        }
+
+        const cached = this.cardIdByUuid.get(uuid);
+        if (cached != null) {
+            return cached;
+        }
+        const copyNumber = (this.copyCountByBase.get(base) ?? 0) + 1;
+        this.copyCountByBase.set(base, copyNumber);
+        const id = copyNumber === 1 ? base : `${base}:${copyNumber}`;
+        this.cardIdByUuid.set(uuid, id);
+        return id;
+    }
+
+    /**
+     * Log a recorder error without ever crashing gameplay. Rate-limited so a handler
+     * that throws every event can't flood the logs; recording stays best-effort.
+     */
+    private logError(where: string, error: unknown): void {
+        if (this.loggedErrorCount >= 20) {
+            return;
+        }
+        this.loggedErrorCount++;
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(`PgnReplayRecorder: error in ${where} (recording skipped): ${message}`);
+        if (this.loggedErrorCount === 20) {
+            logger.warn('PgnReplayRecorder: further recording errors will be suppressed for this game');
+        }
     }
 
     /** Increment the action counter and reset sub-event counter. Emits game state for the previous action. */
@@ -185,8 +304,47 @@ export class PgnReplayRecorder {
 
     /** Push a record into both the records and replayRecords arrays. */
     private push(record: IPgnReplayRecord): void {
+        this.maybeCheckpoint();
         this.records.push(record);
         this.replayRecords.push(record);
+    }
+
+    /**
+     * Capture a rollback checkpoint the first time a record is pushed under a new
+     * snapshot id. The game takes a state snapshot (action/quick/phase) before the
+     * effects it precedes, so the first push afterward captures the array lengths +
+     * counters as they were *at that snapshot* (before its records). rollbackTo() then
+     * truncates back to that boundary, dropping exactly the undone records. Keyed off
+     * snapshotManager.currentSnapshotId, which is restored to the rolled-back value on
+     * undo. No-op when there is no snapshot manager (unit-test stubs).
+     */
+    private maybeCheckpoint(): void {
+        let snapshotId: number;
+        try {
+            snapshotId = this.game.snapshotManager?.currentSnapshotId ?? -1;
+        } catch {
+            return;
+        }
+        if (snapshotId < 0) {
+            return;
+        }
+        const last = this.checkpoints[this.checkpoints.length - 1];
+        if (last && last.snapshotId === snapshotId) {
+            return;
+        }
+        this.checkpoints.push({
+            snapshotId,
+            recordsLen: this.records.length,
+            replayLen: this.replayRecords.length,
+            markersLen: this.structureMarkers.length,
+            currentRound: this.currentRound,
+            currentPhase: this.currentPhase,
+            currentPhaseDisplayName: this.currentPhaseDisplayName,
+            actionCounter: this.actionCounter,
+            phaseEventCounter: this.phaseEventCounter,
+            subEventCounter: this.subEventCounter,
+            lastGameStateStr: this.lastGameStateStr,
+        });
     }
 
     /** Add a structure marker at the current message log position. */
@@ -283,8 +441,8 @@ export class PgnReplayRecorder {
                         type: PgnActionType.GameState,
                         snapshot: fullSnapshot,
                     } as IPgnReplayRecord);
-                } catch {
-                    // Snapshot capture error — do not crash gameplay
+                } catch (error) {
+                    this.logError('phase snapshot', error);
                 }
             }
 
@@ -294,8 +452,8 @@ export class PgnReplayRecorder {
                 type: 'gameState',
                 gameState: snapshot,
             });
-        } catch {
-            // Recording error — do not crash gameplay
+        } catch (error) {
+            this.logError('event handler', error);
         }
     }
 
@@ -360,8 +518,8 @@ export class PgnReplayRecorder {
         this.game.on(EventName.OnBeginRound, (event: any) => {
             try {
                 this.syncRound();
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -372,8 +530,8 @@ export class PgnReplayRecorder {
                     type: PgnActionType.RoundEnd,
                     round: this.currentRound,
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -396,8 +554,8 @@ export class PgnReplayRecorder {
                     phase: this.currentPhase,
                     round: this.currentRound,
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -418,8 +576,8 @@ export class PgnReplayRecorder {
                     phase: phaseAbbr,
                     round: this.currentRound,
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -448,8 +606,8 @@ export class PgnReplayRecorder {
                     zone: card?.zoneName ?? '',
                     playType,
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -465,8 +623,8 @@ export class PgnReplayRecorder {
                     card: this.cardId(card),
                     zone: card?.zoneName ?? '',
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -487,8 +645,8 @@ export class PgnReplayRecorder {
                     defender: this.cardId(defender),
                     defenderType,
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -501,8 +659,8 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Pass,
                     player: this.anonymizePlayer(player),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -515,8 +673,8 @@ export class PgnReplayRecorder {
                     type: PgnActionType.ClaimInitiative,
                     player: this.anonymizePlayer(player),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -541,8 +699,8 @@ export class PgnReplayRecorder {
                     damageType: event?.type ?? '',
                     remainingHp: card?.remainingHp ?? 0,
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -565,8 +723,8 @@ export class PgnReplayRecorder {
                     reason,
                     defeatedBy: this.cardId(defeatedBy),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -594,8 +752,8 @@ export class PgnReplayRecorder {
                         player: this.anonymizePlayer(player),
                     });
                 }
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -621,8 +779,8 @@ export class PgnReplayRecorder {
                         player: this.anonymizePlayer(player),
                     });
                 }
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -635,8 +793,8 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Exhaust,
                     card: this.cardId(card),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -649,8 +807,8 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Ready,
                     card: this.cardId(card),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -665,8 +823,8 @@ export class PgnReplayRecorder {
                     amount: event?.damageHealed ?? event?.amount ?? 0,
                     remainingHp: card?.remainingHp ?? 0,
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -684,8 +842,8 @@ export class PgnReplayRecorder {
                         zone: token?.zoneName ?? '',
                     });
                 }
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -698,8 +856,8 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Capture,
                     card: this.cardId(card),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -714,8 +872,8 @@ export class PgnReplayRecorder {
                     player: this.anonymizePlayer(player),
                     card: this.cardId(card),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -730,8 +888,8 @@ export class PgnReplayRecorder {
                     card: this.cardId(card),
                     player: this.anonymizePlayer(player),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -746,8 +904,8 @@ export class PgnReplayRecorder {
                     card: this.cardId(card),
                     player: this.anonymizePlayer(player),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -760,8 +918,8 @@ export class PgnReplayRecorder {
                     type: PgnActionType.Shuffle,
                     player: this.anonymizePlayer(player),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
 
@@ -776,8 +934,45 @@ export class PgnReplayRecorder {
                     card: this.cardId(card),
                     player: this.anonymizePlayer(player),
                 });
-            } catch {
-                // Recording error — do not crash gameplay
+            } catch (error) {
+                this.logError('event handler', error);
+            }
+        });
+
+        this.game.on(EventName.OnCardRevealed, (event: any) => {
+            try {
+                const cards: any[] = event?.cards ?? [];
+                if (cards.length === 0) {
+                    return;
+                }
+                const owner = cards[0]?.controller ?? cards[0]?.owner;
+                const cardIds = cards.map((c: any) => this.cardId(c)).filter((id: string) => id !== 'unknown');
+                const seq = this.nextSeq(false);
+                this.push({
+                    seq,
+                    type: PgnActionType.Reveal,
+                    player: this.anonymizePlayer(owner),
+                    zone: event?.revealedFromZone ?? cards[0]?.zoneName ?? '',
+                    cards: cardIds.length > 0 ? cardIds : undefined,
+                });
+            } catch (error) {
+                this.logError('event handler', error);
+            }
+        });
+
+        this.game.on(EventName.OnDeckSearch, (event: any) => {
+            try {
+                const player = event?.player;
+                const seq = this.nextSeq(false);
+                this.push({
+                    seq,
+                    type: PgnActionType.Search,
+                    player: this.anonymizePlayer(player),
+                    count: event?.searchWholeDeck ? undefined : (event?.amount ?? undefined),
+                    wholeDeck: event?.searchWholeDeck ? true : undefined,
+                });
+            } catch (error) {
+                this.logError('event handler', error);
             }
         });
     }

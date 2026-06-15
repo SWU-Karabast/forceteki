@@ -106,6 +106,7 @@ import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 import { SwuPgn } from './chat/SwuPgn';
 import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IGameFiles } from './chat/PgnTypes';
+import { PGN_FORMAT_VERSION } from './chat/PgnTypes';
 import { PgnReplayRecorder } from './chat/PgnReplayRecorder';
 
 export class Game extends EventEmitter {
@@ -654,7 +655,7 @@ export class Game extends EventEmitter {
         }
 
         return {
-            game: 'SWU-PGN v1.0',
+            game: PGN_FORMAT_VERSION,
             date,
             player1: 'Player 1',
             player2: 'Player 2',
@@ -1120,6 +1121,10 @@ export class Game extends EventEmitter {
             const gameFiles = this.generateGameFiles();
             this._cachedSwuPgn = gameFiles.swuPgn;
             this._cachedSwuReplay = gameFiles.swuReplay;
+            // The cached strings are now the served artifacts; release the recorder's
+            // raw record/marker/checkpoint arrays so they don't sit in memory for the
+            // lobby's lifetime (matters for long games and many concurrent lobbies).
+            this._replayRecorder.clearRecordedData();
         } catch (e) {
             logger.error(`Error caching game log at end of game: ${e}`);
         }
@@ -2221,14 +2226,11 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
-        // Intentionally do NOT reset the replay recorder on rollback. Resetting here
-        // discarded the ENTIRE recorded game (not just the rolled-back actions), so any
-        // undo wiped the replay history up to that point and the downloaded .swureplay
-        // was missing most of the game. The recorder is append-only: it keeps the full
-        // history (rolled-back actions remain in the stream, each tied to a per-phase
-        // state snapshot a replay can step through), and round tracking re-syncs from
-        // game.roundNumber on the next phase so seqs stay monotonic after a rollback.
-        // Only invalidate the end-of-game cached files so they regenerate.
+        // Roll the replay recorder back to match the restored game state: drop exactly
+        // the records produced after the snapshot we rolled back to, keeping the rest of
+        // the recorded game. currentSnapshotId already reflects the restored snapshot here.
+        // (Earlier this called a full reset(), which wiped the ENTIRE recorded game on any undo.)
+        this._replayRecorder.rollbackTo(this._snapshotManager.currentSnapshotId);
         this._cachedSwuPgn = undefined;
         this._cachedSwuReplay = undefined;
         this._cachedRawGameLog = undefined;
