@@ -3,7 +3,7 @@ import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import { CardType, CardPool, SwuGameFormat } from '../../game/core/Constants';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
-import { DecklistLocation, DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
+import { DecklistLocation, DeckValidationFailureReason, IllegalInFormatReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import { Contract } from '../../game/core/utils/Contract';
 import { EnumHelpers } from '../../game/core/utils/EnumHelpers';
@@ -54,11 +54,16 @@ export class DeckValidator {
         return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
     }
 
+    public static createForTesting(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>): DeckValidator {
+        return new DeckValidator(allCardsData, setCodeToId);
+    }
+
     private static parseSets(cardData: ICardDataJson): SwuSetId[] {
-        if (cardData.setCodes) {
-            return cardData.setCodes.map((code) => EnumHelpers.checkConvertToEnum(code.set, SwuSetId)[0]);
-        }
-        return [EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSetId)[0]];
+        const setCodes = cardData.setCodes ?? [cardData.setId];
+        // Use tryConvertToEnum so cards with unrecognized set codes (e.g. test fixtures) produce an
+        // empty array rather than throwing. An empty array means the card matches no legal set and
+        // will always fail checkFormatLegality, which is the correct behaviour.
+        return EnumHelpers.tryConvertToEnum(setCodes.map((c) => c.set), SwuSetId);
     }
 
     /**
@@ -79,7 +84,7 @@ export class DeckValidator {
      * subject to the same released/unreleased filtering.
      */
     public static getLegalSets(format: SwuGameFormat, cardPool: CardPool): Set<SwuSetId> {
-        // Open or Unlimited pool: everything, always
+        // Open/Unlimited: all sets including previews, always
         if (format === SwuGameFormat.Open) {
             const all = new Set<SwuSetId>(rotationBlocks.flatMap((block) => block.sets.map((s) => s.id)));
             for (const nrs of nonRotatingSets) {
@@ -199,11 +204,11 @@ export class DeckValidator {
 
     // update this function if anything affects the sideboard count
     public getMaxSideboardSize(format: SwuGameFormat, cardPool: CardPool): number {
-        // Sideboard is only restricted in Premier and Eternal. We relax the restriction in Next Set mode.
-        if (format === SwuGameFormat.Open || format === SwuGameFormat.Limited || cardPool === CardPool.NextSet) {
-            return -1;
+        // Sideboard is only restricted in Premier and Eternal. We relax the restriction in other modes.
+        if ((format === SwuGameFormat.Premier || format === SwuGameFormat.Eternal) && cardPool === CardPool.Current) {
+            return 10;
         }
-        return 10;
+        return -1;
     }
 
     public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbFormatDecklist): { id: string; name: string }[] {
@@ -403,7 +408,8 @@ export class DeckValidator {
         if (!isLegalInFormat) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
-                name: cardData.titleAndSubtitle
+                name: cardData.titleAndSubtitle,
+                reason: DeckValidator.getIllegalInFormatReason(cardData.sets, format)
             });
             return;
         }
@@ -412,9 +418,30 @@ export class DeckValidator {
         if (rules?.bannedCards.has(this.setCodeToId.get(setCode))) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
-                name: cardData.titleAndSubtitle
+                name: cardData.titleAndSubtitle,
+                reason: IllegalInFormatReason.Suspended
             });
         }
+    }
+
+    /**
+     * Determines why a card is not legal in the requested format.
+     * - If the card has no recognized sets (e.g. a typo or an unsupported set), the set code is UnknownSet.
+     * - If the card would become legal in this format once unreleased sets are included (i.e. it is in a
+     *   preview set that belongs to this format's pool), the card is from a Preview set.
+     * - Otherwise the card's set exists but is outside the format's legal pool entirely: RotatedOut.
+     */
+    private static getIllegalInFormatReason(sets: SwuSetId[], format: SwuGameFormat): IllegalInFormatReason {
+        if (sets.length === 0) {
+            return IllegalInFormatReason.UnknownSet;
+        }
+
+        // The NextSet pool is the format's legal pool with unreleased (preview) sets included. If the card
+        // has a set in that pool but is illegal now, the only thing keeping it out is that its set is still
+        // a preview; otherwise it is genuinely outside the format's rotation.
+        const previewLegalSets = DeckValidator.getLegalSets(format, CardPool.NextSet);
+        const wouldBeLegalWithPreviews = sets.some((set) => previewLegalSets.has(set));
+        return wouldBeLegalWithPreviews ? IllegalInFormatReason.Preview : IllegalInFormatReason.RotatedOut;
     }
 
     protected checkCardLocation(card: ISwuDbFormatCardEntry, cardData: ICardCheckData, location: DecklistLocation, failures: IDeckValidationFailures) {
