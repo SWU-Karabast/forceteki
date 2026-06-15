@@ -2,7 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { AbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
-import { CardType, PlayType, Stage, WildcardCardType } from '../Constants';
+import { CardType, PlayType, WildcardCardType } from '../Constants';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { Contract } from '../../core/utils/Contract';
@@ -378,11 +378,14 @@ export abstract class CostAdjuster extends GameObjectBase {
         const upgrade = context.source;
         Contract.assertTrue(upgrade.isUpgrade(), `attachTargetCondition can only be used with upgrade cards, attempting to use with '${upgrade.title}'`);
 
-        if (context.stage === Stage.Cost && context.target != null) {
+        // If a specific attach target is available in the context (e.g., during actual cost payment or
+        // during per-card affordability checks in target selection), evaluate the condition against it.
+        if (context.target != null) {
             return this.attachTargetCondition(context.target, context, this.sourceCard);
         }
 
-        // if we're not yet at the "pay cost" stage, evaluate whether any unit on the field meets the attach condition
+        // if no specific target is set, evaluate whether any unit on the field meets the attach condition
+        // (used when checking whether the card is playable at all, before a target is selected)
         for (const unit of context.game.getArenaUnits()) {
             if (
                 upgrade.canAttach(unit, context, context.player) &&

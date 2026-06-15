@@ -27,6 +27,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
     private readonly onSelectionSetChanged?: (selected: Card | Card[], context: AbilityContext) => void;
 
+    private _inAffordabilityCheck = false;
+
     private static readonly choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
@@ -72,6 +74,25 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
             }
+
+            // Check whether the resource cost can be paid for this specific target. This ensures that
+            // when cost adjusters are target-dependent (e.g. Mastery only discounts on unique units),
+            // targets that the player cannot afford are excluded from the selectable list rather than
+            // appearing selectable and thencancelling the action after selection.
+            if (context.stage === Stage.PreTarget && !this._inAffordabilityCheck) {
+                // Guard against re-entry: some cost adjusters (e.g. Exploit) call hasLegalTarget on their own CardTargetResolver from within canPay,
+                // which would invoke this same check recursively. Setting __inAffordabilityCheck prevents that inner resolver from entering this block
+                this._inAffordabilityCheck = true;
+                try {
+                    const resourceCost = contextCopy.ability?.getCosts(contextCopy).find((cost) => cost.isResourceCost());
+                    if (resourceCost != null && !resourceCost.canPay(contextCopy)) {
+                        return false;
+                    }
+                } finally {
+                    this._inAffordabilityCheck = false;
+                }
+            }
+
             return (this.immediateEffect || !this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
               (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, {}, this.properties.mustChangeGameState));
