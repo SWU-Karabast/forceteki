@@ -113,16 +113,19 @@ After the `=== FREEFORM ===` marker, the game log records every round, organized
 
 #### Rounds and Phases
 
-Each round is marked with a bold separator. Within each round, the three phases of SWU are labeled:
+The log is organized by round and phase. Each phase is introduced by a
+`─── Phase Name ───` separator, and the game's own banner lines (`Round: N - Action Phase`)
+mark where each round begins:
 
 ```
-═══ ROUND 1 ═══
-
 ─── Setup Phase ───
-(mulligan decisions, initial resource choices)
+(shuffles, starting hands, mulligan decisions, initial resources)
+Round: 1 - Action Phase
+  [Game State] ...
 
 ─── Action Phase ───
 (numbered player actions -- plays, attacks, passes)
+Round: 1 - Regroup Phase
 
 ─── Regroup Phase ───
 (draw cards, resource a card, ready all)
@@ -132,33 +135,31 @@ The Setup Phase only appears in Round 1. Subsequent rounds go straight to the Ac
 
 #### How Actions Are Written
 
-**Player actions** in the Action Phase are numbered. The number resets each round:
+**Top-level player actions** in the Action Phase are numbered:
 
 ```
-1. Player 1 plays Viper Probe Droid to Ground Arena (cost 2)
-2. Player 2 plays Rebel Pathfinder to Ground Arena (cost 2)
-3. Player 1 attacks with Cell Block Guard against Player 2's Rebel Pathfinder
-4. Player 2 passes
-5. Player 1 claims initiative and passes
+Player 1 plays Special Forces TIE Fighter
+1. Player 2 plays Yaddle, A Chance To Make Things Right
+3. Player 1 claims initiative and passes
+5. Player 2 passes
 ```
 
-**Sub-events** -- triggered abilities, damage, defeats -- are indented and lettered under the action that caused them:
+**Sub-events** -- triggered abilities, damage, defeats, and the resolution details of
+an attack -- appear as **unnumbered lines** in the order they resolve, beneath the
+action that caused them. Only top-level actions are numbered; everything they trigger
+is left unnumbered:
 
 ```
-1. Player 1 plays Viper Probe Droid to Ground Arena (cost 2)
-  1a. Player 1's Viper Probe Droid triggers When Played: looks at Player 2's hand
-  1b. Player 2's hand revealed: Rebel Pathfinder, Wing Leader, Moment of Peace
+Player 1 attacks Player 2's base with Droid Missile Platform
+1. Player 2 attacks Player 1's base with Yaddle, A Chance To Make Things Right
+3. Player 1's Droid Missile Platform is defeated by Player 2 due to having no remaining HP
+Player 2's Blue Leader, Scarif Air Support is defeated by Player 1 due to having no remaining HP
+Player 1 uses Boba Fett, Any Methods Necessary to deal 1 indirect damage to Player 2's base
 ```
 
-This hierarchy makes it clear which effects belong to which action. A single attack might generate several sub-events:
-
-```
-3. Player 1 attacks with Cell Block Guard against Player 2's Rebel Pathfinder
-  3a. Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
-  3b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
-  3c. Rebel Pathfinder is defeated
-  3d. Cell Block Guard is exhausted
-```
+The machine-readable `.swureplay` file additionally tags every sub-event with a
+lettered `seq` such as `R1.A.3b` (see the Sequence ID section below), but the
+human log itself does not print those letters.
 
 **Setup and Regroup** entries are unnumbered since they follow a fixed sequence:
 
@@ -226,57 +227,59 @@ Here are the sentence patterns you'll see in the notation:
 | Attack a base | `N. Player 1 attacks with Attacker against Player 2's Base` |
 | Pass | `N. Player 1 passes` |
 | Claim initiative | `N. Player 1 claims initiative and passes` |
-| Triggered ability | `  Na. Player 1's Card triggers Type: effect description` |
-| Damage dealt | `  Na. Card deals X damage to Target (Y remaining HP)` |
-| Card defeated | `  Na. Card is defeated` |
-| Card exhausted | `  Na. Card is exhausted` |
-| Heal | `  Na. X damage healed from Card (Y remaining HP)` |
-| Shield gained | `  Na. Card gains a Shield token` |
-| Shield used | `  Na. Card's Shield token is defeated to prevent damage` |
-| Token created | `  Na. Token Name enters Zone (X/Y)` |
-| Overwhelm | `  Na. X Overwhelm damage dealt to Player 2's Base (Y remaining HP)` |
+| Triggered ability (sub-event) | `Player 1's Card triggers Type: effect description` |
+| Damage dealt (sub-event) | `Card deals X damage to Target (Y remaining HP)` |
+| Card defeated (sub-event) | `Card is defeated` |
+| Card exhausted (sub-event) | `Card is exhausted` |
+| Heal (sub-event) | `X damage healed from Card (Y remaining HP)` |
+| Overwhelm (sub-event) | `X Overwhelm damage dealt to Player 2's Base (Y remaining HP)` |
 | Game state | `  [Game State] Player 1: 25/30 HP, 4 cards, ... \| Player 2: 18/30 HP, 3 cards, ...` |
 | Cards drawn | `  [Cards Drawn] Player 1: Card A, Card B` |
 | Card resourced | `  [Card Resourced] Player 1: Card Name, Subtitle` |
-| Search | `  Na. Player 1 searches their deck` / `  Nb. Player 1 finds Card and puts it into Zone` |
+| Search (sub-event) | `Player 1 searches their deck` / `Player 1 finds Card and puts it into Zone` |
+
+(Sub-event lines are unnumbered; only top-level actions carry the `N.` prefix.)
 
 #### Combat Examples
+
+The numbered line is the player's top-level action; the unnumbered lines beneath it
+are the sub-events it triggered.
 
 **Basic combat** (unit vs. unit):
 ```
 3. Player 1 attacks with Cell Block Guard against Player 2's Rebel Pathfinder
-  3a. Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
-  3b. Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
-  3c. Rebel Pathfinder is defeated
-  3d. Cell Block Guard is exhausted
+Cell Block Guard deals 3 damage to Rebel Pathfinder (0 remaining HP)
+Rebel Pathfinder deals 2 damage to Cell Block Guard (1 remaining HP)
+Rebel Pathfinder is defeated
+Cell Block Guard is exhausted
 ```
 
 **Overwhelm** (excess damage hits the base):
 ```
 3. Player 1 attacks with AT-AT against Rebel Pathfinder
-  3a. AT-AT deals 6 damage to Rebel Pathfinder (0 remaining HP)
-  3b. Rebel Pathfinder is defeated
-  3c. 4 Overwhelm damage dealt to Player 2's Echo Base (16 remaining HP)
-  3d. Rebel Pathfinder deals 2 damage to AT-AT (6 remaining HP)
-  3e. AT-AT is exhausted
+AT-AT deals 6 damage to Rebel Pathfinder (0 remaining HP)
+Rebel Pathfinder is defeated
+4 Overwhelm damage dealt to Player 2's Echo Base (16 remaining HP)
+Rebel Pathfinder deals 2 damage to AT-AT (6 remaining HP)
+AT-AT is exhausted
   [Game State] Player 1: 25/30 HP, 3 cards, 2/6 resources, 0 credits | Player 2: 16/30 HP, 4 cards, 3/5 resources, 0 credits, Force, 1 ground/2 space
 ```
 
 **Base attack** (game state snapshot appears after every completed action):
 ```
 5. Player 1 attacks with Viper Probe Droid against Player 2's Base
-  5a. Viper Probe Droid deals 2 damage to Echo Base (28 remaining HP)
-  5b. Viper Probe Droid is exhausted
+Viper Probe Droid deals 2 damage to Echo Base (28 remaining HP)
+Viper Probe Droid is exhausted
   [Game State] Player 1: 30/30 HP, 5 cards, 4/6 resources, 0 credits, Initiative | Player 2: 28/30 HP, 5 cards, 4/5 resources, 0 credits, Force, 0 ground/0 space
 ```
 
 **Sentinel** (attack redirected):
 ```
 3. Player 1 attacks with Viper Probe Droid against Player 2's Base
-  3a. Attack redirected to Snowtrooper Lieutenant (Sentinel)
-  3b. Viper Probe Droid deals 2 damage to Snowtrooper Lieutenant (1 remaining HP)
-  3c. Snowtrooper Lieutenant deals 2 damage to Viper Probe Droid (0 remaining HP)
-  3d. Viper Probe Droid is defeated
+Attack redirected to Snowtrooper Lieutenant (Sentinel)
+Viper Probe Droid deals 2 damage to Snowtrooper Lieutenant (1 remaining HP)
+Snowtrooper Lieutenant deals 2 damage to Viper Probe Droid (0 remaining HP)
+Viper Probe Droid is defeated
 ```
 
 ---
@@ -299,7 +302,7 @@ After `=== REPLAY ===`, each line is a standalone JSON object representing one g
 The replay data contains two types of records interleaved:
 
 1. **Granular event records** -- individual game actions (PLAY, ATTACK, DAMAGE, etc.)
-2. **Full state snapshot records** -- complete serialized game state after each top-level action
+2. **Full state snapshot records** -- complete serialized game state, captured after each top-level action
 
 #### Granular Event Records
 
@@ -322,7 +325,7 @@ After each top-level action, a `GAME_STATE` record with a `snapshot` field conta
 {"seq":"R1.A.1b-snapshot","type":"GAME_STATE","snapshot":{ ... full getState() object ... }}
 ```
 
-The snapshot `seq` uses a `-snapshot` suffix to distinguish it from the summary GAME_STATE records.
+Snapshots are captured **once per action** so a replay viewer can step through the game action-by-action. The snapshot `seq` uses a `-snapshot` suffix on the matching summary GAME_STATE seq (e.g. `R1.A.1b-snapshot`) to distinguish it from the summary records. Consecutive identical states are de-duplicated, so a snapshot is only written when the state actually changed.
 
 Player names and IDs within snapshots are anonymized to "Player 1"/"Player 2", matching the rest of the file.
 
@@ -348,17 +351,21 @@ Examples:
 - `R1.end` -- ROUND_END for Round 1
 - `R1.A.start` -- PHASE_START for Action Phase of Round 1
 - `R1.A.end` -- PHASE_END for Action Phase of Round 1
-- `R1.A.5a-snapshot` -- Full state snapshot after action 5's sub-events
+- `R1.A.5a-snapshot` -- Full state snapshot paired with action 5's summary GAME_STATE
 
 ### Action Types
 
-Each `type` value tells the computer what kind of event this is:
+Each `type` value tells the computer what kind of event this is. Types marked
+**(reserved)** are defined in the format and the `PgnActionType` enum but are not yet
+emitted by the recorder -- they have no event listener wired up yet, and will be added
+as the corresponding game events become available. Treat reserved types as forward
+compatibility: a reader should tolerate them, but current files will not contain them.
 
 **Player decisions:**
-`PLAY`, `PLAY_EVENT`, `PLAY_UPGRADE`, `PLAY_SMUGGLE`, `DEPLOY_LEADER`, `ATTACK`, `PASS`, `CLAIM_INITIATIVE`, `MULLIGAN`, `KEEP_HAND`, `RESOURCE`, `MODAL_CHOICE`, `ABILITY_ACTIVATE`
+`PLAY`, `PLAY_EVENT`, `PLAY_UPGRADE`, `PLAY_SMUGGLE`, `DEPLOY_LEADER`, `ATTACK`, `PASS`, `CLAIM_INITIATIVE`, `RESOURCE`, `MULLIGAN` (reserved), `KEEP_HAND` (reserved), `MODAL_CHOICE` (reserved), `ABILITY_ACTIVATE` (reserved)
 
 **Game effects:**
-`TRIGGER`, `DAMAGE`, `DEFEAT`, `EXHAUST`, `READY`, `DRAW`, `DISCARD`, `HEAL`, `SEARCH`, `SHUFFLE`, `CREATE_TOKEN`, `CAPTURE`, `RESCUE`, `REVEAL`, `MOVE`, `TAKE_CONTROL`, `OVERWHELM`, `SHIELD_GAIN`, `SHIELD_USE`, `EXPERIENCE_GAIN`, `STATUS_TOKEN`
+`TRIGGER`, `DAMAGE`, `DEFEAT`, `EXHAUST`, `READY`, `DRAW`, `DISCARD`, `HEAL`, `SHUFFLE`, `CREATE_TOKEN`, `CAPTURE`, `RESCUE`, `TAKE_CONTROL`, `SEARCH` (reserved), `REVEAL` (reserved), `MOVE` (reserved), `OVERWHELM` (reserved), `SHIELD_GAIN` (reserved), `SHIELD_USE` (reserved), `EXPERIENCE_GAIN` (reserved), `STATUS_TOKEN` (reserved)
 
 **Game structure:**
 `PHASE_START`, `PHASE_END`, `ROUND_START`, `ROUND_END`, `GAME_END`
@@ -366,7 +373,7 @@ Each `type` value tells the computer what kind of event this is:
 **Status tracking:**
 `GAME_STATE` -- Two variants:
 - **Summary** (flat fields): emitted after every completed player action with aggregate counts
-- **Snapshot** (`snapshot` field, seq ends in `-snapshot`): full serialized game state for replay
+- **Snapshot** (`snapshot` field, seq ends in `-snapshot`): full serialized game state for replay, captured after each action
 
 ### Example Records
 
@@ -390,7 +397,7 @@ Each `type` value tells the computer what kind of event this is:
 {"seq":"R1.A.5c","type":"GAME_STATE","p1BaseHp":30,"p1BaseMaxHp":30,"p1HandSize":5,"p1ResourcesReady":4,"p1ResourcesExhausted":2,"p1Credits":0,"p1HasForce":false,"p1HasInitiative":true,"p1GroundUnits":1,"p1SpaceUnits":0,"p2BaseHp":28,"p2BaseMaxHp":30,"p2HandSize":5,"p2ResourcesReady":4,"p2ResourcesExhausted":1,"p2Credits":0,"p2HasForce":true,"p2HasInitiative":false,"p2GroundUnits":0,"p2SpaceUnits":0}
 ```
 
-**Full state snapshot** (for replay viewer, emitted after the summary):
+**Full state snapshot** (for replay viewer, emitted after the summary, once per action):
 ```json
 {"seq":"R1.A.5c-snapshot","type":"GAME_STATE","snapshot":{"players":{"Player 1":{...},"Player 2":{...}},"phase":"action","initiativeClaimed":false,...}}
 ```
@@ -420,15 +427,17 @@ Each `type` value tells the computer what kind of event this is:
 {"seq":"R1.S.7","type":"RESOURCE","player":"Player 1","card":"SOR#142","cardName":"Vanquish"}
 ```
 
-**Hand reveal:**
+**Hand reveal** (reserved -- shows the intended shape; not emitted by the recorder yet):
 ```json
 {"seq":"R1.A.1b","type":"REVEAL","player":"Player 2","zone":"Hand","cards":["SOR#045","SOR#042","SOR#165","SOR#150","SOR#176"]}
 ```
 
 **Game ending:**
 ```json
-{"seq":"R4.A.14e","type":"GAME_END","winner":"P1","reason":"Base Destroyed"}
+{"seq":"R4.A.end","type":"GAME_END","winner":"P1","reason":"Base Destroyed"}
 ```
+
+The GAME_END record uses the seq `R{round}.A.end`. (This shares the same seq string as the Action Phase's `PHASE_END` record; consumers should disambiguate the two by their `type` field, `GAME_END` vs `PHASE_END`, not by `seq` alone.)
 
 ### Card References
 
@@ -456,8 +465,8 @@ When multiple copies of the same card are in play, a suffix distinguishes them:
 |--------|-----------|---------|
 | `=== FREEFORM ===` | `.swupgn` | Start of human-readable game log |
 | `=== REPLAY ===` | `.swureplay` | Start of computer-readable JSON data |
-| `═══ ROUND N ═══` | `.swupgn` | Round boundary (within freeform) |
 | `─── Phase Name ───` | `.swupgn` | Phase boundary (within freeform) |
+| `Round: N - Phase` | `.swupgn` | Round/phase banner line (from the game log) |
 | `═══ CARD INDEX ═══` | Both | Start of decklists |
 
 ### Notation Numbering
@@ -465,8 +474,7 @@ When multiple copies of the same card are in play, a suffix distinguishes them:
 | Format | Meaning | Example |
 |--------|---------|---------|
 | `N.` | Top-level player action | `3. Player 1 attacks with...` |
-| `Na.` | Sub-event of action N | `3a. Cell Block Guard deals...` |
-| `Na-i.` | Nested sub-event | `3a-i. Triggers another ability...` |
+| (no number) | Sub-event of an action (damage, defeat, trigger, ability) | `Cell Block Guard deals 3 damage...` |
 | (no number) | Setup/Regroup phase entry | `Player 1 draws 2 cards` |
 
 ### Card Name Format
@@ -489,9 +497,17 @@ When multiple copies of the same card are in play, a suffix distinguishes them:
 | `SHD` | Shadows of the Galaxy |
 | `JTL` | Jump to Lightspeed |
 | `TWI` | Twilight of the Republic |
+| `LOF` | Lure of the Dark Side |
+
+The set code is whatever the card's own `setId.set` reports, uppercased; this table lists the common sets but is not exhaustive.
 
 ---
 
 ## Sample File
 
-A complete sample `.swupgn` file is available at: [docs/samples/sample-game.swupgn](samples/sample-game.swupgn)
+A sample `.swupgn` file is available at: [docs/samples/sample-game.swupgn](samples/sample-game.swupgn)
+
+> **Note:** The sample is a hand-authored illustration of the layout. For brevity it
+> abbreviates players as `P1`/`P2`; actual generated files use the full `Player 1`/`Player 2`
+> labels described above, and the `.swureplay` file additionally contains the per-phase
+> per-action full-state snapshot records (`...-snapshot`) which the sample omits.

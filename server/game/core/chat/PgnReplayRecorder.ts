@@ -81,20 +81,6 @@ export class PgnReplayRecorder {
         return this.structureMarkers;
     }
 
-    /** Reset all recorded data. Called on undo/rollback to discard stale replay state. */
-    public reset(): void {
-        this.records.length = 0;
-        this.replayRecords.length = 0;
-        this.structureMarkers.length = 0;
-        this.currentRound = 0;
-        this.currentPhase = 'S';
-        this.currentPhaseDisplayName = 'Setup Phase';
-        this.lastGameStateStr = '';
-        this.actionCounter = 0;
-        this.phaseEventCounter = 0;
-        this.subEventCounter = 0;
-    }
-
     /** Initialize the Player 1/Player 2 player map from game.getPlayers() order. */
     public initPlayerMap(): void {
         const players = this.game.getPlayers();
@@ -283,8 +269,24 @@ export class PgnReplayRecorder {
                 p2SpaceUnits: p2State.spaceUnits,
             });
 
-            // Full state snapshots are deferred to phase boundaries (emitPhaseSnapshot)
-            // to avoid serializing the entire game state on every action.
+            // Emit the full state snapshot for the .swureplay file once per top-level
+            // action, paired with the summary GAME_STATE record just pushed. The replay
+            // viewer steps through these snapshot records, so per-action granularity is
+            // what produces smooth action-by-action playback (vs. per-phase, which jumps
+            // a whole phase/round per step). The dedup early-return above already skips
+            // identical consecutive states, so no redundant snapshots are written.
+            if (this.getStateSnapshot) {
+                try {
+                    const fullSnapshot = this.getStateSnapshot();
+                    this.replayRecords.push({
+                        seq: `${seq}-snapshot`,
+                        type: PgnActionType.GameState,
+                        snapshot: fullSnapshot,
+                    } as IPgnReplayRecord);
+                } catch {
+                    // Snapshot capture error — do not crash gameplay
+                }
+            }
 
             // Add structure marker for freeform display
             this.structureMarkers.push({
@@ -294,26 +296,6 @@ export class PgnReplayRecorder {
             });
         } catch {
             // Recording error — do not crash gameplay
-        }
-    }
-
-    /**
-     * Capture a full state snapshot at phase boundaries for the replay file.
-     * Called once per phase end instead of every action to reduce serialization cost.
-     */
-    private emitPhaseSnapshot(): void {
-        if (!this.getStateSnapshot) {
-            return;
-        }
-        try {
-            const fullSnapshot = this.getStateSnapshot();
-            this.replayRecords.push({
-                seq: `R${this.currentRound}.${this.currentPhase}.snapshot`,
-                type: PgnActionType.GameState,
-                snapshot: fullSnapshot,
-            } as IPgnReplayRecord);
-        } catch {
-            // Snapshot capture error — do not crash gameplay
         }
     }
 
@@ -332,25 +314,52 @@ export class PgnReplayRecorder {
         }
     }
 
+    /**
+     * Advances round tracking when a new round begins, emitting the ROUND_START
+     * record + round structure marker exactly once per round.
+     *
+     * Driven by the reliable `game.roundNumber` rather than the OnBeginRound event:
+     * the begin-round step's event window never resolves to EventEmitter (`.on`)
+     * listeners, so OnBeginRound never reaches this recorder. OnPhaseStarted does
+     * fire reliably, so we re-sync the round there. Idempotent — only acts when the
+     * game's round number has advanced past the last one we recorded, so it is safe
+     * to call from multiple listeners (and recovers correctly after a rollback reset,
+     * which zeroes currentRound).
+     */
+    private syncRound(): void {
+        const round = this.game.roundNumber ?? this.currentRound;
+        if (round <= this.currentRound) {
+            return;
+        }
+        this.currentRound = round;
+        if (this.playerMap.size === 0) {
+            this.initPlayerMap();
+        }
+        this.phaseEventCounter = 0;
+        this.actionCounter = 0;
+        this.subEventCounter = 0;
+        // Note: no human round-header marker is emitted. The freeform log already shows
+        // round boundaries via the game's own "Round: N - Phase" chat lines, so a
+        // separate "ROUND N" marker would just duplicate them. We still record the
+        // machine-readable ROUND_START below with the correct round number.
+        this.push({
+            seq: `R${this.currentRound}.start`,
+            type: PgnActionType.RoundStart,
+            round: this.currentRound,
+        });
+    }
+
     // ── Listener registration ─────────────────────────────────────────────────
 
     private registerListeners(): void {
-        // Structural events
+        // Structural events.
+        // NOTE: OnBeginRound does not reach .on() listeners (its event window never
+        // resolves to EventEmitter listeners), so round tracking is actually driven by
+        // syncRound() from OnPhaseStarted below. This listener is kept for correctness
+        // if that engine behavior is ever fixed; syncRound() is idempotent.
         this.game.on(EventName.OnBeginRound, (event: any) => {
             try {
-                this.currentRound = this.game.roundNumber || (this.currentRound + 1);
-                if (this.playerMap.size === 0) {
-                    this.initPlayerMap();
-                }
-                this.addStructureMarker('round');
-                this.phaseEventCounter = 0;
-                this.actionCounter = 0;
-                this.subEventCounter = 0;
-                this.push({
-                    seq: `R${this.currentRound}.start`,
-                    type: PgnActionType.RoundStart,
-                    round: this.currentRound,
-                });
+                this.syncRound();
             } catch {
                 // Recording error — do not crash gameplay
             }
@@ -370,6 +379,9 @@ export class PgnReplayRecorder {
 
         this.game.on(EventName.OnPhaseStarted, (event: any) => {
             try {
+                // OnBeginRound never reaches us, so detect a new round here (where
+                // game.roundNumber is reliably up to date) before recording the phase.
+                this.syncRound();
                 const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
                 this.currentPhase = this.phaseAbbr(phaseName);
                 this.currentPhaseDisplayName = phaseName === PhaseName.Setup ? 'Setup Phase'
@@ -391,14 +403,12 @@ export class PgnReplayRecorder {
 
         this.game.on(EventName.OnPhaseEnded, (event: any) => {
             try {
-                // Emit game state for the last action of the phase
+                // Emit game state (summary + full snapshot) for the last action of the
+                // phase. emitGameState() now writes the per-action full snapshot itself,
+                // so there is no separate per-phase snapshot.
                 if (this.actionCounter > 0 || this.phaseEventCounter > 0) {
                     this.emitGameState();
                 }
-
-                // Capture full state snapshot at phase boundary (not every action)
-                // to keep serialization cost proportional to phases, not actions
-                this.emitPhaseSnapshot();
 
                 const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
                 const phaseAbbr = this.phaseAbbr(phaseName);

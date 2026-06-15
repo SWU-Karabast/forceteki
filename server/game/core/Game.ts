@@ -2221,8 +2221,14 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
-        // Clear stale replay/PGN state so rolled-back actions don't persist
-        this._replayRecorder.reset();
+        // Intentionally do NOT reset the replay recorder on rollback. Resetting here
+        // discarded the ENTIRE recorded game (not just the rolled-back actions), so any
+        // undo wiped the replay history up to that point and the downloaded .swureplay
+        // was missing most of the game. The recorder is append-only: it keeps the full
+        // history (rolled-back actions remain in the stream, each tied to a per-phase
+        // state snapshot a replay can step through), and round tracking re-syncs from
+        // game.roundNumber on the next phase so seqs stay monotonic after a rollback.
+        // Only invalidate the end-of-game cached files so they regenerate.
         this._cachedSwuPgn = undefined;
         this._cachedSwuReplay = undefined;
         this._cachedRawGameLog = undefined;

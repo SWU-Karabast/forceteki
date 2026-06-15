@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events';
 import { PgnReplayRecorder } from '../../../server/game/core/chat/PgnReplayRecorder';
-import type { IPgnReplayRecord, IStructureMarker } from '../../../server/game/core/chat/PgnTypes';
 import { PgnActionType } from '../../../server/game/core/chat/PgnTypes';
 import { EventName, PhaseName } from '../../../server/game/core/Constants';
 
@@ -103,15 +102,18 @@ describe('PgnReplayRecorder', function() {
             expect(recorder.getStructureMarkers().length).toBe(0);
         });
 
-        it('adds a round marker on OnBeginRound', function() {
+        it('does not emit a human round-header marker (round boundaries come from chat lines)', function() {
             const game = makeGame();
             const recorder = new PgnReplayRecorder(game);
             game.emit(EventName.OnBeginRound, {});
 
+            // No "ROUND N" structure marker is produced — it would duplicate the game's
+            // own "Round: N - Phase" chat lines in the freeform log.
             const markers = recorder.getStructureMarkers();
-            const roundMarker = markers.find((m) => m.type === 'round');
-            expect(roundMarker).toBeDefined();
-            expect(typeof (roundMarker as IStructureMarker).messageIndex).toBe('number');
+            expect(markers.find((m) => m.type === 'round')).toBeUndefined();
+            // The machine-readable ROUND_START record is still emitted.
+            const roundStart = recorder.getRecords().find((r) => r.type === PgnActionType.RoundStart);
+            expect(roundStart).toBeDefined();
         });
 
         it('adds a phase marker on OnPhaseStarted', function() {
@@ -546,6 +548,41 @@ describe('PgnReplayRecorder', function() {
         });
     });
 
+    // ── sub-events are unnumbered in the human log ───────────────────────────
+
+    describe('sub-event handling', function() {
+        function actionPhaseGame() {
+            const game = makeGame([
+                { id: 'p1-id', name: 'Alice' },
+                { id: 'p2-id', name: 'Bob' },
+            ]);
+            const recorder = new PgnReplayRecorder(game);
+            recorder.initPlayerMap();
+            game.emit(EventName.OnBeginRound, {});
+            game.emit(EventName.OnPhaseStarted, { phase: PhaseName.Action });
+            return { game, recorder };
+        }
+
+        it('does not emit lettered subEvent markers (sub-events render unnumbered)', function() {
+            const { game, recorder } = actionPhaseGame();
+            const player = { id: 'p1-id', name: 'Alice' };
+            const attacker = { setId: { set: 'SOR', number: 1 }, isToken: () => false, title: 'AT-AT', zoneName: 'groundArena' };
+            const defender = { setId: { set: 'SOR', number: 2 }, isToken: () => false, title: 'X-Wing', remainingHp: 0 };
+            const attack = { attacker, attackingPlayer: player, getAllTargets: () => [defender] };
+
+            game.emit(EventName.OnAttackDeclared, { attack }); // top-level action 1
+            game.emit(EventName.OnDamageDealt, { card: defender, damageDealt: 3, damageSource: { attack: { attacker } }, type: 'combat' });
+            game.emit(EventName.OnCardDefeated, { card: defender, defeatSource: { type: 'attack', attack: { attacker } } });
+
+            // No human lettering: sub-events appear as unnumbered lines (original format).
+            expect(recorder.getStructureMarkers().filter((m) => m.type === 'subEvent').length).toBe(0);
+
+            // The machine replay still records granular sub-events with lettered seqs.
+            const damage = recorder.getRecords().find((r) => r.type === PgnActionType.Damage);
+            expect(String(damage?.seq)).toMatch(/^R\d+\.A\.\d+[a-z]$/);
+        });
+    });
+
     // ── addGameEndRecord ────────────────────────────────────────────────────
 
     describe('addGameEndRecord()', function() {
@@ -584,11 +621,11 @@ describe('PgnReplayRecorder', function() {
     // ── getReplayRecords and snapshot callback ──────────────────────────────
 
     describe('getReplayRecords() and snapshot callback', function() {
-        it('captures a snapshot at phase boundary (not per-action)', function() {
+        it('captures a full snapshot per action (not deferred to the phase boundary)', function() {
             const p1 = makeFullPlayer({ id: 'p1-id', name: 'Alice', baseHp: 25, handSize: 4 });
             const p2 = makeFullPlayer({ id: 'p2-id', name: 'Bob', baseHp: 20, handSize: 3 });
             let snapshotCallCount = 0;
-            const snapshotFn = () => { snapshotCallCount++; return { test: 'snapshot' }; };
+            const snapshotFn = () => { snapshotCallCount++; return { test: 'snapshot', hp: p1.base.remainingHp }; };
 
             const game = makeGame([], { getPlayers: () => [p1, p2] });
             const recorder = new PgnReplayRecorder(game, snapshotFn);
@@ -599,20 +636,25 @@ describe('PgnReplayRecorder', function() {
             const player = { id: 'p1-id', name: 'Alice' };
             const card1 = { setId: { set: 'SOR', number: 10 }, printedType: 'basicUnit', zoneName: 'groundArena', isToken: () => false, title: 'Card1' };
             const card2 = { setId: { set: 'SOR', number: 11 }, printedType: 'basicUnit', zoneName: 'groundArena', isToken: () => false, title: 'Card2' };
+            const card3 = { setId: { set: 'SOR', number: 12 }, printedType: 'basicUnit', zoneName: 'groundArena', isToken: () => false, title: 'Card3' };
 
-            // Play two cards — snapshot should NOT fire per-action
+            // Each top-level action emits the state for the previous action. Mutate the
+            // tracked state between plays so the dedup guard does not collapse them.
             game.emit(EventName.OnCardPlayed, { card: card1, player, playType: 'playFromHand' });
-            game.emit(EventName.OnCardPlayed, { card: card2, player, playType: 'playFromHand' });
-            expect(snapshotCallCount).toBe(0);
+            p1.base.remainingHp = 24;
+            game.emit(EventName.OnCardPlayed, { card: card2, player, playType: 'playFromHand' }); // emits snapshot for action 1
+            p1.base.remainingHp = 23;
+            game.emit(EventName.OnCardPlayed, { card: card3, player, playType: 'playFromHand' }); // emits snapshot for action 2
 
-            // End the phase — snapshot fires once at the boundary
-            game.emit(EventName.OnPhaseEnded, { phase: PhaseName.Action });
-            expect(snapshotCallCount).toBe(1);
+            // Snapshots fire per-action, mid-phase — before any OnPhaseEnded.
+            expect(snapshotCallCount).toBe(2);
 
             const replayRecords = recorder.getReplayRecords();
-            const snapshotRecord = replayRecords.find((r) => typeof r.seq === 'string' && r.seq.endsWith('.snapshot'));
-            expect(snapshotRecord).toBeDefined();
-            expect(snapshotRecord?.snapshot).toEqual({ test: 'snapshot' });
+            const snapshotRecords = replayRecords.filter((r) => typeof r.seq === 'string' && r.seq.endsWith('-snapshot'));
+            expect(snapshotRecords.length).toBe(2);
+            expect(snapshotRecords[0].snapshot).toBeDefined();
+            // Per-action snapshot seq pairs with the summary GAME_STATE seq (e.g. R1.A.1a-snapshot).
+            expect(String(snapshotRecords[0].seq)).toMatch(/^R\d+\.A\.\d+[a-z]?-snapshot$/);
         });
     });
 
