@@ -5,6 +5,7 @@ import type { Card } from './core/card/Card';
 import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, SwuGameFormat, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
+import type { EventForName } from './core/event/GameEventClassMap';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import type { ICost } from './core/cost/ICost';
@@ -320,7 +321,7 @@ export type EffectArg =
   | EffectArg[];
 
 export type WhenType<TSource extends Card = Card> = {
-    [EventNameValue in EventName]?: (event: any, context?: TriggeredAbilityContext<TSource>) => boolean;
+    [EventNameValue in EventName]?: (event: EventForName<EventNameValue>, context?: TriggeredAbilityContext<TSource>) => boolean;
 };
 
 export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> & {
