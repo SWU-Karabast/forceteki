@@ -602,23 +602,42 @@ export class Game extends EventEmitter {
             // Strip PGN data from snapshot (circular reference)
             swuPgn: undefined,
             rawGameLog: undefined,
+            // Strip spectator list and lobby owner: both carry real usernames/ids
+            // that the player-id replace below never touches, which would leak
+            // real identities into the served .swureplay (anonymization guarantee).
+            spectators: undefined,
+            owner: undefined,
         };
 
-        // Deep-replace real player IDs (controllerId, ownerId, etc.) throughout
-        // the entire snapshot by serializing, replacing, and deserializing.
-        // Use literal string replacement (not regex) to avoid corruption when
-        // player IDs are short or contain regex-special characters.
+        // Deep-replace real player IDs (controllerId, ownerId, map keys, etc.)
+        // throughout the snapshot. Match whole values/keys exactly rather than by
+        // substring: that anonymizes short guest/anonymous account IDs too (which
+        // the old length>=8 substring guard silently skipped, leaking them) without
+        // any risk of corrupting unrelated JSON that merely contains the ID.
         try {
-            let json = JSON.stringify(result);
+            const idToLabel = new Map<string, string>();
             for (let i = 0; i < players.length; i++) {
-                const playerId = players[i].id;
-                // Skip IDs shorter than 8 chars to avoid corrupting unrelated JSON values
-                if (playerId.length < 8) {
-                    continue;
-                }
-                json = json.split(playerId).join(`Player ${i + 1}`);
+                idToLabel.set(players[i].id, `Player ${i + 1}`);
             }
-            return JSON.parse(json);
+            const replaceIds = (value: any): any => {
+                if (typeof value === 'string') {
+                    return idToLabel.get(value) ?? value;
+                }
+                if (Array.isArray(value)) {
+                    return value.map(replaceIds);
+                }
+                if (value !== null && typeof value === 'object') {
+                    const out: Record<string, any> = {};
+                    for (const [key, val] of Object.entries(value)) {
+                        out[idToLabel.get(key) ?? key] = replaceIds(val);
+                    }
+                    return out;
+                }
+                return value;
+            };
+            // Round-trip through JSON first to drop `undefined` keys and any class
+            // instances, then walk the plain object replacing IDs by exact match.
+            return replaceIds(JSON.parse(JSON.stringify(result)));
         } catch {
             return result; // Fall back to partially-anonymized state if serialization fails
         }
@@ -1121,10 +1140,13 @@ export class Game extends EventEmitter {
             const gameFiles = this.generateGameFiles();
             this._cachedSwuPgn = gameFiles.swuPgn;
             this._cachedSwuReplay = gameFiles.swuReplay;
-            // The cached strings are now the served artifacts; release the recorder's
-            // raw record/marker/checkpoint arrays so they don't sit in memory for the
-            // lobby's lifetime (matters for long games and many concurrent lobbies).
-            this._replayRecorder.clearRecordedData();
+            // NOTE: do NOT clear the recorder's raw arrays here. A player can undo
+            // past game-end (handleUndoGameEnd): that rolls back winnerNames so the
+            // game re-opens, nulls these caches (postRollbackOperations), and lets
+            // the game re-end later. If the records were cleared, the regenerated
+            // files would contain only the post-undo tail and the rest of the game
+            // would be lost. The arrays are bounded by game length and are freed
+            // when the lobby tears down the Game object.
         } catch (e) {
             logger.error(`Error caching game log at end of game: ${e}`);
         }

@@ -2416,8 +2416,11 @@ export class Lobby {
         }
 
         // Only serve game files after the game has ended to prevent leaking
-        // omniscient replay snapshots (which include hidden card data) mid-game
-        if (!this.game.finishedAt) {
+        // omniscient replay snapshots (which include hidden card data) mid-game.
+        // Gate on isEnded (state-backed via winnerNames), not finishedAt: finishedAt
+        // is set once and never reset, so after an undo-past-game-end the game is
+        // live again while finishedAt is still truthy — isEnded correctly flips back.
+        if (!this.game.isEnded) {
             if (typeof callback === 'function') {
                 callback({ error: 'Game is still in progress' });
             }

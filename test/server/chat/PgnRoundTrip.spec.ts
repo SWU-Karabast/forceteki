@@ -1,3 +1,5 @@
+import { Spectator } from '../../../server/Spectator';
+
 describe('PGN round-trip (integration)', function() {
     integration(function (contextRef) {
         beforeEach(function () {
@@ -92,6 +94,34 @@ describe('PGN round-trip (integration)', function() {
             // Corrections in effect: real per-round numbers (not all R0) and per-action snapshots.
             expect(Math.max(...roundsSeen)).toBeGreaterThanOrEqual(2);
             expect(snapshotCount).toBeGreaterThanOrEqual(2);
+        });
+
+        // Anonymization guarantee: the .swureplay must never contain a real spectator
+        // username. captureAnonymizedState() used to spread getState() (which includes
+        // a spectators array of real usernames + the lobby owner) and only replace
+        // *player* ids, so a spectated game leaked spectator identities into the file.
+        it('never writes real spectator usernames into the .swureplay', function () {
+            const { context } = contextRef;
+            const game: any = context.game;
+
+            // Attach a real spectator BEFORE taking actions so the per-action snapshots
+            // are captured while the spectator is present in the game state.
+            const spectatorName = 'Sneaky_Spectator_Username';
+            game.playersAndSpectators['spectator-uuid-1'] = new Spectator('spectator-uuid-1', { username: spectatorName } as any);
+            expect(game.getSpectators().some((s: any) => s.name === spectatorName)).toBe(true);
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+            context.player2.clickCard(context.battlefieldMarine);
+            context.player2.clickCard(context.p1Base);
+            context.moveToNextActionPhase();
+
+            const swuReplay: string = game.generateGameFiles().swuReplay;
+
+            // Sanity: omniscient snapshots were actually captured (else the test is vacuous).
+            expect(swuReplay).toContain('-snapshot');
+            // The guarantee: the real username appears nowhere in the served file.
+            expect(swuReplay).not.toContain(spectatorName);
         });
     });
 });

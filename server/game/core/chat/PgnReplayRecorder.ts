@@ -56,6 +56,7 @@ export class PgnReplayRecorder {
     private readonly copyCountByBase: Map<string, number> = new Map();
 
     /** Caps repeated recorder-error logging so a broken handler can't flood the logs */
+    private static readonly maxLoggedErrors = 20;
     private loggedErrorCount = 0;
 
     /** Rollback checkpoints (array lengths + counters) keyed by snapshot id */
@@ -235,13 +236,13 @@ export class PgnReplayRecorder {
      * that throws every event can't flood the logs; recording stays best-effort.
      */
     private logError(where: string, error: unknown): void {
-        if (this.loggedErrorCount >= 20) {
+        if (this.loggedErrorCount >= PgnReplayRecorder.maxLoggedErrors) {
             return;
         }
         this.loggedErrorCount++;
         const message = error instanceof Error ? error.message : String(error);
         logger.warn(`PgnReplayRecorder: error in ${where} (recording skipped): ${message}`);
-        if (this.loggedErrorCount === 20) {
+        if (this.loggedErrorCount === PgnReplayRecorder.maxLoggedErrors) {
             logger.warn('PgnReplayRecorder: further recording errors will be suppressed for this game');
         }
     }
@@ -442,7 +443,7 @@ export class PgnReplayRecorder {
                         snapshot: fullSnapshot,
                     } as IPgnReplayRecord);
                 } catch (error) {
-                    this.logError('phase snapshot', error);
+                    this.logError('action snapshot', error);
                 }
             }
 
