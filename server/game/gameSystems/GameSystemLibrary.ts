@@ -47,6 +47,8 @@ import type { IDistributeDamageSystemProperties } from './DistributeDamageSystem
 import { DistributeDamageSystem } from './DistributeDamageSystem';
 import type { IDistributeExperienceSystemProperties } from './DistributeExperienceSystem';
 import { DistributeExperienceSystem } from './DistributeExperienceSystem';
+import type { IDistributeAdvantageSystemProperties } from './DistributeAdvantageSystem';
+import { DistributeAdvantageSystem } from './DistributeAdvantageSystem';
 import type { IDistributeHealingSystemProperties } from './DistributeHealingSystem';
 import { DistributeHealingSystem } from './DistributeHealingSystem';
 import type { IDrawSpecificCardProperties } from './DrawSpecificCardSystem';
@@ -149,8 +151,6 @@ import type { IUseWhenPlayedProperties } from './UseWhenPlayedSystem';
 import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
 import type { IRandomSelectionSystemProperties } from './RandomSelectionSystem';
 import { RandomSelectionSystem } from './RandomSelectionSystem';
-import type { ISearchEntireDeckProperties } from './SearchEntireDeckSystem';
-import { SearchEntireDeckSystem } from './SearchEntireDeckSystem';
 import type { ICreateSpyProperties } from './CreateSpySystem';
 import { CreateSpySystem } from './CreateSpySystem';
 import type { IDiscloseAspectsProperties } from './DiscloseAspectsSystem';
@@ -168,8 +168,11 @@ import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditT
 import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
 import type { IRevealAndDrawProperties } from './RevealAndDrawSystem';
 import { RevealAndDrawSystem } from './RevealAndDrawSystem';
-
-type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
+import type { IGiveAdvantageProperties } from './GiveAdvantageSystem';
+import { GiveAdvantageSystem } from './GiveAdvantageSystem';
+import { CreateMandalorianSystem } from './CreateMandalorianSystem';
+import type { ICreateMandalorianProperties } from './CreateMandalorianSystem';
+import type { PropsFactory } from '../Interfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -218,6 +221,9 @@ export function createTieFighter<TContext extends AbilityContext = AbilityContex
 export function createSpy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateSpyProperties, TContext> = {}) {
     return new CreateSpySystem<TContext>(propertyFactory);
 }
+export function createMandalorian<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateMandalorianProperties, TContext> = {}) {
+    return new CreateMandalorianSystem<TContext>(propertyFactory);
+}
 export function createCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCreditTokenProperties, TContext> = {}) {
     return new CreateCreditTokenSystem<TContext>(propertyFactory);
 }
@@ -253,7 +259,10 @@ export function distributeHealingAmong<TContext extends AbilityContext = Ability
 export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
     return new DistributeExperienceSystem<TContext>(propertyFactory);
 }
-export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext>) {
+export function distributeAdvantageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeAdvantageSystemProperties, TContext>) {
+    return new DistributeAdvantageSystem<TContext>(propertyFactory);
+}
+export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
 }
 export function deployAndAttachPilotLeader<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployAndAttachPilotLeaderProperties, TContext>) {
@@ -305,6 +314,9 @@ export function giveExperience<TContext extends AbilityContext = AbilityContext>
 }
 export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveShieldProperties, TContext> = {}) {
     return new GiveShieldSystem<TContext>(propertyFactory);
+}
+export function giveAdvantage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveAdvantageProperties, TContext> = {}) {
+    return new GiveAdvantageSystem<TContext>(propertyFactory);
 }
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
@@ -441,7 +453,7 @@ export function payResourcesWithoutAdjustment<TContext extends AbilityContext = 
 /**
  * default status = ordinary
  */
-export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPutIntoPlayProperties, TContext> = {}) {
+export function putIntoPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPutIntoPlayProperties, TContext>) {
     return new PutIntoPlaySystem<TContext>(propertyFactory);
 }
 // /**
@@ -658,9 +670,6 @@ export function delayedPlayerEffect<TContext extends AbilityContext = AbilityCon
             propertyFactory,
             { delayedEffectType: DelayedEffectType.Player }
         ));
-}
-export function entireDeckSearch<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISearchEntireDeckProperties<TContext>, TContext>) {
-    return new SearchEntireDeckSystem<TContext>(propertyFactory);
 }
 export function loseGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILoseGameProperties, TContext>) {
     return new LoseGameSystem<TContext>(propertyFactory);

@@ -21,7 +21,7 @@ const { UiPrompt } = require('./UiPrompt.js');
  */
 class HandlerMenuPrompt extends UiPrompt {
     constructor(game, player, properties) {
-        super(game);
+        super(game, properties.resetActionTimerOnComplete);
         this.player = player;
         if (typeof properties.source === 'string') {
             properties.source = new OngoingEffectSource(game, properties.source);
@@ -127,7 +127,7 @@ class HandlerMenuPrompt extends UiPrompt {
         return [{
             type: 'targeting',
             source: this.context.source.getShortSummary(),
-            targets: targets.map((target) => target.getShortSummaryForControls(this.player))
+            targets: targets.filter((x) => x != null).map((target) => target.getShortSummaryForControls(this.player))
         }];
     }
 

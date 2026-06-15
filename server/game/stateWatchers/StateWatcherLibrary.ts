@@ -1,12 +1,13 @@
 import { AttacksThisPhaseWatcher } from './AttacksThisPhaseWatcher';
 import { CardsLeftPlayThisPhaseWatcher } from './CardsLeftPlayThisPhaseWatcher';
 import { CardsPlayedThisPhaseWatcher } from './CardsPlayedThisPhaseWatcher';
-import { UnitsDefeatedThisPhaseWatcher } from './UnitsDefeatedThisPhaseWatcher';
+import { CardsDefeatedThisPhaseWatcher } from './CardsDefeatedThisPhaseWatcher';
 import { CardsEnteredPlayThisPhaseWatcher } from './CardsEnteredPlayThisPhaseWatcher';
 import { DamageDealtThisPhaseWatcher } from './DamageDealtThisPhaseWatcher';
 import { CardsDrawnThisPhaseWatcher } from './CardsDrawnThisPhaseWatcher';
 import { CardsDiscardedThisPhaseWatcher } from './CardsDiscardedThisPhaseWatcher';
 import { UnitsHealedThisPhaseWatcher } from './UnitsHealedThisPhaseWatcher';
+import { UnitsDamagedThisPhaseWatcher } from './UnitsDamagedThisPhaseWatcher';
 import { LeadersDeployedThisPhaseWatcher } from './LeadersDeployedThisPhaseWatcher';
 import { ForceUsedThisPhaseWatcher } from './ForceUsedThisPhaseWatcher';
 import type { Game } from '../core/Game';
@@ -14,6 +15,7 @@ import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import { ActionsThisPhaseWatcher } from './ActionsThisPhaseWatcher';
 import { TokensCreatedThisPhaseWatcher } from './TokensCreatedThisPhaseWatcher';
+import { BasesHealedThisPhaseWatcher } from './BasesHealedThisPhaseWatcher';
 
 export class StateWatcherLibrary {
     private readonly game: Game;
@@ -40,6 +42,13 @@ export class StateWatcherLibrary {
         return this.game.stateWatcherRegistrar.registerWatcher(
             StateWatcherName.ActionsThisPhase,
             (registrar: StateWatcherRegistrar) => new ActionsThisPhaseWatcher(this.game, registrar)
+        );
+    }
+
+    public cardsDefeatedThisPhase() {
+        return this.game.stateWatcherRegistrar.registerWatcher(
+            StateWatcherName.CardsDefeatedThisPhase,
+            (registrar: StateWatcherRegistrar) => new CardsDefeatedThisPhaseWatcher(this.game, registrar)
         );
     }
 
@@ -106,17 +115,24 @@ export class StateWatcherLibrary {
         );
     }
 
-    public unitsDefeatedThisPhase() {
-        return this.game.stateWatcherRegistrar.registerWatcher(
-            StateWatcherName.UnitsDefeatedThisPhase,
-            (registrar: StateWatcherRegistrar) => new UnitsDefeatedThisPhaseWatcher(this.game, registrar)
-        );
-    }
-
     public unitsHealedThisPhase() {
         return this.game.stateWatcherRegistrar.registerWatcher(
             StateWatcherName.UnitsHealedThisPhase,
             (registrar: StateWatcherRegistrar) => new UnitsHealedThisPhaseWatcher(this.game, registrar)
+        );
+    }
+
+    public unitsDamagedThisPhase() {
+        return this.game.stateWatcherRegistrar.registerWatcher(
+            StateWatcherName.UnitsDamagedThisPhase,
+            (registrar: StateWatcherRegistrar) => new UnitsDamagedThisPhaseWatcher(this.game, registrar)
+        );
+    }
+
+    public basesHealedThisPhase() {
+        return this.game.stateWatcherRegistrar.registerWatcher(
+            StateWatcherName.BasesHealedThisPhase,
+            (registrar: StateWatcherRegistrar) => new BasesHealedThisPhaseWatcher(this.game, registrar)
         );
     }
 }

@@ -7,6 +7,7 @@ import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
+import { unitsEnterPlayReady } from './UnitsEnterPlayReady';
 import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { PhaseName, RelativePlayerFilter, Trait, StandardTriggeredAbilityType } from '../core/Constants';
@@ -16,6 +17,7 @@ import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifi
 import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import type { IExhaustUnitsCostAdjusterProperties, IExploitCostAdjusterProperties, IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { ProvidedAspects } from '../core/ongoingEffect/effectImpl/ProvidedAspects';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
 import { playerCannot } from './PlayerCannot';
@@ -33,6 +35,7 @@ import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/
 import type { PrintedAttributesOverride } from '../core/ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { Card } from '../core/card/Card';
 import { CloneUnitEffect } from '../core/ongoingEffect/effectImpl/CloneUnitEffect';
+import { GainNonKeywordAbilitiesFromUnitEffect } from '../core/ongoingEffect/effectImpl/GainNonKeywordAbilitiesFromUnitEffect';
 import { CopyStandardTriggeredAbilitiesEffect } from '../core/ongoingEffect/effectImpl/CopyStandardTriggeredAbilitiesEffect';
 import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/AdditionalPhaseEffect';
 
@@ -45,6 +48,7 @@ import { AdditionalPhaseEffect } from '../core/ongoingEffect/effectImpl/Addition
 export = {
     assignIndirectDamageDealtToOpponents: () => OngoingEffectBuilder.player.static(EffectName.AssignIndirectDamageDealtToOpponents),
     assignIndirectDamageDealtByUnit: () => OngoingEffectBuilder.card.static(EffectName.AssignIndirectDamageDealtByUnit),
+    damageDealtByThisCardIsUnpreventable: () => OngoingEffectBuilder.card.static(EffectName.DamageDealtByThisCardIsUnpreventable),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
     // additionalTriggerCostForCard: (func) => OngoingEffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
@@ -111,6 +115,7 @@ export = {
     // customDetachedCard: (properties) => OngoingEffectBuilder.card.detached(EffectName.CustomEffect, properties),
     cardDelayedEffect: (properties: ITriggeredAbilityProps) => OngoingEffectBuilder.card.static(EffectName.DelayedEffect, properties),
     playerDelayedEffect: (properties: ITriggeredAbilityProps) => OngoingEffectBuilder.player.static(EffectName.DelayedEffect, properties),
+    unitsEnterPlayReady,
     // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
     // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
     // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),
@@ -118,6 +123,7 @@ export = {
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
     cloneUnit: (target: Card) => OngoingEffectBuilder.card.static(EffectName.CloneUnit, (game) => new CloneUnitEffect(game, target)),
+    gainNonKeywordAbilitiesFromUnit: (sourceUnit: Card) => OngoingEffectBuilder.card.static(EffectName.GainNonKeywordAbilitiesFromUnit, (game) => new GainNonKeywordAbilitiesFromUnitEffect(game, sourceUnit)),
     copyStandardTriggeredAbilities: (target: Card, abilityType: StandardTriggeredAbilityType) => OngoingEffectBuilder.card.static(EffectName.CopyStandardTriggeredAbilities, (game) => new CopyStandardTriggeredAbilitiesEffect(game, target, abilityType)),
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
@@ -283,11 +289,16 @@ export = {
     modifyPayStageCost: (properties: Omit<IModifyPayStageCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.ModifyPayStage, ...properties }),
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
+    providesAspectIconsForCosts: () => OngoingEffectBuilder.player.dynamic(
+        EffectName.ProvidesAspectsForCosts,
+        (target, context) => ProvidedAspects.forCard(context.source, target)
+    ),
     ignorePilotingPilotLimit: () => OngoingEffectBuilder.card.static(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit),
     addExploit: (properties: Omit<IExploitCostAdjusterProperties, 'costAdjustType'>) => addExploit({ ...properties, costAdjustType: CostAdjustType.Exploit }),
     canExhaustUnitsInsteadOfResources: (properties: Omit<IExhaustUnitsCostAdjusterProperties, 'costAdjustType'>) =>
         exhaustUnitsInsteadOfResources({ ...properties, costAdjustType: CostAdjustType.ExhaustUnits }),
     canLookAtTopOfDeck: (player: RelativePlayerFilter = RelativePlayer.Self) => OngoingEffectBuilder.player.static(EffectName.ShowTopCard, player),
+    doubleDeckSearchCount: () => OngoingEffectBuilder.player.static(EffectName.DoubleDeckSearchCount, true),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>

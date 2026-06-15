@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class JediGeneral extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jedi-general-id',
+            id: '5760795689',
             internalName: 'jedi-general',
         };
     }
@@ -16,7 +16,7 @@ export default class JediGeneral extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'If you control a Republic leader, create a Clone Trooper and give an Experience token to it',
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.leader.hasSomeTrait(Trait.Republic),
+                condition: (context) => context.player.hasSomeLeaderCard({ trait: Trait.Republic }),
                 onTrue: abilityHelper.immediateEffects.createCloneTrooper(),
             }),
             ifYouDo: (ifYouDoContext) => ({

@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class RupingRider extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ruping-rider-id',
+            id: '8348671116',
             internalName: 'ruping-rider',
         };
     }

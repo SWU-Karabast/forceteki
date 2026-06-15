@@ -47,10 +47,29 @@ export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
         }
 
         this.start(this.timerOverrideValueSeconds);
-        this.lastPlayerActionId = this.player.lastActionId;
     }
 
-    protected override onStart(): void {
+    public override start(overrideTimeLimitSeconds?: number): void {
+        super.start(overrideTimeLimitSeconds);
+        this.updateActionTrackingInfo();
+    }
+
+    public override resume(): void {
+        super.resume();
+        this.updateActionTrackingInfo();
+    }
+
+    public override stop(): void {
+        super.stop();
+        this.resetActionTrackingInfo();
+    }
+
+    public override pause(): void {
+        super.pause();
+        this.resetActionTrackingInfo();
+    }
+
+    private updateActionTrackingInfo(): void {
         this.activeUiPromptId = this.game.getCurrentOpenPrompt()?.uuid;
 
         // Just log an error to avoid breaking the game
@@ -61,7 +80,7 @@ export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
         this.lastPlayerActionId = this.player.lastActionId;
     }
 
-    protected override onStop(): void {
+    private resetActionTrackingInfo(): void {
         this.lastPlayerActionId = null;
         this.activeUiPromptId = null;
     }
@@ -71,7 +90,9 @@ export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
      * and hasn't issued any new game messages. This prevents accidentally booting
      * a player because their turn timer didn't get cleared for some reason.
      */
+    // TODO: Evaluate if we still need this or not. It's causing issues for the timer on the select initiative prompt in the setup phase, which is currently being skipped because of this check.
     protected override shouldFireHandler(): boolean {
-        return this.checkLiveStatus(this.activeUiPromptId, this.lastPlayerActionId);
+        // return this.checkLiveStatus(this.activeUiPromptId, this.lastPlayerActionId);
+        return true;
     }
 }

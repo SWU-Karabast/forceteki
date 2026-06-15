@@ -8,15 +8,21 @@ import { PromptType, SelectCardMode } from '../PromptInterfaces';
 import { GameCardMetric } from '../../../../gameStatistics/GameStatisticsTracker';
 
 export class ResourcePrompt extends AllPlayerPrompt {
+    private readonly nCardsToResource: number;
+
     protected selectedCards = new Map<string, Card[]>();
     protected selectableCards = new Map<string, Card[]>();
     protected playersDone = new Map<string, boolean>();
 
     public constructor(
         game: Game,
-        private readonly nCardsToResource: number
+        nCardsToResource: number,
+        resetActionTimerOnComplete = false
     ) {
-        super(game);
+        super(game, resetActionTimerOnComplete);
+
+        this.nCardsToResource = nCardsToResource;
+
         for (const player of game.getPlayers()) {
             this.selectedCards[player.name] = [];
             this.playersDone[player.name] = false;
@@ -51,6 +57,9 @@ export class ResourcePrompt extends AllPlayerPrompt {
 
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         let promptText = null;
+        const selectedCount = this.selectedCards[player.name].length;
+        const selectCardMode = this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple;
+
         if (this.nCardsToResource !== 1) {
             promptText = `Select ${this.nCardsToResource} cards to resource`;
         } else {
@@ -60,9 +69,13 @@ export class ResourcePrompt extends AllPlayerPrompt {
         const hasEnoughSelected = this.hasEnoughSelected(player);
 
         return {
-            selectCardMode: this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
+            selectCardMode,
             menuTitle: promptText,
-            buttons: [{ text: 'Done', arg: 'done', disabled: !hasEnoughSelected }],
+            buttons: [{
+                text: selectedCount === 0 && selectCardMode === SelectCardMode.Single ? 'Skip Resourcing' : 'Confirm Resources',
+                arg: 'done',
+                disabled: !hasEnoughSelected,
+            }],
             promptTitle: 'Resource Step',
             promptUuid: this.uuid,
             promptType: PromptType.Resource

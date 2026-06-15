@@ -103,24 +103,24 @@ export class PlayerInteractionWrapper {
         return this.player.filterCardsInPlay(() => true);
     }
 
-    public setLeaderStatus(leaderOptions: { card: any; deployed: boolean; damage: number; exhausted: boolean; upgrades: any; capturedUnits: any; flipped: any }) {
+    public setLeaderStatus(leaderOptions: { card: any; deployed?: boolean; damage?: number; exhausted?: boolean; upgrades?: any; capturedUnits?: any; flipped?: any }) {
         if (!leaderOptions) {
             return;
         }
 
         // leader as a string card name is a no-op unless it doesn't match the existing leader, then throw an error
         if (typeof leaderOptions === 'string') {
-            if (leaderOptions !== this.player.leader.internalName) {
-                throw new TestSetupError(`Provided leader name ${leaderOptions} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+            if (leaderOptions !== this.player.deckLeader.internalName) {
+                throw new TestSetupError(`Provided leader name ${leaderOptions} does not match player's leader ${this.player.deckLeader.internalName}. Do not try to change leader after test has initialized.`);
             }
             return;
         }
 
-        if (leaderOptions.card !== this.player.leader.internalName) {
-            throw new TestSetupError(`Provided leader name ${leaderOptions.card} does not match player's leader ${this.player.leader.internalName}. Do not try to change leader after test has initialized.`);
+        if (leaderOptions.card !== this.player.deckLeader.internalName) {
+            throw new TestSetupError(`Provided leader name ${leaderOptions.card} does not match player's leader ${this.player.deckLeader.internalName}. Do not try to change leader after test has initialized.`);
         }
 
-        const leaderCard = this.player.leader;
+        const leaderCard = this.player.deckLeader;
 
         if (leaderOptions.deployed) {
             leaderCard.deploy({ type: DeployType.LeaderUnit });
@@ -165,7 +165,7 @@ export class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
-    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits: any }) {
+    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits?: any }) {
         if (!baseOptions) {
             return;
         }
@@ -354,6 +354,9 @@ export class PlayerInteractionWrapper {
             case 'spy':
                 tokenClassName = 'spy';
                 break;
+            case 'mandalorian':
+                tokenClassName = 'mandalorian';
+                break;
             case 'tie-fighter':
                 tokenClassName = 'tieFighter';
                 break;
@@ -362,6 +365,7 @@ export class PlayerInteractionWrapper {
                 break;
             case 'experience':
             case 'shield':
+            case 'advantage':
                 tokenClassName = tokenName;
                 break;
             default:
@@ -634,9 +638,13 @@ export class PlayerInteractionWrapper {
     public clickPrompt(text: string) {
         text = text.toString();
         const currentPrompt = this.player.currentPrompt();
-        const promptButton = currentPrompt.buttons.find(
+        let promptButton = currentPrompt.buttons.find(
             (button: { text: { toString: () => string } }) => button.text.toString().toLowerCase() === text.toLowerCase()
         );
+
+        if (!promptButton && text.toLowerCase() === 'done') {
+            promptButton = currentPrompt.buttons.find((button: { arg: string }) => button.arg === 'done');
+        }
 
         if (!promptButton || promptButton.disabled) {
             throw new TestSetupError(
@@ -651,7 +659,14 @@ export class PlayerInteractionWrapper {
 
     public chooseListOption(text: any) {
         const currentPrompt = this.player.currentPrompt();
-        if (!currentPrompt.dropdownListOptions.includes(text)) {
+        const numberValue = Number(text);
+        const isValidNumberPromptChoice =
+          currentPrompt.selectNumber &&
+          Number.isInteger(numberValue) &&
+          numberValue >= currentPrompt.selectNumber.min &&
+          numberValue <= currentPrompt.selectNumber.max;
+
+        if (!currentPrompt.dropdownListOptions.includes(text) && !isValidNumberPromptChoice) {
             throw new TestSetupError(
                 `Couldn't choose list option '${text}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
@@ -744,17 +759,15 @@ export class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    public clickCardNonChecking(card: any, zone = 'any', side = 'self') {
+    public clickCardNonChecking(card: Pick<Card, 'name' | 'internalName' | 'uuid'> | string, zone = 'any', side = 'self') {
         this.clickCard(card, zone, side, false);
     }
 
-    public clickCard(card: {
-        name: string; internalName: any; uuid: any;
-    }, zone = 'any', side = 'self', expectChange = true) {
+    public clickCard(card: Pick<Card, 'name' | 'internalName' | 'uuid'> | string, zone = 'any', side = 'self', expectChange = true) {
         Util.checkNullCard(card);
 
         if (typeof card === 'string') {
-            card = this.findCardByName(card, zone, side);
+            card = this.findCardByName(card, zone, side) as { name: string; internalName: string; uuid: string };
         }
 
         if (expectChange && !this.currentActionTargets.includes(card)) {
@@ -912,10 +925,17 @@ export class PlayerInteractionWrapper {
      * Player clicks Done prompt
      */
     public clickDone() {
-        if (!this.currentButtons.includes('Done')) {
-            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt`);
+        const currentPrompt = this.player.currentPrompt();
+        const doneButton = currentPrompt.buttons.find((button: { arg: string; text: { toString: () => string } }) =>
+            button.arg === 'done' || button.text.toString().toLowerCase() === 'done'
+        );
+
+        if (!doneButton || doneButton.disabled) {
+            throw new TestSetupError(`${this.name} can't click Done, because it is not present in the prompt:\n${Util.formatBothPlayerPrompts(this.testContext)}`);
         }
-        this.clickPrompt('Done');
+
+        this.game.menuButton(this.player.id, doneButton.arg, doneButton.uuid, doneButton.method);
+        this.game.continue();
     }
 
     /**

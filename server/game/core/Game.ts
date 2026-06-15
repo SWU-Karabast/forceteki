@@ -45,6 +45,8 @@ import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmon
 import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
 import { DropdownListPrompt } from './gameSteps/prompts/DropdownListPrompt';
 import type { IDropdownListPromptProperties } from './gameSteps/prompts/DropdownListPrompt';
+import { NumberPrompt } from './gameSteps/prompts/NumberPrompt';
+import type { INumberPromptProperties } from './gameSteps/prompts/NumberPrompt';
 import { UnitPropertiesCard } from './card/propertyMixins/UnitProperties';
 import type { Card } from './card/Card';
 import { GroundArenaZone } from './zone/GroundArenaZone';
@@ -84,7 +86,6 @@ import { PerGameUndoLimit, UnlimitedUndoLimit } from './snapshot/UndoLimit';
 import type { UndoLimit } from './snapshot/UndoLimit';
 import UndoConfirmationPrompt from './gameSteps/prompts/UndoConfirmationPrompt';
 import type { AdditionalPhaseEffect } from './ongoingEffect/effectImpl/AdditionalPhaseEffect';
-import { AttackRulesVersion } from './attack/AttackFlow';
 import type { IStep } from './gameSteps/IStep';
 import type { ITokenCard } from './card/propertyMixins/Token';
 import type { IClientUIProperties, ISerializedGameState } from '../Interfaces';
@@ -169,6 +170,10 @@ export class Game extends EventEmitter {
 
     public get winnerNames(): readonly string[] {
         return this.state.winnerNames;
+    }
+
+    public get isEnded(): boolean {
+        return this.state.winnerNames.length > 0;
     }
 
     public get currentPhase() {
@@ -275,7 +280,6 @@ export class Game extends EventEmitter {
 
     // #region ──── Instance Fields ────────────────────────────────────────────
 
-    public readonly attackRulesVersion: AttackRulesVersion;
     private readonly _snapshotManager: SnapshotManager;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
@@ -302,6 +306,7 @@ export class Game extends EventEmitter {
     public readonly buildSafeTimeoutHandler: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
+    public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
     public gameMode: GameMode;
     public currentlyResolving: ICurrentlyResolving;
@@ -335,7 +340,6 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
-        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR7;
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
         this._router = options.router;
@@ -369,6 +373,7 @@ export class Game extends EventEmitter {
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
+        this.onBo3SetForfeit = details.onBo3SetForfeit;
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this._debug = { pipeline: false };
@@ -653,9 +658,9 @@ export class Game extends EventEmitter {
             date,
             player1: 'Player 1',
             player2: 'Player 2',
-            p1Leader: SwuPgn.formatCardName(player1.leader.title, player1.leader.subtitle),
+            p1Leader: SwuPgn.formatCardName(player1.deckLeader.title, player1.deckLeader.subtitle),
             p1Base: SwuPgn.formatCardName(player1.base.title, player1.base.subtitle),
-            p2Leader: SwuPgn.formatCardName(player2.leader.title, player2.leader.subtitle),
+            p2Leader: SwuPgn.formatCardName(player2.deckLeader.title, player2.deckLeader.subtitle),
             p2Base: SwuPgn.formatCardName(player2.base.title, player2.base.subtitle),
             result,
             reason: this.gameEndReasonString(this.gameEndReason),
@@ -721,7 +726,7 @@ export class Game extends EventEmitter {
      * Builds the decklist object for one player using the lobby Deck for accurate counts and sideboard.
      */
     private buildPlayerDecklist(player: Player): IPgnPlayerDecklist {
-        const leaderSetId = SwuPgn.formatSetId(player.leader.setId.set, player.leader.setId.number);
+        const leaderSetId = SwuPgn.formatSetId(player.deckLeader.setId.set, player.deckLeader.setId.number);
         const baseSetId = SwuPgn.formatSetId(player.base.setId.set, player.base.setId.number);
 
         const lobbyDeck = player.lobbyDeck;
@@ -758,7 +763,7 @@ export class Game extends EventEmitter {
 
         return {
             leader: {
-                name: SwuPgn.formatCardName(player.leader.title, player.leader.subtitle),
+                name: SwuPgn.formatCardName(player.deckLeader.title, player.deckLeader.subtitle),
                 setId: leaderSetId,
                 count: 1,
             },
@@ -1013,14 +1018,29 @@ export class Game extends EventEmitter {
         const player = this.getPlayerById(playerId);
 
         player.incrementActionId();
-        player.actionTimer.restartIfRunning();
     }
 
-    public onActionTimerExpired(player: Player): null {
-        player.opponent.actionTimer.stop();
+    public onGameTimerExpired(player: Player): null {
+        if (this.isEnded) {
+            // Stale timer fired after game already ended (e.g. for a previous game in a Bo3 set).
+            // Skip to avoid spurious endGame / onBo3SetForfeit side effects on the wrong game.
+            return null;
+        }
 
-        this.userTimeoutDisconnect(player.id);
-        this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
+        player.opponent.actionTimer.stop();
+        this.addAlert(AlertType.Notification, `Game ended due to ${player.name} timing out.`);
+
+        if (player.opponent.actionTimer.totalTimeRemainingSeconds < 3) {
+            // Both players nearly timed out - treat as draw, don't forfeit Bo3 set
+            this.endGame([player, player.opponent], GameEndReason.Timeout);
+        } else {
+            // Single player timeout - forfeit Bo3 set if applicable
+            if (this.onBo3SetForfeit) {
+                this.onBo3SetForfeit(player.id);
+            }
+            this.endGame(player.opponent, GameEndReason.Timeout);
+        }
+
         return null;
     }
 
@@ -1063,7 +1083,7 @@ export class Game extends EventEmitter {
     public endGame(winnerPlayers: Player[] | Player, reasonCode: GameEndReason): void {
         this.gameEndReason = reasonCode;
 
-        if (this.state.winnerNames.length > 0) {
+        if (this.isEnded) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
@@ -1111,6 +1131,21 @@ export class Game extends EventEmitter {
             this._router.sendGameState(this);
         } else {
             this.queueStep(new GameOverPrompt(this));
+        }
+    }
+
+    /**
+     * Push game state to players in response to a timer-driven state change
+     * (e.g. byoyomi turn timer expired and we transitioned to the main timer).
+     * No-op if the game has ended — timers should not drive updates after end-of-game,
+     * which can otherwise cause stale state pushes from a prior game in a Bo3 set.
+     */
+    public sendTimerUpdatedGameStateToPlayers() {
+        if (this.isEnded) {
+            return;
+        }
+        if (typeof this._router?.sendGameState === 'function') {
+            this._router.sendGameState(this);
         }
     }
 
@@ -1259,6 +1294,15 @@ export class Game extends EventEmitter {
     }
 
     /**
+     * Prompts a player with a bounded number input
+     */
+    public promptWithNumberMenu(player: Player, properties: INumberPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new NumberPrompt(this, player, properties));
+    }
+
+    /**
      * Prompts a player to click a card
      */
     public promptForSelect(player: Player, properties: ISelectCardPromptProperties): void {
@@ -1353,6 +1397,7 @@ export class Game extends EventEmitter {
             []
         );
 
+        this.started = true;
         this.resolveGameState(true);
         this.initializePipelineForSetup();
 
@@ -2257,7 +2302,6 @@ export class Game extends EventEmitter {
 
         return {
             phase: this.currentPhase,
-            attackRulesVersion: this.attackRulesVersion,
             player1: Helpers.safeSerialize(this, () => player1.capturePlayerState('player1'), null),
             player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
         };

@@ -5,8 +5,8 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class JendirianValleyRefugeeFreighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jenridian-valley#refugee-freighter-id',
-            internalName: 'jenridian-valley#refugee-freighter',
+            id: '1994755867',
+            internalName: 'jendirian-valley#refugee-freighter',
         };
     }
 

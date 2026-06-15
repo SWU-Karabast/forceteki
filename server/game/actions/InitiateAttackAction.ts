@@ -4,19 +4,14 @@ import { AbilityRestriction, TargetMode, WildcardZoneName } from '../core/Consta
 import { EnumHelpers } from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import type { Card } from '../core/card/Card';
-import type { IAttackProperties } from '../gameSystems/AttackStepsSystem.js';
 import { AttackStepsSystem } from '../gameSystems/AttackStepsSystem.js';
 import { GameSystemCost } from '../core/cost/GameSystemCost.js';
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem.js';
 import type { Game } from '../core/Game';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker.js';
-
 import { registerState } from '../core/GameObjectUtils';
-
-interface IInitiateAttackProperties extends IAttackProperties {
-    allowExhaustedAttacker?: boolean;
-}
+import type { IInitiateAttackProperties } from '../gameSystems/InitiateAttackSystem.js';
 
 /**
  * Implements the action for a player to initiate an attack from a unit.
@@ -43,7 +38,7 @@ export class InitiateAttackAction extends PlayerAction {
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
             zoneFilter: WildcardZoneName.AnyAttackable,
             attackTargetingHighlightAttacker: card,
-            activePromptTitle: 'Choose a target for attack'
+            activePromptTitle: attackProperties?.activePromptTitle ?? 'Choose a target for attack'
         });
 
         this.initiateAttackSource = initiateAttackSource;

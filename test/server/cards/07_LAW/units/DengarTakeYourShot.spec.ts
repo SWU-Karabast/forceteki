@@ -259,7 +259,7 @@ describe('Dengar, Take Your Shot', function () {
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
                 // Ability triggers twice since they're both the highest cost
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Create a Credit token: Battlefield Marine',
                     'Create a Credit token: Chandrilan Sponsor'

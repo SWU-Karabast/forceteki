@@ -7,13 +7,15 @@ const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
 const { addMockCards } = require('./mockdata');
+const { computeCardDataHash } = require('./cardDataHash');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
 // ############################################################################
-// if you are updating this script in a way that will change the card data,
-// you must also update card-data-version.txt with a new version number
-// so that the pipeline and other devs will know to update the card data
+// The CI card data cache key and local dev validation are based on a hash of
+// card-data-version.txt, fetchdata.js, and mockdata.js. Changes to any of
+// these files will automatically bust the cache. You can also manually
+// update card-data-version.txt to force a cache bust if needed.
 
 const pathToJSON = path.join(__dirname, '../test/json/');
 
@@ -37,6 +39,10 @@ function populateMissingData(attributes, id) {
         case '8752877738': // shield
             attributes.upgradeHp = 0;
             attributes.upgradePower = 0;
+            break;
+        case '5844562972': // advantage
+            attributes.upgradeHp = 0;
+            attributes.upgradePower = 1;
             break;
         case '8015500527': // Credit token
         case '4571900905': // The Force
@@ -137,6 +143,9 @@ function populateMissingData(attributes, id) {
         case '2157679168':
             attributes.title = 'Zeb Orrelios'; // Fix spelling
             break;
+        case '9349017358':
+            attributes.title = 'C-3PO';
+            break;
     }
 
     // Plot cards from Secrets of Power
@@ -203,6 +212,25 @@ function populateMissingData(attributes, id) {
     }
 }
 
+const promoPrefixes = ['C', 'G', 'J', 'P', 'MV'];
+const promoRegex = new RegExp(`^(${promoPrefixes.join('|')})\\d\\d$`);
+
+function isPromoSetCode(setCode) {
+    // Promos/Convention Exclusives - e.g., 'C24', 'P25', 'MV25'
+    if (promoRegex.test(setCode)) {
+        return true;
+    }
+    // Gamegenic promo bases
+    if (setCode === 'GG') {
+        return true;
+    }
+    // OP Promos (codes that are 4 or 5 characters and end in P or OP)
+    if ((/^\w{2,3}O?P$/).test(setCode)) {
+        return true;
+    }
+    return false;
+}
+
 function getAttributeNames(attributeList) {
     if (Array.isArray(attributeList.data)) {
         return attributeList.data.map((attr) => attr.attributes.name.toLowerCase());
@@ -223,14 +251,7 @@ function buildSetCodeList(card) {
                 number: reprint.attributes.cardNumber
             };
         })
-        .filter((setId) => {
-            // Filter out reprints that are Promos/Convention Exclusives - e.g., 'C24', 'P25'
-            return !(/^[a-zA-Z]\d\d$/g).test(setId.set) &&
-            // Filter out Gamegenic promo bases
-              setId.set !== 'GG' &&
-            // Filter out OP Promos (These codes are 4 or 5 characters and end in P or OP)
-              !(/^\w{2,3}O?P$/g).test(setId.set);
-        });
+        .filter((setId) => !isPromoSetCode(setId.set));
 
     return [card.setId].concat(reprintSetIds);
 }
@@ -247,8 +268,7 @@ function filterValues(card) {
             return null;
         }
 
-        // filtering out convention exclusives - e.g., 'C24', 'P25'
-        if ((/^[a-zA-Z]\d\d$/g).test(card.attributes.expansion.data.attributes.code)) {
+        if (isPromoSetCode(card.attributes.expansion.data.attributes.code)) {
             return null;
         }
 
@@ -366,7 +386,8 @@ function buildCardLists(cards) {
         ['IBH', 5.9],
         ['SEC', 6],
         ['LAW', 7],
-        ['TS26', 7.5]
+        ['TS26', 7.5],
+        ['ASH', 8]
     ]);
 
     for (const card of cards) {
@@ -499,7 +520,7 @@ async function main() {
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
     fs.writeFile(path.join(pathToJSON, '_leaderNames.json'), JSON.stringify(leaderNames, null, 2));
-    fs.copyFile(path.join(__dirname, '../card-data-version.txt'), path.join(pathToJSON, 'card-data-version.txt'));
+    fs.writeFile(path.join(pathToJSON, 'card-data-hash.txt'), computeCardDataHash());
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }

@@ -5,7 +5,7 @@ import type { IAttachCardContext, IConstantAbilityProps, ITriggeredAbilityBasePr
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
-import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
+import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { Player } from '../../Player';
@@ -239,9 +239,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
         this.updateStateOnAttach();
 
-        if (this.isUnit() && this.hasSomeTrait(Trait.Pilot)) {
-            Contract.assertTrue(newParentCard.canAttachPilot(this));
-        } else if (this.attachCondition) {
+        if (this.attachCondition) {
             const context: IAttachCardContext<this> = {
                 source: this,
                 controllingPlayer: newController || this.controller,
@@ -336,17 +334,17 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
     private addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
-        return registrar.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
+        return registrar.addConstantAbility(this.generateDecreaseCostAbilityProps(properties));
     }
 
     /** Add a constant ability on the card that ignores all aspect penalties under the given condition */
     private addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
-        return registrar.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
+        return registrar.addConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties));
     }
 
     /** Add a constant ability on the card that ignores specific aspect penalties under the given condition */
     private addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
-        return registrar.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
+        return registrar.addConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties));
     }
 
     public override registerMove(movedFromZone: ZoneName): void {

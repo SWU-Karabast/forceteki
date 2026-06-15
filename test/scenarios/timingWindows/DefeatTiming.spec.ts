@@ -59,7 +59,7 @@ describe('Defeat timing', function() {
                 context.player1.passAction();
 
                 context.player2.clickCard(context.vanguardInfantry);
-                expect(context.player2).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player2).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHavePrompt('Waiting for opponent');
                 expect(context.vanguardInfantry).toBeInZone('discard');
 
@@ -139,7 +139,7 @@ describe('Defeat timing', function() {
                 // triggered abilities happen
                 expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
                 context.player1.clickPrompt('You');
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Draw a card',
                     'Draw a card',
@@ -160,7 +160,7 @@ describe('Defeat timing', function() {
                 context.player1.clickPrompt('Pass');
 
                 // automatically moves to other player's triggers
-                expect(context.player2).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player2).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player2).toHaveExactPromptButtons(['Put Superlaser Technician into play as a resource and ready it', 'Choose any number of players to draw 1 card']);
                 context.player2.clickPrompt('Choose any number of players to draw 1 card');
                 context.player2.clickPrompt('You');

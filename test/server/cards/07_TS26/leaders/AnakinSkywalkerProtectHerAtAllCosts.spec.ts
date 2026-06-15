@@ -92,7 +92,7 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
                 context.player1.clickCard(context.lothwolf);
                 context.player2.passAction();
 
-                // Use Anakin's leader ability - shows no effect since < 2 units entered play
+                // Use Anakin's leader ability — condition not met, no Shield is given
                 context.player1.clickCard(context.anakinSkywalker);
                 expect(context.player1).toHaveNoEffectAbilityPrompt('Give a Shield token to a friendly unit that entered play this phase');
                 context.player1.clickPrompt('Use it anyway');
@@ -102,7 +102,7 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
                 expect(context.lothwolf).toHaveExactUpgradeNames([]);
             });
 
-            it('does not give a Shield token when 2 units entered play but one was defeated', async function() {
+            it('gives a Shield token to the surviving unit when 2 units entered play but one was defeated', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -123,18 +123,53 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.restoredArc170);
 
-                // Opponent defeats Lothwolf
+                // Opponent defeats Lothwolf — count remains 2 (entered under friendly control)
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.lothwolf);
 
-                // Use Anakin's leader ability - shows no effect since only 1 unit that entered this phase is still in play
+                // Use Anakin's leader ability — condition is met; only ARC-170 is a valid target
+                context.player1.clickCard(context.anakinSkywalker);
+                expect(context.player1).toHavePrompt('Give a Shield token to a unit that entered play this phase');
+                expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170]);
+                context.player1.clickCard(context.restoredArc170);
+
+                expect(context.anakinSkywalker.exhausted).toBeTrue();
+                expect(context.restoredArc170).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('has no effect when 2 units entered play but both were defeated', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'anakin-skywalker#protect-her-at-all-costs',
+                        resources: 4,
+                        hand: ['lothwolf', 'porg'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        resources: 10,
+                        hand: ['vanquish', 'vanquish']
+                    }
+                });
+
+                const { context } = contextRef;
+                const vanquishes = context.player2.findCardsByName('vanquish');
+
+                // Play two units; opponent vanquishes each immediately
+                context.player1.clickCard(context.lothwolf);
+                context.player2.clickCard(vanquishes[0]);
+                context.player2.clickCard(context.lothwolf);
+                context.player1.clickCard(context.porg);
+                context.player2.clickCard(vanquishes[1]);
+                context.player2.clickCard(context.porg);
+
+                // Use Anakin's leader ability — condition is met (2 entered under friendly control)
+                // but no valid targets remain (both defeated)
                 context.player1.clickCard(context.anakinSkywalker);
                 expect(context.player1).toHaveNoEffectAbilityPrompt('Give a Shield token to a friendly unit that entered play this phase');
                 context.player1.clickPrompt('Use it anyway');
 
-                // Anakin is exhausted but no Shield is given (only 1 unit currently in play that entered this phase)
                 expect(context.anakinSkywalker.exhausted).toBeTrue();
-                expect(context.restoredArc170).toHaveExactUpgradeNames([]);
             });
 
             it('has no effect when no units have entered play this phase', async function() {
@@ -149,16 +184,15 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
 
                 const { context } = contextRef;
 
-                // Use Anakin's leader ability - shows no effect since no units entered play
+                // Use Anakin's leader ability — condition not met, no Shield is given
                 context.player1.clickCard(context.anakinSkywalker);
                 expect(context.player1).toHaveNoEffectAbilityPrompt('Give a Shield token to a friendly unit that entered play this phase');
                 context.player1.clickPrompt('Use it anyway');
 
-                // Anakin is exhausted but no Shield is given
                 expect(context.anakinSkywalker.exhausted).toBeTrue();
             });
 
-            it('does not count a unit that entered play under friendly control but is now under enemy control', async function() {
+            it('counts a unit that entered play under friendly control even if it is now under enemy control', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -172,26 +206,28 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
 
                 const { context } = contextRef;
 
-                // Play Galen Erso and give control to opponent
+                // Play Galen Erso and give control to opponent (count = 1 under friendly control)
                 context.player1.clickCard(context.galenErso);
                 context.player1.clickPrompt('Trigger');
                 context.player2.passAction();
 
-                // Play Populist Advisor
+                // Play Populist Advisor (count = 2 under friendly control)
                 context.player1.clickCard(context.populistAdvisor);
                 context.player2.passAction();
 
-                // Use Anakin's leader ability - shows no effect since only 1 friendly unit entered play
+                // Use Anakin's leader ability — condition is met (2 units entered under friendly control)
+                // Only Populist Advisor is a valid target (Galen is now controlled by opponent)
                 context.player1.clickCard(context.anakinSkywalker);
-                expect(context.player1).toHaveNoEffectAbilityPrompt('Give a Shield token to a friendly unit that entered play this phase');
-                context.player1.clickPrompt('Use it anyway');
+                expect(context.player1).toHavePrompt('Give a Shield token to a unit that entered play this phase');
+                expect(context.player1).toBeAbleToSelectExactly([context.populistAdvisor]);
+                context.player1.clickCard(context.populistAdvisor);
 
-                // Anakin is exhausted but no Shield is given
                 expect(context.anakinSkywalker.exhausted).toBeTrue();
-                expect(context.populistAdvisor).toHaveExactUpgradeNames([]);
+                expect(context.populistAdvisor).toHaveExactUpgradeNames(['shield']);
+                expect(context.galenErso).toHaveExactUpgradeNames([]);
             });
 
-            it('counts a unit that entered play under enemy control but is now under friendly control', async function() {
+            it('does not count a unit that entered play under enemy control even if it is now under friendly control', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -208,24 +244,22 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
 
                 const { context } = contextRef;
 
-                // Play Populist Advisor
+                // Play Populist Advisor (count = 1 under friendly control)
                 context.player1.clickCard(context.populistAdvisor);
 
-                // Opponent plays Galen Erso and gives control to P1
+                // Opponent plays Galen Erso and transfers control to P1
+                // (Galen entered under enemy control so it does not count)
                 context.player2.clickCard(context.galenErso);
                 context.player2.clickPrompt('Trigger');
 
-                // Use Anakin's leader ability
+                // Use Anakin's leader ability — condition NOT met (only 1 unit entered under friendly control)
                 context.player1.clickCard(context.anakinSkywalker);
+                expect(context.player1).toHaveNoEffectAbilityPrompt('Give a Shield token to a friendly unit that entered play this phase');
+                context.player1.clickPrompt('Use it anyway');
 
-                // Can target both Populist Advisor and Galen Erso (now under P1's control)
-                expect(context.player1).toHavePrompt('Give a Shield token to a unit that entered play this phase');
-                expect(context.player1).toBeAbleToSelectExactly([context.populistAdvisor, context.galenErso]);
-                context.player1.clickCard(context.galenErso);
-
-                // Anakin is exhausted and Galen has a Shield
                 expect(context.anakinSkywalker.exhausted).toBeTrue();
-                expect(context.galenErso).toHaveExactUpgradeNames(['shield']);
+                expect(context.populistAdvisor).toHaveExactUpgradeNames([]);
+                expect(context.galenErso).toHaveExactUpgradeNames([]);
             });
         });
 
@@ -255,11 +289,9 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
                 context.player1.clickPrompt('Deploy Anakin Skywalker');
                 context.player2.passAction();
 
-                // Attack with Anakin
+                // Attack with Anakin — can only target Lothwolf (not Battlefield Marine, not Anakin himself)
                 context.player1.clickCard(context.anakinSkywalker);
                 context.player1.clickCard(context.p2Base);
-
-                // Can only target Lothwolf (not Battlefield Marine, not Anakin himself)
                 expect(context.player1).toBeAbleToSelectExactly([context.lothwolf]);
                 context.player1.clickCard(context.lothwolf);
 
@@ -282,11 +314,11 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
 
                 const { context } = contextRef;
 
-                // Play Veteran Fleet Officer, which creates an X-Wing token
+                // Play Veteran Fleet Officer — its When Played creates an X-Wing token
                 context.player1.clickCard(context.veteranFleetOfficer);
                 context.player2.passAction();
 
-                // Attack with Anakin
+                // Attack with Anakin — can target Veteran Fleet Officer or the X-Wing token
                 context.player1.clickCard(context.anakinSkywalker);
                 context.player1.clickCard(context.p2Base);
 
@@ -335,18 +367,15 @@ describe('Anakin Skywalker, Protect Her at All Costs', function() {
 
                 const { context } = contextRef;
 
-                // Play a unit
+                // Play a unit, opponent defeats it immediately
                 context.player1.clickCard(context.lothwolf);
-
-                // Opponent defeats Lothwolf
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.lothwolf);
 
-                // Attack with Anakin - ability fizzles (no prompt, just continues)
+                // Attack with Anakin — ability fizzles (no valid targets), no prompt shown
                 context.player1.clickCard(context.anakinSkywalker);
                 context.player1.clickCard(context.p2Base);
 
-                // No prompt, ability just skipped
                 expect(context.player2).toBeActivePlayer();
             });
 

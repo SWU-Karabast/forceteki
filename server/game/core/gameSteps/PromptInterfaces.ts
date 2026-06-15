@@ -16,6 +16,7 @@ export enum DisplayCardSelectionState {
 
 export enum PromptType {
     Initiative = 'initiative',
+    Number = 'number',
     Resource = 'resource',
     ActionWindow = 'actionWindow',
     DisplayCards = 'displayCards',
@@ -28,6 +29,11 @@ export interface IButton {
     arg: string;
     command?: string;
     disabled?: boolean;
+}
+
+export interface INumberPromptData {
+    min: number;
+    max: number;
 }
 
 export interface IDisplayCard {
@@ -44,6 +50,7 @@ export enum StatefulPromptType {
     DistributeIndirectDamage = 'distributeIndirectDamage',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
+    DistributeAdvantage = 'distributeAdvantage',
 }
 
 export enum SelectCardMode {
@@ -55,6 +62,7 @@ export type DistributePromptType =
   | StatefulPromptType.DistributeDamage
   | StatefulPromptType.DistributeIndirectDamage
   | StatefulPromptType.DistributeExperience
+  | StatefulPromptType.DistributeAdvantage
   | StatefulPromptType.DistributeHealing;
 
 export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;

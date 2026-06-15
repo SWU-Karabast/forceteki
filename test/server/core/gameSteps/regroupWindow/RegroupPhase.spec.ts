@@ -75,12 +75,12 @@ describe('Regroup phase', function() {
                     oldResourcesPlayer1.push(context.wroshyrTreeTender);
 
                     // we check that both players have the correct prompt
-                    expect(context.player1).toHaveExactPromptButtons(['Done']);
-                    expect(context.player2).toHaveExactPromptButtons(['Done']);
+                    expect(context.player1).toHaveExactPromptButtons(['Confirm Resources']);
+                    expect(context.player2).toHaveExactPromptButtons(['Skip Resourcing']);
 
                     context.player1.clickDone();
                     expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
-                    expect(context.player2).toHaveExactPromptButtons(['Done']);
+                    expect(context.player2).toHaveExactPromptButtons(['Skip Resourcing']);
                     context.player2.clickDone();
 
                     expect(context.getChatLogs(4)).toContain('player1 has resourced 1 card from hand');
@@ -426,7 +426,7 @@ describe('Regroup phase', function() {
                 expect(context.dilapidatedSkiSpeeder).toBeInZone('groundArena');
 
                 // Choose which ability to resolve first
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons(['Shielded', 'Ambush', 'Deal 3 damage to this unit']);
                 context.player1.clickPrompt('Ambush');
 
@@ -438,7 +438,7 @@ describe('Regroup phase', function() {
                 expect(context.dilapidatedSkiSpeeder.damage).toBe(3);
 
                 // Deal damage from When Played
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons(['Shielded', 'Deal 3 damage to this unit']);
                 context.player1.clickPrompt('Deal 3 damage to this unit');
                 expect(context.dilapidatedSkiSpeeder.damage).toBe(6);

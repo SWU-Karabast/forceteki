@@ -53,6 +53,8 @@ describe('Val, It\'s Been a Ride, Babe', function() {
             context.player2.clickCard(context.valItsBeenARideBabe);
 
             // Should be able to select an enemy unit for the shield
+            expect(context.player1).toHavePrompt('Give a Shield token to an enemy unit');
+            expect(context.player2).toHavePrompt('Waiting for opponent to select a unit for Val\'s ability');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.rebelPathfinder, context.awing]);
             expect(context.player1).not.toHavePassAbilityButton();
             expect(context.player1).not.toHaveChooseNothingButton();

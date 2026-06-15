@@ -1098,6 +1098,7 @@ describe('Undo', function() {
 
                     // draw a specific cards
                     context.player1.clickCard(context.searchYourFeelings);
+                    context.player1.clickCardInDisplayCardPrompt(context.avenger);
                     context.player2.passAction();
 
                     const exhaustedResourceCount = context.player1.exhaustedResourceCount;
@@ -1478,7 +1479,7 @@ describe('Undo', function() {
             // TODO: LeadersDeployedThisPhaseWatcher is not used directly, need to find an example.
             // describe('LeadersDeployedThisPhaseWatcher', function () { });
 
-            describe('UnitsDefeatedThisPhaseWatcher', function() {
+            describe('CardsDefeatedThisPhaseWatcher', function() {
                 undoIt('Bravado readies unit with cost reduction when smuggled', async function () {
                     await contextRef.setupTestAsync({
                         phase: 'action',
@@ -1830,6 +1831,25 @@ describe('Undo', function() {
                 expect(context.player2.hand).toEqualArray(player2StartingHandAfterMulligan);
                 expect(context.player1.deck).toEqualArray(player1DeckBeforeMulligan);
                 expect(context.player2.deck).toEqualArray(player2DeckAfterMulligan);
+
+                // Rollback to the mulligan decision
+                contextRef.snapshot.rollbackToSnapshot({
+                    type: 'action',
+                    playerId: context.player2.id,
+                    actionOffset: -1,
+                });
+                expect(context.player1.hand).toEqualArray(player1StartingHandBeforeMulligan);
+                expect(context.player2.hand).toEqualArray(player2StartingHandBeforeMulligan);
+                expect(context.player1.deck).toEqualArray(player1DeckBeforeMulligan);
+                expect(context.player2.deck).toEqualArray(player2DeckBeforeMulligan);
+
+                // Choose whether to take a mulligan
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Keep');
+                expect(context.player1.hand).toEqualArray(player1StartingHandAfterMulligan);
+                expect(context.player2.hand).toEqualArray(player2StartingHandBeforeMulligan);
+                expect(context.player1.deck).toEqualArray(player1DeckAfterMulligan);
+                expect(context.player2.deck).toEqualArray(player2DeckBeforeMulligan);
             });
         });
 

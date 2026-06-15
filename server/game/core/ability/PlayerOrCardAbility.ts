@@ -5,6 +5,7 @@ import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck, GameState
 import { Contract } from '../utils/Contract.js';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
 import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetResolver.js';
+import { NumberTargetResolver } from './abilityTargets/NumberTargetResolver.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { Helpers } from '../utils/Helpers.js';
 import { AbilityContext } from './AbilityContext.js';
@@ -49,6 +50,7 @@ export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
 export abstract class PlayerOrCardAbility extends GameObjectBase {
     private _title: string;
     private _contextTitle?: (context: AbilityContext) => string;
+    private _appendOverrideTitle: boolean;
     public limit?: AbilityLimit;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
@@ -89,6 +91,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
 
         this._title = properties.title;
         this._contextTitle = properties.contextTitle;
+        this._appendOverrideTitle = !!properties.appendOverrideTitle;
         this.type = type;
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
@@ -146,6 +149,19 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return this._title;
     }
 
+    /**
+     * Whether the affected card's name should be appended to this ability's choice when it is triggered
+     * multiple times in the same window. When a `contextTitle` is set it usually already differentiates the
+     * choices, so the name is not appended unless `appendOverrideTitle` is also set.
+     */
+    public get shouldAppendOverrideTitle(): boolean {
+        if (this._contextTitle == null) {
+            return true;
+        }
+
+        return this._appendOverrideTitle;
+    }
+
     public override getGameObjectName() {
         return 'PlayerOrCardAbility';
     }
@@ -195,6 +211,8 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
                 return new SelectTargetResolver(name, properties, this);
             case TargetMode.DropdownList:
                 return new DropdownListTargetResolver(name, properties, this);
+            case TargetMode.ChooseNumber:
+                return new NumberTargetResolver(name, properties, this);
             case TargetMode.Player:
             case TargetMode.MultiplePlayers:
                 return new PlayerTargetResolver(name, properties, this);
@@ -446,4 +464,3 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return false;
     }
 }
-

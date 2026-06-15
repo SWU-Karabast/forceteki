@@ -20,6 +20,7 @@ import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
+import { SupportAbility } from '../../../abilities/keyword/SupportAbility';
 import type { Game } from '../../Game';
 import type { GameEvent } from '../../event/GameEvent';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
@@ -47,7 +48,7 @@ import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration'
 import type Clone from '../../../cards/03_TWI/units/Clone';
 import { stateRefArray, stateRef, statePrimitive, registerStateBase } from '../../GameObjectUtils';
 import type { TokensCreatedThisPhaseWatcher } from '../../../stateWatchers/TokensCreatedThisPhaseWatcher';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -78,7 +79,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     isUpgraded(): boolean;
     hasExperience(): boolean;
     hasShield(): boolean;
-    effectsPreventAttack(target: Card);
+    effectsPreventAttack(target: Card, context?: AbilityContext): boolean;
     moveToCaptureZone(targetZone: CaptureZone);
     checkRegisterWhenPlayedKeywordAbilities(event: GameEvent);
     checkRegisterOnAttackKeywordAbilities(event: GameEvent);
@@ -183,7 +184,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _tokensCreatedThisPhaseWatcher: TokensCreatedThisPhaseWatcher;
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
         private _leadersDeployedThisPhaseWatcher: LeadersDeployedThisPhaseWatcher;
-        private _unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+        private _cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
@@ -305,7 +306,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._tokensCreatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.tokensCreatedThisPhase();
             this._cardsPlayedThisWatcher = this.game.abilityHelper.stateWatchers.cardsPlayedThisPhase();
             this._leadersDeployedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.leadersDeployedThisPhase();
-            this._unitsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.unitsDefeatedThisPhase();
+            this._cardsDefeatedThisPhaseWatcher = this.game.abilityHelper.stateWatchers.cardsDefeatedThisPhase();
 
             this.defaultAttackAction = new InitiateAttackAction(this.game, this);
         }
@@ -364,8 +365,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Check if there are any effect restrictions preventing this unit from attacking the passed target.
          * Returns true if so.
          */
-        public effectsPreventAttack(target: Card) {
-            if (this.hasRestriction(AbilityRestriction.Attack)) {
+        public effectsPreventAttack(target: Card, context?: AbilityContext): boolean {
+            if (this.hasRestriction(AbilityRestriction.Attack, context)) {
                 return true;
             }
             if (this.hasOngoingEffect(EffectName.CannotAttackBase) && target.isBase()) {
@@ -688,7 +689,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 };
 
                 const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
-                coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
+                coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility.buildEffectFactoryProps());
 
                 this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, coordinateKeywordAbility];
             }
@@ -703,7 +704,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 };
 
                 const hiddenKeywordAbility = this.createConstantAbility(hiddenKeywordAbilityProps);
-                hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility);
+                hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility.buildEffectFactoryProps());
 
                 this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, hiddenKeywordAbility];
             }
@@ -727,8 +728,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public checkRegisterWhenPlayedKeywordAbilities(event: GameEvent) {
             const hasAmbush = this.hasSomeKeyword(KeywordName.Ambush);
             const hasShielded = this.hasSomeKeyword(KeywordName.Shielded);
+            const hasSupport = this.hasSomeKeyword(KeywordName.Support);
 
-            if (!hasAmbush && !hasShielded) {
+            if (!hasAmbush && !hasShielded && !hasSupport) {
                 return;
             }
 
@@ -751,6 +753,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const shieldedAbility = this.createTriggeredAbility(shieldedProps);
                 shieldedAbility.registerEvents();
                 this._whenPlayedKeywordAbilities = [...this._whenPlayedKeywordAbilities, shieldedAbility];
+            }
+
+            if (hasSupport) {
+                const supportProps = Object.assign(this.buildGeneralAbilityProps('keyword_support'), SupportAbility.buildSupportAbilityProperties(this));
+                const supportAbility = this.createTriggeredAbility(supportProps);
+                supportAbility.registerEvents();
+                this._whenPlayedKeywordAbilities = [...this._whenPlayedKeywordAbilities, supportAbility];
             }
 
             event.addCleanupHandler(() => this.unregisterWhenPlayedKeywords());
@@ -1028,18 +1037,27 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * @returns True if this is allowed to attach to the targetCard; false otherwise
          */
         public override canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
-            Contract.assertTrue(this.canBeUpgrade);
-            if (targetCard.isUnit()) {
-                if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
-                    // This is needed for abilities that let you play Pilots from the opponent's discard
-                    const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
-                    return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
-                } else if (this.hasSomeTrait(Trait.Pilot)) {
-                    return targetCard.canAttachPilot(this);
-                }
+            if (!targetCard.isUnit()) {
+                return false;
             }
-            // TODO: Handle Phantom II and Sidon Ithano
-            return false;
+            if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
+                // This is needed for abilities that let you play Pilots from the opponent's discard
+                const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
+                return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
+            }
+            if (this.hasSomeTrait(Trait.Pilot) && this.isAttached()) {
+                // A pilot upgrade being moved by an ability (e.g. Survivors' Gauntlet) retains the
+                // "friendly Vehicle without a Pilot upgrade" restriction it acquired when first attached.
+                return targetCard.canAttachPilot(this);
+            }
+
+            // A unit without the Pilot trait or Piloting keyword may still be attached as an upgrade
+            // when driven by an ability that supplies its own attachment restriction — e.g. a non-Pilot
+            // unit that has gained L3-37's "would be defeated: attach to a friendly Vehicle without a
+            // Pilot" ability via Improvised Identity. The ability's target resolver is responsible for
+            // enforcing the restriction; this method just permits the attach to proceed.
+            // TODO: Handle Phantom II and Sidon Ithano (these have card-specific attachment patterns).
+            return true;
         }
 
         /**
@@ -1049,6 +1067,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          */
         public canAttachPilot(pilot: IUnitCard): boolean {
             if (!this.hasSomeTrait(Trait.Vehicle)) {
+                return false;
+            }
+
+            if (pilot.isAttached() && pilot.hasSomeKeyword(KeywordName.Piloting) && pilot.controller !== this.controller) {
                 return false;
             }
 

@@ -33,8 +33,13 @@ function formatPrompt(prompt, currentActionTargets) {
         prompt.menuTitle + '\n' +
         prompt.buttons.map((button) => '[ ' + button.text + (button.disabled ? ' (disabled)' : '') + ' ]').join('\n') + '\n' +
         formatSelectableCardsPromptData(prompt, currentActionTargets) + '\n' +
+        formatSelectNumberPromptData(prompt) +
         formatDropdownListOptions(prompt.dropdownListOptions)
     );
+}
+
+function formatSelectNumberPromptData(prompt) {
+    return prompt.selectNumber ? `number range: ${prompt.selectNumber.min}-${prompt.selectNumber.max}\n` : '';
 }
 
 function formatSelectableCardsPromptData(prompt, currentActionTargets) {
@@ -91,6 +96,7 @@ function getPlayerPromptState(player) {
         selectableCards: copySelectionArray(player.promptState.selectableCards),
         selectedCards: copySelectionArray(player.promptState.selectedCards),
         distributeAmongTargets: player.currentPrompt().distributeAmongTargets,
+        selectNumber: player.currentPrompt().selectNumber,
         dropdownListOptions: player.currentPrompt().dropdownListOptions,
         menuTitle: player.currentPrompt().menuTitle,
         promptTitle: player.currentPrompt().promptTitle
@@ -110,6 +116,7 @@ function promptStatesEqual(promptState1, promptState2) {
         promptState1.menuTitle !== promptState2.menuTitle ||
         promptState1.promptTitle !== promptState2.promptTitle ||
         promptState1.distributeAmongTargets !== promptState2.distributeAmongTargets ||
+        promptState1.selectNumber !== promptState2.selectNumber ||
         promptState1.dropdownListOptions.length !== promptState2.dropdownListOptions.length ||
         promptState1.selectableCards.length !== promptState2.selectableCards.length ||
         promptState1.selectedCards.length !== promptState2.selectedCards.length
@@ -127,11 +134,11 @@ function formatDropdownListOptions(options) {
 }
 
 function isTokenUnit(cardName) {
-    return ['battle-droid', 'clone-trooper', 'tie-fighter', 'xwing', 'spy'].includes(cardName);
+    return ['battle-droid', 'clone-trooper', 'tie-fighter', 'xwing', 'spy', 'mandalorian'].includes(cardName);
 }
 
 function isTokenUpgrade(cardName) {
-    return ['shield', 'experience'].includes(cardName);
+    return ['shield', 'experience', 'advantage'].includes(cardName);
 }
 
 /**

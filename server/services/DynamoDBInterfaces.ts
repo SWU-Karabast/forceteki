@@ -8,6 +8,14 @@ export enum ModerationFieldState {
     EnabledAndSeen = 'enabledAndSeen',
 }
 
+export enum CardImageLocale {
+    English = 'en',
+    French = 'fr',
+    German = 'de',
+    Spanish = 'es',
+    Italian = 'it',
+}
+
 export interface IModerationAction {
     daysRemaining: number;
     endDate?: string;
@@ -27,6 +35,7 @@ export interface IUserDataEntity {
     reportingDisabled?: ModerationFieldState;
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
+    timerPopupSeenDate?: string;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {
@@ -52,6 +61,11 @@ export interface IDeckStatsEntity {
     statsByMatchup?: IMatchupStatEntity[];
 }
 
+export enum TimerVisibility {
+    Standard = 'standard',
+    HideTurnTimer = 'hideTurnTimer',
+    HideAll = 'hideAll',
+}
 
 export interface IUserPreferences {
     sound?: {
@@ -64,6 +78,11 @@ export interface IUserPreferences {
     cosmetics?: {
         cardback?: string;
         background?: string;
+    };
+    gameOptions?: {
+        muteChat?: boolean;
+        cardLanguage?: CardImageLocale;
+        timerVisibility?: TimerVisibility;
     };
 }
 
@@ -86,6 +105,7 @@ export interface ILocalStorageDeckData {
     deckLinkID?: string;
     deckID?: string; // we need this for backwards compatibility
     source?: string;
+    stats?: IDeckStatsEntity;
 }
 
 // Interface for deck data
@@ -104,22 +124,6 @@ export interface IDeckDataEntity {
     stats?: IDeckStatsEntity;
 }
 
-// Interface for game record
-export interface IGameRecordEntity {
-    id: string;
-    player1: string;
-    player2: string;
-    firstInitiativePlayer: string;
-    winner: string;
-    winnerBaseHealthRemaining: number;
-    player1LeaderId: string;
-    player1BaseId: string;
-    player2LeaderId: string;
-    player2BaseId: string;
-    timestampStart: Date;
-    timestampEnd: Date;
-}
-
 export enum ServerRole {
     Admin = 'admin',
     Developer = 'developer',
@@ -136,4 +140,37 @@ export interface IServerRoleUsersListsEntity {
     developers: IServerRoleUserEntity[];
     moderators: IServerRoleUserEntity[];
     contributors: IServerRoleUserEntity[];
+}
+
+export enum ModActionType {
+    Mute = 'Mute',
+    Warning = 'Warning',
+    Rename = 'Rename',
+}
+
+export type TimedModActionType = ModActionType.Mute | ModActionType.Rename;
+
+export interface IModActionEntity {
+    id: string;
+    playerId: string;
+    actionType: ModActionType;
+    durationDays?: number;
+    note?: string;
+    moderatorId: string;
+    moderatorUsername: string;
+    createdAt: string;
+    startedAt?: string;
+    expiresAt?: string;
+    cancelledAt?: string;
+    cancelledById?: string;
+    cancelledByUsername?: string;
+}
+
+export interface IActiveModActionCacheEntry {
+    id: string;
+    actionType: ModActionType;
+    durationDays?: number;
+    startedAt?: string;
+    expiresAt?: string;
+    modActionId: string;
 }

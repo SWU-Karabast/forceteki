@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType } from '../../../core/Constants';
 
-export default class CloudriderVeteran extends NonLeaderUnitCard {
+export default class CloudRiderVeteran extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '1794819723',

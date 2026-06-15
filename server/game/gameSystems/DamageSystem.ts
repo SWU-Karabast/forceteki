@@ -12,6 +12,7 @@ import {
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { Helpers } from '../core/utils/Helpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
 import { Contract } from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
 import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
@@ -187,6 +188,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
                 Contract.fail(`Unexpected damage type: ${properties['type']}`);
         }
 
+        const explicitlyUnpreventable = 'isUnpreventable' in properties && properties.isUnpreventable;
+        const isIndirect = 'isIndirect' in properties && properties.isIndirect;
+        event.isUnpreventable = explicitlyUnpreventable || isIndirect || this.sourcesMakeDamageUnpreventable(event);
+
         Contract.assertTrue(card.canBeDamaged());
 
         const damageAmount = this.getDamageAmountFromEvent(event);
@@ -282,18 +287,38 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         }
 
         event.isIndirect = properties.isIndirect;
-        event.isUnpreventable = properties.isUnpreventable || properties.isIndirect;
         event.damageSource = abilityDamageSource;
 
         Contract.assertNotNullLike(properties.amount);
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 
+    private sourcesMakeDamageUnpreventable(event: any): boolean {
+        const damageSource = event.damageSource;
+        if (!damageSource) {
+            return false;
+        }
+
+        const hasUnpreventableEffect = (source: Card | null | undefined) =>
+            source?.hasOngoingEffect?.(EffectName.DamageDealtByThisCardIsUnpreventable) ?? false;
+
+        switch (damageSource.type) {
+            case DamageSourceType.Attack:
+                const attackSource = damageSource as IDamagedOrDefeatedByAttack;
+                return attackSource.damageDealtBy.some(hasUnpreventableEffect);
+            case DamageSourceType.Ability:
+                const abilitySource = damageSource as IDamagedOrDefeatedByAbility;
+                return hasUnpreventableEffect(abilitySource.card);
+            default:
+                Contract.fail(`Unexpected damage source type: ${damageSource.type}`);
+        }
+    }
+
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.updateEvent(event, card, context, additionalProperties);
 
         if (!card.isBase()) {
-            this.addLastKnownInformationToEvent(event, card);
+            addLastKnownInformationToEvent(event, card);
         }
     }
 

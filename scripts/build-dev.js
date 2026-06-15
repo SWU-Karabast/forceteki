@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+const { computeCardDataHash } = require('./cardDataHash');
 
 function runCommand(command) {
     console.log('----------------------');
@@ -13,6 +14,6 @@ fs.mkdirSync('./build/server', { recursive: true });
 runCommand('concurrently "tsc" "tsc -p ./test/tsconfig.json" "cpy ./test/json/ ./build/"');
 
 runCommand('cpy ./test/json/ ./build/');
-runCommand('cpy ./card-data-version.txt ./build/server/');
+fs.writeFileSync('./build/server/card-data-hash.txt', computeCardDataHash());
 
 console.log('Build-dev process completed.');

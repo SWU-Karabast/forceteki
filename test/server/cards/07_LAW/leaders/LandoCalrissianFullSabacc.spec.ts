@@ -1,6 +1,7 @@
 describe('Lando Calrissian, Full Sabacc', () => {
     integration(function(contextRef) {
         describe('Undeployed leader-side action ability', function() {
+            const choices = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Villainy', 'Heroism'];
             it('chooses an Aspect and discards a card the player\'s deck. If the discarded card has the chosen Aspect, it creates a Credit token', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -18,20 +19,13 @@ describe('Lando Calrissian, Full Sabacc', () => {
 
                 // Use Lando's leader-side ability
                 context.player1.clickCard(context.landoCalrissian);
-                expect(context.player1).toHavePrompt('Choose an option from the list');
-                expect(context.player1).toHaveExactDropdownListOptions([
-                    'Vigilance',
-                    'Command',
-                    'Aggression',
-                    'Cunning',
-                    'Villainy',
-                    'Heroism'
-                ]);
-                context.player1.chooseListOption('Cunning');
+                expect(context.player1).toHavePrompt('Choose an aspect');
+                expect(context.player1).toHaveExactPromptButtons(choices);
+                context.player1.clickPrompt('Cunning');
 
                 // Choose deck prompt
                 expect(context.player1).toHavePrompt('Choose a deck to discard from');
-                expect(context.player1).toHaveExactPromptButtons(['Your deck', 'Opponent\'s deck']);
+                expect(context.player1).toHaveExactPromptButtons(['Your deck', 'Opponent\'s deck', 'Cancel']);
                 context.player1.clickPrompt('Your deck');
 
                 // Check top card discarded
@@ -42,6 +36,11 @@ describe('Lando Calrissian, Full Sabacc', () => {
                 expect(context.player1.credits).toBe(1);
                 expect(context.landoCalrissian.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Lando Calrissian, exhausting Lando Calrissian to choose Cunning and to discard Jam Communications from their deck',
+                    'player1 uses Lando Calrissian to create a Credit token',
+                ]);
             });
 
             it('chooses an Aspect and discards a card the opponent\'s deck. If the discarded card has the chosen Aspect, it creates a Credit token', async function() {
@@ -61,20 +60,13 @@ describe('Lando Calrissian, Full Sabacc', () => {
 
                 // Use Lando's leader-side ability
                 context.player1.clickCard(context.landoCalrissian);
-                expect(context.player1).toHavePrompt('Choose an option from the list');
-                expect(context.player1).toHaveExactDropdownListOptions([
-                    'Vigilance',
-                    'Command',
-                    'Aggression',
-                    'Cunning',
-                    'Villainy',
-                    'Heroism'
-                ]);
-                context.player1.chooseListOption('Command');
+                expect(context.player1).toHavePrompt('Choose an aspect');
+                expect(context.player1).toHaveExactPromptButtons(choices);
+                context.player1.clickPrompt('Command');
 
                 // Choose deck prompt
                 expect(context.player1).toHavePrompt('Choose a deck to discard from');
-                expect(context.player1).toHaveExactPromptButtons(['Your deck', 'Opponent\'s deck']);
+                expect(context.player1).toHaveExactPromptButtons(['Your deck', 'Opponent\'s deck', 'Cancel']);
                 context.player1.clickPrompt('Opponent\'s deck');
 
                 // Check top card discarded
@@ -85,6 +77,11 @@ describe('Lando Calrissian, Full Sabacc', () => {
                 expect(context.player1.credits).toBe(1);
                 expect(context.landoCalrissian.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Lando Calrissian, exhausting Lando Calrissian to choose Command and to discard Resupply from player2\'s deck',
+                    'player1 uses Lando Calrissian to create a Credit token',
+                ]);
             });
 
             it('does not create a Credit token if the discarded card does not have the chosen Aspect', async function() {
@@ -101,7 +98,7 @@ describe('Lando Calrissian, Full Sabacc', () => {
 
                 // Use Lando's leader-side ability
                 context.player1.clickCard(context.landoCalrissian);
-                context.player1.chooseListOption('Heroism');
+                context.player1.clickPrompt('Heroism');
                 context.player1.clickPrompt('Your Deck');
 
                 // Check top card discarded
@@ -111,6 +108,10 @@ describe('Lando Calrissian, Full Sabacc', () => {
                 expect(context.player1.credits).toBe(0);
                 expect(context.landoCalrissian.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+
+                expect(context.getChatLogs(1)).toEqual([
+                    'player1 uses Lando Calrissian, exhausting Lando Calrissian to choose Heroism and to discard Resupply from their deck'
+                ]);
             });
 
             it('can be used to no effect if the player has no cards in their deck', async function() {
@@ -127,13 +128,17 @@ describe('Lando Calrissian, Full Sabacc', () => {
 
                 // Use Lando's leader-side ability
                 context.player1.clickCard(context.landoCalrissian);
-                context.player1.chooseListOption('Aggression');
+                context.player1.clickPrompt('Aggression');
                 context.player1.clickPrompt('Your deck');
 
                 // Check costs paid, no Credit token created
                 expect(context.player1.credits).toBe(0);
                 expect(context.landoCalrissian.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+
+                expect(context.getChatLogs(1)).toEqual([
+                    'player1 uses Lando Calrissian, exhausting Lando Calrissian to choose Aggression and to discard no cards from their deck because it is empty'
+                ]);
             });
 
             it('can be used to no effect if neither player has any cards in their deck', async function() {
@@ -153,13 +158,41 @@ describe('Lando Calrissian, Full Sabacc', () => {
 
                 // Use Lando's leader-side ability
                 context.player1.clickCard(context.landoCalrissian);
-                context.player1.chooseListOption('Aggression');
+                context.player1.clickPrompt('Aggression');
                 context.player1.clickPrompt('Opponent\'s deck');
 
                 // Check costs paid, no Credit token created
                 expect(context.player1.credits).toBe(0);
                 expect(context.landoCalrissian.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('can be cancelled before the deck selection is made', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'lando-calrissian#full-sabacc',
+                        resources: 5
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use Lando's leader-side ability
+                context.player1.clickCard(context.landoCalrissian);
+                context.player1.clickPrompt('Aggression');
+                context.player1.clickPrompt('Cancel');
+
+                // Check costs not paid, no Credit token created
+                expect(context.player1.credits).toBe(0);
+                expect(context.landoCalrissian.exhausted).toBeFalse();
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+
+                expect(context.getChatLogs(1)).toEqual([
+                    // No chat logs emitted because it was cancelled before a game state change occurred
+                    'Round: 1 - Action Phase'
+                ]);
             });
         });
 

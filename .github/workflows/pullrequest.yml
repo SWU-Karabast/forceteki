@@ -9,41 +9,46 @@ jobs:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-node@v4
-          with:
-            node-version: '22.x'
-            cache: 'npm'
-        - run: npm install
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22.x"
+          cache: "npm"
+      - run: npm install
 
-        - run: npx eslint --quiet
-  
+      - run: npx eslint --quiet
+
+  validate-cards:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22.x"
+          cache: "npm"
+      - run: npm install
+
+      - run: npm run validate-cards
+
   test:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-node@v4
-          with:
-            node-version: '22.x'
-            cache: 'npm'
-        - run: npm install
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22.x"
+          cache: "npm"
+      - run: npm install
 
-        - name: check that card data json version file exists
-          uses: andstor/file-existence-action@v3
-          with:
-            files: "${{ github.workspace }}/card-data-version.txt"
-            fail: true
-        - name: get card data json cache version
-          id: card-data-version
-          run: echo "version=$(cat ${GITHUB_WORKSPACE}/card-data-version.txt)" >> $GITHUB_OUTPUT
-        - name: cache card data json files
-          id: cache-card-data
-          uses: actions/cache@v3
-          with:
-            path: ./test/json
-            key: ${{ steps.card-data-version.outputs.version }}
-        - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
-          run: npm run get-cards
+      - name: cache card data json files
+        id: cache-card-data
+        uses: actions/cache@v5
+        with:
+          path: ./test/json
+          key: card-data-${{ hashFiles('card-data-version.txt', 'scripts/fetchdata.js', 'scripts/mockdata.js') }}
+      - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
+        run: npm run get-cards
 
-        - run: npm run test-parallel
+      - run: npm run test-parallel

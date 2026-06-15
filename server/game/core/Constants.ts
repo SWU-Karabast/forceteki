@@ -61,6 +61,21 @@ export enum PlayType {
     Smuggle = 'smuggle',
 }
 
+/**
+ * How a unit entered play.
+ *
+ * Used to scope "enters play ready" effects that only apply to certain entry
+ * paths, e.g. "the next unit you play this phase enters play ready" should only apply to units that
+ * entered play via the "played" path, not tokens created by abilities or units put into play by other
+ * means.
+ */
+export enum EntryType {
+    Played = 'played',
+    Created = 'created',
+    Rescued = 'rescued',
+    Deployed = 'deployed'
+}
+
 export enum StatType {
     Hp = 'hp',
     Power = 'power'
@@ -98,26 +113,31 @@ export enum EffectName {
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
+    DamageDealtByThisCardIsUnpreventable = 'damageDealtByThisCardIsUnpreventable',
     DealsCombatDamageFirst = 'dealsCombatDamageFirst',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
+    GainNonKeywordAbilitiesFromUnit = 'gainNonKeywordAbilitiesFromUnit',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
+    UnitsEnterPlayReady = 'unitsEnterPlayReady',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
     ModifyStartingHandSize = 'modifyStartingHandSize',
     ModifyPower = 'modifyPower',
     ModifyStats = 'modifyStats',
+    DoubleDeckSearchCount = 'doubleDeckSearchCount',
     MultiplyNumericKeyword = 'multiplyNumericKeyword',
     MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
     PrintedAttributesOverride = 'printedAttributesOverride',
+    ProvidesAspectsForCosts = 'providesAspectsForCosts',
     RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
@@ -179,6 +199,7 @@ export enum TargetMode {
     ExactlyVariable = 'exactlyVariable',
     MaxStat = 'maxStat',
     MultiplePlayers = 'multiplePlayers',
+    ChooseNumber = 'chooseNumber',
     Player = 'player',
     Select = 'select',
     SelectUnless = 'selectUnless',
@@ -237,7 +258,8 @@ export type CardTypeFilter = CardType | WildcardCardType;
 
 export enum TokenUpgradeName {
     Experience = 'experience',
-    Shield = 'shield'
+    Shield = 'shield',
+    Advantage = 'advantage',
 }
 
 export enum TokenUnitName {
@@ -246,6 +268,7 @@ export enum TokenUnitName {
     XWing = 'xwing',
     TIEFighter = 'tieFighter',
     Spy = 'spy',
+    Mandalorian = 'mandalorian',
 }
 
 export enum TokenCardName {
@@ -336,6 +359,7 @@ export enum MetaEventName {
     DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
+    DistributeAdvantage = 'distributeAdvantage',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
@@ -388,6 +412,7 @@ export enum KeywordName {
     Sentinel = 'sentinel',
     Shielded = 'shielded',
     Smuggle = 'smuggle',
+    Support = 'support',
 }
 
 export enum Trait {
@@ -505,8 +530,10 @@ export type PlayRestriction =
   | AbilityRestriction.EnterPlay;
 
 export enum DamageModificationType {
+    Cap = 'cap',
     PreventAll = 'all',
     Increase = 'increase',
+    Multiply = 'multiply',
     Reduce = 'reduce',
     Replace = 'replace'
 }
@@ -514,6 +541,7 @@ export enum DamageModificationType {
 export enum StateWatcherName {
     ActionsThisPhase = 'actionsThisPhase',
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDefeatedThisPhase = 'cardsDefeatedThisPhase',
     CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
@@ -523,8 +551,9 @@ export enum StateWatcherName {
     ForceUsedThisPhase = 'forceUsedThisPhase',
     LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
     TokensCreatedThisPhase = 'tokensCreatedThisPhase',
-    UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     UnitsHealedThisPhase = 'unitsHealedThisPhase',
+    UnitsDamagedThisPhase = 'unitsDamagedThisPhase',
+    BasesHealedThisPhase = 'basesHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado
@@ -605,6 +634,7 @@ export enum GameEndReason {
     Concede = 'concede',
     GameRules = 'gameRules',
     PlayerLeft = 'playerLeft',
+    Timeout = 'timeout',
 }
 
 export enum Conjunction {
@@ -654,4 +684,3 @@ export enum RematchMode {
     Bo1ConvertToBo3 = 'bo1ConvertToBo3',
     NewBo3 = 'newBo3',
 }
-

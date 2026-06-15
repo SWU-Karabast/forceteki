@@ -6,7 +6,8 @@ import type { CostAdjuster } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
 import { Contract } from './utils/Contract';
-import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
+import type { Aspect, KeywordName, MoveZoneDestination, Trait } from './Constants';
+import { CardType } from './Constants';
 import {
     AlertType,
     ChatObjectType,
@@ -44,9 +45,9 @@ import type { IPlayerSerializedState, Zone } from '../Interfaces';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
-import { GameActionTimer } from './actionTimer/GameActionTimer';
+import { ByoyomiTimer } from './actionTimer/ByoyomiTimer';
 import { NoopActionTimer } from './actionTimer/NoopActionTimer';
-import type { IActionTimer } from './actionTimer/IActionTimer';
+import type { IByoyomiTimer } from './actionTimer/IByoyomiTimer';
 import { PlayerTimeRemainingStatus } from './actionTimer/IActionTimer';
 import type { IGameStatisticsTrackable } from '../../gameStatistics/GameStatisticsTracker';
 import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
@@ -54,6 +55,7 @@ import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
 import { registerState, stateRefArray, stateRef, stateValue, type GameObjectId } from './GameObjectUtils';
+import type { IInPlayZoneCardFilterProperties } from './zone/ConcreteOrMetaArenaZone';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectId<HandZone>;
@@ -83,7 +85,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     private canTakeActionsThisPhase: null;
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
-    public readonly actionTimer: IActionTimer;
+    public readonly actionTimer: IByoyomiTimer;
 
     public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
     public hasResolvedAbilityThisTimepoint = false;
@@ -133,9 +135,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this._deckZone;
     }
 
-    @stateRef() private accessor _leader: ILeaderCard | null = null;
-    public get leader(): ILeaderCard {
-        return this._leader;
+    @stateRef() private accessor _deckLeader: ILeaderCard | null = null;
+    public get deckLeader(): ILeaderCard {
+        return this._deckLeader;
     }
 
     @stateRef() private accessor _base: IBaseCard | null = null;
@@ -206,23 +208,14 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         this.left = false;
 
         if (useTimer) {
-            this.actionTimer = new GameActionTimer(
-                60,
+            this.actionTimer = new ByoyomiTimer(
                 this,
                 this.game,
-                () => this.game.onActionTimerExpired(this),
-                (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId)
+                () => this.game.onGameTimerExpired(this),
+                (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId),
+                () => this.game.sendTimerUpdatedGameStateToPlayers(),
+                (status) => this.onMainTimerWarning(status)
             );
-            this.actionTimer.addSpecificTimeHandler(20,
-                (updateTimerStatusHandler) => {
-                    updateTimerStatusHandler(PlayerTimeRemainingStatus.Warning);
-                    this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this);
-                });
-            this.actionTimer.addSpecificTimeHandler(10,
-                (updateTimerStatusHandler) => {
-                    updateTimerStatusHandler(PlayerTimeRemainingStatus.Danger);
-                    this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this);
-                });
         } else {
             this.actionTimer = new NoopActionTimer();
         }
@@ -269,11 +262,49 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
         return this.game.getCurrentOpenPrompt().uuid === promptUuid &&
           playerActionId === this._lastActionId &&
-          this.game.winnerNames.length === 0;
+          !this.game.isEnded;
+    }
+
+    /**
+     * Called by ByoyomiTimer when this player's main timer crosses a warning threshold.
+     * Emits a chat alert, so that the player and their opponent are aware of the time
+     * remaining, even for players that have the timer interface hidden.
+     */
+    private onMainTimerWarning(status: PlayerTimeRemainingStatus): void {
+        if (status === PlayerTimeRemainingStatus.NoAlert) {
+            return;
+        }
+
+        const secondsRemaining = status === PlayerTimeRemainingStatus.Danger
+            ? ByoyomiTimer.MainTimeDangerSeconds
+            : ByoyomiTimer.MainTimeWarningSeconds;
+        const alertType = status === PlayerTimeRemainingStatus.Danger ? AlertType.Danger : AlertType.Warning;
+
+        this.game.addAlert(alertType, `${this.name} has ${secondsRemaining} seconds of main time remaining.`);
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
         return this.game.allArenas.getCards({ ...filter, controller: this });
+    }
+
+    public getInPlayCards(filter: IInPlayZoneCardFilterProperties = {}) {
+        const arenaCards = this.game.allArenas.getCards({ ...filter, controller: this });
+        const baseZoneCards = this.baseZone.getCards(filter);
+
+        return [...arenaCards, ...baseZoneCards];
+    }
+
+    public hasSomeInPlayCard(filter: IInPlayZoneCardFilterProperties = {}) {
+        return this.getInPlayCards(filter).length > 0;
+    }
+
+    public getLeaderCards(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        const leaderFilter = [WildcardCardType.LeaderUnit, CardType.Leader, CardType.LeaderUpgrade];
+        return this.getInPlayCards({ ...filter, type: leaderFilter });
+    }
+
+    public hasSomeLeaderCard(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        return this.getLeaderCards(filter).length > 0;
     }
 
     /**
@@ -320,9 +351,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
     public controlsLeaderUnitOrUpgradeWithTitle(title: string): boolean {
-        return this.leader.title === title ||
-          this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
-          this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
+        return this.hasSomeInPlayCard({ condition: (card) => card.title === title });
     }
 
     /**
@@ -332,7 +361,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @returns { boolean } true if this player controls a card with the trait
      */
     public controlsCardWithTrait(trait: Trait, onlyUnique: boolean = false, otherThan: Card = undefined): boolean {
-        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({
+        return this.hasSomeInPlayCard({
             condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)),
             otherThan: otherThan
         });
@@ -735,7 +764,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         const preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
         this._base = this.game.getFromId(preparedDecklist.base);
-        this._leader = this.game.getFromId(preparedDecklist.leader);
+        this._deckLeader = this.game.getFromId(preparedDecklist.leader);
 
         this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromId(x)));
 
@@ -747,13 +776,13 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
             new PlayableZone(PlayType.Plot, this.resourceZone),
-            new PlayableZone(PlayType.Piloting, this.deckZone), // TODO: interaction with Ezra
+            new PlayableZone(PlayType.Piloting, this.deckZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
-            new PlayableZone(PlayType.Piloting, this.discardZone), // TODO: interactions with Fine Addition
+            new PlayableZone(PlayType.Piloting, this.discardZone),
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this._baseZone = new BaseZone(this.game, this, this.base, this.leader);
+        this._baseZone = new BaseZone(this.game, this, this.base, this.deckLeader);
 
         this._decklist = preparedDecklist;
     }
@@ -813,10 +842,25 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     /**
-     * Returns the aspects for this player (derived from base and leader)
+     * Returns the aspects for this player used for calculating costs (derived from base,
+     * leader, and any active `ProvidesAspectsForCosts` ongoing effects on this player — e.g. The
+     * Darksaber, Icon of Leadership).
      */
-    public getAspects() {
-        return this.leader.aspects.concat(this.base.aspects);
+    public getAspectsForCosts() {
+        const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspectsForCosts);
+        return [
+            ...this.deckLeader.aspects,
+            ...this.base.aspects,
+            ...provided.flat(),
+        ];
+    }
+
+    /**
+     * Returns the aspects for this player's deck (derived from base and leader only, not including
+     * any active `ProvidesAspectsForCosts` ongoing effects on this player).
+     */
+    public getDeckAspects() {
+        return [...this.deckLeader.aspects, ...this.base.aspects];
     }
 
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
@@ -824,7 +868,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             return [];
         }
 
-        const playerAspects = this.getAspects();
+        const playerAspects = this.getAspectsForCosts();
 
         const penaltyAspects = [];
         for (const aspect of costAspects) {
@@ -1189,7 +1233,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.leader?.getSummary(activePlayer, omniscient),
+            leader: this.deckLeader?.getSummary(activePlayer, omniscient),
             base: this.base?.getSummary(activePlayer, omniscient),
             id: this.id,
             left: this.left,
@@ -1202,9 +1246,13 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             promptState: promptState,
             isActionPhaseActivePlayer,
             clock: undefined,
-            aspects: this.getAspects(),
+            aspects: this.getDeckAspects(),
             forceToken: this.getForceTokenSummary(),
+            credits: this.getCreditsSummary(activePlayer),
+            turnTimeRemainingSeconds: this.actionTimer.turnTimeRemainingSeconds,
+            mainTimeRemainingSeconds: this.actionTimer.mainTimeRemainingSeconds,
             timeRemainingStatus: this.actionTimer.timeRemainingStatus,
+            timerIsRunning: this.actionTimer.isRunning,
             numCardsInDeck: this.drawDeck?.length,
             availableSnapshots: this.buildAvailableSnapshotsState(isActionPhaseActivePlayer),
             topCardOfDeck: undefined
@@ -1318,7 +1366,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             }
 
             // Leader
-            state.leader = Helpers.safeSerialize(this.game, () => this.leader.captureCardState(), null);
+            state.leader = Helpers.safeSerialize(this.game, () => this.deckLeader.captureCardState(), null);
 
             // Base
             state.base = Helpers.safeSerialize(this.game, () => this.base.captureCardState(), null);

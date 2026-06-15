@@ -183,7 +183,13 @@ export abstract class TriggerWindowBase extends BaseStep {
             }
 
             // if an ability is triggered multiple times but does not use a collective trigger, we need to treat it as a multi-select
-            // so we can differentiate which instance is being resolved
+            // so we can differentiate which instance is being resolved. If the ability defines a contextTitle, it usually
+            // already differentiates the instances (e.g. by naming the affected card), so we don't append the override title
+            // unless the ability explicitly opts in via appendOverrideTitle.
+            if (!repeatedAbility.shouldAppendOverrideTitle) {
+                continue;
+            }
+
             for (const context of abilitiesToResolve.filter((context) => context.ability === repeatedAbility)) {
                 if (!context.overrideTitle) {
                     context.setOverrideTitle(this.getOverrideTitle(context));
@@ -265,7 +271,7 @@ export abstract class TriggerWindowBase extends BaseStep {
         handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
-            activePromptTitle: 'Choose an ability to resolve:',
+            activePromptTitle: 'You have multiple triggers to resolve. Choose which to resolve first:',
             source: 'Choose Triggered Ability Resolution Order',
             choices,
             handlers,

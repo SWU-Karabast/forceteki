@@ -53,6 +53,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
 import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
+import type Advantage from '../../cards/08_ASH/tokens/Advantage';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -639,6 +640,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return false;
     }
 
+    public isAdvantage(): this is Advantage {
+        return false;
+    }
+
     /** Returns true if the card is of a type that can legally be damaged. Note that the card might still be in a zone where damage is not legal. */
     public canBeDamaged(): this is ICardWithDamageProperty {
         return false;
@@ -717,7 +722,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
-        return keywordInstances;
+        return KeywordHelpers.dedupeKeywords(keywordInstances, this);
     }
 
     public getKeywordsWithCostValues(keywordName: KeywordName): KeywordWithCostValues[] {
@@ -1162,7 +1167,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 !EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
                 EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
             ) {
-                constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
+                constantAbility.registeredEffects = this.addEffectToEngine(constantAbility.buildEffectFactoryProps());
             } else if (
                 EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
                 !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)

@@ -46,7 +46,7 @@ describe('Enfys Nest, Until We Can Go No Higher', function() {
                 // Attack with Han Solo to trigger his On Attack abilities
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Give an Experience token to this unit',
                     'Discard a card from your hand'
