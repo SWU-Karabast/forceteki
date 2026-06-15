@@ -85,7 +85,7 @@ describe('Outcast, Mercenary Starship', function() {
                 context.player1.clickCard(context.droidDeployment);
 
                 // Resolve the trigger ordering prompt for the two simultaneous "enters play" triggers
-                context.player1.clickPrompt('Give Battle Droid +1/+0 for this phase: Battle Droid');
+                context.player1.clickPrompt('Give Battle Droid +1/+0 for this phase');
 
                 // Each Battle Droid (printed power 1) should have received +1/+0 from Outcast
                 const battleDroids = context.player1.findCardsByName('battle-droid');

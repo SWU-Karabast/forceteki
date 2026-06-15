@@ -125,16 +125,14 @@ describe('SearchDeckSystem regression suite', function () {
         });
 
         describe('entire deck search', function () {
-            it('shows only selectable cards from the entire deck and shuffles after (Bounty Posting)', async function () {
+            it('shows the entire deck (selectable + invalid) and shuffles after (Bounty Posting)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bounty-posting'],
                         deck: [
-                            // Bounty upgrade — selectable
-                            'bounty-hunters-quarry',
-                            // non-Bounty cards — should not appear in prompt (SearchEntireDeckSystem hides invalid cards)
-                            'wampa', 'waylay', 'atst', 'devotion',
+                            'bounty-hunters-quarry',           // Bounty upgrade — selectable
+                            'wampa', 'waylay', 'atst', 'devotion', // non-Bounty — shown but invalid
                         ],
                     },
                 });
@@ -144,9 +142,9 @@ describe('SearchDeckSystem regression suite', function () {
                 context.player1.clickCard(context.bountyPosting);
 
                 expect(context.player1).toHavePrompt('Select a card');
-                // Only the selectable Bounty upgrade is shown; non-Bounty cards are hidden
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.bountyHuntersQuarry],
+                    invalid: [context.wampa, context.waylay, context.atst, context.devotion],
                 });
 
                 context.player1.clickCardInDisplayCardPrompt(context.bountyHuntersQuarry);
@@ -172,7 +170,7 @@ describe('SearchDeckSystem regression suite', function () {
                         groundArena: ['battlefield-marine'],
                         deck: [
                             'battlefield-marine',  // selectable — matches defeated unit name
-                            'waylay', 'devotion',  // non-matching — not selectable
+                            'waylay', 'devotion',  // non-matching — shown but invalid
                         ],
                     },
                 });
@@ -187,6 +185,7 @@ describe('SearchDeckSystem regression suite', function () {
                 // Player 1 sees player 2's deck and can discard matching cards
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [deckMarine],
+                    invalid: [context.waylay, context.devotion],
                 });
                 context.player1.clickCardInDisplayCardPrompt(deckMarine);
                 context.player1.clickDone();

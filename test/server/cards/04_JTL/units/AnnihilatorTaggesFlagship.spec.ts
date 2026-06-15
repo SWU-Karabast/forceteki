@@ -162,7 +162,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 // Player sees the opponent's deck
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [inDeckBoba, inDeckPilotBoba],
-                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                    invalid: [context.cartelSpacer, context.eliteP38Starfighter, context.craftySmuggler]
                 });
 
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -228,7 +228,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 // Player sees the opponent's deck
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [inDeckBoba, inDeckPilotBoba],
-                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                    invalid: [context.cartelSpacer]
                 });
 
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -312,7 +312,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 // Player sees the opponent's deck
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [inDeckBoba, inDeckPilotBoba],
-                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                    invalid: [context.cartelSpacer]
                 });
 
                 context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
@@ -374,7 +374,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             // Search deck for Bobas
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [inDeckBoba, inDeckPilotBoba],
-                // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                invalid: [context.cartelSpacer]
             });
 
             context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
@@ -426,7 +426,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             // Search deck for L3's
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [inDeckL337, inDeckL337Pilot],
-                // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                invalid: [context.cartelSpacer]
             });
 
             context.player1.clickCardInDisplayCardPrompt(inDeckL337);

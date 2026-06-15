@@ -5,6 +5,7 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer } from '../../../core/Constants';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class GroguCharmingCompanion extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -26,7 +27,7 @@ export default class GroguCharmingCompanion extends LeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) =>
                     event.player === context.player &&
-                    event.card.isUnit() &&
+                    EnumHelpers.isUnit(event.cardTypeWhenInPlay) &&
                     event.card.unique &&
                     event.card.cost >= 4
             },
