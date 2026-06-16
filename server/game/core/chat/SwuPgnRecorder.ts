@@ -810,7 +810,13 @@ export class SwuPgnRecorder {
         this.game.on(EventName.OnModalChoice, (event: any) => {
             try {
                 const offered: string[] = Array.isArray(event?.offered) ? event.offered : [];
-                const chose: number = typeof event?.chose === 'number' ? event.chose : -1;
+                // `chose` is the selected option index; without a valid number the record would be
+                // malformed. Mirror the other handlers (e.g. OnCardRevealed) and skip the push
+                // rather than emit a sentinel.
+                if (typeof event?.chose !== 'number') {
+                    return;
+                }
+                const chose: number = event.chose;
                 this.push({
                     seq: this.nextSeq(false),
                     t: 'MODAL_CHOICE',

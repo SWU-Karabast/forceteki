@@ -240,13 +240,40 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         const events = rec.getEvents();
         expect(events.some((e: any) => e.t === 'MULLIGAN' && e.p === 1)).toBe(true);
         expect(events.some((e: any) => e.t === 'KEEP_HAND' && e.p === 2)).toBe(true);
-        const choice = events.find((e: any) => e.t === 'CHOICE' || e.t === 'MODAL_CHOICE');
+        const choice = events.find((e: any) => e.t === 'MODAL_CHOICE');
         expect(choice).toBeDefined();
         expect(Array.isArray((choice as any).offered)).toBe(true);
         expect((choice as any).offered).toEqual(['Draw a card', 'Deal 1 damage']);
         expect(typeof (choice as any).chose).toBe('number');
         expect((choice as any).chose).toBe(1);
         expect((choice as any).p).toBe(1);
+    });
+
+    it('does not record a MODAL_CHOICE for a pgnLog:false (system) prompt — no emit, no record', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'setup' });
+        // HandlerMenuPrompt gates the OnModalChoice emit behind `pgnLog !== false`. A system prompt
+        // (e.g. UndoConfirmationPrompt) sets pgnLog:false, so it emits nothing — the recorder, which
+        // only listens for OnModalChoice, therefore produces no MODAL_CHOICE record.
+        const events = rec.getEvents();
+        expect(events.some((e: any) => e.t === 'MODAL_CHOICE')).toBe(false);
+    });
+
+    it('skips a malformed MODAL_CHOICE when chose is not a number', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'setup' });
+        game.emit(EventName.OnModalChoice, { player: p1, offered: ['A', 'B'], chose: undefined });
+
+        const events = rec.getEvents();
+        expect(events.some((e: any) => e.t === 'MODAL_CHOICE')).toBe(false);
     });
 
     it('records an ABILITY_ACTIVATE event', function () {

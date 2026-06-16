@@ -324,8 +324,8 @@ export enum EventName {
     OnLeaderFlipped = 'onLeaderFlipped',
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
-    OnModalChoice = 'onModalChoice',
-    OnMulliganDecision = 'onMulliganDecision',
+    OnModalChoice = 'onModalChoice', // recorder-only (SWU-PGN §4.2) — do NOT remove; consumed by SwuPgnRecorder
+    OnMulliganDecision = 'onMulliganDecision', // recorder-only (SWU-PGN §4.2) — do NOT remove; consumed by SwuPgnRecorder
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',

@@ -63,6 +63,9 @@ export class MulliganPrompt extends AllPlayerPrompt {
             this.game.emit(EventName.OnMulliganDecision, { player, mulligan: true });
             return true;
         } else if (arg === 'keep') {
+            if (this.completionCondition(player)) {
+                return false;
+            }
             this.game.addMessage('{0} will keep their hand', player);
             this.playersDone[player.name] = true;
             this.game.emit(EventName.OnMulliganDecision, { player, mulligan: false });
