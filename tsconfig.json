@@ -29,7 +29,8 @@
     // "include": ["server/jigoku/**/*"],
     "include": [
         "server/**/*",
-        "server/**/*.json"
+        "server/**/*.json",
+        "swupgn/src/**/*.ts"
     ],
     // "include": ["server/**/*"],
     "exclude": [
