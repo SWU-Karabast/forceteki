@@ -1,9 +1,6 @@
-// public API barrel; populated in Task 2+
-// TODO Task 2+: add re-exports as each module lands:
-//   export * from './types';
-//   export { parse } from './parse';
-//   export { fold, reduce, stateAt } from './fold';
-//   export { render } from './render';
-//   export { validate } from './validate';
-
-export {};
+// public API barrel; modules added as tasks land
+// TODO: export { fold, reduce, stateAt } from './fold';  (Task 5)
+// TODO: export { render } from './render';               (Task 6)
+export * from './types';
+export { parse } from './parse';
+export { validate } from './validate';
