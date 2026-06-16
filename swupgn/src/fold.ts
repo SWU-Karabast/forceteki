@@ -45,8 +45,19 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'ROUND_START': s.round = e.round; break;
         case 'PHASE_START': s.phase = (e.phase as ReducedState['phase']); break;
         case 'CLAIM_INITIATIVE': s.initiative = e.p; break;
-        case 'PLAY': case 'PLAY_EVENT': case 'PLAY_UPGRADE': case 'PLAY_SMUGGLE':
+        case 'PLAY': case 'PLAY_SMUGGLE':
             player(s, e.p).cards.push(newCard(e.card, e.zone ?? 'ground')); break;
+        case 'PLAY_EVENT':
+            player(s, e.p).discard.push(e.card); break;
+        case 'PLAY_UPGRADE': {
+            if (e.target) {
+                const host = findCard(s, e.target);
+                if (host) { host.upgrades.push(e.card); break; }
+            }
+            // Fallback when the host is unknown: track the upgrade as its own instance.
+            player(s, e.p).cards.push(newCard(e.card, e.zone ?? 'ground'));
+            break;
+        }
         case 'DEPLOY_LEADER':
             player(s, e.p).cards.push(newCard(e.card, e.zone ?? 'ground')); break;
         case 'CREATE_TOKEN':
@@ -115,6 +126,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'CAPTURE': case 'RESCUE': case 'TAKE_CONTROL': case 'SEARCH': case 'REVEAL':
         case 'TRIGGER': case 'PHASE_END': case 'ROUND_END': case 'GAME_END':
             break;
+        default: { const _exhaustive: never = e; void _exhaustive; break; }
     }
     return s;
 }
