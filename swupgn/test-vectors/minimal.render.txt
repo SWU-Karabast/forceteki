@@ -1,0 +1,8 @@
+
+═══ ROUND 1 ═══
+
+─── action ───
+1. Player 1 plays SOR#108 to ground (cost 2)
+2. Player 1 attacks Player 2's base with SOR#108
+SOR#108 deals 2 damage to Player 2's base (28 remaining HP)
+SOR#108 is exhausted

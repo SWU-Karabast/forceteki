@@ -15,6 +15,7 @@
 {"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108"],"p2DeckOrder":["SOR#045"]}
 
 %%% EVENTS
+{"seq":"R1.start","t":"ROUND_START","round":1}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
 {"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
 {"seq":"R1.A.2","t":"ATTACK","p":1,"atk":"SOR#108","def":"base","defenderType":"base"}
