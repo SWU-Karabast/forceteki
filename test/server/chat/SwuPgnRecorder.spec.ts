@@ -59,7 +59,7 @@ class FakeEmitter {
 }
 
 // Minimal fake engine card. `cardId` resolver maps uuid -> stable id; here uuid === id.
-function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number; owner?: any; controller?: any; printedType?: string; isBase?: boolean; title?: string }) {
+function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number; owner?: any; controller?: any; printedType?: string; isBase?: boolean; isShield?: boolean; title?: string }) {
     return {
         uuid: opts.uuid,
         zoneName: opts.zoneName ?? '',
@@ -69,6 +69,7 @@ function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number;
         printedType: opts.printedType ?? 'unit',
         title: opts.title ?? opts.uuid,
         isBase: () => opts.isBase === true,
+        isShield: () => opts.isShield === true,
     };
 }
 
@@ -139,5 +140,49 @@ describe('SwuPgnRecorder events fold to expected state', function () {
         // unit was played then defeated -> in discard, not in play
         expect(ps.cards.find((c) => c.id === 'SOR#108')).toBeUndefined();
         expect(ps.discard).toContain('SOR#108');
+    });
+});
+
+describe('SwuPgnRecorder gap events: board mutations', function () {
+    it('MOVE changes a card zone; SHIELD_GAIN/USE adjust shields; OVERWHELM hits base', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const p2 = { id: 'p2' };
+        const base2 = fakeCard({ uuid: 'SOR#020', isBase: true, owner: p2, remainingHp: 30 });
+        const unit = fakeCard({ uuid: 'SOR#200', zoneName: 'groundArena', owner: p1, printedType: 'unit', remainingHp: 5 });
+        const shieldToken = fakeCard({ uuid: 'SHIELDTOK', owner: p1, isShield: true, printedType: 'token' });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        // Card must exist in fold state, so play it to ground first.
+        game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play' });
+
+        // MOVE: ground -> space (real OnCardMoved payload shape).
+        unit.zoneName = 'spaceArena';
+        game.emit(EventName.OnCardMoved, { card: unit, originalZone: 'groundArena', newZone: 'spaceArena' });
+
+        // SHIELD_GAIN: a Shield token upgrade is attached to the unit (real OnUpgradeAttached shape).
+        game.emit(EventName.OnUpgradeAttached, { parentCard: unit, upgradeCard: shieldToken, originalZone: 'outsideTheGame' });
+
+        // SHIELD_USE: the Shield token is defeated to prevent damage (real OnCardDefeated shape).
+        game.emit(EventName.OnCardDefeated, { card: shieldToken, defeatSource: { type: 'ability' } });
+
+        // OVERWHELM: overwhelm-typed combat damage rolls onto the defending base. The engine
+        // applies the damage (base 30 -> remaining 27) before emitting OnDamageDealt.
+        base2.remainingHp = 27;
+        game.emit(EventName.OnDamageDealt, {
+            card: base2,
+            damageSource: { attack: { attacker: unit } },
+            damageDealt: 3,
+            type: 'overwhelm',
+        });
+
+        const events = rec.getEvents() as GameEvent[];
+        const s = fold(events);
+        const card = s.players[1]!.cards.find((c) => c.id === 'SOR#200');
+        expect(card!.zone).toBe('space');        // MOVE normalized to 'space'
+        expect(card!.shields).toBe(0);           // +1 then -1
+        expect(s.players[2]!.baseHp).toBe(27);   // OVERWHELM (or overwhelm-damage) snapped base
     });
 });

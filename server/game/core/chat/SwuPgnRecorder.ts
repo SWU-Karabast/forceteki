@@ -83,6 +83,14 @@ export class SwuPgnRecorder {
     private static readonly maxLoggedErrors = 20;
     private loggedErrorCount = 0;
 
+    /**
+     * Remembers which unit each Shield token is attached to (shield uuid → parent unit object).
+     * Needed for SHIELD_USE: a shield is "used" by being defeated, but DefeatCardSystem unattaches
+     * the upgrade in its eventHandler before our OnCardDefeated `.on()` listener runs, so the
+     * shield's parentCard is already null by then. We capture the parent at attach time instead.
+     */
+    private readonly shieldParents = new Map<string, any>();
+
     public constructor(game: Game, resolver: SwuPgnResolver) {
         this.game = game;
         this.resolver = resolver;
@@ -148,6 +156,24 @@ export class SwuPgnRecorder {
             // fall through to card id
         }
         return this.idOf(target);
+    }
+
+    /**
+     * Resolve the unit a (token-)upgrade is attached to. The public `parentCard` getter throws
+     * once an upgrade has been unattached (which happens during shield defeat), so we read the
+     * internal `_parentCard` first and only fall back to the guarded getter. Returns null when the
+     * parent can't be resolved, so callers can skip rather than emit a bogus record.
+     */
+    private parentOf(upgrade: any): any {
+        try {
+            const internal = upgrade?._parentCard;
+            if (internal != null) {
+                return internal;
+            }
+            return upgrade?.parentCard ?? null;
+        } catch {
+            return null;
+        }
     }
 
     /**
@@ -402,14 +428,35 @@ export class SwuPgnRecorder {
                 } else if (event?.context?.source) {
                     source = event.context.source;
                 }
+                const amt = event?.damageDealt ?? event?.amount ?? 0;
+                const damageType: string = event?.type ?? '';
                 const seq = this.nextSeq(false);
+
+                // OVERWHELM is not a distinct engine event: in SWU it is excess combat damage that
+                // rolls onto the defending base, emitted by AttackFlow as an OnDamageDealt with
+                // DamageType.Overwhelm ('overwhelm') targeting that base (see attack/AttackFlow.ts).
+                // We surface it as a dedicated OVERWHELM record (instead of DAMAGE) when the engine
+                // tags the damage as overwhelm-type onto a base; the 1.1 OVERWHELM reducer snaps base
+                // hp exactly like a DAMAGE-to-base record.
+                if (damageType === 'overwhelm' && card?.isBase?.()) {
+                    this.push({
+                        seq,
+                        t: 'OVERWHELM',
+                        p: this.seatOf(source?.controller ?? source?.owner),
+                        tgt: this.targetRef(card),
+                        amt,
+                        hp: card?.remainingHp ?? 0,
+                    });
+                    return;
+                }
+
                 this.push({
                     seq,
                     t: 'DAMAGE',
                     src: this.idOf(source),
                     tgt: this.targetRef(card),
-                    amt: event?.damageDealt ?? event?.amount ?? 0,
-                    damageType: event?.type ?? '',
+                    amt,
+                    damageType,
                     hp: card?.remainingHp ?? 0,
                 });
             } catch (error) {
@@ -436,6 +483,26 @@ export class SwuPgnRecorder {
         this.game.on(EventName.OnCardDefeated, (event: any) => {
             try {
                 const card = event?.card;
+
+                // SHIELD_USE: there is no dedicated shield-removal event. A Shield is a token-upgrade
+                // card (Shield extends TokenUpgradeCard) whose damage-modification replaces incoming
+                // damage with defeat() — so "using" a shield surfaces as the Shield token being defeated
+                // (OnCardDefeated where the defeated card isShield()). We record SHIELD_USE against the
+                // unit the shield was attached to, which the 1.1 reducer decrements by `count` (default 1).
+                if (card?.isShield?.()) {
+                    // Prefer the parent we remembered at attach time (the upgrade is already
+                    // unattached by now); fall back to a live lookup if it wasn't recorded.
+                    const parent = (card?.uuid != null ? this.shieldParents.get(card.uuid) : undefined) ?? this.parentOf(card);
+                    if (parent) {
+                        const seq = this.nextSeq(false);
+                        this.push({ seq, t: 'SHIELD_USE', card: this.idOf(parent) });
+                    }
+                    if (card?.uuid != null) {
+                        this.shieldParents.delete(card.uuid);
+                    }
+                    return;
+                }
+
                 const defeatSource = event?.defeatSource;
                 const reason: string = defeatSource?.type ?? '';
                 let defeatedBy: any = null;
@@ -455,6 +522,47 @@ export class SwuPgnRecorder {
                 });
             } catch (error) {
                 this.logError('OnCardDefeated', error);
+            }
+        });
+
+        this.game.on(EventName.OnCardMoved, (event: any) => {
+            try {
+                const card = event?.card;
+                const seq = this.nextSeq(false);
+                this.push({
+                    seq,
+                    t: 'MOVE',
+                    card: this.idOf(card),
+                    from: this.normalizeZone(event?.originalZone),
+                    to: this.normalizeZone(event?.newZone ?? card?.zoneName),
+                });
+            } catch (error) {
+                this.logError('OnCardMoved', error);
+            }
+        });
+
+        // SHIELD_GAIN: no dedicated event. A Shield is given by generating a Shield token-upgrade
+        // (GiveShieldSystem → OnTokensCreated) and then attaching it (contingent OnUpgradeAttached).
+        // We emit SHIELD_GAIN only when the attached upgrade isShield(); other upgrade attachments
+        // are not board-mutation gap events handled in this task. Recorded against the parent unit;
+        // the 1.1 reducer increments shields by `count` (default 1).
+        this.game.on(EventName.OnUpgradeAttached, (event: any) => {
+            try {
+                const upgrade = event?.upgradeCard;
+                if (!upgrade?.isShield?.()) {
+                    return;
+                }
+                const parent = event?.parentCard ?? this.parentOf(upgrade);
+                if (!parent) {
+                    return;
+                }
+                if (upgrade?.uuid != null) {
+                    this.shieldParents.set(upgrade.uuid, parent);
+                }
+                const seq = this.nextSeq(false);
+                this.push({ seq, t: 'SHIELD_GAIN', card: this.idOf(parent) });
+            } catch (error) {
+                this.logError('OnUpgradeAttached', error);
             }
         });
 
