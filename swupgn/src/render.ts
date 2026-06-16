@@ -22,12 +22,12 @@ function line(e: GameEvent, n: NameResolver): string | null {
         case 'ATTACK': return `${who(e.p)} attacks ${e.defenderType === 'base' ? `${who(e.p === 1 ? 2 : 1)}'s base` : nm(e.def)} with ${nm(e.atk)}`;
         case 'PASS': return `${who(e.p)} passes`;
         case 'CLAIM_INITIATIVE': return `${who(e.p)} claims initiative and passes`;
-        case 'DAMAGE': return `${nm(e.src)} deals ${e.amt} damage to ${e.tgt.startsWith('base@') ? 'base' : nm(e.tgt)} (${e.hp} remaining HP)`;
-        case 'HEAL': return `${e.amt} damage healed (${e.hp} remaining HP)`;
+        case 'DAMAGE': return `${nm(e.src)} deals ${e.amt} damage to ${e.tgt.startsWith('base@') ? `Player ${e.tgt.slice(5)}'s base` : nm(e.tgt)} (${e.hp} remaining HP)`;
+        case 'HEAL': return `${e.amt} damage healed from ${e.tgt.startsWith('base@') ? `Player ${e.tgt.slice(5)}'s base` : nm(e.tgt)} (${e.hp} remaining HP)`;
         case 'DEFEAT': return `${nm(e.card)} is defeated${e.defeatedBy ? ` by ${nm(e.defeatedBy)}` : ''}`;
         case 'EXHAUST': return `${nm(e.card)} is exhausted`;
         case 'READY': return `${nm(e.card)} is readied`;
-        case 'OVERWHELM': return `${e.amt} Overwhelm damage dealt to base (${e.hp} remaining HP)`;
+        case 'OVERWHELM': return `${e.amt} Overwhelm damage dealt to ${who(e.p === 1 ? 2 : 1)}'s base (${e.hp} remaining HP)`;
         case 'DRAW': return `${who(e.p)} draws ${e.count} card${e.count === 1 ? '' : 's'}: ${e.cards.map(nm).join(', ')}`;
         case 'RESOURCE': return `${who(e.p)} resources ${nm(e.card)}`;
         case 'REVEAL': return `${who(e.p)}'s ${e.zone} revealed: ${e.cards.map(nm).join(', ')}`;
@@ -44,6 +44,7 @@ function line(e: GameEvent, n: NameResolver): string | null {
         case 'PHASE_START': return null;       // handled as a banner below
         case 'ROUND_START': return null;       // handled as a banner below
         case 'GAME_END': return `${e.winner === 'Draw' ? 'Game ends in a draw' : `${who(e.winner)} wins`} (${e.reason})`;
+        default: { const _exhaustive: never = e; void _exhaustive; return null; }
     }
 }
 

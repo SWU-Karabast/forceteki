@@ -20,3 +20,18 @@ describe('render', function () {
         expect(out).toMatch(/\n[^0-9].*deals 2 damage/);
     });
 });
+
+describe('render base phrasing', function () {
+    const nm = { nameOf: (id: string) => id };
+    it('names the relevant player base on DAMAGE/OVERWHELM/HEAL', function () {
+        const events = [
+            { seq: 'R1.A.1a', t: 'DAMAGE', src: 'SOR#108', tgt: 'base@2', amt: 2, damageType: 'combat', hp: 28 },
+            { seq: 'R1.A.1b', t: 'OVERWHELM', p: 1, tgt: 'base@2', amt: 3, hp: 25 },
+            { seq: 'R1.A.2a', t: 'HEAL', tgt: 'base@1', amt: 1, hp: 30 },
+        ];
+        const out = render({ header: {} as any, decks: [], setup: [], events: events as any, annotations: [] }, nm);
+        expect(out).toContain("deals 2 damage to Player 2's base (28 remaining HP)");
+        expect(out).toContain("Overwhelm damage dealt to Player 2's base (25 remaining HP)");
+        expect(out).toContain("damage healed from Player 1's base (30 remaining HP)");
+    });
+});
