@@ -47,3 +47,33 @@ describe('parse', function () {
         expect(doc.events.length).toBe(1);
     });
 });
+
+describe('parse error paths', function () {
+    const HEAD = [
+        '[Game "SWU-PGN/1.1"]','[GameId "g1"]','[Date "2026-06-16T00:00:00Z"]',
+        '[CardPool "LOF"] [Engine "e"] [Seed "s"]',
+        '[P1Id "a"] [P2Id "b"] [P1 "Player 1"] [P2 "Player 2"]',
+        '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
+        '[Result "P1"] [Reason "X"] [Rounds "1"]',
+    ].join('\n');
+
+    it('throws on a missing required header tag', function () {
+        const bad = HEAD.replace('[Result "P1"] ', '');
+        expect(() => parse(bad)).toThrowError(/required header tag \[Result\]/);
+    });
+
+    it('throws with a line number on invalid JSON in a body section', function () {
+        const bad = HEAD + '\n%%% EVENTS\n{not json}';
+        expect(() => parse(bad)).toThrowError(/invalid JSON on line/);
+    });
+
+    it('throws when a record appears before any section', function () {
+        const bad = HEAD + '\n{"seq":"R1.A.1","t":"PASS","p":1}';
+        expect(() => parse(bad)).toThrowError(/before any %%% section/);
+    });
+
+    it('throws a distinct error for a record under an unrecognized section', function () {
+        const bad = HEAD + '\n%%% BOGUS\n{"x":1}';
+        expect(() => parse(bad)).toThrowError(/unrecognized section/);
+    });
+});

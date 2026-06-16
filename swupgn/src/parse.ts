@@ -20,6 +20,9 @@ function buildHeader(raw: Record<string, string>): Header {
         game: req('Game'), gameId: req('GameId'), date: req('Date'),
         format: raw['Format'], cardPool: req('CardPool'), engine: req('Engine'),
         seed: req('Seed'),
+        // The 'as' casts below are intentional: structural parsing trusts the raw
+        // string values here; enum/value validation is performed by validate() (Task 4),
+        // not the parser.
         perspective: (raw['Perspective'] as Header['perspective']) ?? null,
         p1Id: req('P1Id'), p2Id: req('P2Id'), p1: req('P1'), p2: req('P2'),
         p1Leader: req('P1Leader'), p1Base: req('P1Base'),
@@ -29,7 +32,7 @@ function buildHeader(raw: Record<string, string>): Header {
     };
 }
 
-type Section = 'NONE' | 'DECKS' | 'SETUP' | 'EVENTS' | 'ANNOTATIONS';
+type Section = 'NONE' | 'UNKNOWN' | 'DECKS' | 'SETUP' | 'EVENTS' | 'ANNOTATIONS';
 
 export function parse(text: string): SwuPgnDocument {
     const raw: Record<string, string> = {};
@@ -51,7 +54,7 @@ export function parse(text: string): SwuPgnDocument {
         }
         if (line.startsWith('%%%')) {
             const name = line.slice(3).trim().toUpperCase();
-            section = (['DECKS', 'SETUP', 'EVENTS', 'ANNOTATIONS'].includes(name) ? name : 'NONE') as Section;
+            section = (['DECKS', 'SETUP', 'EVENTS', 'ANNOTATIONS'].includes(name) ? name : 'UNKNOWN') as Section;
             continue;
         }
         let rec: unknown;
@@ -65,6 +68,7 @@ export function parse(text: string): SwuPgnDocument {
             case 'SETUP': setup.push(rec as SetupInitRecord | GameEvent); break;
             case 'EVENTS': events.push(rec as GameEvent); break;
             case 'ANNOTATIONS': annotations.push(rec as Annotation); break;
+            case 'UNKNOWN': throw new Error(`SWU-PGN: JSON record in unrecognized section on line ${i + 1}`);
             default: throw new Error(`SWU-PGN: record before any %%% section on line ${i + 1}`);
         }
     }
