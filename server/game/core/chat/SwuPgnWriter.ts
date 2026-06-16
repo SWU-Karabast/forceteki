@@ -10,7 +10,10 @@ const HEADER_TAG_ORDER: [keyof Header, string][] = [
 ];
 
 function escapeTag(value: string): string {
-    return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return value
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"');
 }
 
 export class SwuPgnWriter {

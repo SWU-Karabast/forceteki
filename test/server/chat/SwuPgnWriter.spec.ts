@@ -42,4 +42,14 @@ describe('SwuPgnWriter', function () {
         expect(evLine).toBeDefined();
         expect(() => JSON.parse(evLine!)).not.toThrow();
     });
+
+    it('escapeTag: collapses newlines to space and preserves escaped double-quotes', function () {
+        const dirtyHeader: Header = {
+            ...header,
+            reason: 'he said "go"\nthen left',
+        };
+        const text = new SwuPgnWriter().write({ header: dirtyHeader, decks, setup, events, annotations });
+        const doc = parse(text);
+        expect(doc.header.reason).toBe('he said "go" then left');
+    });
 });
