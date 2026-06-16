@@ -778,5 +778,49 @@ export class SwuPgnRecorder {
                 this.logError('OnDeckSearch', error);
             }
         });
+
+        // ── Decision context (pure-log; no fold delta) ────────────────────────
+        //
+        // There is no pre-existing engine event carrying a player's prompt selection: prompt
+        // results are known only inside the prompt's menuCommand handler (UiPrompt subclasses).
+        // Per design §4.2, CHOICE/MODAL_CHOICE are "sourced from the prompt the engine already
+        // built", so we added two minimal engine-side emits at the prompt-completion sites that
+        // already know both the option menu and the chosen option (see MulliganPrompt and
+        // HandlerMenuPrompt). The recorder only listens; gameplay logic is untouched.
+
+        // MULLIGAN / KEEP_HAND: emitted by MulliganPrompt.menuCommand when a player resolves their
+        // mulligan decision (mulligan === true → MULLIGAN, otherwise → KEEP_HAND). Pure log.
+        this.game.on(EventName.OnMulliganDecision, (event: any) => {
+            try {
+                this.push({
+                    seq: this.nextSeq(false),
+                    t: event?.mulligan ? 'MULLIGAN' : 'KEEP_HAND',
+                    p: this.seatOf(event?.player),
+                });
+            } catch (error) {
+                this.logError('OnMulliganDecision', error);
+            }
+        });
+
+        // MODAL_CHOICE: emitted by HandlerMenuPrompt.menuCommand — the engine's general menu/button
+        // prompt with a fixed list of options. We classify menu/button prompts as MODAL_CHOICE
+        // (fixed option list) and reserve CHOICE for free card-selection prompts; HandlerMenuPrompt
+        // is the menu/button case, so it maps to MODAL_CHOICE. `offered` is the human-readable
+        // button label list the prompt built; `chose` is the index of the selected option. Pure log.
+        this.game.on(EventName.OnModalChoice, (event: any) => {
+            try {
+                const offered: string[] = Array.isArray(event?.offered) ? event.offered : [];
+                const chose: number = typeof event?.chose === 'number' ? event.chose : -1;
+                this.push({
+                    seq: this.nextSeq(false),
+                    t: 'MODAL_CHOICE',
+                    p: this.seatOf(event?.player),
+                    offered,
+                    chose,
+                });
+            } catch (error) {
+                this.logError('OnModalChoice', error);
+            }
+        });
     }
 }

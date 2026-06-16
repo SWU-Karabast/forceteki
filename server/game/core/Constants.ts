@@ -324,6 +324,8 @@ export enum EventName {
     OnLeaderFlipped = 'onLeaderFlipped',
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
+    OnModalChoice = 'onModalChoice',
+    OnMulliganDecision = 'onMulliganDecision',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',

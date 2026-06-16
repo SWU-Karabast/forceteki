@@ -3,7 +3,7 @@ import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import type { Game } from '../../Game';
 import { Contract } from '../../utils/Contract';
 import { Helpers } from '../../utils/Helpers';
-import { DeckZoneDestination, EffectName } from '../../Constants';
+import { DeckZoneDestination, EffectName, EventName } from '../../Constants';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';
 import { ShuffleDeckSystem } from '../../../gameSystems/ShuffleDeckSystem';
@@ -58,10 +58,14 @@ export class MulliganPrompt extends AllPlayerPrompt {
             this.game.addMessage('{0} will mulligan', player);
             this.playersDone[player.name] = true;
             this.playerMulligan[player.name] = true;
+            // Surface the resolved mulligan decision for the SWU-PGN recorder (pure-log; does not
+            // affect gameplay). The recorder maps this to MULLIGAN / KEEP_HAND.
+            this.game.emit(EventName.OnMulliganDecision, { player, mulligan: true });
             return true;
         } else if (arg === 'keep') {
             this.game.addMessage('{0} will keep their hand', player);
             this.playersDone[player.name] = true;
+            this.game.emit(EventName.OnMulliganDecision, { player, mulligan: false });
             return true;
         }
         // in the case the command comes as an invalid one

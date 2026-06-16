@@ -1,6 +1,7 @@
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const { OngoingEffectSource } = require('../../ongoingEffect/OngoingEffectSource.js');
 const { UiPrompt } = require('./UiPrompt.js');
+const { EventName } = require('../../Constants.js');
 
 /**
  * General purpose menu prompt. Takes a choices object with menu options and
@@ -159,6 +160,15 @@ class HandlerMenuPrompt extends UiPrompt {
         if (this.properties.handlers[arg]() === false) {
             return false;
         }
+        // Surface the resolved menu/button selection for the SWU-PGN recorder (pure-log; does not
+        // affect gameplay). This is a fixed-option-list (modal) choice, so the recorder maps it to
+        // MODAL_CHOICE. `offered` is the human-readable choice labels; `chose` is the selected index.
+        // Only the numeric-index (button) branch reaches here; card-button selections (string arg)
+        // return earlier and are covered by card-play/selection events, so we don't emit for them.
+        const offered = Array.isArray(this.properties.choices)
+            ? this.properties.choices.map((choice) => String(choice))
+            : [];
+        this.game.emit(EventName.OnModalChoice, { player: this.player, offered, chose: arg });
         this.complete();
         return true;
     }

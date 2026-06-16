@@ -222,6 +222,33 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         expect(card!.statusTokens['advantage']).toBe(1);
     });
 
+    it('records MULLIGAN/KEEP_HAND and a MODAL_CHOICE with offered/chose', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const p2 = { id: 'p2' };
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'setup' });
+        // Real OnMulliganDecision payload shape (engine-side emit at MulliganPrompt.menuCommand).
+        game.emit(EventName.OnMulliganDecision, { player: p1, mulligan: true });
+        game.emit(EventName.OnMulliganDecision, { player: p2, mulligan: false });
+        // Real OnModalChoice payload shape (engine-side emit at HandlerMenuPrompt.menuCommand):
+        // a fixed menu/button choice with the offered option list and the chosen index.
+        game.emit(EventName.OnModalChoice, { player: p1, offered: ['Draw a card', 'Deal 1 damage'], chose: 1 });
+
+        const events = rec.getEvents();
+        expect(events.some((e: any) => e.t === 'MULLIGAN' && e.p === 1)).toBe(true);
+        expect(events.some((e: any) => e.t === 'KEEP_HAND' && e.p === 2)).toBe(true);
+        const choice = events.find((e: any) => e.t === 'CHOICE' || e.t === 'MODAL_CHOICE');
+        expect(choice).toBeDefined();
+        expect(Array.isArray((choice as any).offered)).toBe(true);
+        expect((choice as any).offered).toEqual(['Draw a card', 'Deal 1 damage']);
+        expect(typeof (choice as any).chose).toBe('number');
+        expect((choice as any).chose).toBe(1);
+        expect((choice as any).p).toBe(1);
+    });
+
     it('records an ABILITY_ACTIVATE event', function () {
         const game = new FakeEmitter();
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
