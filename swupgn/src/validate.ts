@@ -14,6 +14,13 @@ function loadSchema(name: string): object {
     return JSON.parse(fs.readFileSync(path.join(SCHEMA_DIR, name), 'utf8')) as object;
 }
 
+// Compile validators once at module load to avoid re-compilation on every call.
+const ajv = new Ajv({ allErrors: true, strict: false });
+const vHeader = ajv.compile(loadSchema('header.schema.json'));
+const vDeck = ajv.compile(loadSchema('deck.schema.json'));
+const vEvent = ajv.compile(loadSchema('event.schema.json'));
+const vAnn = ajv.compile(loadSchema('annotation.schema.json'));
+
 const KNOWN_EVENT_TYPES = new Set([
     'PLAY','PLAY_EVENT','PLAY_UPGRADE','PLAY_SMUGGLE','DEPLOY_LEADER','ATTACK','PASS',
     'CLAIM_INITIATIVE','CHOICE','MULLIGAN','KEEP_HAND','MODAL_CHOICE','ABILITY_ACTIVATE',
@@ -24,7 +31,6 @@ const KNOWN_EVENT_TYPES = new Set([
 ]);
 
 export function validate(text: string): ConformanceReport {
-    const ajv = new Ajv({ allErrors: true, strict: false });
     const issues: ConformanceIssue[] = [];
     let formatVersion: string | null = null;
 
@@ -46,14 +52,12 @@ export function validate(text: string): ConformanceReport {
         P2Leader: doc.header.p2Leader, P2Base: doc.header.p2Base,
         Result: doc.header.result, Reason: doc.header.reason, Rounds: doc.header.rounds,
     };
-    const vHeader = ajv.compile(loadSchema('header.schema.json'));
     if (!vHeader(headerObj)) {
         for (const err of vHeader.errors ?? []) {
             issues.push({ severity: 'error', message: `header${err.instancePath} ${err.message}` });
         }
     }
 
-    const vDeck = ajv.compile(loadSchema('deck.schema.json'));
     for (const d of doc.decks) {
         if (!vDeck(d)) {
             for (const err of vDeck.errors ?? []) {
@@ -62,7 +66,22 @@ export function validate(text: string): ConformanceReport {
         }
     }
 
-    const vEvent = ajv.compile(loadSchema('event.schema.json'));
+    for (const rec of doc.setup) {
+        // Cast to a plain record to avoid TypeScript narrowing issues with the
+        // discriminated union after passing through the Ajv validator.
+        const setupRec = rec as unknown as Record<string, unknown>;
+        const seqStr = String(setupRec['seq'] ?? '');
+        const tStr = String(setupRec['t'] ?? '');
+        if (!vEvent(setupRec)) {
+            for (const err of vEvent.errors ?? []) {
+                issues.push({ severity: 'error', message: `setup ${seqStr} ${err.instancePath} ${err.message}` });
+            }
+        }
+        if (!KNOWN_EVENT_TYPES.has(tStr)) {
+            issues.push({ severity: 'warning', message: `setup ${seqStr} unknown type "${tStr}" (tolerated for forward compatibility)` });
+        }
+    }
+
     for (const ev of doc.events) {
         // Cast to a plain record to avoid TypeScript narrowing issues with the
         // discriminated union after passing through the Ajv validator.
@@ -79,7 +98,6 @@ export function validate(text: string): ConformanceReport {
         }
     }
 
-    const vAnn = ajv.compile(loadSchema('annotation.schema.json'));
     for (const a of doc.annotations) {
         if (!vAnn(a)) {
             for (const err of vAnn.errors ?? []) {

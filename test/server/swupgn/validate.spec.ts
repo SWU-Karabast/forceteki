@@ -27,3 +27,23 @@ describe('validate', function () {
         expect(report.valid).toBe(true);
     });
 });
+
+describe('validate edge cases', function () {
+    it('accepts a deck that includes a sideboard', function () {
+        const withSb = good.replace(
+            '{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]]}',
+            '{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]],"sideboard":[["SOR#099",2]]}');
+        const report = validate(withSb);
+        expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
+        expect(report.valid).toBe(true);
+    });
+
+    it('flags a malformed seq in the SETUP section', function () {
+        const badSetup = good.replace(
+            '{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108"],"p2DeckOrder":["SOR#045"]}',
+            '{"seq":"NOT-A-SEQ","t":"INIT","p1DeckOrder":[],"p2DeckOrder":[]}');
+        const report = validate(badSetup);
+        expect(report.valid).toBe(false);
+        expect(report.issues.some((i) => /^setup /.test(i.message))).toBe(true);
+    });
+});

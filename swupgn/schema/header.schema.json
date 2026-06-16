@@ -7,7 +7,8 @@
   "properties": {
     "Game": { "const": "SWU-PGN/1.1" },
     "Result": { "enum": ["P1","P2","Draw","Incomplete"] },
-    "Perspective": { "enum": ["P1","P2"] }
+    "Perspective": { "enum": ["P1","P2"] },
+    "Rounds": { "type": "integer" }
   },
   "additionalProperties": true
 }
