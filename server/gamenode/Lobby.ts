@@ -2407,7 +2407,7 @@ export class Lobby {
         }
     }
 
-    public getGameLog(socket: any, callback: (data: { rawLog: string; swuPgn: string; swuReplay: string } | { error: string }) => void): void {
+    public getGameLog(socket: any, callback: (data: { rawLog: string; swuPgn: string; swuReplay: string; swuPgnFile?: string } | { error: string }) => void): void {
         if (!this.game) {
             if (typeof callback === 'function') {
                 callback({ error: 'No active game' });
@@ -2433,8 +2433,17 @@ export class Lobby {
                 ? { swuPgn: this.game.cachedSwuPgn, swuReplay: this.game.cachedSwuReplay }
                 : this.game.generateGameFiles();
 
+            // Additive: the new self-contained SWU-PGN/1.1 single-file artifact, served
+            // alongside the v1.0 dual-file fields (which a later task retires).
+            let swuPgnFile: string | undefined;
+            try {
+                swuPgnFile = this.game.getCachedSwuPgn();
+            } catch (e) {
+                logger.error(`Error generating SWU-PGN/1.1 file: ${e}`);
+            }
+
             if (typeof callback === 'function') {
-                callback({ rawLog, swuPgn: gameFiles.swuPgn, swuReplay: gameFiles.swuReplay });
+                callback({ rawLog, swuPgn: gameFiles.swuPgn, swuReplay: gameFiles.swuReplay, swuPgnFile });
             }
         } catch (e) {
             logger.error(`Error generating game log: ${e}`);
