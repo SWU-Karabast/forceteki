@@ -70,3 +70,19 @@ describe('fold additional events', function () {
         expect(s.players[1]!.cards.length).toBe(1);
     });
 });
+
+describe('fold keyframes', function () {
+    it('snaps to a keyframe state and continues folding', function () {
+        const kf = { round: 2, phase: 'action' as const, initiative: 1 as const, players: {
+            1: { seat: 1 as const, baseHp: 25, baseMaxHp: 30, handSize: 3, hand: [], resourcesReady: 4, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
+            2: { seat: 2 as const, baseHp: 18, baseMaxHp: 30, handSize: 2, hand: [], resourcesReady: 4, resourcesExhausted: 0, credits: 0, hasForce: true, discard: [], cards: [] },
+        } };
+        const events = [
+            { seq: 'R2.start', t: 'ROUND_START' as const, round: 2, keyframe: kf },
+            { seq: 'R2.A.1a', t: 'DAMAGE' as const, src: 'X', tgt: 'base@2', amt: 3, damageType: 'combat', hp: 15 },
+        ];
+        const s = fold(events as any);
+        expect(s.players[1]!.baseHp).toBe(25);
+        expect(s.players[2]!.baseHp).toBe(15);
+    });
+});
