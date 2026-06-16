@@ -138,5 +138,39 @@ describe('Choose Your Path', function() {
             const mandalorians = context.player1.findCardsByName('mandalorian');
             expect(mandalorians.length).toBe(0);
         });
+
+        describe('Choose Your Path with Moff Jerjerrod', function() {
+            it('should give an Advantage token to both Mandalorian tokens when doubled by Moff Jerjerrod', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['choose-your-path'],
+                        groundArena: ['mandalorian-warrior', 'moff-jerjerrod#we-shall-redouble-our-efforts'],
+                        base: { card: 'echo-base', damage: 10 }
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chooseYourPath);
+                context.player1.clickPrompt('If you control a Mandalorian unit, create a Mandalorian token and give an Advantage token to it');
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Mandalorian tokens instead');
+                context.player1.clickPrompt('Trigger');
+
+                // Both doubled Mandalorian tokens have Shielded, so their triggers must be ordered
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                context.player1.clickPrompt('Shielded');
+
+                const mandalorians = context.player1.findCardsByName('mandalorian', 'groundArena');
+                expect(context.moffJerjerrod).toBeInZone('discard');
+                expect(mandalorians.length).toBe(2);
+                mandalorians.forEach((mandalorian) => {
+                    expect(mandalorian).toHaveExactUpgradeNames(['shield', 'advantage']);
+                });
+            });
+        });
     });
 });

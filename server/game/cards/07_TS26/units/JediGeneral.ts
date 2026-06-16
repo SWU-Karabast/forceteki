@@ -22,7 +22,7 @@ export default class JediGeneral extends NonLeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give this token an Experience token',
                 immediateEffect: abilityHelper.immediateEffects.giveExperience({
-                    target: ifYouDoContext.events[0].generatedTokens,
+                    target: ifYouDoContext.resolvedEvents[0]?.generatedTokens,
                 })
             }),
         });

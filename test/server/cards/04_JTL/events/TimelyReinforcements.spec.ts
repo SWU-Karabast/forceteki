@@ -143,5 +143,37 @@ describe('Timely Reinforcements', function () {
                 expect(secondXwingBatch[1]).toBeInZone('outsideTheGame');
             });
         });
+
+        describe('Timely Reinforcements with Moff Jerjerrod', function () {
+            it('should give Sentinel to all of the doubled X-Wing tokens', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['timely-reinforcements'],
+                        groundArena: ['moff-jerjerrod#we-shall-redouble-our-efforts'],
+                    },
+                    player2: {
+                        spaceArena: ['cartel-spacer'],
+                        resources: 6
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.timelyReinforcements);
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 6 X-Wing tokens instead');
+                context.player1.clickPrompt('Trigger');
+
+                const xwingTokens = context.player1.findCardsByName('xwing', 'spaceArena');
+                expect(context.moffJerjerrod).toBeInZone('discard');
+                expect(xwingTokens.length).toBe(6);
+                expect(xwingTokens.every((xwing) => xwing.keywords.some((keyword) => keyword.name === 'sentinel'))).toBe(true);
+
+                // Opponent must attack a Sentinel this phase
+                context.player2.clickCard(context.cartelSpacer);
+                expect(context.player2).toBeAbleToSelectExactly(xwingTokens);
+                context.player2.clickCard(xwingTokens[0]);
+            });
+        });
     });
 });
