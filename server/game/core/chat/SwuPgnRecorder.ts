@@ -150,6 +150,20 @@ export class SwuPgnRecorder {
         return this.idOf(target);
     }
 
+    /**
+     * Map engine zone names to the short SWU-PGN/1.1 vocabulary. Only the two arena
+     * zones differ (`groundArena`→`ground`, `spaceArena`→`space`); all other engine
+     * zone strings (`deck`, `discard`, `hand`, `resource`, `base`, …) already match the
+     * spec vocabulary and pass through unchanged.
+     */
+    private normalizeZone(zoneName: string | undefined): string {
+        switch (zoneName) {
+            case 'groundArena': return 'ground';
+            case 'spaceArena': return 'space';
+            default: return zoneName ?? '';
+        }
+    }
+
     private logError(where: string, error: unknown): void {
         if (this.loggedErrorCount >= SwuPgnRecorder.maxLoggedErrors) {
             return;
@@ -311,7 +325,7 @@ export class SwuPgnRecorder {
                     t,
                     p: this.seatOf(player),
                     card: this.idOf(card),
-                    zone: card?.zoneName ?? '',
+                    zone: this.normalizeZone(card?.zoneName),
                     cost: typeof event?.cost === 'number' ? event.cost : undefined,
                 } as GameEvent);
             } catch (error) {
@@ -329,7 +343,7 @@ export class SwuPgnRecorder {
                     t: 'DEPLOY_LEADER',
                     p: this.seatOf(player),
                     card: this.idOf(card),
-                    zone: card?.zoneName ?? '',
+                    zone: this.normalizeZone(card?.zoneName),
                     cost: typeof event?.cost === 'number' ? event.cost : undefined,
                 });
             } catch (error) {
@@ -519,7 +533,7 @@ export class SwuPgnRecorder {
                         t: 'CREATE_TOKEN',
                         p: this.seatOf(token?.owner),
                         token: token?.title ?? token?.name ?? 'unknown',
-                        zone: token?.zoneName ?? '',
+                        zone: this.normalizeZone(token?.zoneName),
                         power: typeof token?.getPower === 'function' ? token.getPower() : undefined,
                         hp: typeof token?.getHp === 'function' ? token.getHp() : undefined,
                     });
@@ -584,7 +598,7 @@ export class SwuPgnRecorder {
                     seq,
                     t: 'REVEAL',
                     p: this.seatOf(owner),
-                    zone: event?.revealedFromZone ?? cards[0]?.zoneName ?? '',
+                    zone: this.normalizeZone(event?.revealedFromZone ?? cards[0]?.zoneName),
                     cards: cardIds,
                 });
             } catch (error) {

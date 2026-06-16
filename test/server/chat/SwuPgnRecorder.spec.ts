@@ -108,7 +108,7 @@ describe('SwuPgnRecorder events fold to expected state', function () {
         const s = fold(events);
         expect(s.players[2]!.baseHp).toBe(28);
         const card = s.players[1]!.cards.find((c) => c.id === 'SOR#108');
-        expect(card!.zone).toBe('groundArena');
+        expect(card!.zone).toBe('ground');
         expect(card!.exhausted).toBe(true);
     });
 
