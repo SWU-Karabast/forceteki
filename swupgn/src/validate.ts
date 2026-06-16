@@ -51,6 +51,7 @@ export function validate(text: string): ConformanceReport {
         P1Leader: doc.header.p1Leader, P1Base: doc.header.p1Base,
         P2Leader: doc.header.p2Leader, P2Base: doc.header.p2Base,
         Result: doc.header.result, Reason: doc.header.reason, Rounds: doc.header.rounds,
+        ...(doc.header.format !== undefined ? { Format: doc.header.format } : {}),
     };
     if (!vHeader(headerObj)) {
         for (const err of vHeader.errors ?? []) {

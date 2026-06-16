@@ -45,6 +45,8 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'ROUND_START': s.round = e.round; break;
         case 'PHASE_START': s.phase = (e.phase as ReducedState['phase']); break;
         case 'CLAIM_INITIATIVE': s.initiative = e.p; break;
+        // Plan-2: handSize is intentionally NOT decremented on play here; hand tracking
+        // is driven by DRAW/RESOURCE/DISCARD deltas. Full play->hand accounting is deferred.
         case 'PLAY': case 'PLAY_SMUGGLE':
             player(s, e.p).cards.push(newCard(e.card, e.zone ?? 'ground')); break;
         case 'PLAY_EVENT':

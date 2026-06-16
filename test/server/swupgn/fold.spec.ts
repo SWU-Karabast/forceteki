@@ -86,3 +86,46 @@ describe('fold keyframes', function () {
         expect(s.players[2]!.baseHp).toBe(15);
     });
 });
+
+describe('fold event coverage', function () {
+    it('RESOURCE moves a card from hand to resources', function () {
+        const s = fold([
+            { seq: 'R1.S.1', t: 'DRAW', p: 1, count: 1, cards: ['SOR#142'] },
+            { seq: 'R1.S.2', t: 'RESOURCE', p: 1, card: 'SOR#142' },
+        ] as any);
+        expect(s.players[1]!.handSize).toBe(0);
+        expect(s.players[1]!.resourcesReady).toBe(1);
+    });
+
+    it('DEPLOY_LEADER and CREATE_TOKEN add cards to play', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'DEPLOY_LEADER', p: 1, card: 'SOR#010', zone: 'ground' },
+            { seq: 'R1.A.2', t: 'CREATE_TOKEN', p: 2, token: 'TOKEN:X-Wing', zone: 'space' },
+        ] as any);
+        expect(s.players[1]!.cards.find((c) => c.id === 'SOR#010')!.zone).toBe('ground');
+        expect(s.players[2]!.cards.find((c) => c.id === 'TOKEN:X-Wing')!.zone).toBe('space');
+    });
+
+    it('OVERWHELM sets the defender base hp', function () {
+        const s = fold([{ seq: 'R1.A.1b', t: 'OVERWHELM', p: 1, tgt: 'base@2', amt: 4, hp: 16 }] as any);
+        expect(s.players[2]!.baseHp).toBe(16);
+    });
+
+    it('HEAL on a card reduces damage; MOVE changes zone; shields/experience/status accrue', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground' },
+            { seq: 'R1.A.2a', t: 'DAMAGE', src: 'X', tgt: 'SOR#108', amt: 3, damageType: 'combat', hp: 0 },
+            { seq: 'R1.A.2b', t: 'HEAL', tgt: 'SOR#108', amt: 1, hp: 0 },
+            { seq: 'R1.A.3', t: 'MOVE', card: 'SOR#108', from: 'ground', to: 'space' },
+            { seq: 'R1.A.4', t: 'SHIELD_GAIN', card: 'SOR#108', count: 1 },
+            { seq: 'R1.A.5', t: 'EXPERIENCE_GAIN', card: 'SOR#108', count: 2 },
+            { seq: 'R1.A.6', t: 'STATUS_TOKEN', card: 'SOR#108', token: 'stun', count: 1 },
+        ] as any);
+        const c = s.players[1]!.cards.find((x) => x.id === 'SOR#108')!;
+        expect(c.damage).toBe(2);
+        expect(c.zone).toBe('space');
+        expect(c.shields).toBe(1);
+        expect(c.experience).toBe(2);
+        expect(c.statusTokens.stun).toBe(1);
+    });
+});

@@ -5,3 +5,5 @@ export { validate } from './validate';
 export { fold, reduce, stateAt } from './fold';
 export { render } from './render';
 export type { NameResolver } from './cardNames';
+export { checkKeyframes } from './integrity';
+export type { IntegrityResult, KeyframeMismatch } from './integrity';
