@@ -59,7 +59,7 @@ class FakeEmitter {
 }
 
 // Minimal fake engine card. `cardId` resolver maps uuid -> stable id; here uuid === id.
-function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number; owner?: any; controller?: any; printedType?: string; isBase?: boolean; isShield?: boolean; title?: string }) {
+function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number; owner?: any; controller?: any; printedType?: string; isBase?: boolean; isShield?: boolean; isExperience?: boolean; isAdvantage?: boolean; title?: string }) {
     return {
         uuid: opts.uuid,
         zoneName: opts.zoneName ?? '',
@@ -70,6 +70,8 @@ function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number;
         title: opts.title ?? opts.uuid,
         isBase: () => opts.isBase === true,
         isShield: () => opts.isShield === true,
+        isExperience: () => opts.isExperience === true,
+        isAdvantage: () => opts.isAdvantage === true,
     };
 }
 
@@ -184,5 +186,58 @@ describe('SwuPgnRecorder gap events: board mutations', function () {
         expect(card!.zone).toBe('space');        // MOVE normalized to 'space'
         expect(card!.shields).toBe(0);           // +1 then -1
         expect(s.players[2]!.baseHp).toBe(27);   // OVERWHELM (or overwhelm-damage) snapped base
+    });
+});
+
+describe('SwuPgnRecorder gap events: counters + upgrades', function () {
+    it('EXPERIENCE_GAIN and STATUS_TOKEN accumulate on a card', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#300', zoneName: 'groundArena', owner: p1, printedType: 'unit', remainingHp: 5 });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        // Card must exist in fold state, so play it to ground first.
+        game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play' });
+
+        // EXPERIENCE_GAIN: experience is a token upgrade (like shields). The engine generates
+        // an Experience token-upgrade and attaches it via OnUpgradeAttached (one event per token).
+        // +2 experience = two attach events.
+        const exp1 = fakeCard({ uuid: 'EXPTOK1', owner: p1, isExperience: true, printedType: 'token' });
+        const exp2 = fakeCard({ uuid: 'EXPTOK2', owner: p1, isExperience: true, printedType: 'token' });
+        game.emit(EventName.OnUpgradeAttached, { parentCard: unit, upgradeCard: exp1, originalZone: 'outsideTheGame' });
+        game.emit(EventName.OnUpgradeAttached, { parentCard: unit, upgradeCard: exp2, originalZone: 'outsideTheGame' });
+
+        // STATUS_TOKEN: +1 advantage status token on the same card. Shield/experience are
+        // disambiguated into their own events (SHIELD_GAIN / EXPERIENCE_GAIN); 'advantage' is
+        // the other token-upgrade and surfaces as a generic STATUS_TOKEN.
+        const advTok = fakeCard({ uuid: 'ADVTOK1', owner: p1, isAdvantage: true, printedType: 'token' });
+        game.emit(EventName.OnUpgradeAttached, { parentCard: unit, upgradeCard: advTok, originalZone: 'outsideTheGame' });
+
+        const events = rec.getEvents() as GameEvent[];
+        const s = fold(events);
+        const card = s.players[1]!.cards.find((c) => c.id === 'SOR#300');
+        expect(card!.experience).toBe(2);
+        expect(card!.statusTokens['advantage']).toBe(1);
+    });
+
+    it('records an ABILITY_ACTIVATE event', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#300', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit' });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        // Real OnCardAbilityInitiated payload shape: { card, ability }.
+        game.emit(EventName.OnCardAbilityInitiated, { card: unit, ability: { abilityIdentifier: 'SOR#300_action' } });
+
+        const events = rec.getEvents() as GameEvent[];
+        const rec1 = events.find((e) => e.t === 'ABILITY_ACTIVATE');
+        expect(rec1).toBeDefined();
+        expect((rec1 as any).card).toBe('SOR#300');
+        expect((rec1 as any).p).toBe(1);
+        expect((rec1 as any).ability).toBe('SOR#300_action');
     });
 });

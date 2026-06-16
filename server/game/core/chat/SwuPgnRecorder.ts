@@ -546,21 +546,48 @@ export class SwuPgnRecorder {
         // We emit SHIELD_GAIN only when the attached upgrade isShield(); other upgrade attachments
         // are not board-mutation gap events handled in this task. Recorded against the parent unit;
         // the 1.1 reducer increments shields by `count` (default 1).
+        //
+        // EXPERIENCE_GAIN and STATUS_TOKEN ride the same OnUpgradeAttached event because, like
+        // shields, experience and advantage are token-upgrade cards (Experience/Advantage extend
+        // TokenUpgradeCard); they are "gained" by generating the token-upgrade (GiveExperienceSystem /
+        // GiveAdvantageSystem → OnTokensCreated) and attaching it (contingent OnUpgradeAttached, one
+        // event per token). We disambiguate by upgrade predicate so each token type maps to exactly one
+        // record and we never double-count:
+        //   isShield()      → SHIELD_GAIN      (dedicated event, shields counter)
+        //   isExperience()  → EXPERIENCE_GAIN  (experience counter, +1 per attach)
+        //   isAdvantage()   → STATUS_TOKEN     (generic statusTokens['advantage'], +1 per attach)
+        // Normally-played, non-token upgrades are already covered by OnCardPlayed→PLAY_UPGRADE and the
+        // fold does not model upgrade nesting, so we deliberately emit nothing for them here (emitting a
+        // second PLAY_UPGRADE would corrupt the fold). New token-upgrade types should get an explicit
+        // branch rather than silently falling through.
         this.game.on(EventName.OnUpgradeAttached, (event: any) => {
             try {
                 const upgrade = event?.upgradeCard;
-                if (!upgrade?.isShield?.()) {
-                    return;
+                if (upgrade?.isShield?.()) {
+                    const parent = event?.parentCard ?? this.parentOf(upgrade);
+                    if (!parent) {
+                        return;
+                    }
+                    if (upgrade?.uuid != null) {
+                        this.shieldParents.set(upgrade.uuid, parent);
+                    }
+                    const seq = this.nextSeq(false);
+                    this.push({ seq, t: 'SHIELD_GAIN', card: this.idOf(parent) });
+                } else if (upgrade?.isExperience?.()) {
+                    const parent = event?.parentCard ?? this.parentOf(upgrade);
+                    if (!parent) {
+                        return;
+                    }
+                    const seq = this.nextSeq(false);
+                    this.push({ seq, t: 'EXPERIENCE_GAIN', card: this.idOf(parent), count: 1 });
+                } else if (upgrade?.isAdvantage?.()) {
+                    const parent = event?.parentCard ?? this.parentOf(upgrade);
+                    if (!parent) {
+                        return;
+                    }
+                    const seq = this.nextSeq(false);
+                    this.push({ seq, t: 'STATUS_TOKEN', card: this.idOf(parent), token: 'advantage', count: 1 });
                 }
-                const parent = event?.parentCard ?? this.parentOf(upgrade);
-                if (!parent) {
-                    return;
-                }
-                if (upgrade?.uuid != null) {
-                    this.shieldParents.set(upgrade.uuid, parent);
-                }
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'SHIELD_GAIN', card: this.idOf(parent) });
             } catch (error) {
                 this.logError('OnUpgradeAttached', error);
             }
@@ -690,6 +717,29 @@ export class SwuPgnRecorder {
                 this.push({ seq, t: 'TRIGGER', p: player ? this.seatOf(player) : undefined, card: this.idOf(card) });
             } catch (error) {
                 this.logError('OnCardAbilityTriggered', error);
+            }
+        });
+
+        // ABILITY_ACTIVATE: emitted by AbilityResolver for every card ability it resolves
+        // (OnCardAbilityInitiated, props { card, ability }). This is distinct from TRIGGER
+        // (OnCardAbilityTriggered), which the engine pushes only for *activated* abilities; we keep
+        // the broader OnCardAbilityInitiated as the activation log because it always carries the
+        // ability object (and thus its identifier). Pure log — no fold delta.
+        this.game.on(EventName.OnCardAbilityInitiated, (event: any) => {
+            try {
+                const card = event?.card ?? event?.context?.source;
+                const player = card?.controller ?? card?.owner;
+                const ability = event?.ability?.abilityIdentifier;
+                const seq = this.nextSeq(false);
+                this.push({
+                    seq,
+                    t: 'ABILITY_ACTIVATE',
+                    p: this.seatOf(player),
+                    card: this.idOf(card),
+                    ability: typeof ability === 'string' ? ability : undefined,
+                });
+            } catch (error) {
+                this.logError('OnCardAbilityInitiated', error);
             }
         });
 
