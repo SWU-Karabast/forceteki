@@ -155,5 +155,37 @@ describe('Chancellor Palpatine, I Am The Senate', function() {
             // Resolve the attack selection to avoid unresolved prompt
             context.player2.clickCard(spies[0]);
         });
+
+        describe('When Played with Moff Jerjerrod', function () {
+            it('doubles the Spy tokens and gives all of them Sentinel for this phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                        hand: ['chancellor-palpatine#i-am-the-senate'],
+                        groundArena: ['moff-jerjerrod#we-shall-redouble-our-efforts'],
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chancellorPalpatineIAmTheSenate);
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 4 Spy tokens instead');
+                context.player1.clickPrompt('Trigger');
+
+                const spies = context.player1.findCardsByName('spy', 'groundArena');
+                expect(context.moffJerjerrod).toBeInZone('discard');
+                expect(spies.length).toBe(4);
+                expect(spies.every((spy) => spy.keywords.some((keyword) => keyword.name === 'sentinel'))).toBeTrue();
+
+                // Opponent must attack a Sentinel this phase
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toBeAbleToSelectExactly(spies);
+                context.player2.clickCard(spies[0]);
+            });
+        });
     });
 });

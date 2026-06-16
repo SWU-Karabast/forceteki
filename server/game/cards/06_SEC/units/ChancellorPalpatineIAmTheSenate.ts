@@ -21,7 +21,7 @@ export default class ChancellorPalpatineIAmTheSenate extends NonLeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give those tokens Sentinel for this phase',
                 immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    target: ifYouDoContext.events[0].generatedTokens,
+                    target: ifYouDoContext.resolvedEvents[0]?.generatedTokens,
                     effect: abilityHelper.ongoingEffects.gainKeyword({
                         keyword: KeywordName.Sentinel,
                     })
