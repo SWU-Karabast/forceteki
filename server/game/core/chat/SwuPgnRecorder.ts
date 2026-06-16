@@ -237,7 +237,18 @@ export class SwuPgnRecorder {
     // ── Sequence helpers (port of v1.0 scheme) ─────────────────────────────────
 
     private subEventLetter(n: number): string {
-        return String.fromCharCode('a'.charCodeAt(0) + n);
+        // Bijective base-26 (a, b, ..., z, aa, ab, ...) so an action with more
+        // than 26 sub-events still produces unique, schema-valid suffixes
+        // (the seq pattern allows only [A-Za-z0-9-]). A naive 'a'+n overflows
+        // past 'z' into '{', '|', ... which fail validation.
+        let s = '';
+        let i = n + 1;
+        while (i > 0) {
+            i -= 1;
+            s = String.fromCharCode('a'.charCodeAt(0) + (i % 26)) + s;
+            i = Math.floor(i / 26);
+        }
+        return s;
     }
 
     private buildSeq(isTopLevel: boolean): string {
