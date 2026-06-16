@@ -298,7 +298,9 @@ export class GameServer {
         // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: {
-                level: zlibConstants.Z_BEST_SPEED
+                zlibDeflateOptions: {
+                    level: zlibConstants.Z_BEST_SPEED
+                }
             },
             path: '/ws',
             cors: {
