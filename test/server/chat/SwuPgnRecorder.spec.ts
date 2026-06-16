@@ -1,7 +1,8 @@
 import { buildHeader, SwuPgnRecorder } from '../../../server/game/core/chat/SwuPgnRecorder';
 import { saltedPlayerId } from '../../../server/game/core/chat/swuPgnIdentity';
 import { fold } from '../../../swupgn/src/index';
-import type { GameEvent } from '../../../swupgn/src/types';
+import type { GameEvent, ReducedState } from '../../../swupgn/src/types';
+import { checkKeyframes } from '../../../swupgn/src/integrity';
 import { EventName } from '../../../server/game/core/Constants';
 
 describe('SwuPgnRecorder.buildHeader', function () {
@@ -293,5 +294,40 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         expect((rec1 as any).card).toBe('SOR#300');
         expect((rec1 as any).p).toBe(1);
         expect((rec1 as any).ability).toBe('SOR#300_action');
+    });
+});
+
+describe('SwuPgnRecorder keyframes + INIT', function () {
+    it('embeds a ReducedState keyframe on ROUND_START and records INIT deck order', function () {
+        const game = new FakeEmitter();
+        const reducedFromEngine = (round: number): ReducedState => ({
+            round, phase: 'setup', initiative: null,
+            players: {
+                1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 6, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
+                2: { seat: 2, baseHp: 30, baseMaxHp: 30, handSize: 6, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
+            },
+        });
+        const rec = new SwuPgnRecorder(game as any, {
+            cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2),
+            reducedState: (round: number) => reducedFromEngine(round),
+            deckOrder: () => ({ p1: ['SOR#108', 'SOR#200'], p2: ['SOR#045'] }),
+        });
+        rec.recordInit();
+        // The recorder syncs rounds in syncRound(), driven by game.roundNumber from
+        // OnPhaseStarted (OnBeginRound doesn't reach listeners). roundNumber === 1 > the
+        // recorder's initial currentRound (0), so this emits ROUND_START once with the keyframe.
+        game.emit(EventName.OnPhaseStarted, { phase: 'setup' });
+
+        const setup = rec.getSetup();
+        expect(setup[0].t).toBe('INIT');
+        expect((setup[0] as any).p1DeckOrder).toEqual(['SOR#108', 'SOR#200']);
+
+        const events = rec.getEvents();
+        const rs = events.find((e: any) => e.t === 'ROUND_START');
+        expect(rs).toBeDefined();
+        expect((rs as any).keyframe).toBeDefined();
+        expect((rs as any).keyframe.players[1].baseHp).toBe(30);
+        // a keyframe with no preceding deltas must pass checkKeyframes (fold == keyframe)
+        expect(checkKeyframes(events).ok).toBe(true);
     });
 });

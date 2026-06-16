@@ -2,7 +2,7 @@ import type { Game } from '../Game';
 import { EventName, PhaseName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
-import type { Header, GameEvent, ReducedState, Seat } from '../../../../swupgn/src/types';
+import type { Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
 import { saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
 
 export interface HeaderContext {
@@ -44,14 +44,17 @@ export function buildHeader(ctx: HeaderContext): Header {
  * Maps engine identities to the stable, anonymized identifiers used by SWU-PGN/1.1.
  * The Game-side implementation (Task 10) owns copy-suffix logic and the omniscient
  * keyframe/deck-order projections; the recorder only needs uuid->id and playerId->seat.
- * Later tasks extend this with `reducedState`/`deckOrder` — declared optional here so
- * the interface is forward-compatible without the recorder depending on them yet.
+ *
+ * `reducedState`/`deckOrder` are the omniscient projections required to emit round
+ * keyframes and the SETUP INIT record. They are optional so the recorder stays usable
+ * with just `{ cardId, seat }` (unit tests, partial setups); when absent the recorder
+ * emits a valid ROUND_START with no keyframe and recordInit() is a safe no-op.
  */
 export interface SwuPgnResolver {
     cardId(uuid: string): string;
     seat(playerId: string): Seat;
-    reducedState?(): ReducedState;
-    deckOrder?(seat: Seat): string[];
+    reducedState?(round: number): ReducedState;                 // engine board → 1.1 reduced state
+    deckOrder?(): { p1: string[]; p2: string[] };               // initial deck order after shuffle
 }
 
 /**
@@ -63,6 +66,9 @@ export class SwuPgnRecorder {
     private readonly game: Game;
     private readonly resolver: SwuPgnResolver;
     private readonly events: GameEvent[] = [];
+
+    /** %%% SETUP section records (currently the INIT deck-order record). */
+    private readonly setup: (SetupInitRecord | GameEvent)[] = [];
 
     /** Current round number. */
     private currentRound: number = 0;
@@ -101,6 +107,32 @@ export class SwuPgnRecorder {
 
     public getEvents(): GameEvent[] {
         return this.events;
+    }
+
+    public getSetup(): (SetupInitRecord | GameEvent)[] {
+        return this.setup;
+    }
+
+    /**
+     * Record the `%%% SETUP` INIT entry: the post-shuffle initial deck order for both players.
+     * Sourced from the omniscient `resolver.deckOrder()` projection (Task 10). No-op when the
+     * resolver does not provide deckOrder (e.g. unit fakes built with just `{ cardId, seat }`).
+     */
+    public recordInit(): void {
+        try {
+            if (!this.resolver.deckOrder) {
+                return;
+            }
+            const { p1, p2 } = this.resolver.deckOrder();
+            this.setup.push({
+                seq: 'R1.S.0',
+                t: 'INIT',
+                p1DeckOrder: p1,
+                p2DeckOrder: p2,
+            });
+        } catch (error) {
+            this.logError('recordInit', error);
+        }
     }
 
     public addGameEndRecord(winner: Seat | 'Draw', reason: string): void {
@@ -270,11 +302,19 @@ export class SwuPgnRecorder {
         this.phaseEventCounter = 0;
         this.actionCounter = 0;
         this.subEventCounter = 0;
-        this.push({
+        // Emit a full ReducedState keyframe when the resolver can project one (Task 10). The
+        // 1.1 reader uses it both as a fast-forward anchor and as an integrity checkpoint
+        // (checkKeyframes folds forward and asserts the running fold equals each keyframe).
+        // Absent a resolver projection, ROUND_START stays valid without a keyframe.
+        const event: GameEvent = {
             seq: `R${this.currentRound}.start`,
             t: 'ROUND_START',
             round: this.currentRound,
-        });
+        };
+        if (this.resolver.reducedState) {
+            event.keyframe = this.resolver.reducedState(this.currentRound);
+        }
+        this.push(event);
     }
 
     // ── Listener registration ──────────────────────────────────────────────────
