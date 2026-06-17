@@ -839,8 +839,7 @@ export class Game extends EventEmitter {
             date: new Date().toISOString(),
             format: this.gameMode,
             cardPool: this.swuPgnCardPool(),
-            // package.json carries no version field; emit a stable placeholder.
-            engineVersion: 'forceteki@unknown',
+            engineVersion: Game.swuPgnEngineVersion(),
             // Tests run with an unseeded RNG; Seed is a required header tag and the
             // reader rejects an empty one, so fall back to a non-empty sentinel.
             seed: this._randomGenerator.seed ?? 'unseeded',
@@ -914,12 +913,33 @@ export class Game extends EventEmitter {
         });
     }
 
-    /** Cached single-file `.swupgn`; generated on demand if not already cached (lazy). */
+    /**
+     * Single-file `.swupgn` accessor. The cache is only PINNED once the game has ended (endGame
+     * also sets it); before that, each call generates fresh from the current event stream. This
+     * guards against an early mid-game read pinning a stale, incomplete file that subsequent
+     * gameplay would invalidate — the cache is otherwise only cleared on rollback, not on every
+     * new event. Production serving (Lobby.getGameLog) is gated on isEnded, so it always reads the
+     * pinned end-of-game file.
+     */
     public getCachedSwuPgn(): string {
-        if (this._cachedSwuPgnFile == null) {
-            this._cachedSwuPgnFile = this.generateSwuPgnFile();
+        if (this._cachedSwuPgnFile != null) {
+            return this._cachedSwuPgnFile;
         }
-        return this._cachedSwuPgnFile;
+        const file = this.generateSwuPgnFile();
+        if (this.isEnded) {
+            this._cachedSwuPgnFile = file;
+        }
+        return file;
+    }
+
+    /**
+     * Engine provenance string for the SWU-PGN header. The repo carries no package version,
+     * so this is deployment-configurable (set FORCETEKI_VERSION, or run under npm which sets
+     * npm_package_version once a version field exists) and falls back to a stable sentinel.
+     */
+    private static swuPgnEngineVersion(): string {
+        const version = process.env.FORCETEKI_VERSION ?? process.env.npm_package_version;
+        return version ? `forceteki@${version}` : 'forceteki@unknown';
     }
 
     /**
@@ -933,6 +953,8 @@ export class Game extends EventEmitter {
                 return 'Disconnection';
             case GameEndReason.GameRules:
                 return 'Base Destroyed';
+            case GameEndReason.Timeout:
+                return 'Timeout';
             default:
                 return 'Unknown';
         }
