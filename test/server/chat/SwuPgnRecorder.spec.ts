@@ -342,3 +342,85 @@ describe('SwuPgnRecorder keyframes + INIT', function () {
         expect(checkKeyframes(events).ok).toBe(true);
     });
 });
+
+describe('SwuPgnRecorder rollback', function () {
+    it('truncates events + setup and restores counters/shieldParents to a checkpoint boundary', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const unitA = fakeCard({ uuid: 'SOR#400', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit', remainingHp: 5 });
+        const unitB = fakeCard({ uuid: 'SOR#401', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit', remainingHp: 5 });
+
+        // Advance to the action phase and emit a couple of events (these are kept).
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardPlayed, { card: unitA, player: p1, playType: 'play' }); // action 1
+        game.emit(EventName.OnCardExhausted, { card: unitA });                            // sub-event 1a
+
+        // Snapshot the boundary state for later assertions.
+        const boundaryEventsLen = rec.getEvents().length;
+        const boundaryAction = (rec as any).actionCounter as number;
+        const boundarySub = (rec as any).subEventCounter as number;
+
+        rec.checkpoint(1);
+
+        // Emit MORE events after the checkpoint, including a SHIELD_GAIN (populates shieldParents)
+        // and additional sub-events that bump the counters.
+        const shieldTok = fakeCard({ uuid: 'SHIELDTOK_POST', owner: p1, isShield: true, printedType: 'token' });
+        game.emit(EventName.OnCardPlayed, { card: unitB, player: p1, playType: 'play' });             // action 2
+        game.emit(EventName.OnUpgradeAttached, { parentCard: unitB, upgradeCard: shieldTok });        // SHIELD_GAIN (2a)
+        game.emit(EventName.OnCardExhausted, { card: unitB });                                         // 2b
+
+        const before = rec.getEvents().length;
+        expect(before).toBeGreaterThan(boundaryEventsLen);
+        // shieldParents now has the post-checkpoint shield.
+        expect((rec as any).shieldParents.has('SHIELDTOK_POST')).toBe(true);
+        // counters advanced past the boundary.
+        expect((rec as any).actionCounter).toBeGreaterThan(boundaryAction);
+
+        // Roll back to the checkpoint.
+        rec.rollbackTo(1);
+
+        // events truncated back to the boundary; post-checkpoint events dropped.
+        expect(rec.getEvents().length).toBe(boundaryEventsLen);
+        expect(rec.getEvents().some((e: any) => e.card === 'SOR#401')).toBe(false);
+        expect(rec.getEvents().some((e: any) => e.t === 'SHIELD_GAIN')).toBe(false);
+
+        // counters restored exactly.
+        expect((rec as any).actionCounter).toBe(boundaryAction);
+        expect((rec as any).subEventCounter).toBe(boundarySub);
+
+        // shieldParents restored to checkpoint state: the post-checkpoint shield is gone, so a
+        // SHIELD_USE for it now finds no parent and is skipped (no SHIELD_USE record emitted).
+        expect((rec as any).shieldParents.has('SHIELDTOK_POST')).toBe(false);
+        game.emit(EventName.OnCardDefeated, { card: shieldTok, defeatSource: { type: 'ability' } });
+        expect(rec.getEvents().some((e: any) => e.t === 'SHIELD_USE')).toBe(false);
+
+        // A subsequently-emitted top-level action uses the next seq consistent with the restored
+        // counters (no gap/dupe): the boundary had actionCounter at boundaryAction, so the next
+        // action is boundaryAction + 1.
+        const unitC = fakeCard({ uuid: 'SOR#402', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit', remainingHp: 5 });
+        game.emit(EventName.OnCardPlayed, { card: unitC, player: p1, playType: 'play' });
+        const newAction = rec.getEvents().find((e: any) => e.card === 'SOR#402') as any;
+        expect(newAction).toBeDefined();
+        expect(newAction.seq).toBe(`R1.A.${boundaryAction + 1}`);
+    });
+
+    it('is a safe no-op when rolling back to an unknown snapshot id', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#500', zoneName: 'groundArena', owner: p1, printedType: 'unit' });
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play' });
+        rec.checkpoint(1);
+        const len = rec.getEvents().length;
+
+        expect(() => rec.rollbackTo(999)).not.toThrow();
+        expect(rec.getEvents().length).toBe(len);
+        // rolling back to null is also a safe no-op.
+        expect(() => rec.rollbackTo(null)).not.toThrow();
+        expect(rec.getEvents().length).toBe(len);
+    });
+});

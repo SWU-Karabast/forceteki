@@ -97,6 +97,26 @@ export class SwuPgnRecorder {
      */
     private readonly shieldParents = new Map<string, any>();
 
+    /**
+     * Rollback checkpoints (array lengths + counters + shieldParents snapshot) keyed by
+     * snapshot id. Mirrors the v1.0 `PgnReplayRecorder.checkpoints` scheme so the new
+     * recorder rewinds identically on undo. shieldParents is captured here because a
+     * rollback that rewinds past a SHIELD_GAIN without restoring the map would make a
+     * later SHIELD_USE miss its parent.
+     */
+    private readonly checkpoints: {
+        snapshotId: number;
+        eventsLen: number;
+        setupLen: number;
+        currentRound: number;
+        currentPhase: string;
+        actionCounter: number;
+        phaseEventCounter: number;
+        subEventCounter: number;
+        loggedErrorCount: number;
+        shieldParents: [string, any][];
+    }[] = [];
+
     public constructor(game: Game, resolver: SwuPgnResolver) {
         this.game = game;
         this.resolver = resolver;
@@ -148,10 +168,107 @@ export class SwuPgnRecorder {
         }
     }
 
+    /**
+     * Roll the recorded SWU-PGN data back to a prior game state after an undo.
+     * `restoredSnapshotId` is the snapshot the game was restored to
+     * (snapshotManager.currentSnapshotId after the rollback). Truncates events/setup back to
+     * the boundary captured when that snapshot was taken — dropping exactly the undone events —
+     * restores all counters and the shieldParents map, and discards that checkpoint and any
+     * later ones so re-recording the redo starts clean. Mirrors v1.0 `PgnReplayRecorder.rollbackTo`.
+     * Safe no-op when the snapshot id is unknown (nothing was recorded after it).
+     */
+    public rollbackTo(restoredSnapshotId: number | null): void {
+        try {
+            if (restoredSnapshotId == null) {
+                return;
+            }
+            let idx = -1;
+            for (let i = this.checkpoints.length - 1; i >= 0; i--) {
+                if (this.checkpoints[i].snapshotId === restoredSnapshotId) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx === -1) {
+                return; // nothing was recorded after the restored snapshot
+            }
+            const boundary = this.checkpoints[idx];
+            this.events.length = boundary.eventsLen;
+            this.setup.length = boundary.setupLen;
+            this.currentRound = boundary.currentRound;
+            this.currentPhase = boundary.currentPhase;
+            this.actionCounter = boundary.actionCounter;
+            this.phaseEventCounter = boundary.phaseEventCounter;
+            this.subEventCounter = boundary.subEventCounter;
+            this.loggedErrorCount = boundary.loggedErrorCount;
+            // Rebuild shieldParents from the snapshot taken at the boundary so a SHIELD_USE for a
+            // shield gained after the boundary no longer finds a parent (and is skipped).
+            this.shieldParents.clear();
+            for (const [uuid, parent] of boundary.shieldParents) {
+                this.shieldParents.set(uuid, parent);
+            }
+            // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
+            this.checkpoints.length = idx;
+        } catch (error) {
+            this.logError('rollbackTo', error);
+        }
+    }
+
+    /**
+     * Capture a rollback checkpoint for `snapshotId`, recording the current array lengths,
+     * counters, and a snapshot of the shieldParents map. Mirrors v1.0's checkpoint semantics:
+     * if the most recent checkpoint already belongs to this snapshot id it is a no-op (one
+     * checkpoint per snapshot boundary). Exposed publicly so tests (and any explicit Game-side
+     * hook) can checkpoint deterministically; gameplay drives it lazily via push().
+     */
+    public checkpoint(snapshotId: number): void {
+        try {
+            if (snapshotId < 0) {
+                return;
+            }
+            const last = this.checkpoints[this.checkpoints.length - 1];
+            if (last && last.snapshotId === snapshotId) {
+                return;
+            }
+            this.checkpoints.push({
+                snapshotId,
+                eventsLen: this.events.length,
+                setupLen: this.setup.length,
+                currentRound: this.currentRound,
+                currentPhase: this.currentPhase,
+                actionCounter: this.actionCounter,
+                phaseEventCounter: this.phaseEventCounter,
+                subEventCounter: this.subEventCounter,
+                loggedErrorCount: this.loggedErrorCount,
+                shieldParents: [...this.shieldParents.entries()],
+            });
+        } catch (error) {
+            this.logError('checkpoint', error);
+        }
+    }
+
     // ── Internals ─────────────────────────────────────────────────────────────
 
     private push(e: GameEvent): void {
+        this.maybeCheckpoint();
         this.events.push(e);
+    }
+
+    /**
+     * Capture a rollback checkpoint the first time an event is pushed under a new snapshot id.
+     * The game takes a state snapshot before the effects it precedes, so the first push afterward
+     * captures the lengths + counters + shieldParents as they were *at that snapshot* (before its
+     * events). Keyed off snapshotManager.currentSnapshotId, which is restored to the rolled-back
+     * value on undo. No-op when there is no snapshot manager (unit-test stubs). Mirrors v1.0.
+     */
+    private maybeCheckpoint(): void {
+        let snapshotId: number;
+        try {
+            snapshotId = this.game.snapshotManager?.currentSnapshotId ?? -1;
+        } catch {
+            return;
+        }
+        this.checkpoint(snapshotId);
     }
 
     /**

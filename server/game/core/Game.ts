@@ -2657,6 +2657,10 @@ export class Game extends EventEmitter {
         // the recorded game. currentSnapshotId already reflects the restored snapshot here.
         // (Earlier this called a full reset(), which wiped the ENTIRE recorded game on any undo.)
         this._replayRecorder.rollbackTo(this._snapshotManager.currentSnapshotId);
+        // Mirror the rollback on the new SWU-PGN/1.1 recorder: it checkpoints lazily per
+        // snapshot id (in SwuPgnRecorder.push), so rolling back to the restored snapshot id
+        // drops exactly the events recorded after it and restores counters + shieldParents.
+        this._swuPgnRecorder.rollbackTo(this._snapshotManager.currentSnapshotId);
         this._cachedSwuPgn = undefined;
         this._cachedSwuReplay = undefined;
         this._cachedSwuPgnFile = undefined;
