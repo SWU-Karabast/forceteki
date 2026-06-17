@@ -31,8 +31,17 @@ export interface IButton {
     disabled?: boolean;
 }
 
+export interface ITriggerWindowSourceCard {
+    id: string;
+    uuid: string;
+    name: string;
+    setId?: Partial<ISetId>;
+    type: string;
+    printedType?: string;
+}
+
 export interface ITriggerWindowButton extends IButton {
-    sourceCardSetId?: ISetId;
+    sourceCard?: ITriggerWindowSourceCard;
 }
 
 export interface INumberPromptData {

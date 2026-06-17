@@ -2,7 +2,7 @@ import type { Player } from '../../Player';
 import type { Game } from '../../Game';
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
-import { PromptType, type ITriggerWindowButton } from '../PromptInterfaces';
+import { PromptType, type ITriggerWindowButton, type ITriggerWindowSourceCard } from '../PromptInterfaces';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { UiPrompt } from './UiPrompt';
 
@@ -24,11 +24,19 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
     }
 
     public override activePromptInternal(): IPlayerPromptStateProperties {
-        const buttons: ITriggerWindowButton[] = this.triggeredAbilities.map((context, index) => ({
-            text: this.getChoiceTitle(context),
-            arg: index.toString(),
-            sourceCardSetId: context.source.setId
-        }));
+        const buttons: ITriggerWindowButton[] = this.triggeredAbilities.map((context, index) => {
+            const button: ITriggerWindowButton = {
+                text: this.getChoiceTitle(context),
+                arg: index.toString()
+            };
+
+            const sourceCard = this.getSourceCard(context);
+            if (sourceCard) {
+                button.sourceCard = sourceCard;
+            }
+
+            return button;
+        });
 
         if (this.game.manualMode) {
             buttons.push({
@@ -43,6 +51,20 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
             promptTitle: this.source.name,
             promptUuid: this.uuid,
             promptType: PromptType.TriggerWindow
+        };
+    }
+
+    private getSourceCard(context: TriggeredAbilityContext): ITriggerWindowSourceCard | undefined {
+        if (!context.source?.isCard?.()) {
+            return undefined;
+        }
+
+        const sourceCardSummary = context.source.getShortSummary();
+
+        return {
+            ...sourceCardSummary,
+            setId: context.source.setId,
+            type: context.source.type
         };
     }
 
