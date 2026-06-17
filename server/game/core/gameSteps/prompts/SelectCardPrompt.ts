@@ -1,6 +1,7 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
 import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
+import { EventName } from '../../Constants';
 import type { Game } from '../../Game';
 import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
@@ -261,10 +262,33 @@ export class SelectCardPrompt extends UiPrompt {
     private fireOnSelect() {
         const cardParam = this.selector.formatSelectParam(this.selectedCards);
         if (this.properties.onSelect(cardParam)) {
+            this.emitCardSelection();
             this.complete();
             return true;
         }
         return false;
+    }
+
+    /**
+     * Pure-log SWU-PGN/1.1 hook (§4.2 CHOICE): surface a resolved card-selection prompt for the
+     * recorder — the offered candidate cards and the single card chosen. Only single-card
+     * selections are emitted; the 1.1 CHOICE record models one pick, so multi/zero-select prompts
+     * are skipped. Fully wrapped: recording instrumentation must never affect gameplay.
+     */
+    private emitCardSelection() {
+        try {
+            if (this.selectedCards.length !== 1) {
+                return;
+            }
+            this.game.emit(EventName.OnCardSelection, {
+                player: this.choosingPlayer,
+                offered: this.selector.findPossibleCards(this.context),
+                chosen: this.selectedCards[0],
+                prompt: this.promptTitle,
+            });
+        } catch {
+            // never let recording instrumentation break a prompt
+        }
     }
 
     public override menuCommand(player, arg) {

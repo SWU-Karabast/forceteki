@@ -882,33 +882,47 @@ export class SwuPgnRecorder {
             }
         });
 
+        // TRIGGER / ABILITY_ACTIVATE dedup: AbilityResolver pushes BOTH OnCardAbilityTriggered
+        // (only for activated abilities) and OnCardAbilityInitiated (for every card ability) into
+        // the same event window for one activation, so an activated ability would otherwise record
+        // two adjacent pure-log lines for the same card. OnCardAbilityInitiated → ABILITY_ACTIVATE
+        // is the richer record (it carries the ability identifier) and is a superset of the
+        // TRIGGER cases, so we collapse the pair into the single ABILITY_ACTIVATE. The collapse is
+        // adjacency-based and bidirectional so it holds whichever event the window emits first; a
+        // standalone TRIGGER (no adjacent ABILITY_ACTIVATE for the same card) is still recorded.
         this.game.on(EventName.OnCardAbilityTriggered, (event: any) => {
             try {
                 const card = event?.card ?? event?.context?.source;
+                const cardId = this.idOf(card);
+                const last = this.events[this.events.length - 1];
+                if (last && last.t === 'ABILITY_ACTIVATE' && (last as any).card === cardId) {
+                    return; // ABILITY_ACTIVATE for this card already recorded the activation
+                }
                 const player = card?.controller ?? card?.owner;
                 const seq = this.nextSeq(false);
-                this.push({ seq, t: 'TRIGGER', p: player ? this.seatOf(player) : undefined, card: this.idOf(card) });
+                this.push({ seq, t: 'TRIGGER', p: player ? this.seatOf(player) : undefined, card: cardId });
             } catch (error) {
                 this.logError('OnCardAbilityTriggered', error);
             }
         });
 
-        // ABILITY_ACTIVATE: emitted by AbilityResolver for every card ability it resolves
-        // (OnCardAbilityInitiated, props { card, ability }). This is distinct from TRIGGER
-        // (OnCardAbilityTriggered), which the engine pushes only for *activated* abilities; we keep
-        // the broader OnCardAbilityInitiated as the activation log because it always carries the
-        // ability object (and thus its identifier). Pure log — no fold delta.
         this.game.on(EventName.OnCardAbilityInitiated, (event: any) => {
             try {
                 const card = event?.card ?? event?.context?.source;
+                const cardId = this.idOf(card);
                 const player = card?.controller ?? card?.owner;
                 const ability = event?.ability?.abilityIdentifier;
+                // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes it.
+                const last = this.events[this.events.length - 1];
+                if (last && last.t === 'TRIGGER' && (last as any).card === cardId) {
+                    this.events.pop();
+                }
                 const seq = this.nextSeq(false);
                 this.push({
                     seq,
                     t: 'ABILITY_ACTIVATE',
                     p: this.seatOf(player),
-                    card: this.idOf(card),
+                    card: cardId,
                     ability: typeof ability === 'string' ? ability : undefined,
                 });
             } catch (error) {
@@ -999,6 +1013,39 @@ export class SwuPgnRecorder {
                 });
             } catch (error) {
                 this.logError('OnModalChoice', error);
+            }
+        });
+
+        // CHOICE: a free card-selection prompt (SelectCardPrompt.emitCardSelection) — distinct from
+        // MODAL_CHOICE's fixed menu/button list. `offered` is the candidate-card pool the prompt
+        // presented; `chosen` is the single selected card; we record the stable card-id list and the
+        // chosen card's index within it. The engine only emits this for single-card selections, and
+        // we additionally skip the record if the chosen card isn't resolvable or isn't in the offered
+        // pool (a malformed pairing) rather than emit a sentinel. Pure log — no fold delta.
+        this.game.on(EventName.OnCardSelection, (event: any) => {
+            try {
+                const offeredCards: any[] = Array.isArray(event?.offered) ? event.offered : [];
+                const offered = offeredCards
+                    .map((c: any) => this.idOf(c))
+                    .filter((id: string) => id !== 'unknown');
+                const chosen = event?.chosen;
+                if (chosen?.uuid == null) {
+                    return;
+                }
+                const chose = offered.indexOf(this.idOf(chosen));
+                if (chose < 0) {
+                    return;
+                }
+                this.push({
+                    seq: this.nextSeq(false),
+                    t: 'CHOICE',
+                    p: this.seatOf(event?.player),
+                    prompt: typeof event?.prompt === 'string' ? event.prompt : undefined,
+                    offered,
+                    chose,
+                });
+            } catch (error) {
+                this.logError('OnCardSelection', error);
             }
         });
     }

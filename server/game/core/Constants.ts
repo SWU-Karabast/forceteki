@@ -302,6 +302,7 @@ export enum EventName {
     OnCardResourced = 'onCardResourced',
     OnCardReturnedToHand = 'onCardReturnedToHand',
     OnCardRevealed = 'onCardRevealed',
+    OnCardSelection = 'onCardSelection', // recorder-only (SWU-PGN §4.2) — do NOT remove; consumed by SwuPgnRecorder
     OnCardDiscarded = 'onCardDiscarded',
     OnCardsDiscardedFromHand = 'onCardsDiscardedFromHand',
     OnCardsDrawn = 'onCardsDrawn',

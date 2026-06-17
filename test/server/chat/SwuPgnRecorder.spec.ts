@@ -303,6 +303,79 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         expect((rec1 as any).p).toBe(1);
         expect((rec1 as any).ability).toBe('SOR#300_action');
     });
+
+    it('collapses the paired TRIGGER + ABILITY_ACTIVATE for an activated ability into one record', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#300', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit' });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        // AbilityResolver emits BOTH for one activation; engine order is Triggered then Initiated.
+        game.emit(EventName.OnCardAbilityTriggered, { card: unit });
+        game.emit(EventName.OnCardAbilityInitiated, { card: unit, ability: { abilityIdentifier: 'SOR#300_action' } });
+
+        const events = rec.getEvents();
+        expect(events.filter((e: any) => e.t === 'TRIGGER').length).toBe(0);
+        const acts = events.filter((e: any) => e.t === 'ABILITY_ACTIVATE');
+        expect(acts.length).toBe(1);
+        expect((acts[0] as any).ability).toBe('SOR#300_action');
+    });
+
+    it('collapses the pair regardless of emission order (ABILITY_ACTIVATE before TRIGGER)', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#301', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit' });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardAbilityInitiated, { card: unit, ability: { abilityIdentifier: 'SOR#301_action' } });
+        game.emit(EventName.OnCardAbilityTriggered, { card: unit });
+
+        const events = rec.getEvents();
+        expect(events.filter((e: any) => e.t === 'TRIGGER').length).toBe(0);
+        expect(events.filter((e: any) => e.t === 'ABILITY_ACTIVATE').length).toBe(1);
+    });
+
+    it('records a CHOICE with offered card ids and the chosen index', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const a = fakeCard({ uuid: 'SOR#101', owner: p1, controller: p1 });
+        const b = fakeCard({ uuid: 'SOR#102', owner: p1, controller: p1 });
+        const c = fakeCard({ uuid: 'SOR#103', owner: p1, controller: p1 });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        // Real OnCardSelection payload shape (engine-side emit at SelectCardPrompt.emitCardSelection):
+        // the offered candidate cards and the single chosen card.
+        game.emit(EventName.OnCardSelection, { player: p1, offered: [a, b, c], chosen: b, prompt: 'Choose a unit' });
+
+        const events = rec.getEvents();
+        const choice = events.find((e: any) => e.t === 'CHOICE');
+        expect(choice).toBeDefined();
+        expect((choice as any).offered).toEqual(['SOR#101', 'SOR#102', 'SOR#103']);
+        expect((choice as any).chose).toBe(1);
+        expect((choice as any).p).toBe(1);
+        expect((choice as any).prompt).toBe('Choose a unit');
+    });
+
+    it('skips a CHOICE when the chosen card is unresolvable or absent from the offered pool', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const a = fakeCard({ uuid: 'SOR#101', owner: p1, controller: p1 });
+        const stranger = fakeCard({ uuid: 'SOR#999', owner: p1, controller: p1 });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardSelection, { player: p1, offered: [a], chosen: stranger });
+        game.emit(EventName.OnCardSelection, { player: p1, offered: [a], chosen: undefined });
+
+        expect(rec.getEvents().some((e: any) => e.t === 'CHOICE')).toBe(false);
+    });
 });
 
 describe('SwuPgnRecorder keyframes + INIT', function () {
