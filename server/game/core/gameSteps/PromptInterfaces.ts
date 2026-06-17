@@ -29,7 +29,10 @@ export interface IButton {
     arg: string;
     command?: string;
     disabled?: boolean;
-    relatedCardId?: string;
+}
+
+export interface ITriggerWindowButton extends IButton {
+    sourceCardSetId?: ISetId;
 }
 
 export interface INumberPromptData {

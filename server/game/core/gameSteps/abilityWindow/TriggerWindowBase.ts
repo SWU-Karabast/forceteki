@@ -9,7 +9,7 @@ import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import type { Game } from '../../Game';
-import { PromptType } from '../PromptInterfaces';
+import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityResolutionPrompt';
 
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -263,23 +263,13 @@ export abstract class TriggerWindowBase extends BaseStep {
     private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
 
-        let choices: { text: string; relatedCardId: string }[] = [];
-        let handlers: (() => void)[] = [];
-
-        // If its a multi-select, append the card name at the end of the ability name to differentiate them
-        choices = abilitiesToResolve.map((context) => ({
-            text: this.getChoiceTitle(context),
-            relatedCardId: context.source.uuid
-        }));
-        handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
-
-        this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
-            activePromptTitle: 'You have multiple triggers to resolve. Choose which to resolve first:',
-            source: 'Choose Triggered Ability Resolution Order',
-            choices,
-            handlers,
-            promptType: PromptType.TriggerWindow
-        });
+        this.game.queueStep(new TriggeredAbilityResolutionPrompt(
+            this.game,
+            this.currentlyResolvingPlayer,
+            abilitiesToResolve,
+            (context) => this.getChoiceTitle(context),
+            (context) => this.resolveAbility(context)
+        ));
 
         // TODO: a variation of this was being used in the L5R code to choose which card to activate triggered abilities on.
         // not used now b/c we're doing a shortcut where we just present each ability text name, which doesn't work well in all cases sadly.
