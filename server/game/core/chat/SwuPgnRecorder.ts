@@ -580,12 +580,17 @@ export class SwuPgnRecorder {
             try {
                 const card = event?.card;
                 const seq = this.nextSeq(false);
+                // Seat lets the 1.1 fold attribute zone-membership counts (handSize,
+                // resourcesReady) and arena-card placement to a player: the engine performs
+                // these via card moves, not via DRAW/RESOURCE/PLAY summary events, so MOVE is
+                // the fold's source of truth for those counts.
                 this.push({
                     seq,
                     t: 'MOVE',
                     card: this.idOf(card),
                     from: this.normalizeZone(event?.originalZone),
                     to: this.normalizeZone(event?.newZone ?? card?.zoneName),
+                    p: this.seatOf(card?.controller ?? card?.owner),
                 });
             } catch (error) {
                 this.logError('OnCardMoved', error);

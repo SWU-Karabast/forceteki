@@ -53,7 +53,7 @@ export type GameEvent =
     | { seq: string; t: 'RESOURCE'; p: Seat; card: string; cardName?: string }
     | { seq: string; t: 'SHUFFLE'; p: Seat }
     | { seq: string; t: 'CREATE_TOKEN'; p: Seat; token: string; zone: string; power?: number; hp?: number }
-    | { seq: string; t: 'MOVE'; card: string; from: string; to: string }
+    | { seq: string; t: 'MOVE'; card: string; from: string; to: string; p?: Seat }
     | { seq: string; t: 'CAPTURE' | 'RESCUE' | 'TAKE_CONTROL'; p: Seat; card: string }
     | { seq: string; t: 'SHIELD_GAIN' | 'SHIELD_USE'; card: string; count?: number }
     | { seq: string; t: 'EXPERIENCE_GAIN'; card: string; count: number }

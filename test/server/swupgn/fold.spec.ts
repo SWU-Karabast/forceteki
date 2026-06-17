@@ -58,9 +58,11 @@ describe('fold additional events', function () {
         expect(s.players[2]!.discard).toContain('SOR#045');
     });
 
-    it('DRAW adds to hand size and known hand', function () {
+    it('DRAW records the known hand contents (handSize is driven by MOVE, the engine source of truth)', function () {
         const s = fold([{ seq: 'R1.S.1', t: 'DRAW', p: 1, count: 2, cards: ['SOR#108', 'SOR#142'] }] as any);
-        expect(s.players[1]!.handSize).toBe(2);
+        // DRAW no longer mutates handSize: in real streams every drawn card also produces a
+        // deck->hand MOVE, and counting both would double-count vs the keyframe.
+        expect(s.players[1]!.handSize).toBe(0);
         expect(s.players[1]!.hand).toEqual(['SOR#108', 'SOR#142']);
     });
 
@@ -88,13 +90,36 @@ describe('fold keyframes', function () {
 });
 
 describe('fold event coverage', function () {
-    it('RESOURCE moves a card from hand to resources', function () {
+    it('MOVE drives handSize and resourcesReady (deck->hand, then hand->resource)', function () {
         const s = fold([
-            { seq: 'R1.S.1', t: 'DRAW', p: 1, count: 1, cards: ['SOR#142'] },
-            { seq: 'R1.S.2', t: 'RESOURCE', p: 1, card: 'SOR#142' },
+            { seq: 'R1.S.1', t: 'MOVE', p: 1, card: 'SOR#142', from: 'deck', to: 'hand' },
+            { seq: 'R1.S.2', t: 'MOVE', p: 1, card: 'SOR#108', from: 'deck', to: 'hand' },
+            { seq: 'R1.S.3', t: 'MOVE', p: 1, card: 'SOR#142', from: 'hand', to: 'resource' },
         ] as any);
-        expect(s.players[1]!.handSize).toBe(0);
+        expect(s.players[1]!.handSize).toBe(1);
         expect(s.players[1]!.resourcesReady).toBe(1);
+    });
+
+    it('MOVE places an arena card on entry and removes it on exit (idempotent by id)', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'MOVE', p: 2, card: 'SOR#095', from: 'outsideTheGame', to: 'ground' },
+            // A redundant MOVE for an already-tracked card must not duplicate it.
+            { seq: 'R1.A.2', t: 'MOVE', p: 2, card: 'SOR#095', from: 'ground', to: 'ground' },
+        ] as any);
+        expect(s.players[2]!.cards.filter((c) => c.id === 'SOR#095').length).toBe(1);
+        const s2 = fold([
+            { seq: 'R1.A.1', t: 'MOVE', p: 2, card: 'SOR#095', from: 'outsideTheGame', to: 'ground' },
+            { seq: 'R1.A.2', t: 'MOVE', p: 2, card: 'SOR#095', from: 'ground', to: 'discard' },
+        ] as any);
+        expect(s2.players[2]!.cards.find((c) => c.id === 'SOR#095')).toBeUndefined();
+    });
+
+    it('PLAY then a coinciding hand->ground MOVE does not double-add the card', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground' },
+            { seq: 'R1.A.1a', t: 'MOVE', p: 1, card: 'SOR#108', from: 'hand', to: 'ground' },
+        ] as any);
+        expect(s.players[1]!.cards.filter((c) => c.id === 'SOR#108').length).toBe(1);
     });
 
     it('DEPLOY_LEADER and CREATE_TOKEN add cards to play', function () {

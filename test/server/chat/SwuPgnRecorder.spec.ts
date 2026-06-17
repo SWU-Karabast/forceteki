@@ -129,15 +129,23 @@ describe('SwuPgnRecorder events fold to expected state', function () {
         const unit = fakeCard({ uuid: 'SOR#108', zoneName: 'groundArena', owner: p1 });
 
         game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        // The engine performs every zone transition as an OnCardMoved (which the recorder maps
+        // to a MOVE) and ALSO emits the higher-level summary events (OnCardsDrawn/Resourced).
+        // The 1.1 fold reconstructs handSize/resourcesReady from MOVE (the source of truth), so
+        // we emit both here exactly as the engine would.
+        game.emit(EventName.OnCardMoved, { card: drawn[0], originalZone: 'deck', newZone: 'hand' });
+        game.emit(EventName.OnCardMoved, { card: drawn[1], originalZone: 'deck', newZone: 'hand' });
         game.emit(EventName.OnCardsDrawn, { player: p1, cards: drawn, amount: 2 });
+        game.emit(EventName.OnCardMoved, { card: resourced, originalZone: 'hand', newZone: 'resource' });
         game.emit(EventName.OnCardResourced, { card: resourced, resourceControllingPlayer: p1 });
         game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play' });
         game.emit(EventName.OnCardDefeated, { card: unit, defeatSource: { type: 'ability' } });
+        game.emit(EventName.OnCardMoved, { card: unit, originalZone: 'groundArena', newZone: 'discard' });
 
         const events = rec.getEvents() as GameEvent[];
         const s = fold(events);
         const ps = s.players[1]!;
-        // drew 2, resourced 1 (hand -1, resourcesReady +1)
+        // drew 2 (hand +2), resourced 1 (hand -1, resourcesReady +1) -> hand 1, resources 1
         expect(ps.handSize).toBe(1);
         expect(ps.resourcesReady).toBe(1);
         // unit was played then defeated -> in discard, not in play
@@ -302,9 +310,12 @@ describe('SwuPgnRecorder keyframes + INIT', function () {
         const game = new FakeEmitter();
         const reducedFromEngine = (round: number): ReducedState => ({
             round, phase: 'setup', initiative: null,
+            // handSize 0: with no preceding events the empty-state fold has hand 0, so the
+            // first keyframe must report 0 for checkKeyframes (fold == keyframe) to hold under
+            // the extended diff (which now gates handSize/resourcesReady, not just baseHp).
             players: {
-                1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 6, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
-                2: { seat: 2, baseHp: 30, baseMaxHp: 30, handSize: 6, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
+                1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
+                2: { seat: 2, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
             },
         });
         const rec = new SwuPgnRecorder(game as any, {
