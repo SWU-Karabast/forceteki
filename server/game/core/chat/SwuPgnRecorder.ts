@@ -58,9 +58,9 @@ export interface SwuPgnResolver {
 }
 
 /**
- * Emits SWU-PGN/1.1 `GameEvent`s by subscribing to the same engine events the v1.0
- * `PgnReplayRecorder` handles. Every handler is wrapped in try/catch with rate-limited
- * error logging so a recording bug can never crash gameplay.
+ * Emits SWU-PGN/1.1 `GameEvent`s by subscribing to engine events. Every handler is
+ * wrapped in try/catch with rate-limited error logging so a recording bug can never
+ * crash gameplay.
  */
 export class SwuPgnRecorder {
     private readonly game: Game;
@@ -99,8 +99,8 @@ export class SwuPgnRecorder {
 
     /**
      * Rollback checkpoints (array lengths + counters + shieldParents snapshot) keyed by
-     * snapshot id. Mirrors the v1.0 `PgnReplayRecorder.checkpoints` scheme so the new
-     * recorder rewinds identically on undo. shieldParents is captured here because a
+     * snapshot id, so the recorder rewinds in lockstep with the game on undo.
+     * shieldParents is captured here because a
      * rollback that rewinds past a SHIELD_GAIN without restoring the map would make a
      * later SHIELD_USE miss its parent.
      */
@@ -174,7 +174,7 @@ export class SwuPgnRecorder {
      * (snapshotManager.currentSnapshotId after the rollback). Truncates events/setup back to
      * the boundary captured when that snapshot was taken — dropping exactly the undone events —
      * restores all counters and the shieldParents map, and discards that checkpoint and any
-     * later ones so re-recording the redo starts clean. Mirrors v1.0 `PgnReplayRecorder.rollbackTo`.
+     * later ones so re-recording the redo starts clean.
      * Safe no-op when the snapshot id is unknown (nothing was recorded after it).
      */
     public rollbackTo(restoredSnapshotId: number | null): void {

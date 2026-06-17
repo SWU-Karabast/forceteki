@@ -105,9 +105,6 @@ import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 import { SwuPgn } from './chat/SwuPgn';
-import type { IPgnHeader, IPgnPlayerDecklist, IPgnCardIndexEntry, IGameFiles } from './chat/PgnTypes';
-import { PGN_FORMAT_VERSION } from './chat/PgnTypes';
-import { PgnReplayRecorder } from './chat/PgnReplayRecorder';
 import { SwuPgnRecorder } from './chat/SwuPgnRecorder';
 import type { HeaderContext, SwuPgnResolver } from './chat/SwuPgnRecorder';
 import { buildHeader } from './chat/SwuPgnRecorder';
@@ -336,13 +333,9 @@ export class Game extends EventEmitter {
     public startedAt?: Date;
     public finishedAt?: Date;
     public gameEndReason?: GameEndReason;
-    private _cachedSwuPgn?: string;
-    private _cachedSwuReplay?: string;
-    private _cachedRawGameLog?: string;
     private _actionsSinceLastUndo?: number;
-    private _replayRecorder: PgnReplayRecorder;
 
-    // ── SWU-PGN/1.1 (new, single-file path; runs in parallel with v1.0 above) ──
+    // ── SWU-PGN/1.1 (single-file, event-sourced path) ──
     private _swuPgnRecorder: SwuPgnRecorder;
     private _cachedSwuPgnFile?: string;
     /** Stable SET#NUM[:copy] id per engine card instance uuid (1.1 path). */
@@ -374,7 +367,6 @@ export class Game extends EventEmitter {
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
-        this._replayRecorder = new PgnReplayRecorder(this, () => this.captureAnonymizedState());
         this._swuPgnRecorder = new SwuPgnRecorder(this, this.buildSwuPgnResolver());
         this.registerSwuPgnSetupCapture();
         this.pipeline = new GamePipeline();
@@ -555,141 +547,14 @@ export class Game extends EventEmitter {
         return filteredMessages;
     }
 
-    /**
-     * Returns the raw human-readable game log with player names anonymized.
-     */
-    public getRawGameLog(): string {
-        const players = this.getPlayers();
-        const player1Name = players[0].name;
-        const player2Name = players[1].name;
-        const structureMarkers = this._replayRecorder.getStructureMarkers();
-        return SwuPgn.generateHumanNotation(
-            this.gameChat.messages, player1Name, player2Name, structureMarkers
-        );
-    }
-
-    /**
-     * Generates both game files: human-readable .swupgn and machine-replay .swureplay.
-     */
-    public generateGameFiles(): IGameFiles {
-        const players = this.getPlayers();
-        const player1 = players[0];
-        const player2 = players[1];
-        const header = this.buildPgnHeader(player1, player2);
-        const structureMarkers = this._replayRecorder.getStructureMarkers();
-        const humanNotation = SwuPgn.generateHumanNotation(
-            this.gameChat.messages, player1.name, player2.name, structureMarkers
-        );
-        const p1Decklist = this.buildPlayerDecklist(player1);
-        const p2Decklist = this.buildPlayerDecklist(player2);
-
-        const swuPgn = SwuPgn.formatHumanFile(header, humanNotation, p1Decklist, p2Decklist);
-        const swuReplay = SwuPgn.formatReplayFile(header, p1Decklist, p2Decklist, this._replayRecorder.getReplayRecords());
-
-        return { swuPgn, swuReplay };
-    }
-
-    /**
-     * Captures the full game state as an anonymous spectator would see it,
-     * with player names/IDs anonymized to Player 1/Player 2.
-     */
-    private captureAnonymizedState(): Record<string, any> {
-        const state = this.getState('__replay_spectator__', true);
-        // Remove the synthetic spectator's message offset so it doesn't accumulate
-        this.chatMessageOffsets.delete('__replay_spectator__');
-        if (!state) {
-            return {};
-        }
-
-        // Anonymize player data: remap top-level player keys
-        const players = this.getPlayers();
-        const anonymizedPlayers: Record<string, any> = {};
-        for (let i = 0; i < players.length; i++) {
-            const playerLabel = `Player ${i + 1}`;
-            const playerState = state.players?.[players[i].id];
-            if (playerState) {
-                anonymizedPlayers[playerLabel] = {
-                    ...playerState,
-                    id: playerLabel,
-                    name: playerLabel,
-                    user: { username: playerLabel },
-                };
-            }
-        }
-
-        const result = {
-            ...state,
-            players: anonymizedPlayers,
-            // Strip messages from snapshot (they're in the freeform file)
-            newMessages: undefined,
-            messageOffset: undefined,
-            totalMessages: undefined,
-            // Strip PGN data from snapshot (circular reference)
-            swuPgn: undefined,
-            rawGameLog: undefined,
-            // Strip spectator list and lobby owner: both carry real usernames/ids
-            // that the player-id replace below never touches, which would leak
-            // real identities into the served .swureplay (anonymization guarantee).
-            spectators: undefined,
-            owner: undefined,
-        };
-
-        // Deep-replace real player IDs (controllerId, ownerId, map keys, etc.)
-        // throughout the snapshot. Match whole values/keys exactly rather than by
-        // substring: that anonymizes short guest/anonymous account IDs too (which
-        // the old length>=8 substring guard silently skipped, leaking them) without
-        // any risk of corrupting unrelated JSON that merely contains the ID.
-        try {
-            const idToLabel = new Map<string, string>();
-            for (let i = 0; i < players.length; i++) {
-                idToLabel.set(players[i].id, `Player ${i + 1}`);
-            }
-            const replaceIds = (value: any): any => {
-                if (typeof value === 'string') {
-                    return idToLabel.get(value) ?? value;
-                }
-                if (Array.isArray(value)) {
-                    return value.map(replaceIds);
-                }
-                if (value !== null && typeof value === 'object') {
-                    const out: Record<string, any> = {};
-                    for (const [key, val] of Object.entries(value)) {
-                        out[idToLabel.get(key) ?? key] = replaceIds(val);
-                    }
-                    return out;
-                }
-                return value;
-            };
-            // Round-trip through JSON first to drop `undefined` keys and any class
-            // instances, then walk the plain object replacing IDs by exact match.
-            return replaceIds(JSON.parse(JSON.stringify(result)));
-        } catch {
-            return result; // Fall back to partially-anonymized state if serialization fails
-        }
-    }
-
-    public get cachedRawGameLog(): string | undefined {
-        return this._cachedRawGameLog;
-    }
-
-    public get cachedSwuPgn(): string | undefined {
-        return this._cachedSwuPgn;
-    }
-
-    public get cachedSwuReplay(): string | undefined {
-        return this._cachedSwuReplay;
-    }
-
     // ── SWU-PGN/1.1 (single-file, event-sourced) ──────────────────────────────
     //
-    // New generator wired alongside the v1.0 PgnReplayRecorder. Both recorders run
-    // in parallel for now; the v1.0 dual-file path is retired in a later task. This
-    // path produces ONE self-contained `.swupgn` (header + decks + setup + events)
+    // This path produces ONE self-contained `.swupgn` (header + decks + setup + events)
     // that the 1.1 reader parses/validates/folds/renders.
 
     /**
-     * Stable SET#NUM[:copy] id for an engine card *instance* uuid, mirroring the v1.0
-     * PgnReplayRecorder derivation: the printed id (set#number) is the base, and the
+     * Stable SET#NUM[:copy] id for an engine card *instance* uuid: the printed id
+     * (set#number) is the base, and the
      * first instance keeps the bare base while subsequent instances of the same printed
      * id get a `:N` copy suffix. Deterministic and stable within a single game (memoized
      * by uuid). Returns 'unknown' when no instance/printed identity is resolvable.
@@ -1049,45 +914,12 @@ export class Game extends EventEmitter {
         });
     }
 
-    /** Cached single-file `.swupgn`; generated on demand if not already cached (lazy, mirrors v1.0). */
+    /** Cached single-file `.swupgn`; generated on demand if not already cached (lazy). */
     public getCachedSwuPgn(): string {
         if (this._cachedSwuPgnFile == null) {
             this._cachedSwuPgnFile = this.generateSwuPgnFile();
         }
         return this._cachedSwuPgnFile;
-    }
-
-    /**
-     * Builds the PGN header from game state and player info.
-     */
-    private buildPgnHeader(player1: Player, player2: Player): IPgnHeader {
-        const now = new Date();
-        const date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
-
-        let result: string;
-        if (this.winnerNames.length === 0) {
-            result = 'Incomplete';
-        } else if (this.winnerNames.length > 1) {
-            result = 'Draw';
-        } else if (this.winnerNames[0] === player1.name) {
-            result = 'P1 Win';
-        } else {
-            result = 'P2 Win';
-        }
-
-        return {
-            game: PGN_FORMAT_VERSION,
-            date,
-            player1: 'Player 1',
-            player2: 'Player 2',
-            p1Leader: SwuPgn.formatCardName(player1.deckLeader.title, player1.deckLeader.subtitle),
-            p1Base: SwuPgn.formatCardName(player1.base.title, player1.base.subtitle),
-            p2Leader: SwuPgn.formatCardName(player2.deckLeader.title, player2.deckLeader.subtitle),
-            p2Base: SwuPgn.formatCardName(player2.base.title, player2.base.subtitle),
-            result,
-            reason: this.gameEndReasonString(this.gameEndReason),
-            rounds: String(this.roundNumber),
-        };
     }
 
     /**
@@ -1104,99 +936,6 @@ export class Game extends EventEmitter {
             default:
                 return 'Unknown';
         }
-    }
-
-    /**
-     * Resolves a set code (e.g. "SOR_095") to a display name using the card map.
-     */
-    private resolveCardName(setCode: string): string {
-        const cardMap = this.cardDataGetter.cardMap;
-        const setCodeMap = this.cardDataGetter.setCodeMap;
-        const internalId = setCodeMap.get(setCode);
-        if (internalId) {
-            const entry = cardMap.get(internalId);
-            if (entry) {
-                return SwuPgn.formatCardName(entry.title, entry.subtitle);
-            }
-        }
-        return setCode;
-    }
-
-    /**
-     * Converts an array of deck entries (from Deck.getDecklist()) to PGN card index entries.
-     */
-    private buildCardEntries(entries: { id: string; count: number }[]): IPgnCardIndexEntry[] {
-        const result: IPgnCardIndexEntry[] = [];
-        for (const entry of entries) {
-            if (entry.count === 0) {
-                continue;
-            }
-            const setIdParts = entry.id.split('_');
-            const setId = setIdParts.length === 2
-                ? SwuPgn.formatSetId(setIdParts[0], Number(setIdParts[1]))
-                : entry.id;
-            result.push({
-                name: this.resolveCardName(entry.id),
-                setId,
-                count: entry.count,
-            });
-        }
-        return result;
-    }
-
-    /**
-     * Builds the decklist object for one player using the lobby Deck for accurate counts and sideboard.
-     */
-    private buildPlayerDecklist(player: Player): IPgnPlayerDecklist {
-        const leaderSetId = SwuPgn.formatSetId(player.deckLeader.setId.set, player.deckLeader.setId.number);
-        const baseSetId = SwuPgn.formatSetId(player.base.setId.set, player.base.setId.number);
-
-        const lobbyDeck = player.lobbyDeck;
-        let deck: IPgnCardIndexEntry[] = [];
-        let sideboard: IPgnCardIndexEntry[] | undefined;
-
-        if (lobbyDeck) {
-            const decklistData = lobbyDeck.getDecklist();
-            deck = this.buildCardEntries(decklistData.deck);
-            if (decklistData.sideboard && decklistData.sideboard.length > 0) {
-                sideboard = this.buildCardEntries(decklistData.sideboard);
-            }
-        } else {
-            // Fallback: use allCards if lobby deck is unavailable
-            const deckMap = new Map<string, IPgnCardIndexEntry>();
-            for (const card of player.allCards) {
-                if (card.isLeader() || card.isBase() || card.isToken()) {
-                    continue;
-                }
-                const cardSetId = SwuPgn.formatSetId(card.setId.set, card.setId.number);
-                const existing = deckMap.get(cardSetId);
-                if (existing) {
-                    existing.count++;
-                } else {
-                    deckMap.set(cardSetId, {
-                        name: SwuPgn.formatCardName(card.title, card.subtitle),
-                        setId: cardSetId,
-                        count: 1,
-                    });
-                }
-            }
-            deck = Array.from(deckMap.values());
-        }
-
-        return {
-            leader: {
-                name: SwuPgn.formatCardName(player.deckLeader.title, player.deckLeader.subtitle),
-                setId: leaderSetId,
-                count: 1,
-            },
-            base: {
-                name: SwuPgn.formatCardName(player.base.title, player.base.subtitle),
-                setId: baseSetId,
-                count: 1,
-            },
-            deck,
-            sideboard,
-        };
     }
 
     /**
@@ -1531,24 +1270,20 @@ export class Game extends EventEmitter {
         }
         this.finishedAt = new Date();
 
-        // Record game end in replay data
-        const endPlayer = winners.length === 1
-            ? (winners[0] === this.getPlayers()[0] ? 'Player 1' : 'Player 2')
-            : undefined;
-        this._replayRecorder.addGameEndRecord(endPlayer ?? 'Draw', this.gameEndReasonString(reasonCode));
+        // Record game end in the SWU-PGN/1.1 event stream.
+        const winnerSeat: Seat | 'Draw' = winners.length === 1
+            ? (winners[0] === this.getPlayers()[0] ? 1 : 2)
+            : 'Draw';
+        this._swuPgnRecorder.addGameEndRecord(winnerSeat, this.gameEndReasonString(reasonCode));
 
         try {
-            this._cachedRawGameLog = this.getRawGameLog();
-            const gameFiles = this.generateGameFiles();
-            this._cachedSwuPgn = gameFiles.swuPgn;
-            this._cachedSwuReplay = gameFiles.swuReplay;
-            // New single-file 1.1 path, cached alongside the v1.0 artifacts.
+            // Single-file 1.1 artifact, cached at game end.
             this._cachedSwuPgnFile = this.generateSwuPgnFile();
             // NOTE: do NOT clear the recorder's raw arrays here. A player can undo
             // past game-end (handleUndoGameEnd): that rolls back winnerNames so the
-            // game re-opens, nulls these caches (postRollbackOperations), and lets
-            // the game re-end later. If the records were cleared, the regenerated
-            // files would contain only the post-undo tail and the rest of the game
+            // game re-opens, nulls this cache (postRollbackOperations), and lets
+            // the game re-end later. If the events were cleared, the regenerated
+            // file would contain only the post-undo tail and the rest of the game
             // would be lost. The arrays are bounded by game length and are freed
             // when the lobby tears down the Game object.
         } catch (e) {
@@ -2652,19 +2387,12 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
-        // Roll the replay recorder back to match the restored game state: drop exactly
-        // the records produced after the snapshot we rolled back to, keeping the rest of
-        // the recorded game. currentSnapshotId already reflects the restored snapshot here.
-        // (Earlier this called a full reset(), which wiped the ENTIRE recorded game on any undo.)
-        this._replayRecorder.rollbackTo(this._snapshotManager.currentSnapshotId);
-        // Mirror the rollback on the new SWU-PGN/1.1 recorder: it checkpoints lazily per
-        // snapshot id (in SwuPgnRecorder.push), so rolling back to the restored snapshot id
-        // drops exactly the events recorded after it and restores counters + shieldParents.
+        // Roll the SWU-PGN/1.1 recorder back to match the restored game state: it
+        // checkpoints lazily per snapshot id (in SwuPgnRecorder.push), so rolling back to
+        // the restored snapshot id drops exactly the events recorded after it and restores
+        // counters + shieldParents. currentSnapshotId already reflects the restored snapshot.
         this._swuPgnRecorder.rollbackTo(this._snapshotManager.currentSnapshotId);
-        this._cachedSwuPgn = undefined;
-        this._cachedSwuReplay = undefined;
         this._cachedSwuPgnFile = undefined;
-        this._cachedRawGameLog = undefined;
 
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();

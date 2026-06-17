@@ -2407,7 +2407,7 @@ export class Lobby {
         }
     }
 
-    public getGameLog(socket: any, callback: (data: { rawLog: string; swuPgn: string; swuReplay: string; swuPgnFile?: string } | { error: string }) => void): void {
+    public getGameLog(socket: any, callback: (data: { swuPgnFile?: string } | { error: string }) => void): void {
         if (!this.game) {
             if (typeof callback === 'function') {
                 callback({ error: 'No active game' });
@@ -2428,13 +2428,8 @@ export class Lobby {
         }
 
         try {
-            const rawLog = this.game.cachedRawGameLog ?? this.game.getRawGameLog();
-            const gameFiles = this.game.cachedSwuPgn && this.game.cachedSwuReplay
-                ? { swuPgn: this.game.cachedSwuPgn, swuReplay: this.game.cachedSwuReplay }
-                : this.game.generateGameFiles();
-
-            // Additive: the new self-contained SWU-PGN/1.1 single-file artifact, served
-            // alongside the v1.0 dual-file fields (which a later task retires).
+            // The self-contained SWU-PGN/1.1 single-file artifact (header + decks +
+            // setup + events) is the sole served game-log format.
             let swuPgnFile: string | undefined;
             try {
                 swuPgnFile = this.game.getCachedSwuPgn();
@@ -2443,7 +2438,7 @@ export class Lobby {
             }
 
             if (typeof callback === 'function') {
-                callback({ rawLog, swuPgn: gameFiles.swuPgn, swuReplay: gameFiles.swuReplay, swuPgnFile });
+                callback({ swuPgnFile });
             }
         } catch (e) {
             logger.error(`Error generating game log: ${e}`);
