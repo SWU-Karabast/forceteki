@@ -20,7 +20,7 @@ describe('SWU-PGN/1.1 recorder undo handling', function() {
         undoIt('drops the undone action from the 1.1 event stream but keeps prior history', function () {
             const { context } = contextRef;
             const game: any = context.game;
-            const recorder: any = game._swuPgnRecorder;
+            const recorder: any = game._swuPgnAdapter.getRecorder();
 
             const eventsBeforeAction = recorder.getEvents().length;
 
