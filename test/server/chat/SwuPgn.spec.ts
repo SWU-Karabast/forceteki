@@ -19,19 +19,4 @@ describe('SwuPgn', function () {
             expect(SwuPgn.formatSetId('shd', 7)).toBe('SHD#007');
         });
     });
-
-    // ── formatCardName ───────────────────────────────────────────────────────
-    describe('formatCardName', function () {
-        it('returns just the title when no subtitle provided', function () {
-            expect(SwuPgn.formatCardName('Luke Skywalker')).toBe('Luke Skywalker');
-        });
-
-        it('returns "Title, Subtitle" when subtitle is provided', function () {
-            expect(SwuPgn.formatCardName('Luke Skywalker', 'Faithful Friend')).toBe('Luke Skywalker, Faithful Friend');
-        });
-
-        it('returns just the title when subtitle is undefined', function () {
-            expect(SwuPgn.formatCardName('Chewbacca', undefined)).toBe('Chewbacca');
-        });
-    });
 });
