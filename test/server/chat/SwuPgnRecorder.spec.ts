@@ -321,6 +321,12 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         const acts = events.filter((e: any) => e.t === 'ABILITY_ACTIVATE');
         expect(acts.length).toBe(1);
         expect((acts[0] as any).ability).toBe('SOR#300_action');
+
+        // The collapse reuses the trigger's seq slot, so it leaves no gap: a following sub-event
+        // is contiguous with the ABILITY_ACTIVATE rather than skipping a seq number.
+        game.emit(EventName.OnCardExhausted, { card: unit });
+        expect((acts[0] as any).seq).toBe('R1.A.0a');
+        expect((events.find((e: any) => e.t === 'EXHAUST') as any).seq).toBe('R1.A.0b');
     });
 
     it('collapses the pair regardless of emission order (ABILITY_ACTIVATE before TRIGGER)', function () {

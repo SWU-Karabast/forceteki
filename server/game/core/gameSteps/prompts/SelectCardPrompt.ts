@@ -277,7 +277,10 @@ export class SelectCardPrompt extends UiPrompt {
      */
     private emitCardSelection() {
         try {
-            if (this.selectedCards.length !== 1) {
+            // Administrative/system prompts opt out via pgnLog:false (parity with HandlerMenuPrompt's
+            // MODAL_CHOICE gate). Only single-card selections are recorded — see the recorder's CHOICE
+            // handler, which models one pick.
+            if (this.properties.pgnLog === false || this.selectedCards.length !== 1) {
                 return;
             }
             this.game.emit(EventName.OnCardSelection, {

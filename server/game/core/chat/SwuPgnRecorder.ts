@@ -912,12 +912,17 @@ export class SwuPgnRecorder {
                 const cardId = this.idOf(card);
                 const player = card?.controller ?? card?.owner;
                 const ability = event?.ability?.abilityIdentifier;
-                // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes it.
+                // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes
+                // it. Reuse the popped TRIGGER's seq for this record (rather than allocating a fresh
+                // one) so the collapse leaves no skipped seq number behind it.
                 const last = this.events[this.events.length - 1];
+                let seq: string;
                 if (last && last.t === 'TRIGGER' && (last as any).card === cardId) {
+                    seq = last.seq;
                     this.events.pop();
+                } else {
+                    seq = this.nextSeq(false);
                 }
-                const seq = this.nextSeq(false);
                 this.push({
                     seq,
                     t: 'ABILITY_ACTIVATE',
