@@ -16,7 +16,7 @@ export default class ElzarMannHauntedByAVision extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: 'While you control a Force leader, this unit enters play ready',
             sourceZoneFilter: WildcardZoneName.Any,
-            condition: (context) => context.player.leader.hasSomeTrait(Trait.Force),
+            condition: (context) => context.player.hasSomeLeaderCard({ trait: Trait.Force }),
             ongoingEffect: OngoingEffectBuilder.card.static(EffectName.EntersPlayReady)
         });
 

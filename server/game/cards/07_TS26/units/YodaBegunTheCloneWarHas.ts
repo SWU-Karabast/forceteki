@@ -30,7 +30,7 @@ export default class YodaBegunTheCloneWarHas extends NonLeaderUnitCard {
                 title: 'Give it Sentinel for this phase',
                 immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel }),
-                    target: thenContext.events[0].generatedTokens
+                    target: thenContext.resolvedEvents[0]?.generatedTokens
                 })
             })
         });

@@ -1,0 +1,9 @@
+# 1. Ignore everything by default
+*
+
+# 2. Allowlist specific folders
+!/build
+!/server
+!/test/json
+!/node_modules
+!/package*.json

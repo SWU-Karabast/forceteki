@@ -6,7 +6,8 @@ import type { CostAdjuster } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
 import { Contract } from './utils/Contract';
-import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
+import type { Aspect, KeywordName, MoveZoneDestination, Trait } from './Constants';
+import { CardType } from './Constants';
 import {
     AlertType,
     ChatObjectType,
@@ -54,6 +55,7 @@ import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
 import { registerState, stateRefArray, stateRef, stateValue, type GameObjectId } from './GameObjectUtils';
+import type { IInPlayZoneCardFilterProperties } from './zone/ConcreteOrMetaArenaZone';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectId<HandZone>;
@@ -133,9 +135,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this._deckZone;
     }
 
-    @stateRef() private accessor _leader: ILeaderCard | null = null;
-    public get leader(): ILeaderCard {
-        return this._leader;
+    @stateRef() private accessor _deckLeader: ILeaderCard | null = null;
+    public get deckLeader(): ILeaderCard {
+        return this._deckLeader;
     }
 
     @stateRef() private accessor _base: IBaseCard | null = null;
@@ -285,6 +287,26 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.game.allArenas.getCards({ ...filter, controller: this });
     }
 
+    public getInPlayCards(filter: IInPlayZoneCardFilterProperties = {}) {
+        const arenaCards = this.game.allArenas.getCards({ ...filter, controller: this });
+        const baseZoneCards = this.baseZone.getCards(filter);
+
+        return [...arenaCards, ...baseZoneCards];
+    }
+
+    public hasSomeInPlayCard(filter: IInPlayZoneCardFilterProperties = {}) {
+        return this.getInPlayCards(filter).length > 0;
+    }
+
+    public getLeaderCards(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        const leaderFilter = [WildcardCardType.LeaderUnit, CardType.Leader, CardType.LeaderUpgrade];
+        return this.getInPlayCards({ ...filter, type: leaderFilter });
+    }
+
+    public hasSomeLeaderCard(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        return this.getLeaderCards(filter).length > 0;
+    }
+
     /**
      * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
      */
@@ -329,9 +351,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
     public controlsLeaderUnitOrUpgradeWithTitle(title: string): boolean {
-        return this.leader.title === title ||
-          this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
-          this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
+        return this.hasSomeInPlayCard({ condition: (card) => card.title === title });
     }
 
     /**
@@ -341,7 +361,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @returns { boolean } true if this player controls a card with the trait
      */
     public controlsCardWithTrait(trait: Trait, onlyUnique: boolean = false, otherThan: Card = undefined): boolean {
-        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({
+        return this.hasSomeInPlayCard({
             condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)),
             otherThan: otherThan
         });
@@ -744,7 +764,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         const preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
         this._base = this.game.getFromId(preparedDecklist.base);
-        this._leader = this.game.getFromId(preparedDecklist.leader);
+        this._deckLeader = this.game.getFromId(preparedDecklist.leader);
 
         this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromId(x)));
 
@@ -762,7 +782,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this._baseZone = new BaseZone(this.game, this, this.base, this.leader);
+        this._baseZone = new BaseZone(this.game, this, this.base, this.deckLeader);
 
         this._decklist = preparedDecklist;
     }
@@ -822,17 +842,25 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     /**
-     * Returns the aspects for this player (derived from base, leader, and any
-     * active `ProvidesAspects` ongoing effects on this player — e.g. The
+     * Returns the aspects for this player used for calculating costs (derived from base,
+     * leader, and any active `ProvidesAspectsForCosts` ongoing effects on this player — e.g. The
      * Darksaber, Icon of Leadership).
      */
-    public getAspects() {
-        const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspects);
+    public getAspectsForCosts() {
+        const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspectsForCosts);
         return [
-            ...this.leader.aspects,
+            ...this.deckLeader.aspects,
             ...this.base.aspects,
             ...provided.flat(),
         ];
+    }
+
+    /**
+     * Returns the aspects for this player's deck (derived from base and leader only, not including
+     * any active `ProvidesAspectsForCosts` ongoing effects on this player).
+     */
+    public getDeckAspects() {
+        return [...this.deckLeader.aspects, ...this.base.aspects];
     }
 
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
@@ -840,7 +868,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             return [];
         }
 
-        const playerAspects = this.getAspects();
+        const playerAspects = this.getAspectsForCosts();
 
         const penaltyAspects = [];
         for (const aspect of costAspects) {
@@ -1205,7 +1233,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.leader?.getSummary(activePlayer),
+            leader: this.deckLeader?.getSummary(activePlayer),
             base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
@@ -1218,7 +1246,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             promptState: promptState,
             isActionPhaseActivePlayer,
             clock: undefined,
-            aspects: this.getAspects(),
+            aspects: this.getDeckAspects(),
             forceToken: this.getForceTokenSummary(),
             credits: this.getCreditsSummary(activePlayer),
             turnTimeRemainingSeconds: this.actionTimer.turnTimeRemainingSeconds,
@@ -1338,7 +1366,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             }
 
             // Leader
-            state.leader = Helpers.safeSerialize(this.game, () => this.leader.captureCardState(), null);
+            state.leader = Helpers.safeSerialize(this.game, () => this.deckLeader.captureCardState(), null);
 
             // Base
             state.base = Helpers.safeSerialize(this.game, () => this.base.captureCardState(), null);

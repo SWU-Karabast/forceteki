@@ -29,6 +29,7 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
 
                 return `Defeat ${context.source.title} to create ${amount * 2} ${EnumHelpers.tokenTitle[tokenType]} tokens instead`;
             },
+            appendOverrideTitle: true,
             optional: true,
             when: {
                 onTokensCreated: (event, context) =>
