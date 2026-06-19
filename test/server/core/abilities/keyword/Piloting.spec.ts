@@ -394,5 +394,20 @@ describe('Piloting keyword', function() {
             expect(context.player1.readyResourceCount).toBe(p1Resources - 5);
             expect(context.daggerSquadronPilot).toBeInZone('groundArena');
         });
+
+        // Ruling (JTL): when a Pilot leader deploys as an upgrade and grants leader status to the
+        // attached unit, it does not alter the aspects provided by your deck construction (the
+        // deckbuilding aspect bonus from your leader is unaffected).
+        xit('a Pilot leader granting leader status as an upgrade does not alter deck-construction aspects', function () {
+            // Deploy a Pilot leader as an upgrade that grants "Attached unit is a leader unit". The
+            // aspect penalties/bonuses derived from deck construction should remain unchanged.
+        });
+
+        // Ruling 2025: a Pilot attached as an upgrade does not grant its own traits to the attached
+        // unit unless the card explicitly states so.
+        xit('a pilot upgrade does not grant its traits to the attached unit unless explicitly stated', function () {
+            // Attach a Pilot (with a distinctive trait) as an upgrade to a vehicle. The vehicle should
+            // not gain the pilot's traits, so trait-based effects targeting that trait do not see it.
+        });
     });
 });

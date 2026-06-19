@@ -1978,5 +1978,16 @@ describe('Clone', function() {
                 expect(context.nienNunb.getPower()).toBe(2);
             });
         });
+
+        describe('when defeated by an ability that cares about its name', function () {
+            // Ruling 2025-03-25: LKI covers attributes like names, so an ability that defeats a Clone
+            // and then discards same-named cards (e.g. JTL Annihilator) searches for the name of the
+            // card the Clone was copying while in play, not "Clone".
+            xit('is treated by Annihilator as having the name of the copied card (LKI)', function () {
+                // A Clone in play is copying a named unit (e.g. Chewbacca). Annihilator's When Played
+                // defeats the Clone, then discards cards sharing the copied card's name (Chewbacca)
+                // from the opponent's hand/deck — not cards named "Clone".
+            });
+        });
     });
 });
