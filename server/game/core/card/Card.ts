@@ -1391,9 +1391,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         const selectionState = activePlayer.getCardSelectionState(this);
         const shouldBeHidden = this.zone.hiddenForPlayers === WildcardRelativePlayer.Any ||
           (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent);
-        const aspectPenaltyCost = this.zoneName === ZoneName.Hand && isActivePlayer
-            ? activePlayer.getPenaltyAspects(this.aspects).length * 2
-            : 0;
+        const aspectPenaltyAspects = this.zoneName === ZoneName.Hand && isActivePlayer
+            ? activePlayer.getPenaltyAspects(this.aspects)
+            : [];
 
         // Check if card is blocked from play by opponent effect (for lock icon display)
         const context = new AbilityContext({
@@ -1421,7 +1421,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 printedType: this.printedType,
                 isBlanked: this.isBlank(),
                 blockedFromPlayReason,
-                aspectPenaltyCost: aspectPenaltyCost || undefined,
+                aspectPenaltyAspects: aspectPenaltyAspects.length > 0 ? aspectPenaltyAspects : undefined,
                 ...selectionState
             };
 
