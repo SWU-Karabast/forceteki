@@ -213,6 +213,17 @@ describe('Sneak Attack', function() {
                 context.nextPhase();
                 expect(context.sabineWren).toBeInZone('groundArena');
             });
+
+            // Ruling 2026-05-06: the start of the regroup phase is a single moment in time. If a unit
+            // is rescued at that moment (because Sneak Attack's delayed effect defeats the guarding
+            // unit), it is not in play in time to see the "when the regroup phase starts" trigger window,
+            // so its own start-of-regroup ability does not trigger.
+            xit('does not trigger a rescued unit\'s "when the regroup phase starts" ability when it is freed at regroup start', function () {
+                // Play Discerning Veteran via Sneak Attack, capturing an enemy Contracted Hunter. At the
+                // start of the regroup phase, Sneak Attack's delayed effect defeats Discerning Veteran,
+                // rescuing Contracted Hunter at that same moment. Contracted Hunter's "When the regroup
+                // phase starts: Defeat this unit" does NOT trigger, since it was not in play to see it.
+            });
         });
     });
 });
