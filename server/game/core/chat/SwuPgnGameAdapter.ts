@@ -186,10 +186,28 @@ export class SwuPgnGameAdapter {
         return id;
     }
 
-    /** Map an engine player id → Seat (players[0] → 1, players[1] → 2). */
+    /** Seat-2's player id, cached once both players are seated (see swuPgnSeat). */
+    private cachedPlayer2Id?: string;
+
+    /**
+     * Map an engine player id → Seat (players[0] → 1, players[1] → 2).
+     *
+     * This is on the per-event hot path (most recorder handlers resolve a seat), and runs in every
+     * game on a shared server. `Game.getPlayers()` allocates via `Object.values(...).filter(...)` on
+     * every call, so we cache seat-2's id the first time both players are present and compare ids
+     * directly thereafter — turning the per-event cost from two array allocations into one string
+     * compare. The mapping is fixed for the life of a game, so the cache never needs invalidation.
+     */
     private swuPgnSeat(playerId: string): Seat {
-        const players = this.game.getPlayers();
-        return players[1] && players[1].id === playerId ? 2 : 1;
+        if (this.cachedPlayer2Id === undefined) {
+            const players = this.game.getPlayers();
+            if (players.length < 2) {
+                // Pre-setup: both seats not assigned yet; resolve live without caching.
+                return players[1] && players[1].id === playerId ? 2 : 1;
+            }
+            this.cachedPlayer2Id = players[1].id;
+        }
+        return playerId === this.cachedPlayer2Id ? 2 : 1;
     }
 
     // ── Omniscient board → 1.1 projections ──────────────────────────────────────
