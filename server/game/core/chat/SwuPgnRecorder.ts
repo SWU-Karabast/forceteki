@@ -1,5 +1,5 @@
 import type { Game } from '../Game';
-import { EventName, PhaseName } from '../Constants';
+import { CardType, EventName, PhaseName, PlayType, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
 import type { Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
@@ -333,8 +333,8 @@ export class SwuPgnRecorder {
      */
     private normalizeZone(zoneName: string | undefined): string {
         switch (zoneName) {
-            case 'groundArena': return 'ground';
-            case 'spaceArena': return 'space';
+            case ZoneName.GroundArena: return 'ground';
+            case ZoneName.SpaceArena: return 'space';
             default: return zoneName ?? '';
         }
     }
@@ -506,11 +506,17 @@ export class SwuPgnRecorder {
                 const playType: string = event?.playType ?? '';
                 const printedType: string = card?.printedType ?? '';
                 let t: GameEvent['t'] = 'PLAY';
-                if (printedType === 'event') {
+                if (printedType === CardType.Event) {
                     t = 'PLAY_EVENT';
-                } else if (playType === 'piloting' || printedType === 'basicUpgrade' || printedType === 'leaderUpgrade' || printedType === 'tokenUpgrade' || printedType === 'nonLeaderUnitUpgrade') {
+                } else if (
+                    playType === PlayType.Piloting ||
+                    printedType === CardType.BasicUpgrade ||
+                    printedType === CardType.LeaderUpgrade ||
+                    printedType === CardType.TokenUpgrade ||
+                    printedType === CardType.NonLeaderUnitUpgrade
+                ) {
                     t = 'PLAY_UPGRADE';
-                } else if (playType === 'smuggle') {
+                } else if (playType === PlayType.Smuggle) {
                     t = 'PLAY_SMUGGLE';
                 }
                 const seq = this.nextSeq(true);
