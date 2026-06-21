@@ -520,7 +520,10 @@ export class SwuPgnRecorder {
                     p: this.seatOf(player),
                     card: this.idOf(card),
                     zone: this.normalizeZone(card?.zoneName),
-                    cost: typeof event?.cost === 'number' ? event.cost : undefined,
+                    // The OnCardPlayed/OnLeaderDeployed event carries `costs` (resolved cost objects),
+                    // not a numeric `cost`; read the card's effective cost instead so the notation
+                    // records a real resource cost rather than always-undefined.
+                    cost: typeof card?.cost === 'number' ? card.cost : undefined,
                 } as GameEvent);
             } catch (error) {
                 this.logError('OnCardPlayed', error);
@@ -538,7 +541,10 @@ export class SwuPgnRecorder {
                     p: this.seatOf(player),
                     card: this.idOf(card),
                     zone: this.normalizeZone(card?.zoneName),
-                    cost: typeof event?.cost === 'number' ? event.cost : undefined,
+                    // The OnCardPlayed/OnLeaderDeployed event carries `costs` (resolved cost objects),
+                    // not a numeric `cost`; read the card's effective cost instead so the notation
+                    // records a real resource cost rather than always-undefined.
+                    cost: typeof card?.cost === 'number' ? card.cost : undefined,
                 });
             } catch (error) {
                 this.logError('OnLeaderDeployed', error);
@@ -835,12 +841,24 @@ export class SwuPgnRecorder {
             try {
                 const tokens: any[] = event?.generatedTokens ?? [];
                 for (const token of tokens) {
+                    // Only UNIT tokens are arena cards in the fold. OnTokensCreated also fires for
+                    // token-upgrades (shield/experience/advantage — recorded via OnUpgradeAttached as
+                    // SHIELD_GAIN/EXPERIENCE_GAIN/STATUS_TOKEN) and for credit/force tokens, none of
+                    // which are arena units; emitting CREATE_TOKEN for them would push a phantom card
+                    // into the folded board.
+                    if (typeof token?.isUnit !== 'function' || !token.isUnit()) {
+                        continue;
+                    }
                     const seq = this.nextSeq(false);
                     this.push({
                         seq,
                         t: 'CREATE_TOKEN',
                         p: this.seatOf(token?.owner),
-                        token: token?.title ?? token?.name ?? 'unknown',
+                        // Stable SET#NUM[:copy]/TOKEN:<name> id, consistent with the later MOVE/DAMAGE/
+                        // EXHAUST events that reference this token (those use idOf too). Emitting the
+                        // display title here instead would alias same-name tokens and orphan every
+                        // subsequent token event from this card in the fold.
+                        token: this.idOf(token),
                         zone: this.normalizeZone(token?.zoneName),
                         power: typeof token?.getPower === 'function' ? token.getPower() : undefined,
                         hp: typeof token?.getHp === 'function' ? token.getHp() : undefined,

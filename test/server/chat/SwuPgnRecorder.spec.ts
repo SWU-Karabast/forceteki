@@ -60,7 +60,7 @@ class FakeEmitter {
 }
 
 // Minimal fake engine card. `cardId` resolver maps uuid -> stable id; here uuid === id.
-function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number; owner?: any; controller?: any; printedType?: string; isBase?: boolean; isShield?: boolean; isExperience?: boolean; isAdvantage?: boolean; title?: string }) {
+function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number; owner?: any; controller?: any; printedType?: string; isBase?: boolean; isShield?: boolean; isExperience?: boolean; isAdvantage?: boolean; title?: string; cost?: number }) {
     return {
         uuid: opts.uuid,
         zoneName: opts.zoneName ?? '',
@@ -69,6 +69,7 @@ function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number;
         controller: opts.controller ?? opts.owner,
         printedType: opts.printedType ?? 'unit',
         title: opts.title ?? opts.uuid,
+        cost: opts.cost,
         isBase: () => opts.isBase === true,
         isShield: () => opts.isShield === true,
         isExperience: () => opts.isExperience === true,
@@ -195,6 +196,40 @@ describe('SwuPgnRecorder gap events: board mutations', function () {
         expect(card!.zone).toBe('space');        // MOVE normalized to 'space'
         expect(card!.shields).toBe(0);           // +1 then -1
         expect(s.players[2]!.baseHp).toBe(27);   // OVERWHELM (or overwhelm-damage) snapped base
+    });
+});
+
+describe('SwuPgnRecorder: token creation and play cost', function () {
+    it('emits CREATE_TOKEN only for unit tokens, with a stable idOf (skips upgrade/credit tokens)', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const cloneToken = { uuid: 'TOKEN:Clone', owner: p1, controller: p1, zoneName: 'groundArena', isUnit: () => true, getPower: () => 0, getHp: () => 0 };
+        const shieldToken = { uuid: 'shield-1', owner: p1, controller: p1, isUnit: () => false };
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnTokensCreated, { generatedTokens: [cloneToken, shieldToken] });
+
+        const creates = rec.getEvents().filter((e: any) => e.t === 'CREATE_TOKEN');
+        expect(creates.length).toBe(1);                        // only the unit token
+        expect((creates[0] as any).token).toBe('TOKEN:Clone'); // stable id, consistent with later refs
+        expect((creates[0] as any).zone).toBe('ground');
+    });
+
+    it('records the play cost from card.cost (the event has no numeric cost field)', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#108', owner: p1, zoneName: 'groundArena', cost: 3 });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        // Real OnCardPlayed payload carries `costs` (objects), not a numeric `cost`.
+        game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play', costs: [{}] });
+
+        const play = rec.getEvents().find((e: any) => e.t === 'PLAY');
+        expect((play as any).cost).toBe(3);
     });
 });
 

@@ -154,3 +154,59 @@ describe('fold event coverage', function () {
         expect(c.statusTokens.stun).toBe(1);
     });
 });
+
+describe('fold event coverage — regression gaps', function () {
+    it('a unit token folds to a SINGLE arena card across CREATE_TOKEN, DAMAGE, EXHAUST (consistent id)', function () {
+        // Regression: the recorder once emitted CREATE_TOKEN with the bare display title while every
+        // later token event used the stable TOKEN:<name> id, producing a phantom card plus an orphaned
+        // damaged/exhausted instance. With consistent ids it must be exactly one card carrying both.
+        const s = fold([
+            { seq: 'R1.A.1', t: 'CREATE_TOKEN', p: 1, token: 'TOKEN:Clone', zone: 'ground' },
+            { seq: 'R1.A.1a', t: 'DAMAGE', src: 'X', tgt: 'TOKEN:Clone', amt: 2, damageType: 'combat', hp: 0 },
+            { seq: 'R1.A.1b', t: 'EXHAUST', card: 'TOKEN:Clone' },
+        ] as any);
+        const clones = s.players[1]!.cards.filter((c) => c.id === 'TOKEN:Clone');
+        expect(clones.length).toBe(1);
+        expect(clones[0].damage).toBe(2);
+        expect(clones[0].exhausted).toBe(true);
+    });
+
+    it('SHIELD_USE decrements shields (clamped at 0)', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground' },
+            { seq: 'R1.A.2', t: 'SHIELD_GAIN', card: 'SOR#108', count: 2 },
+            { seq: 'R1.A.3', t: 'SHIELD_USE', card: 'SOR#108', count: 1 },
+        ] as any);
+        // Must end non-zero so a broken (no-op) SHIELD_USE can't pass: 2 gained, 1 used → 1.
+        expect(s.players[1]!.cards.find((c) => c.id === 'SOR#108')!.shields).toBe(1);
+    });
+
+    it('HEAL on a base raises baseHp to the reported value', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'DAMAGE', src: 'X', tgt: 'base@2', amt: 10, damageType: 'combat', hp: 20 },
+            { seq: 'R1.A.2', t: 'HEAL', tgt: 'base@2', amt: 4, hp: 24 },
+        ] as any);
+        expect(s.players[2]!.baseHp).toBe(24);
+    });
+
+    it('READY clears the exhausted flag set by EXHAUST', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground' },
+            { seq: 'R1.A.2', t: 'EXHAUST', card: 'SOR#108' },
+            { seq: 'R1.A.3', t: 'READY', card: 'SOR#108' },
+        ] as any);
+        expect(s.players[1]!.cards.find((c) => c.id === 'SOR#108')!.exhausted).toBe(false);
+    });
+
+    it('pure-log events (CAPTURE/RESCUE/TAKE_CONTROL) leave the board unchanged', function () {
+        const base = [{ seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground' }];
+        const before = JSON.stringify(fold(base as any).players[1]!.cards);
+        const after = fold([
+            ...base,
+            { seq: 'R1.A.2', t: 'CAPTURE', p: 2, card: 'SOR#108' },
+            { seq: 'R1.A.3', t: 'RESCUE', p: 1, card: 'SOR#108' },
+            { seq: 'R1.A.4', t: 'TAKE_CONTROL', p: 2, card: 'SOR#108' },
+        ] as any).players[1]!.cards;
+        expect(JSON.stringify(after)).toBe(before);
+    });
+});
