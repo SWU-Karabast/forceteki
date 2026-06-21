@@ -1709,7 +1709,7 @@ export class Game extends EventEmitter {
      * Returns the serialized game state for a specific player/spectator.
      * Tracks message offsets internally per player/spectator for incremental message sync.
      */
-    public getState(notInactivePlayerId: string, omniscient: boolean = false) {
+    public getState(notInactivePlayerId: string) {
         const lastMessageOffset = this.chatMessageOffsets.get(notInactivePlayerId) ?? 0;
         try {
             const activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
@@ -1734,7 +1734,7 @@ export class Game extends EventEmitter {
             const playerState: Record<string, any> = {};
             if (this.started) {
                 for (const player of this.getPlayers()) {
-                    playerState[player.id] = player.getStateSummary(activePlayer, omniscient);
+                    playerState[player.id] = player.getStateSummary(activePlayer);
                 }
 
                 const allMessages = this.gameChat.messages;
