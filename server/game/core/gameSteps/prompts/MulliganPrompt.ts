@@ -63,11 +63,10 @@ export class MulliganPrompt extends AllPlayerPrompt {
             this.game.emit(EventName.OnMulliganDecision, { player, mulligan: true });
             return true;
         } else if (arg === 'keep') {
-            if (this.completionCondition(player)) {
-                return false;
-            }
             this.game.addMessage('{0} will keep their hand', player);
             this.playersDone[player.name] = true;
+            // Surface the resolved keep decision for the SWU-PGN recorder (pure-log; does not affect
+            // gameplay). The recorder maps this to KEEP_HAND.
             this.game.emit(EventName.OnMulliganDecision, { player, mulligan: false });
             return true;
         }
