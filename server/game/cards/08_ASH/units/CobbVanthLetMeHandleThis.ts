@@ -13,7 +13,8 @@ export default class CobbVanthLetMeHandleThis extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Deal 2 damage to this unit. If you do, give a Shield token to that unit',
+            title: 'Deal 2 damage to this unit to give a Shield token to that unit',
+            contextTitle: (context) => `Deal 2 damage to ${context.source.title} to give a Shield token to ${context.event.card.title}`,
             when: {
                 onCardPlayed: (event, context) =>
                     event.cardTypeWhenInPlay === CardType.BasicUnit &&
@@ -26,7 +27,7 @@ export default class CobbVanthLetMeHandleThis extends NonLeaderUnitCard {
                 target: context.source
             })),
             ifYouDo: (ifYouDoContext) => ({
-                title: 'Give a Shield token to that unit',
+                title: `Give a Shield token to ${ifYouDoContext.event.card.title}`,
                 immediateEffect: abilityHelper.immediateEffects.giveShield({ target: ifYouDoContext.event.card })
             })
         });
