@@ -156,6 +156,33 @@ describe('The Armorer, Steel Shapes Us', function () {
                 expect(context.theArmorer.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('respects the cost reduction target for Guardian of the Whills', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['remnant-official'],
+                        groundArena: ['guardian-of-the-whills'],
+                        resources: ['nimble-prowess', 'resilient', 'han-solo#hibernation-sick'],
+                        leader: 'the-armorer#steel-shapes-us'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // play Remnant Official, using up all resources
+                context.player1.clickCard(context.remnantOfficial);
+                context.player2.passAction();
+
+                // try to use The Armorer's ability to play Nimble Prowess. Shouldn't be able to play since targeting
+                // Guardian of the Whills would cost 0 but it didn't come into play this phase, so the cost reduction doesn't apply
+                context.player1.clickCard(context.theArmorer);
+                context.player1.clickPrompt('Use it anyway');
+
+                // ability resolves with no effect — no upgrade selection prompt appears
+                expect(context.theArmorer.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         describe('Leader unit side - When Attack Ends', function () {
