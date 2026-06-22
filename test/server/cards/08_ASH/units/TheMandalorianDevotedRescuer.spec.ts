@@ -381,7 +381,7 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                     player1: {
                         hand: ['open-fire'],
                         groundArena: [
-                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield'] },
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield', 'shield'] },
                             'battlefield-marine'
                         ],
                     },
@@ -417,6 +417,7 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 // Both shields consumed — Mando takes 2 damage, BFM protected
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.theMandalorian.damage).toBe(2);
+                expect(context.theMandalorian.isUpgraded()).toBeFalse(); // both shields consumed
                 expect(context.player1).toBeActivePlayer();
             });
 
