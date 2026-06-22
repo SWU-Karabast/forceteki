@@ -4,6 +4,6 @@
 # 2. Allowlist specific folders
 !/build
 !/server
-!/test/json
+!/test
 !/node_modules
 !/package*.json
