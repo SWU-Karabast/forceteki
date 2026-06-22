@@ -628,6 +628,44 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should re-evaluate the source unit\'s power when re-using a When Defeated triggered by Chimaera (Helgait)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        hand: ['chimaera#reinforcing-the-center'],
+                        groundArena: ['helgait#dooku-was-a-visionary']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Chimaera and use its When Played to trigger Helgait's When Defeated (Helgait stays in play)
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.helgait);
+
+                // First trigger: Helgait's power is 6, distribute 6 Advantage tokens all onto Helgait (now power 12)
+                expect(context.player1).toHavePrompt('Distribute 6 Advantage tokens among targets');
+                context.player1.setDistributeAmongTargetsPromptState(new Map([
+                    [context.helgait, 6]
+                ]), 'distributeAdvantage');
+                expect(context.helgait.getPower()).toBe(12);
+
+                // Thrawn re-uses Helgait's When Defeated ability
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.helgait.title));
+                context.player1.clickPrompt('Trigger');
+                expect(context.grandAdmiralThrawn.exhausted).toBe(true);
+
+                // Second trigger should see Helgait's updated power of 12, not the stale value of 6
+                expect(context.player1).toHavePrompt('Distribute 12 Advantage tokens among targets');
+                context.player1.setDistributeAmongTargetsPromptState(new Map([
+                    [context.helgait, 12]
+                ]), 'distributeAdvantage');
+                expect(context.helgait.getPower()).toBe(24);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should not trigger when playing a unit with played/defeated trigger that was defeated this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
