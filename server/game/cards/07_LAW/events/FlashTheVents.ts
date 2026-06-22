@@ -30,15 +30,18 @@ export default class FlashTheVents extends EventCard {
                     ]
                 },
             },
+            // Use ifYouDo so this only resolves once the attack has actually happened (the attacker
+            // target is resolved at that point). A `then` would also be evaluated during the
+            // playability pre-check, before an attacker is selected, with an undefined target.
             // TODO: Use after instead of then when it's implemented
-            then: (thenContext) => ({
-                title: `Defeat ${thenContext.target?.title}`,
-                thenCondition: () => this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
-                    thenContext.target,
-                    (entry) => entry.activeAttackId === thenContext.activeAttackId &&
+            ifYouDo: (ifYouDoContext) => ({
+                title: `Defeat ${ifYouDoContext.target?.title}`,
+                ifYouDoCondition: () => this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
+                    ifYouDoContext.target,
+                    (entry) => entry.activeAttackId === ifYouDoContext.activeAttackId &&
                       (entry.targets.some((target) => target.isBase()) || entry.damageType === DamageType.Overwhelm)
                 ),
-                immediateEffect: AbilityHelper.immediateEffects.defeat({ target: thenContext.target })
+                immediateEffect: AbilityHelper.immediateEffects.defeat({ target: ifYouDoContext.target })
             })
         });
     }
