@@ -23,6 +23,7 @@ import { Contract } from './utils/Contract';
 import { cards } from '../cards/Index';
 
 import {
+    AbilityType,
     AlertType,
     EffectName,
     EventName,
@@ -636,6 +637,32 @@ export class Game extends EventEmitter {
 
     public registerGlobalRulesListeners(): void {
         UnitPropertiesCard.registerRulesListeners(this);
+
+        // Advantage tokens are defeated when their attached unit's attack or defense ends.
+        // Rather than each Advantage token registering its own persistent trigger listener (which
+        // adds per-token engine overhead when many are in play), a single game-level listener
+        // handles all of them. It runs when the attack-end triggered ability window emits, finds the
+        // Advantage tokens attached to the units involved in the attack, and routes each token's
+        // defeat ability into the window like any other triggered ability. See issue #2587.
+        this.on(EventName.OnAttackEnd + ':' + AbilityType.Triggered, (event, window) => {
+            const attack = event.attack;
+            if (attack == null) {
+                return;
+            }
+
+            const involvedUnits = [attack.attacker, ...attack.getAllTargets()]
+                .filter((card) => card?.isUnit() && card.isInPlay());
+
+            for (const unit of involvedUnits) {
+                for (const upgrade of unit.upgrades) {
+                    if (upgrade.isAdvantage()) {
+                        for (const ability of upgrade.getTriggeredAbilities()) {
+                            ability.eventHandler(event, window);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     /**
