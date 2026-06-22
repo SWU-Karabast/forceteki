@@ -375,6 +375,51 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            fit('should protect only the allied unit if the ability is triggered due to distributed damage including The Mandalorian as a target', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire'],
+                        groundArena: [
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield'] },
+                            'battlefield-marine'
+                        ],
+                    },
+                    player2: {
+                        hand: ['ninth-sister#hulking-inquisitor'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.ninthSister);
+                context.player1.clickCard(context.openFire);
+
+                context.player2.clickPrompt('Trigger');
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.theMandalorian, 2],
+                    [context.battlefieldMarine, 1],
+                ]));
+
+
+                // Three triggers: consolidated Shield for Mando's damage, Mando for BFM, Mando for Wampa.
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat Shield to prevent The Mandalorian from taking damage',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine'
+                ]);
+
+                // Resolve Mando's ability for BFM — auto-defeats shield
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
+
+                // Both shields consumed — Mando takes 2 damage, BFM protected
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.theMandalorian.damage).toBe(2);
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('should not prevent indirect damage even when shield is defeated — indirect damage bypasses prevention', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
