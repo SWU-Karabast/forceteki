@@ -927,6 +927,28 @@ var customMatchers = {
             }
         };
     },
+    toHaveNumericPromptRange: function () {
+        return {
+            compare: function (player, min, max) {
+                let result = {};
+
+                const actualRange = player.currentPrompt().selectNumber;
+
+                result.pass = actualRange?.min === min && actualRange?.max === max;
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have numeric prompt range ${min}-${max} but it does`;
+                } else {
+                    const actualRangeText = actualRange ? `${actualRange.min}-${actualRange.max}` : 'no numeric prompt range';
+                    result.message = `Expected ${player.name} to have numeric prompt range ${min}-${max} but it has ${actualRangeText}`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+
+                return result;
+            }
+        };
+    },
     toHaveExactSelectableDisplayPromptCards: function() {
         return {
             compare: function (player, expectedCardsInPromptRaw) {

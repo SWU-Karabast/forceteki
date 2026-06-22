@@ -21,7 +21,7 @@ describe('C-3PO, Protocol Droid', function() {
                 context.player1.clickCard(context.c3po);
 
                 // should have prompt options from 0 to 20
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('4');
                 expect(context.getChatLogs(3)).toContain('player1 names 4 using C-3PO');
 
@@ -45,7 +45,7 @@ describe('C-3PO, Protocol Droid', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.c3po);
 
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('0');
 
                 // P1 sees the top card of their deck
@@ -63,7 +63,7 @@ describe('C-3PO, Protocol Droid', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.c3po);
 
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('2');
 
                 // P1 sees the top card of their deck
