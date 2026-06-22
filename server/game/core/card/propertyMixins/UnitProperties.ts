@@ -1070,6 +1070,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return false;
             }
 
+            if (pilot.isAttached() && pilot.hasSomeKeyword(KeywordName.Piloting) && pilot.controller !== this.controller) {
+                return false;
+            }
+
             // Check if the card can be played with Piloting ignoring the pilot limit,
             // for example "R2-D2, Artooooooooo"
             if (pilot.hasOngoingEffect(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit)) {

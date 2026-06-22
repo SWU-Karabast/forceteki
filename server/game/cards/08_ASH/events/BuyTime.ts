@@ -19,7 +19,7 @@ export default class BuyTime extends EventCard {
                 title: 'Give it Sentinel for this phase',
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel }),
-                    target: thenContext.events[0].generatedTokens
+                    target: thenContext.resolvedEvents[0]?.generatedTokens
                 })
             })
         });

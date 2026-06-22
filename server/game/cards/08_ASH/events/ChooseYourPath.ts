@@ -29,7 +29,7 @@ export default class ChooseYourPath extends EventCard {
                             condition: (c) => c.player.hasSomeArenaUnit({ trait: Trait.Mandalorian }),
                             onTrue: abilityHelper.immediateEffects.sequential([
                                 abilityHelper.immediateEffects.createMandalorian(),
-                                abilityHelper.immediateEffects.giveAdvantage((context) => ({ target: context.events[0]?.generatedTokens[0] }))
+                                abilityHelper.immediateEffects.giveAdvantage((context) => ({ target: context.resolvedEvents[0]?.generatedTokens }))
                             ])
                         })
                 }

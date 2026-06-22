@@ -272,5 +272,29 @@ describe('Oppo Rancisis, Ancient Councilor', function() {
             expect(context.oppoRancisis).not.toHaveExactUpgradeNames(['shield']);
             expect(context.player2).toBeActivePlayer();
         });
+
+        xit('Oppo and Clone should not get Restore off of each other', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['oppo-rancisis#ancient-councilor', 'admiral-ackbar#brilliant-strategist'],
+                    hand: ['clone']
+                },
+                player2: {
+                    hand: ['takedown']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.clone);
+            context.player1.clickCard(context.oppoRancisis);
+
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.admiralAckbar);
+
+            expect(context.oppoRancisis.hasSomeKeyword('restore')).toBe(false);
+            expect(context.clone.hasSomeKeyword('restore')).toBe(false);
+        });
     });
 });

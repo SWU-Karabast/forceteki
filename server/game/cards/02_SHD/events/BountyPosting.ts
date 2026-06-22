@@ -15,7 +15,8 @@ export default class BountyPosting extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Search your deck for a Bounty upgrade, reveal it, and draw it (shuffle your deck)',
-            immediateEffect: AbilityHelper.immediateEffects.entireDeckSearch({
+            immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                searchWholeDeck: true,
                 cardCondition: (card) => card.isUpgrade() && card.hasSomeTrait(Trait.Bounty),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
                     useDisplayPrompt: true,

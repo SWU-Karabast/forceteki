@@ -12,7 +12,7 @@ describe('Curious Flock', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.curiousFlock);
-            expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 7 }, (_x, i) => `${i}`));
+            expect(context.player1).toHaveNumericPromptRange(0, 6);
             context.player1.chooseListOption('3');
 
             expect(context.player2).toBeActivePlayer();
@@ -37,7 +37,7 @@ describe('Curious Flock', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.curiousFlock);
-            expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 7 }, (_x, i) => `${i}`));
+            expect(context.player1).toHaveNumericPromptRange(0, 6);
             context.player1.chooseListOption('0');
 
             expect(context.player2).toBeActivePlayer();
@@ -57,7 +57,7 @@ describe('Curious Flock', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.curiousFlock);
-            expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 3 }, (_x, i) => `${i}`));
+            expect(context.player1).toHaveNumericPromptRange(0, 2);
             context.player1.chooseListOption('1');
 
             expect(context.player2).toBeActivePlayer();

@@ -35,7 +35,7 @@ describe('Emergency Powers', function() {
                 context.player1.clickCard(context.darthMaul);
 
                 // can choose from 0 - 9 resources since 1 was paid for Emergency Powers already
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('1');
 
                 expect(context.darthMaul).toHaveExactUpgradeNames(['experience']);
@@ -55,7 +55,7 @@ describe('Emergency Powers', function() {
                 ]);
 
                 context.player1.clickCard(context.atst);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('3');
                 expect(context.atst).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
                 expect(context.player1.exhaustedResourceCount).toBe(4);
@@ -75,7 +75,7 @@ describe('Emergency Powers', function() {
 
                 context.player1.clickCard(context.victorLeader);
 
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('0');
 
                 expect(context.victorLeader).toHaveExactUpgradeNames([]);
@@ -95,7 +95,7 @@ describe('Emergency Powers', function() {
                 ]);
 
                 context.player1.clickCard(context.atst);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('9');
                 expect(context.atst).toHaveExactUpgradeNames([
                     'experience',
@@ -153,7 +153,7 @@ describe('Emergency Powers', function() {
             ]);
 
             context.player1.clickCard(context.atst);
-            expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+            expect(context.player1).toHaveNumericPromptRange(0, 9);
             context.player1.chooseListOption('9');
             expect(context.atst).toHaveExactUpgradeNames([
                 'experience',

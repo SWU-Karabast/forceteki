@@ -25,6 +25,7 @@ export interface IAbilityContextProperties {
     stage?: Stage;
     targetAbility?: any;
     playType?: PlayType;
+
     selectedPromptCards?: Card[];
 }
 
@@ -53,6 +54,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public gameActionsResolutionChain: GameSystem[] = [];
     public playType?: PlayType;
     public cardStateWhenInitiated: any = null;
+
     public selectedPromptCards: Card[] = [];
     public activeAttackId?: number;
 

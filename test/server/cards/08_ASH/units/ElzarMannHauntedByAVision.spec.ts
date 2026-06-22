@@ -84,8 +84,8 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                 context.player1.clickPrompt('Trigger');
 
                 // Elzar Mann SHOULD enter play ready: P1 controls a Force leader
-                expect(context.elzarMannHauntedByAVision).toBeInZone('groundArena', context.player1);
-                expect(context.elzarMannHauntedByAVision.exhausted).toBeFalse();
+                expect(context.elzarMann).toBeInZone('groundArena', context.player1);
+                expect(context.elzarMann.exhausted).toBeFalse();
 
                 // Elzar's ability triggers - decline to distribute tokens
                 expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
@@ -125,8 +125,39 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                 context.player1.clickPrompt('Trigger');
 
                 // Elzar Mann enter play exhausted: P1 does not control a Force leader
-                expect(context.elzarMannHauntedByAVision).toBeInZone('groundArena', context.player1);
-                expect(context.elzarMannHauntedByAVision.exhausted).toBeTrue();
+                expect(context.elzarMann).toBeInZone('groundArena', context.player1);
+                expect(context.elzarMann.exhausted).toBeTrue();
+
+                // Elzar's ability triggers - decline to distribute tokens
+                expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
+                context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should count a Darksaber-bearing force unit as a Force leader for the constant ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['elzar-mann#haunted-by-a-vision'],
+                        groundArena: [{
+                            card: 'the-daughter#embodiment-of-light',       // Force trait
+                            upgrades: ['the-darksaber#icon-of-leadership']  // Makes attached unit a leader
+                        }],
+                        leader: 'the-mandalorian#we-cant-keep-running' // No Force trait
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Elzar Mann — the Daughter with Darksaber should count as a Force leader
+                context.player1.clickCard(context.elzarMann);
+
+                // Elzar enters play ready
+                expect(context.elzarMann.exhausted).toBeFalse();
+                expect(context.elzarMann).toBeInZone('groundArena');
 
                 // Elzar's ability triggers - decline to distribute tokens
                 expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');

@@ -38,7 +38,6 @@ class GameFlowWrapper {
         };
 
         this.game = new Game(details, { router });
-        this.game.started = true;
 
         this.player1Id = player1Info.id;
         this.player2Id = player2Info.id;
