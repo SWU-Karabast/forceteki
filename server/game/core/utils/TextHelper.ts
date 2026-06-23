@@ -92,7 +92,7 @@ export namespace TextHelper {
     }
 
     /**
-     * Returns the display representation of a keyword. In test environments, this will return a human-readable string (e.g. "Restore 2") for readability,
+     * Returns the display representation of a keyword. In test environments, this will return a human-readable string (e.g. "Restore 2"),
      * but in production, it returns a token like `{keyword:restore:2}` which the client can replace with stylized text.
      *
      * Accepts any {@link KeywordNameOrProperties} value — a bare keyword name string or any keyword properties object.

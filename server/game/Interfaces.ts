@@ -619,7 +619,8 @@ export type NonNumericKeywordName =
   | KeywordName.Saboteur
   | KeywordName.Sentinel
   | KeywordName.Shielded
-  | KeywordName.Smuggle;
+  | KeywordName.Smuggle
+  | KeywordName.Support;
 
 export type NumericKeywordName =
   | KeywordName.Raid
