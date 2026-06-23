@@ -41,8 +41,11 @@ const compiledCategories = TOKEN_CATEGORIES.map((cat) => {
             messageId: cat.messageId,
         };
     }
+    // Wrap in word boundaries so a token is only matched as a whole word — e.g. "Smuggle"
+    // should not match inside "Smuggled", nor "Plot" inside "Plotting". Every alternative in
+    // these patterns starts and ends with a word character, so the boundaries are well-defined.
     return {
-        regex: new RegExp(`(${cat.pattern})`, cat.flags || 'gi'),
+        regex: new RegExp(`\\b(${cat.pattern})\\b`, cat.flags || 'gi'),
         messageId: cat.messageId,
     };
 });
@@ -51,6 +54,53 @@ const compiledCategories = TOKEN_CATEGORIES.map((cat) => {
 const messages = Object.fromEntries(
     TOKEN_CATEGORIES.map((cat) => [cat.messageId, cat.message])
 );
+
+/**
+ * Some string literals never reach the client as display text, so matching token words inside
+ * them is always a false positive. Skip:
+ *   - module-source strings (`import ... from './GainKeyword'`, `export ... from`, dynamic import)
+ *   - enum member values (`Smuggle = 'whenPlayedUsingSmuggle'`)
+ *   - developer-facing error text (`throw new Error(...)`, `Contract.fail(...)`/`Contract.assert*(...)`)
+ */
+function isExemptContext(node) {
+    const parent = node.parent;
+
+    // Module source: the string is the `source` of an import/export/dynamic-import node.
+    if (
+        parent &&
+        (parent.type === 'ImportDeclaration' ||
+            parent.type === 'ExportNamedDeclaration' ||
+            parent.type === 'ExportAllDeclaration' ||
+            parent.type === 'ImportExpression') &&
+        parent.source === node
+    ) {
+        return true;
+    }
+
+    // Enum member value: `SomeName = 'someValue'`
+    if (parent && parent.type === 'TSEnumMember' && parent.initializer === node) {
+        return true;
+    }
+
+    // Developer-facing errors: anywhere inside a `throw` statement or a `Contract.*(...)` call.
+    for (let cur = parent; cur; cur = cur.parent) {
+        if (cur.type === 'ThrowStatement') {
+            return true;
+        }
+        if (
+            cur.type === 'CallExpression' &&
+            cur.callee &&
+            cur.callee.type === 'MemberExpression' &&
+            cur.callee.object &&
+            cur.callee.object.type === 'Identifier' &&
+            cur.callee.object.name === 'Contract'
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
@@ -79,12 +129,14 @@ export default {
 
         return {
             Literal(node) {
-                if (typeof node.value === 'string') {
+                if (typeof node.value === 'string' && !isExemptContext(node)) {
                     checkForTokenText(node, node.value);
                 }
             },
             TemplateElement(node) {
-                checkForTokenText(node, node.value.raw);
+                if (!isExemptContext(node)) {
+                    checkForTokenText(node, node.value.raw);
+                }
             },
         };
     },

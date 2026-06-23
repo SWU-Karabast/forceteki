@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CloneCommanderCodyCommandingThe212th extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class CloneCommanderCodyCommandingThe212th extends NonLeaderUnitC
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addCoordinateAbility({
-            title: 'Each other friendly unit gets +1/+1 and gains Overwhelm',
+            title: `Each other friendly unit gets +1/+1 and gains ${TextHelper.Overwhelm}`,
             type: AbilityType.Constant,
             matchTarget: (card, context) => card !== context.source,
             ongoingEffect: [

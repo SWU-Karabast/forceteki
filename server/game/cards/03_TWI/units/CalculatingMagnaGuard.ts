@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CalculatingMagnaGuard extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class CalculatingMagnaGuard extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'This unit gains Sentinel for this phase',
+            title: `This unit gains ${TextHelper.Sentinel} for this phase`,
             when: {
                 whenPlayed: true,
                 onCardDefeated: (event, context) =>

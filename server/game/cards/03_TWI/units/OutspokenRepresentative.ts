@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class OutspokenRepresentative extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class OutspokenRepresentative extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you control another Republic unit, this unit gains Sentinel.',
+            title: `While you control another Republic unit, this unit gains ${TextHelper.Sentinel}.`,
             condition: (context) => context.player.isTraitInPlay(Trait.Republic, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel })
         });

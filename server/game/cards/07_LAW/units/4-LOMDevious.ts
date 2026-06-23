@@ -12,6 +12,7 @@ export default class _4LOMDevious extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
         registrar.addWhenPlayedAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Bounty Hunter" is a trait, not the Bounty keyword
             title: 'Attack with a friendly Bounty Hunter unit, even if it\'s exhausted. It can\'t attack bases for this attack.',
             optional: true,
             initiateAttack: {

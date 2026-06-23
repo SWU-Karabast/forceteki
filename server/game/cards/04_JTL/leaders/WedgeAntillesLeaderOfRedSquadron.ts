@@ -25,7 +25,7 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
         registrar.addPilotDeploy();
 
         registrar.addActionAbility({
-            title: `Play a card from your hand using Piloting. It costs ${TextHelper.resource(1)} less.`,
+            title: `Play a card from your hand using ${TextHelper.Piloting}. It costs ${TextHelper.resource(1)} less.`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 controller: RelativePlayer.Self,
