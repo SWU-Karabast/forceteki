@@ -3,6 +3,7 @@ import type { Card } from '../card/Card';
 import type { EventName, MetaEventName } from '../Constants';
 import { GameStateChangeRequired } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
+import type { PlayerTargetGameEvent } from '../event/TypedGameEvent';
 import type { Player } from '../Player';
 import { Helpers } from '../utils/Helpers';
 import { TriggerHandlingMode } from '../event/EventWindow';
@@ -35,7 +36,7 @@ export interface IGameSystemProperties {
  * @template TProperties Property class to use for configuring the behavior of the system's execution
  */
 // TODO: could we remove the default generic parameter so that all child classes are forced to declare it
-export abstract class GameSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IGameSystemProperties = IGameSystemProperties> {
+export abstract class GameSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IGameSystemProperties = IGameSystemProperties, TEvent extends GameEvent = GameEvent> {
     public readonly name: string = ''; // TODO: should these be abstract?
     public abstract readonly eventName: EventName | MetaEventName;
     public readonly costDescription: string = '';
@@ -99,7 +100,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param additionalProperties Any additional properties to extend the default ones with
      */
     // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
-    public abstract eventHandler(event: GameEvent, additionalProperties: Partial<TProperties>): void;
+    public abstract eventHandler(event: TEvent, additionalProperties: Partial<TProperties>): void;
 
     protected canAffectInternal(target: GameObject | GameObject[], context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.isTargetTypeValid(target);
@@ -238,7 +239,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    public generateEvent(context: TContext, additionalProperties: Partial<TProperties> = {}, addLastKnownInformation: boolean = false): GameEvent {
+    public generateEvent(context: TContext, additionalProperties: Partial<TProperties> = {}, addLastKnownInformation: boolean = false): TEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         const event = this.createEvent(target, context, additionalProperties);
@@ -254,7 +255,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    public generateRetargetedEvent(target: any, context: TContext, additionalProperties: Partial<TProperties> = {}): GameEvent {
+    public generateRetargetedEvent(target: any, context: TContext, additionalProperties: Partial<TProperties> = {}): TEvent {
         const event = this.createEvent(target, context, additionalProperties);
         this.updateEvent(event, target, context, additionalProperties);
         return event;
@@ -286,7 +287,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         context.game.queueSimpleStep(() => context.game.openEventWindow(events, triggerHandlingMode), `openEventWindow for '${this}'`);
     }
 
-    public checkEventCondition(event: GameEvent, additionalProperties: Partial<TProperties> = {}): boolean {
+    public checkEventCondition(event: TEvent, additionalProperties: Partial<TProperties> = {}): boolean {
         return true;
     }
 
@@ -298,29 +299,39 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return false;
     }
 
-    protected addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
+    protected addPropertiesToEvent(event: TEvent, target: any, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const { contingentSourceEvent } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        event.contingentSourceEvent = contingentSourceEvent;
-        event.player = context.player;
+        // these are the PlayerTargetGameEvent base properties, assigned dynamically since TEvent
+        // is still the untyped GameEvent for unconverted systems. Object.assign keeps this
+        // type-checked against PlayerTargetGameEvent without casting the event itself.
+        const props: Partial<PlayerTargetGameEvent> = {
+            contingentSourceEvent,
+            player: context.player
+        };
+        Object.assign(event, props);
     }
 
     /**
      * Create a very basic blank event object. Important properties must be added via {@link GameSystem.updateEvent}.
+     *
+     * Converted systems (those that bind the `TEvent` generic to a concrete typed event class)
+     * must override this method to construct their event class, which removes the cast below
+     * for that system.
      */
-    protected createEvent(target: any, context: TContext, additionalProperties: Partial<TProperties>): GameEvent {
+    protected createEvent(target: any, context: TContext, additionalProperties: Partial<TProperties>): TEvent {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
         const event = new GameEvent(this.eventName, context, { cannotBeCancelled });
-        return event;
+        return event as TEvent;
     }
 
     /**
      * Writes the important properties of this system onto the passed event object. Only used internally by
      * systems during event generation.
      */
-    protected updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
+    protected updateEvent(event: TEvent, target: any, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         this.addPropertiesToEvent(event, target, context, additionalProperties);
-        event.setHandler((event) => this.eventHandler(event, additionalProperties));
+        event.setHandler((event) => this.eventHandler(event as TEvent, additionalProperties));
         event.condition = () => this.checkEventCondition(event, additionalProperties);
     }
 

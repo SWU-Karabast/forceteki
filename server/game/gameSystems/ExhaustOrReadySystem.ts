@@ -3,11 +3,12 @@ import type { Card } from '../core/card/Card';
 import { CardType, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { GameEvent } from '../core/event/GameEvent';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExhaustOrReadyProperties extends ICardTargetSystemProperties {}
 
-export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = AbilityContext, TProperties extends IExhaustOrReadyProperties = IExhaustOrReadyProperties> extends CardTargetSystem<TContext, TProperties> {
+export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = AbilityContext, TProperties extends IExhaustOrReadyProperties = IExhaustOrReadyProperties, TEvent extends GameEvent = GameEvent> extends CardTargetSystem<TContext, TProperties, TEvent> {
     // TODO - do I add a WildcardCardType.Leader?
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Event, WildcardCardType.Upgrade, CardType.Leader];
 

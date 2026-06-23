@@ -6,17 +6,24 @@ import type { IExhaustSource } from '../IDamageOrDefeatSource';
 import { ExhaustSourceType } from '../IDamageOrDefeatSource';
 import type { IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
 import { ExhaustOrReadySystem } from './ExhaustOrReadySystem';
+import { CardExhaustedEvent } from '../core/event/events/CardExhaustedEvent';
+import { Contract } from '../core/utils/Contract';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExhaustSystemProperties extends IExhaustOrReadyProperties {}
 
-export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> extends ExhaustOrReadySystem<TContext, IExhaustSystemProperties> {
+export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> extends ExhaustOrReadySystem<TContext, IExhaustSystemProperties, CardExhaustedEvent> {
     public override readonly name = 'exhaust';
     public override readonly eventName = EventName.OnCardExhausted;
     public override readonly costDescription = 'exhausting {0}';
     public override readonly effectDescription = 'exhaust {0}';
 
-    public eventHandler(event): void {
+    protected override createEvent(target: any, context: TContext, additionalProperties: Partial<IExhaustSystemProperties>): CardExhaustedEvent {
+        const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
+        return new CardExhaustedEvent(context, cannotBeCancelled);
+    }
+
+    public eventHandler(event: CardExhaustedEvent): void {
         event.card.exhaust();
     }
 
@@ -39,7 +46,9 @@ export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> ext
         return true;
     }
 
-    public override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties?: Partial<IExhaustSystemProperties>) {
+    public override addPropertiesToEvent(event: CardExhaustedEvent, card: Card, context: TContext, additionalProperties?: Partial<IExhaustSystemProperties>) {
+        Contract.assertTrue(card.canBeExhausted(), `Attempting to add card ${card.internalName} to exhaust event but it cannot be exhausted`);
+
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
