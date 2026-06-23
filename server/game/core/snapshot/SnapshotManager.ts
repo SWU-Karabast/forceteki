@@ -159,6 +159,21 @@ export class SnapshotManager {
         this._undoMode = enabled ? UndoMode.Request : UndoMode.Free;
     }
 
+    public destroy(): void {
+        this.actionSnapshots.clearAllSnapshots();
+        this.phaseSnapshots.clearAllSnapshots();
+
+        for (const snapshotMap of this.manualSnapshots.values()) {
+            snapshotMap.clearAllSnapshots();
+        }
+
+        this.manualSnapshots.clear();
+        this.quickSnapshots.clear();
+        this.snapshotFactory.destroy();
+        this._gameStateManager.destroy();
+        this._gameStepsSinceLastUndo = undefined;
+    }
+
     private addQuickActionSnapshot(playerId: string) {
         Contract.assertNotNullLike(playerId);
 
