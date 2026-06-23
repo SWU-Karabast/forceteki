@@ -48,7 +48,6 @@ import type { IDropdownListPromptProperties } from './gameSteps/prompts/Dropdown
 import { NumberPrompt } from './gameSteps/prompts/NumberPrompt';
 import type { INumberPromptProperties } from './gameSteps/prompts/NumberPrompt';
 import { UnitPropertiesCard } from './card/propertyMixins/UnitProperties';
-import { TokenUpgradeCard } from './card/TokenCards';
 import type { Card } from './card/Card';
 import { GroundArenaZone } from './zone/GroundArenaZone';
 import { SpaceArenaZone } from './zone/SpaceArenaZone';
@@ -105,6 +104,7 @@ import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import Advantage from '../cards/08_ASH/tokens/Advantage';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -637,7 +637,7 @@ export class Game extends EventEmitter {
 
     public registerGlobalRulesListeners(): void {
         UnitPropertiesCard.registerRulesListeners(this);
-        TokenUpgradeCard.registerRulesListeners(this);
+        Advantage.registerRulesListeners(this);
     }
 
     /**
