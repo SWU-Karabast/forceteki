@@ -1,0 +1,34 @@
+name: Generate Tag and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'The ref to create the tag from (default: the commit that triggered the workflow)'
+        type: string
+        required: false
+
+jobs:
+  generate_tag_and_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+    
+      - name: Generate Version Number
+        id: generate_version
+        run: |
+            chmod +x ./scripts/shell/gen-ver.sh
+            echo "version=$(./scripts/shell/gen-ver.sh)" >> "$GITHUB_OUTPUT"
+    
+      - name: Create Tag
+        uses: ./.github/workflows/create-tag.yml
+        with:
+          tag_name: ${{ steps.generate_version.outputs.version }}
+          ref: ${{ inputs.ref }}
+    
+      - name: Create Release
+        uses: ./.github/workflows/create-release.yml
+        with:
+          tag_name: ${{ steps.generate_version.outputs.version }}
+          release_title: "${{ steps.generate_version.outputs.version }}"
