@@ -5,6 +5,7 @@ import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
 import { Contract } from '../../core/utils/Contract';
+import { TextHelper } from '../../core/utils/TextHelper';
 import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
@@ -16,7 +17,7 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbilityBase {
 
     public static buildSaboteurAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {
-            title: 'Saboteur: defeat all shields',
+            title: `${TextHelper.Saboteur}: defeat all shields`,
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source &&
                   event.attack.attacker.isUnit() &&
