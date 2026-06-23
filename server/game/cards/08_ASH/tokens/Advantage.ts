@@ -51,17 +51,9 @@ export default class Advantage extends TokenUpgradeCard {
         this._whenAttackOrDefenseEndsAbility = null;
     }
 
-    /**
-     * Registers the game-level rules listeners for token upgrades. Called once at game start from
-     * {@link Game.registerGlobalRulesListeners}, mirroring {@link UnitPropertiesCard.registerRulesListeners}.
-     */
     public static registerRulesListeners(game: Game) {
-        game.on(EventName.OnAttackEnd + ':preResolve', (event) => {
+        game.on(EventName.OnAttackEnd + ':postResolve', (event) => {
             const attack = event.attack as Attack;
-
-            if (attack == null) {
-                return;
-            }
 
             const involvedAdvantageTokens = [attack.attacker, ...attack.getAllTargets()]
                 .filter((card) => card.isUnit())
