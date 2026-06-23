@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MirajScintelTheWeakDeserveToKneel extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -23,7 +24,7 @@ export default class MirajScintelTheWeakDeserveToKneel extends NonLeaderUnitCard
         });
 
         registrar.addConstantAbility({
-            title: 'While a friendly unit is attacking a damaged unit, the attacker gains Overwhelm',
+            title: `While a friendly unit is attacking a damaged unit, the attacker gains ${TextHelper.Overwhelm}`,
             matchTarget: (card, context) =>
                 card.controller === context.player &&
                 card.isUnit() && card.isInPlay() && card.isAttacking() &&

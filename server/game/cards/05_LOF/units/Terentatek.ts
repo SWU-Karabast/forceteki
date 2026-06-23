@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class Terentatek extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class Terentatek extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While an opponent controls a Force unit, this unit gains Ambush.',
+            title: `While an opponent controls a Force unit, this unit gains ${TextHelper.Ambush}.`,
             condition: (context) => context.player.opponent.hasSomeArenaUnit({ trait: Trait.Force }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
         });

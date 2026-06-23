@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ThreeLessons extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ThreeLessons extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Play a unit from your hand. It gains Hidden for this phase. Give an Experience token and a Shield token to it.',
+            title: `Play a unit from your hand. It gains ${TextHelper.Hidden} for this phase. Give an Experience token and a Shield token to it.`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BosskHuntingHisPrey extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class BosskHuntingHisPrey extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Deal 1 damage to a unit with a Bounty. You may give it +1/+0 for this phase.',
+            title: `Deal 1 damage to a unit with a ${TextHelper.Bounty}. You may give it +1/+0 for this phase.`,
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -34,7 +35,7 @@ export default class BosskHuntingHisPrey extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Collect the Bounty again',
+            title: `Collect the ${TextHelper.Bounty} again`,
             optional: true,
             when: {
                 onBountyCollected: (event, context) => event.context.player === context.player

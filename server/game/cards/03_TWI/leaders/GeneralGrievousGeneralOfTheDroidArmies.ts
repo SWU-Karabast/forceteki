@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Give a Droid unit Sentinel for this phase',
+            title: `Give a Droid unit ${TextHelper.Sentinel} for this phase`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -27,7 +28,7 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Give a Droid unit +1/+0 and Sentinel for this phase',
+            title: `Give a Droid unit +1/+0 and ${TextHelper.Sentinel} for this phase`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

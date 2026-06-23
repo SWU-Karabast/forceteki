@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class LeiaOrganaPilotsToYourStations extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class LeiaOrganaPilotsToYourStations extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Attack with a Pilot unit or a unit with a Pilot on it. It gets +1/+0 and gainsRestore 1 for this attack.',
+            title: `Attack with a Pilot unit or a unit with a Pilot on it. It gets +1/+0 and gains ${TextHelper.Restore(1)} for this attack.`,
             optional: true,
             initiateAttack: {
                 attackerCondition: (card) => card.isUnit() && (card.hasSomeTrait(Trait.Pilot) || card.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot))),
