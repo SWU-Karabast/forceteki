@@ -44,6 +44,7 @@ import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/Lea
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import { TextHelper } from '../../utils/TextHelper';
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
@@ -701,7 +702,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const gainedAbilityProps = keywordInstance.abilityProps;
 
                 const coordinateKeywordAbilityProps: IConstantAbilityProps = {
-                    title: `Coordinate: ${gainedAbilityProps.title}`,
+                    title: `${TextHelper.Coordinate}: ${gainedAbilityProps.title}`,
                     condition: (context) => context.player.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
                     ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
                 };
@@ -714,7 +715,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             if (this.hasSomeKeyword(KeywordName.Hidden)) {
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
-                    title: 'Hidden',
+                    title: `${TextHelper.Hidden}`,
                     condition: (context) =>
                         context.source.isInPlay() &&
                         this.wasPlayedDeployedOrCreatedThisPhase(context.source),
@@ -1030,6 +1031,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
                 if (this.hasSomeKeyword(KeywordName.Grit)) {
                     const gritModifier = { power: this.damage, hp: 0 };
+                    // eslint-disable-next-line forceteki/no-raw-token-text -- internal stat-modifier provenance label, not player-facing ability text (cf. the sibling 'Raid' label below)
                     wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
                 }
 

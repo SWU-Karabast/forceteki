@@ -8,6 +8,7 @@ import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { Player } from '../core/Player';
 import type { Game } from '../core/Game';
 import { Contract } from '../core/utils/Contract';
+import { TextHelper } from '../core/utils/TextHelper';
 import { ChatHelpers } from '../core/chat/ChatHelpers.js';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
@@ -96,9 +97,9 @@ export class PlayUpgradeAction extends PlayCardAction {
     public override displayMessage(context: AbilityContext) {
         let playTypeDescription = '';
         if (context.playType === PlayType.Smuggle) {
-            playTypeDescription = ' using Smuggle';
+            playTypeDescription = ` using ${TextHelper.Smuggle}`;
         } else if (context.playType === PlayType.Piloting) {
-            playTypeDescription = ' with Piloting';
+            playTypeDescription = ` with ${TextHelper.Piloting}`;
         }
         const locationDescription = ChatHelpers.getTargetLocationMessage(context.source, context, new Set([ZoneName.Hand]));
         context.game.addMessage('{0} plays {1}{2}{3}, attaching it to {4}', context.player, context.source, locationDescription, playTypeDescription, context.target);

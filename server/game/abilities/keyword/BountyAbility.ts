@@ -6,6 +6,7 @@ import { EventName, KeywordName, RelativePlayer, SubStepCheck, WildcardZoneName 
 import { GameEvent } from '../../core/event/GameEvent';
 import type { Game } from '../../core/Game';
 import { Contract } from '../../core/utils/Contract';
+import { TextHelper } from '../../core/utils/TextHelper';
 import type { ITriggeredAbilityBaseProps } from '../../Interfaces';
 
 import { registerState } from '../../core/GameObjectUtils';
@@ -36,7 +37,7 @@ export class BountyAbility extends TriggeredAbilityBase {
 
         const fullProps = {
             ...properties,
-            title: 'Collect Bounty: ' + title,
+            title: `Collect ${TextHelper.Bounty}: ${title}`,
             // 7.5.13.E : Resolving a Bounty ability is optional. If a player chooses not to resolve a Bounty ability, they are not considered to have collected that Bounty.
             // however, we do allow overriding the optional behavior in some special cases (e.g. for readying resources or Bossk ability)
             optional: optional ?? true,
