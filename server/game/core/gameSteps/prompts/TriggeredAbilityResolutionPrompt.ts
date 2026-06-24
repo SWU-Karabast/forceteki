@@ -22,8 +22,23 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
         super(game);
 
         this.player = player;
-        this.triggeredAbilities = triggeredAbilities;
         this.resolveAbility = resolveAbility;
+
+        const sortedAbilities = triggeredAbilities
+            .map((context) => {
+                const hasLegalEffects = context.ability.hasAnyLegalEffects(context, SubStepCheck.All);
+                return { context, hasLegalEffects };
+            })
+            .sort((a, b) => {
+                if (a.hasLegalEffects && !b.hasLegalEffects) {
+                    return -1;
+                } else if (!a.hasLegalEffects && b.hasLegalEffects) {
+                    return 1;
+                }
+                return 0;
+            });
+
+        this.triggeredAbilities = sortedAbilities.map((item) => item.context);
     }
 
     public override activeCondition(player: Player): boolean {
@@ -33,16 +48,6 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
     public override activePromptInternal(): IPlayerPromptStateProperties {
         const buttons = this.triggeredAbilities
             .map((context, index) => this.makeChoiceButton(context, index));
-
-        // Sort buttons so that those with legal effects are first
-        buttons.sort((a, b) => {
-            if (a.hasLegalEffects && !b.hasLegalEffects) {
-                return -1;
-            } else if (!a.hasLegalEffects && b.hasLegalEffects) {
-                return 1;
-            }
-            return 0;
-        });
 
         return {
             menuTitle: 'You have multiple triggers to resolve. Choose which to resolve first:',
