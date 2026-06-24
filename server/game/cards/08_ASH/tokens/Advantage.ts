@@ -1,17 +1,11 @@
 import { TriggeredAbilityBase } from '../../../core/ability/TriggeredAbility';
-import type { Attack } from '../../../core/attack/Attack';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
-import { EventName } from '../../../core/Constants';
-import type { GameEvent } from '../../../core/event/GameEvent';
 import type { Game } from '../../../core/Game';
-import { registerState, stateRef } from '../../../core/GameObjectUtils';
+import { registerState } from '../../../core/GameObjectUtils';
 import { Contract } from '../../../core/utils/Contract';
 import type { ITriggeredAbilityProps } from '../../../Interfaces';
 
 export default class Advantage extends TokenUpgradeCard {
-    @stateRef()
-    private accessor _whenAttackOrDefenseEndsAbility: TriggeredAbilityBase | null = null;
-
     protected override getImplementationId() {
         return {
             id: '5844562972',
@@ -23,49 +17,8 @@ export default class Advantage extends TokenUpgradeCard {
         return true;
     }
 
-    public override getTriggeredAbilities(): TriggeredAbilityBase[] {
-        const abilities = super.getTriggeredAbilities();
-
-        return this._whenAttackOrDefenseEndsAbility != null
-            ? [...abilities, this._whenAttackOrDefenseEndsAbility]
-            : abilities;
-    }
-
-    public checkRegisterWhenAttackOrDefenseEndsAbility(event: GameEvent) {
-        Contract.assertIsNullLike(
-            this._whenAttackOrDefenseEndsAbility,
-            `Failed to unregister "When Attack/Defense Ends" abilities from previous play: ${this._whenAttackOrDefenseEndsAbility?.getTitle()}`
-        );
-
-        const ability = new AdvantageAbility(this.game, this);
-        this._whenAttackOrDefenseEndsAbility = ability;
-        ability.registerEvents();
-
-        event.addCleanupHandler(() => this.unregisterWhenAttackOrDefenseEndsAbility());
-    }
-
-    public unregisterWhenAttackOrDefenseEndsAbility() {
-        Contract.assertNotNullLike(this._whenAttackOrDefenseEndsAbility, 'When Attack/Defense Ends ability registration was skipped');
-
-        this._whenAttackOrDefenseEndsAbility.unregisterEvents();
-        this._whenAttackOrDefenseEndsAbility = null;
-    }
-
-    public static registerRulesListeners(game: Game) {
-        game.on(EventName.OnAttackEnd + ':postResolve', (event) => {
-            const attack = event.attack as Attack;
-
-            const involvedAdvantageTokens = [attack.attacker, ...attack.getAllTargets()]
-                .filter((card) => card.isUnit())
-                .flatMap((unit) => (unit.isInPlay() ? unit.upgrades : []))
-                .filter((upgrade) => upgrade.isAdvantage());
-
-            for (const token of involvedAdvantageTokens) {
-                if (!token.isBlank()) {
-                    token.checkRegisterWhenAttackOrDefenseEndsAbility(event);
-                }
-            }
-        });
+    protected override buildWhenAttackOrDefenseEndsAbility(): TriggeredAbilityBase {
+        return new AdvantageAbility(this.game, this);
     }
 }
 

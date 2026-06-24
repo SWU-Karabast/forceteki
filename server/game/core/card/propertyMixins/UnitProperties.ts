@@ -1,4 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
+import type { Attack } from '../../attack/Attack';
 import type { Arena, MoveZoneDestination } from '../../Constants';
 import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StandardTriggeredAbilityType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
@@ -142,6 +143,23 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const card = event.card as Card;
                 Contract.assertTrue(card.isNonLeaderUnit());
                 card.checkRegisterWhenCapturedKeywordAbilities(event);
+            });
+
+            // register listeners for "when attack/defense ends" abilities on upgrades of the involved units (e.g. the
+            // Advantage token), see comment in EventWindow.ts for explanation of 'postResolve'
+            game.on(EventName.OnAttackEnd + ':postResolve', (event) => {
+                const attack = event.attack as Attack;
+                const involvedUnits = [attack.attacker, ...attack.getAllTargets()].filter((card) => card.isUnit());
+
+                for (const unit of involvedUnits) {
+                    if (!unit.isInPlay()) {
+                        continue;
+                    }
+
+                    for (const upgrade of unit.upgrades) {
+                        upgrade.checkRegisterWhenAttackOrDefenseEndsAbility(event);
+                    }
+                }
             });
         }
 

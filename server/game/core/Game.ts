@@ -104,7 +104,6 @@ import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
-import Advantage from '../cards/08_ASH/tokens/Advantage';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -637,7 +636,6 @@ export class Game extends EventEmitter {
 
     public registerGlobalRulesListeners(): void {
         UnitPropertiesCard.registerRulesListeners(this);
-        Advantage.registerRulesListeners(this);
     }
 
     /**

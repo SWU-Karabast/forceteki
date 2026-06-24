@@ -4,6 +4,7 @@ import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { IAttachCardContext, IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
+import type { GameEvent } from '../../event/GameEvent';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
@@ -49,6 +50,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     isAttached(): boolean;
     unattach(event?: any);
     canAttach(targetCard: Card, context: AbilityContext, controller?: Player): boolean;
+    checkRegisterWhenAttackOrDefenseEndsAbility(event: GameEvent): void;
 }
 
 /**
@@ -66,6 +68,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private readonly _printedUpgradePower: number;
 
     protected attachCondition: (context: IAttachCardContext<this>) => boolean;
+
+    @stateRef()
+    private accessor _whenAttackOrDefenseEndsAbility: TriggeredAbilityBase | null = null;
 
     @statePrimitive()
     private accessor _disableOngoingEffectsForDefeat: boolean = null;
@@ -402,6 +407,56 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             !abilities.some((ability) => ability.isWhenPlayedUsingSmuggle),
             `Card ${this.internalName} has one or more 'When Played using Smuggle' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedUsingSmuggleCheck' to true on card implementation`
         );
+    }
+
+    // ******************************************** "WHEN ATTACK/DEFENSE ENDS" ABILITY MANAGEMENT ********************************************
+    /**
+     * "When Attack/Defense Ends" abilities are registered just-in-time when an attack involving this card (or the unit
+     * it is attached to) ends, rather than staying registered for the card's entire time in play. This avoids carrying
+     * a persistent listener for every such card on the board. A single game-level listener (see
+     * {@link UnitPropertiesCard.registerRulesListeners}) routes attack-end events to the involved cards.
+     *
+     * Subclasses opt in by overriding {@link buildWhenAttackOrDefenseEndsAbility}.
+     */
+    public override getTriggeredAbilities(): TriggeredAbilityBase[] {
+        const abilities = super.getTriggeredAbilities();
+
+        // gate the just-in-time ability behind the same blanking check that super applies to printed abilities
+        return this._whenAttackOrDefenseEndsAbility != null && !this.isFullyBlanked()
+            ? [...abilities, this._whenAttackOrDefenseEndsAbility]
+            : abilities;
+    }
+
+    public checkRegisterWhenAttackOrDefenseEndsAbility(event: GameEvent): void {
+        const ability = this.buildWhenAttackOrDefenseEndsAbility();
+        if (ability == null) {
+            return;
+        }
+
+        Contract.assertIsNullLike(
+            this._whenAttackOrDefenseEndsAbility,
+            () => `Failed to unregister "When Attack/Defense Ends" ability from previous attack: ${this._whenAttackOrDefenseEndsAbility?.getTitle()}`
+        );
+
+        this._whenAttackOrDefenseEndsAbility = ability;
+        ability.registerEvents();
+
+        event.addCleanupHandler(() => this.unregisterWhenAttackOrDefenseEndsAbility());
+    }
+
+    public unregisterWhenAttackOrDefenseEndsAbility(): void {
+        Contract.assertNotNullLike(this._whenAttackOrDefenseEndsAbility, '"When Attack/Defense Ends" ability registration was skipped');
+
+        this._whenAttackOrDefenseEndsAbility.unregisterEvents();
+        this._whenAttackOrDefenseEndsAbility = null;
+    }
+
+    /**
+     * Builds this card's "When Attack/Defense Ends" ability, or returns null if it has none. Overridden by cards
+     * (e.g. the Advantage token) that rely on the just-in-time registration described above.
+     */
+    protected buildWhenAttackOrDefenseEndsAbility(): TriggeredAbilityBase | null {
+        return null;
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************
