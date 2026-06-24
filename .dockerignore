@@ -4,6 +4,10 @@
 # 2. Allowlist specific folders
 !/build
 !/server
-!/test/json
 !/node_modules
 !/package*.json
+
+# 3. Re-include only test/json
+!/test
+/test/*
+!/test/json
