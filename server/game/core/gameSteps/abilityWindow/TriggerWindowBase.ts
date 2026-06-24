@@ -29,6 +29,10 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     protected choosePlayerResolutionOrderComplete = false;
 
+    protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect;
+
+    protected readonly eventWindow?: EventWindow;
+
     public get currentlyResolvingPlayer(): Player | null {
         return this.resolvePlayerOrder?.[0] ?? null;
     }
@@ -39,10 +43,13 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     public constructor(
         game: Game,
-        protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
-        private readonly eventWindow?: EventWindow
+        triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
+        eventWindow?: EventWindow
     ) {
         super(game);
+
+        this.triggerAbilityType = triggerAbilityType;
+        this.eventWindow = eventWindow;
 
         if (eventWindow) {
             this.triggeringEvents = [...this.eventWindow.events];
