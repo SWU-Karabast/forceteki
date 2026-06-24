@@ -312,6 +312,21 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             parentCardId: this._parentCard ? this._parentCard.uuid : null };
     }
 
+    /**
+     * Some abilities (such as the Advantage token's "When Attack/Defense Ends") are registered just-in-time
+     * rather than staying registered for the card's entire time in play. This avoids carrying a persistent
+     * listener for every such card on the board. A single game-level listener (see
+     * {@link UnitPropertiesCard.registerRulesListeners}) routes attack-end events to the involved cards.
+     */
+    public override getTriggeredAbilities(): TriggeredAbilityBase[] {
+        const abilities = super.getTriggeredAbilities();
+
+        // gate the just-in-time ability behind the same blanking check that super applies to printed abilities
+        return this._whenAttackOrDefenseEndsAbility != null && !this.isFullyBlanked()
+            ? [...abilities, this._whenAttackOrDefenseEndsAbility]
+            : abilities;
+    }
+
     // ********************************************* ABILITY SETUP *********************************************
     protected override getAbilityRegistrar(): IInPlayCardAbilityRegistrar<this> {
         const registrar = super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>;
@@ -409,23 +424,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         );
     }
 
-    // ******************************************** "WHEN ATTACK/DEFENSE ENDS" ABILITY MANAGEMENT ********************************************
-    /**
-     * "When Attack/Defense Ends" abilities are registered just-in-time when an attack involving this card (or the unit
-     * it is attached to) ends, rather than staying registered for the card's entire time in play. This avoids carrying
-     * a persistent listener for every such card on the board. A single game-level listener (see
-     * {@link UnitPropertiesCard.registerRulesListeners}) routes attack-end events to the involved cards.
-     *
-     * Subclasses opt in by overriding {@link buildWhenAttackOrDefenseEndsAbility}.
-     */
-    public override getTriggeredAbilities(): TriggeredAbilityBase[] {
-        const abilities = super.getTriggeredAbilities();
-
-        // gate the just-in-time ability behind the same blanking check that super applies to printed abilities
-        return this._whenAttackOrDefenseEndsAbility != null && !this.isFullyBlanked()
-            ? [...abilities, this._whenAttackOrDefenseEndsAbility]
-            : abilities;
-    }
+    // **************** MANUAL ABILITY REGISTRATION ****************
 
     public checkRegisterWhenAttackOrDefenseEndsAbility(event: GameEvent): void {
         const ability = this.buildWhenAttackOrDefenseEndsAbility();
