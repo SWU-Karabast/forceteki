@@ -624,3 +624,21 @@ export interface ICardAttributes {
     // TODO: Add more attributes as needed
     traits: Set<Trait>;
 }
+
+
+/* Constant effects */
+export interface IConstantEffectSourceSummary {
+    setId: { set: string; number: number };
+    type?: string;
+    controllerId: string;
+    sourceZone?: string;
+    sourceTitle: string;
+    sourceSubtitle?: string;
+    effectDescription?: string;
+}
+
+export interface IConstantEffectSummary {
+    sourceCardUuid: string;
+    source: IConstantEffectSourceSummary;
+    targets: string[];
+}

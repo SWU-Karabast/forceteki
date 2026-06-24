@@ -1,4 +1,4 @@
-import { Duration, EffectName, EventName } from '../Constants';
+import { Duration, EffectName, EventName, ZoneName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
 import type { OngoingEffect } from './OngoingEffect';
 import type { OngoingEffectSourceBase } from './OngoingEffectSource';
@@ -11,9 +11,21 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
 import type { MsgArg } from '../chat/GameChat';
+import type { IConstantEffectSummary } from '../../Interfaces';
+import type { Card } from '../card/Card';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
+}
+
+const asText = (desc: unknown): string | undefined =>
+    (typeof desc === 'string' ? desc : (desc as { format?: string })?.format);
+
+function describeEffect(effect: any): string | undefined {
+    return asText(effect.ongoingEffect?.ongoingEffectDescription) ??
+      asText(effect.ongoingEffect?.effectDescription) ??
+      asText(effect.impl?.effectDescription) ??
+      effect.ongoingEffect?.ability?.title;
 }
 
 @registerState()
@@ -94,6 +106,55 @@ export class OngoingEffectEngine extends GameObjectBase {
         }
         this.effectsChangedSinceLastCheck = true;
         return effect;
+    }
+
+    // This effect type is not displayed since it gives away hidden information
+    private static readonly effectTypesHiddenFromSummary = new Set<EffectName>([
+        EffectName.EntersPlayReady,
+    ]);
+
+    // These are the zones that contain hidden information
+    private static readonly hiddenZones: ReadonlySet<string> = new Set([
+        ZoneName.Hand,
+        ZoneName.Deck,
+        ZoneName.Resource,
+    ]);
+
+    /**
+     * Returns the currently active constant effects in a shape the FE renders directly.
+     */
+    public summarizeConstantEffectsForState(): IConstantEffectSummary[] {
+        const summaries: IConstantEffectSummary[] = [];
+
+        for (const effect of this.effects) {
+            if (!effect.isEffectActive() || !effect.source?.isCard?.()) {
+                continue;
+            }
+            if (OngoingEffectEngine.effectTypesHiddenFromSummary.has(effect.impl?.type)) {
+                continue;
+            }
+
+            const source = effect.source as Card;
+            summaries.push({
+                sourceCardUuid: source.uuid,
+                source: {
+                    type: source.type,
+                    setId: source.setId,
+                    controllerId: source.controller?.id ?? source.owner?.id,
+                    sourceZone: source.zoneName,
+                    sourceTitle: source.title,
+                    sourceSubtitle: source.subtitle,
+                    effectDescription: describeEffect(effect),
+                },
+                targets: effect.targets
+                    .filter((effectTarget) =>
+                        effectTarget?.isCard?.() &&
+                        !OngoingEffectEngine.hiddenZones.has(effectTarget.zoneName))
+                    .map((effectTarget) => effectTarget.uuid),
+            });
+        }
+
+        return summaries;
     }
 
     public checkDelayedEffects(events: GameEvent[]) {
