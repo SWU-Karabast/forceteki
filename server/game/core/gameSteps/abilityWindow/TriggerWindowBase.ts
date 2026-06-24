@@ -215,15 +215,6 @@ export abstract class TriggerWindowBase extends BaseStep {
         return this.unresolved.get(this.currentlyResolvingPlayer);
     }
 
-    private getChoiceTitle(context: TriggeredAbilityContext) {
-        let title = context.ability.getTitle(context);
-        if (!context.ability.hasAnyLegalEffects(context, SubStepCheck.All)) {
-            title = `(No effect) ${title}`;
-        }
-
-        return title;
-    }
-
     private getOverrideTitle(context: TriggeredAbilityContext) {
         return `${context.ability.getTitle(context)}: ${context.event.card.title}`;
     }
@@ -267,19 +258,8 @@ export abstract class TriggerWindowBase extends BaseStep {
             this.game,
             this.currentlyResolvingPlayer,
             abilitiesToResolve,
-            (context) => this.getChoiceTitle(context),
             (context) => this.resolveAbility(context)
         ));
-
-        // TODO: a variation of this was being used in the L5R code to choose which card to activate triggered abilities on.
-        // not used now b/c we're doing a shortcut where we just present each ability text name, which doesn't work well in all cases sadly.
-
-        // this.game.promptForSelect(this.currentlyResolvingPlayer, Object.assign(this.getPromptForSelectProperties(), {
-        //     onSelect: (player, card) => {
-        //         this.resolveAbility(abilitiesToResolve.find((context) => context.source === card));
-        //         return true;
-        //     }
-        // }));
     }
 
     // this is here to allow for overriding in subclasses

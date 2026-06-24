@@ -5,18 +5,25 @@ import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import { PromptType, type ITriggerWindowButton, type ITriggerWindowSourceCard } from '../PromptInterfaces';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { UiPrompt } from './UiPrompt';
+import { SubStepCheck } from '../../Constants';
 
 export class TriggeredAbilityResolutionPrompt extends UiPrompt {
     private readonly source = new OngoingEffectSource(this.game, 'Choose Triggered Ability Resolution Order');
+    private readonly player: Player;
+    private readonly triggeredAbilities: TriggeredAbilityContext[];
+    private readonly resolveAbility: (context: TriggeredAbilityContext) => void;
 
     public constructor(
         game: Game,
-        private readonly player: Player,
-        private readonly triggeredAbilities: TriggeredAbilityContext[],
-        private readonly getChoiceTitle: (context: TriggeredAbilityContext) => string,
-        private readonly resolveAbility: (context: TriggeredAbilityContext) => void
+        player: Player,
+        triggeredAbilities: TriggeredAbilityContext[],
+        resolveAbility: (context: TriggeredAbilityContext) => void
     ) {
         super(game);
+
+        this.player = player;
+        this.triggeredAbilities = triggeredAbilities;
+        this.resolveAbility = resolveAbility;
     }
 
     public override activeCondition(player: Player): boolean {
@@ -24,26 +31,18 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
     }
 
     public override activePromptInternal(): IPlayerPromptStateProperties {
-        const buttons: ITriggerWindowButton[] = this.triggeredAbilities.map((context, index) => {
-            const button: ITriggerWindowButton = {
-                text: this.getChoiceTitle(context),
-                arg: index.toString()
-            };
+        const buttons = this.triggeredAbilities
+            .map((context, index) => this.makeChoiceButton(context, index));
 
-            const sourceCard = this.getSourceCard(context);
-            if (sourceCard) {
-                button.sourceCard = sourceCard;
+        // Sort buttons so that those with legal effects are first
+        buttons.sort((a, b) => {
+            if (a.hasLegalEffects && !b.hasLegalEffects) {
+                return -1;
+            } else if (!a.hasLegalEffects && b.hasLegalEffects) {
+                return 1;
             }
-
-            return button;
+            return 0;
         });
-
-        if (this.game.manualMode) {
-            buttons.push({
-                text: 'Cancel Prompt',
-                arg: 'cancel'
-            });
-        }
 
         return {
             menuTitle: 'You have multiple triggers to resolve. Choose which to resolve first:',
@@ -59,12 +58,21 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
             return undefined;
         }
 
-        const sourceCardSummary = context.source.getShortSummary();
+        return {
+            ...context.source.getShortSummary(),
+            type: context.source.type
+        };
+    }
+
+    private makeChoiceButton(context: TriggeredAbilityContext, num: number): ITriggerWindowButton {
+        const title = context.ability.getTitle(context);
+        const hasLegalEffects = context.ability.hasAnyLegalEffects(context, SubStepCheck.All);
 
         return {
-            ...sourceCardSummary,
-            setId: context.source.setId,
-            type: context.source.type
+            text: title,
+            arg: num.toString(),
+            sourceCard: this.getSourceCard(context),
+            hasLegalEffects
         };
     }
 

@@ -42,6 +42,7 @@ export interface ITriggerWindowSourceCard {
 
 export interface ITriggerWindowButton extends IButton {
     sourceCard?: ITriggerWindowSourceCard;
+    hasLegalEffects: boolean;
 }
 
 export interface INumberPromptData {
