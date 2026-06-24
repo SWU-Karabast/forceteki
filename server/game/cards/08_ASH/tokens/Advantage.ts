@@ -17,8 +17,8 @@ export default class Advantage extends TokenUpgradeCard {
         return true;
     }
 
-    protected override buildWhenAttackOrDefenseEndsAbility(): TriggeredAbilityBase {
-        return new AdvantageAbility(this.game, this);
+    protected override buildWhenAttackOrDefenseEndsAbilities(): TriggeredAbilityBase[] {
+        return [new AdvantageAbility(this.game, this)];
     }
 }
 

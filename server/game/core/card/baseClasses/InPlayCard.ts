@@ -26,7 +26,7 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
-import { registerStateBase, stateRef, statePrimitive } from '../../GameObjectUtils';
+import { registerStateBase, stateRef, stateRefArray, statePrimitive } from '../../GameObjectUtils';
 
 const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
@@ -50,7 +50,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     isAttached(): boolean;
     unattach(event?: any);
     canAttach(targetCard: Card, context: AbilityContext, controller?: Player): boolean;
-    checkRegisterWhenAttackOrDefenseEndsAbility(event: GameEvent): void;
+    checkRegisterWhenAttackOrDefenseEndsAbilities(event: GameEvent): void;
 }
 
 /**
@@ -69,8 +69,8 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
     protected attachCondition: (context: IAttachCardContext<this>) => boolean;
 
-    @stateRef()
-    private accessor _whenAttackOrDefenseEndsAbility: TriggeredAbilityBase | null = null;
+    @stateRefArray()
+    private accessor _whenAttackOrDefenseEndsAbilities: readonly TriggeredAbilityBase[] | null = null;
 
     @statePrimitive()
     private accessor _disableOngoingEffectsForDefeat: boolean = null;
@@ -321,9 +321,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     public override getTriggeredAbilities(): TriggeredAbilityBase[] {
         const abilities = super.getTriggeredAbilities();
 
-        // gate the just-in-time ability behind the same blanking check that super applies to printed abilities
-        return this._whenAttackOrDefenseEndsAbility != null && !this.isFullyBlanked()
-            ? [...abilities, this._whenAttackOrDefenseEndsAbility]
+        // gate the just-in-time abilities behind the same blanking check that super applies to printed abilities
+        return this._whenAttackOrDefenseEndsAbilities != null && !this.isFullyBlanked()
+            ? [...abilities, ...this._whenAttackOrDefenseEndsAbilities]
             : abilities;
     }
 
@@ -426,36 +426,42 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
     // **************** MANUAL ABILITY REGISTRATION ****************
 
-    public checkRegisterWhenAttackOrDefenseEndsAbility(event: GameEvent): void {
-        const ability = this.buildWhenAttackOrDefenseEndsAbility();
-        if (ability == null) {
+    public checkRegisterWhenAttackOrDefenseEndsAbilities(event: GameEvent): void {
+        const abilities = this.buildWhenAttackOrDefenseEndsAbilities();
+        if (abilities.length === 0) {
             return;
         }
 
         Contract.assertIsNullLike(
-            this._whenAttackOrDefenseEndsAbility,
-            () => `Failed to unregister "When Attack/Defense Ends" ability from previous attack: ${this._whenAttackOrDefenseEndsAbility?.getTitle()}`
+            this._whenAttackOrDefenseEndsAbilities,
+            () => `Failed to unregister "When Attack/Defense Ends" abilities from previous attack: ${this._whenAttackOrDefenseEndsAbilities?.map((ability) => ability.getTitle()).join(', ')}`
         );
 
-        this._whenAttackOrDefenseEndsAbility = ability;
-        ability.registerEvents();
+        this._whenAttackOrDefenseEndsAbilities = abilities;
 
-        event.addCleanupHandler(() => this.unregisterWhenAttackOrDefenseEndsAbility());
+        for (const ability of abilities) {
+            ability.registerEvents();
+        }
+
+        event.addCleanupHandler(() => this.unregisterWhenAttackOrDefenseEndsAbilities());
     }
 
-    public unregisterWhenAttackOrDefenseEndsAbility(): void {
-        Contract.assertNotNullLike(this._whenAttackOrDefenseEndsAbility, '"When Attack/Defense Ends" ability registration was skipped');
+    public unregisterWhenAttackOrDefenseEndsAbilities(): void {
+        Contract.assertTrue(Array.isArray(this._whenAttackOrDefenseEndsAbilities), '"When Attack/Defense Ends" ability registration was skipped');
 
-        this._whenAttackOrDefenseEndsAbility.unregisterEvents();
-        this._whenAttackOrDefenseEndsAbility = null;
+        for (const ability of this._whenAttackOrDefenseEndsAbilities) {
+            ability.unregisterEvents();
+        }
+
+        this._whenAttackOrDefenseEndsAbilities = null;
     }
 
     /**
-     * Builds this card's "When Attack/Defense Ends" ability, or returns null if it has none. Overridden by cards
-     * (e.g. the Advantage token) that rely on the just-in-time registration described above.
+     * Builds this card's "When Attack/Defense Ends" abilities, or returns an empty array if it has none. Overridden by
+     * cards (e.g. the Advantage token) that rely on the just-in-time registration described above.
      */
-    protected buildWhenAttackOrDefenseEndsAbility(): TriggeredAbilityBase | null {
-        return null;
+    protected buildWhenAttackOrDefenseEndsAbilities(): TriggeredAbilityBase[] {
+        return [];
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************

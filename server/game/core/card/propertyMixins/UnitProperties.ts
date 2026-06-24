@@ -157,7 +157,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     }
 
                     for (const upgrade of unit.upgrades) {
-                        upgrade.checkRegisterWhenAttackOrDefenseEndsAbility(event);
+                        upgrade.checkRegisterWhenAttackOrDefenseEndsAbilities(event);
                     }
                 }
             });
