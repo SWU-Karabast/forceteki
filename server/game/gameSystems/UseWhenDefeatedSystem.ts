@@ -63,8 +63,16 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         const whenDefeatedProps = { ...(whenDefeatedAbility.properties as ITriggeredAbilityProps), optional: false, target: whenDefeatedSource };
         const ability = event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new TriggeredAbility(event.context.game, whenDefeatedSource, whenDefeatedProps));
 
-        // This is needed for cards that use Last Known Information i.e. Raddus
-        const whenDefeatedEvent = onDefeatEvent || new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, whenDefeatedSource, true);
+        // Reusing the original onDefeatEvent is needed for cards that use Last Known Information i.e. Raddus,
+        // where the source has actually been defeated and its stats can no longer be read from the live card.
+        // However, if the source is still in play (e.g. its When Defeated was used via Chimaera rather than an
+        // actual defeat) we must regenerate the event so its Last Known Information reflects the source's current
+        // stats. Otherwise a re-use (e.g. Thrawn copying the ability) would read a stale snapshot captured before
+        // the first resolution changed the source's power (e.g. Helgait gaining Advantage tokens).
+        const sourceStillInPlay = whenDefeatedSource.canBeInPlay() && whenDefeatedSource.isInPlay();
+        const whenDefeatedEvent = (onDefeatEvent && !sourceStillInPlay)
+            ? onDefeatEvent
+            : new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, whenDefeatedSource, true);
 
         // Mark this as a manually activated ability (not naturally triggered by game events)
         const context = ability.createContext(event.context.player, whenDefeatedEvent);

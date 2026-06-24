@@ -21,10 +21,15 @@ export default class TheMandalorianDevotedRescuer extends NonLeaderUnitCard {
             shouldCardHaveDamageModification: (card, context) =>
                 card.isUnit() && card.controller === context.player && card !== context.source,
             onlyIfYouDoEffect: AbilityHelper.immediateEffects.defeat((context) => {
-                // Auto-select the shield to defeat, preferring highPriorityRemoval (Jetpack) shields.
-                const shields = context.source.isUnit()
-                    ? context.source.upgrades.filter((u): u is Shield => u.isShield())
-                    : [];
+                // Auto-select the shield to defeat, preferring highPriorityRemoval (Jetpack) shields. During actual
+                // resolution (replacement context) only consider shields not already queued for defeat by another
+                // replacement effect in this window, so that multiple effects resolving in the same window each consume
+                // a distinct shield.
+                const shields = context.isReplacement()
+                    ? context.replacementEffectWindow.getShieldsNotQueuedForDefeat(context.source)
+                    : (context.source.isUnit()
+                        ? context.source.upgrades.filter((u): u is Shield => u.isShield())
+                        : []);
                 const target = shields.find((s) => s.highPriorityRemoval) ?? shields[0];
                 return { target: target ?? undefined };
             })

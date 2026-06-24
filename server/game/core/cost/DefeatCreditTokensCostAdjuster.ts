@@ -13,7 +13,7 @@ import { CostAdjustStage, ResourceCostType } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 import { Contract } from '../utils/Contract';
 import { ChatHelpers } from '../chat/ChatHelpers';
-import type { IDropdownListPromptProperties } from '../gameSteps/prompts/DropdownListPrompt';
+import type { INumberPromptProperties } from '../gameSteps/prompts/NumberPrompt';
 import type { FormatMessage } from '../chat/GameChat';
 
 import { registerState } from '../GameObjectUtils';
@@ -105,7 +105,7 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         } else {
             choices.push('Select amount');
             handlers.push(() => {
-                this.promptDropdownList(
+                this.promptWithNumberMenu(
                     Math.max(1, minimumCreditsRequiredToPay),
                     maximumCreditsThatCanBeUsed,
                     context,
@@ -187,20 +187,21 @@ export class DefeatCreditTokensCostAdjuster extends CostAdjusterWithGameSteps {
         return overallPaymentEvent;
     }
 
-    private promptDropdownList(
+    private promptWithNumberMenu(
         min: number,
         max: number,
         context: AbilityContext<Card>,
         onSelect: (chosenAmount: number) => void
     ): void {
-        const props: IDropdownListPromptProperties = {
+        const props: INumberPromptProperties = {
             promptTitle: 'Select amount of Credit tokens',
-            options: Array.from({ length: max - min + 1 }, (_, i) => (i + min).toString()),
+            min,
+            max,
             source: context.source,
             choiceHandler: (choice: string) => onSelect(parseInt(choice, 10))
         };
 
-        context.game.promptWithDropdownListMenu(this.sourcePlayer, props);
+        context.game.promptWithNumberMenu(this.sourcePlayer, props);
     }
 
     private creditString(count: number): string {
