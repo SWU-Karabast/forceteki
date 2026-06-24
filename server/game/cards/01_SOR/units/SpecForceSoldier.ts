@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SpecForceSoldier extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -18,7 +19,7 @@ export default class SpecForceSoldier extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.loseKeyword(KeywordName.Sentinel),
-                    ongoingEffectDescription: 'remove Sentinel from'
+                    ongoingEffectDescription: `remove ${TextHelper.Sentinel} from`
                 })
             }
         });

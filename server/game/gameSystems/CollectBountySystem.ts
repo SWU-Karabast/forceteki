@@ -7,6 +7,7 @@ import { BountyAbility } from '../abilities/keyword/BountyAbility';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import { Contract } from '../core/utils/Contract';
 import { Helpers } from '../core/utils/Helpers';
+import { TextHelper } from '../core/utils/TextHelper';
 
 export interface ICollectBountyProperties extends ICardTargetSystemProperties {
     bountyProperties: ITriggeredAbilityBaseProps | ITriggeredAbilityBaseProps[];
@@ -43,8 +44,8 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
             const choices = bountyAbilities.map((ability) => ability.properties.title);
 
             const promptProperties = {
-                activePromptTitle: 'Choose a Bounty ability to use',
-                waitingPromptTitle: 'Waiting for opponent to choose a Bounty ability'
+                activePromptTitle: `Choose a ${TextHelper.Bounty} ability to use`,
+                waitingPromptTitle: `Waiting for opponent to choose a ${TextHelper.Bounty} ability`
             };
 
             const handlers = bountyAbilities.map(

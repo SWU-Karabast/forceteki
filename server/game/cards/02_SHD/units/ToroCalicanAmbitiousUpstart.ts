@@ -13,6 +13,7 @@ export default class ToroCalicanAmbitiousUpstart extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Bounty Hunter" is a trait, not the Bounty keyword
             title: 'Deal 1 damage to the played Bounty Hunter unit to ready this unit',
             when: {
                 onCardPlayed: (event, context) =>

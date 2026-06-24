@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AhsokaTanoAlwaysReadyForTrouble extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -24,7 +25,7 @@ export default class AhsokaTanoAlwaysReadyForTrouble extends NonLeaderUnitCard {
         });
 
         registrar.addConstantAbility({
-            title: 'Gain Ambush',
+            title: `Gain ${TextHelper.Ambush}`,
             condition: (context) => {
                 const player = context.player;
                 const opponent = player.opponent;

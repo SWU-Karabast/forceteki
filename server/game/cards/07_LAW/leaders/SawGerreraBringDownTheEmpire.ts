@@ -2,6 +2,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
@@ -14,7 +15,7 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Attack with a unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, defeat it.',
+            title: `Attack with a unit. It gets +2/+0 and gains ${TextHelper.Overwhelm} for this attack. After completing this attack, defeat it.`,
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -40,7 +41,7 @@ export default class SawGerreraBringDownTheEmpire extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenAttackEndsAbility({
-            title: 'Attack with another unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, defeat it.',
+            title: `Attack with another unit. It gets +2/+0 and gains ${TextHelper.Overwhelm} for this attack. After completing this attack, defeat it.`,
             attackerMustSurvive: true,
             optional: true,
             targetResolver: {

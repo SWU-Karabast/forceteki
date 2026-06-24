@@ -5,6 +5,7 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Contract } from '../core/utils/Contract';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
+import { TextHelper } from '../core/utils/TextHelper';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { Helpers } from '../core/utils/Helpers';
 import { AbilityRestriction, CardType, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
@@ -76,7 +77,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.playType && properties.playType === PlayType.Plot) {
-            return [`${this.effectDescription}{1} using Plot`, [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
+            return [`${this.effectDescription}{1} using ${TextHelper.Plot}`, [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
         }
 
         return [`${this.effectDescription}{1}`, [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
