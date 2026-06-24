@@ -16,6 +16,7 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: `Exhaust it unless its controller pay ${TextHelper.resource(2)}`,
+            contextTitle: (context) => `Exhaust ${context.source.parentCard.title} unless its controller pays ${TextHelper.resource(2)}`,
             when: {
                 onCardReadied: (event, context) => context.source.parentCard === event.card
             },

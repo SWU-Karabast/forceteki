@@ -34,6 +34,7 @@ export default class YodaMyAllyIsTheForce extends NonLeaderUnitCard {
 
         registrar.addTriggeredAbility({
             title: 'When you use the Force',
+            contextTitle: (context) => `Deal ${this.getDamageFromContext(context)} damage to a unit`,
             when: {
                 onForceUsed: (event, context) => event.player === context.player
             },

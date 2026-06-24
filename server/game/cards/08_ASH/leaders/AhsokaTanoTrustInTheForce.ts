@@ -32,6 +32,7 @@ export default class AhsokaTanoTrustInTheForce extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.addOnAttackAbility({
             title: 'Give a unit with less power than this unit +2/+0 for this phase',
+            contextTitle: (context) => `Give a unit with less than ${context.source.getPower()} power +2/+0 for this phase`,
             optional: true,
             targetResolver: {
                 activePromptTitle: (context) => `Give a unit with less than ${context.source.getPower()} power +2/+0 for this phase`,

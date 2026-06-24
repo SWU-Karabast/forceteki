@@ -24,6 +24,7 @@ export default class BackedByBlackSun extends EventCard {
             then: {
                 title: 'Deal damage to a unit equal to the number of damaged enemy units',
                 optional: true,
+                contextTitle: (context) => `Deal ${context.player.opponent.getArenaUnits({ condition: (x) => x.canBeDamaged() && x.damage > 0 }).length} damage to a unit`,
                 targetResolver: {
                     activePromptTitle: (context) => `Deal ${context.player.opponent.getArenaUnits({ condition: (x) => x.canBeDamaged() && x.damage > 0 }).length} damage to a unit`,
                     cardTypeFilter: WildcardCardType.Unit,
