@@ -14,6 +14,7 @@ export default class BazeMalbusGoodLuck extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Deal that much damage to a unit',
+            contextTitle: (context) => `Deal ${context.event.amount} damage to a unit`,
             optional: true,
             when: {
                 onDamageHealed: (event, context) => event.card === context.source && event.amount >= 1

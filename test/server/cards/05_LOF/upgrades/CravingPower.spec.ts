@@ -30,7 +30,7 @@ describe('Craving Power', function () {
                 expect(context.darthVader).toHaveExactUpgradeNames(['craving-power']);
 
                 // Ability triggers
-                expect(context.player1).toHavePrompt('Deal damage to an enemy unit equal to attached unit\'s power');
+                expect(context.player1).toHavePrompt('Deal 7 damage to an enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.reinforcementWalker]);
 
                 // Select Reinforcement Walker

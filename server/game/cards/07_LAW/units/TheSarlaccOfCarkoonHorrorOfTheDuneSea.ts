@@ -14,6 +14,9 @@ export default class TheSarlaccOfCarkoonHorrorOfTheDuneSea extends NonLeaderUnit
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Put a unit from your discard pile on the bottom of your deck. Deal damage equal to that unit\'s power to an enemy ground unit',
+            contextTitle: (context) => (context.targets.discardUnit
+                ? `Put a unit from your discard pile on the bottom of your deck. Deal ${context.targets.discardUnit.printedPower} damage to an enemy ground unit`
+                : 'Put a unit from your discard pile on the bottom of your deck. Deal damage equal to that unit\'s power to an enemy ground unit'),
             targetResolvers: {
                 discardUnit: {
                     cardTypeFilter: WildcardCardType.Unit,
