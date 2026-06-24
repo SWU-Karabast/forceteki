@@ -104,6 +104,8 @@ import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import { SwuPgnGameAdapter } from './chat/SwuPgnGameAdapter';
+import type { Seat } from '../../../swupgn/src/types';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -158,6 +160,11 @@ export class Game extends EventEmitter {
 
     public get actionNumber() {
         return this.state.actionNumber;
+    }
+
+    /** The RNG seed this game was run with (undefined for an unseeded/test RNG). Read by SwuPgnGameAdapter. */
+    public get randomSeed(): string | undefined {
+        return this._randomGenerator.seed;
     }
 
     public set actionNumber(value: number) {
@@ -323,6 +330,11 @@ export class Game extends EventEmitter {
     public gameEndReason?: GameEndReason;
     private _actionsSinceLastUndo?: number;
 
+    // ── SWU-PGN/1.1 (single-file, event-sourced path) ──
+    /** Owns 1.1 generation: recorder, stable-id/deck-order bookkeeping, and board projections. */
+    private readonly _swuPgnAdapter: SwuPgnGameAdapter;
+    private _cachedSwuPgnFile?: string;
+
     // #endregion
 
     public constructor(details: GameConfiguration, options: GameOptions) {
@@ -343,6 +355,7 @@ export class Game extends EventEmitter {
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
+        this._swuPgnAdapter = new SwuPgnGameAdapter(this);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
@@ -519,6 +532,25 @@ export class Game extends EventEmitter {
         }
 
         return filteredMessages;
+    }
+
+    /**
+     * Single-file `.swupgn` accessor. The cache is only PINNED once the game has ended (endGame
+     * also sets it); before that, each call generates fresh from the current event stream. This
+     * guards against an early mid-game read pinning a stale, incomplete file that subsequent
+     * gameplay would invalidate — the cache is otherwise only cleared on rollback, not on every
+     * new event. Production serving (Lobby.getGameLog) is gated on isEnded, so it always reads the
+     * pinned end-of-game file.
+     */
+    public getCachedSwuPgn(): string {
+        if (this._cachedSwuPgnFile != null) {
+            return this._cachedSwuPgnFile;
+        }
+        const file = this._swuPgnAdapter.generateFile();
+        if (this.isEnded) {
+            this._cachedSwuPgnFile = file;
+        }
+        return file;
     }
 
     /**
@@ -852,6 +884,27 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
+
+        // Record game end in the SWU-PGN/1.1 event stream.
+        const winnerSeat: Seat | 'Draw' = winners.length === 1
+            ? (winners[0] === this.getPlayers()[0] ? 1 : 2)
+            : 'Draw';
+        this._swuPgnAdapter.recordGameEnd(winnerSeat, reasonCode);
+
+        try {
+            // Single-file 1.1 artifact, cached at game end.
+            this._cachedSwuPgnFile = this._swuPgnAdapter.generateFile();
+            // NOTE: do NOT clear the recorder's raw arrays here. A player can undo
+            // past game-end (handleUndoGameEnd): that rolls back winnerNames so the
+            // game re-opens, nulls this cache (postRollbackOperations), and lets
+            // the game re-end later. If the events were cleared, the regenerated
+            // file would contain only the post-undo tail and the rest of the game
+            // would be lost. The arrays are bounded by game length and are freed
+            // when the lobby tears down the Game object.
+        } catch (e) {
+            logger.error(`Error caching game log at end of game: ${e}`);
+        }
+
         this._router.handleGameEnd();
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
@@ -1949,6 +2002,13 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
+        // Roll the SWU-PGN/1.1 recorder back to match the restored game state: it
+        // checkpoints lazily per snapshot id (in SwuPgnRecorder.push), so rolling back to
+        // the restored snapshot id drops exactly the events recorded after it and restores
+        // counters + shieldParents. currentSnapshotId already reflects the restored snapshot.
+        this._swuPgnAdapter.rollbackTo(this._snapshotManager.currentSnapshotId);
+        this._cachedSwuPgnFile = undefined;
+
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {
