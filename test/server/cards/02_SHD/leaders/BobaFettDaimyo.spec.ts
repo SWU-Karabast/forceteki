@@ -229,5 +229,14 @@ describe('Boba Fett, Daimyo', function () {
                 expect(context.daggerSquadronPilot.getPower()).toBe(3);
             });
         });
+
+        describe('Boba Fett\'s ability with Pilot units', function () {
+            // Ruling (JTL): a Pilot card in play as a unit still counts as having the Pilot keyword,
+            // so it is affected by Daimyō Boba Fett's ability that cares about Pilot units.
+            xit('counts a Pilot card in play as a unit as having the Pilot keyword', function () {
+                // A Pilot card is in play as a unit (not attached as an upgrade). Daimyō Boba Fett's
+                // ability that benefits Pilots should apply to it, since it still counts as a Pilot.
+            });
+        });
     });
 });

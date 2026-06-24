@@ -197,5 +197,14 @@ describe('Let\'s Talk', function () {
             expect(context.player1).toBeAbleToSelectAllOf([context.wampa, context.tauntaun, context.admiralAckbar]);
             context.player1.clickCard(context.admiralAckbar);
         });
+
+        // Ruling 2026-02-10: Let's Talk does not force a player to attempt to capture IG-11 multiple
+        // times — captures can be directed at other units (to be errata'd to "different enemy non-leader
+        // unit"). So the player can avoid triggering IG-11's defeat-and-damage replacement.
+        xit('does not force the player to attempt capturing IG-11 (can direct captures to other units)', function () {
+            // With multiple friendly units and an enemy IG-11 ("I Cannot Be Captured") plus other
+            // enemy units, the player can choose to capture the other enemy units instead of IG-11,
+            // avoiding IG-11's "defeat him and deal 3 to each enemy ground unit" replacement.
+        });
     });
 });

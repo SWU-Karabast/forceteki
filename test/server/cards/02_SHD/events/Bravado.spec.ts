@@ -30,5 +30,13 @@ describe('Bravado', function () {
             expect(context.player1.exhaustedResourceCount).toBe(5);
             expect(context.battlefieldMarine.exhausted).toBe(false);
         });
+
+        // Ruling 2025-04-30 (CR 7.7.5D): if an effect replaces a unit's defeat, the unit is not
+        // considered defeated. So a replaced defeat does not count toward Bravado's cost reduction.
+        xit('does not get its cost reduction when the only enemy "defeat" this phase was replaced (e.g. L3-37 attaches instead)', function () {
+            // The opponent's L3-37 (Get Out Of My Seat) "would be defeated" but uses her replacement to
+            // attach as a pilot upgrade instead of being defeated. Since no unit was actually defeated,
+            // Bravado does not receive its cost reduction.
+        });
     });
 });
