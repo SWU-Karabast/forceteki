@@ -22,11 +22,68 @@ interface ICustomDurationEventState extends IGameObjectBaseState {
 const asText = (desc: unknown): string | undefined =>
     (typeof desc === 'string' ? desc : (desc as { format?: string })?.format);
 
-function describeEffect(effect: any): string | undefined {
-    return asText(effect.ongoingEffect?.ongoingEffectDescription) ??
-      asText(effect.ongoingEffect?.effectDescription) ??
-      asText(effect.impl?.effectDescription) ??
-      effect.ongoingEffect?.ability?.title;
+/**
+ * Pulls a human-readable title from the ability that created an effect, preferring its
+ * `contextTitle` over its `title` (via `getTitle`). Defensive because this runs on every
+ * state serialization and a throwing `contextTitle` should never make the game unplayable.
+ */
+function getAbilityTitle(ability: { getTitle?: (context: unknown) => string; title?: string } | undefined, context: unknown): string | undefined {
+    if (!ability) {
+        return undefined;
+    }
+    try {
+        if (typeof ability.getTitle === 'function') {
+            const title = ability.getTitle(context);
+            if (title) {
+                return title;
+            }
+        }
+    } catch {
+        // fall through to the plain title
+    }
+    return typeof ability.title === 'string' ? ability.title : undefined;
+}
+
+/**
+ * Constant abilities don't attach themselves to their effect's props the way lasting/delayed
+ * effects do, so recover the owning ability via the source's registered constant abilities.
+ */
+function findRegisteringConstantAbility(effect: OngoingEffect) {
+    return effect.source?.getConstantAbilities?.()
+        .find((ability) => ability.registeredEffects?.includes(effect));
+}
+
+/**
+ * Resolves a description for an ongoing effect. Prefers the title/contextTitle of the ability
+ * that created it (the reliable, author-maintained text), falling back to any explicit
+ * description set on the effect props or impl.
+ */
+function describeEffect(effect: OngoingEffect): string | undefined {
+    const ability = effect.ongoingEffect?.ability ?? findRegisteringConstantAbility(effect);
+    // These description fields originate from lasting-effect props and are spread onto the
+    // ongoing effect props at runtime, but aren't part of the IOngoingEffectProps type.
+    const props = effect.ongoingEffect as { ongoingEffectDescription?: unknown; effectDescription?: unknown } | undefined;
+    return getAbilityTitle(ability, effect.context) ??
+      asText(props?.ongoingEffectDescription) ??
+      asText(props?.effectDescription) ??
+      asText(effect.impl?.effectDescription);
+}
+
+/**
+ * Detached effects (e.g. cost adjusters) store the applied game object, which tracks its own
+ * use limit. Once every applied instance is spent, the effect is no longer doing anything and
+ * shouldn't be surfaced in the summary (its lasting-effect duration may keep it alive in the
+ * engine until end of phase regardless).
+ */
+function effectLimitReached(effect: OngoingEffect): boolean {
+    const appliedValues = (effect.impl?.valueWrapper as { targetStates?: ReadonlyMap<string, unknown> })?.targetStates;
+    if (!appliedValues) {
+        return false;
+    }
+    const limited = [...appliedValues.values()].filter(
+        (applied): applied is { isExpired: () => boolean } => typeof (applied as { isExpired?: unknown })?.isExpired === 'function'
+    );
+    return limited.length > 0 && limited.every((applied) => applied.isExpired());
 }
 
 @registerState()
@@ -125,6 +182,9 @@ export class OngoingEffectEngine extends GameObjectBase {
                 continue;
             }
             if (OngoingEffectEngine.effectTypesHiddenFromSummary.has(effect.impl?.type)) {
+                continue;
+            }
+            if (effectLimitReached(effect)) {
                 continue;
             }
 
