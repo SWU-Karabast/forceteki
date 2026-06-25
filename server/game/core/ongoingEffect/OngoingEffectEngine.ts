@@ -166,11 +166,6 @@ export class OngoingEffectEngine extends GameObjectBase {
         return effect;
     }
 
-    // This effect type is not displayed since it gives away hidden information
-    private static readonly effectTypesHiddenFromSummary = new Set<EffectName>([
-        EffectName.EntersPlayReady,
-    ]);
-
     /**
      * Returns the currently active ongoing effects in a shape the FE renders directly.
      */
@@ -181,7 +176,9 @@ export class OngoingEffectEngine extends GameObjectBase {
             if (!effect.isEffectActive() || !effect.source?.isCard?.()) {
                 continue;
             }
-            if (OngoingEffectEngine.effectTypesHiddenFromSummary.has(effect.impl?.type)) {
+            // Don't surface effects sourced from a hidden zone (e.g. a card active from hand/deck
+            // such as "enters play ready") since that would leak the presence of a hidden card.
+            if (EnumHelpers.isHiddenFromOpponent(effect.source.zoneName, RelativePlayer.Self)) {
                 continue;
             }
             if (effectLimitReached(effect)) {
