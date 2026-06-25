@@ -24,7 +24,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.chooseListOption('Battlefield Marine');
 
                 expect(descriptionsFor(context, context.qira)).toContain(
-                    'While this unit is in play, each card with that name costs 3 resources more for your opponents to play'
+                    'While this unit is in play, each card named Battlefield Marine costs 3 resources more for your opponents to play'
                 );
             });
 
@@ -63,6 +63,37 @@ describe('Ongoing effect summary', function() {
                     'You may play or deploy 1 additional Pilot on this unit',
                     'This unit gets +1/+0 for each Pilot on it'
                 ]);
+            });
+        });
+
+        describe('delayed effects', function() {
+            it('describes a delayed effect using its own title', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { hand: ['sneak-attack', 'wampa'] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.wampa);
+
+                // the lingering delayed effect is the "defeat it at regroup" part, sourced from the event
+                expect(descriptionsFor(context, context.sneakAttack)).toContain('Defeat Wampa');
+            });
+
+            it('describes a delayed control-change effect with its title rather than its chat text', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { hand: ['change-of-heart'] },
+                    player2: { groundArena: ['battlefield-marine'] }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(descriptionsFor(context, context.changeOfHeart)).toContain('Owner takes control');
             });
         });
 
