@@ -1,6 +1,6 @@
 import { CardPool, SwuGameFormat } from '../../../server/game/core/Constants';
-import { DeckValidationFailureReason, IllegalInFormatReason } from '../../../server/utils/deck/DeckInterfaces';
-import type { IInternalCardEntry, ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
+import { DeckValidationFailureReason } from '../../../server/utils/deck/DeckInterfaces';
+import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
 import {
@@ -8,12 +8,13 @@ import {
     buildValidationTestDeck,
     getDeckFiller,
     getFirstBase,
-    getFirstCardInSet,
     getFirstLeader,
     getLegalSetCodes
 } from './DeckValidatorTestUtils';
+import { registerCommonDeckRuleTests } from './CommonDeckRuleTests';
 
 const LIMITED_SETS = getLegalSetCodes(SwuGameFormat.Limited, CardPool.Current);
+const LIMITED_NEXT_SETS = getLegalSetCodes(SwuGameFormat.Limited, CardPool.NextSet);
 
 // Under the Unlimited card pool, all mainline sets are legal, so a SOR leader/base is valid.
 const UNLIMITED_LEADER = 'luke-skywalker#faithful-friend';
@@ -24,20 +25,20 @@ describe('Limited deck validation', function () {
     let cardDataGetter: UnitTestCardDataGetter;
     let leader: string;
     let base: string;
+    let nextSetLeader: string;
+    let nextSetBase: string;
 
     beforeAll(async function () {
         cardDataGetter = new UnitTestCardDataGetter('test/json');
         validator = await DeckValidator.createAsync(cardDataGetter);
         leader = getFirstLeader(cardDataGetter, LIMITED_SETS).internalName;
         base = getFirstBase(cardDataGetter, LIMITED_SETS).internalName;
+        nextSetLeader = getFirstLeader(cardDataGetter, LIMITED_NEXT_SETS).internalName;
+        nextSetBase = getFirstBase(cardDataGetter, LIMITED_NEXT_SETS).internalName;
     });
 
     function limitedProps(cardPool: CardPool = CardPool.Current) {
         return { format: SwuGameFormat.Limited, cardPool };
-    }
-
-    function buildDeck(deckCards: IInternalCardEntry[], overrides = {}) {
-        return buildValidationTestDeck(cardDataGetter, leader, base, deckCards, overrides);
     }
 
     describe('deck structure', function () {
@@ -54,58 +55,12 @@ describe('Limited deck validation', function () {
         });
     });
 
-    describe('deck size', function () {
-        // 30 is a minimum, not an exact size.
-        it('should accept a valid deck with exactly 30 cards', function () {
-            const deck = buildDeck(getDeckFiller(cardDataGetter, 30, LIMITED_SETS));
-            const failures = validator.validateInternalDeck(deck, limitedProps());
-            expect(Object.keys(failures).length).toBe(0);
-        });
-
-        it('should accept a deck with more than 30 cards', function () {
-            const deck = buildDeck(getDeckFiller(cardDataGetter, 35, LIMITED_SETS));
-            const failures = validator.validateInternalDeck(deck, limitedProps());
-            expect(Object.keys(failures).length).toBe(0);
-        });
-
-        it('should reject a deck with fewer than 30 cards', function () {
-            const deck = buildDeck(getDeckFiller(cardDataGetter, 29, LIMITED_SETS));
-            const failures = validator.validateInternalDeck(deck, limitedProps());
-            expect(failures[DeckValidationFailureReason.MinDecklistSizeNotMet]).toBeDefined();
-            expect(failures[DeckValidationFailureReason.MinDecklistSizeNotMet].actualDecklistSize).toBe(29);
-        });
-    });
-
-    describe('copy limits', function () {
-        // Limited has no per-card copy limit.
-        it('should allow more than 3 copies of a card', function () {
-            const filler = getDeckFiller(cardDataGetter, 29, LIMITED_SETS);
-            const quadCard: IInternalCardEntry = { ...filler[0], count: 4 };
-            const deck = buildDeck([quadCard, ...filler.slice(1)]);
-            const failures = validator.validateInternalDeck(deck, limitedProps());
-            expect(failures[DeckValidationFailureReason.TooManyCopiesOfCard]).toBeUndefined();
-        });
-    });
-
-    describe('sideboard', function () {
-        // Limited has no sideboard cap.
-        it('should allow a sideboard larger than 10 cards', function () {
-            const all = getDeckFiller(cardDataGetter, 45, LIMITED_SETS);
-            const deck = buildDeck(all.slice(0, 30), { sideboard: all.slice(30, 45) });
-            const failures = validator.validateInternalDeck(deck, limitedProps());
-            expect(failures[DeckValidationFailureReason.MaxSideboardSizeExceeded]).toBeUndefined();
-        });
-    });
-
-    describe('Current card pool', function () {
-        it('should reject a card from outside the latest released set (SOR)', function () {
-            const filler = getDeckFiller(cardDataGetter, 29, LIMITED_SETS);
-            const sorCard = getFirstCardInSet(cardDataGetter, 'SOR');
-            const deck = buildDeck([...filler, sorCard]);
-            const failures = validator.validateInternalDeck(deck, limitedProps());
-            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
-            expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.RotatedOut);
-        });
+    registerCommonDeckRuleTests(() => ({ validator, cardDataGetter, leader, base }), {
+        format: SwuGameFormat.Limited,
+        cardPool: CardPool.Current,
+        legalSets: LIMITED_SETS,
+        minDeckSize: 30,
+        // Limited has no copy limit and no sideboard cap
     });
 
     describe('Unlimited card pool', function () {
@@ -115,6 +70,16 @@ describe('Limited deck validation', function () {
             const deck = buildValidationTestDeck(cardDataGetter, UNLIMITED_LEADER, UNLIMITED_BASE, [...sorFiller, ...currentSetFiller]);
             const failures = validator.validateInternalDeck(deck, limitedProps(CardPool.Unlimited));
             expect(Object.keys(failures).length).toBe(0);
+        });
+    });
+
+    describe('NextSet card pool', function () {
+        it('should reject a card from the latest released set, which rotates out under NextSet', function () {
+            const filler = getDeckFiller(cardDataGetter, 29, LIMITED_NEXT_SETS);
+            const currentSetCard = getDeckFiller(cardDataGetter, 1, LIMITED_SETS)[0];
+            const deck = buildValidationTestDeck(cardDataGetter, nextSetLeader, nextSetBase, [...filler, currentSetCard]);
+            const failures = validator.validateInternalDeck(deck, limitedProps(CardPool.NextSet));
+            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
         });
     });
 });

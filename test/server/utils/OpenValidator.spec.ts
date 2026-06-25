@@ -8,9 +8,9 @@ import {
     buildCardEntry,
     buildValidationTestDeck,
     getDeckFiller,
-    getFirstCardInSet,
     RELEASED_SETS
 } from './DeckValidatorTestUtils';
+import { registerCommonDeckRuleTests } from './CommonDeckRuleTests';
 
 const LEADER = 'luke-skywalker#faithful-friend'; // SOR — legal in Open
 const BASE = 'kestro-city';                      // SOR — legal in Open
@@ -49,55 +49,13 @@ describe('Open deck validation', function () {
         });
     });
 
-    describe('deck size', function () {
-        it('should accept a valid deck with 50 cards', function () {
-            const deck = buildDeck(getDeckFiller(cardDataGetter, 50));
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(Object.keys(failures).length).toBe(0);
-        });
-
-        it('should reject a deck with fewer than 50 cards', function () {
-            const deck = buildDeck(getDeckFiller(cardDataGetter, 49));
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(failures[DeckValidationFailureReason.MinDecklistSizeNotMet]).toBeDefined();
-            expect(failures[DeckValidationFailureReason.MinDecklistSizeNotMet].actualDecklistSize).toBe(49);
-        });
-
-        it('should reject a deck where the mainboard is short even if the sideboard brings the total to 50', function () {
-            const all = getDeckFiller(cardDataGetter, 50);
-            const deck = buildDeck(all.slice(0, 49), { sideboard: [all[49]] });
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(failures[DeckValidationFailureReason.MinDecklistSizeNotMet]).toBeUndefined();
-            expect(failures[DeckValidationFailureReason.MinMainboardSizeNotMet]).toBeDefined();
-            expect(failures[DeckValidationFailureReason.MinMainboardSizeNotMet].actualBoardedSize).toBe(49);
-        });
-    });
-
-    describe('copy limits', function () {
-        it('should allow up to 3 copies of a card', function () {
-            const filler = getDeckFiller(cardDataGetter, 48);
-            const tripleCard: IInternalCardEntry = { ...filler[0], count: 3 };
-            const deck = buildDeck([tripleCard, ...filler.slice(1)]);
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(failures[DeckValidationFailureReason.TooManyCopiesOfCard]).toBeUndefined();
-        });
-
-        it('should reject 4 copies of a card', function () {
-            const filler = getDeckFiller(cardDataGetter, 48);
-            const quadCard: IInternalCardEntry = { ...filler[0], count: 4 };
-            const deck = buildDeck([quadCard, ...filler.slice(1)]);
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(failures[DeckValidationFailureReason.TooManyCopiesOfCard]).toBeDefined();
-        });
-    });
-
-    describe('sideboard', function () {
-        it('should allow a sideboard larger than 10 cards (no cap in Open)', function () {
-            const all = getDeckFiller(cardDataGetter, 61);
-            const deck = buildDeck(all.slice(0, 50), { sideboard: all.slice(50, 61) });
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(failures[DeckValidationFailureReason.MaxSideboardSizeExceeded]).toBeUndefined();
-        });
+    registerCommonDeckRuleTests(() => ({ validator, cardDataGetter, leader: LEADER, base: BASE }), {
+        format: SwuGameFormat.Open,
+        cardPool: CardPool.Current,
+        legalSets: RELEASED_SETS,
+        minDeckSize: 50,
+        maxCardCopies: 3,
+        // Open has no sideboard cap
     });
 
     describe('ban list', function () {
@@ -105,31 +63,6 @@ describe('Open deck validation', function () {
             const bannedEntries = ETERNAL_BANNED_CARDS.map((name) => buildCardEntry(cardDataGetter, name));
             const filler = getDeckFiller(cardDataGetter, 50 - bannedEntries.length);
             const deck = buildDeck([...filler, ...bannedEntries]);
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
-        });
-    });
-
-    describe('format legality', function () {
-        it('should accept cards from all released sets (no rotation lock)', function () {
-            const sorFiller = getDeckFiller(cardDataGetter, 50, new Set(['SOR']));
-            const deck = buildDeck(sorFiller);
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
-        });
-
-        it('should accept unreleased (ASH) cards since Open includes preview sets', function () {
-            const filler = getDeckFiller(cardDataGetter, 49, RELEASED_SETS);
-            const ashCard = getFirstCardInSet(cardDataGetter, 'ASH');
-            const deck = buildDeck([...filler, ashCard]);
-            const failures = validator.validateInternalDeck(deck, openProps());
-            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
-        });
-
-        it('should accept a card from a non-rotating set (TS26)', function () {
-            const filler = getDeckFiller(cardDataGetter, 49, RELEASED_SETS);
-            const ts26Card = getFirstCardInSet(cardDataGetter, 'TS26');
-            const deck = buildDeck([...filler, ts26Card]);
             const failures = validator.validateInternalDeck(deck, openProps());
             expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
         });
