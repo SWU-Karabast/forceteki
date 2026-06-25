@@ -77,13 +77,7 @@ export interface IFormatRules {
     rotationBlockCount?: number;
 }
 
-const bannedPremierCards = new Map([
-    ['4626028465', 'boba-fett#collecting-the-bounty'],
-    ['4002861992', 'dj#blatant-thief'],
-    ['5696041568', 'triple-dark-raid'],
-    ['9155536481', 'jango-fett#concealing-the-conspiracy'],
-    ['1705806419', 'force-throw']
-]);
+const bannedPremierCards = new Map<string, string>();
 
 const bannedEternalCards = new Map([
     ['4203363893', 'war-juggernaut'],
