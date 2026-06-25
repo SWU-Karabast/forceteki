@@ -14,10 +14,14 @@ export default class ShinHatiGoingSomewhere extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While this is the only friendly non-leader ground unit, she gains Sentinel',
-            condition: (context) => context.player.getArenaUnits({
-                arena: ZoneName.GroundArena,
-                condition: (card) => card.isNonLeaderUnit(),
-            }).length === 1,
+            condition: (context) => {
+                const friendlyNonLeaderGroundUnits = context.player.getArenaUnits({
+                    arena: ZoneName.GroundArena,
+                    condition: (card) => card.isNonLeaderUnit(),
+                });
+
+                return friendlyNonLeaderGroundUnits.length === 1 && friendlyNonLeaderGroundUnits[0] === context.source;
+            },
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
     }
