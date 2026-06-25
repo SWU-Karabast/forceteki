@@ -626,8 +626,8 @@ export interface ICardAttributes {
 }
 
 
-/* Constant effects */
-export interface IConstantEffectSourceSummary {
+/* Ongoing effects */
+export interface IOngoingEffectSourceSummary {
     setId: { set: string; number: number };
     type?: string;
     controllerId: string;
@@ -637,8 +637,8 @@ export interface IConstantEffectSourceSummary {
     effectDescription?: string;
 }
 
-export interface IConstantEffectSummary {
+export interface IOngoingEffectSummary {
     sourceCardUuid: string;
-    source: IConstantEffectSourceSummary;
+    source: IOngoingEffectSourceSummary;
     targets: string[];
 }

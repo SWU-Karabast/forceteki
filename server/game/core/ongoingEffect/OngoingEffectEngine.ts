@@ -1,4 +1,4 @@
-import { Duration, EffectName, EventName, ZoneName } from '../Constants';
+import { Duration, EffectName, EventName, RelativePlayer } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
 import type { OngoingEffect } from './OngoingEffect';
 import type { OngoingEffectSourceBase } from './OngoingEffectSource';
@@ -6,12 +6,13 @@ import { EventRegistrar } from '../event/EventRegistrar';
 import type { Game } from '../Game';
 import { Contract } from '../utils/Contract';
 import { Helpers } from '../utils/Helpers';
+import { EnumHelpers } from '../utils/EnumHelpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
 import type { MsgArg } from '../chat/GameChat';
-import type { IConstantEffectSummary } from '../../Interfaces';
+import type { IOngoingEffectSummary } from '../../Interfaces';
 import type { Card } from '../card/Card';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
@@ -113,18 +114,11 @@ export class OngoingEffectEngine extends GameObjectBase {
         EffectName.EntersPlayReady,
     ]);
 
-    // These are the zones that contain hidden information
-    private static readonly hiddenZones: ReadonlySet<string> = new Set([
-        ZoneName.Hand,
-        ZoneName.Deck,
-        ZoneName.Resource,
-    ]);
-
     /**
-     * Returns the currently active constant effects in a shape the FE renders directly.
+     * Returns the currently active ongoing effects in a shape the FE renders directly.
      */
-    public summarizeConstantEffectsForState(): IConstantEffectSummary[] {
-        const summaries: IConstantEffectSummary[] = [];
+    public summarizeOngoingEffectsForState(): IOngoingEffectSummary[] {
+        const summaries: IOngoingEffectSummary[] = [];
 
         for (const effect of this.effects) {
             if (!effect.isEffectActive() || !effect.source?.isCard?.()) {
@@ -149,7 +143,7 @@ export class OngoingEffectEngine extends GameObjectBase {
                 targets: effect.targets
                     .filter((effectTarget) =>
                         effectTarget?.isCard?.() &&
-                        !OngoingEffectEngine.hiddenZones.has(effectTarget.zoneName))
+                        !EnumHelpers.isHiddenFromOpponent(effectTarget.zoneName, RelativePlayer.Self))
                     .map((effectTarget) => effectTarget.uuid),
             });
         }
