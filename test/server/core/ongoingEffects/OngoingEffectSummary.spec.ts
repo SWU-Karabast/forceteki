@@ -51,6 +51,23 @@ describe('Ongoing effect summary', function() {
                 expect(descriptionsFor(context, context.millenniumFalcon)).toEqual([]);
             });
 
+            it('describes a modal-choice effect using the chosen option label, not the modal header', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { hand: ['cunning'], groundArena: ['battlefield-marine'] },
+                    player2: { hand: ['wampa'] }
+                });
+                const { context } = contextRef;
+
+                // Cunning picks 2 modal options; only the +4/+0 one leaves an ongoing effect
+                context.player1.clickCard(context.cunning);
+                context.player1.clickPrompt('Give a unit +4/+0 for this phase');
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('An opponent discards a random card from their hand');
+
+                expect(descriptionsFor(context, context.cunning)).toContain('Give a unit +4/+0 for this phase');
+            });
+
             it('describes each constant ability of a unit using its ability title', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
