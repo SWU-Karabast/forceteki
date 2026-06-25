@@ -77,7 +77,9 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
             const eventsForThisAction = [];
             context.game.addMessage('{0} chooses "{1}"', context.source.owner, selectedPrompt);
             this.addOnSelectEffectMessage(context, selectedSystem);
-            selectedSystem.queueGenerateEventGameSteps(eventsForThisAction, context);
+            // Pass the chosen option label down so any ongoing effect it creates can describe itself
+            // with that label in the game state summary (the system's own title is just the modal header).
+            selectedSystem.queueGenerateEventGameSteps(eventsForThisAction, context, { ongoingEffectSummary: selectedPrompt });
             context.game.queueSimpleStep(() => {
                 for (const event of eventsForThisAction) {
                     events.push(event);
