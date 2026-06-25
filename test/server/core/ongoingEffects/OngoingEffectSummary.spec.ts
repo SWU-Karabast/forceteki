@@ -28,6 +28,29 @@ describe('Ongoing effect summary', function() {
                 );
             });
 
+            it('shows an effect sourced from a visible in-play card, even one active from any zone', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { spaceArena: ['millennium-falcon#piece-of-junk'] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                expect(descriptionsFor(context, context.millenniumFalcon)).toContain('This unit enters play ready');
+            });
+
+            it('hides an effect sourced from a hidden zone so the card is not leaked', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { hand: ['millennium-falcon#piece-of-junk'] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                // "enters play ready" is active from any zone, but the Falcon is in hand - it must stay hidden
+                expect(descriptionsFor(context, context.millenniumFalcon)).toEqual([]);
+            });
+
             it('describes each constant ability of a unit using its ability title', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -55,7 +78,7 @@ describe('Ongoing effect summary', function() {
                 // GNK's "next unit costs 1 less" effect is created on attack
                 context.player1.clickCard(context.gnkPowerDroid);
                 context.player1.clickCard(context.p2Base);
-                expect(descriptionsFor(context, context.gnkPowerDroid)).toContain('discount the next unit played by');
+                expect(descriptionsFor(context, context.gnkPowerDroid)).toContain('The next unit you play this phase costs 1 resource less');
 
                 // playing a unit consumes the once-per-game limit, so the spent effect should no longer be shown
                 context.player2.passAction();
