@@ -5,6 +5,7 @@ on:
     branches:
       - main
   merge_group:
+# this will cancel any PR runs that are superseded by a new commit so they don't waste time running tests that are no longer relevant
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
