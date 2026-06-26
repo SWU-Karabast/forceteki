@@ -23,6 +23,7 @@ describe('Devastator', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.devastator);
+                expect(context.player1).toHavePrompt('Deal 14 damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.devastator, context.seasonedShoretrooper, context.ruggedSurvivors]);
                 expect(context.player1).toHavePassAbilityButton();
 

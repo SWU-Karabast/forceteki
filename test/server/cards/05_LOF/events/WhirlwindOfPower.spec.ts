@@ -19,6 +19,7 @@ describe('Whirlwind Of Power', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.whirlwindOfPower);
+                expect(context.player1).toHavePrompt('Give a unit –3/–3 for this phase');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.greenSquadronAwing, context.karis]);
                 expect(context.player1).not.toHavePassAbilityButton();
 
@@ -53,6 +54,7 @@ describe('Whirlwind Of Power', function() {
             it('should give -2/-2 to wampa', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.whirlwindOfPower);
+                expect(context.player1).toHavePrompt('Give a unit –2/–2 for this phase');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.greenSquadronAwing, context.lurkingTiePhantom]);
                 expect(context.player1).not.toHavePassAbilityButton();
 

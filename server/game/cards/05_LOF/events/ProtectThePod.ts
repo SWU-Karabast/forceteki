@@ -14,6 +14,9 @@ export default class ProtectThePod extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'A friendly non-Vehicle unit deals damage equal to its remaining HP to an enemy unit',
+            contextTitle: (context) => (context.targets.friendlyUnit
+                ? `${context.targets.friendlyUnit.title} deals ${context.targets.friendlyUnit.remainingHp} damage to an enemy unit`
+                : 'A friendly non-Vehicle unit deals damage equal to its remaining HP to an enemy unit'),
             targetResolvers: {
                 friendlyUnit: {
                     controller: RelativePlayer.Self,

@@ -15,6 +15,10 @@ export default class KananJarrusRevealedJedi extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.',
+            contextTitle: (context) => {
+                const count = context.player.getArenaUnits({ trait: Trait.Spectre }).length;
+                return `Discard ${count} ${count === 1 ? 'card' : 'cards'} from the defending player's deck. Heal 1 damage for each aspect among the discarded cards.`;
+            },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.discardFromDeck((context) => ({

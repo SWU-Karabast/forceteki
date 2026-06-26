@@ -22,6 +22,7 @@ describe('Protect The Pod', function() {
                 context.player1.clickCard(context.protectThePod);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.grapplingGuardian]);
                 context.player1.clickCard(context.wampa);
+                expect(context.player1).toHavePrompt('Wampa deals 6 damage to an enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.theZilloBeast, context.devastator]);
                 context.player1.clickCard(context.devastator);
 
@@ -35,6 +36,7 @@ describe('Protect The Pod', function() {
                 context.player1.clickCard(context.protectThePod);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.grapplingGuardian]);
                 context.player1.clickCard(context.grapplingGuardian);
+                expect(context.player1).toHavePrompt('Grappling Guardian deals 6 damage to an enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.theZilloBeast, context.devastator]);
                 context.player1.clickCard(context.devastator);
 
