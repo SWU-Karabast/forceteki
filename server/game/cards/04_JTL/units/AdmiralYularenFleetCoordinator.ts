@@ -41,6 +41,7 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
 
     private buildYularenEffect(choice: KeywordNameOrProperties, AbilityHelper: IAbilityHelper, playedByPlayer: Player) {
         return AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
+            title: `Each friendly Vehicle unit gains ${TextHelper.keyword(choice)}`,
             ongoingEffectDescription: `give ${TextHelper.keyword(choice)} to`,
             ongoingEffectTargetDescription: `each friendly ${TextHelper.Trait.Vehicle} unit`,
             effect: AbilityHelper.ongoingEffects.gainAbility({

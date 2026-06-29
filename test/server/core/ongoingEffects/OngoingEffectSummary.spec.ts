@@ -51,7 +51,7 @@ describe('Ongoing effect summary', function() {
                 expect(descriptionsFor(context, context.millenniumFalcon)).toEqual([]);
             });
 
-            it('describes a modal-choice effect using the chosen option label, not the modal header', async function() {
+            it('uses the lasting effect\'s explicit title for a modal-choice effect (ability title is just a header)', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: { hand: ['cunning'], groundArena: ['battlefield-marine'] },
@@ -59,13 +59,44 @@ describe('Ongoing effect summary', function() {
                 });
                 const { context } = contextRef;
 
-                // Cunning picks 2 modal options; only the +4/+0 one leaves an ongoing effect
+                // Cunning picks 2 modal options; only the +4/+0 one leaves an ongoing effect, and it sets
+                // an explicit `title` since the ability title ("Cunning modal ability:") is just a header
                 context.player1.clickCard(context.cunning);
                 context.player1.clickPrompt('Give a unit +4/+0 for this phase');
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('An opponent discards a random card from their hand');
 
                 expect(descriptionsFor(context, context.cunning)).toContain('Give a unit +4/+0 for this phase');
+            });
+
+            it('uses the lasting effect\'s explicit title for an effect built inside a Select choice handler', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { hand: ['lawbringer#shadow-over-lothal'] },
+                    player2: { groundArena: ['atst'] }
+                });
+                const { context } = contextRef;
+
+                // Lawbringer's -2/-2 lasting effect lives in a Select choices handler, so without an explicit
+                // title the summary would fall back to the generic "Choose an aspect..." ability header
+                context.player1.clickCard(context.lawbringer);
+                context.player1.clickPrompt('Villainy');
+
+                expect(descriptionsFor(context, context.lawbringer)).toContain('Give each enemy Villainy unit -2/-2 for this phase');
+            });
+
+            it('uses the lasting effect\'s explicit title for a keyword chosen via Select', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { hand: ['admiral-yularen#fleet-coordinator'], spaceArena: ['cartel-spacer'] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.admiralYularen);
+                context.player1.clickPrompt('Sentinel');
+
+                expect(descriptionsFor(context, context.admiralYularen)).toContain('Each friendly Vehicle unit gains Sentinel');
             });
 
             it('describes each constant ability of a unit using its ability title', async function() {

@@ -94,24 +94,20 @@ function findRegisteringConstantAbility(effect: OngoingEffect) {
 
 /**
  * Resolves a description for an ongoing effect, in priority order:
- *   1. An explicit summary label threaded onto the effect (e.g. a chosen modal option), since the
- *      creating ability's own title is just a header in those cases.
- *   2. A delayed effect's own title (e.g. "Defeat Wampa", "Owner takes control") - self-contained.
- *   3. The title/contextTitle of the ability that created it (the reliable, author-maintained text).
- *   4. An explicit description on the effect props (already phrased for display).
- *   5. The effect impl's description, which is a bare phrase, so we append the duration ("... for this phase").
+ *   1. An explicit `title` set on the effect itself — for lasting effects via their props, for delayed
+ *      effects via their value. Authors set this when the creating ability's title is just a header
+ *      (e.g. the effect is built inside a `Select`/`choices` handler or modal option).
+ *   2. The title/contextTitle of the ability that created it (the reliable, author-maintained text).
+ *   3. An explicit description on the effect props (already phrased for display).
+ *   4. The effect impl's description, which is a bare phrase, so we append the duration ("... for this phase").
  */
 function describeEffect(effect: OngoingEffect): string | undefined {
-    const summary = (effect.ongoingEffect as { ongoingEffectSummary?: unknown } | undefined)?.ongoingEffectSummary;
-    if (typeof summary === 'string' && summary) {
-        return summary;
-    }
-
-    if (effect.impl?.type === EffectName.DelayedEffect) {
-        const delayedTitle = resolveText((effect.impl.getValue() as { title?: unknown })?.title);
-        if (delayedTitle) {
-            return delayedTitle;
-        }
+    // Delayed effects carry their title on the impl value; lasting effects carry it on their props.
+    const explicitTitle = effect.impl?.type === EffectName.DelayedEffect
+        ? resolveText((effect.impl.getValue() as { title?: unknown })?.title)
+        : resolveText((effect.ongoingEffect as { title?: unknown } | undefined)?.title);
+    if (explicitTitle) {
+        return explicitTitle;
     }
 
     const ability = effect.ongoingEffect?.ability ?? findRegisteringConstantAbility(effect);

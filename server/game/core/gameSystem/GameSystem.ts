@@ -25,13 +25,6 @@ export interface IGameSystemProperties {
 
     /** If the game system is a replacement effect */
     replacementEffect?: boolean;
-
-    /**
-     * Display-only label describing the resulting ongoing effect for the game state summary. Used
-     * when the creating ability's own title isn't specific enough (e.g. a chosen modal option),
-     * threaded down to the created effect via additional properties. Not used by chat.
-     */
-    ongoingEffectSummary?: string;
 }
 
 // TODO: see which base classes can be made abstract
