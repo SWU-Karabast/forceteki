@@ -418,7 +418,7 @@ export class UserFactory {
             // create username link
             await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
             // record the initial username in the change history
-            await this.recordUsernameChangeAsync(newUser.id, null, newUser.username, UsernameChangeSource.Initial);
+            await this.recordUsernameChangeAsync(newUser.id, null, newUser.username, UsernameChangeSource.AccountCreation);
             // Create email link if email is available
             if (!email) {
                 throw new Error(`Email not found for user ${newUser.id}`);

@@ -13,7 +13,7 @@ import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
 import { UsernameChangeSource } from '../server/services/DynamoDBInterfaces';
 import '../server/env';
 
-const DRY_RUN = true; // set to false to actually write
+const DRY_RUN = false; // set to false to actually write
 const BATCH_SIZE = 25; // we set to 25 per documentation - https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 
 async function run() {
@@ -71,7 +71,7 @@ async function run() {
             playerId: profile.id,
             previousUsername: null,
             newUsername: profile.username,
-            source: UsernameChangeSource.Initial,
+            source: UsernameChangeSource.Migration,
             createdAt: profile.createdAt ?? new Date().toISOString(),
         };
 

@@ -176,7 +176,8 @@ export interface IActiveModActionCacheEntry {
 }
 
 export enum UsernameChangeSource {
-    Initial = 'Initial', // account creation OR backfill seed (previousUsername = null)
+    AccountCreation = 'AccountCreation', // new account creation (previousUsername = null)
+    Migration = 'Migration', // backfill seed for pre-existing accounts (previousUsername = null)
     UserInitiated = 'UserInitiated',
     ForcedRename = 'ForcedRename', // result of a Rename mod action
 }
