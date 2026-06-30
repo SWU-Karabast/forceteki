@@ -64,16 +64,13 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             return;
         }
 
-        const event = this.createEvent(cards, context, additionalProperties);
-        this.updateEventForCards(event, cards, context, additionalProperties);
-        events.push(event);
+        // generateRetargetedEvent does the standard createEvent + updateEvent, but (unlike CardTargetSystem.generateEvent)
+        // without asserting a single target, so it can build one event spanning every affected unit
+        events.push(this.generateRetargetedEvent(cards, context, additionalProperties));
     }
 
-    // route the single-target generateEvent path (used by e.g. DistributeAmongTargetsSystem) through the batched logic
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): void {
-        this.updateEventForCards(event, Helpers.asArray(card), context, additionalProperties);
-    }
-
+    // a batched give can target multiple units, so condition on whether any targeted unit can still be affected
+    // (the base reads the single `event.card`, which is the whole array for a multi-target give)
     public override checkEventCondition(event: any, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
         return Helpers.asArray(event.cards).some((card: Card) =>
             this.canAffect(card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve));
@@ -85,10 +82,11 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         return context.game.generateToken(owner, this.getTokenType());
     }
 
-    private updateEventForCards(event, cards: Card[], context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties>): void {
-        this.addPropertiesToEvent(event, cards, context, additionalProperties);
-        event.setHandler((event) => this.eventHandler(event));
-        event.condition = () => this.checkEventCondition(event, additionalProperties);
+    // standard updateEvent override: let the base set the common properties/handler/condition, then generate the tokens
+    // and the contingent attach events. `cards` is a single card on the single-target generateEvent path (e.g. from
+    // DistributeAmongTargetsSystem) and an array on the batched queueGenerateEventGameSteps path.
+    protected override updateEvent(event, cards: Card | Card[], context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): void {
+        super.updateEvent(event, cards, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
@@ -96,7 +94,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
         const generatedTokensByCard = new Map<Card, any[]>();
-        for (const card of cards) {
+        for (const card of Helpers.asArray(cards)) {
             const tokensForCard = [];
             for (let i = 0; i < properties.amount; i++) {
                 const token = this.generateToken(context, card.controller);
@@ -137,16 +135,16 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             Contract.assertTrue(card.isInPlay());
         }
 
-        // `event.card` is a single-target convention (read by e.g. DistributeAmongTargetsSystem's chat message), so only
-        // populate it when there's genuinely one target. A batched multi-target give exposes its full set via `event.cards`
-        const singleCardTarget = cardsArray.length === 1 ? cardsArray[0] : null;
+        super.addPropertiesToEvent(event, cards, context, additionalProperties);
 
-        // GameSystem sets event.player/event.contingentSourceEvent; CardTargetSystem sets event.card to the passed target
-        super.addPropertiesToEvent(event, singleCardTarget, context, additionalProperties);
+        // A batched give can target multiple units. `event.cards` is the full set of targets; `event.card` keeps the
+        // single-target convention (read as a scalar Card by e.g. DistributeAmongTargetsSystem's chat message and the
+        // replacement-effect prompt title) and is null when several units are targeted, so callers read `event.cards`.
+        event.cards = cardsArray;
+        event.card = cardsArray.length === 1 ? cardsArray[0] : null;
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        event.cards = cardsArray;
         event.amount = properties.amount;
         event.tokenType = this.getTokenType();
     }
