@@ -20,7 +20,7 @@ describe('Shadow Caster, Just Business', function() {
 
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt('Use Rhokai Gunship\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.p2Base);
 
@@ -53,7 +53,7 @@ describe('Shadow Caster, Just Business', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(2);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt('Use Clone\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.p2Base);
 
@@ -103,7 +103,7 @@ describe('Shadow Caster, Just Business', function() {
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt('Use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
@@ -133,14 +133,14 @@ describe('Shadow Caster, Just Business', function() {
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
 
                 // Prompt to reuse AT-TE's When Defeated
-                expect(context.player1).toHavePassAbilityPrompt('Use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt('Use AT-TE Vanguard\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
 
                 // The Kamino When Defeated will also now automatically resolve
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(5);
 
                 // Now, we get to re-trigger the Kamino When Defeated
-                expect(context.player1).toHavePassAbilityPrompt('Use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt('Use AT-TE Vanguard\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(6);
@@ -190,14 +190,14 @@ describe('Shadow Caster, Just Business', function() {
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
 
-                expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use the When Defeated ability again']);
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use Padawan Starfighter\'s "When Defeated" ability again']);
                 context.player1.clickPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the When Defeated ability again');
+                expect(context.player1).toHavePassAbilityPrompt('Use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(3);
 
@@ -225,8 +225,8 @@ describe('Shadow Caster, Just Business', function() {
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
 
-                expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use the When Defeated ability again']);
-                context.player1.clickPrompt('Use the When Defeated ability again');
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use Padawan Starfighter\'s "When Defeated" ability again']);
+                context.player1.clickPrompt('Use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);

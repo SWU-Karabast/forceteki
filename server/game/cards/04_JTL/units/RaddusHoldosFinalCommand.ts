@@ -20,6 +20,7 @@ export default class RaddusHoldosFinalCommand extends NonLeaderUnitCard {
         });
         registrar.addWhenDefeatedAbility({
             title: 'Deal damage equal to this unit\'s power to an enemy unit.',
+            contextTitle: (context) => `Deal ${context.event.lastKnownInformation.power} damage to an enemy unit`,
             targetResolver: {
                 cardCondition: (card, context) => card.controller !== context.player,
                 cardTypeFilter: WildcardCardType.Unit,

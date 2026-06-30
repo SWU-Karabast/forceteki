@@ -16,6 +16,7 @@ describe('Dornean Gunship', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.dorneanGunship);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 3 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
 
             context.player2.setDistributeIndirectDamagePromptState(new Map([

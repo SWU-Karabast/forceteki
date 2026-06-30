@@ -14,6 +14,10 @@ export default class ExecutionersArena extends BaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEpicActionAbility({
             title: 'For each friendly leader unit, deal 2 damage to a unit',
+            contextTitle: (context) => {
+                const count = context.player.getArenaUnits({ condition: (c) => c.isLeaderUnit() }).length;
+                return `Deal 2 damage to a unit for each of your ${count} friendly leader ${count === 1 ? 'unit' : 'units'}`;
+            },
             immediateEffect: abilityHelper.immediateEffects.simultaneous((context) => (
                 context.player.getArenaUnits({ condition: (c) => c.isLeaderUnit() }).map((_) =>
                     abilityHelper.immediateEffects.selectCard({

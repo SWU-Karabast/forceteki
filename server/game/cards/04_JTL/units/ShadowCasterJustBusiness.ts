@@ -14,6 +14,7 @@ export default class ShadowCasterJustBusiness extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Use the When Defeated ability again',
+            contextTitle: (context) => `Use ${context.event.card.title}'s "When Defeated" ability again`,
             optional: true,
             when: {
                 // This is technically a little incorrect from a rules perspective, but it's better for user experience

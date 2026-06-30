@@ -1,6 +1,6 @@
 describe('Diplomatic Immunity', function() {
     integration(function(contextRef) {
-        const disclosePrompt = 'Disclose Vigilance, Vigilance, Heroism, Heroism. If you do, the attacker gets -2/-0 for this attack';
+        const disclosePrompt = (attacker) => `Disclose Vigilance, Vigilance, Heroism, Heroism. If you do, ${attacker} gets -2/-0 for this attack`;
 
         describe('Diplomatic Immunity\'s ability', function() {
             beforeEach(function () {
@@ -34,7 +34,7 @@ describe('Diplomatic Immunity', function() {
                 context.player2.clickPrompt('You');
                 context.player1.clickPrompt('Trigger');
 
-                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHavePrompt(disclosePrompt('Rebel Pathfinder'));
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.vigilance,
@@ -69,7 +69,7 @@ describe('Diplomatic Immunity', function() {
 
                 context.player1.clickPrompt('Trigger');
 
-                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHavePrompt(disclosePrompt('Cartel Spacer'));
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.vigilance,
@@ -99,7 +99,7 @@ describe('Diplomatic Immunity', function() {
                 context.player2.clickPrompt('You');
                 context.player1.clickPrompt('Trigger');
 
-                expect(context.player1).toHavePrompt(disclosePrompt);
+                expect(context.player1).toHavePrompt(disclosePrompt('Rebel Pathfinder'));
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.vigilance,
@@ -130,7 +130,7 @@ describe('Diplomatic Immunity', function() {
 
                 context.player2.clickPrompt('Trigger');
 
-                expect(context.player2).toHavePrompt(disclosePrompt);
+                expect(context.player2).toHavePrompt(disclosePrompt('Battlefield Marine'));
                 expect(context.player2).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player2).toBeAbleToSelectExactly([
                     context.protector,
@@ -161,7 +161,7 @@ describe('Diplomatic Immunity', function() {
 
                 context.player2.clickPrompt('Trigger');
 
-                expect(context.player2).toHavePrompt(disclosePrompt);
+                expect(context.player2).toHavePrompt(disclosePrompt('Strikeship'));
                 expect(context.player2).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player2).toBeAbleToSelectExactly([
                     context.protector,
@@ -194,7 +194,7 @@ describe('Diplomatic Immunity', function() {
                 context.player1.clickPrompt('Pass');
                 context.player2.clickPrompt('Trigger');
 
-                expect(context.player2).toHavePrompt(disclosePrompt);
+                expect(context.player2).toHavePrompt(disclosePrompt('Luke Skywalker'));
                 expect(context.player2).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player2).toBeAbleToSelectExactly([
                     context.protector,
