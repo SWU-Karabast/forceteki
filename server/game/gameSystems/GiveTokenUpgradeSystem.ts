@@ -64,7 +64,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             return;
         }
 
-        const event = this.createEvent(cards[0], context, additionalProperties);
+        const event = this.createEvent(cards, context, additionalProperties);
         this.updateEventForCards(event, cards, context, additionalProperties);
         events.push(event);
     }
@@ -131,13 +131,18 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         const cardsArray = Helpers.asArray(cards);
 
         Contract.assertTrue(cardsArray.length > 0, 'Attempting to give a token upgrade with no target units');
+
         for (const card of cardsArray) {
             Contract.assertTrue(card.isUnit());
             Contract.assertTrue(card.isInPlay());
         }
 
-        // sets event.player and event.contingentSourceEvent (and event.card = cardsArray[0] as the representative target)
-        super.addPropertiesToEvent(event, cardsArray[0], context, additionalProperties);
+        // `event.card` is a single-target convention (read by e.g. DistributeAmongTargetsSystem's chat message), so only
+        // populate it when there's genuinely one target. A batched multi-target give exposes its full set via `event.cards`
+        const singleCardTarget = cardsArray.length === 1 ? cardsArray[0] : null;
+
+        // GameSystem sets event.player/event.contingentSourceEvent; CardTargetSystem sets event.card to the passed target
+        super.addPropertiesToEvent(event, singleCardTarget, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 

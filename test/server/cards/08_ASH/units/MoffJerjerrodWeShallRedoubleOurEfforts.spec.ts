@@ -227,9 +227,7 @@ describe('Moff Jerjerrod, We Shall Redouble Our Efforts', function () {
 
                 const { context } = contextRef;
 
-                // Play Crucible, giving an experience token to each other friendly unit.
-                // Per the ruling, this is a single creation event, so defeating Jerjerrod once
-                // should double the experience for every affected unit.
+                // Play Crucible, giving an experience token to each other friendly unit
                 context.player1.clickCard(context.crucible);
 
                 // A single replacement prompt should double the whole event
@@ -265,11 +263,11 @@ describe('Moff Jerjerrod, We Shall Redouble Our Efforts', function () {
             });
 
             it('should handle simultaneous creation of multiple token types', async function () {
-                // TODO: per the publisher ruling, a single defeat should double the entire creation event, so all
-                // token types should be doubled here. The multi-target case (e.g. Crucible) is fixed by batching a
-                // single GiveTokenUpgradeSystem call into one OnTokensCreated event, but Three Lessons creates the
-                // Experience and Shield via two separate systems (two events), so they still trigger Jerjerrod
-                // independently. Cross-system grouping of one creation event is a separate fix.
+                // TODO: This is incorrect. Per FFG clarification, a single defeat should double the entire creation
+                // event, so all token types should be doubled here. The multi-target case (e.g. Crucible) is fixed
+                // by batching a single GiveTokenUpgradeSystem call into one OnTokensCreated event, but Three Lessons
+                // creates the Experience and Shield via two separate systems (two events), so they still trigger Jerjerrod
+                // independently
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
