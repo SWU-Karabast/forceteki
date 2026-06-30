@@ -166,7 +166,7 @@ const mockCards = [
         internalName: 'boba-fett#compensated-if-he-dies'
     }),
     buildMockCard({
-        title: 'Millenium Falcon',
+        title: 'Millennium Falcon',
         subtitle: 'YA-HOO!',
         cost: 4,
         power: 4,
@@ -181,7 +181,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'space',
-        internalName: 'millenium-falcon#yahoo'
+        internalName: 'millennium-falcon#yahoo'
     }),
     buildMockCard({
         title: 'Lando Calrissian',
