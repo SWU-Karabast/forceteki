@@ -20,6 +20,7 @@ export default class BD1BeepBooBooBweep extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
+                    title: 'Another friendly unit gets +1/+0 and gains Saboteur while this unit is in play',
                     effect: [
                         AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }),
                         AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)

@@ -19,6 +19,7 @@ export default class HuyangEnduringInstructor extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
+                    title: 'Another friendly unit gets +2/+2 while this unit is in play',
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                 })
             }
