@@ -50,7 +50,7 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
         context: TriggeredAbilityContext<NonLeaderUnitCard>,
         AbilityHelper: IAbilityHelper
     ): GameSystem<TriggeredAbilityContext<NonLeaderUnitCard>> {
-        const { tokenType, amount, player, card } = context.event;
+        const { tokenType, amount, player } = context.event;
         const doubledUnitTokenProperties: ICreateTokenUnitRequiredProperties & Pick<IPlayerTargetSystemProperties, 'target'> = {
             amount: amount * 2,
             entersReady: context.event.entersReady,
@@ -65,10 +65,11 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
             [TokenUnitName.TIEFighter]: AbilityHelper.immediateEffects.createTieFighter(doubledUnitTokenProperties),
             [TokenUnitName.Spy]: AbilityHelper.immediateEffects.createSpy(doubledUnitTokenProperties),
             [TokenUnitName.Mandalorian]: AbilityHelper.immediateEffects.createMandalorian(doubledUnitTokenProperties),
-            // Upgrades
-            [TokenUpgradeName.Shield]: AbilityHelper.immediateEffects.giveShield({ amount: amount * 2, target: card }),
-            [TokenUpgradeName.Experience]: AbilityHelper.immediateEffects.giveExperience({ amount: amount * 2, target: card }),
-            [TokenUpgradeName.Advantage]: AbilityHelper.immediateEffects.giveAdvantage({ amount: amount * 2, target: card }),
+            // Upgrades: token upgrades are given as a single creation event spanning every affected unit (event.cards),
+            // so double the amount for all of them at once
+            [TokenUpgradeName.Shield]: AbilityHelper.immediateEffects.giveShield({ amount: amount * 2, target: context.event.cards }),
+            [TokenUpgradeName.Experience]: AbilityHelper.immediateEffects.giveExperience({ amount: amount * 2, target: context.event.cards }),
+            [TokenUpgradeName.Advantage]: AbilityHelper.immediateEffects.giveAdvantage({ amount: amount * 2, target: context.event.cards }),
             // Miscellaneous
             [TokenCardName.Credit]: AbilityHelper.immediateEffects.createCreditToken({ amount: amount * 2, target: player }),
             [TokenCardName.Force]: AbilityHelper.immediateEffects.theForceIsWithYou({ target: player }),

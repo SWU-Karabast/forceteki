@@ -211,9 +211,7 @@ describe('Moff Jerjerrod, We Shall Redouble Our Efforts', function () {
                 expect(context.wampa).toHaveExactUpgradeNames(['shield', 'shield']);
             });
 
-            it('should double token upgrades given to multiple units simultaneously', async function () {
-                // TODO: currently the engine only lets you double tokens for one of the affected units
-                // Revisit this when rules for token-doubling effects are clarified
+            it('should double the entire token creation event when tokens are given to multiple units simultaneously (single defeat doubles all)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -232,25 +230,15 @@ describe('Moff Jerjerrod, We Shall Redouble Our Efforts', function () {
                 // Play Crucible, giving an experience token to each other friendly unit
                 context.player1.clickCard(context.crucible);
 
-                // Jerjerrod's replacement triggers once for each unit - choose one to resolve first
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Defeat Moff Jerjerrod to create 2 Experience tokens instead: Moff Jerjerrod',
-                    'Defeat Moff Jerjerrod to create 2 Experience tokens instead: Wampa',
-                    'Defeat Moff Jerjerrod to create 2 Experience tokens instead: Battlefield Marine',
-                    'Defeat Moff Jerjerrod to create 2 Experience tokens instead: X-Wing'
-                ]);
-
-                // Arbitrarily choose to resolve the effect on Battlefield Marine
-                context.player1.clickPrompt('Defeat Moff Jerjerrod to create 2 Experience tokens instead: Battlefield Marine');
-                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Experience tokens instead: Battlefield Marine');
+                // A single replacement prompt should double the whole event
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Experience tokens instead');
                 context.player1.clickPrompt('Trigger');
 
-                // Jerjerrod is defeated and Battlefield Marine receives 2 experience tokens instead of 1; the other units still receive 1 experience token each
+                // Jerjerrod is defeated once and every other friendly unit receives 2 experience tokens instead of 1
                 expect(context.moffJerjerrod).toBeInZone('discard');
-                expect(context.wampa).toHaveExactUpgradeNames(['experience']);
+                expect(context.wampa).toHaveExactUpgradeNames(['experience', 'experience']);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'experience']);
-                expect(context.xwing).toHaveExactUpgradeNames(['experience']);
+                expect(context.xwing).toHaveExactUpgradeNames(['experience', 'experience']);
             });
 
             it('should not trigger when a friendly effect causes an opponent to create tokens', async function () {
@@ -275,8 +263,11 @@ describe('Moff Jerjerrod, We Shall Redouble Our Efforts', function () {
             });
 
             it('should handle simultaneous creation of multiple token types', async function () {
-                // TODO: revisit when official clarification on replacement effect behavior for
-                // simultaneous multi-type token creation (e.g. Three Lessons) is available
+                // TODO: This is incorrect. Per FFG clarification, a single defeat should double the entire creation
+                // event, so all token types should be doubled here. The multi-target case (e.g. Crucible) is fixed
+                // by batching a single GiveTokenUpgradeSystem call into one OnTokensCreated event, but Three Lessons
+                // creates the Experience and Shield via two separate systems (two events), so they still trigger Jerjerrod
+                // independently
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
