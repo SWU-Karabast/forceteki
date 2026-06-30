@@ -181,7 +181,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'space',
-        internalName: 'millenium-falcon#ya-hoo'
+        internalName: 'millenium-falcon#yahoo'
     }),
     buildMockCard({
         title: 'Lando Calrissian',
