@@ -10,14 +10,14 @@
  *   node scripts/validate-deck.js --clipboard [options]
  *
  * Options:
- *   --clipboard                       Read deck JSON from clipboard (macOS only)
- *   --format <premier|open|next-set>  Game format (default: premier)
- *   --allow-30-cards                  Allow 30-card decks (only valid for Open format)
- *   --ignore-unimplemented            Don't report unimplemented cards in the deck
+ *   --clipboard                                  Read deck JSON from clipboard (macOS only)
+ *   --format <premier|open|eternal|limited>      Game format (default: premier)
+ *   --card-pool <current|next-set|unlimited>     Card pool (default: current)
+ *   --ignore-unimplemented                       Don't report unimplemented cards in the deck
  *
  * Example:
  *   node scripts/validate-deck.js ./my-deck.json --format premier
- *   node scripts/validate-deck.js --clipboard --format open
+ *   node scripts/validate-deck.js --clipboard --format open --card-pool unlimited
  *
  * Decklist JSON format (ISwuDbFormatDecklist):
  * {
@@ -52,7 +52,14 @@ if (!fs.existsSync(serverDir)) {
 
 const { UnitTestCardDataGetter } = require(path.join(buildDir, 'helpers/GameStateBuilder.js').replace('GameStateBuilder.js', '../server/utils/cardData/UnitTestCardDataGetter.js'));
 const { DeckValidator } = require(path.join(serverDir, 'utils/deck/DeckValidator.js'));
-const { SwuGameFormat } = require(path.join(serverDir, 'game/core/Constants.js'));
+const { SwuGameFormat, CardPool } = require(path.join(serverDir, 'game/core/Constants.js'));
+
+// Card pools that are not valid for a given format. Premier and Eternal are rotating/
+// constructed formats and don't support the Unlimited pool; Open and Limited accept any pool.
+const UNSUPPORTED_FORMAT_CARD_POOLS = {
+    [SwuGameFormat.Premier]: new Set([CardPool.Unlimited]),
+    [SwuGameFormat.Eternal]: new Set([CardPool.Unlimited]),
+};
 
 // Parse command line arguments
 function parseArgs() {
@@ -67,22 +74,22 @@ Usage:
   node scripts/validate-deck.js --clipboard [options]
 
 Options:
-  --clipboard                       Read deck JSON from clipboard (macOS only)
-  --format <premier|open|next-set>  Game format (default: premier)
-  --allow-30-cards                  Allow 30-card decks (only valid for Open format)
-  --ignore-unimplemented            Don't report unimplemented cards in the deck
-  --help, -h                        Show this help message
+  --clipboard                                  Read deck JSON from clipboard (macOS only)
+  --format <premier|open|eternal|limited>      Game format (default: premier)
+  --card-pool <current|next-set|unlimited>     Card pool (default: current)
+  --ignore-unimplemented                       Don't report unimplemented cards in the deck
+  --help, -h                                   Show this help message
 
 Examples:
   node scripts/validate-deck.js ./my-deck.json --format premier
-  node scripts/validate-deck.js --clipboard --format open
+  node scripts/validate-deck.js --clipboard --format open --card-pool unlimited
 `);
         process.exit(0);
     }
 
     let deckPath = '';
     let format = SwuGameFormat.Premier;
-    let allow30Cards = false;
+    let cardPool = CardPool.Current;
     let ignoreUnimplemented = false;
     let useClipboard = false;
 
@@ -100,15 +107,32 @@ Examples:
                 case 'open':
                     format = SwuGameFormat.Open;
                     break;
-                case 'next-set':
-                    format = SwuGameFormat.NextSetPreview;
+                case 'eternal':
+                    format = SwuGameFormat.Eternal;
+                    break;
+                case 'limited':
+                    format = SwuGameFormat.Limited;
                     break;
                 default:
-                    console.error(`Invalid format: ${formatArg}. Must be one of: premier, open, next-set`);
+                    console.error(`Invalid format: ${formatArg}. Must be one of: premier, open, eternal, limited`);
                     process.exit(1);
             }
-        } else if (arg === '--allow-30-cards') {
-            allow30Cards = true;
+        } else if (arg === '--card-pool') {
+            const cardPoolArg = args[++i]?.toLowerCase();
+            switch (cardPoolArg) {
+                case 'current':
+                    cardPool = CardPool.Current;
+                    break;
+                case 'next-set':
+                    cardPool = CardPool.NextSet;
+                    break;
+                case 'unlimited':
+                    cardPool = CardPool.Unlimited;
+                    break;
+                default:
+                    console.error(`Invalid card pool: ${cardPoolArg}. Must be one of: current, next-set, unlimited`);
+                    process.exit(1);
+            }
         } else if (arg === '--ignore-unimplemented') {
             ignoreUnimplemented = true;
         } else if (!arg.startsWith('--')) {
@@ -126,13 +150,13 @@ Examples:
         process.exit(1);
     }
 
-    // Validate allow30Cards is only used with Open format
-    if (allow30Cards && format !== SwuGameFormat.Open) {
-        console.error('Error: --allow-30-cards can only be used with --format open');
+    // Validate the format + card pool combination
+    if (UNSUPPORTED_FORMAT_CARD_POOLS[format]?.has(cardPool)) {
+        console.error(`Error: Card pool '${formatCardPool(cardPool)}' is not supported for format '${formatGameFormat(format)}'.`);
         process.exit(1);
     }
 
-    return { deckPath, format, allow30Cards, ignoreUnimplemented, useClipboard };
+    return { deckPath, format, cardPool, ignoreUnimplemented, useClipboard };
 }
 
 function formatGameFormat(format) {
@@ -141,10 +165,25 @@ function formatGameFormat(format) {
             return 'Premier';
         case SwuGameFormat.Open:
             return 'Open';
-        case SwuGameFormat.NextSetPreview:
-            return 'Next Set Preview';
+        case SwuGameFormat.Eternal:
+            return 'Eternal';
+        case SwuGameFormat.Limited:
+            return 'Limited';
         default:
             return String(format);
+    }
+}
+
+function formatCardPool(cardPool) {
+    switch (cardPool) {
+        case CardPool.Current:
+            return 'Current';
+        case CardPool.NextSet:
+            return 'Next Set';
+        case CardPool.Unlimited:
+            return 'Unlimited';
+        default:
+            return String(cardPool);
     }
 }
 
@@ -169,7 +208,7 @@ function readFromClipboard() {
 }
 
 async function main() {
-    const { deckPath, format, allow30Cards, ignoreUnimplemented, useClipboard } = parseArgs();
+    const { deckPath, format, cardPool, ignoreUnimplemented, useClipboard } = parseArgs();
 
     let deckContent;
 
@@ -204,9 +243,7 @@ async function main() {
     console.log(`\nValidating deck: ${decklist.metadata?.name || 'Unnamed Deck'}`);
     console.log(`Author: ${decklist.metadata?.author || 'Unknown'}`);
     console.log(`Format: ${formatGameFormat(format)}`);
-    if (allow30Cards) {
-        console.log('30-card mode: enabled');
-    }
+    console.log(`Card pool: ${formatCardPool(cardPool)}`);
     console.log('');
 
     // Initialize card data getter - use the build/test/json directory
@@ -232,7 +269,7 @@ async function main() {
     // Validate the deck
     const validationProperties = {
         format,
-        allow30CardsInMainBoard: allow30Cards
+        cardPool
     };
 
     const validationResults = deckValidator.validateSwuDbDeck(decklist, validationProperties);
