@@ -11,6 +11,7 @@ export enum SwuSetId {
     LAW = 'law',
     TS26 = 'ts26',
     ASH = 'ash',
+    IC27 = 'ic27'
 }
 
 export enum BlockId {
@@ -56,7 +57,8 @@ export const rotationBlocks: IRotationBlock[] = [
         id: BlockId.B,
         sets: [
             { id: SwuSetId.LAW, released: true, mainline: true },
-            { id: SwuSetId.ASH, released: false, mainline: true }
+            { id: SwuSetId.ASH, released: false, mainline: true },
+            { id: SwuSetId.IC27, released: false, mainline: false }
         ]
     },
 ];
