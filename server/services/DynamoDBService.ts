@@ -24,7 +24,7 @@ import {
 import { z } from 'zod';
 import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
-import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import { isTimedModAction } from '../game/core/utils/EnumHelpers';
 
 // global variable
@@ -709,7 +709,7 @@ class DynamoDBService {
     }
 
     // Registered Cosmetics Methods
-    public getCosmeticsAsync(): Promise<IRegisteredCosmeticOption[]> {
+    public getCosmeticsAsync(): Promise<ICosmeticEntity[]> {
         return this.executeDbOperationAsync(async () => {
             const result = await this.queryItemsAsync('COSMETICS', { beginsWith: 'ITEM#' });
 
@@ -718,12 +718,11 @@ class DynamoDBService {
                 title: item.title as string,
                 type: item.type as RegisteredCosmeticType,
                 path: item.path as string,
-                darkened: item.darkened as boolean | undefined
             }));
         }, 'Error getting cosmetics data');
     }
 
-    public saveCosmeticAsync(cosmeticData: IRegisteredCosmeticOption) {
+    public saveCosmeticAsync(cosmeticData: ICosmeticEntity) {
         return this.executeDbOperationAsync(() => {
             const item = {
                 pk: 'COSMETICS',
@@ -736,7 +735,7 @@ class DynamoDBService {
         }, 'Error saving cosmetic item');
     }
 
-    public initializeCosmeticsAsync(cosmetics: IRegisteredCosmeticOption[]) {
+    public initializeCosmeticsAsync(cosmetics: ICosmeticEntity[]) {
         return this.executeDbOperationAsync(async () => {
             const savePromises = cosmetics.map((cosmetic) => this.saveCosmeticAsync(cosmetic));
             await Promise.all(savePromises);
