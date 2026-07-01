@@ -168,15 +168,20 @@ describe('Let\'s Talk', function () {
                 },
                 player2: {
                     groundArena: [
-                        { card: 'atst', capturedUnits: ['battlefield-marine'] },
-                        'rebel-pathfinder'
+                        'rebel-pathfinder',
+                        {
+                            card: 'atst',
+                            capturedUnits: [
+                                { card: 'battlefield-marine', owner: 'player1' }
+                            ]
+                        },
                     ]
                 }
             });
 
             const { context } = contextRef;
 
-            // The captured Battlefield Marine (owned + controlled by player1, in the capture zone)
+            // The captured Battlefield Marine (owned by player1, in the capture zone)
             // must not be offered as a captor and must not cause a crash during target resolution.
             context.player1.clickCard(context.letsTalk);
             expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
