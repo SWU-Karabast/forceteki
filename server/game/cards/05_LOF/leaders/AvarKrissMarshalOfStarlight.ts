@@ -3,6 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { ForceUsedThisPhaseWatcher } from '../../../stateWatchers/ForceUsedThisPhaseWatcher';
 
 export default class AvarKrissMarshalOfStarlight extends LeaderUnitCard {
@@ -36,7 +37,7 @@ export default class AvarKrissMarshalOfStarlight extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While the Force is with you, this units gets +4/+0 and gains Overwhelm',
+            title: `While the Force is with you, this units gets +4/+0 and gains ${TextHelper.Overwhelm}`,
             condition: (context) => context.player.hasTheForce,
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.modifyStats({ power: 4, hp: 0 }),

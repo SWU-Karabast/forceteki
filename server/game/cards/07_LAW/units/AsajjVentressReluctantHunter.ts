@@ -13,6 +13,7 @@ export default class AsajjVentressReluctantHunter extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Bounty Hunter" is a trait, not the Bounty keyword
             title: 'Ready another Bounty Hunter unit',
             optional: true,
             targetResolver: {

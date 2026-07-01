@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class RioDurantWisecrackingWheelman extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +16,7 @@ export default class RioDurantWisecrackingWheelman extends LeaderUnitCard {
         registrar.addPilotDeploy();
 
         registrar.addActionAbility({
-            title: 'Attack with a space unit. It gets +1/+0 and gains Saboteur for this attack',
+            title: `Attack with a space unit. It gets +1/+0 and gains ${TextHelper.Saboteur} for this attack`,
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -14,7 +14,7 @@ export default class CoronetStatelyVessel extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Each other friendly ${TextHelper.Heroism} unit gains Restore 1`,
+            title: `Each other friendly ${TextHelper.Heroism} unit gains ${TextHelper.Restore(1)}`,
             matchTarget: (card, context) => card !== context.source && card.isUnit(),
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 1 })
         });

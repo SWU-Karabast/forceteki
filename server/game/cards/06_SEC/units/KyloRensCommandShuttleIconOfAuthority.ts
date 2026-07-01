@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class KyloRensCommandShuttleIconOfAuthority extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class KyloRensCommandShuttleIconOfAuthority extends NonLeaderUnit
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each friendly ground unit with Sentinel gets +0/+2.',
+            title: `Each friendly ground unit with ${TextHelper.Sentinel} gets +0/+2.`,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             targetZoneFilter: ZoneName.GroundArena,

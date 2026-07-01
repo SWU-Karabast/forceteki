@@ -13,6 +13,7 @@ export default class UndercityHuntingTeam extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Bounty Hunter" is a trait, not the Bounty keyword
             title: 'Search the top 5 cards of you deck for a Bounty Hunter unit, reveal it, and draw it',
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

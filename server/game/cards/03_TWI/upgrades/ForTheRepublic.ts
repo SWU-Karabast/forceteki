@@ -22,7 +22,7 @@ export default class ForTheRepublic extends UpgradeCard {
         registrar.addGainKeywordTargetingAttached({
             keyword: KeywordName.Coordinate,
             ability: {
-                title: 'Gain Restore 2',
+                title: `Gain ${TextHelper.Restore(2)}`,
                 type: AbilityType.Constant,
                 ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({
                     keyword: KeywordName.Restore,
