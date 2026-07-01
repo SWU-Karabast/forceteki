@@ -158,6 +158,37 @@ describe('Let\'s Talk', function () {
             expect(context.atst).toBeCapturedBy(context.wampa);
         });
 
+        it('Let\'s Talk does not error when the active player owns a unit captured by the opponent', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'data-vault',
+                    groundArena: ['wampa'],
+                    hand: ['lets-talk']
+                },
+                player2: {
+                    groundArena: [
+                        { card: 'atst', capturedUnits: ['battlefield-marine'] },
+                        'rebel-pathfinder'
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // The captured Battlefield Marine (owned + controlled by player1, in the capture zone)
+            // must not be offered as a captor and must not cause a crash during target resolution.
+            context.player1.clickCard(context.letsTalk);
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.atst, context.rebelPathfinder]);
+            context.player1.clickCard(context.rebelPathfinder);
+
+            expect(context.rebelPathfinder).toBeCapturedBy(context.wampa);
+            expect(context.battlefieldMarine).toBeCapturedBy(context.atst);
+        });
+
         it('Let\'s Talk claims bounties simultaneously, allowing for collect order', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

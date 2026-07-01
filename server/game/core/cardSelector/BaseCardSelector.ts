@@ -234,7 +234,11 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter) && card.zoneName !== ZoneName.Capture) {
+        // Capture-zone cards are only valid targets for selectors that explicitly opt in by
+        // including ZoneName.Capture in their zoneFilter (see filterCaptureZones / capturedByFilter).
+        // Selectors that don't ask for the capture zone must not consider captured cards, otherwise
+        // captured units (which retain their controller) can leak into cardCondition checks.
+        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter)) {
             return false;
         }
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardConditionsAreSatisfied(card, selectedCards, context);
