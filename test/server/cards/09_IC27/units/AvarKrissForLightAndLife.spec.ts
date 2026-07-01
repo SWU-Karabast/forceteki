@@ -43,7 +43,7 @@ describe('Avar Kriss, For Light and Life', function() {
                 phase: 'action',
                 player1: {
                     groundArena: ['avar-kriss#for-light-and-life', 'wampa', 'atst'],
-                    spaceArena: ['awing', 'x-wing']
+                    spaceArena: ['awing', 'xwing']
                 },
                 player2: {
                     groundArena: ['sundari-peacekeeper']
