@@ -648,7 +648,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player1).toHavePrompt('Distribute 6 Advantage tokens among targets');
                 context.player1.setDistributeAmongTargetsPromptState(new Map([
                     [context.helgait, 6]
-                ]), 'distributeAdvantage');
+                ]), 'distributeTokenUpgrade');
                 expect(context.helgait.getPower()).toBe(12);
 
                 // Thrawn re-uses Helgait's When Defeated ability
@@ -660,7 +660,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player1).toHavePrompt('Distribute 12 Advantage tokens among targets');
                 context.player1.setDistributeAmongTargetsPromptState(new Map([
                     [context.helgait, 12]
-                ]), 'distributeAdvantage');
+                ]), 'distributeTokenUpgrade');
                 expect(context.helgait.getPower()).toBe(24);
 
                 expect(context.player2).toBeActivePlayer();

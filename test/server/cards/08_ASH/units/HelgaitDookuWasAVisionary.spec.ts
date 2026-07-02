@@ -27,13 +27,13 @@ describe('Helgait, Dooku was a Visionary', function () {
                 [context.awing, 2],
                 [context.wampa, 2],
                 [context.battlefieldMarine, 1]
-            ]), 'distributeAdvantage')).toThrowError('Contract assertion failure: Illegal prompt results for \'Distribute 6 Advantage tokens among targets\', distributed Advantage tokens should be equal to 6 but instead received a total of 5');
+            ]), 'distributeTokenUpgrade')).toThrowError('Contract assertion failure: Illegal prompt results for \'Distribute 6 Advantage tokens among targets\', distributed Advantage tokens should be equal to 6 but instead received a total of 5');
 
             context.player1.setDistributeAmongTargetsPromptState(new Map([
                 [context.awing, 2],
                 [context.wampa, 2],
                 [context.battlefieldMarine, 2]
-            ]), 'distributeAdvantage');
+            ]), 'distributeTokenUpgrade');
 
             expect(context.player1).toBeActivePlayer();
             expect(context.wampa).toHaveExactUpgradeNames(['advantage', 'advantage']);
@@ -65,7 +65,7 @@ describe('Helgait, Dooku was a Visionary', function () {
                 [context.awing, 0],
                 [context.wampa, 0],
                 [context.battlefieldMarine, 0]
-            ]), 'distributeAdvantage');
+            ]), 'distributeTokenUpgrade');
 
             expect(context.player1).toBeActivePlayer();
             expect(context.wampa).toHaveExactUpgradeNames([]);
@@ -97,7 +97,7 @@ describe('Helgait, Dooku was a Visionary', function () {
 
             context.player2.setDistributeAmongTargetsPromptState(new Map([
                 [context.atst, 6],
-            ]), 'distributeAdvantage');
+            ]), 'distributeTokenUpgrade');
 
             expect(context.player1).toBeActivePlayer();
             expect(context.atst).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage', 'advantage', 'advantage', 'advantage']);

@@ -47,10 +47,8 @@ import type { IDiscardSpecificCardProperties } from './DiscardSpecificCardSystem
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
 import type { IDistributeDamageSystemProperties } from './DistributeDamageSystem';
 import { DistributeDamageSystem } from './DistributeDamageSystem';
-import type { IDistributeExperienceSystemProperties } from './DistributeExperienceSystem';
-import { DistributeExperienceSystem } from './DistributeExperienceSystem';
-import type { IDistributeAdvantageSystemProperties } from './DistributeAdvantageSystem';
-import { DistributeAdvantageSystem } from './DistributeAdvantageSystem';
+import type { IDistributeTokenUpgradeSystemProperties } from './DistributeTokenUpgradeSystem';
+import { DistributeTokenUpgradeSystem } from './DistributeTokenUpgradeSystem';
 import type { IDistributeHealingSystemProperties } from './DistributeHealingSystem';
 import { DistributeHealingSystem } from './DistributeHealingSystem';
 import type { IDrawSpecificCardProperties } from './DrawSpecificCardSystem';
@@ -255,11 +253,17 @@ export function distributeDamageAmong<TContext extends AbilityContext = AbilityC
 export function distributeHealingAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeHealingSystemProperties, TContext>) {
     return new DistributeHealingSystem<TContext>(propertyFactory);
 }
-export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
-    return new DistributeExperienceSystem<TContext>(propertyFactory);
+export type IDistributeTokenUpgradeFactoryProperties<TContext extends AbilityContext = AbilityContext> = Omit<IDistributeTokenUpgradeSystemProperties<TContext>, 'tokenType'>;
+function distributeTokenUpgradeAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeTokenUpgradeFactoryProperties<TContext>, TContext>, tokenType: TokenUpgradeName) {
+    return new DistributeTokenUpgradeSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IDistributeTokenUpgradeSystemProperties<TContext>, 'tokenType'>(propertyFactory, { tokenType })
+    );
 }
-export function distributeAdvantageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeAdvantageSystemProperties, TContext>) {
-    return new DistributeAdvantageSystem<TContext>(propertyFactory);
+export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeTokenUpgradeFactoryProperties<TContext>, TContext>) {
+    return distributeTokenUpgradeAmong<TContext>(propertyFactory, TokenUpgradeName.Experience);
+}
+export function distributeAdvantageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeTokenUpgradeFactoryProperties<TContext>, TContext>) {
+    return distributeTokenUpgradeAmong<TContext>(propertyFactory, TokenUpgradeName.Advantage);
 }
 export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}) {
     return new DeployLeaderSystem<TContext>(propertyFactory);

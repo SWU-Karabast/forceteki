@@ -709,7 +709,11 @@ export class PlayerInteractionWrapper {
     }
 
     public setDistributeExperiencePromptState(cardDistributionMap: any) {
-        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeExperience');
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeTokenUpgrade');
+    }
+
+    public setDistributeAdvantagePromptState(cardDistributionMap: any) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeTokenUpgrade');
     }
 
     public setDistributeAmongTargetsPromptState(cardDistributionMap: any, type: string) {
