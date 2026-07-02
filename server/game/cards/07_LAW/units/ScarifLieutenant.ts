@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ScarifLieutenant extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ScarifLieutenant extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: 'Give an Experience token to a friendly Rebel unit.',
+            title: `Give an Experience token to a friendly ${TextHelper.Trait.Rebel} unit.`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.hasSomeTrait([Trait.Rebel]),

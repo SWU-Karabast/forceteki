@@ -14,7 +14,7 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Give a Droid unit ${TextHelper.Sentinel} for this phase`,
+            title: `Give a ${TextHelper.Trait.Droid} unit ${TextHelper.Sentinel} for this phase`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -28,7 +28,7 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `Give a Droid unit +1/+0 and ${TextHelper.Sentinel} for this phase`,
+            title: `Give a ${TextHelper.Trait.Droid} unit +1/+0 and ${TextHelper.Sentinel} for this phase`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

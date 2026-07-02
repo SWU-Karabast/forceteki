@@ -22,9 +22,11 @@ const TOKEN_CATEGORIES = [
         // Law, Tank, etc.); when a match is genuinely NOT a trait reference, suppress it with
         // `// eslint-disable-next-line forceteki/no-raw-token-text -- <reason>`.
         //
-        // The "the Force" game concept (the Force token) is common and is NOT the Force trait, so it
-        // is auto-ignored via `ignore` below. Genuine trait references like "the Force trait/unit/card"
-        // are still flagged.
+        // Some Title-cased words collide with non-trait references and are auto-ignored via `ignore`
+        // below (see there for details): the "the Force" game concept, token unit names ("Battle
+        // Droid", "Clone Trooper", "TIE Fighter", "Mandalorian token"), and proper card/character
+        // names ("Jabba the Hutt", "The Mandalorian", "Swarming Vulture Droid"). Genuine trait
+        // references like "the Force trait" or "Mandalorian unit" are still flagged.
         names: [
             'Armor', 'Bounty Hunter', 'Bounty', 'Capital Ship', 'Clone', 'Condition', 'Creature',
             'Disaster', 'Droid', 'Ewok', 'Fighter', 'First Order', 'Force', 'Fringe', 'Gambit',
@@ -37,10 +39,23 @@ const TOKEN_CATEGORIES = [
         ],
         messageId: 'rawTraitName',
         message: 'Raw trait name "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Trait.BountyHunter`) or `TextHelper.trait(Trait.X)` in a template literal instead, so it can be styled correctly on the client side. If this is not a trait reference, suppress with an eslint-disable-next-line comment explaining why.',
-        // Skip the "the Force" game concept (but keep flagging "the Force trait/unit/card"). The
-        // token to skip is captured in group 1.
-        ignore: '\\bthe\\s+(Force)\\b(?!\\s+(?:trait|units?|cards?)\\b)',
-        ignoreFlags: 'gi',
+        // Any trait word that falls inside a match of one of these patterns is skipped. Each entry
+        // targets a context where a trait word is NOT a trait reference. Matched case-insensitively.
+        ignore: [
+            // The "the Force" game concept (the Force token) — but NOT "the Force trait/unit/card",
+            // which are genuine references and stay flagged.
+            '\\bthe\\s+Force\\b(?!\\s+(?:trait|units?|cards?)\\b)',
+            // Token unit names whose words collide with traits (Droid / Clone / Trooper / Fighter).
+            'Battle Droid',
+            'Clone Trooper',
+            'TIE Fighter',
+            // "Mandalorian" is both a trait and a token; skip only the token ("Mandalorian token(s)").
+            'Mandalorian\\s+tokens?',
+            // Proper card / character names.
+            'Jabba the Hutt',
+            'The Mandalorian',
+            'Swarming Vulture Droid',
+        ],
     },
     {
         pattern: 'Keywords?|Ambush|Grit|Overwhelm|Raid\\s+\\d+|Restore\\s+\\d+|Saboteur|Sentinel|Shielded|Bounty|Smuggle|Coordinate|Exploit\\s+\\d+|Piloting|Hidden|Plot',
@@ -60,10 +75,11 @@ const TOKEN_CATEGORIES = [
     // Add more categories as needed.
 ];
 
-// Compile each category into a { regex, messageId, ignore } entry. An optional `ignore` regex
-// (with the token to skip captured in group 1) suppresses matches in known non-token contexts.
+// Compile each category into a { regex, messageId, ignore } entry. An optional `ignore` array of
+// regex sources suppresses any token match that falls within a match of one of them (so a phrase
+// like "Clone Trooper" can suppress both the "Clone" and "Trooper" trait words at once).
 const compiledCategories = TOKEN_CATEGORIES.map((cat) => {
-    const ignore = cat.ignore ? new RegExp(cat.ignore, cat.ignoreFlags || 'gi') : null;
+    const ignore = cat.ignore ? cat.ignore.map((pattern) => new RegExp(pattern, 'gi')) : null;
 
     if (cat.names) {
         // Sort longest-first so multi-word names win over their prefixes in the alternation
@@ -150,17 +166,20 @@ export default {
     create(context) {
         function checkForTokenText(node, value) {
             for (const category of compiledCategories) {
-                // Collect the start indices of token matches that should be ignored (e.g. the
-                // "the Force" game concept). The ignore regex captures the token in group 1, so
-                // its offset within the full ignore match gives the token's start index.
-                const ignoredStarts = new Set();
+                // Collect [start, end) spans that should be ignored (e.g. the "the Force" game
+                // concept, token unit names, proper card names). A token match is skipped if it
+                // starts inside any ignore span — so a multi-word phrase suppresses every trait
+                // word within it (e.g. "Clone Trooper" covers both "Clone" and "Trooper").
+                const ignoreSpans = [];
                 if (category.ignore) {
-                    category.ignore.lastIndex = 0;
-                    let ignoreMatch;
-                    while ((ignoreMatch = category.ignore.exec(value)) !== null) {
-                        ignoredStarts.add(ignoreMatch.index + ignoreMatch[0].indexOf(ignoreMatch[1]));
-                        if (ignoreMatch.index === category.ignore.lastIndex) {
-                            category.ignore.lastIndex++;
+                    for (const ignoreRegex of category.ignore) {
+                        ignoreRegex.lastIndex = 0;
+                        let ignoreMatch;
+                        while ((ignoreMatch = ignoreRegex.exec(value)) !== null) {
+                            ignoreSpans.push([ignoreMatch.index, ignoreMatch.index + ignoreMatch[0].length]);
+                            if (ignoreMatch.index === ignoreRegex.lastIndex) {
+                                ignoreRegex.lastIndex++;
+                            }
                         }
                     }
                 }
@@ -168,7 +187,7 @@ export default {
                 category.regex.lastIndex = 0;
                 let match;
                 while ((match = category.regex.exec(value)) !== null) {
-                    if (ignoredStarts.has(match.index)) {
+                    if (ignoreSpans.some(([start, end]) => match.index >= start && match.index < end)) {
                         continue;
                     }
                     context.report({

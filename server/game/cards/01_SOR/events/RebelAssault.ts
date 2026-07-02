@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class RebelAssault extends EventCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class RebelAssault extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a Rebel unit. It gets +1/+0 for this attack',
+            title: `Attack with a ${TextHelper.Trait.Rebel} unit. It gets +1/+0 for this attack`,
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.attack({
                     attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel),
@@ -23,7 +24,7 @@ export default class RebelAssault extends EventCard {
                 })
             },
             then: (thenContext) => ({
-                title: 'Attack with another Rebel unit. It gets +1/+0 for this attack',
+                title: `Attack with another ${TextHelper.Trait.Rebel} unit. It gets +1/+0 for this attack`,
                 initiateAttack: {
                     attackerCondition: (card) => card.hasSomeTrait(Trait.Rebel) && thenContext.target !== card,
                     attackerLastingEffects: {

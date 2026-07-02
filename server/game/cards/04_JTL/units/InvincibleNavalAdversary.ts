@@ -14,7 +14,7 @@ export default class InvincibleNavalAdversary extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: `If you control a unique Separatist card, this unit costs ${TextHelper.resource(1)} less to play`,
+            title: `If you control a unique ${TextHelper.Trait.Separatist} card, this unit costs ${TextHelper.resource(1)} less to play`,
             condition: (context) => context.player.controlsCardWithTrait(Trait.Separatist, true),
             amount: 1
         });

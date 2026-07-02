@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Duration, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class Clone extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -21,7 +22,7 @@ export default class Clone extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addPreEnterPlayAbility({
-            title: 'This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique',
+            title: `This unit enters play as a copy of a non-leader, non-${TextHelper.Trait.Vehicle} unit in play, except it gains the ${TextHelper.Trait.Clone} trait and is not unique`,
             optional: true,
             targetResolver: {
                 activePromptTitle: 'Choose a unit to clone',

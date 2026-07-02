@@ -17,7 +17,7 @@ export default class HeroesOnBothSides extends EventCard {
             title: `Give each chosen unit +2/+2 and ${TextHelper.Saboteur} for this phase`,
             targetResolvers: {
                 republicUnit: {
-                    activePromptTitle: 'Choose a Republic unit',
+                    activePromptTitle: `Choose a ${TextHelper.Trait.Republic} unit`,
                     mode: TargetMode.Exactly,
                     numCards: 1,
                     canChooseNoCards: true,
@@ -31,7 +31,7 @@ export default class HeroesOnBothSides extends EventCard {
                     })
                 },
                 separatistUnit: {
-                    activePromptTitle: 'Choose a Separatist unit',
+                    activePromptTitle: `Choose a ${TextHelper.Trait.Separatist} unit`,
                     mode: TargetMode.Exactly,
                     numCards: 1,
                     canChooseNoCards: true,

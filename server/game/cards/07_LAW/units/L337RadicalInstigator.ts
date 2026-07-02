@@ -4,6 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { Card } from '../../../core/card/Card';
 import { Contract } from '../../../core/utils/Contract';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class L337RadicalInstigator extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,9 +16,9 @@ export default class L337RadicalInstigator extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 10 cards of your deck for any number of Droid units with combined cost 5 or less and play each of them for free',
+            title: `Search the top 10 cards of your deck for any number of ${TextHelper.Trait.Droid} units with combined cost 5 or less and play each of them for free`,
             immediateEffect: abilityHelper.immediateEffects.playMultipleCardsFromDeck({
-                activePromptTitle: 'Choose any Droid units with combined cost 5 or less to play for free',
+                activePromptTitle: `Choose any ${TextHelper.Trait.Droid} units with combined cost 5 or less to play for free`,
                 searchCount: 10,
                 selectCount: 10,
                 canChooseFewer: true,

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class PoeDameronOneHellOfAPilot extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -18,7 +19,7 @@ export default class PoeDameronOneHellOfAPilot extends NonLeaderUnitCard {
                 amount: 1
             }),
             then: (thenContext) => ({
-                title: 'Attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it',
+                title: `Attach this unit as an upgrade to a friendly ${TextHelper.Trait.Vehicle} unit without a ${TextHelper.Trait.Pilot} on it`,
                 optional: true,
                 thenCondition: (context) => context.source.isInPlay(),
                 targetResolver: {

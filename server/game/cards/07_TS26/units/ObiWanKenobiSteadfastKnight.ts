@@ -14,7 +14,7 @@ export default class ObiWanKenobiSteadfastKnight extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Other friendly Republic units gain ${TextHelper.Restore(1)}`,
+            title: `Other friendly ${TextHelper.Trait.Republic} units gain ${TextHelper.Restore(1)}`,
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Republic),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 1 })
         });

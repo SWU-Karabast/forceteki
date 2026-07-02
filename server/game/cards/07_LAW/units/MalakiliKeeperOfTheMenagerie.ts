@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MalakiliKeeperOfTheMenagerie extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class MalakiliKeeperOfTheMenagerie extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each friendly Creature unit and each Creature unit you own that isn\'t in play gains the Underworld trait',
+            title: `Each friendly ${TextHelper.Trait.Creature} unit and each ${TextHelper.Trait.Creature} unit you own that isn't in play gains the ${TextHelper.Trait.Underworld} trait`,
             targetZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,

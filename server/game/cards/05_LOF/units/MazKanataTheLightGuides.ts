@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MazKanataTheLightGuides extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class MazKanataTheLightGuides extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Attack with a Force unit. It gets +2/+0 for this attack.',
+            title: `Attack with a ${TextHelper.Trait.Force} unit. It gets +2/+0 for this attack.`,
             optional: true,
             initiateAttack: {
                 attackerCondition: (card) => card.hasSomeTrait(Trait.Force),

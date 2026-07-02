@@ -14,7 +14,7 @@ export default class NubianStarSkiff extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control an Official unit, this unit gains ${TextHelper.Restore(2)}`,
+            title: `While you control an ${TextHelper.Trait.Official} unit, this unit gains ${TextHelper.Restore(2)}`,
             condition: (context) => context.player.hasSomeArenaUnit({ trait: Trait.Official }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 2 }),
         });

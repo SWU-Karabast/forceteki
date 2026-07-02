@@ -4,6 +4,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { TargetMode, Trait } from '../../../core/Constants';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MedalCeremony extends EventCard {
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
@@ -21,7 +22,7 @@ export default class MedalCeremony extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Give an experience to each of up to three Rebel units that attacked this phase',
+            title: `Give an experience to each of up to three ${TextHelper.Trait.Rebel} units that attacked this phase`,
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 3,

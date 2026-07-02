@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class LightsaberThrow extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class LightsaberThrow extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Discard a Lightsaber card from your hand. If you do, deal 4 damage to a ground unit and draw a card.',
+            title: `Discard a ${TextHelper.Trait.Lightsaber} card from your hand. If you do, deal 4 damage to a ground unit and draw a card.`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
