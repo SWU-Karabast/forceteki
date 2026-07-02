@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType } from '../core/Constants';
+import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType, TokenUnitName, TokenUpgradeName } from '../core/Constants';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import type { IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
@@ -21,10 +21,10 @@ import type { ICollectBountyProperties } from './CollectBountySystem';
 import { CollectBountySystem } from './CollectBountySystem';
 import type { IConditionalSystemProperties } from './ConditionalSystem';
 import { ConditionalSystem } from './ConditionalSystem';
-import type { ICreateBattleDroidProperties } from './CreateBattleDroidSystem';
-import { CreateBattleDroidSystem } from './CreateBattleDroidSystem';
-import type { ICreateCloneTrooperProperties } from './CreateCloneTrooperSystem';
-import { CreateCloneTrooperSystem } from './CreateCloneTrooperSystem';
+import type { ICreateTokenUnitProperties } from './CreateTokenUnitSystem';
+import { CreateTokenUnitSystem } from './CreateTokenUnitSystem';
+import type { IGiveTokenUpgradeProperties } from './GiveTokenUpgradeSystem';
+import { GiveTokenUpgradeSystem } from './GiveTokenUpgradeSystem';
 import type { IAbilityDamageProperties, ICombatDamageProperties, IDamageProperties, IExcessDamageProperties } from './DamageSystem';
 import { DamageSystem } from './DamageSystem';
 import type { IDefeatCardProperties } from './DefeatCardSystem';
@@ -65,10 +65,6 @@ import type { IFlipDoubleSidedLeaderProperties } from './FlipDoubleSidedLeaderSy
 import { FlipDoubleSidedLeaderSystem } from './FlipDoubleSidedLeaderSystem';
 import type { IFrameworkDefeatCardProperties } from './FrameworkDefeatCardSystem';
 import { FrameworkDefeatCardSystem } from './FrameworkDefeatCardSystem';
-import type { IGiveExperienceProperties } from './GiveExperienceSystem';
-import { GiveExperienceSystem } from './GiveExperienceSystem';
-import type { IGiveShieldProperties } from './GiveShieldSystem';
-import { GiveShieldSystem } from './GiveShieldSystem';
 import type { IHealProperties } from './HealSystem';
 import { HealSystem } from './HealSystem';
 import type { IInitiateAttackProperties } from './InitiateAttackSystem';
@@ -122,10 +118,6 @@ import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
 import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
 import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
 import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhenSourceLeavesPlayDelayedEffectSystem';
-import type { ICreateXWingProperties } from './CreateXWingSystem';
-import { CreateXWingSystem } from './CreateXWingSystem';
-import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
-import { CreateTieFighterSystem } from './CreateTieFighterSystem';
 import type { IViewAndSelectCardsProperties, IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
 import { ViewCardInteractMode } from './ViewCardSystem';
 import type { IIndirectDamageToPlayerProperties } from './IndirectDamageToPlayerSystem';
@@ -153,8 +145,6 @@ import type { IUseWhenPlayedProperties } from './UseWhenPlayedSystem';
 import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
 import type { IRandomSelectionSystemProperties } from './RandomSelectionSystem';
 import { RandomSelectionSystem } from './RandomSelectionSystem';
-import type { ICreateSpyProperties } from './CreateSpySystem';
-import { CreateSpySystem } from './CreateSpySystem';
 import type { IDiscloseAspectsProperties } from './DiscloseAspectsSystem';
 import { DiscloseAspectsSystem } from './DiscloseAspectsSystem';
 import { AllCardsForPlayerLastingEffectSystem, type IAllCardsForPlayerLastingEffectProperties } from './AllCardsForPlayerLastingEffectSystem';
@@ -170,10 +160,6 @@ import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditT
 import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
 import type { IRevealAndDrawProperties } from './RevealAndDrawSystem';
 import { RevealAndDrawSystem } from './RevealAndDrawSystem';
-import type { IGiveAdvantageProperties } from './GiveAdvantageSystem';
-import { GiveAdvantageSystem } from './GiveAdvantageSystem';
-import { CreateMandalorianSystem } from './CreateMandalorianSystem';
-import type { ICreateMandalorianProperties } from './CreateMandalorianSystem';
 import type { PropsFactory } from '../Interfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -208,23 +194,29 @@ export function combatDamage<TContext extends AbilityContext = AbilityContext>(p
             { type: DamageType.Combat }
         ));
 }
-export function createBattleDroid<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateBattleDroidProperties, TContext> = {}) {
-    return new CreateBattleDroidSystem<TContext>(propertyFactory);
+export type ICreateTokenUnitFactoryProperties = Omit<ICreateTokenUnitProperties, 'tokenType'>;
+function createTokenUnit<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext>, tokenType: TokenUnitName) {
+    return new CreateTokenUnitSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<ICreateTokenUnitProperties, 'tokenType'>(propertyFactory, { tokenType })
+    );
 }
-export function createCloneTrooper<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCloneTrooperProperties, TContext> = {}) {
-    return new CreateCloneTrooperSystem<TContext>(propertyFactory);
+export function createBattleDroid<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
+    return createTokenUnit<TContext>(propertyFactory, TokenUnitName.BattleDroid);
 }
-export function createXWing<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateXWingProperties, TContext> = {}) {
-    return new CreateXWingSystem<TContext>(propertyFactory);
+export function createCloneTrooper<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
+    return createTokenUnit<TContext>(propertyFactory, TokenUnitName.CloneTrooper);
 }
-export function createTieFighter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTieFighterProperties, TContext> = {}) {
-    return new CreateTieFighterSystem<TContext>(propertyFactory);
+export function createXWing<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
+    return createTokenUnit<TContext>(propertyFactory, TokenUnitName.XWing);
 }
-export function createSpy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateSpyProperties, TContext> = {}) {
-    return new CreateSpySystem<TContext>(propertyFactory);
+export function createTieFighter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
+    return createTokenUnit<TContext>(propertyFactory, TokenUnitName.TIEFighter);
 }
-export function createMandalorian<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateMandalorianProperties, TContext> = {}) {
-    return new CreateMandalorianSystem<TContext>(propertyFactory);
+export function createSpy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
+    return createTokenUnit<TContext>(propertyFactory, TokenUnitName.Spy);
+}
+export function createMandalorian<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
+    return createTokenUnit<TContext>(propertyFactory, TokenUnitName.Mandalorian);
 }
 export function createCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCreditTokenProperties, TContext> = {}) {
     return new CreateCreditTokenSystem<TContext>(propertyFactory);
@@ -311,14 +303,20 @@ export function forThisAttackCardEffect<TContext extends AbilityContext = Abilit
 export function frameworkDefeat<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IFrameworkDefeatCardProperties, TContext>) {
     return new FrameworkDefeatCardSystem<TContext>(propertyFactory);
 }
-export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveExperienceProperties, TContext> = {}) {
-    return new GiveExperienceSystem<TContext>(propertyFactory);
+export type IGiveTokenUpgradeFactoryProperties = Omit<IGiveTokenUpgradeProperties, 'tokenType'>;
+function giveTokenUpgrade<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext>, tokenType: TokenUpgradeName) {
+    return new GiveTokenUpgradeSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGiveTokenUpgradeProperties, 'tokenType'>(propertyFactory, { tokenType })
+    );
 }
-export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveShieldProperties, TContext> = {}) {
-    return new GiveShieldSystem<TContext>(propertyFactory);
+export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
+    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Experience);
 }
-export function giveAdvantage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveAdvantageProperties, TContext> = {}) {
-    return new GiveAdvantageSystem<TContext>(propertyFactory);
+export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
+    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Shield);
+}
+export function giveAdvantage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
+    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Advantage);
 }
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);

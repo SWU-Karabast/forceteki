@@ -8,18 +8,24 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { Contract } from '../core/utils/Contract';
 import { Helpers } from '../core/utils/Helpers';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 import type { Player } from '../core/Player';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
+    tokenType: TokenUpgradeName;
     amount?: number;
+
+    /** Shield-only: whether the created Shield token should be removed before other shields when preventing damage. Ignored for other token types. */
+    highPriorityRemoval?: boolean;
 }
 
-/** Base class for managing the logic for giving token upgrades to cards (currently shield and experience) */
-export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IGiveTokenUpgradeProperties> {
+/** Handles the logic for giving token upgrades (Shield, Experience, Advantage) to cards. The specific token is set via `tokenType` (see the give* factory methods in GameSystemLibrary). */
+export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IGiveTokenUpgradeProperties> {
+    public override readonly name = 'giveTokenUpgrade';
     public override readonly eventName = EventName.OnTokensCreated;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
-    protected override readonly defaultProperties: IGiveTokenUpgradeProperties = {
+    protected override readonly defaultProperties: Omit<IGiveTokenUpgradeProperties, 'tokenType'> = {
         amount: 1
     };
 
@@ -29,8 +35,10 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
+        const tokenTitle = EnumHelpers.tokenTitle[properties.tokenType];
+        const article = /^[aeiou]/i.test(tokenTitle) ? 'an' : 'a';
 
-        return ['attach {0} to {1}', [ChatHelpers.pluralize(properties.amount, `a ${this.getTokenType()}`, `${this.getTokenType()}s`), this.getTargetMessage(properties.target, context)]];
+        return ['give {0} to {1}', [ChatHelpers.pluralize(properties.amount, `${article} ${tokenTitle} token`, `${tokenTitle} tokens`), this.getTargetMessage(properties.target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
@@ -76,10 +84,11 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             this.canAffect(card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve));
     }
 
-    protected abstract getTokenType(): TokenUpgradeName;
-
     protected generateToken(context: TContext, owner: Player) {
-        return context.game.generateToken(owner, this.getTokenType());
+        const properties = this.generatePropertiesFromContext(context);
+
+        // highPriorityRemoval only affects Shield tokens; game.generateToken ignores it for other token types
+        return context.game.generateToken(owner, properties.tokenType, { highPriorityRemoval: properties.highPriorityRemoval });
     }
 
     // standard updateEvent override: let the base set the common properties/handler/condition, then generate the tokens
@@ -146,6 +155,6 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         event.amount = properties.amount;
-        event.tokenType = this.getTokenType();
+        event.tokenType = properties.tokenType;
     }
 }
