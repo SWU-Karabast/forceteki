@@ -13,6 +13,7 @@ export default class BountyGuildInitiate extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Bounty Hunter" is a trait reference, not the Bounty keyword
             title: 'Deal 2 damage to a ground unit if you control another Bounty Hunter unit',
             optional: true,
             targetResolver: {

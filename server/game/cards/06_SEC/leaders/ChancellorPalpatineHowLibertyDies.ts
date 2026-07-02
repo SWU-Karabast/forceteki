@@ -14,7 +14,7 @@ export default class ChancellorPalpatineHowLibertyDies extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Search the top 5 cards of your deck for a Plot card, reveal it, and draw it.',
+            title: `Search the top 5 cards of your deck for a ${TextHelper.Plot} card, reveal it, and draw it.`,
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
@@ -29,7 +29,7 @@ export default class ChancellorPalpatineHowLibertyDies extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: `The next card you play using Plot this phase costs ${TextHelper.resource(3)} less.`,
+            title: `The next card you play using ${TextHelper.Plot} this phase costs ${TextHelper.resource(3)} less.`,
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },

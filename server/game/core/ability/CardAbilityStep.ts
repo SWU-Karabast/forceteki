@@ -3,6 +3,7 @@ import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck, Play
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import { Helpers } from '../utils/Helpers.js';
 import { Contract } from '../utils/Contract.js';
+import { TextHelper } from '../utils/TextHelper.js';
 import type { Card } from '../card/Card.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
 import type { GameEvent } from '../event/GameEvent.js';
@@ -105,7 +106,7 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
                 messageArgs.push('\'s gained ability from ', gainAbilitySource);
             }
         } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
-            messageArgs.push(' using Smuggle');
+            messageArgs.push(` using ${TextHelper.Smuggle}`);
         }
         const costMessages = this.getCostsMessages(context);
 

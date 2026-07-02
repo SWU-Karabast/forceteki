@@ -13,6 +13,7 @@ export default class Commission extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Bounty" here is part of the Bounty Hunter trait, not the Bounty keyword
             title: 'Search the top 10 cards for a Bounty Hunter, Item, or Transport card, reveal it, and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 10,

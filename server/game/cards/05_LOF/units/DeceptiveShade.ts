@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, Duration, EventName, KeywordName } from '../../../core/Constants';
 import type { Player } from '../../../core/Player';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DeceptiveShade extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,14 +15,14 @@ export default class DeceptiveShade extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: 'The next unit you play this phase gains Ambush for this phase',
+            title: `The next unit you play this phase gains ${TextHelper.Ambush} for this phase`,
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect((context) => ({
-                title: 'The next unit you play this phase gains Ambush',
+                title: `The next unit you play this phase gains ${TextHelper.Ambush}`,
                 when: {
                     onCardPlayed: (event, _) => this.isUnitPlayedEvent(event, context.player)
                 },
                 duration: Duration.UntilEndOfPhase,
-                effectDescription: 'give Ambush to the next unit they play this phase',
+                effectDescription: `give ${TextHelper.Ambush} to the next unit they play this phase`,
                 immediateEffect: AbilityHelper.immediateEffects.cardLastingEffect((innerContext) => ({
                     target: innerContext.events.find((event) => this.isUnitPlayedEvent(event, context.player)).card,
                     effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),

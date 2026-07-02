@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { AbilityType, KeywordName, WildcardCardType } from '../../../core/Constants';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class Implicate extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class Implicate extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Choose a unit. For this phase, it gains Sentinel and When this unit is attacked: Create a Spy token"',
+            title: `Choose a unit. For this phase, it gains ${TextHelper.Sentinel} and When this unit is attacked: Create a Spy token"`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({

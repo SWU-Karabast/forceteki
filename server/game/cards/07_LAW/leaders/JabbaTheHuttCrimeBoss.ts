@@ -3,6 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { EventName, GameStateChangeRequired, KeywordName, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 
 export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
@@ -44,8 +45,8 @@ export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
                         playAsType: WildcardCardType.Unit
                     }),
                     AbilityHelper.immediateEffects.delayedCardEffect((outerContext) => ({
-                        title: 'It gains Ambush for the phase if a Credit token was used to pay its cost',
-                        effectDescription: 'conditionally give it Ambush for the phase',
+                        title: `It gains ${TextHelper.Ambush} for the phase if a Credit token was used to pay its cost`,
+                        effectDescription: `conditionally give it ${TextHelper.Ambush} for the phase`,
                         limit: AbilityHelper.limit.perGame(1),
                         when: {
                             onCardPlayed: (event) =>

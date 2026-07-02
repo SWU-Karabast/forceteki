@@ -7,15 +7,16 @@ import type { Game } from '../../Game';
 import type { FormatMessage } from '../../chat/GameChat';
 
 import { registerState } from '../../GameObjectUtils';
+import { TextHelper } from '../../utils/TextHelper';
 
 @registerState()
 export class GainKeyword extends OngoingEffectValueWrapperBase<IKeywordProperties | IKeywordProperties[]> {
     public constructor(game: Game, keywordProps: KeywordNameOrProperties | KeywordNameOrProperties[]) {
         const effectDescription: FormatMessage = {
             format: 'give {0}',
-            args: Helpers.asArray(keywordProps).map((keyword) => {
-                return KeywordHelpers.keywordDescription(keyword);
-            })
+            args: Helpers.asArray(keywordProps).map((keyword) =>
+                TextHelper.keyword(keyword)
+            )
         };
 
         if (Array.isArray(keywordProps)) {

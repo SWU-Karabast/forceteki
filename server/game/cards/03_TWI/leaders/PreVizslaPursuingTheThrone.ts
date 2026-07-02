@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsDrawnThisPhaseWatcher } from '../../../stateWatchers/CardsDrawnThisPhaseWatcher';
 
@@ -35,7 +36,7 @@ export default class PreVizslaPursuingTheThrone extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you have 3 or more cards in your hand, this unit gains Saboteur',
+            title: `While you have 3 or more cards in your hand, this unit gains ${TextHelper.Saboteur}`,
             condition: (context) => context.player.hand.length >= 3,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)
         });

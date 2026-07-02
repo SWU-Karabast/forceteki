@@ -2,6 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { KeywordName, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class HeroesOnBothSides extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class HeroesOnBothSides extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Give each chosen unit +2/+2 and Saboteur for this phase',
+            title: `Give each chosen unit +2/+2 and ${TextHelper.Saboteur} for this phase`,
             targetResolvers: {
                 republicUnit: {
                     activePromptTitle: 'Choose a Republic unit',

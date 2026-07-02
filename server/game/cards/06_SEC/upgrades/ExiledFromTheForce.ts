@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ExiledFromTheForce extends UpgradeCard {
     protected override getImplementationId() {
@@ -17,7 +18,7 @@ export default class ExiledFromTheForce extends UpgradeCard {
     ) {
         registrar.addGainKeywordTargetingAttached({ keyword: KeywordName.Grit });
         registrar.addConstantAbilityTargetingAttached({
-            title: 'Attached unit loses the Force trait and all abilities except Grit',
+            title: `Attached unit loses the Force trait and all abilities except ${TextHelper.Grit}`,
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.loseTrait(Trait.Force),
                 AbilityHelper.ongoingEffects.loseAllOtherAbilities({ exceptKeyword: KeywordName.Grit })

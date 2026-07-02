@@ -1,4 +1,5 @@
 import type { PhaseName } from './game/core/Constants';
+import type { ICosmeticEntity } from './utils/cosmetics/CosmeticsInterfaces';
 
 const defaultWindows = {
     setup: true,
@@ -16,15 +17,15 @@ export interface IUser {
     username: string;
     id: string;
     blockList: string[];
-    promptedActionWindows: { [key in PhaseName]: boolean };
+    promptedActionWindows: Record<PhaseName, boolean>;
     settings: Partial<{
         optionSettings: Partial<{
             autoSingleTarget: boolean;
         }>;
     }>;
     cosmetics?: Partial<{
-        cardback: string;
-        background: string;
+        cardback: ICosmeticEntity;
+        background: ICosmeticEntity;
     }>;
 }
 

@@ -5,6 +5,7 @@ import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/Pl
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, KeywordName, PlayType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 import { registerState } from '../../../core/GameObjectUtils';
 
@@ -26,7 +27,7 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each other friendly non-leader unit gains Grit',
+            title: `Each other friendly non-leader unit gains ${TextHelper.Grit}`,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.NonLeaderUnit,
             matchTarget: (card, context) => card !== context.source,
@@ -46,7 +47,7 @@ class FirstLightSmuggleAction extends PlayUnitActionBase {
         });
 
         return {
-            title: 'Play First Light with Smuggle by dealing 4 damage to a friendly unit',
+            title: `Play First Light with ${TextHelper.Smuggle} by dealing 4 damage to a friendly unit`,
             ...properties,
             playType: PlayType.Smuggle,
             alternatePlayActionAspects: [Aspect.Vigilance, Aspect.Villainy],
