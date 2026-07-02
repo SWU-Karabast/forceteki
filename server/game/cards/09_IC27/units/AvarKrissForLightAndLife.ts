@@ -2,6 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AvarKrissForLightAndLife extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class AvarKrissForLightAndLife extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'This unit gains Raid 1 for each other friendly unit',
+            title: `This unit gains ${TextHelper.keyword({ keyword: KeywordName.Raid, amount: 1 })} for each other friendly unit`,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword((t, c) => ({
                 keyword: KeywordName.Raid,
                 amount: c.player.getArenaUnits({ otherThan: c.source }).length

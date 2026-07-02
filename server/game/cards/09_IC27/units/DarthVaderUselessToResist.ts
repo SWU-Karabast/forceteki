@@ -2,6 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { KeywordName, RelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DarthVaderUselessToResist extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class DarthVaderUselessToResist extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each other friendly unit gains Ambush',
+            title: `Each other friendly unit gains ${TextHelper.keyword(KeywordName.Ambush)}`,
             targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
