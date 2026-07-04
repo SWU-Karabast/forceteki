@@ -13,7 +13,7 @@ export default class AnakinSkywalkerDestinedForDarkness extends NonLeaderUnitCar
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: 'When Defeated: Search your deck for a card named Darth Vader, reveal it, and draw it',
+            title: 'Search your deck for a card named Darth Vader, reveal it, and draw it',
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchWholeDeck: true,
                 cardCondition: (card) => card.title === 'Darth Vader',
