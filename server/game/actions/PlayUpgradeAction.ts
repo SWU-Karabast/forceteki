@@ -3,7 +3,7 @@ import type { IPlayCardActionProperties, PlayCardContext } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, ZoneName } from '../core/Constants';
+import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, Stage, ZoneName } from '../core/Constants';
 import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { Player } from '../core/Player';
 import type { Game } from '../core/Game';
@@ -24,11 +24,19 @@ export class PlayUpgradeAction extends PlayCardAction {
                 ...properties,
                 targetResolver: {
                     activePromptTitle: `Attach ${card.title} to a unit`,
-                    cardCondition: (card, context) => (
-                        properties.attachTargetCondition
-                            ? properties.attachTargetCondition(card, context)
-                            : true
-                    ),
+                    cardCondition: (card, context) => {
+                        if (properties.attachTargetCondition && !properties.attachTargetCondition(card, context)) {
+                            return false;
+                        }
+
+                        // Exclude units the upgrade can't be afforded on when attached to them (see issue #1970).
+                        // Skipped at the post-cost Target stage, where resources are already spent.
+                        if (context.stage !== Stage.Target && !context.ability.canPayCosts(context)) {
+                            return false;
+                        }
+
+                        return true;
+                    },
                     immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source }))
                 }
             }
