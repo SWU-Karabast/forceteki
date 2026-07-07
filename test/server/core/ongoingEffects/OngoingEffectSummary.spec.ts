@@ -96,7 +96,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickCard(context.admiralYularen);
                 context.player1.clickPrompt('Sentinel');
 
-                expect(descriptionsFor(context, context.admiralYularen)).toContain('Each friendly Vehicle unit gains Sentinel');
+                expect(descriptionsFor(context, context.admiralYularen)).toContain('Each friendly Vehicle unit gains Sentinel while this unit is in play');
             });
 
             it('describes each constant ability of a unit using its ability title', async function() {

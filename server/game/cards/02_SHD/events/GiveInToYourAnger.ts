@@ -20,6 +20,7 @@ export default class GiveInToYourAnger extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.sequential((context) => ([
                     AbilityHelper.immediateEffects.damage({ amount: 1 }),
                     AbilityHelper.immediateEffects.cardLastingEffect({
+                        title: 'Must attack a unit on its controller\'s next action this phase, if able',
                         duration: Duration.Custom,
                         until: {
                             onPhaseEnded: () => true,
