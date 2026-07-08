@@ -182,12 +182,12 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
 
                 // Choose trigger order
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Chosen friendly units lose all abilities for this round',
+                    'Remove all abilities from any number of friendly units',
                     'Restore 2'
                 ]);
 
                 // Resolve his ability first
-                context.player1.clickPrompt('Chosen friendly units lose all abilities for this round');
+                context.player1.clickPrompt('Remove all abilities from any number of friendly units');
                 expect(context.player1).toHavePrompt('Choose friendly units to lose all abilities for this round');
 
                 // Remove his own abilities (among others)
@@ -209,7 +209,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
 
                 // No on-attack trigger, and still no restore
                 expect(context.player1).not.toHaveExactPromptButtons([
-                    'Chosen friendly units lose all abilities for this round',
+                    'Remove all abilities from any number of friendly units',
                     'Restore 2'
                 ]);
 
@@ -223,7 +223,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Chosen friendly units lose all abilities for this round',
+                    'Remove all abilities from any number of friendly units',
                     'Restore 2'
                 ]);
                 context.player1.clickPrompt('Restore 2');
@@ -368,12 +368,12 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
 
                 // Choose trigger order
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Chosen friendly units lose all abilities for this round',
+                    'Remove all abilities from any number of friendly units',
                     'Restore 2'
                 ]);
 
                 // Resolve his ability first
-                context.player1.clickPrompt('Chosen friendly units lose all abilities for this round');
+                context.player1.clickPrompt('Remove all abilities from any number of friendly units');
                 expect(context.player1).toHavePrompt('Choose friendly units to lose all abilities for this round');
 
                 // Remove his ability from Fireball (among others)
@@ -394,7 +394,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
 
                 // No on-attack trigger, and still no restore
                 expect(context.player1).not.toHaveExactPromptButtons([
-                    'Chosen friendly units lose all abilities for this round',
+                    'Remove all abilities from any number of friendly units',
                     'Restore 2'
                 ]);
 
@@ -408,7 +408,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Chosen friendly units lose all abilities for this round',
+                    'Remove all abilities from any number of friendly units',
                     'Restore 2'
                 ]);
                 context.player1.clickPrompt('Restore 2');
