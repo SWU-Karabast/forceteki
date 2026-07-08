@@ -1,7 +1,6 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { TextHelper } from '../../../core/utils/TextHelper';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
@@ -22,7 +21,7 @@ export default class BobaFettCompensatedIfHeDies extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenAttackEndsAbility({
-            title: `Ready ${TextHelper.resource(2)}`,
+            title: 'Ready 2 resources',
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.cardsDefeatedThisPhaseWatcher),
