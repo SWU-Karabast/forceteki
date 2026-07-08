@@ -640,7 +640,6 @@ export interface ICardAttributes {
     traits: Set<Trait>;
 }
 
-
 /* Ongoing effects */
 export interface IOngoingEffectSourceSummary {
     setId: { set: string; number: number };

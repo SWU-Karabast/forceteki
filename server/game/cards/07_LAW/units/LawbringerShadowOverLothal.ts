@@ -41,7 +41,7 @@ export default class LawbringerShadowOverLothal extends NonLeaderUnitCard {
                 effectMessage: () => ['choose {0}', [TextHelper.aspect(aspect)]]
             }),
             abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
-                title: `Give each enemy ${TextHelper.aspect(aspect)} unit -2/-2 for this phase`,
+                title: `Each enemy ${TextHelper.aspect(aspect)} unit gets -2/-2 for this phase`,
                 target: context.player.opponent.getArenaUnits({ aspect: aspect }),
                 effect: abilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 })
             })),

@@ -26,7 +26,7 @@ export default class Cunning extends EventCard {
                     ['Give a unit +4/+0 for this phase']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                            title: 'Give a unit +4/+0 for this phase',
+                            title: 'Gets +4/+0 for this phase',
                             effect: AbilityHelper.ongoingEffects.modifyStats({ power: 4, hp: 0 })
                         })
                     }),

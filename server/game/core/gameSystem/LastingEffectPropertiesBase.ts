@@ -13,10 +13,10 @@ interface ILastingEffectPropertiesAnyDuration extends IGameSystemProperties {
     ongoingEffectTargetDescription?: string;
 
     /**
-     * Optional standalone description of this lasting effect for the game state summary. Set this when
-     * the creating ability's own title isn't specific enough — e.g. the effect is built inside a
-     * `Select`/`choices` handler or modal option, so the ability title is just a generic header. Mirrors
-     * the required `title` on delayed effects, but is optional (the summary falls back to the ability title).
+     * Optional standalone description of this lasting effect. Set this when the creating ability's own
+     * title isn't specific enough — e.g. the effect is built inside a `Select`/`choices` handler or modal
+     * option, or when the ability title describes multiple effects. This property will get priority for in
+     * the ongoing effect summary.
      */
     title?: string;
 }
