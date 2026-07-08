@@ -136,6 +136,27 @@ describe('The Darksaber', function() {
                     expect(context.player1).not.toBeAbleToSelect(context.theDarksaber);
                     context.player1.clickCardNonChecking(context.theDarksaber);
                 });
+
+                it('is not playable when unaffordable on every target, even if two different cost reductions each apply to a different unit', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            resources: 3,
+                            hand: ['the-darksaber'],
+                            // follower-of-the-way (Mandalorian) makes The Darksaber ignore the aspect penalty -> cost 4
+                            // guardian-of-the-whills discounts the first upgrade played on it by 1, but adds the +2 penalty -> cost 5
+                            groundArena: ['guardian-of-the-whills', 'follower-of-the-way']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // Neither unit's cost is payable with 3 resources, and the two reductions don't stack on a
+                    // single target, so The Darksaber is not playable at all (issue #1971)
+                    expect(context.player1).not.toBeAbleToSelect(context.theDarksaber);
+                    context.player1.clickCardNonChecking(context.theDarksaber);
+                    expect(context.theDarksaber).toBeInZone('hand', context.player1);
+                });
             });
 
             describe('with more than 4 resources', function () {
