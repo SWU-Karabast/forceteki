@@ -56,7 +56,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('An opponent discards a random card from their hand');
 
-                expect(context.cunning).toHaveOngoingEffect('Give a unit +4/+0 for this phase');
+                expect(context.cunning).toHaveOngoingEffect('Gets +4/+0 for this phase');
             });
 
             it('uses the lasting effect\'s explicit title for an effect built inside a Select choice handler', async function() {
@@ -72,7 +72,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickCard(context.lawbringer);
                 context.player1.clickPrompt('Villainy');
 
-                expect(context.lawbringer).toHaveOngoingEffect('Give each enemy Villainy unit -2/-2 for this phase');
+                expect(context.lawbringer).toHaveOngoingEffect('Each enemy Villainy unit gets -2/-2 for this phase');
             });
 
             it('uses the lasting effect\'s explicit title for a keyword chosen via Select', async function() {
