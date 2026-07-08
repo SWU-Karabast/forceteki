@@ -1,11 +1,11 @@
-describe('Leia Organa, On a Diplomatic Mission', function () {
+describe('Princess Leia, On a Diplomatic Mission', function () {
     integration(function (contextRef) {
-        describe('Leia Organa\'s leader undeployed ability', function () {
+        describe('Princess Leia\'s leader undeployed ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: 'leia-organa#on-a-diplomatic-mission',
+                        leader: 'princess-leia#on-a-diplomatic-mission',
                         deck: ['entrenched', 'r2d2#ignoring-protocol'],
                         hand: ['wampa'],
                     },
@@ -15,13 +15,13 @@ describe('Leia Organa, On a Diplomatic Mission', function () {
             it('should draw a card then put a card on top or bottom of deck (top)', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.leiaOrgana);
-                expect(context.player1).toHaveEnabledPromptButtons(['Deploy Leia Organa', 'Draw a card, then put a card from your hand on the top or bottom of your deck']);
+                context.player1.clickCard(context.princessLeia);
+                expect(context.player1).toHaveEnabledPromptButtons(['Deploy Princess Leia', 'Draw a card, then put a card from your hand on the top or bottom of your deck']);
                 context.player1.clickPrompt('Draw a card, then put a card from your hand on the top or bottom of your deck');
                 expect(context.entrenched).toBeInZone('hand');
 
                 expect(context.player1.exhaustedResourceCount).toBe(1);
-                expect(context.leiaOrgana.exhausted).toBeTrue();
+                expect(context.princessLeia.exhausted).toBeTrue();
 
                 expect(context.player1).toHavePrompt('Select a card to put on the top or bottom of your deck');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.entrenched]);
@@ -39,7 +39,7 @@ describe('Leia Organa, On a Diplomatic Mission', function () {
             it('should draw a card then put a card on top or bottom of deck (bottom)', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickCard(context.princessLeia);
                 context.player1.clickPrompt('Draw a card, then put a card from your hand on the top or bottom of your deck');
 
                 context.player1.clickCard(context.entrenched);
@@ -50,11 +50,11 @@ describe('Leia Organa, On a Diplomatic Mission', function () {
             });
         });
 
-        it('Leia Organa\'s leader undeployed ability must put a card on top/bottom even if deck is empty and draw fails (should have 3 damage on base)', async function () {
+        it('Princess Leia\'s leader undeployed ability must put a card on top/bottom even if deck is empty and draw fails (should have 3 damage on base)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    leader: 'leia-organa#on-a-diplomatic-mission',
+                    leader: 'princess-leia#on-a-diplomatic-mission',
                     hand: ['entrenched', 'r2d2#ignoring-protocol'],
                     deck: [],
                 },
@@ -62,12 +62,12 @@ describe('Leia Organa, On a Diplomatic Mission', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.leiaOrgana);
-            expect(context.player1).toHaveEnabledPromptButtons(['Deploy Leia Organa', 'Draw a card, then put a card from your hand on the top or bottom of your deck']);
+            context.player1.clickCard(context.princessLeia);
+            expect(context.player1).toHaveEnabledPromptButtons(['Deploy Princess Leia', 'Draw a card, then put a card from your hand on the top or bottom of your deck']);
             context.player1.clickPrompt('Draw a card, then put a card from your hand on the top or bottom of your deck');
 
             expect(context.player1.exhaustedResourceCount).toBe(1);
-            expect(context.leiaOrgana.exhausted).toBeTrue();
+            expect(context.princessLeia.exhausted).toBeTrue();
             expect(context.p1Base.damage).toBe(3);
 
             expect(context.player1).toHavePrompt('Select a card to put on the top or bottom of your deck');
@@ -82,12 +82,12 @@ describe('Leia Organa, On a Diplomatic Mission', function () {
             expect(context.r2d2).toBeInBottomOfDeck(context.player1, 1);
         });
 
-        describe('Leia Organa\'s leader deployed ability', function () {
+        describe('Princess Leia\'s leader deployed ability', function () {
             it('should draw a card then put a card on top/bottom of deck', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: { card: 'leia-organa#on-a-diplomatic-mission', deployed: true },
+                        leader: { card: 'princess-leia#on-a-diplomatic-mission', deployed: true },
                         deck: ['entrenched', 'r2d2#ignoring-protocol'],
                         hand: ['wampa'],
                     },
@@ -95,7 +95,7 @@ describe('Leia Organa, On a Diplomatic Mission', function () {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickCard(context.princessLeia);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.entrenched).toBeInZone('hand');
@@ -117,7 +117,7 @@ describe('Leia Organa, On a Diplomatic Mission', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: { card: 'leia-organa#on-a-diplomatic-mission', deployed: true },
+                        leader: { card: 'princess-leia#on-a-diplomatic-mission', deployed: true },
                         deck: [],
                         hand: ['wampa'],
                     },
@@ -125,7 +125,7 @@ describe('Leia Organa, On a Diplomatic Mission', function () {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.leiaOrgana);
+                context.player1.clickCard(context.princessLeia);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);

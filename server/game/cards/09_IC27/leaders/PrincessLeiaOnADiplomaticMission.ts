@@ -6,11 +6,11 @@ import type {
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
-export default class LeiaOrganaOnADiplomaticMission extends LeaderUnitCard {
+export default class PrincessLeiaOnADiplomaticMission extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'leia-organa#on-a-diplomatic-mission-id',
-            internalName: 'leia-organa#on-a-diplomatic-mission',
+            id: 'princess-leia#on-a-diplomatic-mission-id',
+            internalName: 'princess-leia#on-a-diplomatic-mission',
         };
     }
 
