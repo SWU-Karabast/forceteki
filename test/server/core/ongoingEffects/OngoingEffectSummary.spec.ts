@@ -1,15 +1,5 @@
 describe('Ongoing effect summary', function() {
     integration(function(contextRef) {
-        function summaryFor(context) {
-            return context.game.ongoingEffectEngine.summarizeOngoingEffectsForState();
-        }
-
-        function descriptionsFor(context, sourceCard) {
-            return summaryFor(context)
-                .filter((entry) => entry.sourceCardUuid === sourceCard.uuid)
-                .map((entry) => entry.source.effectDescription);
-        }
-
         describe('description resolution', function() {
             it('describes a lasting effect using the title of the ability that created it', async function() {
                 await contextRef.setupTestAsync({
@@ -23,7 +13,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickPrompt('Done');
                 context.player1.chooseListOption('Battlefield Marine');
 
-                expect(descriptionsFor(context, context.qira)).toContain(
+                expect(context.qira).toHaveOngoingEffect(
                     'While this unit is in play, each card named Battlefield Marine costs 3 resources more for your opponents to play'
                 );
             });
@@ -36,7 +26,7 @@ describe('Ongoing effect summary', function() {
                 });
                 const { context } = contextRef;
 
-                expect(descriptionsFor(context, context.millenniumFalcon)).toContain('This unit enters play ready');
+                expect(context.millenniumFalcon).toHaveOngoingEffect('This unit enters play ready');
             });
 
             it('hides an effect sourced from a hidden zone so the card is not leaked', async function() {
@@ -48,7 +38,7 @@ describe('Ongoing effect summary', function() {
                 const { context } = contextRef;
 
                 // "enters play ready" is active from any zone, but the Falcon is in hand - it must stay hidden
-                expect(descriptionsFor(context, context.millenniumFalcon)).toEqual([]);
+                expect(context.millenniumFalcon).toHaveNoOngoingEffects();
             });
 
             it('uses the lasting effect\'s explicit title for a modal-choice effect (ability title is just a header)', async function() {
@@ -66,7 +56,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('An opponent discards a random card from their hand');
 
-                expect(descriptionsFor(context, context.cunning)).toContain('Give a unit +4/+0 for this phase');
+                expect(context.cunning).toHaveOngoingEffect('Give a unit +4/+0 for this phase');
             });
 
             it('uses the lasting effect\'s explicit title for an effect built inside a Select choice handler', async function() {
@@ -82,7 +72,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickCard(context.lawbringer);
                 context.player1.clickPrompt('Villainy');
 
-                expect(descriptionsFor(context, context.lawbringer)).toContain('Give each enemy Villainy unit -2/-2 for this phase');
+                expect(context.lawbringer).toHaveOngoingEffect('Give each enemy Villainy unit -2/-2 for this phase');
             });
 
             it('uses the lasting effect\'s explicit title for a keyword chosen via Select', async function() {
@@ -96,7 +86,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickCard(context.admiralYularen);
                 context.player1.clickPrompt('Sentinel');
 
-                expect(descriptionsFor(context, context.admiralYularen)).toContain('Each friendly Vehicle unit gains Sentinel while this unit is in play');
+                expect(context.admiralYularen).toHaveOngoingEffect('Each friendly Vehicle unit gains Sentinel while this unit is in play');
             });
 
             it('describes each constant ability of a unit using its ability title', async function() {
@@ -107,7 +97,7 @@ describe('Ongoing effect summary', function() {
                 });
                 const { context } = contextRef;
 
-                expect(descriptionsFor(context, context.millenniumFalcon)).toEqual([
+                expect(context.millenniumFalcon).toHaveExactOngoingEffects([
                     'You may play or deploy 1 additional Pilot on this unit',
                     'This unit gets +1/+0 for each Pilot on it'
                 ]);
@@ -127,7 +117,7 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickCard(context.wampa);
 
                 // the lingering delayed effect is the "defeat it at regroup" part, sourced from the event
-                expect(descriptionsFor(context, context.sneakAttack)).toContain('Defeat Wampa');
+                expect(context.sneakAttack).toHaveOngoingEffect('Defeat Wampa');
             });
 
             it('describes a delayed control-change effect with its title rather than its chat text', async function() {
@@ -141,7 +131,11 @@ describe('Ongoing effect summary', function() {
                 context.player1.clickCard(context.changeOfHeart);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(descriptionsFor(context, context.changeOfHeart)).toContain('Owner takes control');
+                // object form also asserts the effect's targets (resolved from card objects to uuids)
+                expect(context.changeOfHeart).toHaveOngoingEffect({
+                    description: 'Owner takes control',
+                    targets: [context.battlefieldMarine],
+                });
             });
         });
 
@@ -157,12 +151,12 @@ describe('Ongoing effect summary', function() {
                 // GNK's "next unit costs 1 less" effect is created on attack
                 context.player1.clickCard(context.gnkPowerDroid);
                 context.player1.clickCard(context.p2Base);
-                expect(descriptionsFor(context, context.gnkPowerDroid)).toContain('The next unit you play this phase costs 1 resource less');
+                expect(context.gnkPowerDroid).toHaveOngoingEffect('The next unit you play this phase costs 1 resource less');
 
                 // playing a unit consumes the once-per-game limit, so the spent effect should no longer be shown
                 context.player2.passAction();
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(descriptionsFor(context, context.gnkPowerDroid)).toEqual([]);
+                expect(context.gnkPowerDroid).toHaveNoOngoingEffects();
             });
         });
     });

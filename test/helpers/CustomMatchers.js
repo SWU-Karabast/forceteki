@@ -1265,6 +1265,47 @@ var customMatchers = {
     },
 
     /**
+     * Asserts the exact set (order-independent) of ongoing effects currently sourced by a card, as they
+     * would appear in the ongoing effect summary sent to the frontend. Each expected entry is either a
+     * description string or an object `{ description, targets? }`; when `targets` (an array of card objects)
+     * is provided, the effect's targets must match as well.
+     */
+    toHaveExactOngoingEffects: function () {
+        return {
+            compare: function (card, expectedEffects) {
+                if (!Array.isArray(expectedEffects)) {
+                    throw new TestSetupError(`Parameter 'expectedEffects' is not an array: ${expectedEffects}`);
+                }
+                return compareOngoingEffects(card, expectedEffects, { exact: true });
+            }
+        };
+    },
+
+    /**
+     * Asserts that a card is currently sourcing at least one ongoing effect matching the given expectation
+     * (a description string or a `{ description, targets? }` object). Partial counterpart to
+     * `toHaveExactOngoingEffects`.
+     */
+    toHaveOngoingEffect: function () {
+        return {
+            compare: function (card, expectedEffect) {
+                return compareOngoingEffects(card, [expectedEffect], { exact: false });
+            }
+        };
+    },
+
+    /**
+     * Asserts that a card is not currently sourcing any visible ongoing effects.
+     */
+    toHaveNoOngoingEffects: function () {
+        return {
+            compare: function (card) {
+                return compareOngoingEffects(card, [], { exact: true });
+            }
+        };
+    },
+
+    /**
      * Checks if the actual array contains at least the elements of the expected array. Required for the new UndoArray class.
      * @param {jasmine.MatchersUtil} matchersUtil
      */
@@ -1333,6 +1374,141 @@ function checkConsistentZoneState(card, result) {
     }
 
     return true;
+}
+
+/** Returns the ongoing effect summary entries whose source is the given card. */
+function getOngoingEffectSummariesForCard(card) {
+    if (typeof card === 'string') {
+        throw new TestSetupError('This expectation requires a card object, not a name');
+    }
+    if (card == null || typeof card.uuid !== 'string' || card.game == null) {
+        throw new TestSetupError('This expectation requires a card object belonging to an active game');
+    }
+
+    const resolveName = (uuid) => card.game.gameObjectManager.get(uuid)?.internalName ?? uuid;
+
+    return card.game.ongoingEffectEngine
+        .summarizeOngoingEffectsForState()
+        .filter((entry) => entry.sourceCardUuid === card.uuid)
+        .map((entry) => ({
+            description: entry.source.effectDescription,
+            targets: entry.targets,
+            targetNames: entry.targets.map(resolveName),
+        }));
+}
+
+/** Normalizes a string-or-object ongoing effect expectation into `{ description, targetUuids }`. */
+function normalizeExpectedOngoingEffect(expected) {
+    if (typeof expected === 'string') {
+        return { description: expected, targetUuids: undefined };
+    }
+
+    if (expected != null && typeof expected === 'object') {
+        if (typeof expected.description !== 'string') {
+            throw new TestSetupError('An ongoing effect expectation object requires a string \'description\'');
+        }
+
+        let targetUuids;
+        let targetNames;
+        if (expected.targets !== undefined) {
+            const targets = Helpers.asArray(expected.targets);
+            Util.checkNullCard(targets, 'Ongoing effect \'targets\' contains one or more null elements');
+            targets.forEach((target) => {
+                if (typeof target === 'string') {
+                    throw new TestSetupError('Ongoing effect \'targets\' must be card objects, not names');
+                }
+            });
+            targetUuids = targets.map((target) => target.uuid);
+            targetNames = targets.map((target) => target.internalName);
+        }
+
+        return { description: expected.description, targetUuids, targetNames };
+    }
+
+    throw new TestSetupError(`An ongoing effect expectation must be a string or an object, got: ${expected}`);
+}
+
+/** Whether an expected effect matches an actual summary entry (targets only checked when specified). */
+function ongoingEffectMatches(expected, actual) {
+    if (expected.description !== actual.description) {
+        return false;
+    }
+    if (expected.targetUuids === undefined) {
+        return true;
+    }
+    return expected.targetUuids.length === actual.targets.length &&
+      expected.targetUuids.every((uuid) => actual.targets.includes(uuid));
+}
+
+function formatOngoingEffectDescription(description, targetNames) {
+    if (targetNames === undefined) {
+        return `'${description}'`;
+    }
+    const targetsStr = targetNames.length > 0 ? targetNames.join(', ') : 'no cards';
+    return `'${description}' (targeting: ${targetsStr})`;
+}
+
+function formatExpectedOngoingEffect(expected) {
+    return formatOngoingEffectDescription(expected.description, expected.targetNames);
+}
+
+function compareOngoingEffects(card, expectedEffectsRaw, { exact }) {
+    const result = {};
+    const actual = getOngoingEffectSummariesForCard(card);
+    const expected = expectedEffectsRaw.map(normalizeExpectedOngoingEffect);
+
+    // greedily match each expectation against a distinct actual effect
+    const remainingActual = [...actual];
+    const unmatchedExpected = [];
+    for (const expectedEffect of expected) {
+        const matchIndex = remainingActual.findIndex((actualEffect) => ongoingEffectMatches(expectedEffect, actualEffect));
+        if (matchIndex === -1) {
+            unmatchedExpected.push(expectedEffect);
+        } else {
+            remainingActual.splice(matchIndex, 1);
+        }
+    }
+
+    result.pass = exact
+        ? unmatchedExpected.length === 0 && remainingActual.length === 0
+        : unmatchedExpected.length === 0;
+
+    // only surface each effect's targets in the diagnostic listing when the expectation cared about targets
+    const showTargets = expected.some((expectedEffect) => expectedEffect.targetUuids !== undefined);
+    const allActualStr = actual.length > 0
+        ? actual.map((actualEffect) => `\t- ${formatOngoingEffectDescription(actualEffect.description, showTargets ? actualEffect.targetNames : undefined)}`).join('\n')
+        : '\t(none)';
+
+    if (result.pass) {
+        if (exact && expected.length === 0) {
+            result.message = `Expected ${card.internalName} to have at least one ongoing effect but it had none`;
+        } else if (exact) {
+            result.message = `Expected ${card.internalName} not to source exactly these ongoing effects but it did: ${expected.map(formatExpectedOngoingEffect).join('; ')}`;
+        } else {
+            result.message = `Expected ${card.internalName} not to source ongoing effect ${expected.map(formatExpectedOngoingEffect).join('; ')} but it did`;
+        }
+        return result;
+    }
+
+    let message = '';
+    if (exact && expected.length === 0) {
+        message = `Expected ${card.internalName} to source no ongoing effects but it did`;
+    } else {
+        if (unmatchedExpected.length > 0) {
+            message += `Expected ${card.internalName} to source the following ongoing effect(s) but they were not found: ${unmatchedExpected.map(formatExpectedOngoingEffect).join('; ')}`;
+        }
+        if (exact && remainingActual.length > 0) {
+            if (message.length > 0) {
+                message += '\n';
+            }
+            message += `Expected ${card.internalName} not to source these additional ongoing effect(s) but it did: ${remainingActual.map((actualEffect) => `'${actualEffect.description}'`).join('; ')}`;
+        }
+    }
+
+    message += `\n\nAll ongoing effects currently sourced by ${card.internalName}:\n${allActualStr}`;
+    result.message = message;
+
+    return result;
 }
 
 function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject) {
