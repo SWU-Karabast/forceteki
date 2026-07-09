@@ -19,7 +19,7 @@ const mockCards = [
         internalName: 'darth-vader#no-one-to-stop-us'
     }),
     buildMockCard({
-        title: 'Leia Organa',
+        title: 'Princess Leia',
         subtitle: 'On a Diplomatic Mission',
         cost: 6,
         power: 4,
@@ -34,7 +34,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'leia-organa#on-a-diplomatic-mission'
+        internalName: 'princess-leia#on-a-diplomatic-mission'
     }),
     buildMockCard({
         title: 'Moff Gideon',
