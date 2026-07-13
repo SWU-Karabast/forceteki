@@ -142,6 +142,33 @@ describe('Darth Vader, No One to Stop Us', function() {
                 expect(context.player1.handSize).toBe(0);
                 expect(context.p1Base.damage).toBe(1);
             });
+
+            it('should defeat the base when it has 2 remaining HP and an empty deck, because the empty-deck draw resolves before the heal', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-vader#no-one-to-stop-us',
+                        // Dagobah Swamp has 30 HP — 28 damage leaves 2 remaining HP
+                        base: { card: 'dagobah-swamp', damage: 28 },
+                        groundArena: ['wampa'],
+                        deck: [],
+                        resources: 5
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // The draw and heal are sequential (draw is printed first), so the empty-deck draw
+                // deals 3 damage to the base before the heal can resolve, defeating the base
+                context.player1.clickCard(context.darthVader);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.game).toBeOver();
+                expect(context.player2).toBeGameWinner();
+
+                context.player1.clickPrompt('Continue Playing');
+                context.player2.clickPrompt('Continue Playing');
+            });
         });
 
         describe('its leader unit side On Attack ability', function() {
