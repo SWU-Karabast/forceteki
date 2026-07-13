@@ -322,7 +322,7 @@ describe('Max Rebo, Encore!', () => {
                     context.player1.clickCard(context.p2Base);
 
                     // Dryden's ability triggers to double power but not ready next Regroup Phase
-                    expect(context.player1).toHavePassAbilityPrompt('Double this unit\'s power for this attack. If you do, this unit does not ready during the next regroup phase.');
+                    expect(context.player1).toHavePassAbilityPrompt('Double this unit\'s power (+2/+0) for this attack. If you do, this unit does not ready during the next regroup phase.');
                     context.player1.clickPrompt('Trigger');
                     expect(context.player2).toBeActivePlayer();
                     expect(context.p2Base.damage).toBe(4);

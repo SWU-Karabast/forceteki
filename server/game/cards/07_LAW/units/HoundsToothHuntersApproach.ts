@@ -13,6 +13,7 @@ export default class HoundsToothHuntersApproach extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenAttackEndsAbility({
             title: 'If this unit survived, you may defeat a unit with less power than this unit',
+            contextTitle: (context) => `Defeat a unit with less than ${context.source.getPower()} power`,
             optional: true,
             attackerMustSurvive: true,
             targetResolver: {

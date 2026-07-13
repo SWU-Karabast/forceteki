@@ -3,6 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { Arena } from '../../../core/Constants';
 import { KeywordName, TargetMode, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GrandAdmiralSloaneHoldingTheEmpireTogether extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class GrandAdmiralSloaneHoldingTheEmpireTogether extends LeaderUn
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Choose an arena. Give each unit in that arena Sentinel and Overwhelm for this phase',
+            title: `Choose an arena. Give each unit in that arena ${TextHelper.Sentinel} and ${TextHelper.Overwhelm} for this phase`,
             cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 mode: TargetMode.Select,
@@ -29,7 +30,7 @@ export default class GrandAdmiralSloaneHoldingTheEmpireTogether extends LeaderUn
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each other friendly unit gains Overwhelm and Sentinel',
+            title: `Each other friendly unit gains ${TextHelper.Overwhelm} and ${TextHelper.Sentinel}`,
             matchTarget: (card, context) => card.isUnit() && card.controller === context.player && card !== context.source,
             ongoingEffect: [
                 abilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm),

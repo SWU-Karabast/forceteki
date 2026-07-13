@@ -135,7 +135,7 @@ describe('Leia Organa, Someone who loves you', function() {
                 context.player1.clickCard(context.leiaOrganaSomeoneWhoLovesYou);
                 context.player1.clickPrompt('Deploy Leia Organa');
 
-                expect(context.player1).toHaveExactPromptButtons(['Play Tala Durith using Plot', 'Choose a unit. Give an Experience token to that unit for each different aspect among units you control']);
+                expect(context.player1).toHaveExactPromptButtons(['Play Tala Durith using Plot', 'Give 4 Experience tokens to a unit']);
                 context.player1.clickPrompt('Play Tala Durith using Plot');
                 context.player1.clickPrompt('Trigger');
 

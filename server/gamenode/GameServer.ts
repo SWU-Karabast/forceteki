@@ -505,6 +505,9 @@ export class GameServer {
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     timerPopupSeenDate: user.getTimerPopupSeenDate(),
                     preferences: user.getPreferences(),
+                    activeCosmetics: this.cosmeticsService
+                        ? this.cosmeticsService.resolveActiveCosmetics(user.getPreferences()?.cosmetics)
+                        : CosmeticsService.resolveDefaultCosmetics(user.getPreferences()?.cosmetics),
                     mustRequestUsernameChange: user.mustRequestUsernameChange(),
                     reportingDisabled: user.reportingDisabled(),
                     needsUsernameChange,

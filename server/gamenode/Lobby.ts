@@ -18,6 +18,7 @@ import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
+import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
 import {
     AlertType,
@@ -1355,8 +1356,13 @@ export class Lobby {
     }
 
     private buildGameSettings(): GameConfiguration {
-        const players: IUser[] = this.users.map((user) =>
-            getUserWithDefaultsSet({
+        const players: IUser[] = this.users.map((user) => {
+            const cosmeticsSelection = user.socket.user.getPreferences()?.cosmetics;
+            const resolvedCosmetics = this.server.cosmeticsService
+                ? this.server.cosmeticsService.resolveActiveCosmetics(cosmeticsSelection)
+                : CosmeticsService.resolveDefaultCosmetics(cosmeticsSelection);
+
+            return getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
                 settings: {
@@ -1364,9 +1370,9 @@ export class Lobby {
                         autoSingleTarget: false,
                     }
                 },
-                cosmetics: user.socket.user.getPreferences()?.cosmetics,
-            })
-        );
+                cosmetics: resolvedCosmetics,
+            });
+        });
 
         return {
             id: uuidv4(),

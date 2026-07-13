@@ -15,6 +15,7 @@ export default class DengarCrudeAndSlovenly extends NonLeaderUnitCard {
         registrar.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
             title: 'Deal 2 indirect damage to a player. If attached unit is Underworld, deal 3 indirect damage instead.',
+            contextTitle: (context) => `Deal ${context.source.hasSomeTrait(Trait.Underworld) ? 3 : 2} indirect damage to a player`,
             when: {
                 onAttack: true,
             },

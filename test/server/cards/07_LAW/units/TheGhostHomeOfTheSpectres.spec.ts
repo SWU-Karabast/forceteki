@@ -18,6 +18,7 @@ describe('The Ghost, Home of the Spectres', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theGhost);
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token and a Shield token to a unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHavePrompt('Give an Experience token and a Shield token to a unit');
@@ -52,6 +53,7 @@ describe('The Ghost, Home of the Spectres', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theGhost);
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token and a Shield token to a unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHavePrompt('Give an Experience token and a Shield token to a unit');
@@ -86,6 +88,7 @@ describe('The Ghost, Home of the Spectres', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theGhost);
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token and a Shield token to a unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHavePrompt('Give an Experience token and a Shield token to a unit');
@@ -142,6 +145,7 @@ describe('The Ghost, Home of the Spectres', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theGhost);
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token and a Shield token to up to 2 units');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHavePrompt('Give an Experience token and a Shield token to up to 2 units');
@@ -189,6 +193,7 @@ describe('The Ghost, Home of the Spectres', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theGhost);
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token and a Shield token to up to 2 units');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHavePrompt('Give an Experience token and a Shield token to up to 2 units');
@@ -227,6 +232,7 @@ describe('The Ghost, Home of the Spectres', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theGhost);
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token and a Shield token to up to 2 units');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHavePrompt('Give an Experience token and a Shield token to up to 2 units');

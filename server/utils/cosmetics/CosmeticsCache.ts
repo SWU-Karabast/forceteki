@@ -1,15 +1,15 @@
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { TimedCache } from '../TimedCache';
-import type { IRegisteredCosmeticOption } from './CosmeticsInterfaces';
+import type { ICosmeticEntity } from './CosmeticsInterfaces';
 
 /**
  * Cache for cosmetics data with automatic periodic refresh.
  */
 export class CosmeticsCache {
-    private readonly cache: TimedCache<IRegisteredCosmeticOption[]>;
+    private readonly cache: TimedCache<ICosmeticEntity[]>;
 
     public constructor(refreshIntervalMinutes: number) {
-        this.cache = new TimedCache<IRegisteredCosmeticOption[]>(
+        this.cache = new TimedCache<ICosmeticEntity[]>(
             refreshIntervalMinutes,
             async () => {
                 const db = await getDynamoDbServiceAsync();
@@ -31,7 +31,7 @@ export class CosmeticsCache {
      * Gets the cached cosmetics synchronously.
      * @returns Array of registered cosmetic options
      */
-    public getCosmetics(): IRegisteredCosmeticOption[] {
+    public getCosmetics(): ICosmeticEntity[] {
         return this.cache.getValue();
     }
 

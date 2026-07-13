@@ -15,6 +15,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 1 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 1],
@@ -37,6 +38,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 2 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
@@ -59,6 +61,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 2 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
@@ -81,6 +84,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 2 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
@@ -105,6 +109,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.fettsFirespray);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 2 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
@@ -128,6 +133,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
 
             context.player1.clickCard(context.fettsFirespray);
             context.player1.clickCard(context.p2Base);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 2 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
@@ -160,6 +166,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
 
             context.player1.clickCard(context.fettsFirespray);
             context.player1.clickCard(context.p2Base);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 2 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 2],
@@ -183,6 +190,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
 
             context.player1.clickCard(context.fettsFirespray);
             context.player1.clickCard(context.p2Base);
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 1 indirect damage to a player\'');
             context.player1.clickPrompt('Deal indirect damage to opponent');
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 1],

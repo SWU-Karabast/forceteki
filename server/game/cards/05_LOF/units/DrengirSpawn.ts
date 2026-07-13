@@ -14,6 +14,7 @@ export default class DrengirSpawn extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Give a number of Experience tokens to this unit equal to the defeated unit\'s cost',
+            contextTitle: (context) => `Give ${context.event.card.cost} Experience tokens to this unit`,
             when: {
                 onCardDefeated: (event, context) =>
                     event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event) === context.source

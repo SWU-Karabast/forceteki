@@ -14,6 +14,7 @@ export default class WhirlwindOfPower extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: 'Give a unit –2/–2 for this phase. If you control a Force unit, give it –3/–3 instead.',
+            contextTitle: (context) => `Give a unit ${context.player.isTraitInPlay(Trait.Force) ? '–3/–3' : '–2/–2'} for this phase`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({

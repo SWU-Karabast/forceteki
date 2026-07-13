@@ -17,7 +17,7 @@ describe('Resistance Blue Squadron', function () {
 
             context.player1.clickCard(context.resistanceBlueSquadron);
 
-            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the number of friendly space units');
+            expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.resistanceBlueSquadron,
                 context.liberatedSlaves,
@@ -49,7 +49,7 @@ describe('Resistance Blue Squadron', function () {
 
             context.player1.clickCard(context.resistanceBlueSquadron);
 
-            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the number of friendly space units');
+            expect(context.player1).toHavePrompt('Deal 3 damage to a unit');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.resistanceBlueSquadron,
                 context.liberatedSlaves,

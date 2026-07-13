@@ -28,6 +28,7 @@ describe('Survivors Gauntlet', function() {
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.frozenInCarbonite);
+                expect(context.player1).toHavePrompt('Attach Frozen in Carbonite to another eligible unit controlled by the same player');
                 expect(context.player1).toBeAbleToSelectExactly([context.fugitiveWookiee, context.battlefieldMarine, context.avenger, context.survivorsGauntlet]);
 
                 context.player1.clickCard(context.fugitiveWookiee);
