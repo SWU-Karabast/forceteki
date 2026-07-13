@@ -210,6 +210,63 @@ describe('Darth Sidious, Move Against the Jedi', function() {
                 expect(context.wampa.damage).toBe(0);
                 expect(context.player1).toBeActivePlayer();
             });
+
+            it('does not trigger when the base can\'t be healed', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['darth-sidious#move-against-the-jedi'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        // Confederate Tri-Fighter: "Bases can't be healed."
+                        groundArena: ['wampa'],
+                        spaceArena: ['confederate-trifighter']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthSidious);
+                context.player1.clickCard(context.p2Base);
+
+                // Restore 3 heals nothing while Confederate Tri-Fighter is in play, so Sidious doesn't trigger
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.wampa.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('triggers off base healing from an event', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['grassroots-resistance'],
+                        groundArena: ['darth-sidious#move-against-the-jedi'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['cartel-spacer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Grassroots Resistance deals 3 damage to a unit and heals 3 from our base
+                context.player1.clickCard(context.grassrootsResistance);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.damage).toBe(3);
+                expect(context.p1Base.damage).toBe(2);
+
+                // Healing 3 from our base triggers Sidious to deal 3 damage to an enemy unit
+                expect(context.player1).toHavePrompt('Deal 3 damage to an enemy unit');
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
