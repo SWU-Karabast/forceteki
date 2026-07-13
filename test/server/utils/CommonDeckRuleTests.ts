@@ -53,7 +53,9 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
     // A card is legal exactly when its set is in the pool's legal sets, so the legality expectations below
     // are derived rather than configured. Any illegal (but recognized) set yields the single NotLegalInFormat reason.
     const currentLegalSets = getLegalSetCodes(config.format, config.cardPool);
-    const nextSetLegalSets = getLegalSetCodes(config.format, CardPool.NextSet);
+    // Only needed for the preview-transition test below, which requires a preview set. Computing it eagerly
+    // would throw for Limited when there is no upcoming mainline set (getLegalSets → getLimitedLegalSet).
+    const nextSetLegalSets = PREVIEW_SET != null ? getLegalSetCodes(config.format, CardPool.NextSet) : new Set<string>();
 
     // A probe set that is illegal in this format (if any), used to check that legality applies to the sideboard.
     const illegalProbeSet = [OLD_RELEASED_SET, NON_ROTATING_SET, PREVIEW_SET].find((s) => s != null && !currentLegalSets.has(s));
