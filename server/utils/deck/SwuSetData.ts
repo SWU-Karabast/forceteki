@@ -57,7 +57,7 @@ export const rotationBlocks: IRotationBlock[] = [
         id: BlockId.B,
         sets: [
             { id: SwuSetId.LAW, released: true, mainline: true },
-            { id: SwuSetId.ASH, released: false, mainline: true },
+            { id: SwuSetId.ASH, released: true, mainline: true },
             { id: SwuSetId.IC27, released: false, mainline: false }
         ]
     },
