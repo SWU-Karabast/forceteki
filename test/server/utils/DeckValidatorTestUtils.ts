@@ -3,6 +3,7 @@ import type { UnitTestCardDataGetter } from '../../../server/utils/cardData/Unit
 import { nonRotatingSets, rotationBlocks } from '../../../server/utils/deck/SwuSetData';
 import { setCodeToString } from '../../../server/Util';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
+import type { CardDataGetter } from '../../../server/utils/cardData/CardDataGetter';
 import type { ICardDataJson } from '../../../server/utils/cardData/CardDataInterfaces';
 import type { CardPool, SwuGameFormat } from '../../../server/game/core/Constants';
 
@@ -116,8 +117,11 @@ export function buildValidationTestDeck(
  * Because 'TST' is not in SwuSetId, the card's `sets` array will be empty after `parseSets`,
  * making it illegal in every format regardless of card pool. Use the returned `unknownSetEntry`
  * to include this card in a deck under test.
+ *
+ * The synthetic card is injected via a lightweight stand-in for the card data getter, so the validator is
+ * still built through the normal `createAsync` path rather than a test-only constructor.
  */
-export function makeValidatorWithUnknownSetCard(cardDataGetter: UnitTestCardDataGetter): { validator: DeckValidator; unknownSetEntry: IInternalCardEntry } {
+export async function makeValidatorWithUnknownSetCard(cardDataGetter: UnitTestCardDataGetter): Promise<{ validator: DeckValidator; unknownSetEntry: IInternalCardEntry }> {
     const syntheticCard: ICardDataJson = {
         id: '__tst-unknown-set-id__',
         title: 'Mock Unknown Set Unit',
@@ -142,15 +146,18 @@ export function makeValidatorWithUnknownSetCard(cardDataGetter: UnitTestCardData
         arena: 'ground',
     };
 
-    const allCardsData: ICardDataJson[] = cardDataGetter.cardIds.map((id) => cardDataGetter.getCardSync(id));
     const extendedSetCodeMap = new Map(cardDataGetter.setCodeMap);
     extendedSetCodeMap.set('TST_001', '__tst-unknown-set-id__');
 
-    const augmentedValidator = DeckValidator.createForTesting(
-        [...allCardsData, syntheticCard],
-        extendedSetCodeMap
-    );
+    // Only the three members that createAsync reads are overridden; everything else delegates to the real getter.
+    const augmentedGetter = {
+        cardIds: [...cardDataGetter.cardIds, syntheticCard.id],
+        setCodeMap: extendedSetCodeMap,
+        getCardAsync: (id: string) => (id === syntheticCard.id ? Promise.resolve(syntheticCard) : cardDataGetter.getCardAsync(id)),
+    } as unknown as CardDataGetter;
+
+    const validator = await DeckValidator.createAsync(augmentedGetter);
 
     const unknownSetEntry: IInternalCardEntry = { id: 'TST_001', count: 1, internalName: '__tst-unknown-set__' };
-    return { validator: augmentedValidator, unknownSetEntry };
+    return { validator, unknownSetEntry };
 }

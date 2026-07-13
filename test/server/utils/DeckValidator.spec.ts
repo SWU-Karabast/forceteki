@@ -87,8 +87,8 @@ describe('Deck validation (format-independent)', function () {
             expect(failures[DeckValidationFailureReason.UnknownCardId].length).toBeGreaterThan(0);
         });
 
-        it('should reject a card from an unrecognized set with the UnknownSet reason', function () {
-            const { validator: extValidator, unknownSetEntry } = makeValidatorWithUnknownSetCard(cardDataGetter);
+        it('should reject a card from an unrecognized set with the UnknownSet reason', async function () {
+            const { validator: extValidator, unknownSetEntry } = await makeValidatorWithUnknownSetCard(cardDataGetter);
             const filler = getDeckFiller(cardDataGetter, 49);
             const deck = buildDeck([...filler, unknownSetEntry]);
             const failures = extValidator.validateInternalDeck(deck, props());

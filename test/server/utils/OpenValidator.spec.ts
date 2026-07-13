@@ -53,9 +53,6 @@ describe('Open deck validation', function () {
         format: SwuGameFormat.Open,
         cardPool: CardPool.Current,
         legalSets: RELEASED_SETS,
-        minDeckSize: 50,
-        maxCardCopies: 3,
-        // Open has no sideboard cap
     });
 
     describe('ban list', function () {

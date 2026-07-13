@@ -1,9 +1,8 @@
 import { CardPool, SwuGameFormat } from '../../../server/game/core/Constants';
-import { DeckValidationFailureReason, IllegalInFormatReason } from '../../../server/utils/deck/DeckInterfaces';
+import { DeckValidationFailureReason } from '../../../server/utils/deck/DeckInterfaces';
 import type { IInternalCardEntry, ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
-import { formatRules } from '../../../server/utils/deck/SwuSetData';
 import {
     buildCardEntry,
     buildValidationTestDeck,
@@ -11,9 +10,6 @@ import {
     RELEASED_SETS
 } from './DeckValidatorTestUtils';
 import { registerCommonDeckRuleTests } from './CommonDeckRuleTests';
-
-// Derive banned card internal names directly from the format rules so this stays in sync automatically.
-const eternalBannedCards = [...formatRules.get(SwuGameFormat.Eternal).bannedCards.values()];
 
 const LEADER = 'luke-skywalker#faithful-friend'; // SOR — legal in Eternal
 const BASE = 'kestro-city';                      // SOR — legal in Eternal
@@ -53,21 +49,6 @@ describe('Eternal deck validation', function () {
         format: SwuGameFormat.Eternal,
         cardPool: CardPool.Current,
         legalSets: RELEASED_SETS,
-        minDeckSize: 50,
-        maxCardCopies: 3,
-        sideboardCap: 10,
-    });
-
-    describe('ban list', function () {
-        for (const bannedCard of eternalBannedCards) {
-            it(`should reject ${bannedCard}`, function () {
-                const filler = getDeckFiller(cardDataGetter, 49);
-                const deck = buildDeck([...filler, buildCardEntry(cardDataGetter, bannedCard)]);
-                const failures = validator.validateInternalDeck(deck, eternalProps());
-                expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
-                expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.Suspended);
-            });
-        }
     });
 
     describe('NextSet card pool', function () {

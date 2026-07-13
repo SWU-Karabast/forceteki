@@ -59,8 +59,6 @@ describe('Limited deck validation', function () {
         format: SwuGameFormat.Limited,
         cardPool: CardPool.Current,
         legalSets: LIMITED_SETS,
-        minDeckSize: 30,
-        // Limited has no copy limit and no sideboard cap
     });
 
     describe('Unlimited card pool', function () {

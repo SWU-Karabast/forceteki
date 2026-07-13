@@ -393,7 +393,7 @@ export class Lobby {
             importDeckErrors: user.importDeckValidationErrors,
             unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
             minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.format) : 50,
-            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format, this.cardPool),
+            maxSideBoard: DeckValidator.getMaxSideboardSize(this.format, this.cardPool),
         } : {
             deck: user.deck?.getLeaderBase(),
         };

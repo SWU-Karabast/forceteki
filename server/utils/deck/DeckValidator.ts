@@ -54,10 +54,6 @@ export class DeckValidator {
         return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
     }
 
-    public static createForTesting(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>): DeckValidator {
-        return new DeckValidator(allCardsData, setCodeToId);
-    }
-
     private static parseSets(cardData: ICardDataJson): SwuSetId[] {
         const setCodes = cardData.setCodes ?? [cardData.setId];
         // Use tryConvertToEnum so cards with unrecognized set codes (e.g. test fixtures) produce an
@@ -203,12 +199,13 @@ export class DeckValidator {
     }
 
     // update this function if anything affects the sideboard count
-    public getMaxSideboardSize(format: SwuGameFormat, cardPool: CardPool): number {
-        // Sideboard is only restricted in Premier and Eternal. We relax the restriction in other modes.
+    // returns null when the format has no sideboard cap
+    public static getMaxSideboardSize(format: SwuGameFormat, cardPool: CardPool): number | null {
+        // Sideboard is only restricted in Premier and Eternal. Other modes have no cap.
         if ((format === SwuGameFormat.Premier || format === SwuGameFormat.Eternal) && cardPool === CardPool.Current) {
             return 10;
         }
-        return -1;
+        return null;
     }
 
     public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbFormatDecklist): { id: string; name: string }[] {
@@ -243,22 +240,23 @@ export class DeckValidator {
 
     // Validate IDecklistInternal
     public validateInternalDeck(deck: IDecklistInternal, properties: IDeckValidationProperties): IDeckValidationFailures {
-        // Basic structure check (internal decks have mandatory leader, base, and deck)
-        if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
-            return { [DeckValidationFailureReason.InvalidDeckData]: true };
-        }
-        return this.validateCommonDeck(deck, properties.format, properties.cardPool);
+        return this.validateStructuredDeck(deck, properties);
     }
 
     // Validate the ISwuDbDeckList
     public validateSwuDbDeck(deck: ISwuDbFormatDecklist, properties: IDeckValidationProperties): IDeckValidationFailures {
+        // SWU‑DB decks additionally must not have a second leader; all other checks are shared below.
+        if (deck?.secondleader) {
+            return { [DeckValidationFailureReason.TooManyLeaders]: true };
+        }
+        return this.validateStructuredDeck(deck, properties);
+    }
+
+    // Shared structure check + common validation for both deck-list shapes.
+    private validateStructuredDeck(deck: IDecklistInternal | ISwuDbFormatDecklist, properties: IDeckValidationProperties): IDeckValidationFailures {
         // Basic structure check (SWU‑DB decks use optional properties, so we check them explicitly)
         if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
-        }
-        // SWU‑DB decks must not have a second leader.
-        if (deck.secondleader) {
-            return { [DeckValidationFailureReason.TooManyLeaders]: true };
         }
         return this.validateCommonDeck(deck, properties.format, properties.cardPool);
     }
@@ -409,7 +407,7 @@ export class DeckValidator {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
                 name: cardData.titleAndSubtitle,
-                reason: DeckValidator.getIllegalInFormatReason(cardData.sets, format)
+                reason: DeckValidator.getIllegalInFormatReason(cardData.sets)
             });
             return;
         }
@@ -427,21 +425,11 @@ export class DeckValidator {
     /**
      * Determines why a card is not legal in the requested format.
      * - If the card has no recognized sets (e.g. a typo or an unsupported set), the set code is UnknownSet.
-     * - If the card would become legal in this format once unreleased sets are included (i.e. it is in a
-     *   preview set that belongs to this format's pool), the card is from a Preview set.
-     * - Otherwise the card's set exists but is outside the format's legal pool entirely: RotatedOut.
+     * - Otherwise the card's set simply isn't part of this format's legal pool — whether it rotated out, was
+     *   never legal, or is an unreleased preview set: NotLegalInFormat.
      */
-    private static getIllegalInFormatReason(sets: SwuSetId[], format: SwuGameFormat): IllegalInFormatReason {
-        if (sets.length === 0) {
-            return IllegalInFormatReason.UnknownSet;
-        }
-
-        // The NextSet pool is the format's legal pool with unreleased (preview) sets included. If the card
-        // has a set in that pool but is illegal now, the only thing keeping it out is that its set is still
-        // a preview; otherwise it is genuinely outside the format's rotation.
-        const previewLegalSets = DeckValidator.getLegalSets(format, CardPool.NextSet);
-        const wouldBeLegalWithPreviews = sets.some((set) => previewLegalSets.has(set));
-        return wouldBeLegalWithPreviews ? IllegalInFormatReason.Preview : IllegalInFormatReason.RotatedOut;
+    private static getIllegalInFormatReason(sets: SwuSetId[]): IllegalInFormatReason {
+        return sets.length === 0 ? IllegalInFormatReason.UnknownSet : IllegalInFormatReason.NotLegalInFormat;
     }
 
     protected checkCardLocation(card: ISwuDbFormatCardEntry, cardData: ICardCheckData, location: DecklistLocation, failures: IDeckValidationFailures) {
@@ -477,10 +465,10 @@ export class DeckValidator {
     }
 
     protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, cardPool: CardPool, failures: IDeckValidationFailures) {
-        const maxSideboardSize = this.getMaxSideboardSize(format, cardPool);
+        const maxSideboardSize = DeckValidator.getMaxSideboardSize(format, cardPool);
 
         // sideboard is not restricted in all formats (e.g. Open)
-        if (maxSideboardSize < 0) {
+        if (maxSideboardSize == null) {
             return;
         }
 

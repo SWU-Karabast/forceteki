@@ -8,7 +8,6 @@ import {
     buildValidationTestDeck,
     getDeckFiller,
     getFirstBase,
-    getFirstCardInSet,
     getFirstLeader,
     getLegalSetCodes
 } from './DeckValidatorTestUtils';
@@ -56,9 +55,6 @@ describe('Premier deck validation', function () {
         format: SwuGameFormat.Premier,
         cardPool: CardPool.Current,
         legalSets: PREMIER_SETS,
-        minDeckSize: 50,
-        maxCardCopies: 3,
-        sideboardCap: 10,
     });
 
     describe('format legality', function () {
@@ -67,16 +63,15 @@ describe('Premier deck validation', function () {
             const deck = buildDeck(filler, { base: buildCardEntry(cardDataGetter, 'echo-base') }); // If Echo Base is ever reprinted, we will need to change this
             const failures = validator.validateInternalDeck(deck, premierProps());
             expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
-            expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.RotatedOut);
+            expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.NotLegalInFormat);
         });
 
-        it('should reject a sideboard containing a card from outside the current rotation', function () {
+        it('should reject a rotated-out leader in the leader slot', function () {
             const filler = getDeckFiller(cardDataGetter, 50, PREMIER_SETS);
-            const sorCard = getFirstCardInSet(cardDataGetter, 'SOR');
-            const deck = buildDeck(filler, { sideboard: [sorCard] });
+            const deck = buildDeck(filler, { leader: buildCardEntry(cardDataGetter, 'luke-skywalker#faithful-friend') }); // SOR leader, rotated out of Premier
             const failures = validator.validateInternalDeck(deck, premierProps());
             expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
-            expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.RotatedOut);
+            expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.NotLegalInFormat);
         });
     });
 

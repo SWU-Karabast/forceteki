@@ -1,14 +1,18 @@
 import { CardPool, SwuGameFormat } from '../../../server/game/core/Constants';
 import { DeckValidationFailureReason, IllegalInFormatReason } from '../../../server/utils/deck/DeckInterfaces';
 import type { IDecklistInternal } from '../../../server/utils/deck/DeckInterfaces';
-import type { DeckValidator } from '../../../server/utils/deck/DeckValidator';
+import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import type { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
-import { buildValidationTestDeck, getDeckFiller, getFirstBase, getFirstCardInSet, getFirstLeader, getLegalSetCodes } from './DeckValidatorTestUtils';
+import { formatRules, nonRotatingSets, rotationBlocks } from '../../../server/utils/deck/SwuSetData';
+import { buildCardEntry, buildValidationTestDeck, getDeckFiller, getFirstBase, getFirstCardInSet, getFirstLeader, getLegalSetCodes } from './DeckValidatorTestUtils';
 
-// Well-known sets in the test card data used to exercise format-legality rules.
-const OLD_RELEASED_SET = 'SOR';   // an early released set; rotated out of Premier and not the current Limited set
-const NON_ROTATING_SET = 'TS26';  // a non-rotating set, legal only in Eternal/Open
-const PREVIEW_SET = 'ASH';        // an unreleased ("preview") set
+// Representative sets for the format-legality probes, derived from the set data so they don't need manual
+// upkeep as sets release and rotate. Uppercased to match `card.setId.set`. Any probe may be undefined (e.g.
+// there is currently no unreleased mainline set); undefined probes are skipped.
+const rotationSets = rotationBlocks.flatMap((block) => block.sets);
+const OLD_RELEASED_SET = rotationSets.find((s) => s.released)?.id.toUpperCase();           // earliest released set (rotated out of the rotating formats)
+const NON_ROTATING_SET = nonRotatingSets[0]?.id.toUpperCase();                             // a non-rotating set (legal only in Eternal/Open)
+const PREVIEW_SET = rotationSets.find((s) => !s.released && s.mainline)?.id.toUpperCase();  // upcoming unreleased mainline ("preview") set
 
 /** Per-format configuration that drives the shared deck-building rule tests. */
 export interface ICommonDeckRuleConfig {
@@ -18,17 +22,9 @@ export interface ICommonDeckRuleConfig {
     /** Sets to draw filler cards from (must all be legal in this format/pool). */
     legalSets: Set<string>;
 
-    /** Format minimum deck size. */
-    minDeckSize: number;
-
-    /** Per-card copy limit, or undefined if the format has none (e.g. Limited). */
-    maxCardCopies?: number;
-
-    /** Maximum sideboard size, or undefined if the format has no cap (e.g. Open/Limited). */
-    sideboardCap?: number;
-
-    // Format-legality expectations (which sets are legal, and the NextSet transition) are derived from the
-    // format/pool's legal sets — see registerCommonDeckRuleTests — so they need no configuration here.
+    // Deck size, copy limit, and sideboard cap are derived from `formatRules` / `getMaxSideboardSize`, and the
+    // format-legality expectations are derived from the legal sets — see registerCommonDeckRuleTests — so none
+    // of them need to be configured here.
 }
 
 /** Lazily-resolved test context; the validator and leader/base are set up in the spec's `beforeAll`. */
@@ -48,13 +44,19 @@ export interface ICommonTestContext {
  * context so it resolves the validator/leader/base (set up in `beforeAll`) at test-run time.
  */
 export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext, config: ICommonDeckRuleConfig): void {
-    const { minDeckSize, maxCardCopies, sideboardCap } = config;
+    // Derive the rule values from the same source the validator uses, so any change there flows into the tests.
+    const rules = formatRules.get(config.format);
+    const minDeckSize = rules.minDeckSize;
+    const maxCardCopies = rules.maxCardCopies;
+    const sideboardCap = DeckValidator.getMaxSideboardSize(config.format, config.cardPool);
 
     // A card is legal exactly when its set is in the pool's legal sets, so the legality expectations below
-    // are derived rather than configured. The illegality reason follows the validator's own rule: a set
-    // that would be legal once previews are included is "Preview", otherwise "RotatedOut".
+    // are derived rather than configured. Any illegal (but recognized) set yields the single NotLegalInFormat reason.
     const currentLegalSets = getLegalSetCodes(config.format, config.cardPool);
     const nextSetLegalSets = getLegalSetCodes(config.format, CardPool.NextSet);
+
+    // A probe set that is illegal in this format (if any), used to check that legality applies to the sideboard.
+    const illegalProbeSet = [OLD_RELEASED_SET, NON_ROTATING_SET, PREVIEW_SET].find((s) => s != null && !currentLegalSets.has(s));
 
     function props() {
         return { format: config.format, cardPool: config.cardPool };
@@ -165,25 +167,37 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
                 expect(failures[DeckValidationFailureReason.MaxSideboardSizeExceeded]).toBeUndefined();
             });
         }
+
+        // Format legality applies to sideboard cards too, not just the mainboard.
+        if (illegalProbeSet != null) {
+            it(`should reject a sideboard containing a card from an illegal set (${illegalProbeSet})`, function () {
+                const ctx = getContext();
+                const mainboard = getDeckFiller(ctx.cardDataGetter, minDeckSize, config.legalSets);
+                const illegalCard = getFirstCardInSet(ctx.cardDataGetter, illegalProbeSet);
+                const deck = buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, mainboard, { sideboard: [illegalCard] });
+                const failures = ctx.validator.validateInternalDeck(deck, props());
+                expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
+                expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.NotLegalInFormat);
+            });
+        }
     });
 
     describe('format legality', function () {
         // One representative card from each kind of set; whether it's legal (and why not) is derived from
         // the format's legal sets rather than hard-coded per format.
-        for (const probeSet of [OLD_RELEASED_SET, NON_ROTATING_SET, PREVIEW_SET]) {
+        for (const probeSet of [OLD_RELEASED_SET, NON_ROTATING_SET, PREVIEW_SET].filter((s): s is string => s != null)) {
             const legal = currentLegalSets.has(probeSet);
-            const expectedReason = nextSetLegalSets.has(probeSet) ? IllegalInFormatReason.Preview : IllegalInFormatReason.RotatedOut;
 
             it(legal
                 ? `should accept a card from ${probeSet}`
-                : `should reject a card from ${probeSet} (${expectedReason})`, function () {
+                : `should reject a card from ${probeSet} (NotLegalInFormat)`, function () {
                 const ctx = getContext();
                 const failures = ctx.validator.validateInternalDeck(deckWithCardFromSet(ctx, probeSet), props());
                 if (legal) {
                     expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
                 } else {
                     expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
-                    expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(expectedReason);
+                    expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.NotLegalInFormat);
                 }
             });
         }
@@ -203,4 +217,22 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
             });
         }
     });
+
+    // Ban list — derived from the format's own suspended cards, so any format with a ban list (Eternal now,
+    // Premier again in the future) is covered automatically.
+    const bannedCards = [...rules.bannedCards.values()];
+    if (bannedCards.length > 0) {
+        describe('ban list', function () {
+            for (const bannedCard of bannedCards) {
+                it(`should reject the suspended card ${bannedCard}`, function () {
+                    const ctx = getContext();
+                    const filler = getDeckFiller(ctx.cardDataGetter, minDeckSize - 1, config.legalSets);
+                    const deck = buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, [...filler, buildCardEntry(ctx.cardDataGetter, bannedCard)]);
+                    const failures = ctx.validator.validateInternalDeck(deck, props());
+                    expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
+                    expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.Suspended);
+                });
+            }
+        });
+    }
 }
