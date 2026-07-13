@@ -368,6 +368,7 @@ export enum MetaEventName {
     Optional = 'optional',
     PayCardPrintedCost = 'payCardPrintedCost',
     PlayCard = 'playCard',
+    PlayMultipleCardsFromDiscard = 'playMultipleCardsFromDiscard',
     RandomSelection = 'randomSelection',
     ReplacementEffect = 'replacementEffect',
     RevealAndDrawCard = 'revealAndDrawCard',
