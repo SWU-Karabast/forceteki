@@ -1,6 +1,4 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Card } from '../core/card/Card';
-import type { CardTypeFilter } from '../core/Constants';
 import { GameStateChangeRequired, MetaEventName, PlayType, RelativePlayer, TargetMode, ZoneName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
@@ -22,20 +20,21 @@ import { SelectCardSystem } from './SelectCardSystem';
  */
 type ForwardedPlayCardProperties = Pick<IPlayCardProperties, 'playAsType' | 'adjustCost' | 'attachTargetCondition'>;
 
-export interface IPlayMultipleCardsFromDiscardProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties, ForwardedPlayCardProperties {
+/**
+ * The subset of {@link ISelectCardProperties} forwarded to the {@link SelectCardSystem} used to choose each card. These
+ * describe the eligible cards and the selection prompt, and are kept in sync with the selection layer rather than
+ * redeclared (mirroring {@link ForwardedPlayCardProperties}).
+ */
+type ForwardedSelectionProperties<TContext extends AbilityContext> = Pick<ISelectCardProperties<TContext>, 'activePromptTitle' | 'cardCondition' | 'cardTypeFilter'>;
+
+export interface IPlayMultipleCardsFromDiscardProperties<TContext extends AbilityContext = AbilityContext>
+    extends IGameSystemProperties, ForwardedPlayCardProperties, ForwardedSelectionProperties<TContext> {
 
     /**
      * The maximum number of cards that may be played. If omitted, there is no limit and the player may keep
      * playing eligible cards until they decline (e.g. "play any number of...").
      */
     maxCards?: number;
-
-    /** Prompt shown each time the player selects a card to play. */
-    activePromptTitle?: string;
-
-    /** Filters the cards in the discard pile that are eligible to be played. */
-    cardCondition?: (card: Card, context: TContext) => boolean;
-    cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
 }
 
 /**
