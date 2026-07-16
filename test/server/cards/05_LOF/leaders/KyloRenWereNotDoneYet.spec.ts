@@ -277,7 +277,7 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                     'craving-power'
                 ]);
 
-                expect(context.player1).toHavePrompt('Deal damage to an enemy unit equal to attached unit\'s power');
+                expect(context.player1).toHavePrompt('Deal 7 damage to an enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.devastator]);
                 context.player1.clickCard(context.devastator);
                 expect(context.devastator.damage).toBe(7);

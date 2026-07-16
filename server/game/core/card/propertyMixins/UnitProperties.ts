@@ -1,4 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
+import type { Attack } from '../../attack/Attack';
 import type { Arena, MoveZoneDestination } from '../../Constants';
 import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StandardTriggeredAbilityType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
@@ -43,6 +44,7 @@ import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/Lea
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import { TextHelper } from '../../utils/TextHelper';
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
@@ -142,6 +144,23 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const card = event.card as Card;
                 Contract.assertTrue(card.isNonLeaderUnit());
                 card.checkRegisterWhenCapturedKeywordAbilities(event);
+            });
+
+            // register listeners for "when attack/defense ends" abilities on upgrades of the involved units (e.g. the
+            // Advantage token), see comment in EventWindow.ts for explanation of 'postResolve'
+            game.on(EventName.OnAttackEnd + ':postResolve', (event) => {
+                const attack = event.attack as Attack;
+                const involvedUnits = [attack.attacker, ...attack.getAllTargets()].filter((card) => card.isUnit());
+
+                for (const unit of involvedUnits) {
+                    if (!unit.isInPlay()) {
+                        continue;
+                    }
+
+                    for (const upgrade of unit.upgrades) {
+                        upgrade.checkRegisterWhenAttackOrDefenseEndsAbilities(event);
+                    }
+                }
             });
         }
 
@@ -683,7 +702,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const gainedAbilityProps = keywordInstance.abilityProps;
 
                 const coordinateKeywordAbilityProps: IConstantAbilityProps = {
-                    title: `Coordinate: ${gainedAbilityProps.title}`,
+                    title: `${TextHelper.Coordinate}: ${gainedAbilityProps.title}`,
                     condition: (context) => context.player.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
                     ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
                 };
@@ -696,7 +715,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             if (this.hasSomeKeyword(KeywordName.Hidden)) {
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
-                    title: 'Hidden',
+                    title: `${TextHelper.Hidden}`,
                     condition: (context) =>
                         context.source.isInPlay() &&
                         this.wasPlayedDeployedOrCreatedThisPhase(context.source),
@@ -1012,6 +1031,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
                 if (this.hasSomeKeyword(KeywordName.Grit)) {
                     const gritModifier = { power: this.damage, hp: 0 };
+                    // eslint-disable-next-line forceteki/no-raw-token-text -- internal stat-modifier provenance label, not player-facing ability text (cf. the sibling 'Raid' label below)
                     wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
                 }
 

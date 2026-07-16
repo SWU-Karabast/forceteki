@@ -5,6 +5,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, KeywordName, WildcardRelativePlayer } from '../../../core/Constants';
 import type { Player } from '../../../core/Player';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class PhantomIiModifiedToDock extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -45,7 +46,7 @@ export default class PhantomIiModifiedToDock extends NonLeaderUnitCard {
 
         // TODO: rework things a bit so we don't have to declare this as a piloting ability when it technically isn't
         registrar.addPilotingAbility({
-            title: 'Attached unit gets +3/+3 and gains Grit',
+            title: `Attached unit gets +3/+3 and gains ${TextHelper.Grit}`,
             type: AbilityType.Constant,
             condition: (context) => context.source.isAttached(),
             matchTarget: (card, context) => card === context.source.parentCard,

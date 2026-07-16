@@ -516,7 +516,7 @@ interface IKeywordPropertiesBase {
     keyword: KeywordName;
 }
 
-interface INumericKeywordProperties extends IKeywordPropertiesBase {
+export interface INumericKeywordProperties extends IKeywordPropertiesBase {
     amount: number;
 }
 
@@ -605,6 +605,21 @@ export type NonParameterKeywordName =
   | KeywordName.Saboteur
   | KeywordName.Sentinel
   | KeywordName.Shielded
+  | KeywordName.Support;
+
+export type NonNumericKeywordName =
+  | KeywordName.Ambush
+  | KeywordName.Bounty
+  | KeywordName.Coordinate
+  | KeywordName.Grit
+  | KeywordName.Hidden
+  | KeywordName.Overwhelm
+  | KeywordName.Piloting
+  | KeywordName.Plot
+  | KeywordName.Saboteur
+  | KeywordName.Sentinel
+  | KeywordName.Shielded
+  | KeywordName.Smuggle
   | KeywordName.Support;
 
 export type NumericKeywordName =

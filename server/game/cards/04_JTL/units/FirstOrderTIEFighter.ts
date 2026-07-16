@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FirstOrderTIEFighter extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class FirstOrderTIEFighter extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you control a token unit, this unit gain Raid 1',
+            title: `While you control a token unit, this unit gain ${TextHelper.Raid(1)}`,
             condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isTokenUnit() }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });

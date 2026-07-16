@@ -31,6 +31,20 @@ export interface IButton {
     disabled?: boolean;
 }
 
+export interface ITriggerWindowSourceCard {
+    id: string;
+    uuid: string;
+    name: string;
+    setId?: Partial<ISetId>;
+    type: string;
+    printedType?: string;
+}
+
+export interface ITriggerWindowButton extends IButton {
+    sourceCard?: ITriggerWindowSourceCard;
+    hasLegalEffects: boolean;
+}
+
 export interface INumberPromptData {
     min: number;
     max: number;

@@ -4,6 +4,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { Helpers } from '../../../core/utils/Helpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GrandAdmiralThrawnVictoryIsMine extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +16,7 @@ export default class GrandAdmiralThrawnVictoryIsMine extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Attack with a unit. It gains Restore 2 for this attack if you control the same number of units as the defending player.',
+            title: `Attack with a unit. It gains ${TextHelper.Restore(2)} for this attack if you control the same number of units as the defending player.`,
             contextTitle: (context) => this.actionTitle(context),
             cost: AbilityHelper.costs.exhaustSelf(),
             initiateAttack: {
@@ -50,6 +51,6 @@ export default class GrandAdmiralThrawnVictoryIsMine extends LeaderUnitCard {
         const opponentUnits = context.player.opponent.getArenaUnits().length;
         return opponentUnits === 0
             ? 'Attack with a unit.'
-            : `Attack with a unit. It gains Restore 2 for this attack if you control ${Helpers.pluralize(opponentUnits, '1 unit', 'units')}.`;
+            : `Attack with a unit. It gains ${TextHelper.Restore(2)} for this attack if you control ${Helpers.pluralize(opponentUnits, '1 unit', 'units')}.`;
     }
 }

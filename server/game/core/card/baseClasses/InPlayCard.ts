@@ -4,6 +4,7 @@ import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { IAttachCardContext, IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
+import type { GameEvent } from '../../event/GameEvent';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
@@ -25,7 +26,7 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
-import { registerStateBase, stateRef, statePrimitive } from '../../GameObjectUtils';
+import { registerStateBase, stateRef, stateRefArray, statePrimitive } from '../../GameObjectUtils';
 
 const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
@@ -49,6 +50,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     isAttached(): boolean;
     unattach(event?: any);
     canAttach(targetCard: Card, context: AbilityContext, controller?: Player): boolean;
+    checkRegisterWhenAttackOrDefenseEndsAbilities(event: GameEvent): void;
 }
 
 /**
@@ -66,6 +68,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private readonly _printedUpgradePower: number;
 
     protected attachCondition: (context: IAttachCardContext<this>) => boolean;
+
+    @stateRefArray()
+    private accessor _whenAttackOrDefenseEndsAbilities: readonly TriggeredAbilityBase[] | null = null;
 
     @statePrimitive()
     private accessor _disableOngoingEffectsForDefeat: boolean = null;
@@ -307,6 +312,21 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             parentCardId: this._parentCard ? this._parentCard.uuid : null };
     }
 
+    /**
+     * Some abilities (such as the Advantage token's "When Attack/Defense Ends") are registered just-in-time
+     * rather than staying registered for the card's entire time in play. This avoids carrying a persistent
+     * listener for every such card on the board. A single game-level listener (see
+     * {@link UnitPropertiesCard.registerRulesListeners}) routes attack-end events to the involved cards.
+     */
+    public override getTriggeredAbilities(): TriggeredAbilityBase[] {
+        const abilities = super.getTriggeredAbilities();
+
+        // gate the just-in-time abilities behind the same blanking check that super applies to printed abilities
+        return this._whenAttackOrDefenseEndsAbilities != null && !this.isFullyBlanked()
+            ? [...abilities, ...this._whenAttackOrDefenseEndsAbilities]
+            : abilities;
+    }
+
     // ********************************************* ABILITY SETUP *********************************************
     protected override getAbilityRegistrar(): IInPlayCardAbilityRegistrar<this> {
         const registrar = super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>;
@@ -402,6 +422,46 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             !abilities.some((ability) => ability.isWhenPlayedUsingSmuggle),
             `Card ${this.internalName} has one or more 'When Played using Smuggle' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedUsingSmuggleCheck' to true on card implementation`
         );
+    }
+
+    // **************** MANUAL ABILITY REGISTRATION ****************
+
+    public checkRegisterWhenAttackOrDefenseEndsAbilities(event: GameEvent): void {
+        const abilities = this.buildWhenAttackOrDefenseEndsAbilities();
+        if (abilities.length === 0) {
+            return;
+        }
+
+        Contract.assertIsNullLike(
+            this._whenAttackOrDefenseEndsAbilities,
+            () => `Failed to unregister "When Attack/Defense Ends" abilities from previous attack: ${this._whenAttackOrDefenseEndsAbilities?.map((ability) => ability.getTitle()).join(', ')}`
+        );
+
+        this._whenAttackOrDefenseEndsAbilities = abilities;
+
+        for (const ability of abilities) {
+            ability.registerEvents();
+        }
+
+        event.addCleanupHandler(() => this.unregisterWhenAttackOrDefenseEndsAbilities());
+    }
+
+    public unregisterWhenAttackOrDefenseEndsAbilities(): void {
+        Contract.assertTrue(Array.isArray(this._whenAttackOrDefenseEndsAbilities), '"When Attack/Defense Ends" ability registration was skipped');
+
+        for (const ability of this._whenAttackOrDefenseEndsAbilities) {
+            ability.unregisterEvents();
+        }
+
+        this._whenAttackOrDefenseEndsAbilities = null;
+    }
+
+    /**
+     * Builds this card's "When Attack/Defense Ends" abilities, or returns an empty array if it has none. Overridden by
+     * cards (e.g. the Advantage token) that rely on the just-in-time registration described above.
+     */
+    protected buildWhenAttackOrDefenseEndsAbilities(): TriggeredAbilityBase[] {
+        return [];
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************

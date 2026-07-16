@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class InTheHeatOfBattle extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class InTheHeatOfBattle extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Each unit gains Sentinel and loses Saboteur for this phase.',
+            title: `Each unit gains ${TextHelper.Sentinel} and loses ${TextHelper.Saboteur} for this phase.`,
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 target: context.game.getArenaUnits(),
                 effect: [

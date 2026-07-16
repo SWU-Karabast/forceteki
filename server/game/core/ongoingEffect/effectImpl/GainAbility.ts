@@ -6,6 +6,7 @@ import { AbilityType } from '../../Constants';
 import type { Game } from '../../Game';
 import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { Contract } from '../../utils/Contract';
+import { TextHelper } from '../../utils/TextHelper';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { registerState, stateRef, stateValue, statePrimitive, type GameObjectId } from '../../GameObjectUtils';
 
@@ -41,7 +42,7 @@ export class GainAbility extends OngoingEffectValueWrapperBase<IAbilityPropsWith
                 triggers.push('When Played');
             }
             if (props.when.whenPlayedUsingSmuggle) {
-                triggers.push('When Played using Smuggle');
+                triggers.push(`When Played using ${TextHelper.Smuggle}`);
             }
             if (props.when.onAttack) {
                 triggers.push('On Attack');

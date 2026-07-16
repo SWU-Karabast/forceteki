@@ -11,6 +11,7 @@ import {
     WildcardCardType,
     ZoneName
 } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
@@ -23,7 +24,7 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a unit from your hand. It gains Hidden for this phase',
+            title: `Play a unit from your hand. It gains ${TextHelper.Hidden} for this phase`,
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before
@@ -47,14 +48,14 @@ export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'The next unit you play this phase gains Hidden',
+            title: `The next unit you play this phase gains ${TextHelper.Hidden}`,
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect({
-                title: 'The next unit you play this phase gains Hidden',
+                title: `The next unit you play this phase gains ${TextHelper.Hidden}`,
                 when: {
                     onCardPlayed: (event, context) => this.isUnitPlayedEvent(event, context),
                 },
                 duration: Duration.UntilEndOfPhase,
-                effectDescription: 'give Hidden to the next unit they play this phase',
+                effectDescription: `give ${TextHelper.Hidden} to the next unit they play this phase`,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     target: context.events.find((event) => this.isUnitPlayedEvent(event, context)).card,
                     effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Hidden),

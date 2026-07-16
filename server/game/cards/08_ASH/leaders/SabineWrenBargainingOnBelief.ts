@@ -5,6 +5,7 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, Duration, EventName, KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 
 export default class SabineWrenBargainingOnBelief extends LeaderUnitCard {
@@ -17,10 +18,10 @@ export default class SabineWrenBargainingOnBelief extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains Shielded for this phase',
+            title: `An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains ${TextHelper.Shielded} for this phase`,
             cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                activePromptTitle: 'Choose a unit to give 2 Advantage tokens. The next unit your opponent plays this phase gains Shielded for this phase',
+                activePromptTitle: `Choose a unit to give 2 Advantage tokens. The next unit your opponent plays this phase gains ${TextHelper.Shielded} for this phase`,
                 waitingPromptTitle: 'Waiting for opponent to select a unit for Sabine Wren\'s ability',
                 cardTypeFilter: WildcardCardType.Unit,
                 choosingPlayer: RelativePlayer.Opponent,
@@ -30,14 +31,14 @@ export default class SabineWrenBargainingOnBelief extends LeaderUnitCard {
             effect: 'have {1} give 2 Advantage tokens to {0} to create a delayed effect',
             effectArgs: (context) => [context.player.opponent.name],
             ifYouDo: {
-                title: 'The next unit you play this phase gains Shielded for this phase',
+                title: `The next unit you play this phase gains ${TextHelper.Shielded} for this phase`,
                 immediateEffect: abilityHelper.immediateEffects.delayedPlayerEffect({
-                    title: 'The next unit you play this phase gains Shielded for this phase',
+                    title: `The next unit you play this phase gains ${TextHelper.Shielded} for this phase`,
                     when: {
                         onCardPlayed: (event, context) => this.isUnitPlayedEvent(event, context),
                     },
                     duration: Duration.UntilEndOfPhase,
-                    effectDescription: 'give Shielded to the next unit they play this phase',
+                    effectDescription: `give ${TextHelper.Shielded} to the next unit they play this phase`,
                     immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                         target: context.events.find((event) => this.isUnitPlayedEvent(event, context)).card,
                         effect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Shielded),
@@ -49,14 +50,14 @@ export default class SabineWrenBargainingOnBelief extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'The next unit you play this phase gains Shielded',
+            title: `The next unit you play this phase gains ${TextHelper.Shielded}`,
             immediateEffect: abilityHelper.immediateEffects.delayedPlayerEffect({
-                title: 'The next unit you play this phase gains Shielded',
+                title: `The next unit you play this phase gains ${TextHelper.Shielded}`,
                 when: {
                     onCardPlayed: (event, context) => this.isUnitPlayedEvent(event, context),
                 },
                 duration: Duration.UntilEndOfPhase,
-                effectDescription: 'give Shielded to the next unit they play this phase',
+                effectDescription: `give ${TextHelper.Shielded} to the next unit they play this phase`,
                 immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     target: context.events.find((event) => this.isUnitPlayedEvent(event, context)).card,
                     effect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Shielded),

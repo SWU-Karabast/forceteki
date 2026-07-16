@@ -4,6 +4,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { DamageType, KeywordName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FlashTheVents extends EventCard {
     private damageDealtThisPhaseWatcher: DamageDealtThisPhaseWatcher;
@@ -21,7 +22,7 @@ export default class FlashTheVents extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, if that unit damaged a base, defeat that unit.',
+            title: `Attack with a unit. It gets +2/+0 and gains ${TextHelper.Overwhelm} for this attack. After completing this attack, if that unit damaged a base, defeat that unit.`,
             initiateAttack: {
                 attackerLastingEffects: {
                     effect: [

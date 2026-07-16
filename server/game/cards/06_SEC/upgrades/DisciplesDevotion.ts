@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DisciplesDevotion extends UpgradeCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class DisciplesDevotion extends UpgradeCard {
 
     public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbilityTargetingAttached({
-            title: 'While attached unit is exhausted, it gains Sentinel',
+            title: `While attached unit is exhausted, it gains ${TextHelper.Sentinel}`,
             condition: (context) => context.source.parentCard.exhausted,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });

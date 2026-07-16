@@ -24,6 +24,7 @@ export default class EnochSolemnServant extends NonLeaderUnitCard {
             }),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'The next unit you play costs one less for every two damage dealt this way',
+                contextTitle: () => `The next unit you play costs ${Math.floor(ifYouDoContext.events[0].totalDistributed / 2)} less`,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                     effect: AbilityHelper.ongoingEffects.decreaseCost({
                         cardTypeFilter: WildcardCardType.Unit,

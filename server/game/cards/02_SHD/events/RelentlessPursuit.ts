@@ -13,6 +13,7 @@ export default class RelentlessPursuit extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Bounty Hunter" is a trait reference, not the Bounty keyword
             title: 'Choose a friendly unit. It captures an enemy non-leader unit that costs the same as or less than it. If the friendly unit is a Bounty Hunter, give a Shield token to it.',
             targetResolvers: {
                 friendlyUnit: {

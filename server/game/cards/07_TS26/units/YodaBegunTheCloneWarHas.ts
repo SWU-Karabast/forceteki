@@ -20,14 +20,14 @@ export default class YodaBegunTheCloneWarHas extends NonLeaderUnitCard {
         });
 
         registrar.addTriggeredAbility({
-            title: 'Create a Clone Trooper token and give it Sentinel for this phase',
+            title: `Create a Clone Trooper token and give it ${TextHelper.Sentinel} for this phase`,
             when: {
                 whenPlayed: true,
                 whenDefeated: true,
             },
             immediateEffect: abilityHelper.immediateEffects.createCloneTrooper((context) => ({ amount: 1, target: context.player })),
             then: (thenContext) => ({
-                title: 'Give it Sentinel for this phase',
+                title: `Give it ${TextHelper.Sentinel} for this phase`,
                 immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel }),
                     target: thenContext.resolvedEvents[0]?.generatedTokens

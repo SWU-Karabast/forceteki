@@ -14,6 +14,7 @@ export default class ResistanceBlueSquadron extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Deal damage to a unit equal to the number of friendly space units',
+            contextTitle: (context) => `Deal ${context.player.getArenaUnits({ arena: ZoneName.SpaceArena }).length} damage to a unit`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -1,6 +1,6 @@
 describe('Dryden Vos, I Get All Worked Up', function() {
     integration(function(contextRef) {
-        const prompt = 'Double this unit\'s power for this attack. If you do, this unit does not ready during the next regroup phase.';
+        const prompt = 'Double this unit\'s power (+2/+0) for this attack. If you do, this unit does not ready during the next regroup phase.';
 
         it('Dryden Vos\'s on attack ability may double its power but he can not ready the next regroup phase', async function () {
             await contextRef.setupTestAsync({
@@ -137,7 +137,7 @@ describe('Dryden Vos, I Get All Worked Up', function() {
             context.player1.clickCard(context.drydenVos);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toHavePassAbilityPrompt(prompt);
+            expect(context.player1).toHavePassAbilityPrompt('Double this unit\'s power (+4/+0) for this attack. If you do, this unit does not ready during the next regroup phase.');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();
@@ -176,7 +176,7 @@ describe('Dryden Vos, I Get All Worked Up', function() {
             context.player1.clickCard(context.drydenVos);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toHavePassAbilityPrompt(prompt);
+            expect(context.player1).toHavePassAbilityPrompt('Double this unit\'s power (+12/+0) for this attack. If you do, this unit does not ready during the next regroup phase.');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();

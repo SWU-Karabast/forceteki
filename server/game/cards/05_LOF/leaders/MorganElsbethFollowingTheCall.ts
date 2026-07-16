@@ -34,7 +34,7 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
                     cardCondition: (card) => this.attacksThisPhaseWatcher.cardDidAttack(card)
                 },
                 playFromHand: {
-                    activePromptTitle: 'Play a unit from you hand that shares a Keyword with the chosen unit',
+                    activePromptTitle: `Play a unit from you hand that shares a ${TextHelper.Keyword} with the chosen unit`,
                     dependsOn: 'friendlyUnit',
                     // TODO remove cardTypeFilter but fix Choose nothing button before
                     cardTypeFilter: CardType.BasicUnit,
@@ -57,7 +57,7 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `The next unit you play this phase costs ${TextHelper.resource(1)} less if it shares a Keyword with a friendly unit.`,
+            title: `The next unit you play this phase costs ${TextHelper.resource(1)} less if it shares a ${TextHelper.Keyword} with a friendly unit.`,
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,

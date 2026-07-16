@@ -16,12 +16,14 @@ export default class TheSarlaccOfCarkoonHorrorOfTheDuneSea extends NonLeaderUnit
             title: 'Put a unit from your discard pile on the bottom of your deck. Deal damage equal to that unit\'s power to an enemy ground unit',
             targetResolvers: {
                 discardUnit: {
+                    activePromptTitle: 'Put a unit from your discard pile on the bottom of your deck',
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Discard,
                     immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck()
                 },
                 enemyUnit: {
+                    activePromptTitle: (context) => `Deal ${context.targets.discardUnit.printedPower} damage to an enemy ground unit`,
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
                     zoneFilter: ZoneName.GroundArena,
