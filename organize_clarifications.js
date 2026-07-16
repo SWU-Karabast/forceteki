@@ -226,7 +226,7 @@ const setNames = {
   TWI: 'Set 3: TWI — Twilight of the Republic (Block 0)',
   JTL: 'Set 4: JTL — Jump to Lightspeed (Block A)',
   LOF: 'Set 5: LOF — Legends of the Force (Block A)',
-  SEC: 'Set 6: SEC — Shadows of the Empire Collective (Block A)',
+  SEC: 'Set 6: SEC — Secrets of Power (Block A)',
   LAW: 'Set 7: LAW — Law and Order (Block B)',
   TS26: 'TS26 — Twin Suns (Eternal Non-Rotating)',
 };

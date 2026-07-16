@@ -2690,7 +2690,7 @@ Dooku’s ability applies to every unit that has Hidden when his ability resolve
 
 ---
 
-## Set 6: SEC — Shadows of the Empire Collective (Block A)
+## Set 6: SEC — Secrets of Power (Block A)
 
 ### Question: If an attacker with overwhelm has two defenders how is Overwhelm damage resolved if Queen Amidala defeats the other unit to prevent damage to herself?
 
