@@ -7,7 +7,8 @@ import { DecklistLocation, DeckValidationFailureReason, IllegalInFormatReason, t
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import { Contract } from '../../game/core/utils/Contract';
 import { EnumHelpers } from '../../game/core/utils/EnumHelpers';
-import { formatRules, nonRotatingSets, rotationBlocks, SwuSetId } from './SwuSetData';
+import type { ISetCatalog } from './SwuSetData';
+import { defaultSetCatalog, formatRules, SwuSetId } from './SwuSetData';
 
 const maxCopiesOfCards = new Map([
     ['2177194044', 15], // Swarming Vulture Droid
@@ -54,12 +55,20 @@ export class DeckValidator {
         return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
     }
 
-    private static parseSets(cardData: ICardDataJson): SwuSetId[] {
+    protected parseSets(cardData: ICardDataJson): SwuSetId[] {
         const setCodes = cardData.setCodes ?? [cardData.setId];
         // Use tryConvertToEnum so cards with unrecognized set codes (e.g. test fixtures) produce an
         // empty array rather than throwing. An empty array means the card matches no legal set and
         // will always fail checkFormatLegality, which is the correct behaviour.
         return EnumHelpers.tryConvertToEnum(setCodes.map((c) => c.set), SwuSetId);
+    }
+
+    /**
+     * Returns the set/format data used to compute legal sets. Overridable so tests can substitute a catalog
+     * that contains a synthetic preview set. Production always uses {@link defaultSetCatalog}.
+     */
+    protected getSetCatalog(): ISetCatalog {
+        return defaultSetCatalog;
     }
 
     /**
@@ -79,7 +88,9 @@ export class DeckValidator {
      * Non-rotating sets (e.g. TS26) are added if their `legalFormats` includes the requested format,
      * subject to the same released/unreleased filtering.
      */
-    public static getLegalSets(format: SwuGameFormat, cardPool: CardPool): Set<SwuSetId> {
+    public static getLegalSets(format: SwuGameFormat, cardPool: CardPool, catalog: ISetCatalog = defaultSetCatalog): Set<SwuSetId> {
+        const { rotationBlocks, nonRotatingSets, formatRules } = catalog;
+
         // Open/Unlimited: all sets including previews, always
         if (format === SwuGameFormat.Open) {
             const all = new Set<SwuSetId>(rotationBlocks.flatMap((block) => block.sets.map((s) => s.id)));
@@ -91,7 +102,7 @@ export class DeckValidator {
 
         // Limited: restrict to a single set
         if (format === SwuGameFormat.Limited) {
-            return this.getLimitedLegalSet(cardPool);
+            return DeckValidator.getLimitedLegalSet(cardPool, catalog);
         }
 
         Contract.assertFalse(cardPool === CardPool.Unlimited, `Card pool '${CardPool.Unlimited}' is not supported for format '${format}'`);
@@ -131,8 +142,8 @@ export class DeckValidator {
     /**
      * Returns the legal sets for Limited format based on the card pool. Only mainline sets are legal in Limited.
      */
-    private static getLimitedLegalSet(cardPool: CardPool): Set<SwuSetId> {
-        const allSets = rotationBlocks.flatMap((block) => block.sets);
+    private static getLimitedLegalSet(cardPool: CardPool, catalog: ISetCatalog = defaultSetCatalog): Set<SwuSetId> {
+        const allSets = catalog.rotationBlocks.flatMap((block) => block.sets);
 
         if (cardPool === CardPool.Unlimited) {
             return new Set<SwuSetId>(allSets
@@ -150,7 +161,7 @@ export class DeckValidator {
         return new Set<SwuSetId>([targetSet.id]);
     }
 
-    private constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
+    protected constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
         const implementedCardIds = new Set(cards.keys());
         const overrideNotImplementedCardIds = new Set(overrideNotImplementedCards.keys());
 
@@ -162,7 +173,7 @@ export class DeckValidator {
                 setId: cardData.setId,
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
-                sets: DeckValidator.parseSets(cardData),
+                sets: this.parseSets(cardData),
                 implemented: !overrideNotImplementedCardIds.has(cardData.id) && (!Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
                 maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
@@ -295,7 +306,7 @@ export class DeckValidator {
             };
 
             // Compute the legal sets for this format + card pool
-            const legalSets = DeckValidator.getLegalSets(format, cardPool);
+            const legalSets = DeckValidator.getLegalSets(format, cardPool, this.getSetCatalog());
 
             // Combine main deck and sideboard cards.
             const deckCards: ISwuDbFormatCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];

@@ -6,6 +6,7 @@ import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestC
 import {
     buildCardEntry,
     buildValidationTestDeck,
+    createPreviewValidatorSetup,
     getDeckFiller,
     RELEASED_SETS
 } from './DeckValidatorTestUtils';
@@ -19,8 +20,7 @@ describe('Eternal deck validation', function () {
     let cardDataGetter: UnitTestCardDataGetter;
 
     beforeAll(async function () {
-        cardDataGetter = new UnitTestCardDataGetter('test/json');
-        validator = await DeckValidator.createAsync(cardDataGetter);
+        ({ validator, cardDataGetter } = await createPreviewValidatorSetup());
     });
 
     function eternalProps() {

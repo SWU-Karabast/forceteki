@@ -4,7 +4,7 @@ import type { IDecklistInternal } from '../../../server/utils/deck/DeckInterface
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import type { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
 import { formatRules, nonRotatingSets, rotationBlocks } from '../../../server/utils/deck/SwuSetData';
-import { buildCardEntry, buildValidationTestDeck, getDeckFiller, getFirstBase, getFirstCardInSet, getFirstLeader, getLegalSetCodes } from './DeckValidatorTestUtils';
+import { buildCardEntry, buildValidationTestDeck, getDeckFiller, getFirstBase, getFirstCardInSet, getFirstLeader, getLegalSetCodes, TEST_PREVIEW_SET_CODE } from './DeckValidatorTestUtils';
 
 // Representative sets for the format-legality probes, derived from the set data so they don't need manual
 // upkeep as sets release and rotate. Uppercased to match `card.setId.set`. Any probe may be undefined (e.g.
@@ -12,7 +12,9 @@ import { buildCardEntry, buildValidationTestDeck, getDeckFiller, getFirstBase, g
 const rotationSets = rotationBlocks.flatMap((block) => block.sets);
 const OLD_RELEASED_SET = rotationSets.find((s) => s.released)?.id.toUpperCase();           // earliest released set (rotated out of the rotating formats)
 const NON_ROTATING_SET = nonRotatingSets[0]?.id.toUpperCase();                             // a non-rotating set (legal only in Eternal/Open)
-const PREVIEW_SET = rotationSets.find((s) => !s.released && s.mainline)?.id.toUpperCase();  // upcoming unreleased mainline ("preview") set
+// Synthetic upcoming unreleased mainline ("preview") set, injected by the test utils so this probe is always
+// available regardless of the real release calendar (see DeckValidatorTestUtils).
+const PREVIEW_SET = TEST_PREVIEW_SET_CODE;
 
 /** Per-format configuration that drives the shared deck-building rule tests. */
 export interface ICommonDeckRuleConfig {
@@ -53,9 +55,9 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
     // A card is legal exactly when its set is in the pool's legal sets, so the legality expectations below
     // are derived rather than configured. Any illegal (but recognized) set yields the single NotLegalInFormat reason.
     const currentLegalSets = getLegalSetCodes(config.format, config.cardPool);
-    // Only needed for the preview-transition test below, which requires a preview set. Computing it eagerly
-    // would throw for Limited when there is no upcoming mainline set (getLegalSets → getLimitedLegalSet).
-    const nextSetLegalSets = PREVIEW_SET != null ? getLegalSetCodes(config.format, CardPool.NextSet) : new Set<string>();
+    // The synthetic preview set makes a NextSet pool always available (see DeckValidatorTestUtils), so the
+    // preview-transition test below can always run.
+    const nextSetLegalSets = getLegalSetCodes(config.format, CardPool.NextSet);
 
     // A probe set that is illegal in this format (if any), used to check that legality applies to the sideboard.
     const illegalProbeSet = [OLD_RELEASED_SET, NON_ROTATING_SET, PREVIEW_SET].find((s) => s != null && !currentLegalSets.has(s));

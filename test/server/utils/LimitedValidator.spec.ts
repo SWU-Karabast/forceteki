@@ -3,10 +3,10 @@ import { DeckValidationFailureReason } from '../../../server/utils/deck/DeckInte
 import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
-import { rotationBlocks } from '../../../server/utils/deck/SwuSetData';
 import {
     buildCardEntry,
     buildValidationTestDeck,
+    createPreviewValidatorSetup,
     getDeckFiller,
     getFirstBase,
     getFirstLeader,
@@ -15,9 +15,6 @@ import {
 import { registerCommonDeckRuleTests } from './CommonDeckRuleTests';
 
 const LIMITED_SETS = getLegalSetCodes(SwuGameFormat.Limited, CardPool.Current);
-
-// Limited's NextSet pool only exists while there is an upcoming (unreleased) mainline set to rotate to.
-const LIMITED_HAS_NEXT_SET = rotationBlocks.flatMap((b) => b.sets).some((s) => !s.released && s.mainline);
 
 // Under the Unlimited card pool, all mainline sets are legal, so a SOR leader/base is valid.
 const UNLIMITED_LEADER = 'luke-skywalker#faithful-friend';
@@ -30,8 +27,7 @@ describe('Limited deck validation', function () {
     let base: string;
 
     beforeAll(async function () {
-        cardDataGetter = new UnitTestCardDataGetter('test/json');
-        validator = await DeckValidator.createAsync(cardDataGetter);
+        ({ validator, cardDataGetter } = await createPreviewValidatorSetup());
         leader = getFirstLeader(cardDataGetter, LIMITED_SETS).internalName;
         base = getFirstBase(cardDataGetter, LIMITED_SETS).internalName;
     });
@@ -70,25 +66,24 @@ describe('Limited deck validation', function () {
         });
     });
 
-    // Only meaningful while an upcoming mainline set exists; otherwise Limited has no NextSet pool.
-    if (LIMITED_HAS_NEXT_SET) {
-        describe('NextSet card pool', function () {
-            const LIMITED_NEXT_SETS = getLegalSetCodes(SwuGameFormat.Limited, CardPool.NextSet);
-            let nextSetLeader: string;
-            let nextSetBase: string;
+    // Limited's NextSet pool always exists in tests thanks to the injected synthetic preview set (see
+    // DeckValidatorTestUtils), so this block runs unconditionally.
+    describe('NextSet card pool', function () {
+        const LIMITED_NEXT_SETS = getLegalSetCodes(SwuGameFormat.Limited, CardPool.NextSet);
+        let nextSetLeader: string;
+        let nextSetBase: string;
 
-            beforeAll(function () {
-                nextSetLeader = getFirstLeader(cardDataGetter, LIMITED_NEXT_SETS).internalName;
-                nextSetBase = getFirstBase(cardDataGetter, LIMITED_NEXT_SETS).internalName;
-            });
-
-            it('should reject a card from the latest released set, which rotates out under NextSet', function () {
-                const filler = getDeckFiller(cardDataGetter, 29, LIMITED_NEXT_SETS);
-                const currentSetCard = getDeckFiller(cardDataGetter, 1, LIMITED_SETS)[0];
-                const deck = buildValidationTestDeck(cardDataGetter, nextSetLeader, nextSetBase, [...filler, currentSetCard]);
-                const failures = validator.validateInternalDeck(deck, limitedProps(CardPool.NextSet));
-                expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
-            });
+        beforeAll(function () {
+            nextSetLeader = getFirstLeader(cardDataGetter, LIMITED_NEXT_SETS).internalName;
+            nextSetBase = getFirstBase(cardDataGetter, LIMITED_NEXT_SETS).internalName;
         });
-    }
+
+        it('should reject a card from the latest released set, which rotates out under NextSet', function () {
+            const filler = getDeckFiller(cardDataGetter, 29, LIMITED_NEXT_SETS);
+            const currentSetCard = getDeckFiller(cardDataGetter, 1, LIMITED_SETS)[0];
+            const deck = buildValidationTestDeck(cardDataGetter, nextSetLeader, nextSetBase, [...filler, currentSetCard]);
+            const failures = validator.validateInternalDeck(deck, limitedProps(CardPool.NextSet));
+            expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
+        });
+    });
 });

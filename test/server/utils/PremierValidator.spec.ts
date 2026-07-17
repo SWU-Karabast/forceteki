@@ -6,6 +6,7 @@ import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestC
 import {
     buildCardEntry,
     buildValidationTestDeck,
+    createPreviewValidatorSetup,
     getDeckFiller,
     getFirstBase,
     getFirstLeader,
@@ -23,8 +24,7 @@ describe('Premier deck validation', function () {
     let base: string;
 
     beforeAll(async function () {
-        cardDataGetter = new UnitTestCardDataGetter('test/json');
-        validator = await DeckValidator.createAsync(cardDataGetter);
+        ({ validator, cardDataGetter } = await createPreviewValidatorSetup());
         leader = getFirstLeader(cardDataGetter, PREMIER_SETS).internalName;
         base = getFirstBase(cardDataGetter, PREMIER_SETS).internalName;
     });

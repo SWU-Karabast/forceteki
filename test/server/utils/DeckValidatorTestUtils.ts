@@ -1,6 +1,7 @@
 import type { IDecklistInternal, IInternalCardEntry } from '../../../server/utils/deck/DeckInterfaces';
-import type { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
-import { nonRotatingSets, rotationBlocks } from '../../../server/utils/deck/SwuSetData';
+import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
+import type { ISetCatalog } from '../../../server/utils/deck/SwuSetData';
+import { formatRules, nonRotatingSets, rotationBlocks, SwuSetId } from '../../../server/utils/deck/SwuSetData';
 import { setCodeToString } from '../../../server/Util';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import type { CardDataGetter } from '../../../server/utils/cardData/CardDataGetter';
@@ -16,7 +17,7 @@ export const RELEASED_SETS = new Set<string>([
 
 /** Uppercased legal set codes for a format + card pool, for matching against `card.setId.set`. */
 export function getLegalSetCodes(format: SwuGameFormat, cardPool: CardPool): Set<string> {
-    return new Set([...DeckValidator.getLegalSets(format, cardPool)].map((s) => s.toUpperCase()));
+    return new Set([...DeckValidator.getLegalSets(format, cardPool, TEST_SET_CATALOG)].map((s) => s.toUpperCase()));
 }
 
 /** True if the card belongs in the main deck/sideboard (i.e. not a leader, base, or token). */
@@ -160,4 +161,129 @@ export async function makeValidatorWithUnknownSetCard(cardDataGetter: UnitTestCa
 
     const unknownSetEntry: IInternalCardEntry = { id: 'TST_001', count: 1, internalName: '__tst-unknown-set__' };
     return { validator, unknownSetEntry };
+}
+
+// ---------------------------------------------------------------------------
+// Synthetic "preview" set support
+//
+// Whether a real set is an unreleased ("preview") mainline set changes over time, and there are periods with
+// no preview set at all. To keep the preview/NextSet tests running unconditionally, we inject a synthetic
+// preview set ('TPRV') that is always present: an unreleased mainline set with its own leader, base, and units.
+// The validator reads this via an alternate ISetCatalog, and a subclass teaches the enum-based set parsing to
+// recognize the synthetic set code. Production code and data are untouched.
+// ---------------------------------------------------------------------------
+
+/** Uppercase set code (matches `card.setId.set`) for the synthetic preview set. */
+export const TEST_PREVIEW_SET_CODE = 'TPRV';
+/** Lowercase set id (matches the `SwuSetId` enum-value convention) for the synthetic preview set. */
+const TEST_PREVIEW_SET_ID = 'tprv';
+
+/** Builds a synthetic preview-set card of the given printed type. */
+function makePreviewCard(kind: 'leader' | 'base' | 'unit', num: number): ICardDataJson {
+    const internalName = `__tprv-${kind}-${num}__`;
+    return {
+        id: `__tprv-${kind}-${num}-id__`,
+        title: `TPRV ${kind} ${num}`,
+        subtitle: '',
+        cost: 1,
+        hp: 1,
+        power: 1,
+        text: '',
+        unique: false,
+        aspects: [],
+        traits: [],
+        keywords: [],
+        types: [kind],
+        setId: { set: TEST_PREVIEW_SET_CODE, number: num },
+        setCodes: [{ set: TEST_PREVIEW_SET_CODE, number: num }],
+        internalName,
+        arena: 'ground',
+    };
+}
+
+// One leader, one base, and enough units to fill a minimum Limited deck (whose NextSet pool is this single set).
+const PREVIEW_CARDS: ICardDataJson[] = [
+    makePreviewCard('leader', 100),
+    makePreviewCard('base', 101),
+    ...Array.from({ length: 35 }, (_, i) => makePreviewCard('unit', i + 1)),
+];
+
+/**
+ * The default set catalog with a synthetic unreleased mainline "preview" set appended to the latest block.
+ * Under {@link CardPool.Current} it is excluded (unreleased), so current-pool legality is unchanged; under
+ * {@link CardPool.NextSet} it becomes legal, which is what the preview tests exercise.
+ */
+export const TEST_SET_CATALOG: ISetCatalog = {
+    rotationBlocks: rotationBlocks.map((block, i) =>
+        i === rotationBlocks.length - 1
+            ? { ...block, sets: [...block.sets, { id: TEST_PREVIEW_SET_ID as SwuSetId, released: false, mainline: true }] }
+            : { ...block, sets: [...block.sets] }
+    ),
+    nonRotatingSets,
+    formatRules,
+};
+
+/** A {@link UnitTestCardDataGetter} that also serves the synthetic preview-set cards. */
+class PreviewTestCardDataGetter extends UnitTestCardDataGetter {
+    private readonly previewById = new Map<string, ICardDataJson>();
+    private readonly previewByName = new Map<string, ICardDataJson>();
+
+    public constructor(folderRoot: string) {
+        super(folderRoot);
+        for (const card of PREVIEW_CARDS) {
+            this.previewById.set(card.id, card);
+            this.previewByName.set(card.internalName, card);
+            this.cardMap.set(card.id, { id: card.id, title: card.title, subtitle: card.subtitle, internalName: card.internalName, cost: card.cost });
+            this.setCodeMap.set(setCodeToString(card.setId), card.id);
+        }
+    }
+
+    public override getCardSync(id: string): ICardDataJson {
+        return this.previewById.get(id) ?? super.getCardSync(id);
+    }
+
+    public override getCardByNameSync(internalName: string): ICardDataJson {
+        return this.previewByName.get(internalName) ?? super.getCardByNameSync(internalName);
+    }
+
+    public override getCardAsync(id: string): Promise<ICardDataJson> {
+        const preview = this.previewById.get(id);
+        return preview ? Promise.resolve(preview) : super.getCardAsync(id);
+    }
+}
+
+/**
+ * A {@link DeckValidator} that validates against {@link TEST_SET_CATALOG} and recognizes the synthetic
+ * preview set code that is absent from the real `SwuSetId` enum.
+ */
+class PreviewDeckValidator extends DeckValidator {
+    public static async createPreviewAsync(cardDataGetter: CardDataGetter): Promise<PreviewDeckValidator> {
+        const allCardsData: ICardDataJson[] = [];
+        for (const cardId of cardDataGetter.cardIds) {
+            allCardsData.push(await cardDataGetter.getCardAsync(cardId));
+        }
+        return new PreviewDeckValidator(allCardsData, cardDataGetter.setCodeMap);
+    }
+
+    protected override getSetCatalog(): ISetCatalog {
+        return TEST_SET_CATALOG;
+    }
+
+    // The base implementation only recognizes real `SwuSetId` members; re-add the synthetic preview set so its
+    // cards resolve to a real (illegal-under-Current, legal-under-NextSet) set rather than an unknown one.
+    protected override parseSets(cardData: ICardDataJson): SwuSetId[] {
+        const base = super.parseSets(cardData);
+        const codes = (cardData.setCodes ?? [cardData.setId]).map((c) => c.set.toLowerCase());
+        return codes.includes(TEST_PREVIEW_SET_ID) ? [...base, TEST_PREVIEW_SET_ID as SwuSetId] : base;
+    }
+}
+
+/**
+ * Builds a validator + card data getter that are aware of the synthetic preview set. Existing (current-pool)
+ * behaviour is unchanged because the preview set is unreleased; only the preview/NextSet paths gain a target.
+ */
+export async function createPreviewValidatorSetup(): Promise<{ validator: DeckValidator; cardDataGetter: UnitTestCardDataGetter }> {
+    const cardDataGetter = new PreviewTestCardDataGetter('test/json');
+    const validator = await PreviewDeckValidator.createPreviewAsync(cardDataGetter);
+    return { validator, cardDataGetter };
 }

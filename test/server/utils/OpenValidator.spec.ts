@@ -7,6 +7,7 @@ import { formatRules } from '../../../server/utils/deck/SwuSetData';
 import {
     buildCardEntry,
     buildValidationTestDeck,
+    createPreviewValidatorSetup,
     getDeckFiller,
     RELEASED_SETS
 } from './DeckValidatorTestUtils';
@@ -23,8 +24,7 @@ describe('Open deck validation', function () {
     let cardDataGetter: UnitTestCardDataGetter;
 
     beforeAll(async function () {
-        cardDataGetter = new UnitTestCardDataGetter('test/json');
-        validator = await DeckValidator.createAsync(cardDataGetter);
+        ({ validator, cardDataGetter } = await createPreviewValidatorSetup());
     });
 
     function openProps() {

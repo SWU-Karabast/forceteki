@@ -92,3 +92,16 @@ export const formatRules = new Map<SwuGameFormat, IFormatRules>([
     [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
     [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map() }],
 ]);
+
+/**
+ * Bundles the set/format data the {@link DeckValidator} reads when computing legal sets. Production uses
+ * {@link defaultSetCatalog}; tests can supply an alternate catalog (e.g. one containing a synthetic preview
+ * set) so preview/NextSet behaviour can be exercised deterministically regardless of the real release state.
+ */
+export interface ISetCatalog {
+    rotationBlocks: IRotationBlock[];
+    nonRotatingSets: INonRotatingSet[];
+    formatRules: Map<SwuGameFormat, IFormatRules>;
+}
+
+export const defaultSetCatalog: ISetCatalog = { rotationBlocks, nonRotatingSets, formatRules };
