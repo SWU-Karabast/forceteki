@@ -14,7 +14,7 @@ export default class SizeMattersNot extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: `If you control a Force unit, this upgrade costs ${TextHelper.resource(1)} less to play.`,
+            title: `If you control a ${TextHelper.Trait.Force} unit, this upgrade costs ${TextHelper.resource(1)} less to play.`,
             amount: 1,
             condition: (context) => context.player.getArenaUnits({ trait: Trait.Force }).length > 0,
         });

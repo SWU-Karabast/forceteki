@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class UWingLander extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -21,7 +22,7 @@ export default class UWingLander extends NonLeaderUnitCard {
         });
 
         registrar.addWhenAttackEndsAbility({
-            title: 'Attach an upgrade on this unit to another eligible friendly Vehicle unit',
+            title: `Attach an upgrade on this unit to another eligible friendly ${TextHelper.Trait.Vehicle} unit`,
             attackerMustSurvive: true,
             optional: true,
             targetResolvers: {

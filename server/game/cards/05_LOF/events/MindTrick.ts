@@ -3,6 +3,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MindTrick extends EventCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class MindTrick extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Exhaust any number of units with a combined power of 4 or less. If you control a Force unit, those units lose all abilities and can\'t gain abilities for this phase',
+            title: `Exhaust any number of units with a combined power of 4 or less. If you control a ${TextHelper.Trait.Force} unit, those units lose all abilities and can't gain abilities for this phase`,
             targetResolver: {
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { RelativePlayer, TargetMode, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FireAcrossTheGalaxy extends EventCard {
     protected override getImplementationId () {
@@ -13,9 +14,9 @@ export default class FireAcrossTheGalaxy extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Use any number of When Played abilities on friendly Spectre units',
+            title: `Use any number of When Played abilities on friendly ${TextHelper.Trait.Spectre} units`,
             targetResolver: {
-                activePromptTitle: 'Choose Spectre units with a "When Played" ability to activate',
+                activePromptTitle: `Choose ${TextHelper.Trait.Spectre} units with a "When Played" ability to activate`,
                 mode: TargetMode.Unlimited,
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,

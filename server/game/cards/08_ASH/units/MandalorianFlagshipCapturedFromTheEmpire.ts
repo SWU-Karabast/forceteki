@@ -22,7 +22,7 @@ export default class MandalorianFlagshipCapturedFromTheEmpire extends NonLeaderU
         });
 
         registrar.addConstantAbility({
-            title: 'This unit gets +1/+0 for each other friendly Mandalorian unit',
+            title: `This unit gets +1/+0 for each other friendly ${TextHelper.Trait.Mandalorian} unit`,
             ongoingEffect: abilityHelper.ongoingEffects.modifyStats((target) => {
                 const otherMandalorianUnits = target.controller.getArenaUnits({
                     otherThan: target,

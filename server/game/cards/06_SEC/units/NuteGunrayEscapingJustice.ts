@@ -14,7 +14,7 @@ export default class NuteGunrayEscapingJustice extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: `Give another friendly Official unit ${TextHelper.Sentinel} for this phase`,
+            title: `Give another friendly ${TextHelper.Trait.Official} unit ${TextHelper.Sentinel} for this phase`,
             optional: true,
             when: {
                 onAttack: true,

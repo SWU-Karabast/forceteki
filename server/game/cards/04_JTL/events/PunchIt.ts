@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class PunchIt extends EventCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class PunchIt extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a Vehicle unit. It gets +2/+0 for this attack',
+            title: `Attack with a ${TextHelper.Trait.Vehicle} unit. It gets +2/+0 for this attack`,
             initiateAttack: {
                 attackerCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
                 attackerLastingEffects: {

@@ -15,7 +15,7 @@ export default class TripleDarkRaid extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `Search the top 7 cards of your deck for a Vehicle and play it. It costs ${TextHelper.resource(5)} less and enters play ready. Return it to its owner's hand at the end of the phase`,
+            title: `Search the top 7 cards of your deck for a ${TextHelper.Trait.Vehicle} and play it. It costs ${TextHelper.resource(5)} less and enters play ready. Return it to its owner's hand at the end of the phase`,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 7,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),

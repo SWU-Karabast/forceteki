@@ -21,7 +21,7 @@ export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
                 AbilityHelper.costs.abilityActivationResourceCost(1),
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.returnToHandFromPlay({
-                    activePromptTitle: 'Return a friendly Underworld unit to hand',
+                    activePromptTitle: `Return a friendly ${TextHelper.Trait.Underworld} unit to hand`,
                     controller: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Underworld)
@@ -33,7 +33,7 @@ export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play an Underworld unit unit from your hand',
+            title: `Play an ${TextHelper.Trait.Underworld} unit unit from your hand`,
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,

@@ -1,6 +1,6 @@
 /* eslint-disable @stylistic/lines-around-comment */
 import { Helpers } from './Helpers';
-import { Aspect, KeywordName } from '../Constants';
+import { Aspect, KeywordName, Trait as TraitEnum } from '../Constants';
 import type { Conjunction } from '../Constants';
 import type { INumericKeywordProperties, KeywordNameOrProperties } from '../../Interfaces';
 
@@ -139,6 +139,46 @@ export namespace TextHelper {
             ? Helpers.capitalize(asp)
             : `:${asp}:`;
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Traits
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns the display representation of a trait name for use in string interpolation.
+     * In test environments, returns the trait in Title Case (e.g. "Bounty Hunter") for readability.
+     * In production, returns a token (e.g. `{trait:bounty-hunter}`) which the client replaces with
+     * stylized text. Multi-word traits are kebab-cased in the token so the payload contains no spaces.
+     *
+     * Prefer the {@link TextHelper.Trait} shorthand (e.g. `TextHelper.Trait.BountyHunter`) at call
+     * sites; this function is for dynamic trait values that aren't known at author time.
+     *
+     * @example
+     * // In tests: "Ready another Bounty Hunter unit"
+     * // Otherwise: "Ready another {trait:bounty-hunter} unit"
+     * const ex = `Ready another ${TextHelper.trait(TraitEnum.BountyHunter)} unit`;
+     *
+     * @param trait The trait to display — a {@link TraitEnum} value or its lowercase string value
+     * @returns A string representing the trait, either as Title Case text (in tests) or a replacement token
+     */
+    export function trait(trait: TraitEnum | string): string {
+        return process.env.NODE_ENV === 'test'
+            ? trait.split(' ').map(Helpers.capitalize)
+                .join(' ')
+            : `{trait:${trait.replace(/ /g, '-')}}`;
+    }
+
+    /**
+     * Shorthand display representations of each {@link TraitEnum} value, keyed by the enum's member
+     * names (e.g. `TextHelper.Trait.BountyHunter`). Each entry produces the same output as
+     * `TextHelper.trait(TraitEnum.X)` — Title Case text in tests, a `{trait:...}` token otherwise.
+     * Nested under `Trait` to avoid collisions with keyword shorthands (e.g. `TextHelper.Bounty`).
+     */
+    export const Trait = Object.freeze(
+        Object.fromEntries(
+            Object.entries(TraitEnum).map(([key, value]) => [key, trait(value)])
+        )
+    ) as Record<keyof typeof TraitEnum, string>;
 
     /**
      * Creates a formatted list of aspect names with an optional conjunction for the last item. This also performs

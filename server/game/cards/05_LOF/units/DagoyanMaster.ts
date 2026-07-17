@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DagoyanMaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class DagoyanMaster extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Use the Force. If you do, search the top 5 cards of your deck for a Force unit, reveal it, and draw it',
+            title: `Use the Force. If you do, search the top 5 cards of your deck for a ${TextHelper.Trait.Force} unit, reveal it, and draw it`,
             optional: true,
             when: {
                 whenPlayed: true,
@@ -21,7 +22,7 @@ export default class DagoyanMaster extends NonLeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {
-                title: 'Search the top 5 cards of your deck for a Force unit, reveal it, and draw it',
+                title: `Search the top 5 cards of your deck for a ${TextHelper.Trait.Force} unit, reveal it, and draw it`,
                 immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                     selectCount: 1,
                     searchCount: 5,

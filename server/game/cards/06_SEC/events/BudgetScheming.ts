@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BudgetScheming extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class BudgetScheming extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Give an Experience token to up to 3 Official units',
+            title: `Give an Experience token to up to 3 ${TextHelper.Trait.Official} units`,
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 3,

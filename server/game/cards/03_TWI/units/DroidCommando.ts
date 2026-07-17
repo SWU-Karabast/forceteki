@@ -14,7 +14,7 @@ export default class DroidCommando extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another Separatist unit, this unit gains ${TextHelper.Ambush}`,
+            title: `While you control another ${TextHelper.Trait.Separatist} unit, this unit gains ${TextHelper.Ambush}`,
             condition: (context) => context.player.isTraitInPlay(Trait.Separatist, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
         });

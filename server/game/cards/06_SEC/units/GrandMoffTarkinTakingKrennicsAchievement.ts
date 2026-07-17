@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GrandMoffTarkinTakingKrennicsAchievement extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class GrandMoffTarkinTakingKrennicsAchievement extends NonLeaderU
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Take control of an enemy non-leader Vehicle unit. When this unit leaves play, that unit\'s owner takes control of that unit',
+            title: `Take control of an enemy non-leader ${TextHelper.Trait.Vehicle} unit. When this unit leaves play, that unit's owner takes control of that unit`,
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

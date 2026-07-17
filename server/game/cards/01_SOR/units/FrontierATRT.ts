@@ -14,7 +14,7 @@ export default class FrontierATRT extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Gain ${TextHelper.Ambush} while you control another Vehicle unit`,
+            title: `Gain ${TextHelper.Ambush} while you control another ${TextHelper.Trait.Vehicle} unit`,
             condition: (context) => context.player.isTraitInPlay(Trait.Vehicle, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
         });

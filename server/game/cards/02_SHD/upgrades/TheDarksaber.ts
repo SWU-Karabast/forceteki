@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TheDarksaber extends UpgradeCard {
     protected override getImplementationId() {
@@ -15,7 +16,7 @@ export default class TheDarksaber extends UpgradeCard {
         registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addGainOnAttackAbilityTargetingAttached({
-            title: 'Give an Experience token to each other friendly Mandalorian unit',
+            title: `Give an Experience token to each other friendly ${TextHelper.Trait.Mandalorian} unit`,
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
                 const mandalorians = context.player.getArenaUnits().filter((unit) => unit.hasSomeTrait(Trait.Mandalorian) && unit !== context.source);
                 return { target: mandalorians };
@@ -23,7 +24,7 @@ export default class TheDarksaber extends UpgradeCard {
         });
 
         registrar.addIgnoreAllAspectPenaltiesAbility({
-            title: 'Ignore aspect penalties while playing this on a Mandalorian',
+            title: `Ignore aspect penalties while playing this on a ${TextHelper.Trait.Mandalorian}`,
             attachTargetCondition: (attachTarget) => attachTarget.hasSomeTrait(Trait.Mandalorian)
         });
     }

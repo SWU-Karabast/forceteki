@@ -14,7 +14,7 @@ export default class BodhiRookCreatingADiversion extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `Give a friendly Rebel unit ${TextHelper.Sentinel} for this phase`,
+            title: `Give a friendly ${TextHelper.Trait.Rebel} unit ${TextHelper.Sentinel} for this phase`,
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
