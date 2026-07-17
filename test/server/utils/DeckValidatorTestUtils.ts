@@ -165,7 +165,6 @@ export async function makeValidatorWithUnknownSetCard(cardDataGetter: UnitTestCa
 
 // ---------------------------------------------------------------------------
 // Synthetic "preview" set support
-//
 // Whether a real set is an unreleased ("preview") mainline set changes over time, and there are periods with
 // no preview set at all. To keep the preview/NextSet tests running unconditionally, we inject a synthetic
 // preview set ('TPRV') that is always present: an unreleased mainline set with its own leader, base, and units.
@@ -175,6 +174,7 @@ export async function makeValidatorWithUnknownSetCard(cardDataGetter: UnitTestCa
 
 /** Uppercase set code (matches `card.setId.set`) for the synthetic preview set. */
 export const TEST_PREVIEW_SET_CODE = 'TPRV';
+
 /** Lowercase set id (matches the `SwuSetId` enum-value convention) for the synthetic preview set. */
 const TEST_PREVIEW_SET_ID = 'tprv';
 
@@ -214,11 +214,11 @@ const PREVIEW_CARDS: ICardDataJson[] = [
  * {@link CardPool.NextSet} it becomes legal, which is what the preview tests exercise.
  */
 export const TEST_SET_CATALOG: ISetCatalog = {
-    rotationBlocks: rotationBlocks.map((block, i) =>
-        i === rotationBlocks.length - 1
+    rotationBlocks: rotationBlocks.map((block, i) => {
+        return i === rotationBlocks.length - 1
             ? { ...block, sets: [...block.sets, { id: TEST_PREVIEW_SET_ID as SwuSetId, released: false, mainline: true }] }
-            : { ...block, sets: [...block.sets] }
-    ),
+            : { ...block, sets: [...block.sets] };
+    }),
     nonRotatingSets,
     formatRules,
 };
