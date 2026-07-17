@@ -1708,8 +1708,10 @@ export class GameServer {
                 let modActions = [];
                 let usernameChanges = [];
                 if (players.length === 1) {
-                    modActions = await this.userFactory.getModActionHistoryAsync(players[0].id);
-                    usernameChanges = await this.userFactory.getUsernameChangeHistoryAsync(players[0].id);
+                    [modActions, usernameChanges] = await Promise.all([
+                        this.userFactory.getModActionHistoryAsync(players[0].id),
+                        this.userFactory.getUsernameChangeHistoryAsync(players[0].id),
+                    ]);
                 }
 
                 return res.status(200).json({

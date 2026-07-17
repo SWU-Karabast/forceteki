@@ -302,14 +302,20 @@ export class UserFactory {
             });
             logger.info(`Username for ${userId} changed to ${newUsername}`);
 
-            // Record the change in the username history
-            await this.recordUsernameChangeAsync(
-                userId,
-                userProfile.username,
-                newUsername,
-                options?.source ?? UsernameChangeSource.UserInitiated,
-                options?.relatedModActionId,
-            );
+            // Record the change in the username history. This is best-effort tracking data, so a
+            // failure here must not fail the rename (which is already committed) or block the caller
+            // from completing follow-up steps such as clearing an active forced-rename.
+            try {
+                await this.recordUsernameChangeAsync(
+                    userId,
+                    userProfile.username,
+                    newUsername,
+                    options?.source ?? UsernameChangeSource.UserInitiated,
+                    options?.relatedModActionId,
+                );
+            } catch {
+                // error already logged in recordUsernameChangeAsync
+            }
 
             return {
                 success: true,
@@ -417,13 +423,19 @@ export class UserFactory {
             await dbService.saveUserProfileAsync(newUser);
             // create username link
             await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
-            // record the initial username in the change history
-            await this.recordUsernameChangeAsync(newUser.id, null, newUser.username, UsernameChangeSource.AccountCreation);
             // Create email link if email is available
             if (!email) {
                 throw new Error(`Email not found for user ${newUser.id}`);
             }
             await dbService.saveEmailLinkAsync(email, newUser.id);
+            // Record the initial username in the change history. This runs after all essential account
+            // records are created and is best-effort, so a failure here won't leave the account in a
+            // half-finished state or abort account creation.
+            try {
+                await this.recordUsernameChangeAsync(newUser.id, null, newUser.username, UsernameChangeSource.AccountCreation);
+            } catch {
+                // error already logged in recordUsernameChangeAsync
+            }
             logger.info(`Created new user: ${newUser.id} (${username}) with ${provider} authentication`);
             return {
                 id: newUser.id,
