@@ -30,8 +30,8 @@ export class PlayUpgradeAction extends PlayCardAction {
                         }
 
                         // Exclude units the upgrade can't be afforded on when attached to them (see issue #1970).
-                        // Skipped at the post-cost Target stage, where resources are already spent.
-                        if (context.stage !== Stage.Target && !context.ability.canPayCosts(context)) {
+                        // Only evaluated at the Pre-Target stage, before resources have been spent.
+                        if (context.stage === Stage.PreTarget && !context.ability.canPayCosts(context)) {
                             return false;
                         }
 
