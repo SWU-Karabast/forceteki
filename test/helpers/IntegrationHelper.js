@@ -17,8 +17,9 @@ const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/SnapshotInterfaces.js');
 
-// set to true to run all tests with undo enabled
-const ENABLE_UNDO_ALL_TESTS = false;
+// enabled via the `ENABLE_UNDO_ALL_TESTS` env var (see the `test-undo` npm scripts) to run the
+// whole suite in undo mode (each test runs, rolls back, then runs again)
+const ENABLE_UNDO_ALL_TESTS = process.env.ENABLE_UNDO_ALL_TESTS === 'true';
 
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
@@ -320,6 +321,18 @@ global.rollback = function(contextRef, assertion, altAssertion) {
 };
 
 if (ENABLE_UNDO_ALL_TESTS) {
-    global.integration = global.undoIntegration;
+    // Run every normal integration suite in undo mode (each test runs, rolls back, then runs again).
+    global.integration = function (definitions) {
+        originalIntegration(definitions, true);
+    };
     global.it = global.undoIt;
+
+    // Disable the dedicated undo test files. They already run in undo mode as part of the normal
+    // suite, so re-running them here is redundant - the point of whole-suite mode is to exercise
+    // the regular tests under undo. `undoIntegration` is the semantic marker for those files.
+    // Register a pending spec so the enclosing describe isn't left empty (jasmine errors on
+    // childless describes, particularly in parallel mode).
+    global.undoIntegration = function () {
+        it('skipped in whole-suite undo mode (dedicated undo suite)');
+    };
 }
