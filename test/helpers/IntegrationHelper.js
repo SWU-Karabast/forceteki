@@ -211,6 +211,14 @@ global.undoIntegration = function (definitions) {
 const jit = it;
 global.undoIt = function(expectation, assertion, timeout) {
     jit(expectation + ' (with Undo)', async function() {
+        // Non-integration tests (e.g. plain unit tests) have no game context. When whole-suite undo
+        // mode reassigns `global.it` to `undoIt`, those tests reach here without a `contextRef`, so
+        // there's nothing to snapshot / roll back - just run the assertion once like a normal `it`.
+        if (!this.contextRef) {
+            await assertion();
+            return;
+        }
+
         /** @type {SwuTestContext} */
         const context = this.contextRef.context;
         const snapshotUtils = this.contextRef.snapshot;
@@ -330,9 +338,9 @@ if (ENABLE_UNDO_ALL_TESTS) {
     // Disable the dedicated undo test files. They already run in undo mode as part of the normal
     // suite, so re-running them here is redundant - the point of whole-suite mode is to exercise
     // the regular tests under undo. `undoIntegration` is the semantic marker for those files.
-    // Register a pending spec so the enclosing describe isn't left empty (jasmine errors on
-    // childless describes, particularly in parallel mode).
+    // Register a pending spec (via `xit`, which is not reassigned to `undoIt`) so the enclosing
+    // describe isn't left empty (jasmine errors on childless describes, particularly in parallel mode).
     global.undoIntegration = function () {
-        it('skipped in whole-suite undo mode (dedicated undo suite)');
+        xit('skipped in whole-suite undo mode (dedicated undo suite)');
     };
 }
