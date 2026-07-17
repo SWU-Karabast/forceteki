@@ -12,7 +12,8 @@ import {
 import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
 import type {
-    IModActionEntity
+    IModActionEntity,
+    IUsernameChangeEntity
 } from './DynamoDBInterfaces';
 import {
     type IDeckDataEntity,
@@ -22,7 +23,7 @@ import {
     type IServerRoleUsersListsEntity
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema } from './DynamoDBInterfaceSchemas';
+import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import { isTimedModAction } from '../game/core/utils/EnumHelpers';
@@ -831,6 +832,44 @@ class DynamoDBService {
                 )
             ).then((actions) => actions.filter(Boolean));
         }, 'Error getting mod actions');
+    }
+
+    /**
+     * Get the username change history for a player (main table query).
+     */
+    public getUsernameChangesAsync(userId: string): Promise<IUsernameChangeEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USER#${userId}`, { beginsWith: 'NAMECHANGE#' });
+
+            if (!result.Items || result.Items.length === 0) {
+                return [];
+            }
+
+            return Promise.all(
+                result.Items.map((item: any) =>
+                    this.validateAndHandleAsync<IUsernameChangeEntity>(
+                        UsernameChangeEntitySchema,
+                        item,
+                        `getUsernameChangesAsync (record ${item.id})`,
+                    )
+                )
+            ).then((records) => records.filter(Boolean));
+        }, 'Error getting username changes');
+    }
+
+    /**
+     * Save a username change history record.
+     */
+    public saveUsernameChangeAsync(record: IUsernameChangeEntity) {
+        return this.executeDbOperationAsync(() => {
+            const item: Record<string, any> = {
+                pk: `USER#${record.playerId}`,
+                sk: `NAMECHANGE#${record.id}`,
+                ...record,
+            };
+
+            return this.putItemAsync(item);
+        }, 'Error saving username change');
     }
 
     /**

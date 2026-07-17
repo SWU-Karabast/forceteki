@@ -6,8 +6,8 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity } from '../../services/DynamoDBInterfaces';
-import { CardImageLocale, ModerationFieldState, ModerationType, TimerVisibility } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, IUsernameChangeEntity } from '../../services/DynamoDBInterfaces';
+import { CardImageLocale, ModerationFieldState, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
 
@@ -232,13 +232,16 @@ export class UserFactory {
      * • Unlimited username changes during the first week (7 days) after account creation.
      * • After that, a 1‑month (30‑days) cooldown between changes.
      */
-    public async changeUsernameAsync(userId: string, newUsername: string): Promise<{
-        success: boolean;
-        username?: string;
-        message?: string;
-        nextChangeAllowedAt?: string; // ISO timestamp when they can change again
-        daysRemaining?: number;
-    }> {
+    public async changeUsernameAsync(userId: string, newUsername: string, options?: {
+        source?: UsernameChangeSource;
+        relatedModActionId?: string;
+    }): Promise<{
+            success: boolean;
+            username?: string;
+            message?: string;
+            nextChangeAllowedAt?: string; // ISO timestamp when they can change again
+            daysRemaining?: number;
+        }> {
         try {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
@@ -298,6 +301,21 @@ export class UserFactory {
                 needsUsernameChange: false,
             });
             logger.info(`Username for ${userId} changed to ${newUsername}`);
+
+            // Record the change in the username history. This is best-effort tracking data, so a
+            // failure here must not fail the rename (which is already committed) or block the caller
+            // from completing follow-up steps such as clearing an active forced-rename.
+            try {
+                await this.recordUsernameChangeAsync(
+                    userId,
+                    userProfile.username,
+                    newUsername,
+                    options?.source ?? UsernameChangeSource.UserInitiated,
+                    options?.relatedModActionId,
+                );
+            } catch {
+                // error already logged in recordUsernameChangeAsync
+            }
 
             return {
                 success: true,
@@ -410,6 +428,14 @@ export class UserFactory {
                 throw new Error(`Email not found for user ${newUser.id}`);
             }
             await dbService.saveEmailLinkAsync(email, newUser.id);
+            // Record the initial username in the change history. This runs after all essential account
+            // records are created and is best-effort, so a failure here won't leave the account in a
+            // half-finished state or abort account creation.
+            try {
+                await this.recordUsernameChangeAsync(newUser.id, null, newUser.username, UsernameChangeSource.AccountCreation);
+            } catch {
+                // error already logged in recordUsernameChangeAsync
+            }
             logger.info(`Created new user: ${newUser.id} (${username}) with ${provider} authentication`);
             return {
                 id: newUser.id,
@@ -715,6 +741,56 @@ export class UserFactory {
             return modActions;
         } catch (error) {
             logger.error('Error getting mod action history:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Record a username change in the user's history.
+     */
+    public async recordUsernameChangeAsync(
+        userId: string,
+        previousUsername: string | null,
+        newUsername: string,
+        source: UsernameChangeSource,
+        relatedModActionId?: string,
+    ): Promise<void> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const record: IUsernameChangeEntity = {
+                id: uuid(),
+                playerId: userId,
+                previousUsername,
+                newUsername,
+                source,
+                relatedModActionId,
+                createdAt: new Date().toISOString(),
+            };
+            await dbService.saveUsernameChangeAsync(record);
+        } catch (error) {
+            logger.error('Error recording username change:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Get the full username change history for a player.
+     * Sorted by createdAt descending (newest first).
+     */
+    public async getUsernameChangeHistoryAsync(userId: string): Promise<IUsernameChangeEntity[]> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const usernameChanges = await dbService.getUsernameChangesAsync(userId);
+            usernameChanges.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return usernameChanges;
+        } catch (error) {
+            logger.error('Error getting username change history:', {
                 error: { message: error.message, stack: error.stack },
                 userId
             });
