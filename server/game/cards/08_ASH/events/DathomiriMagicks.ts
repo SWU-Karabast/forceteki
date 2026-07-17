@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
@@ -22,19 +22,14 @@ export default class DathomiriMagicks extends EventCard {
 
         registrar.setEventAbility({
             title: 'Play up to 3 non-Vehicle units that each cost 2 or less from your discard pile for free',
-            targetResolver: {
-                activePromptTitle: 'Choose up to 3 units to play for free',
-                mode: TargetMode.UpTo,
-                numCards: 3,
+            immediateEffect: AbilityHelper.immediateEffects.playMultipleCardsFromDiscard({
+                activePromptTitle: 'Choose a unit to play for free',
+                maxCards: 3,
                 cardTypeFilter: WildcardCardType.Unit,
-                zoneFilter: ZoneName.Discard,
-                controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle) && card.cost <= 2,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                    adjustCost: { costAdjustType: CostAdjustType.Free },
-                    playAsType: WildcardCardType.Unit,
-                })
-            }
+                playAsType: WildcardCardType.Unit,
+                adjustCost: { costAdjustType: CostAdjustType.Free },
+            })
         });
     }
 }
