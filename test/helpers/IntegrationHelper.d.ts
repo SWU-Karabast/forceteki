@@ -92,6 +92,9 @@ interface SwuTestContext {
     startGameAsync(): Promise;
 
     setupCallCount: number;
+    isUndoTest?: boolean;
+    hasSetupGame?: boolean;
+    undoReplayInProgress?: boolean;
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;

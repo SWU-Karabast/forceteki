@@ -130,9 +130,11 @@ global.integration = function (definitions, enableUndo = false) {
 
                 newContext.setupCallCount++;
 
-                // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
-                // this is to prevent repeated setup calls when we run the test twice in an Undo test.
-                if (!newContext.isUndoTest || this.contextRef.snapshot?.startOfTestSnapshot == null) {
+                // Run the setup on the first pass of a test (including the initial run of an Undo test), but skip it during
+                // an Undo test's rollback replay so we don't rebuild the board on top of the restored snapshot.
+                // On the first pass we (re)take the start-of-test snapshot after each setup, so a test that overrides a
+                // beforeEach board with its own setupTestAsync in the body snapshots the final board it actually runs against.
+                if (!newContext.isUndoTest || !newContext.undoReplayInProgress) {
                     await gameStateBuilder.setupGameStateAsync(newContext, options);
                     gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
 
@@ -223,6 +225,7 @@ global.undoIt = function(expectation, assertion, timeout) {
         const context = this.contextRef.context;
         const snapshotUtils = this.contextRef.snapshot;
         context.isUndoTest = true;
+        context.undoReplayInProgress = false;
 
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
@@ -252,6 +255,7 @@ global.undoIt = function(expectation, assertion, timeout) {
 
         context.game.gameChat.messages = messagesBeforeAssertion;
 
+        context.undoReplayInProgress = true;
         await assertion();
     }, timeout);
 };
@@ -261,6 +265,7 @@ global.undoFit = function(expectation, assertion, timeout) {
         const context = this.contextRef.context;
         const snapshotUtils = this.contextRef.snapshot;
         context.isUndoTest = true;
+        context.undoReplayInProgress = false;
 
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
@@ -290,6 +295,7 @@ global.undoFit = function(expectation, assertion, timeout) {
 
         context.game.gameChat.messages = messagesBeforeAssertion;
 
+        context.undoReplayInProgress = true;
         await assertion();
     }, timeout);
 };
