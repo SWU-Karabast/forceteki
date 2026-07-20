@@ -55,7 +55,7 @@ describe('Warrior of Clan Ordo', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Warrior of Clan Ordo\'s ability automatically applies the 2 damage if you cannot disclose the required aspects (no prompt)', async function () {
+        it('Warrior of Clan Ordo\'s ability shows a skippable pause, then applies the 2 damage, if you cannot disclose the required aspects', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -71,6 +71,12 @@ describe('Warrior of Clan Ordo', function () {
 
             context.player1.clickCard(context.warriorOfClanOrdo);
             context.player1.clickCard(context.p2Base);
+
+            // Player 1 can't disclose Aggression, so a skippable masking pause is shown instead of
+            // resolving instantly; after skipping, the "if you do not" effect deals 2 damage to their base.
+            expect(context.player1).toHavePrompt('Pausing for Disclose');
+            expect(context.player1).toHaveEnabledPromptButton('Skip');
+            context.player1.clickPrompt('Skip');
 
             expect(context.p1Base.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();
@@ -94,6 +100,10 @@ describe('Warrior of Clan Ordo', function () {
             context.player1.clickCard(context.warriorOfClanOrdo);
             context.player1.clickCard(context.p2Base);
 
+            // Player 1 can't disclose Aggression, so skip the masking pause before the rest resolves
+            expect(context.player1).toHavePrompt('Pausing for Disclose');
+            context.player1.clickPrompt('Skip');
+
             expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
             context.player1.clickPrompt('Trigger');
             context.player1.clickPrompt('Deal indirect damage to opponent');
@@ -103,7 +113,7 @@ describe('Warrior of Clan Ordo', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Warrior of Clan Ordo\'s ability automatically applies the 2 damage if you do not have any card in hand', async function () {
+        it('Warrior of Clan Ordo\'s ability shows a skippable pause, then applies the 2 damage, if you do not have any card in hand', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -118,6 +128,12 @@ describe('Warrior of Clan Ordo', function () {
 
             context.player1.clickCard(context.warriorOfClanOrdo);
             context.player1.clickCard(context.p2Base);
+
+            // Player 1 has no cards to disclose, so a skippable masking pause is shown; after skipping,
+            // the "if you do not" effect deals 2 damage to their base.
+            expect(context.player1).toHavePrompt('Pausing for Disclose');
+            expect(context.player1).toHaveEnabledPromptButton('Skip');
+            context.player1.clickPrompt('Skip');
 
             expect(context.p1Base.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();

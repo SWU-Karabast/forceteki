@@ -204,7 +204,7 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not trigger if the hand is empty', function () {
+            it('shows a skippable pause instead of resolving if the hand is empty', function () {
                 const { context } = contextRef;
 
                 context.player1.passAction();
@@ -219,7 +219,12 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
 
                 context.player2.clickCard(context.strategicAnalysis);
 
-                context.player1.passAction(); // cannot pass if disclose prompt is up
+                // Player 1's Chairman Papanoida disclose triggers but they can't satisfy it (empty hand),
+                // so a skippable masking pause is shown instead of resolving instantly
+                expect(context.player1).toHavePrompt('Pausing for Disclose');
+                context.player1.clickPrompt('Skip');
+
+                context.player1.passAction();
                 const spy = context.player1.findCardsByName('spy');
                 expect(spy.length).toBe(0);
 
