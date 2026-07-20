@@ -238,5 +238,17 @@ describe('Shadow Caster, Just Business', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('Shadow Caster with a granted When Defeated ability', function() {
+            // Ruling 2025-04-30: Shadow Caster's ability cares about which "When Defeated" abilities the
+            // defeated unit had, and Last Known Information covers that a unit had an ability granted to
+            // it (e.g. by Grim Valor). So Shadow Caster can double a "When Defeated" ability that was
+            // granted to the unit by Grim Valor, not only printed ones.
+            xit('can double a "When Defeated" ability granted to the unit by Grim Valor (LKI)', function () {
+                // A friendly unit has Grim Valor attached (granting it a "When Defeated" ability). Shadow
+                // Caster is in play. When that unit is defeated, Shadow Caster can use the granted "When
+                // Defeated" ability again, since LKI covers that the unit had that ability.
+            });
+        });
     });
 });

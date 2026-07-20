@@ -270,8 +270,12 @@ restriction specifically. Pinned.
 blanks the leader pilot, so the grant disappears and the host is no longer a leader (and thus
 unaffected by Brain Invaders).
 
-**Findings:** Brain Invaders + leader-pilot-grant interaction not found in the Brain Invaders spec.
-There was a Brain Invaders errata to consider, so behavior may be in flux. Pinned.
+**RESOLVED — OBSOLETE (superseded by errata).** Brain Invaders was errata'd to only affect
+non-upgrade leaders; it no longer affects leader *upgrades*. So a leader pilot is NOT blanked, its
+"attached unit is a leader unit" grant persists, and the host stays a leader — the opposite of this
+(pre-errata) ruling. The current, errata'd behavior is already tested at
+`test/server/cards/03_TWI/units/BrainInvaders.spec.ts:192` ("does not remove abilities from Leader
+Upgrades"). No stub added; this ruling is out of date.
 
 ---
 
@@ -512,34 +516,37 @@ test asserts it. Pinned.
 
 ## Summary
 
-| # | Section | Item | Why pinned |
-|---|---------|------|-----------|
-| 1 | SOR/SHD | Superlaser Technician + Unrefusable Offer | Vague ruling; exact behavior unclear |
-| 2 | SHD | Spare the Target + Unrefusable Offer | Templating error, errata pending |
-| 3 | SHD | Conditional Overwhelm lost before damage | Engine-level; need concrete example |
-| 4 | TWI | Clone reverts completely when defeated | Subtle trait-defeat timing |
-| 5 | TWI | Capturing a token with a bounty | Setup unclear; home spec open |
-| 6 | TWI | Once-per-round limit on card copy | Engine-level; needs control-change card |
-| 7 | JTL | Admiral Yularen applies to later units | Erratum pending; may fail engine |
-| 8 | JTL | Han Solo (Never Tell) + Plot | Multi-step sequencing |
-| 9 | JTL | Shadow Caster doubling Grim Valor | LKI; home spec + assertion |
-| 10 | JTL | Chewie/Han pilot onto Falcon either order | Confirm versions; small test |
-| 11 | JTL | Indirect damage ignores shields / no waste | Likely already covered — confirm |
-| 12 | JTL | Indirect damage to deployed Chirrut | No indirect-damage Chirrut test |
-| 13 | JTL | Upgrade eligibility stays when host invalid | Engine-level mechanics |
-| 14 | JTL | Pilots can't move to non-vehicle | Restriction not directly tested |
-| 15 | JTL | Leader-pilot grant + Brain Invaders | Errata to consider |
-| 16 | SEC | Queen Amidala + Overwhelm excess-to-base | Involved combat-math assertion |
-| 17 | LAW | Tear This Ship Apart ordering | Known TODO in spec |
-| 18 | General | Fire Across the Galaxy choose-as-you-go | Engine chooses up-front (mismatch) |
-| 19 | General | Umbaran Mobile Cannon "first time" vs replacement | Possible engine/ruling mismatch |
-| 20 | General | Fully Armed and Operational + nested play (Ezra) | Nested-play sub-case untested |
-| 21 | General | Darth Maul's Lightsaber LKI (defeated by uniqueness) | Defeated-upgrade case untested |
-| 22 | General | Chopper: War Hero simultaneous discard | No-info-leak nuance hard to assert |
-| 23 | General | Undeployed leader ability damage responsibility | Sprawling, partly Twin Suns |
-| 24 | General | Keyword granted at Declare Intent (gained-keyword discount) | Twin Suns combo |
-| 25 | General | Qui-Gon/Yoda cost trigger vs Krayt nesting | Deeply nested timing |
-| 26 | General | Kazuda consecutive action vs turn | Pass-response nuance untested |
-| 27 | General | Defeating HP-providing upgrade responsibility | Niche; needs responsibility observer |
-| 28 | General | Survivors' Gauntlet eligibility sub-scenarios | Sidon / Iden+Corvus+Eject untested |
-| 29 | General | Constant abilities "on" during game-state checks | Abstract engine principle |
+All 29 items have been addressed this pass. Most are now documented in-code as `xit` stubs; the
+exceptions (handled / obsolete / deferred / already-stubbed) are noted below.
+
+| # | Section | Item | Disposition (this pass) |
+|---|---------|------|-------------------------|
+| 1 | SOR/SHD | Superlaser Technician + Unrefusable Offer | **xit** — `UnrefusableOffer.spec.ts` (commented block converted to xit) |
+| 2 | SHD | Spare the Target + Unrefusable Offer | **xit** — `SpareTheTarget.spec.ts` (NOTE: errata) |
+| 3 | SHD | Conditional Overwhelm lost before damage | **xit** — `keyword/Overwhelm.spec.ts` |
+| 4 | TWI | Clone reverts completely when defeated | **xit** — `Clone.spec.ts` |
+| 5 | TWI | Capturing a token with a bounty | **xit** — `gameSystems/CaptureSystem.spec.ts` |
+| 6 | TWI | Once-per-round limit on card copy | **xit** — new `scenarios/ability/AbilityLimits.spec.ts` |
+| 7 | JTL | Admiral Yularen applies to later units | **xit** — `AdmiralYularenFleetCoordinator.spec.ts` (errata has landed) |
+| 8 | JTL | Han Solo (Never Tell) + Plot | **xit** — `HanSoloNeverTellMeTheOdds.spec.ts` |
+| 9 | JTL | Shadow Caster doubling Grim Valor | **xit** — `ShadowCasterJustBusiness.spec.ts` |
+| 10 | JTL | Chewie/Han pilot onto Falcon either order | **xit** — `MillenniumFalconGetOutAndPush.spec.ts` (leader + non-leader pilot) |
+| 11 | JTL | Indirect damage ignores shields / no waste | **HANDLED** — `PlanetaryBombardment.spec.ts:45` (shielded unit takes indirect, keeps shield) |
+| 12 | JTL | Indirect damage to deployed Chirrut | **xit** — `ChirrutImweOneWithTheForce.spec.ts` |
+| 13 | JTL | Upgrade eligibility stays when host invalid | **xit** — `core/card/Upgrade.spec.ts` |
+| 14 | JTL | Pilots can't move to non-vehicle | **xit** — `keyword/Piloting.spec.ts` |
+| 15 | JTL | Leader-pilot grant + Brain Invaders | **OBSOLETE** — superseded by errata; covered by `BrainInvaders.spec.ts:192` |
+| 16 | SEC | Queen Amidala + Overwhelm excess-to-base | **xit** — `keyword/Overwhelm.spec.ts` |
+| 17 | LAW | Tear This Ship Apart ordering | **xit** — `TearThisShipApart.spec.ts` (ties to existing TODO) |
+| 18 | General | Fire Across the Galaxy choose-as-you-go | **xit** — `FireAcrossTheGalaxy.spec.ts` (NOTE: engine chooses up-front — mismatch) |
+| 19 | General | Umbaran Mobile Cannon "first time" vs replacement | **xit** — `UmbaranMobileCannon.spec.ts` (NOTE: possible mismatch) |
+| 20 | General | Fully Armed and Operational + nested play (Ezra) | **xit** — `FullyArmedAndOperational.spec.ts` |
+| 21 | General | Darth Maul's Lightsaber LKI (defeated by uniqueness) | **xit** — `DarthMaulsLightsaber.spec.ts` |
+| 22 | General | Chopper: War Hero simultaneous discard | **xit** — `ChopperWarHero.spec.ts` (NOTE: possible engine change) |
+| 23 | General | Undeployed leader ability damage responsibility | **DEFERRED** — `swu_clarifications_twin_suns.md` (deeper review later) |
+| 24 | General | Keyword granted at Declare Intent (gained-keyword discount) | **DEFERRED** — `swu_clarifications_twin_suns.md` (Twin Suns combo) |
+| 25 | General | Qui-Gon/Yoda cost trigger vs Krayt nesting | **ALREADY STUBBED** — `KraytDragon.spec.ts:221` |
+| 26 | General | Kazuda consecutive action vs turn | **xit** — `KazudaXionoBestPilotInTheGalaxy.spec.ts` |
+| 27 | General | Defeating HP-providing upgrade responsibility | **xit** — `scenarios/DefeatAttribution.spec.ts` |
+| 28 | General | Survivors' Gauntlet eligibility sub-scenarios | **xit** — `SurvivorsGauntlet.spec.ts` (2 stubs: Sidon, Iden+Corvus+Eject) |
+| 29 | General | Constant abilities "on" during game-state checks | **xit** — `scenarios/timingWindows/DefeatTiming.spec.ts` |

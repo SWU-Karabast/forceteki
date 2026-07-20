@@ -454,5 +454,18 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 // effect that already resolved remains in place.
             });
         });
+
+        describe('Kazuda Xiono\'s extra action vs the action-phase-end / consecutive-pass rule', function() {
+            // Ruling 2025-05-19: "consecutive" refers to actions, not turns. Kazuda grants an extra
+            // action, so a pass that follows Kazuda's extra action is not "consecutive" with the
+            // opponent's earlier pass. Using Kaz's ability to Pass gives the other player a chance to
+            // respond, unless that other player has already claimed the initiative.
+            xit('an opponent pass followed by Kazuda\'s extra action + pass does not end the action phase (player still gets to respond)', function () {
+                // Player 1 passes. Player 2 uses Kazuda's leader ability to take an extra action and then
+                // passes. Because an action (the extra action) intervened, that pass is not consecutive
+                // with Player 1's pass, so the action phase does not end — Player 1 gets another chance to
+                // act (unless Player 2 had already claimed the initiative).
+            });
+        });
     });
 });

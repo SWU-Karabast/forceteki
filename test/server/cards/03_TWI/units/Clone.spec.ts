@@ -1989,5 +1989,18 @@ describe('Clone', function() {
                 // from the opponent's hand/deck — not cards named "Clone".
             });
         });
+
+        describe('when it reverts on defeat', function () {
+            // Ruling 2024: when Clone is defeated it reverts completely to its base (non-copy) state, so
+            // it is NOT eligible for effects based on traits it had only while it was a copy. (Contrast
+            // with LKI, which covers information like names for resolving abilities; here a trait-based
+            // "when a <trait> unit is defeated" effect does not see the copied trait.)
+            xit('is not eligible for trait-based defeat effects for traits it only had while copying', function () {
+                // A Clone is copying a unit with a distinctive trait, and an effect cares about "when a
+                // <trait> unit is defeated". When the Clone is defeated, it reverts completely, so that
+                // trait-based defeat effect does not apply to it (it no longer counts as having the
+                // copied trait at the moment of defeat).
+            });
+        });
     });
 });

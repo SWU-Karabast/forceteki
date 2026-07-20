@@ -231,6 +231,21 @@ describe('Tear This Ship Apart', function() {
                 expect(context.awing).toBeInZone('resource', context.player2);
                 expect(context.confiscate).toBeInZone('deck', context.player2);
             });
+
+            // Ruling 2026-05-06: "playing" the selected event means putting it into its owner's discard
+            // pile and resolving its ability, which must complete BEFORE the text after "If you do" (the
+            // opponent resourcing the top card of their deck). So if the selected card is itself a Tear
+            // This Ship Apart, it resolves fully against the resources available at that moment and does
+            // NOT have access to the card the opponent resources afterward.
+            // See the related TODO at ~line 191 ("follow clarifications for the order of resolving
+            // nested and if you do") with its commented-out expectations.
+            xit('finishes playing the selected card before the "If you do" resources the top card (recursive Tear This Ship Apart)', function () {
+                // Player 1 plays Tear This Ship Apart and chooses to play a second Tear This Ship Apart
+                // from the opponent's resources. That second Tear This Ship Apart resolves fully (looking
+                // only at the resources present at that moment) before the first one's "If you do" causes
+                // the opponent to resource the top card of their deck — so the newly-resourced card is
+                // not available to the second Tear This Ship Apart.
+            });
         });
     });
 });

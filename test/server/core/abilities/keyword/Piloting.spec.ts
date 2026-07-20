@@ -409,5 +409,13 @@ describe('Piloting keyword', function() {
             // Attach a Pilot (with a distinctive trait) as an upgrade to a vehicle. The vehicle should
             // not gain the pilot's traits, so trait-based effects targeting that trait do not see it.
         });
+
+        // Ruling 2025: a Pilot already in play as an upgrade can only be moved to another Vehicle unit,
+        // not to a non-Vehicle unit.
+        xit('a pilot already in play cannot be moved to a friendly non-vehicle unit', function () {
+            // A pilot is attached to a friendly vehicle. Use a move-upgrade effect (e.g. Survivors'
+            // Gauntlet) while a friendly non-Vehicle unit is also in play. The non-Vehicle unit is not a
+            // legal destination for the pilot — only friendly Vehicle units are selectable.
+        });
     });
 });
