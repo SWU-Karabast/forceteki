@@ -14,7 +14,7 @@ export default class PrecisionFire extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `Attack with a unit. It gains ${TextHelper.Saboteur} for this attack. If it’s a Trooper, it also gets +2/+0 for this attack.`,
+            title: `Attack with a unit. It gains ${TextHelper.Saboteur} for this attack. If it’s a ${TextHelper.Trait.Trooper}, it also gets +2/+0 for this attack.`,
             initiateAttack: {
                 attackerLastingEffects: [
                     { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur) },

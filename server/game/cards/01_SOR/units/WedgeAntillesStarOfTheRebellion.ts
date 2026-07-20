@@ -14,7 +14,7 @@ export default class WedgeAntillesStarOfTheRebellion extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Each friendly Vehicle unit gets +1/+1 and gains ${TextHelper.Ambush}.`,
+            title: `Each friendly ${TextHelper.Trait.Vehicle} unit gets +1/+1 and gains ${TextHelper.Ambush}.`,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             matchTarget: (card) => card.hasSomeTrait(Trait.Vehicle),

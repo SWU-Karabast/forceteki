@@ -135,6 +135,42 @@ describe('The Armorer, Steel Shapes Us', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('does not let the player ramp when a targeted cost reduction makes the upgrade unaffordable on its only valid target', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-armorer#steel-shapes-us',
+                        hand: ['conveyex-security-captain'],
+                        // Guardian of the Whills gives a cost reduction only when the upgrade is attached to itself,
+                        // but it did not enter play this phase so it isn't a valid attach target for The Armorer
+                        groundArena: ['guardian-of-the-whills'],
+                        resources: ['durasteel-plating', 'dorsal-turret', 'atst', 'atst'],
+                        base: 'data-vault',
+                        deck: ['moisture-farmer']
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // Conveyex Security Captain is the only unit to enter play this phase
+                context.player1.clickCard(context.conveyexSecurityCaptain);
+                context.player2.passAction();
+
+                // Durasteel Plating (cost 2) can't be afforded on Conveyex Security Captain (only 1 ready resource,
+                // and Guardian's reduction doesn't apply there), so the ability has no legal play — it's a soft pass
+                context.player1.clickCard(context.theArmorer);
+                context.player1.clickPrompt('Use it anyway');
+
+                // No upgrade is played and, crucially, no card is resourced from the deck (no ramp)
+                expect(context.theArmorer.exhausted).toBeTrue();
+                expect(context.durasteelPlating).toBeInZone('resource', context.player1);
+                expect(context.conveyexSecurityCaptain).toHaveExactUpgradeNames([]);
+                expect(context.moistureFarmer).toBeInZone('deck', context.player1);
+                expect(context.player1.resources.length).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('can be activated as a soft pass if no units entered play this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

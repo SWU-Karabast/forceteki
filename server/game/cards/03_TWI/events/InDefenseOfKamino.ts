@@ -14,7 +14,7 @@ export default class InDefenseOfKamino extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `For this phase, each friendly Republic unit gains ${TextHelper.Restore(2)} and: "When Defeated: Create a Clone Trooper token"`,
+            title: `For this phase, each friendly ${TextHelper.Trait.Republic} unit gains ${TextHelper.Restore(2)} and: "When Defeated: Create a Clone Trooper token"`,
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: [
                     AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 2 }),

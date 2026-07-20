@@ -2,6 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait, WildcardCardType } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import type { Player } from '../../../core/Player';
@@ -16,7 +17,7 @@ export default class ExecuteOrder66 extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Deal 6 damage to each Jedi unit.',
+            title: `Deal 6 damage to each ${TextHelper.Trait.Jedi} unit.`,
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 6,
                 target: this.getJedisInPlay(context)

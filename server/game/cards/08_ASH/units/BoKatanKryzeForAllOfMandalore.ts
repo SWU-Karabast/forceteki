@@ -14,7 +14,7 @@ export default class BoKatanKryzeForAllOfMandalore extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another Mandalorian unit, this unit gains ${TextHelper.Raid(2)}`,
+            title: `While you control another ${TextHelper.Trait.Mandalorian} unit, this unit gains ${TextHelper.Raid(2)}`,
             condition: (context) => context.player.isTraitInPlay(Trait.Mandalorian, context.source),
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });

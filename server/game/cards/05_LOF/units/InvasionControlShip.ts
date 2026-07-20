@@ -14,7 +14,7 @@ export default class InvasionControlShip extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Friendly Droid units gain ${TextHelper.Raid(2)}`,
+            title: `Friendly ${TextHelper.Trait.Droid} units gain ${TextHelper.Raid(2)}`,
             targetController: RelativePlayer.Self,
             matchTarget: (card) => card.hasSomeTrait(Trait.Droid),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 }),

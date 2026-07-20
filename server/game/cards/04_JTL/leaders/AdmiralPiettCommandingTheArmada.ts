@@ -15,10 +15,10 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Play a Capital Ship unit from your hand. It costs ${TextHelper.resource(1)} less`,
+            title: `Play a ${TextHelper.Trait.CapitalShip} unit from your hand. It costs ${TextHelper.resource(1)} less`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                activePromptTitle: 'Choose a Capital Ship',
+                activePromptTitle: `Choose a ${TextHelper.Trait.CapitalShip}`,
                 cardCondition: (card) => card.hasSomeTrait(Trait.CapitalShip),
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
@@ -32,7 +32,7 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Each Capital Ship unit you play costs ${TextHelper.resource(2)} less`,
+            title: `Each ${TextHelper.Trait.CapitalShip} unit you play costs ${TextHelper.resource(2)} less`,
             targetController: RelativePlayer.Self,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 match: (card) => card.hasSomeTrait(Trait.CapitalShip),

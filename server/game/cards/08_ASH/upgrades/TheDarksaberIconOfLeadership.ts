@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TheDarksaberIconOfLeadership extends UpgradeCard {
     protected override getImplementationId() {
@@ -17,7 +18,7 @@ export default class TheDarksaberIconOfLeadership extends UpgradeCard {
         );
 
         registrar.addConstantAbilityTargetingAttached({
-            title: 'Attached unit is a leader unit and gains the Mandalorian trait',
+            title: `Attached unit is a leader unit and gains the ${TextHelper.Trait.Mandalorian} trait`,
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.isLeader(),
                 AbilityHelper.ongoingEffects.gainTrait(Trait.Mandalorian),

@@ -21,8 +21,8 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
         const shielded = TextHelper.Shielded;
 
         registrar.addWhenPlayedAbility({
-            title: `Choose ${grit}, ${restore1}, ${sentinel}, or ${shielded}. While ${this.title} is in play, each friendly Vehicle unit gains the chosen keyword.`,
-            contextTitle: (context) => `Choose ${grit}, ${restore1}, ${sentinel}, or ${shielded}. While ${context.source.title} is in play, each friendly Vehicle unit gains the chosen keyword.`,
+            title: `Choose ${grit}, ${restore1}, ${sentinel}, or ${shielded}. While ${this.title} is in play, each friendly ${TextHelper.Trait.Vehicle} unit gains the chosen keyword.`,
+            contextTitle: (context) => `Choose ${grit}, ${restore1}, ${sentinel}, or ${shielded}. While ${context.source.title} is in play, each friendly ${TextHelper.Trait.Vehicle} unit gains the chosen keyword.`,
             targetResolver: {
                 mode: TargetMode.Select,
                 activePromptTitle: `Choose ${grit}, ${restore1}, ${sentinel}, or ${shielded}`,
@@ -42,10 +42,10 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
     private buildYularenEffect(choice: KeywordNameOrProperties, AbilityHelper: IAbilityHelper, playedByPlayer: Player) {
         return AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
             ongoingEffectDescription: `give ${TextHelper.keyword(choice)} to`,
-            ongoingEffectTargetDescription: 'each friendly Vehicle unit',
+            ongoingEffectTargetDescription: `each friendly ${TextHelper.Trait.Vehicle} unit`,
             effect: AbilityHelper.ongoingEffects.gainAbility({
                 type: AbilityType.Constant,
-                title: `Friendly Vehicle units gains ${TextHelper.keyword(choice)}`,
+                title: `Friendly ${TextHelper.Trait.Vehicle} units gains ${TextHelper.keyword(choice)}`,
                 targetController: WildcardRelativePlayer.Any,
                 targetCardTypeFilter: WildcardCardType.Unit,
                 matchTarget: (card) => card.hasSomeTrait(Trait.Vehicle) && card.controller === playedByPlayer,

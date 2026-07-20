@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class LetTheWookieeWin extends EventCard {
     protected override getImplementationId () {
@@ -13,14 +14,14 @@ export default class LetTheWookieeWin extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'An opponent chooses if you ready up to 6 resources or ready a friendly unit. If it’s a Wookiee unit, attack with it. It gets +2/+0 for this attack',
+            title: `An opponent chooses if you ready up to 6 resources or ready a friendly unit. If it’s a ${TextHelper.Trait.Wookiee} unit, attack with it. It gets +2/+0 for this attack`,
             targetResolver: {
                 mode: TargetMode.Select,
                 choosingPlayer: RelativePlayer.Opponent,
                 choices: (context) => ({
                     [`${context.player.name} readies up to 6 resources`]:
                         AbilityHelper.immediateEffects.readyResources({ amount: 6 }),
-                    [`${context.player.name} readies a friendly unit. If it’s a Wookiee unit, they attack with it and it gets +2/+0 for this attack`]:
+                    [`${context.player.name} readies a friendly unit. If it’s a ${TextHelper.Trait.Wookiee} unit, they attack with it and it gets +2/+0 for this attack`]:
                         AbilityHelper.immediateEffects.selectCard({
                             controller: RelativePlayer.Self,
                             cardTypeFilter: WildcardCardType.Unit,

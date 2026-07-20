@@ -29,7 +29,7 @@ export default class ChopperMetalMenace extends NonLeaderUnitCard {
         });
 
         registrar.addConstantAbility({
-            title: `While you control another Spectre unit, Chopper gains ${TextHelper.Raid(1)}`,
+            title: `While you control another ${TextHelper.Trait.Spectre} unit, Chopper gains ${TextHelper.Raid(1)}`,
             condition: (context) => context.player.hasSomeArenaUnit({ otherThan: context.source, trait: Trait.Spectre }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });

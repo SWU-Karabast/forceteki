@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { BasesHealedThisPhaseWatcher } from '../../../stateWatchers/BasesHealedThisPhaseWatcher';
 
@@ -21,7 +22,7 @@ export default class DookusSolarSailerBeautifulAndExpensive extends NonLeaderUni
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Give an Experience token to another Separatist unit',
+            title: `Give an Experience token to another ${TextHelper.Trait.Separatist} unit`,
             when: {
                 whenPlayed: true,
                 onAttack: true,

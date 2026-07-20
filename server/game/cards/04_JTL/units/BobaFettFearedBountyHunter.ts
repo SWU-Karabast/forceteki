@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BobaFettFearedBountyHunter extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,7 +15,7 @@ export default class BobaFettFearedBountyHunter extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addPilotingAbility({
             type: AbilityType.Triggered,
-            title: 'Deal 1 damage to a unit. If attached unit is a Transport, deal 2 damage instead.',
+            title: `Deal 1 damage to a unit. If attached unit is a ${TextHelper.Trait.Transport}, deal 2 damage instead.`,
             contextTitle: (context) => `Deal ${context.source.parentCard.hasSomeTrait(Trait.Transport) ? 2 : 1} damage to a unit`,
             when: {
                 whenPlayed: true,

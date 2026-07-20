@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { TargetMode, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class PlanetaryBombardment extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class PlanetaryBombardment extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Deal 8 indirect damage to a player. If you control a Capital Ship unit, deal 12 indirect damage instead',
+            title: `Deal 8 indirect damage to a player. If you control a ${TextHelper.Trait.CapitalShip} unit, deal 12 indirect damage instead`,
             contextTitle: (c) => `Deal ${c.player.hasSomeArenaUnit({ trait: Trait.CapitalShip }) ? 12 : 8} indirect damage to a player`,
             targetResolver: {
                 mode: TargetMode.Player,

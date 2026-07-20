@@ -43,7 +43,7 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
-            title: `The next Pilot you play this phase costs ${TextHelper.resource(1)} less`,
+            title: `The next ${TextHelper.Trait.Pilot} you play this phase costs ${TextHelper.resource(1)} less`,
             when: {
                 onAttack: true,
             },

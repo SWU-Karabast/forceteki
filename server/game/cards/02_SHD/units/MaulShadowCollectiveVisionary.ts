@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, DamageModificationType, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import { DamageSourceType } from '../../../IDamageOrDefeatSource';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Choose another friendly Underworld unit. All combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.',
+            title: `Choose another friendly ${TextHelper.Trait.Underworld} unit. All combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -26,7 +27,7 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                     onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect((maulContext) => ({
                         target: maulContext.source,
                         effect: AbilityHelper.ongoingEffects.gainDamageModificationAbility({
-                            title: 'Redirect combat damage to another Underworld unit',
+                            title: `Redirect combat damage to another ${TextHelper.Trait.Underworld} unit`,
                             type: AbilityType.DamageModification,
                             modificationType: DamageModificationType.Replace,
                             damageOfType: DamageSourceType.Attack,
