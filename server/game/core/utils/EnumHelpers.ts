@@ -323,6 +323,7 @@ export namespace EnumHelpers {
         [TokenUnitName.XWing]: 'X-Wing',
         [TokenUnitName.TIEFighter]: 'TIE Fighter',
         [TokenUnitName.Spy]: 'Spy',
+        // eslint-disable-next-line forceteki/no-raw-token-text -- token display name, not a trait reference
         [TokenUnitName.Mandalorian]: 'Mandalorian',
         [TokenUpgradeName.Shield]: 'Shield',
         [TokenUpgradeName.Experience]: 'Experience',

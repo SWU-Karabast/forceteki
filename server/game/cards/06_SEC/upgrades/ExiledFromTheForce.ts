@@ -18,7 +18,7 @@ export default class ExiledFromTheForce extends UpgradeCard {
     ) {
         registrar.addGainKeywordTargetingAttached({ keyword: KeywordName.Grit });
         registrar.addConstantAbilityTargetingAttached({
-            title: `Attached unit loses the Force trait and all abilities except ${TextHelper.Grit}`,
+            title: `Attached unit loses the ${TextHelper.Trait.Force} trait and all abilities except ${TextHelper.Grit}`,
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.loseTrait(Trait.Force),
                 AbilityHelper.ongoingEffects.loseAllOtherAbilities({ exceptKeyword: KeywordName.Grit })

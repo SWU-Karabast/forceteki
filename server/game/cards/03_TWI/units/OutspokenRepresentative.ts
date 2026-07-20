@@ -14,7 +14,7 @@ export default class OutspokenRepresentative extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another Republic unit, this unit gains ${TextHelper.Sentinel}.`,
+            title: `While you control another ${TextHelper.Trait.Republic} unit, this unit gains ${TextHelper.Sentinel}.`,
             condition: (context) => context.player.isTraitInPlay(Trait.Republic, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel })
         });

@@ -6,6 +6,7 @@ import type { INonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EventName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class OldDakaOldestAndWisest extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +18,7 @@ export default class OldDakaOldestAndWisest extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Defeat a friendly Night unit not named Old Daka',
+            title: `Defeat a friendly ${TextHelper.Trait.Night} unit not named Old Daka`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

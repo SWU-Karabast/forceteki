@@ -2,6 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MaximumFirePower extends EventCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class MaximumFirePower extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'A friendly Imperial unit deals damage equal to its power to a unit.',
+            title: `A friendly ${TextHelper.Trait.Imperial} unit deals damage equal to its power to a unit.`,
             targetResolvers: {
                 firstImperial: {
                     controller: RelativePlayer.Self,
@@ -33,7 +34,7 @@ export default class MaximumFirePower extends EventCard {
                 }
             },
             then: (thenContext) => ({
-                title: 'Another friendly Imperial unit deals damage equal to its power to the same unit.',
+                title: `Another friendly ${TextHelper.Trait.Imperial} unit deals damage equal to its power to the same unit.`,
                 targetResolver: {
                     controller: RelativePlayer.Self,
                     zoneFilter: WildcardZoneName.AnyArena,

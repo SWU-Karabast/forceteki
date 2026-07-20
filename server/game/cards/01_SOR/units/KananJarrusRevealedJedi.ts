@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { Aspect } from '../../../core/Constants';
 import { EventName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class KananJarrusRevealedJedi extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class KananJarrusRevealedJedi extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.',
+            title: `Discard a card from the defending player's deck for each ${TextHelper.Trait.Spectre} you control. Heal 1 damage for each aspect among the discarded cards.`,
             contextTitle: (context) => {
                 const count = context.player.getArenaUnits({ trait: Trait.Spectre }).length;
                 return `Discard ${count} ${count === 1 ? 'card' : 'cards'} from the defending player's deck. Heal 1 damage for each aspect among the discarded cards.`;

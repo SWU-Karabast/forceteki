@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { AbilityType, DamageModificationType, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class IHaveYouNow extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class IHaveYouNow extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a Vehicle unit',
+            title: `Attack with a ${TextHelper.Trait.Vehicle} unit`,
             initiateAttack: {
                 attackerCondition: (card, context) => card.controller === context.source.controller && card.hasSomeTrait(Trait.Vehicle),
                 attackerLastingEffects: [{ effect: AbilityHelper.ongoingEffects.gainAbility({

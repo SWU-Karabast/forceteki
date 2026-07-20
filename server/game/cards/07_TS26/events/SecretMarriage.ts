@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SecretMarriage extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class SecretMarriage extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.setEventAbility({
-            title: 'Give a Shield token to each of up to 2 non-Vehicle units. If you give a Shield to an enemy unit this way, draw a card',
+            title: `Give a Shield token to each of up to 2 non-${TextHelper.Trait.Vehicle} units. If you give a Shield to an enemy unit this way, draw a card`,
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 2,

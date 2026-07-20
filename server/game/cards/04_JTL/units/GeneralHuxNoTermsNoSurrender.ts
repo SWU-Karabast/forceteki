@@ -22,7 +22,7 @@ export default class GeneralHuxNoTermsNoSurrender extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Each other friendly First Order unit gains ${TextHelper.Raid(1)}`,
+            title: `Each other friendly ${TextHelper.Trait.FirstOrder} unit gains ${TextHelper.Raid(1)}`,
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.FirstOrder),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });

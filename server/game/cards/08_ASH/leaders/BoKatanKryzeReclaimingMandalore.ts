@@ -5,6 +5,7 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BoKatanKryzeReclaimingMandalore extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -33,7 +34,7 @@ export default class BoKatanKryzeReclaimingMandalore extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Other friendly Mandalorian units gets +1/+0',
+            title: `Other friendly ${TextHelper.Trait.Mandalorian} units gets +1/+0`,
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Mandalorian),
             ongoingEffect: abilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
         });

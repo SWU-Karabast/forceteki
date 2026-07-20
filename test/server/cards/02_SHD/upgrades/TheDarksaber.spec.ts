@@ -108,19 +108,16 @@ describe('The Darksaber', function() {
 
                     context.player1.clickCard(context.theDarksaber);
 
-                    expect(context.player1).toBeAbleToSelectExactly([
-                        context.clanWrenRescuer,
-                        // TODO: Non-Mandalorian units should not even be selectable in this scenario
-                        // https://github.com/SWU-Karabast/forceteki/issues/1970
-                        context.pykeSentinel
-                    ]);
+                    // Only the Mandalorian unit is selectable: attaching to Pyke Sentinel would require paying
+                    // the aspect penalty, which the player can't afford, so it is excluded from targeting (issue #1970)
+                    expect(context.player1).toBeAbleToSelectExactly([context.clanWrenRescuer]);
+                    expect(context.player1).not.toBeAbleToSelect(context.pykeSentinel);
 
-                    context.player1.clickCard(context.pykeSentinel);
+                    context.player1.clickCard(context.clanWrenRescuer);
 
-                    // Action was cancelled
-                    expect(context.theDarksaber).toBeInZone('hand', context.player1);
-                    expect(context.player1.exhaustedResourceCount).toBe(0);
-                    expect(context.player1).toBeActivePlayer();
+                    // The Darksaber is played on the Mandalorian with the aspect penalty ignored
+                    expect(context.clanWrenRescuer).toHaveExactUpgradeNames(['the-darksaber']);
+                    expect(context.player1.exhaustedResourceCount).toBe(4);
                 });
 
                 it('cannot be played with the discount if there are no Mandalorian non-vehicle units in play', async function () {
@@ -138,6 +135,27 @@ describe('The Darksaber', function() {
 
                     expect(context.player1).not.toBeAbleToSelect(context.theDarksaber);
                     context.player1.clickCardNonChecking(context.theDarksaber);
+                });
+
+                it('is not playable when unaffordable on every target, even if two different cost reductions each apply to a different unit', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            resources: 3,
+                            hand: ['the-darksaber'],
+                            // follower-of-the-way (Mandalorian) makes The Darksaber ignore the aspect penalty -> cost 4
+                            // guardian-of-the-whills discounts the first upgrade played on it by 1, but adds the +2 penalty -> cost 5
+                            groundArena: ['guardian-of-the-whills', 'follower-of-the-way']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // Neither unit's cost is payable with 3 resources, and the two reductions don't stack on a
+                    // single target, so The Darksaber is not playable at all (issue #1971)
+                    expect(context.player1).not.toBeAbleToSelect(context.theDarksaber);
+                    context.player1.clickCardNonChecking(context.theDarksaber);
+                    expect(context.theDarksaber).toBeInZone('hand', context.player1);
                 });
             });
 

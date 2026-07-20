@@ -14,7 +14,7 @@ export default class ForTheRepublic extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: `If you control 3 or more Republic units, this upgrade costs ${TextHelper.resource(2)} less to play.`,
+            title: `If you control 3 or more ${TextHelper.Trait.Republic} units, this upgrade costs ${TextHelper.resource(2)} less to play.`,
             amount: 2,
             condition: (context) => context.player.getArenaUnits({ trait: Trait.Republic }).length >= 3,
         });

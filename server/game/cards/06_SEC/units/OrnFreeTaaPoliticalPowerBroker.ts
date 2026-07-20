@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
 import type { IPlayableCard } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class OrnFreeTaaPoliticalPowerBroker extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class OrnFreeTaaPoliticalPowerBroker extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'This unit gets +1/+0 for each Law card in your discard pile',
+            title: `This unit gets +1/+0 for each ${TextHelper.Trait.Law} card in your discard pile`,
             ongoingEffect: abilityHelper.ongoingEffects.modifyStats((_, context) => ({
                 power: context.player.discard?.filter((x: IPlayableCard) => x.hasSomeTrait(Trait.Law)).length ?? 0,
                 hp: 0,
@@ -22,7 +23,7 @@ export default class OrnFreeTaaPoliticalPowerBroker extends NonLeaderUnitCard {
         });
 
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 10 cards of your deck for a Law card, reveal it, and draw it',
+            title: `Search the top 10 cards of your deck for a ${TextHelper.Trait.Law} card, reveal it, and draw it`,
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 10,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Law),

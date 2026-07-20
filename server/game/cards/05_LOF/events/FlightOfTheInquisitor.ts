@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FlightOfTheInquisitor extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class FlightOfTheInquisitor extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Return a Force unit and Lightsaber upgrade from your discard pile to your hand.',
+            title: `Return a ${TextHelper.Trait.Force} unit and ${TextHelper.Trait.Lightsaber} upgrade from your discard pile to your hand.`,
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.simultaneous(
                 [
