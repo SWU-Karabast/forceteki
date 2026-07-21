@@ -154,5 +154,108 @@ describe('autoSingleTarget: single-target scenarios', function() {
                 expect(context.disaffectedSenator.damage).toBe(4);
             });
         });
+
+        // Chained single-target auto-resolution within one play: Moral Authority attaches only to a
+        // friendly unique unit (one valid target) and its When Played captures the only enemy non-leader
+        // unit with less remaining HP (a second single target) — both resolve with no prompts.
+        describe('when a played upgrade chains into a single-target When Played ability', function() {
+            it('auto-attaches and auto-captures when autoSingleTarget is on', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        autoSingleTarget: true,
+                        hand: ['moral-authority'],
+                        groundArena: ['the-armorer#survival-is-strength']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.moralAuthority);
+
+                expect(context.theArmorer).toHaveExactUpgradeNames(['moral-authority']);
+                expect(context.battlefieldMarine).toBeCapturedBy(context.theArmorer);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('prompts for each target when autoSingleTarget is off', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        autoSingleTarget: false,
+                        hand: ['moral-authority'],
+                        groundArena: ['the-armorer#survival-is-strength']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.moralAuthority);
+
+                // choose the unit to attach to (only the friendly unique unit is eligible)
+                expect(context.player1).toBeAbleToSelectExactly([context.theArmorer]);
+                context.player1.clickCard(context.theArmorer);
+
+                // then the When Played capture requires its own target choice
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeCapturedBy(context.theArmorer);
+            });
+        });
+
+        // Deploying a pilot leader as an upgrade: the player still chooses the deploy *mode*
+        // (deploy as a unit vs. attach as a pilot), but once piloting is chosen the single eligible
+        // Vehicle target auto-resolves. (Deploying as a unit has no target, so nothing to auto-resolve there.)
+        describe('when deploying a pilot leader as an upgrade with one eligible vehicle', function() {
+            const pilotAttachPrompt = 'Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it';
+
+            it('keeps the deploy-mode choice but auto-resolves the vehicle when autoSingleTarget is on', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        autoSingleTarget: true,
+                        leader: 'poe-dameron#i-can-fly-anything',
+                        spaceArena: ['cartel-spacer'],
+                        resources: 6
+                    },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                // the deploy-mode menu still appears (deploy as unit vs. attach as pilot)
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt(pilotAttachPrompt);
+
+                // ...but the only eligible vehicle is chosen automatically
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['poe-dameron#i-can-fly-anything']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('prompts for the vehicle when autoSingleTarget is off', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        autoSingleTarget: false,
+                        leader: 'poe-dameron#i-can-fly-anything',
+                        spaceArena: ['cartel-spacer'],
+                        resources: 6
+                    },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt(pilotAttachPrompt);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['poe-dameron#i-can-fly-anything']);
+            });
+        });
     });
 });
