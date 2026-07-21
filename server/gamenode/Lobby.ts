@@ -1207,12 +1207,20 @@ export class Lobby {
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
     }
 
-    public async startTestGameAsync(filename: string) {
+    public async startTestGameAsync(
+        filename: string,
+        player1Info: { id: string; username: string } = { id: 'exe66', username: 'Order66' },
+        player2Info: { id: string; username: string } = { id: 'th3w4y', username: 'ThisIsTheWay' },
+        autoSingleTargetOverride?: boolean
+    ) {
         const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
-        if (setupData.autoSingleTarget == null) {
+        if (autoSingleTargetOverride != null) {
+            // Honor the requesting player's account preference when a real user starts the test game.
+            setupData.autoSingleTarget = autoSingleTargetOverride;
+        } else if (setupData.autoSingleTarget == null) {
             setupData.autoSingleTarget = false;
         }
 
@@ -1226,8 +1234,8 @@ export class Lobby {
             setupData,
             this.cardDataGetter,
             router,
-            { id: 'exe66', username: 'Order66' },
-            { id: 'th3w4y', username: 'ThisIsTheWay' },
+            player1Info,
+            player2Info,
             UndoMode.Free
         );
 

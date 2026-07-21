@@ -1505,10 +1505,10 @@ export class GameServer {
             }
         });
 
-        app.post('/api/start-test-game', async (req, res, next) => {
+        app.post('/api/start-test-game', this.buildAuthMiddleware('start-test-game'), async (req, res, next) => {
             const { filename } = req.body;
             try {
-                await this.startTestGame(filename);
+                await this.startTestGame(filename, req.user as User);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer: Error in start-test=game:', err);
@@ -2123,7 +2123,7 @@ export class GameServer {
         this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
     }
 
-    private async startTestGame(filename: string) {
+    private async startTestGame(filename: string, requestingUser?: User) {
         const lobby = new Lobby(
             'Test Game',
             MatchmakingType.PublicLobby,
@@ -2137,13 +2137,29 @@ export class GameServer {
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
-        const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
+
+        // In development, a real logged-in account may start a test setup so they can exercise
+        // account-only features (e.g. saved preferences) against a controlled board. In that case
+        // they become player 1; otherwise fall back to the Order66 dev test user (existing behavior).
+        const useRealUser = !!requestingUser && requestingUser.isAuthenticatedUser();
+        const player1 = useRealUser ? requestingUser : this.userFactory.createAnonymousUser('exe66', 'Order66');
         const theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
-        lobby.createLobbyUser(order66);
+
+        lobby.createLobbyUser(player1);
         lobby.createLobbyUser(theWay);
-        this.userLobbyMap.set(order66.id, { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(theWay.id, { lobbyId: lobby.id, role: UserRole.Player });
-        await lobby.startTestGameAsync(filename);
+        this.userLobbyMap.set(player1.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.userLobbyMap.set(theWay.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+
+        const autoSingleTargetOverride = useRealUser
+            ? requestingUser.getPreferences()?.gameOptions?.autoResolve?.singleTarget
+            : undefined;
+
+        await lobby.startTestGameAsync(
+            filename,
+            { id: player1.getId(), username: player1.getUsername() },
+            { id: theWay.getId(), username: theWay.getUsername() },
+            autoSingleTargetOverride
+        );
     }
 
     private getTestSetupGames() {
