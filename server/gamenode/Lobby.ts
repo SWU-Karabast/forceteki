@@ -2341,11 +2341,15 @@ export class Lobby {
                 : { phase: 'action', player1: {}, player2: {} };
 
             let gameMessages: ISerializedMessage[];
+            let chatMessages: ISerializedMessage[] | undefined;
             let opponent: { id: string; username: string };
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
                 opponent = { id: opponentObject.id, username: opponentObject.user.username };
                 gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+                if (reportType === ReportType.PlayerReport) {
+                    chatMessages = this.game.gameChat.getPlayerChatMessages();
+                }
             } else {
                 // this is for lobby player reports
                 const opponentObject = this.users.find((u) => u.id !== socket.user.getId());
@@ -2355,6 +2359,7 @@ export class Lobby {
                     throw new Error(`${reportLabel} failed since opponent wasn't found`);
                 }
                 gameMessages = this.gameChat.messages;
+                chatMessages = this.gameChat.getPlayerChatMessages();
             }
 
             const report = this.discordDispatcher.formatReport(
@@ -2370,7 +2375,8 @@ export class Lobby {
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
-                viewport
+                viewport,
+                chatMessages
             );
 
             const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);

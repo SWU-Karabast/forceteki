@@ -44,6 +44,29 @@ export class GameChat {
         this.typingState[userId] = isTyping;
     }
 
+    /**
+     * Returns only player chat messages, excluding game log messages and alerts.
+     */
+    public getPlayerChatMessages(): ISerializedMessage[] {
+        return this.messages.filter((messageEntry) => {
+            const message = messageEntry.message;
+
+            // Exclude alert messages
+            if (typeof message === 'object' && message !== null && 'alert' in message) {
+                return false;
+            }
+
+            // Include only messages whose first element is a playerChat marker
+            if (Array.isArray(message) && message.length > 0) {
+                const firstElement = message[0];
+                if (typeof firstElement === 'object' && firstElement && 'type' in firstElement && firstElement['type'] === 'playerChat') {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
     private formatMessage(format: string, args: MsgArg[]): string | string[] {
         if (!format) {
             return '';
