@@ -167,10 +167,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         targetResults.hasEffectiveTargets = true;
 
         // if there's only one target available...
-        if (context.player.autoSingleTarget && legalTargets.length === 1) {
+        // (keyed off the choosing player's setting, which may be the opponent for opponent-chosen targets)
+        if (player.autoSingleTarget && legalTargets.length === 1) {
             // ...and we are an optional resolver, prompt the player if they want to resolve
             if (this.selector.optional) {
-                this.promptForSingleOptionalTarget(context, legalTargets[0]);
+                this.promptForSingleOptionalTarget(player, context, legalTargets[0]);
                 return;
             }
 
@@ -264,12 +265,12 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return SelectCardMode.Multiple;
     }
 
-    private promptForSingleOptionalTarget(context: AbilityContext, target: Card) {
+    private promptForSingleOptionalTarget(player: Player, context: AbilityContext, target: Card) {
         const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.getTitle(context);
 
         const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${this.selector.appendToDefaultTitle ? ' ' + this.selector.appendToDefaultTitle : ''}`;
 
-        context.game.promptWithHandlerMenu(context.player, {
+        context.game.promptWithHandlerMenu(player, {
             activePromptTitle,
             choices: [`${effectName} -> ${target.title}`, 'Pass'],
             handlers: [
