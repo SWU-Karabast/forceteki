@@ -23,7 +23,7 @@ export default class TheMasterCodebreakerHighStakes extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `The first Gambit card you play each round costs ${TextHelper.resource(1)} less`,
+            title: `The first ${TextHelper.Trait.Gambit} card you play each round costs ${TextHelper.resource(1)} less`,
             ongoingEffect: abilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,
                 match: (card, source) => card.hasSomeTrait(Trait.Gambit) && this.isFirstGambitYouPlayedThisPhase(source.controller)
@@ -31,7 +31,7 @@ export default class TheMasterCodebreakerHighStakes extends NonLeaderUnitCard {
         });
 
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 8 cards of your deck for a Gambit card, reveal it, and draw it',
+            title: `Search the top 8 cards of your deck for a ${TextHelper.Trait.Gambit} card, reveal it, and draw it`,
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Gambit),

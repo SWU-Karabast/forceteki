@@ -14,7 +14,7 @@ export default class Terentatek extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While an opponent controls a Force unit, this unit gains ${TextHelper.Ambush}.`,
+            title: `While an opponent controls a ${TextHelper.Trait.Force} unit, this unit gains ${TextHelper.Ambush}.`,
             condition: (context) => context.player.opponent.hasSomeArenaUnit({ trait: Trait.Force }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
         });

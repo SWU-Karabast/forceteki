@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class KananJarrusHelpUsSurvive extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class KananJarrusHelpUsSurvive extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Give a Shield token to a Creature or Spectre unit.',
+            title: `Give a Shield token to a ${TextHelper.Trait.Creature} or ${TextHelper.Trait.Spectre} unit.`,
             cost: [
                 AbilityHelper.costs.abilityActivationResourceCost(1),
                 AbilityHelper.costs.exhaustSelf(),
@@ -27,7 +28,7 @@ export default class KananJarrusHelpUsSurvive extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you control another Creature or Spectre unit, this unit gets +2/+2.',
+            title: `While you control another ${TextHelper.Trait.Creature} or ${TextHelper.Trait.Spectre} unit, this unit gets +2/+2.`,
             condition: (context) => context.player.hasSomeArenaUnit({ trait: [Trait.Creature, Trait.Spectre], otherThan: context.source }),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
         });

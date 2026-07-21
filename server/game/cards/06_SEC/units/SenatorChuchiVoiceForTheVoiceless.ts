@@ -14,7 +14,7 @@ export default class SenatorChuchiVoiceForTheVoiceless extends NonLeaderUnitCard
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: `Give another friendly Official unit ${TextHelper.Restore(2)} for this phase`,
+            title: `Give another friendly ${TextHelper.Trait.Official} unit ${TextHelper.Restore(2)} for this phase`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,

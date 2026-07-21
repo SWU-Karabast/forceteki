@@ -14,9 +14,9 @@ export default class MouseDroid extends NonLeaderUnitCard {
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: `The next unit Imperial you play this phase costs ${TextHelper.resource(1)} less`,
+            title: `The next unit ${TextHelper.Trait.Imperial} you play this phase costs ${TextHelper.resource(1)} less`,
             immediateEffect: abilityHelper.immediateEffects.forThisPhasePlayerEffect({
-                ongoingEffectDescription: 'discount the next Imperial unit played by',
+                ongoingEffectDescription: `discount the next ${TextHelper.Trait.Imperial} unit played by`,
                 ongoingEffectTargetDescription: 'them',
                 effect: abilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,

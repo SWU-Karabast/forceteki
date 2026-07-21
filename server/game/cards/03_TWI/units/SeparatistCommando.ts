@@ -14,7 +14,7 @@ export default class SeparatistCommando extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another Separatist unit, this unit gains ${TextHelper.Raid(2)}`,
+            title: `While you control another ${TextHelper.Trait.Separatist} unit, this unit gains ${TextHelper.Raid(2)}`,
             condition: (context) => context.player.isTraitInPlay(Trait.Separatist, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });

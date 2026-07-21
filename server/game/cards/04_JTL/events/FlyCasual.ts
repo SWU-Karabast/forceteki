@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FlyCasual extends EventCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class FlyCasual extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Ready a Vehicle unit. It can\'t attack bases for this phase',
+            title: `Ready a ${TextHelper.Trait.Vehicle} unit. It can't attack bases for this phase`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),

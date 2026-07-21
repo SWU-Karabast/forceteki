@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class RemoveTheChip extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class RemoveTheChip extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.setEventAbility({
-            title: 'Deal 2 damage to a unit. If it\'s a Clone, ready it',
+            title: `Deal 2 damage to a unit. If it's a ${TextHelper.Trait.Clone}, ready it`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.simultaneous([

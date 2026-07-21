@@ -15,13 +15,13 @@ export default class DathomiriMagicks extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: `If you control a Force unit, this event costs ${TextHelper.resource(1)} less to play`,
+            title: `If you control a ${TextHelper.Trait.Force} unit, this event costs ${TextHelper.resource(1)} less to play`,
             amount: 1,
             condition: (context) => context.player.isTraitInPlay(Trait.Force)
         });
 
         registrar.setEventAbility({
-            title: 'Play up to 3 non-Vehicle units that each cost 2 or less from your discard pile for free',
+            title: `Play up to 3 non-${TextHelper.Trait.Vehicle} units that each cost 2 or less from your discard pile for free`,
             immediateEffect: AbilityHelper.immediateEffects.playMultipleCardsFromDiscard({
                 activePromptTitle: 'Choose a unit to play for free',
                 maxCards: 3,

@@ -14,7 +14,7 @@ export default class FlankingFangFighter extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another Fighter unit, this unit gains ${TextHelper.Raid(2)}`,
+            title: `While you control another ${TextHelper.Trait.Fighter} unit, this unit gains ${TextHelper.Raid(2)}`,
             condition: (context) => context.player.isTraitInPlay(Trait.Fighter, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });

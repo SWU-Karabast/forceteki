@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, EventName, RelativePlayer, Trait, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 import { ExhaustSourceType } from '../../../IDamageOrDefeatSource';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -43,7 +44,7 @@ export default class MythosaurFolkloreAwakened extends NonLeaderUnitCard {
         });
 
         registrar.addConstantAbility({
-            title: 'Friendly leaders gain the Mandalorian trait',
+            title: `Friendly leaders gain the ${TextHelper.Trait.Mandalorian} trait`,
             targetZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Any,

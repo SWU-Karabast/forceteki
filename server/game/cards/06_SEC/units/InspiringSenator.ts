@@ -14,7 +14,7 @@ export default class InspiringSenator extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenDefeatedAbility({
-            title: `The next Official unit you play this phase costs ${TextHelper.resource(1)} less`,
+            title: `The next ${TextHelper.Trait.Official} unit you play this phase costs ${TextHelper.resource(1)} less`,
             immediateEffect: abilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: abilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,

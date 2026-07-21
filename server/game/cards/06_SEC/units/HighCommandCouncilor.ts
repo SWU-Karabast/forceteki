@@ -14,7 +14,7 @@ export default class HighCommandCouncilor extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another Official unit, this unit gains ${TextHelper.Raid(2)}`,
+            title: `While you control another ${TextHelper.Trait.Official} unit, this unit gains ${TextHelper.Raid(2)}`,
             condition: (context) => context.player.isTraitInPlay(Trait.Official, context.source),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })

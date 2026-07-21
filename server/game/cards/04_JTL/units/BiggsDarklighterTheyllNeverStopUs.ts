@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BiggsDarklighterTheyllNeverStopUs extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -23,7 +24,7 @@ export default class BiggsDarklighterTheyllNeverStopUs extends NonLeaderUnitCard
         });
 
         registrar.addPilotingConstantAbilityTargetingAttached({
-            title: 'Transport attached unit gets +0/+1',
+            title: `${TextHelper.Trait.Transport} attached unit gets +0/+1`,
             condition: (context) => context.source.parentCard.hasSomeTrait(Trait.Transport),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({
                 hp: 1, power: 0

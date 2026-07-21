@@ -14,7 +14,7 @@ export default class BunkerDefender extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control a Vehicle unit, this unit gains ${TextHelper.Sentinel}`,
+            title: `While you control a ${TextHelper.Trait.Vehicle} unit, this unit gains ${TextHelper.Sentinel}`,
             condition: (context) => context.player.isTraitInPlay(Trait.Vehicle),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)

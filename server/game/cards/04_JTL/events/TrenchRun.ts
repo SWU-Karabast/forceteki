@@ -3,6 +3,7 @@ import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { AbilityType, EventName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { Contract } from '../../../core/utils/Contract';
 
 export default class TrenchRun extends EventCard {
@@ -15,7 +16,7 @@ export default class TrenchRun extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a Fighter unit. For this attack, it gets +4/+0 and gains: "On Attack: Discard 2 cards from the defending player\'s deck. Deal unpreventable damage equal to the difference in the discarded cards\' costs to this unit."',
+            title: `Attack with a ${TextHelper.Trait.Fighter} unit. For this attack, it gets +4/+0 and gains: "On Attack: Discard 2 cards from the defending player's deck. Deal unpreventable damage equal to the difference in the discarded cards' costs to this unit."`,
             targetResolver: {
                 cardCondition: (card) => card.hasSomeTrait(Trait.Fighter),
                 immediateEffect: AbilityHelper.immediateEffects.attack({
