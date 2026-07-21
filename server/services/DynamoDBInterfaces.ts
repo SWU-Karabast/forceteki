@@ -83,6 +83,7 @@ export interface IUserPreferences {
         muteChat?: boolean;
         cardLanguage?: CardImageLocale;
         timerVisibility?: TimerVisibility;
+        autoSingleTarget?: boolean;
     };
 }
 
