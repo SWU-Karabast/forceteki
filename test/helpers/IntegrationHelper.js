@@ -142,6 +142,10 @@ global.integration = function (definitions, enableUndo = false) {
 
                     if (newContext.isUndoTest) {
                         contextRef.snapshot.startOfTestSnapshot = buildStartOfTestSnapshot(newContext.game);
+                        // Chat isn't part of the rollback snapshot, so capture it here (at the same point the
+                        // snapshot is taken) to restore after rollback. Capturing at setup time matters for tests
+                        // whose setupTestAsync runs in the body: the "Round: N - <Phase>" banner is emitted here.
+                        contextRef.snapshot.startOfTestChatMessages = newContext.game.gameChat.messages.slice();
                     }
                 }
             };
@@ -230,13 +234,12 @@ global.undoIt = function(expectation, assertion, timeout) {
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
             snapshotUtils.startOfTestSnapshot = buildStartOfTestSnapshot(context.game);
+            snapshotUtils.startOfTestChatMessages = context.game.gameChat.messages.slice();
         }
 
         if (snapshotUtils.startOfTestSnapshot?.snapshotId === -1) {
             throw new Error('Snapshot ID invalid');
         }
-
-        const messagesBeforeAssertion = context.game.gameChat.messages.slice();
 
         await assertion();
         if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
@@ -253,7 +256,9 @@ global.undoIt = function(expectation, assertion, timeout) {
             return;
         }
 
-        context.game.gameChat.messages = messagesBeforeAssertion;
+        // Chat isn't part of the rollback snapshot, so restore it to the start-of-test state captured
+        // alongside the snapshot (see the buildStartOfTestSnapshot call sites).
+        context.game.gameChat.messages = (snapshotUtils.startOfTestChatMessages ?? []).slice();
 
         context.undoReplayInProgress = true;
         await assertion();
@@ -270,13 +275,12 @@ global.undoFit = function(expectation, assertion, timeout) {
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
             snapshotUtils.startOfTestSnapshot = buildStartOfTestSnapshot(context.game);
+            snapshotUtils.startOfTestChatMessages = context.game.gameChat.messages.slice();
         }
 
         if (snapshotUtils.startOfTestSnapshot?.snapshotId === -1) {
             throw new Error('Snapshot ID invalid');
         }
-
-        const messagesBeforeAssertion = context.game.gameChat.messages.slice();
 
         await assertion();
         if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
@@ -293,7 +297,7 @@ global.undoFit = function(expectation, assertion, timeout) {
             return;
         }
 
-        context.game.gameChat.messages = messagesBeforeAssertion;
+        context.game.gameChat.messages = (snapshotUtils.startOfTestChatMessages ?? []).slice();
 
         context.undoReplayInProgress = true;
         await assertion();
