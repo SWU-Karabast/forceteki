@@ -35,6 +35,9 @@ export interface ICommonTestContext {
     cardDataGetter: UnitTestCardDataGetter;
     leader: string;
     base: string;
+
+    /** Set only for formats with `leaderCount === 2` (e.g. TwinSuns/FauxSuns); threaded into every built deck. */
+    secondLeader?: string;
 }
 
 /**
@@ -66,29 +69,34 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
         return { format: config.format, cardPool: config.cardPool };
     }
 
+    /** `{ secondLeader }` override when the context has one (dual-leader formats), else no override at all. */
+    function secondLeaderOverride(ctx: ICommonTestContext): Partial<IDecklistInternal> {
+        return ctx.secondLeader ? { secondLeader: buildCardEntry(ctx.cardDataGetter, ctx.secondLeader) } : {};
+    }
+
     /** Builds a deck of `size` legal filler cards (each a single copy). */
     function deckOfSize(ctx: ICommonTestContext, size: number): IDecklistInternal {
-        return buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, getDeckFiller(ctx.cardDataGetter, size, config.legalSets));
+        return buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, getDeckFiller(ctx.cardDataGetter, size, config.legalSets), secondLeaderOverride(ctx));
     }
 
     /** Builds a minimum-size deck in which one card appears `count` times. */
     function deckWithCardCount(ctx: ICommonTestContext, count: number): IDecklistInternal {
         const filler = getDeckFiller(ctx.cardDataGetter, minDeckSize - count + 1, config.legalSets);
         const multiCard = { ...filler[0], count };
-        return buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, [multiCard, ...filler.slice(1)]);
+        return buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, [multiCard, ...filler.slice(1)], secondLeaderOverride(ctx));
     }
 
     /** Builds a minimum-size main deck plus a sideboard of `sideboardSize` cards. */
     function deckWithSideboard(ctx: ICommonTestContext, sideboardSize: number): IDecklistInternal {
         const all = getDeckFiller(ctx.cardDataGetter, minDeckSize + sideboardSize, config.legalSets);
-        return buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, all.slice(0, minDeckSize), { sideboard: all.slice(minDeckSize) });
+        return buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, all.slice(0, minDeckSize), { sideboard: all.slice(minDeckSize), ...secondLeaderOverride(ctx) });
     }
 
     /** Builds a minimum-size legal deck with one extra card drawn from `set`. */
     function deckWithCardFromSet(ctx: ICommonTestContext, set: string): IDecklistInternal {
         const filler = getDeckFiller(ctx.cardDataGetter, minDeckSize - 1, config.legalSets);
         const extraCard = getFirstCardInSet(ctx.cardDataGetter, set);
-        return buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, [...filler, extraCard]);
+        return buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, [...filler, extraCard], secondLeaderOverride(ctx));
     }
 
     describe('deck size', function () {
@@ -178,7 +186,7 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
                 const ctx = getContext();
                 const mainboard = getDeckFiller(ctx.cardDataGetter, minDeckSize, config.legalSets);
                 const illegalCard = getFirstCardInSet(ctx.cardDataGetter, illegalProbeSet);
-                const deck = buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, mainboard, { sideboard: [illegalCard] });
+                const deck = buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, mainboard, { sideboard: [illegalCard], ...secondLeaderOverride(ctx) });
                 const failures = ctx.validator.validateInternalDeck(deck, props());
                 expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
                 expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.NotLegalInFormat);
@@ -215,7 +223,10 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
                 const previewCard = getFirstCardInSet(ctx.cardDataGetter, PREVIEW_SET);
                 const leader = getFirstLeader(ctx.cardDataGetter, nextSetLegalSets).internalName;
                 const base = getFirstBase(ctx.cardDataGetter, nextSetLegalSets).internalName;
-                const deck = buildValidationTestDeck(ctx.cardDataGetter, leader, base, [...filler, previewCard]);
+                // Dual-leader formats: reuse the same leader for both slots — the pairing rule only rejects
+                // mixed Heroism/Villainy, and a card can't conflict with itself.
+                const overrides = ctx.secondLeader ? { secondLeader: buildCardEntry(ctx.cardDataGetter, leader) } : {};
+                const deck = buildValidationTestDeck(ctx.cardDataGetter, leader, base, [...filler, previewCard], overrides);
                 const failures = ctx.validator.validateInternalDeck(deck, { format: config.format, cardPool: CardPool.NextSet });
                 expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
             });
@@ -231,7 +242,7 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
                 it(`should reject the suspended card ${bannedCard}`, function () {
                     const ctx = getContext();
                     const filler = getDeckFiller(ctx.cardDataGetter, minDeckSize - 1, config.legalSets);
-                    const deck = buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, [...filler, buildCardEntry(ctx.cardDataGetter, bannedCard)]);
+                    const deck = buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, [...filler, buildCardEntry(ctx.cardDataGetter, bannedCard)], secondLeaderOverride(ctx));
                     const failures = ctx.validator.validateInternalDeck(deck, props());
                     expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
                     expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.Suspended);

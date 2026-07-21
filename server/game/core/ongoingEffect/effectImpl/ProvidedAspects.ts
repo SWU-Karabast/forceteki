@@ -14,7 +14,7 @@ export namespace ProvidedAspects {
         if (!card) {
             return [];
         }
-        if (card.isLeader() && player.getAllLeaders().includes(card)) {
+        if (card.isLeader() && player.getAllDeckLeaders().includes(card)) {
             return [];
         }
         return card.aspects;

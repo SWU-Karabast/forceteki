@@ -85,7 +85,7 @@ export class PlayerInteractionWrapper {
      * Gets the player's primary leader card
      */
     public get leader() {
-        return this.player.getAllLeaders()[0];
+        return this.player.getAllDeckLeaders()[0];
     }
 
     /**
@@ -93,7 +93,7 @@ export class PlayerInteractionWrapper {
      * Returns null when playing a single-leader format.
      */
     public get secondLeader() {
-        return this.player.getAllLeaders()[1] ?? null;
+        return this.player.getAllDeckLeaders()[1] ?? null;
     }
 
     /**
@@ -193,7 +193,7 @@ export class PlayerInteractionWrapper {
             return;
         }
 
-        const secondLeader = this.player.getAllLeaders()[1] ?? null;
+        const secondLeader = this.player.getAllDeckLeaders()[1] ?? null;
         if (!secondLeader) {
             throw new TestSetupError('setSecondLeaderStatus called but player has no second leader');
         }

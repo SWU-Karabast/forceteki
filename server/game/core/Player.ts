@@ -143,12 +143,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     }
 
     public getSingleLeader(): ILeaderCard {
-        const leaders = this.getAllLeaders();
+        const leaders = this.getAllDeckLeaders();
         Contract.assertEqual(leaders.length, 1, `Expected exactly one leader but found ${leaders.length}`);
         return leaders[0];
     }
 
-    public getAllLeaders(): ILeaderCard[] {
+    public getAllDeckLeaders(): ILeaderCard[] {
         return [this._deckLeader, this._secondLeader].filter((l): l is ILeaderCard => l !== null);
     }
 
@@ -797,7 +797,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this._baseZone = new BaseZone(this.game, this, this.base, this.getAllLeaders());
+        this._baseZone = new BaseZone(this.game, this, this.base, this.getAllDeckLeaders());
 
         this._decklist = preparedDecklist;
     }
@@ -864,7 +864,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     public getAspectsForCosts() {
         const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspectsForCosts);
         return [
-            ...this.getAllLeaders().flatMap((leader) => leader.aspects),
+            ...this.getAllDeckLeaders().flatMap((leader) => leader.aspects),
             ...this.base.aspects,
             ...provided.flat(),
         ];
@@ -875,7 +875,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * any active `ProvidesAspectsForCosts` ongoing effects on this player).
      */
     public getDeckAspects() {
-        return [...this.getAllLeaders().flatMap((leader) => leader.aspects), ...this.base.aspects];
+        return [...this.getAllDeckLeaders().flatMap((leader) => leader.aspects), ...this.base.aspects];
     }
 
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
@@ -1248,7 +1248,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leaders: this.getAllLeaders().map((l) => l.getSummary(activePlayer)),
+            leaders: this.getAllDeckLeaders().map((l) => l.getSummary(activePlayer)),
             base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
@@ -1381,7 +1381,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             }
 
             // Leader(s)
-            const allLeaders = this.getAllLeaders();
+            const allLeaders = this.getAllDeckLeaders();
             state.leader = Helpers.safeSerialize(this.game, () => allLeaders[0].captureCardState(), null);
             if (allLeaders[1]) {
                 state.secondLeader = Helpers.safeSerialize(this.game, () => allLeaders[1].captureCardState(), null);
