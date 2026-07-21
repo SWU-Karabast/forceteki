@@ -135,21 +135,19 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this._deckZone;
     }
 
-    @stateRef() private accessor _deckLeader: ILeaderCard | null = null;
-    @stateRef() private accessor _secondLeader: ILeaderCard | null = null;
+    @stateRefArray() private accessor _deckLeaders: readonly ILeaderCard[] = [];
 
     public get deckLeader(): ILeaderCard {
-        return this._deckLeader;
+        return this._deckLeaders[0];
     }
 
     public getSingleLeader(): ILeaderCard {
-        const leaders = this.getAllDeckLeaders();
-        Contract.assertEqual(leaders.length, 1, `Expected exactly one leader but found ${leaders.length}`);
-        return leaders[0];
+        Contract.assertEqual(this._deckLeaders.length, 1, `Expected exactly one leader but found ${this._deckLeaders.length}`);
+        return this._deckLeaders[0];
     }
 
     public getAllDeckLeaders(): ILeaderCard[] {
-        return [this._deckLeader, this._secondLeader].filter((l): l is ILeaderCard => l !== null);
+        return this._deckLeaders as ILeaderCard[];
     }
 
     @stateRef() private accessor _base: IBaseCard | null = null;
@@ -776,10 +774,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         const preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
         this._base = this.game.getFromId(preparedDecklist.base);
-        this._deckLeader = this.game.getFromId(preparedDecklist.leader);
+
+        const deckLeaders = [this.game.getFromId(preparedDecklist.leader)];
         if (preparedDecklist.secondLeader) {
-            this._secondLeader = this.game.getFromId(preparedDecklist.secondLeader);
+            deckLeaders.push(this.game.getFromId(preparedDecklist.secondLeader));
         }
+        this._deckLeaders = deckLeaders;
 
         this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromId(x)));
 
