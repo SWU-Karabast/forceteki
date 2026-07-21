@@ -36,7 +36,7 @@ describe('Force Lightning', function() {
                 expect(context.tieBomber.getHp()).toBe(4);
 
                 // can choose from 0 - 9 resources since 1 was paid for Force Lightning already
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('1');
 
                 expect(context.victorLeader.damage).toBe(2);
@@ -61,7 +61,7 @@ describe('Force Lightning', function() {
                 ]);
 
                 context.player1.clickCard(context.atst);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('3');
                 expect(context.atst.damage).toBe(6);
                 expect(context.player1.exhaustedResourceCount).toBe(4);
@@ -84,7 +84,7 @@ describe('Force Lightning', function() {
                 expect(context.tieBomber.getPower()).toBe(0);
                 expect(context.tieBomber.getHp()).toBe(4);
 
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('0');
 
                 expect(context.victorLeader.damage).toBe(0);
@@ -104,7 +104,7 @@ describe('Force Lightning', function() {
                 ]);
 
                 context.player1.clickCard(context.atst);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('9');
                 expect(context.atst).toBeInZone('discard');
                 expect(context.player1.exhaustedResourceCount).toBe(10);
@@ -123,7 +123,7 @@ describe('Force Lightning', function() {
                 ]);
 
                 context.player1.clickCard(context.fireball);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 10 }, (_x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 9);
                 context.player1.chooseListOption('0');
                 expect(context.fireball.damage).toBe(0);
                 expect(context.player1.exhaustedResourceCount).toBe(1);

@@ -17,6 +17,12 @@ export default class CrixMadineStrikeTeamStrategist extends NonLeaderUnitCard {
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: `Play a ${TextHelper.aspect(Aspect.Heroism)} unit from your hand. It costs ${TextHelper.resource(2)} less for each arena in which you control the most units.`,
+            contextTitle: (context) => {
+                const costAdjustment = this.computeCost(context.player);
+                return costAdjustment === 0
+                    ? `Play a ${TextHelper.aspect(Aspect.Heroism)} unit from your hand. (No cost reduction)`
+                    : `Play a ${TextHelper.aspect(Aspect.Heroism)} unit from your hand. It costs ${TextHelper.resource(costAdjustment)} less.`;
+            },
             optional: true,
             targetResolver: {
                 activePromptTitle: (context) => {

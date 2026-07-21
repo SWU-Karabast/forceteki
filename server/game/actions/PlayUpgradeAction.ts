@@ -3,11 +3,12 @@ import type { IPlayCardActionProperties, PlayCardContext } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, ZoneName } from '../core/Constants';
+import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer, Stage, ZoneName } from '../core/Constants';
 import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { Player } from '../core/Player';
 import type { Game } from '../core/Game';
 import { Contract } from '../core/utils/Contract';
+import { TextHelper } from '../core/utils/TextHelper';
 import { ChatHelpers } from '../core/chat/ChatHelpers.js';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
@@ -23,11 +24,19 @@ export class PlayUpgradeAction extends PlayCardAction {
                 ...properties,
                 targetResolver: {
                     activePromptTitle: `Attach ${card.title} to a unit`,
-                    cardCondition: (card, context) => (
-                        properties.attachTargetCondition
-                            ? properties.attachTargetCondition(card, context)
-                            : true
-                    ),
+                    cardCondition: (card, context) => {
+                        if (properties.attachTargetCondition && !properties.attachTargetCondition(card, context)) {
+                            return false;
+                        }
+
+                        // Exclude units the upgrade can't be afforded on when attached to them (see issue #1970).
+                        // Only evaluated at the Pre-Target stage, before resources have been spent.
+                        if (context.stage === Stage.PreTarget && !context.ability.canPayCosts(context)) {
+                            return false;
+                        }
+
+                        return true;
+                    },
                     immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source }))
                 }
             }
@@ -96,9 +105,9 @@ export class PlayUpgradeAction extends PlayCardAction {
     public override displayMessage(context: AbilityContext) {
         let playTypeDescription = '';
         if (context.playType === PlayType.Smuggle) {
-            playTypeDescription = ' using Smuggle';
+            playTypeDescription = ` using ${TextHelper.Smuggle}`;
         } else if (context.playType === PlayType.Piloting) {
-            playTypeDescription = ' with Piloting';
+            playTypeDescription = ` with ${TextHelper.Piloting}`;
         }
         const locationDescription = ChatHelpers.getTargetLocationMessage(context.source, context, new Set([ZoneName.Hand]));
         context.game.addMessage('{0} plays {1}{2}{3}, attaching it to {4}', context.player, context.source, locationDescription, playTypeDescription, context.target);

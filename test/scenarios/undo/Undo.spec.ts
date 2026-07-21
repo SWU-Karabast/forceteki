@@ -1027,7 +1027,7 @@ describe('Undo', function() {
                         // Player 2 attacks with Kanan Jarrus and discards Kylo's TIE Silencer
                         context.player2.clickCard(context.kananJarrus);
                         context.player2.clickCard(context.p1Base);
-                        context.player2.clickPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
+                        context.player2.clickPrompt('Discard 1 card from the defending player\'s deck. Heal 1 damage for each aspect among the discarded cards.');
                         context.player2.clickPrompt('Trigger');
                         expect(context.kylosTieSilencer).toBeInZone('discard', context.player1);
                         expect(context.player1.currentActionTargets).toContain(context.kylosTieSilencer);
@@ -1098,12 +1098,13 @@ describe('Undo', function() {
 
                     // draw a specific cards
                     context.player1.clickCard(context.searchYourFeelings);
+                    context.player1.clickCardInDisplayCardPrompt(context.avenger);
                     context.player2.passAction();
 
                     const exhaustedResourceCount = context.player1.exhaustedResourceCount;
 
                     context.player1.clickCard(context.preVizsla);
-                    context.player1.clickPrompt('Deal damage to a unit equal to the number of cards you\'ve drawn this phase');
+                    context.player1.clickPrompt('Deal 3 damage to a unit');
 
                     // can select all unit
                     expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.greenSquadronAwing]);
@@ -1117,7 +1118,7 @@ describe('Undo', function() {
 
                     // no card drawn this phase
                     context.player1.clickCard(context.preVizsla);
-                    context.player1.clickPrompt('Deal damage to a unit equal to the number of cards you\'ve drawn this phase');
+                    context.player1.clickPrompt('Deal 0 damage to a unit');
                     expect(context.player2).toBeActivePlayer();
                 });
             });

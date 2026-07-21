@@ -37,10 +37,10 @@ describe('Specific Clone scenarios', function() {
                 // Nested triggers: Resolve each of the two When You Use the Force abilities
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
-                    'When you use the Force',
-                    'When you use the Force'
+                    'Deal 4 damage to a unit',
+                    'Deal 4 damage to a unit'
                 ]);
-                context.player1.clickPrompt('When you use the Force');
+                context.player1.clickPrompt('Deal 4 damage to a unit');
                 expect(context.player1).toHavePrompt('Choose a unit to deal 4 damage to');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.yoda,

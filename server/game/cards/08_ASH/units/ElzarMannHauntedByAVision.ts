@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EffectName, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ElzarMannHauntedByAVision extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,9 +15,9 @@ export default class ElzarMannHauntedByAVision extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you control a Force leader, this unit enters play ready',
+            title: `While you control a ${TextHelper.Trait.Force} leader, this unit enters play ready`,
             sourceZoneFilter: WildcardZoneName.Any,
-            condition: (context) => context.player.getAllLeaders().some((l) => l.hasSomeTrait(Trait.Force)),
+            condition: (context) => context.player.hasSomeLeaderCard({ trait: Trait.Force }),
             ongoingEffect: OngoingEffectBuilder.card.static(EffectName.EntersPlayReady)
         });
 

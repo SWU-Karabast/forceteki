@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { TargetMode, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DorneanGunship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,8 @@ export default class DorneanGunship extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Deal indirect damage to a player equal to the number of Vehicle units you control',
+            title: `Deal indirect damage to a player equal to the number of ${TextHelper.Trait.Vehicle} units you control`,
+            contextTitle: (context) => `Deal ${context.player.getArenaUnits({ condition: (card) => card.hasSomeTrait(Trait.Vehicle) }).length} indirect damage to a player`,
             targetResolver: {
                 mode: TargetMode.Player,
                 immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer((context) => ({

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, RelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ScanningOfficer extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ScanningOfficer extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Reveal 3 enemy resources. Defeat each resource with Smuggle that was revealed and replace it with the top card of its controllers deck.',
+            title: `Reveal 3 enemy resources. Defeat each resource with ${TextHelper.Smuggle} that was revealed and replace it with the top card of its controllers deck.`,
             immediateEffect: AbilityHelper.immediateEffects.randomSelection((context) => ({
                 // TODO: Improve RandomSelectionSystem so that it can shuffle the resources like getRandomResources does
                 // Even if the random selection effectivaly happens in getRandomResources, we use RandomSelectionSystem
@@ -26,7 +27,7 @@ export default class ScanningOfficer extends NonLeaderUnitCard {
                 })
             })),
             then: (thenContext) => ({
-                title: 'Defeat each resource with Smuggle',
+                title: `Defeat each resource with ${TextHelper.Smuggle}`,
                 thenCondition: () => thenContext.events[0].cards.some((card) => card.hasSomeKeyword(KeywordName.Smuggle)),
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous(() => {
                     const smuggleCards = thenContext.events[0].cards.filter((card) => card.hasSomeKeyword(KeywordName.Smuggle));

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, WildcardZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MoffGideonFormidableCommander extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -29,7 +30,7 @@ export default class MoffGideonFormidableCommander extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each friendly unit that costs 3 or less gets +1/+0 and gains Overwhelm while attacking an enemy unit',
+            title: `Each friendly unit that costs 3 or less gets +1/+0 and gains ${TextHelper.Overwhelm} while attacking an enemy unit`,
             targetZoneFilter: WildcardZoneName.AnyArena,
             matchTarget: (card, context) => card.isUnit() && card.isAttacking() && card.controller === context.player && card.cost <= 3 && card.activeAttack?.getSingleTarget().isUnit(),
             ongoingEffect: [AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm), AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })],

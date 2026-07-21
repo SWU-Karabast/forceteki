@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TimelyReinforcements extends EventCard {
     protected override getImplementationId() {
@@ -19,10 +20,10 @@ export default class TimelyReinforcements extends EventCard {
                 target: context.player,
             })),
             then: (thenContext) => ({
-                title: 'Give them Sentinel for this phase',
+                title: `Give them ${TextHelper.Sentinel} for this phase`,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel }),
-                    target: thenContext.events[0].generatedTokens
+                    target: thenContext.resolvedEvents[0]?.generatedTokens
                 })
             })
         });

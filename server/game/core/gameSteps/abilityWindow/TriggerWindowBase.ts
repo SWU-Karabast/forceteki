@@ -9,7 +9,7 @@ import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import type { Game } from '../../Game';
-import { PromptType } from '../PromptInterfaces';
+import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityResolutionPrompt';
 
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -29,6 +29,10 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     protected choosePlayerResolutionOrderComplete = false;
 
+    protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect;
+
+    protected readonly eventWindow?: EventWindow;
+
     public get currentlyResolvingPlayer(): Player | null {
         return this.resolvePlayerOrder?.[0] ?? null;
     }
@@ -39,10 +43,13 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     public constructor(
         game: Game,
-        protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
-        private readonly eventWindow?: EventWindow
+        triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
+        eventWindow?: EventWindow
     ) {
         super(game);
+
+        this.triggerAbilityType = triggerAbilityType;
+        this.eventWindow = eventWindow;
 
         if (eventWindow) {
             this.triggeringEvents = [...this.eventWindow.events];
@@ -183,7 +190,13 @@ export abstract class TriggerWindowBase extends BaseStep {
             }
 
             // if an ability is triggered multiple times but does not use a collective trigger, we need to treat it as a multi-select
-            // so we can differentiate which instance is being resolved
+            // so we can differentiate which instance is being resolved. If the ability defines a contextTitle, it usually
+            // already differentiates the instances (e.g. by naming the affected card), so we don't append the override title
+            // unless the ability explicitly opts in via appendOverrideTitle.
+            if (!repeatedAbility.shouldAppendOverrideTitle) {
+                continue;
+            }
+
             for (const context of abilitiesToResolve.filter((context) => context.ability === repeatedAbility)) {
                 if (!context.overrideTitle) {
                     context.setOverrideTitle(this.getOverrideTitle(context));
@@ -207,15 +220,6 @@ export abstract class TriggerWindowBase extends BaseStep {
         Contract.assertMapHasKey(this.unresolved, this.currentlyResolvingPlayer);
 
         return this.unresolved.get(this.currentlyResolvingPlayer);
-    }
-
-    private getChoiceTitle(context: TriggeredAbilityContext) {
-        let title = context.ability.getTitle(context);
-        if (!context.ability.hasAnyLegalEffects(context, SubStepCheck.All)) {
-            title = `(No effect) ${title}`;
-        }
-
-        return title;
     }
 
     private getOverrideTitle(context: TriggeredAbilityContext) {
@@ -257,30 +261,12 @@ export abstract class TriggerWindowBase extends BaseStep {
     private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
 
-        let choices: string[] = [];
-        let handlers: (() => void)[] = [];
-
-        // If its a multi-select, append the card name at the end of the ability name to differentiate them
-        choices = abilitiesToResolve.map((context) => this.getChoiceTitle(context));
-        handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
-
-        this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
-            activePromptTitle: 'You have multiple triggers to resolve. Choose which to resolve first:',
-            source: 'Choose Triggered Ability Resolution Order',
-            choices,
-            handlers,
-            promptType: PromptType.TriggerWindow
-        });
-
-        // TODO: a variation of this was being used in the L5R code to choose which card to activate triggered abilities on.
-        // not used now b/c we're doing a shortcut where we just present each ability text name, which doesn't work well in all cases sadly.
-
-        // this.game.promptForSelect(this.currentlyResolvingPlayer, Object.assign(this.getPromptForSelectProperties(), {
-        //     onSelect: (player, card) => {
-        //         this.resolveAbility(abilitiesToResolve.find((context) => context.source === card));
-        //         return true;
-        //     }
-        // }));
+        this.game.queueStep(new TriggeredAbilityResolutionPrompt(
+            this.game,
+            this.currentlyResolvingPlayer,
+            abilitiesToResolve,
+            (context) => this.resolveAbility(context)
+        ));
     }
 
     // this is here to allow for overriding in subclasses

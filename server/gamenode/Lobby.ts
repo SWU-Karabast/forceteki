@@ -17,6 +17,7 @@ import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDe
 import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import type { GameServer } from './GameServer';
+import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
 import {
     AlertType,
@@ -391,7 +392,7 @@ export class Lobby {
             importDeckErrors: user.importDeckValidationErrors,
             unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
             minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.format) : 50,
-            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format, this.cardPool),
+            maxSideBoard: DeckValidator.getMaxSideboardSize(this.format, this.cardPool),
         } : {
             deck: user.deck?.getLeaderBase(),
         };
@@ -1243,7 +1244,6 @@ export class Lobby {
 
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
-            game.started = true;
 
             logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
 
@@ -1355,8 +1355,13 @@ export class Lobby {
     }
 
     private buildGameSettings(): GameConfiguration {
-        const players: IUser[] = this.users.map((user) =>
-            getUserWithDefaultsSet({
+        const players: IUser[] = this.users.map((user) => {
+            const cosmeticsSelection = user.socket.user.getPreferences()?.cosmetics;
+            const resolvedCosmetics = this.server.cosmeticsService
+                ? this.server.cosmeticsService.resolveActiveCosmetics(cosmeticsSelection)
+                : CosmeticsService.resolveDefaultCosmetics(cosmeticsSelection);
+
+            return getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
                 settings: {
@@ -1364,9 +1369,9 @@ export class Lobby {
                         autoSingleTarget: false,
                     }
                 },
-                cosmetics: user.socket.user.getPreferences()?.cosmetics,
-            })
-        );
+                cosmetics: resolvedCosmetics,
+            });
+        });
 
         return {
             id: uuidv4(),

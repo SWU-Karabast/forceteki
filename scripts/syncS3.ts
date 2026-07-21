@@ -3,7 +3,7 @@
 
 // to run this script use ts-node scripts/syncS3.ts
 import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
-import { type IRegisteredCosmeticOption } from '../server/utils/cosmetics/CosmeticsInterfaces';
+import { type ICosmeticEntity } from '../server/utils/cosmetics/CosmeticsInterfaces';
 import {
     S3Client,
     ListObjectsV2Command,
@@ -56,7 +56,7 @@ async function seedCosmetics(): Promise<void> {
     }
 
     // Cast the JSON data to the correct type
-    const cosmetics = cosmeticsData.default as IRegisteredCosmeticOption[];
+    const cosmetics = cosmeticsData.default as ICosmeticEntity[];
 
     console.log(`Starting to seed ${cosmetics.length} cosmetic items...`);
 

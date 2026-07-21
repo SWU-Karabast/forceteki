@@ -275,9 +275,9 @@ export class SwuStatsHandler {
         winner: number,
         playerNumber: number
     ): IPlayerData {
-        const leaderStr = player.getSingleLeader()?.id;
+        const leaderStr = player.deckLeader?.id;
         const baseStr = player.base?.id;
-        const opponentLeaderStr = opponentPlayer.getSingleLeader()?.id;
+        const opponentLeaderStr = opponentPlayer.deckLeader?.id;
         const opponentBaseColor = this.getBaseColor(opponentPlayer.base);
         const cardResults = this.getCardResultsByPlayer(player, game.statsTracker);
         return {

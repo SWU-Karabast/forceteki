@@ -8,7 +8,7 @@ import type { Player } from '../Player';
 import { SimpleZone } from './SimpleZone';
 import type { IZoneCardFilterProperties } from './ZoneAbstract';
 
-export interface IArenaZoneCardFilterProperties extends IZoneCardFilterProperties {
+export interface IInPlayZoneCardFilterProperties extends IZoneCardFilterProperties {
     controller?: Player;
 }
 
@@ -20,11 +20,11 @@ export abstract class ConcreteOrMetaArenaZone extends SimpleZone<IInPlayCard> {
     public override readonly hiddenForPlayers: null;
     public declare readonly owner: Game;
 
-    public getUnitCards(filter?: Omit<IArenaZoneCardFilterProperties, 'type'>): IUnitCard[] {
+    public getUnitCards(filter?: Omit<IInPlayZoneCardFilterProperties, 'type'>): IUnitCard[] {
         return this.getCards({ ...filter, type: WildcardCardType.Unit }) as IUnitCard[];
     }
 
-    public getUpgradeCards(filter?: Omit<IArenaZoneCardFilterProperties, 'type'>): UpgradeCard[] {
+    public getUpgradeCards(filter?: Omit<IInPlayZoneCardFilterProperties, 'type'>): UpgradeCard[] {
         return this.getCards({ ...filter, type: WildcardCardType.Upgrade }) as UpgradeCard[];
     }
 }

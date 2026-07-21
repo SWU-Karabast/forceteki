@@ -18,7 +18,7 @@ describe('Rebellious Hammerhead\'s ability', function () {
             context.player1.clickCard(context.rebelliousHammerhead);
 
             // Prompt to deal damage to a unit equal to the number of cards in hand
-            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the number of cards in your hand');
+            expect(context.player1).toHavePrompt('Deal 5 damage to a unit');
             expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.ruthlessRaider, context.rebelliousHammerhead, context.battlefieldMarine]);
             context.player1.clickCard(context.ruthlessRaider);

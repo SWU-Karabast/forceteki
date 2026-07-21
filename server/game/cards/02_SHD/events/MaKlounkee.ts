@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MaKlounkee extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class MaKlounkee extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Return a friendly non-leader Underworld unit to its owner\'s hand. If you do, deal 3 damage to a unit',
+            title: `Return a friendly non-leader ${TextHelper.Trait.Underworld} unit to its owner's hand. If you do, deal 3 damage to a unit`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,

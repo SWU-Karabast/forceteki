@@ -174,3 +174,20 @@ export interface IActiveModActionCacheEntry {
     expiresAt?: string;
     modActionId: string;
 }
+
+export enum UsernameChangeSource {
+    AccountCreation = 'AccountCreation', // new account creation (previousUsername = null)
+    Migration = 'Migration', // backfill seed for pre-existing accounts (previousUsername = null)
+    UserInitiated = 'UserInitiated',
+    ForcedRename = 'ForcedRename', // result of a Rename mod action
+}
+
+export interface IUsernameChangeEntity {
+    id: string;
+    playerId: string;
+    previousUsername: string | null; // null only for Initial
+    newUsername: string;
+    source: UsernameChangeSource;
+    relatedModActionId?: string; // set only when source === ForcedRename
+    createdAt: string;
+}

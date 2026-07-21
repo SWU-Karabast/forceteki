@@ -21,7 +21,7 @@ describe('Sense Through The Force', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('2');
                 expect(context.getChatLogs(3)).toContain('player1 names 2 using Sense Through the Force');
 
@@ -57,7 +57,7 @@ describe('Sense Through The Force', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('2');
                 expect(context.getChatLogs(3)).toContain('player1 names 2 using Sense Through the Force');
 
@@ -91,7 +91,7 @@ describe('Sense Through The Force', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('2');
                 expect(context.getChatLogs(3)).toContain('player1 names 2 using Sense Through the Force');
 
@@ -126,7 +126,7 @@ describe('Sense Through The Force', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('2');
                 expect(context.getChatLogs(3)).toContain('player1 names 2 using Sense Through the Force');
 
@@ -161,7 +161,7 @@ describe('Sense Through The Force', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('2');
                 expect(context.getChatLogs(3)).toContain('player1 names 2 using Sense Through the Force');
 
@@ -196,7 +196,7 @@ describe('Sense Through The Force', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('4');
                 expect(context.getChatLogs(3)).toContain('player1 names 4 using Sense Through the Force');
 
@@ -227,7 +227,7 @@ describe('Sense Through The Force', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('4');
                 expect(context.getChatLogs(3)).toContain('player1 names 4 using Sense Through the Force');
                 context.player1.clickPrompt('Take nothing');
@@ -242,7 +242,7 @@ describe('Sense Through The Force', function() {
 
                 context.player1.setDeck([context.battlefieldMarine, context.cellBlockGuard, context.cartelSpacer]);
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('2');
                 expect(context.getChatLogs(3)).toContain('player1 names 2 using Sense Through the Force');
 
@@ -299,7 +299,7 @@ describe('Sense Through The Force', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.senseThroughTheForce);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('4');
                 expect(context.getChatLogs(3)).toContain('player1 names 4 using Sense Through the Force');
 

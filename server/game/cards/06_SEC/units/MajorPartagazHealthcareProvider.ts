@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EventName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MajorPartagazHealthcareProvider extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class MajorPartagazHealthcareProvider extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'When another friendly Official unit attacks: This unit gets +2/+2 for this phase.',
+            title: `When another friendly ${TextHelper.Trait.Official} unit attacks: This unit gets +2/+2 for this phase.`,
             when: {
                 [EventName.OnAttackDeclared]: (event, context) =>
                     event.attack.attacker !== context.source &&

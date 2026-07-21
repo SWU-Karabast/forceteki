@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ZamWesellInconspicuousAssassin extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ZamWesellInconspicuousAssassin extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While this unit is upgraded, she gains Grit',
+            title: `While this unit is upgraded, she gains ${TextHelper.Grit}`,
             condition: (context) => context.source.isUpgraded(),
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Grit)
         });

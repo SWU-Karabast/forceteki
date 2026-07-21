@@ -10,6 +10,7 @@ import {
     ZoneName
 } from '../../../core/Constants';
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class ShienFlurry extends EventCard {
@@ -22,7 +23,7 @@ export default class ShienFlurry extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Play a Force unit from your hand. It gains Ambush for this phase. The next time it would be dealt damage this phase prevent 2 of that damage',
+            title: `Play a ${TextHelper.Trait.Force} unit from your hand. It gains ${TextHelper.Ambush} for this phase. The next time it would be dealt damage this phase prevent 2 of that damage`,
             cannotTargetFirst: true,
             targetResolver: {
                 controller: RelativePlayer.Self,

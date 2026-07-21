@@ -82,14 +82,14 @@ export interface ICardIdAndName {
 
 export enum IllegalInFormatReason {
 
-    /** Card's set is not part of the legal rotation for this format (e.g. a SOR card in Premier). */
-    RotatedOut = 'rotatedOut',
-
-    /** Card is from a set that has not yet been officially released (or whose set code is unrecognized). */
-    Unreleased = 'unreleased',
+    /** Card's set is not legal in this format — outside the current rotation, never legal, or an unreleased preview set. */
+    NotLegalInFormat = 'notLegalInFormat',
 
     /** Card is on this format's suspension list. */
     Suspended = 'suspended',
+
+    /** Card's set code is not recognized (e.g. a typo or an unsupported set). */
+    UnknownSet = 'unknownSet',
 }
 
 export interface IIllegalCardEntry extends ICardIdAndName {
@@ -111,8 +111,8 @@ export enum DeckValidationFailureReason {
 
     /**
      * One or more cards are not legal to play in this format. Each entry carries an `IllegalInFormatReason`
-     * indicating why: `RotatedOut` (set outside the current rotation), `Unreleased` (set not yet officially
-     * released or whose set code is unrecognized), or `Suspended` (card is on this format's suspension list).
+     * indicating why: `NotLegalInFormat` (set isn't part of this format's legal pool), `Suspended` (card is on
+     * this format's suspension list), or `UnknownSet` (set code not recognized).
      */
     IllegalInFormat = 'illegalInFormat',
 
@@ -149,7 +149,7 @@ export enum DeckValidationFailureReason {
 
 export interface IDeckValidationFailures {
 
-    /** Cards that cannot be played in this format. Each entry's `reason` field distinguishes between `RotatedOut`, `Unreleased`, and `Suspended`. */
+    /** Cards that cannot be played in this format. Each entry's `reason` field distinguishes between `NotLegalInFormat`, `Suspended`, and `UnknownSet`. */
     [DeckValidationFailureReason.IllegalInFormat]?: IIllegalCardEntry[];
 
     /** The deck object itself is malformed — null, missing required fields, or contains a negative card count. */

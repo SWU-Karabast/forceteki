@@ -91,6 +91,8 @@ import type { IPlayerPhaseLastingEffectProperties } from './PlayerPhaseLastingEf
 import { PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
 import type { IPlayMultipleCardsFromDeckProperties } from './PlayMultipleCardsFromDeckSystem';
 import { PlayMultipleCardsFromDeckSystem } from './PlayMultipleCardsFromDeckSystem';
+import type { IPlayMultipleCardsFromDiscardProperties } from './PlayMultipleCardsFromDiscardSystem';
+import { PlayMultipleCardsFromDiscardSystem } from './PlayMultipleCardsFromDiscardSystem';
 import type { IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 import type { IReadyResourcesSystemProperties } from './ReadyResourcesSystem';
@@ -151,8 +153,6 @@ import type { IUseWhenPlayedProperties } from './UseWhenPlayedSystem';
 import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
 import type { IRandomSelectionSystemProperties } from './RandomSelectionSystem';
 import { RandomSelectionSystem } from './RandomSelectionSystem';
-import type { ISearchEntireDeckProperties } from './SearchEntireDeckSystem';
-import { SearchEntireDeckSystem } from './SearchEntireDeckSystem';
 import type { ICreateSpyProperties } from './CreateSpySystem';
 import { CreateSpySystem } from './CreateSpySystem';
 import type { IDiscloseAspectsProperties } from './DiscloseAspectsSystem';
@@ -678,15 +678,15 @@ export function playerLastingEffect<TContext extends AbilityContext = AbilityCon
 export function playMultipleCardsFromDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayMultipleCardsFromDeckProperties<TContext>, TContext>) {
     return new PlayMultipleCardsFromDeckSystem<TContext>(propertyFactory);
 }
+export function playMultipleCardsFromDiscard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayMultipleCardsFromDiscardProperties<TContext>, TContext>) {
+    return new PlayMultipleCardsFromDiscardSystem<TContext>(propertyFactory);
+}
 export function delayedPlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectProperties, 'delayedEffectType'>>) {
     return new DelayedEffectSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectProperties, 'delayedEffectType'>(
             propertyFactory,
             { delayedEffectType: DelayedEffectType.Player }
         ));
-}
-export function entireDeckSearch<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISearchEntireDeckProperties<TContext>, TContext>) {
-    return new SearchEntireDeckSystem<TContext>(propertyFactory);
 }
 export function loseGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILoseGameProperties, TContext>) {
     return new LoseGameSystem<TContext>(propertyFactory);

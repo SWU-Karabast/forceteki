@@ -11,6 +11,7 @@ export enum SwuSetId {
     LAW = 'law',
     TS26 = 'ts26',
     ASH = 'ash',
+    IC27 = 'ic27'
 }
 
 export enum BlockId {
@@ -56,7 +57,8 @@ export const rotationBlocks: IRotationBlock[] = [
         id: BlockId.B,
         sets: [
             { id: SwuSetId.LAW, released: true, mainline: true },
-            { id: SwuSetId.ASH, released: false, mainline: true }
+            { id: SwuSetId.ASH, released: true, mainline: true },
+            { id: SwuSetId.IC27, released: false, mainline: false }
         ]
     },
 ];
@@ -78,14 +80,7 @@ export interface IFormatRules {
     leaderCount: number;
 }
 
-// TODO: Can we clean this up once these rotate out? Are they technically still on the ban list?
-const bannedPremierCards = new Map([
-    ['4626028465', 'boba-fett#collecting-the-bounty'],
-    ['4002861992', 'dj#blatant-thief'],
-    ['5696041568', 'triple-dark-raid'],
-    ['9155536481', 'jango-fett#concealing-the-conspiracy'],
-    ['1705806419', 'force-throw']
-]);
+const bannedPremierCards = new Map<string, string>();
 
 const bannedEternalCards = new Map([
     ['4203363893', 'war-juggernaut'],
@@ -99,3 +94,16 @@ export const formatRules = new Map<SwuGameFormat, IFormatRules>([
     [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map(), leaderCount: 1 }],
     [SwuGameFormat.FauxSuns, { minDeckSize: 80, maxCardCopies: 1, bannedCards: new Map(), leaderCount: 2 }],
 ]);
+
+/**
+ * Bundles the set/format data the {@link DeckValidator} reads when computing legal sets. Production uses
+ * {@link defaultSetCatalog}; tests can supply an alternate catalog (e.g. one containing a synthetic preview
+ * set) so preview/NextSet behaviour can be exercised deterministically regardless of the real release state.
+ */
+export interface ISetCatalog {
+    rotationBlocks: IRotationBlock[];
+    nonRotatingSets: INonRotatingSet[];
+    formatRules: Map<SwuGameFormat, IFormatRules>;
+}
+
+export const defaultSetCatalog: ISetCatalog = { rotationBlocks, nonRotatingSets, formatRules };

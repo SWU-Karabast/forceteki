@@ -194,6 +194,31 @@ describe('Grogu: Charming Companion', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should NOT trigger when a unique pilot costing 4 or more is played as an upgrade via Piloting', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grogu#charming-companion',
+                        hand: ['chewbacca#faithful-first-mate'], // unique, cost 5, has Piloting
+                        spaceArena: ['awing'], // Vehicle to attach the pilot to
+                        resources: 10
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Chewbacca is unique and costs 5, but is played as a pilot upgrade, not as a unit
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                context.player1.clickCard(context.awing);
+
+                // Grogu must not offer to deploy — the pilot entered play as an upgrade
+                expect(context.chewbacca).toBeAttachedTo(context.awing);
+                expect(context.grogu).not.toBeInZone('groundArena');
+                expect(context.grogu.exhausted).toBeFalse();
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should allow Grogu to deploy again after being defeated and readied in a new round', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

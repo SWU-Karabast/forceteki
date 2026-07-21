@@ -16,6 +16,54 @@ const TOKEN_CATEGORIES = [
         message: 'Raw aspect name "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Aggression`) or `TextHelper.aspect(Aspect.X)` in a template literal instead, so it can be replaced with an icon on the client side.',
     },
     {
+        // Title-cased trait names, matched case-sensitively so only display-style references are
+        // flagged (e.g. "Force" the trait, not lowercase uses). Keep in sync with the `Trait` enum
+        // in server/game/core/Constants.ts. Some traits are common English words (Item, Plan, Night,
+        // Law, Tank, etc.); when a match is genuinely NOT a trait reference, suppress it with
+        // `// eslint-disable-next-line forceteki/no-raw-token-text -- <reason>`.
+        //
+        // Some Title-cased words collide with non-trait references and are auto-ignored via `ignore`
+        // below (see there for details): the "the Force" game concept, token unit names ("Battle
+        // Droid", "Clone Trooper", "TIE Fighter", "Mandalorian token"), and proper card/character
+        // names ("Jabba the Hutt", "The Mandalorian", "Swarming Vulture Droid"). Genuine trait
+        // references like "the Force trait" or "Mandalorian unit" are still flagged.
+        names: [
+            'Armor', 'Bounty Hunter', 'Bounty', 'Capital Ship', 'Clone', 'Condition', 'Creature',
+            'Disaster', 'Droid', 'Ewok', 'Fighter', 'First Order', 'Force', 'Fringe', 'Gambit',
+            'Gungan', 'Hutt', 'Imperial', 'Innate', 'Inquisitor', 'Item', 'Jawa', 'Jedi', 'Kaminoan',
+            'Law', 'Learned', 'Lightsaber', 'Mandalorian', 'Modification', 'Musician', 'Naboo',
+            'New Republic', 'Night', 'Nihil', 'Official', 'Pilot', 'Plan', 'Rebel', 'Republic',
+            'Resistance', 'Separatist', 'Sith', 'Spectre', 'Speeder', 'Supply', 'Tactic', 'Tank',
+            'Transport', 'Trick', 'Trooper', 'Tusken', 'Twi\'lek', 'Undead', 'Underworld', 'Vehicle',
+            'Walker', 'Weapon', 'Wookiee',
+        ],
+        messageId: 'rawTraitName',
+        message: 'Raw trait name "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Trait.BountyHunter`) or `TextHelper.trait(Trait.X)` in a template literal instead, so it can be styled correctly on the client side. If this is not a trait reference, suppress with an eslint-disable-next-line comment explaining why.',
+        // Any trait word that falls inside a match of one of these patterns is skipped. Each entry
+        // targets a context where a trait word is NOT a trait reference. Matched case-insensitively.
+        ignore: [
+            // The "the Force" game concept (the Force token) — but NOT "the Force trait/unit/card",
+            // which are genuine references and stay flagged.
+            '\\bthe\\s+Force\\b(?!\\s+(?:trait|units?|cards?)\\b)',
+            // Token unit names whose words collide with traits (Droid / Clone / Trooper / Fighter).
+            'Battle Droid',
+            'Clone Trooper',
+            'TIE Fighter',
+            // "Mandalorian" is both a trait and a token; skip only the token ("Mandalorian token(s)").
+            'Mandalorian\\s+tokens?',
+            // Proper card / character names.
+            'Jabba the Hutt',
+            'The Mandalorian',
+            'Swarming Vulture Droid',
+        ],
+    },
+    {
+        pattern: 'Keywords?|Ambush|Grit|Overwhelm|Raid\\s+\\d+|Restore\\s+\\d+|Saboteur|Sentinel|Shielded|Bounty|Smuggle|Coordinate|Exploit\\s+\\d+|Piloting|Hidden|Plot',
+        flags: 'g',
+        messageId: 'rawKeyword',
+        message: 'Raw keyword "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Ambush`) in a template literal instead, so it can be styled correctly on the client side.',
+    },
+    {
         // Matches "pay(s) N resource(s)", "cost(s) N (resources) more/less", and "play(s) (it/them) for N more/less"
         // but NOT "costs N or more/less" (references to printed cost)
         // and NOT "ready/exhaust N resources" (effects that manipulate resources)
@@ -24,20 +72,32 @@ const TOKEN_CATEGORIES = [
         messageId: 'rawResourceCost',
         message: 'Raw resource cost "{{match}}" in string literal. Use `TextHelper.resource(N)` in a template literal instead, so it can be replaced with an icon on the client side.',
     },
-    // Add more categories as needed, e.g. traits, keywords, etc.
+    // Add more categories as needed.
 ];
 
-// Compile each category into a { regex, messageId } entry
+// Compile each category into a { regex, messageId, ignore } entry. An optional `ignore` array of
+// regex sources suppresses any token match that falls within a match of one of them (so a phrase
+// like "Clone Trooper" can suppress both the "Clone" and "Trooper" trait words at once).
 const compiledCategories = TOKEN_CATEGORIES.map((cat) => {
+    const ignore = cat.ignore ? cat.ignore.map((pattern) => new RegExp(pattern, 'gi')) : null;
+
     if (cat.names) {
+        // Sort longest-first so multi-word names win over their prefixes in the alternation
+        // (e.g. "Bounty Hunter" is tried before "Bounty", "New Republic" before "Republic").
+        const alternation = [...cat.names].sort((a, b) => b.length - a.length).join('|');
         return {
-            regex: new RegExp(`\\b(${cat.names.join('|')})\\b`, cat.flags || 'g'),
+            regex: new RegExp(`\\b(${alternation})\\b`, cat.flags || 'g'),
             messageId: cat.messageId,
+            ignore,
         };
     }
+    // Wrap in word boundaries so a token is only matched as a whole word — e.g. "Smuggle"
+    // should not match inside "Smuggled", nor "Plot" inside "Plotting". Every alternative in
+    // these patterns starts and ends with a word character, so the boundaries are well-defined.
     return {
-        regex: new RegExp(`(${cat.pattern})`, cat.flags || 'gi'),
+        regex: new RegExp(`\\b(${cat.pattern})\\b`, cat.flags || 'gi'),
         messageId: cat.messageId,
+        ignore,
     };
 });
 
@@ -45,6 +105,53 @@ const compiledCategories = TOKEN_CATEGORIES.map((cat) => {
 const messages = Object.fromEntries(
     TOKEN_CATEGORIES.map((cat) => [cat.messageId, cat.message])
 );
+
+/**
+ * Some string literals never reach the client as display text, so matching token words inside
+ * them is always a false positive. Skip:
+ *   - module-source strings (`import ... from './GainKeyword'`, `export ... from`, dynamic import)
+ *   - enum member values (`Smuggle = 'whenPlayedUsingSmuggle'`)
+ *   - developer-facing error text (`throw new Error(...)`, `Contract.fail(...)`/`Contract.assert*(...)`)
+ */
+function isExemptContext(node) {
+    const parent = node.parent;
+
+    // Module source: the string is the `source` of an import/export/dynamic-import node.
+    if (
+        parent &&
+        (parent.type === 'ImportDeclaration' ||
+            parent.type === 'ExportNamedDeclaration' ||
+            parent.type === 'ExportAllDeclaration' ||
+            parent.type === 'ImportExpression') &&
+        parent.source === node
+    ) {
+        return true;
+    }
+
+    // Enum member value: `SomeName = 'someValue'`
+    if (parent && parent.type === 'TSEnumMember' && parent.initializer === node) {
+        return true;
+    }
+
+    // Developer-facing errors: anywhere inside a `throw` statement or a `Contract.*(...)` call.
+    for (let cur = parent; cur; cur = cur.parent) {
+        if (cur.type === 'ThrowStatement') {
+            return true;
+        }
+        if (
+            cur.type === 'CallExpression' &&
+            cur.callee &&
+            cur.callee.type === 'MemberExpression' &&
+            cur.callee.object &&
+            cur.callee.object.type === 'Identifier' &&
+            cur.callee.object.name === 'Contract'
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
@@ -59,9 +166,30 @@ export default {
     create(context) {
         function checkForTokenText(node, value) {
             for (const category of compiledCategories) {
+                // Collect [start, end) spans that should be ignored (e.g. the "the Force" game
+                // concept, token unit names, proper card names). A token match is skipped if it
+                // starts inside any ignore span — so a multi-word phrase suppresses every trait
+                // word within it (e.g. "Clone Trooper" covers both "Clone" and "Trooper").
+                const ignoreSpans = [];
+                if (category.ignore) {
+                    for (const ignoreRegex of category.ignore) {
+                        ignoreRegex.lastIndex = 0;
+                        let ignoreMatch;
+                        while ((ignoreMatch = ignoreRegex.exec(value)) !== null) {
+                            ignoreSpans.push([ignoreMatch.index, ignoreMatch.index + ignoreMatch[0].length]);
+                            if (ignoreMatch.index === ignoreRegex.lastIndex) {
+                                ignoreRegex.lastIndex++;
+                            }
+                        }
+                    }
+                }
+
                 category.regex.lastIndex = 0;
                 let match;
                 while ((match = category.regex.exec(value)) !== null) {
+                    if (ignoreSpans.some(([start, end]) => match.index >= start && match.index < end)) {
+                        continue;
+                    }
                     context.report({
                         node,
                         messageId: category.messageId,
@@ -73,12 +201,14 @@ export default {
 
         return {
             Literal(node) {
-                if (typeof node.value === 'string') {
+                if (typeof node.value === 'string' && !isExemptContext(node)) {
                     checkForTokenText(node, node.value);
                 }
             },
             TemplateElement(node) {
-                checkForTokenText(node, node.value.raw);
+                if (!isExemptContext(node)) {
+                    checkForTokenText(node, node.value.raw);
+                }
             },
         };
     },

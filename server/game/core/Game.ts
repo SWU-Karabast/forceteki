@@ -1157,6 +1157,7 @@ export class Game extends EventEmitter {
             []
         );
 
+        this.started = true;
         this.resolveGameState(true);
         this.initializePipelineForSetup();
 

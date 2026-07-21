@@ -2,6 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class LongLiveTheEmpire extends EventCard {
     protected override getImplementationId() {
@@ -13,9 +14,9 @@ export default class LongLiveTheEmpire extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Defeat a friendly Imperial unit. If you do, resource the top card of your deck',
+            title: `Defeat a friendly ${TextHelper.Trait.Imperial} unit. If you do, resource the top card of your deck`,
             targetResolver: {
-                activePromptTitle: 'Defeat a friendly Imperial unit',
+                activePromptTitle: `Defeat a friendly ${TextHelper.Trait.Imperial} unit`,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),

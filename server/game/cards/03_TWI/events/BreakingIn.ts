@@ -2,6 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BreakingIn extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class BreakingIn extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a unit. It gets +2/+0 and gains Saboteur for this attack.',
+            title: `Attack with a unit. It gets +2/+0 and gains ${TextHelper.Saboteur} for this attack.`,
             initiateAttack: {
                 attackerLastingEffects: [
                     { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur) },

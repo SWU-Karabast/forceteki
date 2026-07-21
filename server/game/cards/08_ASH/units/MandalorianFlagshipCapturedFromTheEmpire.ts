@@ -2,6 +2,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MandalorianFlagshipCapturedFromTheEmpire extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class MandalorianFlagshipCapturedFromTheEmpire extends NonLeaderU
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you control a leader unit, this unit gains Ambush',
+            title: `While you control a leader unit, this unit gains ${TextHelper.Ambush}`,
             condition: (context) => context.player.hasSomeArenaUnit({
                 condition: (card) => card.isLeaderUnit()
             }),
@@ -21,7 +22,7 @@ export default class MandalorianFlagshipCapturedFromTheEmpire extends NonLeaderU
         });
 
         registrar.addConstantAbility({
-            title: 'This unit gets +1/+0 for each other friendly Mandalorian unit',
+            title: `This unit gets +1/+0 for each other friendly ${TextHelper.Trait.Mandalorian} unit`,
             ongoingEffect: abilityHelper.ongoingEffects.modifyStats((target) => {
                 const otherMandalorianUnits = target.controller.getArenaUnits({
                     otherThan: target,

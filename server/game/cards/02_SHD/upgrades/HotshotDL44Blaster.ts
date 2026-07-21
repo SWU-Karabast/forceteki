@@ -15,7 +15,7 @@ export default class HotshotDL44Blaster extends UpgradeCard {
         registrar.setAttachCondition((context) => !context.attachTarget.hasSomeTrait(Trait.Vehicle));
 
         registrar.addTriggeredAbility({
-            title: 'When Smuggled, attack with attached unit',
+            title: 'Attack with attached unit',
             when: {
                 whenPlayedUsingSmuggle: true,
             },

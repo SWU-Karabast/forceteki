@@ -52,7 +52,8 @@ import type { IActiveModActionCacheEntry,
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
-    ServerRole
+    ServerRole,
+    UsernameChangeSource
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
@@ -298,7 +299,9 @@ export class GameServer {
         // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: {
-                level: zlibConstants.Z_BEST_SPEED
+                zlibDeflateOptions: {
+                    level: zlibConstants.Z_BEST_SPEED
+                }
             },
             path: '/ws',
             cors: {
@@ -503,6 +506,9 @@ export class GameServer {
                     undoPopupSeenDate: user.getUndoPopupSeenDate(),
                     timerPopupSeenDate: user.getTimerPopupSeenDate(),
                     preferences: user.getPreferences(),
+                    activeCosmetics: this.cosmeticsService
+                        ? this.cosmeticsService.resolveActiveCosmetics(user.getPreferences()?.cosmetics)
+                        : CosmeticsService.resolveDefaultCosmetics(user.getPreferences()?.cosmetics),
                     mustRequestUsernameChange: user.mustRequestUsernameChange(),
                     reportingDisabled: user.reportingDisabled(),
                     needsUsernameChange,
@@ -723,7 +729,11 @@ export class GameServer {
                 }
 
                 // Call the changeUsername method
-                const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername);
+                const activeRename = this.modActionService?.playerActiveRename(user.getId()) ?? null;
+                const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername, {
+                    source: activeRename ? UsernameChangeSource.ForcedRename : UsernameChangeSource.UserInitiated,
+                    relatedModActionId: activeRename?.modActionId,
+                });
                 if (result.success) {
                     await this.modActionService.onRenameCompleted(user.getId());
                     return res.status(200).json({
@@ -1699,14 +1709,19 @@ export class GameServer {
 
                 // If single match, include mod actions directly
                 let modActions = [];
+                let usernameChanges = [];
                 if (players.length === 1) {
-                    modActions = await this.userFactory.getModActionHistoryAsync(players[0].id);
+                    [modActions, usernameChanges] = await Promise.all([
+                        this.userFactory.getModActionHistoryAsync(players[0].id),
+                        this.userFactory.getUsernameChangeHistoryAsync(players[0].id),
+                    ]);
                 }
 
                 return res.status(200).json({
                     success: true,
                     players,
                     modActions,
+                    usernameChanges,
                 });
             } catch (err) {
                 logger.error('GameServer (mod-find-user) Server error:', err);
