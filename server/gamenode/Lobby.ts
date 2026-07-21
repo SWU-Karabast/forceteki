@@ -1449,8 +1449,10 @@ export class Lobby {
                 username: user.username,
                 settings: {
                     optionSettings: {
-                        // Anonymous users have no persisted preferences; default to off to preserve prior behavior.
-                        autoSingleTarget: preferences?.gameOptions?.autoSingleTarget ?? false,
+                        // Persisted prefs nest prompt-reduction settings under gameOptions.autoResolve;
+                        // the engine keeps optionSettings flat. Anonymous users have no persisted
+                        // preferences; default to off to preserve prior behavior.
+                        autoSingleTarget: preferences?.gameOptions?.autoResolve?.singleTarget ?? false,
                     }
                 },
                 cosmetics: resolvedCosmetics,

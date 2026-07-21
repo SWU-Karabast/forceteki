@@ -83,7 +83,13 @@ export interface IUserPreferences {
         muteChat?: boolean;
         cardLanguage?: CardImageLocale;
         timerVisibility?: TimerVisibility;
-        autoSingleTarget?: boolean;
+
+        // Prompt-reduction settings: auto-resolve prompts that have only one sensible outcome.
+        // Grouped so future automations (e.g. auto-select opponent for indirect damage,
+        // auto-select the enemy/own base for damage/heal) can live alongside singleTarget.
+        autoResolve?: {
+            singleTarget?: boolean;
+        };
     };
 }
 
