@@ -49,10 +49,10 @@ describe('Twin Suns dual-leader in-game support', function () {
                 expect(context.player2Object.getAllLeaders().length).toBe(2);
             });
 
-            it('player.getAspects() includes aspects from both leaders and the base', function () {
+            it('player.getAspectsForCosts() includes aspects from both leaders and the base', function () {
                 const { context } = contextRef;
                 // Luke: heroism + command; Saw: command + aggression; kestro-city: aggression
-                const p1Aspects = context.player1Object.getAspects();
+                const p1Aspects = context.player1Object.getAspectsForCosts();
                 expect(p1Aspects).toContain('heroism');
                 expect(p1Aspects).toContain('command');
                 expect(p1Aspects).toContain('aggression');
