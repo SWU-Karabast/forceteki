@@ -120,6 +120,19 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
             expect(failures[DeckValidationFailureReason.MinMainboardSizeNotMet]).toBeDefined();
             expect(failures[DeckValidationFailureReason.MinMainboardSizeNotMet].actualBoardedSize).toBe(minDeckSize - 1);
         });
+
+        it('should reject a deck padded to the minimum size with duplicate entries of the same card', function () {
+            const ctx = getContext();
+            // The game collapses duplicate card-id entries to a single card, so a mainboard of the same
+            // card repeated `minDeckSize` times (each a legal single copy) sums to the minimum in a naive
+            // count but is really one card in play. This must be rejected as malformed deck data.
+            const [card] = getDeckFiller(ctx.cardDataGetter, 1, config.legalSets);
+            const duplicates = Array.from({ length: minDeckSize }, () => ({ ...card, count: 1 }));
+            const deck = buildValidationTestDeck(ctx.cardDataGetter, ctx.leader, ctx.base, duplicates);
+            const failures = ctx.validator.validateInternalDeck(deck, props());
+            expect(failures[DeckValidationFailureReason.InvalidDeckData]).toBe(true);
+            expect(failures[DeckValidationFailureReason.MinDecklistSizeNotMet]).toBeUndefined();
+        });
     });
 
     describe('copy limits', function () {
