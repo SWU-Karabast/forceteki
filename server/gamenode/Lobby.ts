@@ -14,7 +14,7 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
-import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
+import { DeckSource, DeckValidationFailureReason, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
@@ -970,9 +970,17 @@ export class Lobby {
         const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
         activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
-        // if the deck doesn't have any errors that block import, set it as active
-        const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
-        if (Object.keys(filteredErrors).length === 0) {
+        // Determine which failures block accepting this deck as the active (playable) deck.
+        // Quick lobbies auto-start with no in-lobby deck-editing step, so an imported deck must be
+        // immediately legal to play - otherwise an undersized mainboard (whose MinMainboardSizeNotMet
+        // error is stripped by filterOutSideboardingErrors) could be smuggled in after the
+        // fully-validated queue submission. Editable lobbies (public/private) intentionally allow
+        // holding an in-progress deck that the player arranges via the sideboard UI before readying;
+        // their authoritative legality check happens at game start (see getUsersWithInvalidDeckSize).
+        const blockingErrors = this.matchmakingType === MatchmakingType.Quick
+            ? activeUser.importDeckValidationErrors
+            : DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
+        if (Object.keys(blockingErrors).length === 0) {
             activeUser.deck = new Deck(deck, this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
@@ -1238,6 +1246,20 @@ export class Lobby {
     }
 
     private async startGameAsync() {
+        // Authoritative deck-size legality gate. Several in-lobby flows (lobby entry via
+        // create-/join-lobby, change-deck, and Bo3 sideboarding) intentionally allow a deck
+        // with an undersized mainboard or oversized sideboard to be held as the active deck
+        // so the player can finish editing before the game begins - these size errors are
+        // filtered out at import time (see DeckValidator.filterOutSideboardingErrors).
+        // startGameAsync is the single point through which every game starts, so we
+        // re-validate deck size here to guarantee a game can never begin with an illegal
+        // deck (e.g. a sub-minimum mainboard smuggled in via change-deck).
+        const usersWithInvalidDeckSize = this.getUsersWithInvalidDeckSize();
+        if (usersWithInvalidDeckSize.length > 0) {
+            this.handleInvalidDeckSizeAtStart(usersWithInvalidDeckSize);
+            return;
+        }
+
         try {
             this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
@@ -1293,6 +1315,74 @@ export class Lobby {
                 });
             }
         }
+    }
+
+    /**
+     * Deck-validation failures that indicate an illegal deck to actually play with (as opposed
+     * to in-progress editing state). These are the failures that in-lobby flows filter out at
+     * import time, so they must be re-checked before a game can start.
+     */
+    private static readonly startBlockingDeckSizeFailures: readonly DeckValidationFailureReason[] = [
+        DeckValidationFailureReason.MinMainboardSizeNotMet,
+        DeckValidationFailureReason.MinDecklistSizeNotMet,
+        DeckValidationFailureReason.MaxSideboardSizeExceeded,
+    ];
+
+    /**
+     * Returns the lobby users whose active deck cannot legally start a game because of its size
+     * (missing deck, undersized mainboard/decklist, or oversized sideboard). Also refreshes each
+     * user's `deckValidationErrors` so the current state is surfaced to clients.
+     */
+    private getUsersWithInvalidDeckSize(): LobbyUserWrapper[] {
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
+        const invalidUsers: LobbyUserWrapper[] = [];
+
+        for (const user of this.users) {
+            if (!user.deck) {
+                invalidUsers.push(user);
+                continue;
+            }
+
+            const errors = this.deckValidator.validateInternalDeck(user.deck.getDecklist(), validationProperties);
+            user.deckValidationErrors = errors;
+
+            if (Lobby.startBlockingDeckSizeFailures.some((reason) => reason in errors)) {
+                invalidUsers.push(user);
+            }
+        }
+
+        return invalidUsers;
+    }
+
+    /**
+     * Handles the case where one or more players cannot legally start due to deck size. Quick
+     * lobbies have no in-lobby editing step, so they are torn down and both players are requeued
+     * (requeue re-validates decks without filtering size errors, rejecting any tampered deck).
+     * Editable lobbies are kept open with ready state cleared and the errors surfaced so the
+     * affected player(s) can fix their deck and ready up again.
+     */
+    private handleInvalidDeckSizeAtStart(usersWithInvalidDeckSize: LobbyUserWrapper[]): void {
+        const names = usersWithInvalidDeckSize.map((u) => u.username).join(', ');
+        logger.warn(
+            `Lobby: refusing to start game, invalid deck size for user(s): ${names}`,
+            { lobbyId: this.id, userIds: usersWithInvalidDeckSize.map((u) => u.id) }
+        );
+
+        this.bo3LobbyReadyTimer?.stop();
+
+        if (this.matchmakingType === MatchmakingType.Quick) {
+            this.matchmakingFailed(new Error('Cannot start game: one or more players have an invalid deck'));
+            return;
+        }
+
+        this.users.forEach((user) => {
+            user.ready = false;
+        });
+        this.gameChat.addAlert(
+            AlertType.Danger,
+            `Cannot start game: ${names} ${usersWithInvalidDeckSize.length > 1 ? 'have' : 'has'} an invalid deck (check deck size). Please fix your deck and ready up again.`
+        );
+        this.sendLobbyState();
     }
 
     private matchmakingFailed(error?: Error) {
