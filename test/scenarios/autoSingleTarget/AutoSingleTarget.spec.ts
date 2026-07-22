@@ -221,6 +221,87 @@ describe('autoSingleTarget: single-target scenarios', function() {
             });
         });
 
+        describe('when an action ability plays a unit from the hidden hand zone', function() {
+            describe('when the ability has no cost, so playing the unit is mandatory', function() {
+                it('auto-plays the only Underworld unit when autoSingleTarget is on', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            autoSingleTarget: true,
+                            leader: { card: 'jabba-the-hutt#crime-boss', deployed: true },
+                            hand: ['nihil-marauder']
+                        }
+                    });
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.jabbaTheHutt);
+                    context.player1.clickPrompt('Play an Underworld unit unit from your hand');
+
+                    // the play is mandatory, so the single Underworld unit is auto-played with no target prompt
+                    expect(context.nihilMarauder).toBeInZone('groundArena', context.player1);
+                    expect(context.player2).toBeActivePlayer();
+                });
+            });
+
+            describe('when the ability has an exhaust cost, so playing the unit is optional', function() {
+                const hanSoloAbilityTitle = 'Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.';
+                const playBattlefieldMarineButton = `${hanSoloAbilityTitle} -> Battlefield Marine`;
+
+                it('offers a play-or-pass choice instead of auto-playing the only unit when autoSingleTarget is on', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            autoSingleTarget: true,
+                            leader: 'han-solo#worth-the-risk',
+                            hand: ['battlefield-marine'],
+                            resources: 6
+                        }
+                    });
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.hanSolo);
+                    context.player1.clickPrompt(hanSoloAbilityTitle);
+
+                    // the single unit is NOT auto-played; the player is prompted to play it or pass
+                    expect(context.battlefieldMarine).toBeInZone('hand', context.player1);
+                    expect(context.player1).toHaveExactPromptButtons([
+                        playBattlefieldMarineButton,
+                        'Pass'
+                    ]);
+
+                    context.player1.clickPrompt(playBattlefieldMarineButton);
+                    expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+                    expect(context.battlefieldMarine.damage).toBe(2);
+                    expect(context.hanSolo.exhausted).toBeTrue();
+                    expect(context.player2).toBeActivePlayer();
+                });
+
+                it('lets the player pass on the only unit, leaving it in hand with the leader still exhausted', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            autoSingleTarget: true,
+                            leader: 'han-solo#worth-the-risk',
+                            hand: ['battlefield-marine'],
+                            resources: 6
+                        }
+                    });
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.hanSolo);
+                    context.player1.clickPrompt(hanSoloAbilityTitle);
+
+                    // passing resolves in a single click (the Pass handler finalizes the resolution with no target)
+                    context.player1.clickPrompt('Pass');
+
+                    // the unit stays in hand, but the exhaust-self cost was still paid, so the action was legal
+                    expect(context.battlefieldMarine).toBeInZone('hand', context.player1);
+                    expect(context.hanSolo.exhausted).toBeTrue();
+                    expect(context.player2).toBeActivePlayer();
+                });
+            });
+        });
+
         describe('when deploying a pilot leader as an upgrade with one eligible vehicle', function() {
             const pilotDeployPrompt = 'Deploy Kazuda Xiono as a Pilot';
 

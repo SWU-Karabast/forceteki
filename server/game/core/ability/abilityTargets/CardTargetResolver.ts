@@ -275,8 +275,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             choices: [`${effectName} -> ${target.title}`, 'Pass'],
             handlers: [
                 () => this.setTargetResult(context, target),
-                // eslint-disable-next-line @typescript-eslint/no-empty-function
-                () => {}
+                // finalize the resolution with no target so the resolver doesn't re-prompt (mirrors the "choose nothing" path)
+                () => this.setTargetResult(context, null)
             ]
         });
     }
