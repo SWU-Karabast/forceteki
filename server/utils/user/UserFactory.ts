@@ -28,6 +28,9 @@ const getDefaultGameOptionsPreferences = () => ({
     muteChat: false,
     cardLanguage: CardImageLocale.English,
     timerVisibility: TimerVisibility.Standard,
+    autoResolve: {
+        singleTarget: false,
+    },
 });
 
 export const getDefaultPreferences = (): IUserPreferences => ({

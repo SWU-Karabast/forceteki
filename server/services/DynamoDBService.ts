@@ -585,28 +585,55 @@ class DynamoDBService {
     }
 
     /**
-     * Check if the error is because of missing keys in the preference object
-     * @param userId the users ID
-     * @param defaultPreferences preference object
+     * Read the stored preferences object for a user (or undefined if none exist yet).
      */
-    private async checkValidationExceptionAsync(userId: string, defaultPreferences: IUserPreferences): Promise<boolean> {
-        const getCommand = new GetCommand({
+    private async getStoredPreferencesAsync(userId: string): Promise<Record<string, any> | undefined> {
+        const result = await this.client.send(new GetCommand({
             TableName: this.tableName,
             Key: { pk: `USER#${userId}`, sk: 'PROFILE' }
-        });
+        }));
 
-        const result = await this.client.send(getCommand);
-        const currentPreferences = result.Item?.preferences;
+        return result.Item?.preferences;
+    }
 
-        let shouldResetToDefaults = false;
-
-        const expectedKeys = Object.keys(defaultPreferences);
-        const missingKeys = expectedKeys.filter((key) => !(key in currentPreferences));
-        if (missingKeys.length > 0) {
-            shouldResetToDefaults = true;
-            logger.info(`User ${userId} is missing preferences keys: ${missingKeys.join(', ')}, will reset to defaults`, { userId });
+    /**
+     * Recursively find dotted key paths that exist in the defaults but are missing from the
+     * stored preferences. A nested update (e.g. SET preferences.gameOptions.autoResolve.singleTarget)
+     * fails when one of these parent paths doesn't yet exist, which is the case we recover from.
+     */
+    private findMissingPreferenceKeyPaths(defaults: Record<string, any>, current: Record<string, any> | undefined, prefix = ''): string[] {
+        const missing: string[] = [];
+        for (const key of Object.keys(defaults)) {
+            const path = prefix ? `${prefix}.${key}` : key;
+            const defaultValue = defaults[key];
+            if (current == null || !(key in current)) {
+                missing.push(path);
+            } else if (typeof defaultValue === 'object' && defaultValue !== null && !Array.isArray(defaultValue)) {
+                missing.push(...this.findMissingPreferenceKeyPaths(defaultValue, current[key], path));
+            }
         }
-        return shouldResetToDefaults;
+        return missing;
+    }
+
+    /**
+     * Deep-merge plain-object preferences. Values from `source` win; nested objects are merged
+     * recursively so partial updates don't clobber unrelated saved settings. `undefined` values
+     * in `source` are skipped.
+     */
+    private deepMergePreferences(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
+        const result: Record<string, any> = { ...target };
+        for (const key in source) {
+            const sourceValue = source[key];
+            if (sourceValue === undefined) {
+                continue;
+            }
+            const targetValue = result[key];
+            const bothPlainObjects =
+              typeof sourceValue === 'object' && sourceValue !== null && !Array.isArray(sourceValue) &&
+              typeof targetValue === 'object' && targetValue !== null && !Array.isArray(targetValue);
+            result[key] = bothPlainObjects ? this.deepMergePreferences(targetValue, sourceValue) : sourceValue;
+        }
+        return result;
     }
 
 
@@ -676,20 +703,23 @@ class DynamoDBService {
             if (validationExceptionOccurred) {
                 logger.info(`Attempting to see whether the validation exception is expected for ${userId}`, { userId });
                 try {
-                    // we read and then attempt
+                    // The nested update failed because a parent path doesn't exist yet in the stored
+                    // preferences (e.g. a newly added nested key like gameOptions.autoResolve). Confirm
+                    // that's the case, then rebuild the preferences with a full replace.
                     const defaultPrefs = getDefaultPreferences();
-                    if (await this.checkValidationExceptionAsync(userId, defaultPrefs)) {
-                        // Get defaults and merge with new preferences
-                        const merged = { ...defaultPrefs, ...preferences };
+                    const currentPrefs = await this.getStoredPreferencesAsync(userId);
+                    const missingKeys = this.findMissingPreferenceKeyPaths(defaultPrefs, currentPrefs);
 
-                        for (const key in preferences) {
-                            if (typeof preferences[key] === 'object' && preferences[key] !== null &&
-                              typeof defaultPrefs[key] === 'object' && defaultPrefs[key] !== null) {
-                                merged[key] = { ...defaultPrefs[key], ...preferences[key] };
-                            }
-                        }
+                    if (missingKeys.length > 0) {
+                        logger.info(`User ${userId} is missing preferences keys: ${missingKeys.join(', ')}, will reset to defaults`, { userId });
 
-                        // Update with the merged preferences (full replace)
+                        // Fill in any missing structure from the defaults, preserve the user's existing
+                        // saved values, then apply the incoming update on top.
+                        const merged = this.deepMergePreferences(
+                            this.deepMergePreferences(defaultPrefs, currentPrefs ?? {}),
+                            preferences
+                        );
+
                         const resetCommand = new UpdateCommand({
                             TableName: this.tableName,
                             Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
