@@ -198,6 +198,18 @@ describe('Triple Dark Raid', function () {
                 context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
             });
+
+            // Ruling 2025-03-25: Triple Dark Raid's "return to hand at regroup" delayed effect is an
+            // ability of the controlling player. If the unit (with a Chewbacca pilot granting "can't be
+            // returned to hand by enemy card abilities") changes control to the opponent, that delayed
+            // effect now comes from an enemy card ability and is blocked — the unit is not returned.
+            xit('does not return a unit to hand at regroup if it was stolen and has "can\'t be returned by enemy card abilities"', function () {
+                // Play a unit via Triple Dark Raid and attach Chewbacca (Faithful First Mate) via
+                // Piloting (granting "This unit can't be returned to hand by enemy card abilities"). The
+                // opponent plays Traitorous to take control of the unit. At the start of the regroup
+                // phase, Triple Dark Raid's return effect is now an enemy ability, so the unit is NOT
+                // returned to its owner's hand.
+            });
         });
     });
 });

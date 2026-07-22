@@ -118,5 +118,18 @@ describe('Fire Across the Galaxy', function () {
             // Chopper trigger and resolve shouldn't have happened
             expect(context.chopper).toHaveExactUpgradeNames(['imprisoned']);
         });
+
+        // Ruling 2026-05-06: for "use any number of ... abilities" (like Fire Across the Galaxy), the
+        // player may see the resolution of each ability before choosing the next one to use — they are
+        // NOT required to commit to the full set of abilities up front.
+        // NOTE: currently fails — the engine makes you select the entire set of Spectre abilities up
+        // front (see the passing tests above, which click all chosen units then 'Done' before any
+        // ability resolves) and only then resolves them. This documents the intended choose-as-you-go
+        // behavior.
+        xit('lets the player resolve one Spectre When Played ability and see the result before choosing the next', function () {
+            // Play Fire Across the Galaxy with multiple friendly Spectre units that have When Played
+            // abilities. The player chooses and resolves one ability, observes its outcome, and only
+            // then chooses the next ability to use (rather than committing to the whole set up front).
+        });
     });
 });

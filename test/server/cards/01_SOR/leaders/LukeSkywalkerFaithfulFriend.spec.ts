@@ -58,6 +58,54 @@ describe('Luke Skywalker, Faithful Friend', function() {
             });
         });
 
+        describe('Luke\'s undeployed ability with a pilot that became a unit', function() {
+            // Ruling 2025-04-30: "heroic unit played this round" is read holistically — the card must
+            // have been played as a unit. A pilot played as an upgrade that later becomes a unit (e.g.
+            // its vehicle is defeated) does not qualify for the Shield.
+            // NOTE: currently fails — the engine still treats the pilot-moved Luke as a "unit played
+            // this phase" and allows selecting him. Left as xit pending implementation of the ruling.
+            xit('should not be able to give a shield to a pilot played as an upgrade this phase that became a unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        hand: ['luke-skywalker#you-still-with-me', 'battlefield-marine'],
+                        groundArena: ['snowspeeder'],
+                        resources: 10
+                    },
+                    player2: {
+                        hand: ['confiscate'],
+                        resources: 10
+                    }
+                });
+
+                const { context } = contextRef;
+                const lukeLeader = context.player1.findCardByName('luke-skywalker#faithful-friend');
+                const lukePilot = context.player1.findCardByName('luke-skywalker#you-still-with-me');
+
+                // Player 1 plays Battlefield Marine as a unit this phase (a valid future Shield target)
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.passAction();
+
+                // Player 1 plays JTL Luke as a pilot upgrade on the Snowspeeder this phase
+                context.player1.clickCard(lukePilot);
+                context.player1.clickPrompt('Play Luke Skywalker with Piloting');
+                context.player1.clickCard(context.snowspeeder);
+
+                // Player 2 defeats the pilot upgrade; Player 1 moves Luke to the ground arena instead
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(lukePilot);
+                context.player1.clickPrompt('Trigger');
+                expect(lukePilot).toBeInZone('groundArena');
+
+                // Luke leader's ability can only target the Battlefield Marine (played as a unit), not
+                // the pilot-moved Luke (played as an upgrade)
+                context.player1.clickCard(lukeLeader);
+                context.player1.clickPrompt('Give a shield to a heroism unit you played this phase');
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            });
+        });
+
         describe('Luke\'s deployed ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({

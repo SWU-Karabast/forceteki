@@ -255,6 +255,39 @@ describe('Krayt Dragon', function () {
                 expect(context.kraytDragon.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            // Ruling 2024: Krayt's ability triggers, then is blanked by Force Lightning ("loses all
+            // abilities this phase"), but the already-triggered ability still resolves and the
+            // controller of that ability deals damage.
+            it('still resolves and deals damage when blanked by Force Lightning after triggering', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['krayt-dragon']
+                    },
+                    player2: {
+                        hand: ['force-lightning'],
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        groundArena: ['wampa'],
+                        resources: 5
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                // Player 2 plays Force Lightning targeting Krayt: Krayt's "when an opponent plays a
+                // card" ability triggers, then Force Lightning blanks Krayt (loses all abilities).
+                context.player2.clickCard(context.forceLightning);
+                context.player2.clickCard(context.kraytDragon);
+
+                // Krayt's already-triggered ability still resolves: its controller (player1) deals
+                // damage equal to the played card's cost. Force Lightning costs 1, so it deals 1.
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.damage).toBe(1);
+            });
         });
     });
 });

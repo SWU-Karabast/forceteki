@@ -209,5 +209,21 @@ describe('Defeat timing', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('When a unit enters play while a game-state check is pending,', function() {
+            // Full clarification (social-media ruling):
+            //   "Constant abilities are 'on' immediately when a unit enters play, even if game state
+            //    checks (such as uniqueness) are currently preventing effects from resolving such as a
+            //    unit being defeated due to remaining HP."
+            // NOTE: no concrete card scenario is given in the ruling — a real test needs a constant
+            // ability whose effect matters at the exact moment a uniqueness / 0-remaining-HP check is
+            // pending (e.g. a unit whose constant ability grants +HP or an aura that changes the outcome
+            // of that check).
+            xit('its constant abilities are active immediately, even while a uniqueness or 0-HP defeat check is pending', function () {
+                // A unit enters play with a constant ability. At that instant a game-state check is
+                // pending (e.g. the uniqueness rule, or a "0 remaining HP → defeat" check). The unit's
+                // constant ability is already active and can affect the outcome of that pending check.
+            });
+        });
     });
 });
