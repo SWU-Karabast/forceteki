@@ -263,9 +263,9 @@ describe('Dengar, Take Your Shot', function () {
                 // resolution modal appears directly. Resolving all of them still only creates one
                 // Credit token since the ability is limited to once per round.
                 expect(context.player1).toHavePrompt('Resolve "Create a Credit token"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
                 expect(context.player1.credits).toBe(1);
 
                 // The second instance has no effect since the limit is once per round

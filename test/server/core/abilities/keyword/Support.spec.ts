@@ -244,8 +244,8 @@ describe('Support keyword', function() {
                 // (same static title and source), they collapse into one grouped entry and the
                 // resolution modal appears directly when it is defeated.
                 expect(context.player1).toHavePrompt('Resolve "Draw a card"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Ability is optional, so we click trigger once for each instance of the ability
                 context.player1.clickPrompt('Trigger');

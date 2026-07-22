@@ -80,7 +80,7 @@ describe('Darth Sidious, Under a Cloak of Darkness', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.superlaserBlast);
-            context.player1.clickPrompt('Resolve all remaining (4)');
+            context.player1.clickPrompt('Resolve all (4)');
             expect(context.player2).toBeActivePlayer();
 
             const battleDroids = context.player1.findCardsByName('battle-droid');

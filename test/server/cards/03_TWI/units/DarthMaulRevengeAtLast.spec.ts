@@ -438,8 +438,8 @@ describe('Darth Maul, Revenge At Last', function() {
 
             // Both Shield triggers are grouped (same token upgrade), opening a resolution modal directly
             expect(context.player2).toHavePrompt('Resolve "Defeat Shield to prevent attached unit from taking damage"');
-            expect(context.player2).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-            context.player2.clickPrompt('Resolve all remaining (2)');
+            expect(context.player2).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+            context.player2.clickPrompt('Resolve all (2)');
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.moistureFarmer.damage).toBe(0);
@@ -492,8 +492,8 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.darthMaul.damage).toBe(0);
             // The two Ruthlessness triggers are grouped, opening a resolution modal directly
             expect(context.player1).toHavePrompt('Resolve "Deal 2 damage to the defending player’s base"');
-            expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-            context.player1.clickPrompt('Resolve all remaining (2)');
+            expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+            context.player1.clickPrompt('Resolve all (2)');
             expect(context.p2Base.damage).toBe(4);
         });
 

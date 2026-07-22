@@ -629,8 +629,8 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
 
                 // The two identical Experience triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Give an Experience token to the attacking unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Resolve the first instance
                 expect(context.player1).toHavePassAbilityButton();

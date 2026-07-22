@@ -105,7 +105,7 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
                 context.player1.clickCard(context.superlaserBlast);
 
                 // All four defeats trigger the same ability and are grouped — resolve them via the modal
-                context.player1.clickPrompt('Resolve all remaining (4)');
+                context.player1.clickPrompt('Resolve all (4)');
 
                 // Check that all 4 units were defeated and the opponent's base took 4 damage
                 expect(context.player2.discard.length).toBe(4);

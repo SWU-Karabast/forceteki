@@ -162,7 +162,7 @@ describe('Choose Your Path', function() {
 
                 // Both doubled Mandalorian tokens have Shielded; their grouped triggers resolve via the modal
                 expect(context.player1).toHavePrompt('Resolve "Shielded"');
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 const mandalorians = context.player1.findCardsByName('mandalorian', 'groundArena');
                 expect(context.moffJerjerrod).toBeInZone('discard');

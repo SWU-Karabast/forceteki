@@ -275,8 +275,8 @@ describe('Rey, With Palpatine\'s Power', function() {
 
                 // the two identical Rey triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Reveal Rey to deal 2 damage to a unit and 2 damage to a base"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Activate the first Rey's trigger
                 expect(context.player1).toHavePassAbilityButton();
@@ -337,8 +337,8 @@ describe('Rey, With Palpatine\'s Power', function() {
 
                 // the two identical Rey triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Reveal Rey to deal 2 damage to a unit and 2 damage to a base"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Pass on the first Rey's trigger
                 expect(context.player1).toHavePassAbilityButton();

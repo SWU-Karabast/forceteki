@@ -327,8 +327,8 @@ describe('Uniqueness rule', function() {
 
                 // triggered ability from both copies of Yularen, grouped into a single entry that opens a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Heal 1 damage from your base"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
                 expect(context.p1Base.damage).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();
@@ -675,9 +675,9 @@ describe('Uniqueness rule', function() {
 
                 // Once both are defeated, the two identical When Defeated abilities are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card."');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 expect(context.player1).toBeAbleToSelectExactly([obi3]);
 
@@ -742,9 +742,9 @@ describe('Uniqueness rule', function() {
 
                 // Once both are defeated, the two identical When Defeated abilities are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card."');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 expect(context.player1).toBeAbleToSelectExactly([obi1]);
 

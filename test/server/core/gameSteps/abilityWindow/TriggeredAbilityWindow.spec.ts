@@ -179,7 +179,7 @@ describe('Simultaneous triggers', function() {
                 // Pryde's ability triggers once per damaged unit; the two identical triggers are grouped into
                 // a single choice that opens the batch-resolution modal
                 expect(context.player1).toHavePrompt('Resolve "Defeat a non-unique upgrade on the unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
                 // Resolving the first instance still prompts for the upgrade on its own unit
                 context.player1.clickPrompt('Resolve next');
@@ -231,8 +231,8 @@ describe('Simultaneous triggers', function() {
 
                 // Resolve Pryde's grouped triggers all at once, choosing the upgrade on each unit in turn
                 context.player1.clickPrompt('Defeat a non-unique upgrade on the unit');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
                 context.player1.clickCard(context.devotion);

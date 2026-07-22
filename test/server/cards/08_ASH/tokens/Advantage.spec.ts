@@ -121,7 +121,7 @@ describe('Advantage', function() {
 
                 // The two identical Advantage triggers are grouped into one modal; resolve them one at a time
                 expect(context.player2).toHavePrompt('Resolve "Defeat Advantage token"');
-                expect(context.player2).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player2).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
                 context.player2.clickPrompt('Resolve next');
 
                 // The last remaining token resolves automatically without another prompt
@@ -159,7 +159,7 @@ describe('Advantage', function() {
 
                 // Choosing "Resolve all remaining" resolves every Advantage token without further prompts
                 expect(context.player2).toHavePrompt('Resolve "Defeat Advantage token"');
-                context.player2.clickPrompt('Resolve all remaining (3)');
+                context.player2.clickPrompt('Resolve all (3)');
 
                 // Verify all three Advantage tokens were defeated
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
@@ -206,7 +206,7 @@ describe('Advantage', function() {
                 // Select the grouped Advantage trigger, then resolve all of them at once from the modal
                 context.player1.clickPrompt('Defeat Advantage token');
                 expect(context.player1).toHavePrompt('Resolve "Defeat Advantage token"');
-                context.player1.clickPrompt('Resolve all remaining (3)');
+                context.player1.clickPrompt('Resolve all (3)');
 
                 // All three Advantage tokens are defeated
                 expect(context.zebOrrelios).toHaveExactUpgradeNames([]);
@@ -237,7 +237,7 @@ describe('Advantage', function() {
 
                 // Resolve a single Advantage token, then return to the ordering prompt
                 context.player1.clickPrompt('Defeat Advantage token');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
                 context.player1.clickPrompt('Resolve next');
 
                 // Zeb's ability can be resolved in the middle of the Advantage token defeats
@@ -250,7 +250,7 @@ describe('Advantage', function() {
 
                 // The remaining two Advantage tokens then resolve from the modal
                 expect(context.player1).toHavePrompt('Resolve "Defeat Advantage token"');
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 expect(context.zebOrrelios).toHaveExactUpgradeNames([]);
                 for (const advantageToken of advantageTokens) {
@@ -293,11 +293,11 @@ describe('Advantage', function() {
 
                 // Player1's two Advantage tokens are their only triggers, so the grouped modal appears directly
                 expect(context.player1).toHavePrompt('Resolve "Defeat Advantage token"');
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Player2 then resolves their own grouped Advantage tokens
                 expect(context.player2).toHavePrompt('Resolve "Defeat Advantage token"');
-                context.player2.clickPrompt('Resolve all remaining (2)');
+                context.player2.clickPrompt('Resolve all (2)');
 
                 // All Advantage tokens across both units are defeated
                 expect(context.consularSecurityForce).toHaveExactUpgradeNames([]);
@@ -330,7 +330,7 @@ describe('Advantage', function() {
 
                 // Resolve all Advantage tokens at once; each token is still a separate defeat so Zeb fires three times
                 expect(context.player1).toHavePrompt('Resolve "Defeat Advantage token"');
-                context.player1.clickPrompt('Resolve all remaining (3)');
+                context.player1.clickPrompt('Resolve all (3)');
 
                 // The three Zeb triggers fire (one per Advantage token defeated); use non-checking clicks as prompts are identical
                 context.player1.clickCardNonChecking(context.p2Base);

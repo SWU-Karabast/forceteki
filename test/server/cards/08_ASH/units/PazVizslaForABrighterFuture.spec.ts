@@ -42,7 +42,7 @@ describe('Paz Vizsla, For a Brighter Future', function() {
                 context.player1.passAction();
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.pazVizslaForABrighterFuture);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 const mandalorians = context.player1.findCardsByName('mandalorian');
 
@@ -71,7 +71,7 @@ describe('Paz Vizsla, For a Brighter Future', function() {
 
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.pazVizslaForABrighterFuture);
-                context.player2.clickPrompt('Resolve all remaining (2)');
+                context.player2.clickPrompt('Resolve all (2)');
 
                 const mandaloriansP1 = context.player1.findCardsByName('mandalorian');
 
@@ -105,7 +105,7 @@ describe('Paz Vizsla, For a Brighter Future', function() {
                 context.player2.clickCard(context.sabineWren);
                 context.player2.clickCard(context.pazVizslaForABrighterFuture);
                 context.player2.clickCard(context.pazVizslaForABrighterFuture);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 const mandalorians = context.player1.findCardsByName('mandalorian');
 

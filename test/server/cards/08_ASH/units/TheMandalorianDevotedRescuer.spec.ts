@@ -369,7 +369,7 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 // Wampa are protected (one shield consumed for each per-instance trigger).
                 context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit');
                 expect(context.player1).toHavePrompt('Resolve "Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit"');
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickPrompt('Trigger');
 

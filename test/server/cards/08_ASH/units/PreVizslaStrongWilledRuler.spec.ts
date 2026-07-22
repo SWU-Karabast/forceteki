@@ -110,7 +110,7 @@ describe('Pre Vizsla, Strong-Willed Ruler', function () {
 
             context.player1.clickPrompt('Done');
 
-            context.player1.clickPrompt('Resolve all remaining (6)');
+            context.player1.clickPrompt('Resolve all (6)');
 
             const mandalorians = context.player1.findCardsByName('mandalorian');
 
@@ -249,7 +249,7 @@ describe('Pre Vizsla, Strong-Willed Ruler', function () {
 
             context.player1.clickPrompt('Done');
 
-            context.player1.clickPrompt('Resolve all remaining (6)');
+            context.player1.clickPrompt('Resolve all (6)');
 
             const mandalorians = context.player1.findCardsByName('mandalorian');
 

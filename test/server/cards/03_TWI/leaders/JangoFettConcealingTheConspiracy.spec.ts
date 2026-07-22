@@ -97,8 +97,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // The three triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Exhaust leader and exhaust the damaged enemy unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
-                context.player1.clickPrompt('Resolve all remaining (3)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
+                context.player1.clickPrompt('Resolve all (3)');
 
                 // Pass on the first instance; passing does not exhaust the leader
                 expect(context.player1).toHavePassAbilityButton();
@@ -129,8 +129,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // The two on-attack triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Exhaust leader and exhaust the damaged enemy unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Pass on the first instance
                 expect(context.player1).toHavePassAbilityButton();
@@ -322,7 +322,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // The three triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Exhaust leader and exhaust the damaged enemy unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
 
                 // Resolve a single instance; the leader exhausts and only one enemy unit can be exhausted
                 context.player1.clickPrompt('Resolve next');
@@ -433,8 +433,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // The three triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Exhaust the damaged enemy unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
-                context.player1.clickPrompt('Resolve all remaining (3)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
+                context.player1.clickPrompt('Resolve all (3)');
 
                 // Resolve each grouped instance (the deployed side does not exhaust the leader, so all resolve)
                 expect(context.player1).toHavePassAbilityButton();
@@ -463,8 +463,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // The two on-attack (Vambrace) triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Exhaust the damaged enemy unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Resolve both grouped instances (Fleet Lieutenant and Battlefield Marine)
                 expect(context.player1).toHavePassAbilityButton();
@@ -516,8 +516,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // The three triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Exhaust the damaged enemy unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
-                context.player1.clickPrompt('Resolve all remaining (3)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
+                context.player1.clickPrompt('Resolve all (3)');
 
                 // Resolve each grouped instance (the deployed side does not exhaust the leader, so all resolve)
                 expect(context.player1).toHavePassAbilityButton();
@@ -640,8 +640,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // All four triggers are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt('Resolve "Exhaust the damaged enemy unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (4)']);
-                context.player1.clickPrompt('Resolve all remaining (4)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (4)']);
+                context.player1.clickPrompt('Resolve all (4)');
 
                 // Resolve each grouped instance (the deployed side does not exhaust the leader, so all resolve)
                 expect(context.player1).toHavePassAbilityButton();

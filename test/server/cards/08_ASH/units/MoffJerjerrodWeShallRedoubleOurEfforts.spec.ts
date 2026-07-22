@@ -283,7 +283,7 @@ describe('Moff Jerjerrod, We Shall Redouble Our Efforts', function () {
                 context.player1.clickCard(context.wampa);
 
                 // Both token types trigger Jerjerrod simultaneously and are grouped — resolve them via the modal
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Accept the Experience replacement — Jerjerrod is defeated and 2 XP tokens are created
                 expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Experience tokens instead: Wampa');

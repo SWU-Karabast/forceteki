@@ -319,7 +319,7 @@ describe('The Twins, We Don\'t Want War', function() {
 
             context.player2.clickCard(context.superlaserBlast);
 
-            context.player1.clickPrompt('Resolve all remaining (3)');
+            context.player1.clickPrompt('Resolve all (3)');
 
             expect(context.p1Base.damage).toBe(2);
             expect(context.p2Base.damage).toBe(5);

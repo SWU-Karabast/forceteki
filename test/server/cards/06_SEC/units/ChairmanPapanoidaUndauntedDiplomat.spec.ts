@@ -103,10 +103,10 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
 
                 // The two identical draw triggers (one per player's draw) are grouped, opening a resolution modal directly
                 expect(context.player1).toHavePrompt(`Resolve "${disclosePrompt}"`);
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
                 // Resolve both grouped triggers, each running its own per-instance disclose prompt
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
                 expect(context.player1).toHavePrompt(disclosePrompt);
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player1).toBeAbleToSelectExactly([

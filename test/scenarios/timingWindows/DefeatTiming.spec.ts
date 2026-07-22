@@ -149,8 +149,8 @@ describe('Defeat timing', function() {
                 // selecting the grouped entry opens the resolution modal
                 context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base');
                 expect(context.player1).toHavePrompt('Resolve "When an opponent\'s unit is defeated, heal 1 from base"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
-                context.player1.clickPrompt('Resolve all remaining (3)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
+                context.player1.clickPrompt('Resolve all (3)');
                 // after the grouped heals resolve, the two draw triggers remain
                 context.player1.clickPrompt('Draw a card');
                 // may ability prompts the player whether or not to actually use it before it fully resolves

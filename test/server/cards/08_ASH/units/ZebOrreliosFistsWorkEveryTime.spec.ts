@@ -270,9 +270,9 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
                 // so they collapse into a single grouped entry. Since they are the only triggers,
                 // the resolution modal appears directly.
                 expect(context.player1).toHavePrompt('Resolve "Deal 1 damage to a base"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Each grouped instance resolves its own base-selection prompt in sequence
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
@@ -357,9 +357,9 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
                 // so they collapse into a single grouped entry. Since they are the only triggers,
                 // the resolution modal appears directly.
                 expect(context.player1).toHavePrompt('Resolve "Deal 1 damage to a base"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Each grouped instance resolves its own base-selection prompt in sequence
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
@@ -500,8 +500,8 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
                 // triggers twice; the two triggers share a static title and source and collapse into
                 // a single grouped entry. Since they are the only triggers, the modal appears directly.
                 expect(context.player1).toHavePrompt('Resolve "Deal 1 damage to a base"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);

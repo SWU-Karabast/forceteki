@@ -45,7 +45,7 @@ export class BatchTriggerResolutionPrompt extends UiPrompt {
             menuTitle: `Resolve "${title}"`,
             buttons: [
                 { text: 'Resolve next', arg: 'next' },
-                { text: `Resolve all remaining (${remainingCount})`, arg: 'all' }
+                { text: `Resolve all (${remainingCount})`, arg: 'all' }
             ],
             promptTitle: this.source.name,
             promptUuid: this.uuid,

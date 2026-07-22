@@ -61,9 +61,9 @@ describe('Allegiant General Pryde, Ruthless and Loyal', function () {
                 // modal appears directly. Resolving all instances runs each per-instance prompt
                 // in sequence (only the Battlefield Marine instance has an eligible upgrade).
                 expect(context.player1).toHavePrompt('Resolve "Defeat a non-unique upgrade on the unit"');
-                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
-                context.player1.clickPrompt('Resolve all remaining (2)');
+                context.player1.clickPrompt('Resolve all (2)');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.devotion, context.shield]);
                 expect(context.player1).toHavePassAbilityButton();

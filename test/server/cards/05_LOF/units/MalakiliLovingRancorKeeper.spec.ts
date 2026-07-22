@@ -66,8 +66,8 @@ describe('Malakili, Loving Rancor Keeper', function () {
             // modal appears directly. Resolving all of them prevents damage to every friendly unit.
             const groupedTitle = 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage';
             expect(context.player1).toHavePrompt(`Resolve "${groupedTitle}"`);
-            expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
-            context.player1.clickPrompt('Resolve all remaining (3)');
+            expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
+            context.player1.clickPrompt('Resolve all (3)');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.atst.damage).toBe(2);
