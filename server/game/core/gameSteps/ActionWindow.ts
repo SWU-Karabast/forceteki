@@ -147,6 +147,7 @@ export class ActionWindow extends UiPrompt {
             buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative', disabled: mustTakeCardAction });
         }
         if (isFauxSuns && !this.game.isPlanCounterClaimed) {
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Plan" refers to the TwinSuns Plan counter, not the Plan trait
             buttons.push({ text: 'Claim Plan', arg: 'claimPlan', disabled: mustTakeCardAction });
         }
         if (isFauxSuns && !this.game.isBlastCounterClaimed) {
@@ -244,6 +245,7 @@ export class ActionWindow extends UiPrompt {
     }
 
     public claimPlan() {
+        // eslint-disable-next-line forceteki/no-raw-token-text -- "Plan" refers to the TwinSuns Plan counter, not the Plan trait
         this.game.addMessage('{0} claims the Plan counter and passes', this.activePlayer);
         this.game.claimPlanCounter(this.activePlayer);
 

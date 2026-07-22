@@ -41,6 +41,7 @@ export class PutOnBottomFromHandSystem<TContext extends AbilityContext = Ability
 
         game.promptForSelect(player, {
             activePromptTitle: 'Choose a card from your hand to put on the bottom of your deck',
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Plan" refers to the TwinSuns Plan counter, not the Plan trait
             source: 'Plan Counter',
             selector,
             isOpponentEffect: false,
