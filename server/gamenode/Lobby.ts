@@ -971,12 +971,8 @@ export class Lobby {
         activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
         // Determine which failures block accepting this deck as the active (playable) deck.
-        // Quick lobbies auto-start with no in-lobby deck-editing step, so an imported deck must be
-        // immediately legal to play - otherwise an undersized mainboard (whose MinMainboardSizeNotMet
-        // error is stripped by filterOutSideboardingErrors) could be smuggled in after the
-        // fully-validated queue submission. Editable lobbies (public/private) intentionally allow
-        // holding an in-progress deck that the player arranges via the sideboard UI before readying;
-        // their authoritative legality check happens at game start (see getUsersWithInvalidDeckSize).
+        // Quick lobbies auto-start with no editing step, so the deck must be immediately legal;
+        // editable lobbies allow an in-progress deck since game start re-validates size.
         const blockingErrors = this.matchmakingType === MatchmakingType.Quick
             ? activeUser.importDeckValidationErrors
             : DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
@@ -1246,14 +1242,9 @@ export class Lobby {
     }
 
     private async startGameAsync() {
-        // Authoritative deck-size legality gate. Several in-lobby flows (lobby entry via
-        // create-/join-lobby, change-deck, and Bo3 sideboarding) intentionally allow a deck
-        // with an undersized mainboard or oversized sideboard to be held as the active deck
-        // so the player can finish editing before the game begins - these size errors are
-        // filtered out at import time (see DeckValidator.filterOutSideboardingErrors).
-        // startGameAsync is the single point through which every game starts, so we
-        // re-validate deck size here to guarantee a game can never begin with an illegal
-        // deck (e.g. a sub-minimum mainboard smuggled in via change-deck).
+        // Authoritative deck-size gate. Various flows allow an undersized/oversized deck to be held
+        // while editing (size errors are filtered at import time), so we re-validate here - the single
+        // entry point for starting a game - to guarantee no game begins with an illegal deck.
         const usersWithInvalidDeckSize = this.getUsersWithInvalidDeckSize();
         if (usersWithInvalidDeckSize.length > 0) {
             this.handleInvalidDeckSizeAtStart(usersWithInvalidDeckSize);
