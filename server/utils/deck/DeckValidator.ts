@@ -298,6 +298,22 @@ export class DeckValidator {
                 this.normalizeCardEntryIds(deck.sideboard);
             }
 
+            // Guard against malformed card entries before any counting. The game collapses duplicate
+            // card-id entries within a single list to one entry (Deck.convertCardListToMap keeps the last
+            // count), and non-integer/negative counts make the size math below meaningless. Either lets a
+            // decklist that is actually far smaller than it appears pass the size/copy checks (e.g. padding
+            // the mainboard with repeated entries of the same card), so reject them up front so validation
+            // reflects what the game will actually build.
+            const sideboardEntries = deck.sideboard ?? [];
+            if (
+                this.hasInvalidCardCounts(deck.deck) ||
+                this.hasInvalidCardCounts(sideboardEntries) ||
+                this.hasDuplicateCardIds(deck.deck) ||
+                this.hasDuplicateCardIds(sideboardEntries)
+            ) {
+                return { [DeckValidationFailureReason.InvalidDeckData]: true };
+            }
+
             const failures: IDeckValidationFailures = {
                 [DeckValidationFailureReason.IllegalInFormat]: [],
                 [DeckValidationFailureReason.TooManyCopiesOfCard]: [],
@@ -361,10 +377,6 @@ export class DeckValidator {
 
                 this.checkCardLocation(card, cardData, DecklistLocation.Deck, failures);
                 this.checkFormatLegality(cardData, format, legalSets, failures);
-
-                if (card.count < 0) {
-                    failures[DeckValidationFailureReason.InvalidDeckData] = true;
-                }
 
                 this.checkMaxCopiesOfCard(card, cardData, format, failures);
             }
@@ -493,5 +505,26 @@ export class DeckValidator {
 
     private getTotalCardCount(cardlist: ISwuDbFormatCardEntry[]): number {
         return cardlist.reduce((sum, card) => sum + card.count, 0);
+    }
+
+    /** True if any entry has a count that is not a non-negative integer (e.g. a string, float, or NaN). */
+    private hasInvalidCardCounts(cardList: ISwuDbFormatCardEntry[]): boolean {
+        return cardList.some((card) => !Number.isInteger(card.count) || card.count < 0);
+    }
+
+    /**
+     * True if the same card id appears more than once in a single list. The game keeps only the last
+     * duplicate (Deck.convertCardListToMap), so duplicates would let the summed validator count exceed the
+     * number of cards actually built. A well-formed decklist has each card id at most once per list.
+     */
+    private hasDuplicateCardIds(cardList: ISwuDbFormatCardEntry[]): boolean {
+        const seen = new Set<string>();
+        for (const card of cardList) {
+            if (seen.has(card.id)) {
+                return true;
+            }
+            seen.add(card.id);
+        }
+        return false;
     }
 }
