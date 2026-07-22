@@ -597,25 +597,6 @@ class DynamoDBService {
     }
 
     /**
-     * Recursively find dotted key paths that exist in the defaults but are missing from the
-     * stored preferences. A nested update (e.g. SET preferences.gameOptions.autoResolve.singleTarget)
-     * fails when one of these parent paths doesn't yet exist, which is the case we recover from.
-     */
-    private findMissingPreferenceKeyPaths(defaults: Record<string, any>, current: Record<string, any> | undefined, prefix = ''): string[] {
-        const missing: string[] = [];
-        for (const key of Object.keys(defaults)) {
-            const path = prefix ? `${prefix}.${key}` : key;
-            const defaultValue = defaults[key];
-            if (current == null || !(key in current)) {
-                missing.push(path);
-            } else if (typeof defaultValue === 'object' && defaultValue !== null && !Array.isArray(defaultValue)) {
-                missing.push(...this.findMissingPreferenceKeyPaths(defaultValue, current[key], path));
-            }
-        }
-        return missing;
-    }
-
-    /**
      * Deep-merge plain-object preferences. Values from `source` win; nested objects are merged
      * recursively so partial updates don't clobber unrelated saved settings. `undefined` values
      * in `source` are skipped.
@@ -638,104 +619,34 @@ class DynamoDBService {
 
 
     /**
-     * Update user preferences partially (supports nested updates)
+     * Update user preferences, merging the given partial update into what's already stored.
+     *
+     * Uses a read-merge-replace strategy: load the stored preferences, layer the current defaults
+     * underneath to backfill any keys added since the profile was last written, apply the incoming
+     * update on top, then write the whole object back. This deliberately avoids per-field nested
+     * update expressions, which fail when a parent map (e.g. gameOptions.autoResolve) doesn't yet
+     * exist. As a result, adding a new preference only requires extending getDefaultPreferences().
+     *
+     * Note: this is a non-atomic read-modify-write. Concurrent updates for the same user resolve
+     * last-write-wins, which is acceptable for single-user settings saved from the preferences UI.
+     *
      * @param userId User ID
-     * @param preferences Partial preferences to update
+     * @param preferences Partial preferences to merge in
      */
     public updateUserPreferencesAsync(userId: string, preferences: Partial<IUserPreferences>): Promise<void> {
         return this.executeDbOperationAsync(async () => {
-            const updateExpressions: string[] = [];
-            const expressionAttributeValues: Record<string, any> = {};
-            const expressionAttributeNames: Record<string, string> = {};
+            const currentPrefs = await this.getStoredPreferencesAsync(userId);
+            const merged = this.deepMergePreferences(
+                this.deepMergePreferences(getDefaultPreferences(), currentPrefs ?? {}),
+                preferences
+            );
 
-            const buildNestedUpdate = (obj: any, basePath: string[], valuePrefix: string) => {
-                for (const key in obj) {
-                    const value = obj[key];
-                    if (value !== undefined) {
-                        if (value instanceof Map) {
-                            Contract.fail('Map types are not supported in buildNestedUpdate. Convert to object first.');
-                        }
-                        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                            // It's a nested object, recurse
-                            buildNestedUpdate(value, [...basePath, key], `${valuePrefix}_${key}`);
-                        } else {
-                            const pathParts = [...basePath, key];
-                            const pathExpression = pathParts.map((part, idx) => {
-                                const attrName = `#${part}`;
-                                expressionAttributeNames[attrName] = part;
-                                return attrName;
-                            }).join('.');
-
-                            const valueName = `:${valuePrefix}_${key}`;
-                            updateExpressions.push(`${pathExpression} = ${valueName}`);
-                            expressionAttributeValues[valueName] = value;
-                        }
-                    }
-                }
-            };
-            buildNestedUpdate(preferences, ['preferences'], 'pref');
-            if (updateExpressions.length === 0) {
-                return;
-            }
-            let validationExceptionOccurred = false;
-            try {
-                const command = new UpdateCommand({
-                    TableName: this.tableName,
-                    Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                    UpdateExpression: `SET ${updateExpressions.join(', ')}`,
-                    ExpressionAttributeValues: expressionAttributeValues,
-                    ExpressionAttributeNames: expressionAttributeNames,
-                });
-
-                await this.client.send(command);
-            } catch (error: any) {
-                if (error.name === 'ValidationException' &&
-                  error.message?.includes('document path provided in the update expression is invalid')) {
-                    logger.info(`Detected NULL markers in preferences for user ${userId}, resetting to defaults`, { userId });
-                    validationExceptionOccurred = true;
-                } else {
-                    // Re-throw if it's a different error
-                    logger.error(`An error occured when updating preferences for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
-                    throw error;
-                }
-            }
-
-            if (validationExceptionOccurred) {
-                logger.info(`Attempting to see whether the validation exception is expected for ${userId}`, { userId });
-                try {
-                    // The nested update failed because a parent path doesn't exist yet in the stored
-                    // preferences (e.g. a newly added nested key like gameOptions.autoResolve). Confirm
-                    // that's the case, then rebuild the preferences with a full replace.
-                    const defaultPrefs = getDefaultPreferences();
-                    const currentPrefs = await this.getStoredPreferencesAsync(userId);
-                    const missingKeys = this.findMissingPreferenceKeyPaths(defaultPrefs, currentPrefs);
-
-                    if (missingKeys.length > 0) {
-                        logger.info(`User ${userId} is missing preferences keys: ${missingKeys.join(', ')}, will reset to defaults`, { userId });
-
-                        // Fill in any missing structure from the defaults, preserve the user's existing
-                        // saved values, then apply the incoming update on top.
-                        const merged = this.deepMergePreferences(
-                            this.deepMergePreferences(defaultPrefs, currentPrefs ?? {}),
-                            preferences
-                        );
-
-                        const resetCommand = new UpdateCommand({
-                            TableName: this.tableName,
-                            Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                            UpdateExpression: 'SET preferences = :p',
-                            ExpressionAttributeValues: { ':p': merged }
-                        });
-
-                        await this.client.send(resetCommand);
-                    } else {
-                        throw new Error(`An unexpected validation exception occured when updating preferences for user ${userId}`);
-                    }
-                } catch (error) {
-                    logger.error(`An error occured when resetting to defaults the validation Exception for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
-                    throw error;
-                }
-            }
+            await this.client.send(new UpdateCommand({
+                TableName: this.tableName,
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                UpdateExpression: 'SET preferences = :preferences',
+                ExpressionAttributeValues: { ':preferences': merged }
+            }));
         }, 'Error updating user preferences');
     }
 
