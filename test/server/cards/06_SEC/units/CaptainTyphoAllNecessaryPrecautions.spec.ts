@@ -39,6 +39,7 @@ describe('Captain Typho, All Necessary Precautions', function () {
                 context.player2.clickCard(context.captainTypho);
 
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).not.toHaveEnabledPromptButton('Cancel');
                 context.player1.clickPrompt('Choose nothing');
 
                 expect(context.p1Base.damage).toBe(2);

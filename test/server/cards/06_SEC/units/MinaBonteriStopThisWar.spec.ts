@@ -57,6 +57,7 @@ describe('Mina Bonteri, Stop This War', function() {
 
                 // Player can choose not to disclose anything
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                expect(context.player1).not.toHaveEnabledPromptButton('Cancel');
 
                 // Choose which cards to disclose
                 context.player1.clickCard(context.command);
