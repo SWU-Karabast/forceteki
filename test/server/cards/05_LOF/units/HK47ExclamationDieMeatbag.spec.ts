@@ -1,5 +1,4 @@
 describe('HK-47, Exclamation: Die Meatbag', function() {
-    const prompt = 'Deal 1 damage to its controller\'s base: ';
     integration(function(contextRef) {
         describe('HK-47\'s triggered ability', function() {
             beforeEach(function () {
@@ -105,10 +104,8 @@ describe('HK-47, Exclamation: Die Meatbag', function() {
                 // Defeat multiple enemy units
                 context.player1.clickCard(context.superlaserBlast);
 
-                // Choose resolution order
-                context.player1.clickPrompt(prompt + context.contractedHunter.name);
-                context.player1.clickPrompt(prompt + context.freelanceAssassin.name);
-                context.player1.clickPrompt(prompt + context.deathStarStormtrooper.name);
+                // All four defeats trigger the same ability and are grouped — resolve them via the modal
+                context.player1.clickPrompt('Resolve all remaining (4)');
 
                 // Check that all 4 units were defeated and the opponent's base took 4 damage
                 expect(context.player2.discard.length).toBe(4);

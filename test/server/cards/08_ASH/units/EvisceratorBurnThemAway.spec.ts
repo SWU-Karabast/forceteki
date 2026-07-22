@@ -84,7 +84,7 @@ describe('Eviscerator, Burn Them Away', function() {
             context.player1.clickCard(context.p2Base);
 
             // With Eviscerator gone, Wampa's two Advantage tokens have their abilities back and defeat at attack end
-            context.player1.clickPrompt('All at once');
+            context.player1.clickPrompt('Resolve all remaining (2)');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa).toHaveExactUpgradeNames([]);

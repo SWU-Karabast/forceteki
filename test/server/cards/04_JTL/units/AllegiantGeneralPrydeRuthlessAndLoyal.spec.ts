@@ -56,12 +56,14 @@ describe('Allegiant General Pryde, Ruthless and Loyal', function () {
                     [context.battlefieldMarine, 1],
                 ]));
 
-                expect(context.player1).toHaveEnabledPromptButtons([
-                    'Defeat a non-unique upgrade on the unit: Battlefield Marine',
-                    '(No effect) Defeat a non-unique upgrade on the unit: Crafty Smuggler'
-                ]);
+                // Both units dealt indirect damage trigger Pryde's ability; they share a static
+                // title and source, so they collapse into one grouped entry and the resolution
+                // modal appears directly. Resolving all instances runs each per-instance prompt
+                // in sequence (only the Battlefield Marine instance has an eligible upgrade).
+                expect(context.player1).toHavePrompt('Resolve "Defeat a non-unique upgrade on the unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
 
-                context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Battlefield Marine');
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.devotion, context.shield]);
                 expect(context.player1).toHavePassAbilityButton();

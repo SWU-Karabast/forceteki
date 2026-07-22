@@ -95,26 +95,23 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     [context.volunteerSoldier, 1]
                 ]));
 
-                // Choose resolution order
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine',
-                    'Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant',
-                    'Exhaust leader and exhaust the damaged enemy unit: Volunteer Soldier'
-                ]);
+                // The three triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Exhaust leader and exhaust the damaged enemy unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
+                context.player1.clickPrompt('Resolve all remaining (3)');
 
-                // Pass for Volunteer Soldier
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Volunteer Soldier');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit: Volunteer Soldier');
+                // Pass on the first instance; passing does not exhaust the leader
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
                 expect(context.jangoFett.exhausted).toBeFalse();
 
-                // Resolve for Fleet Lieutenant
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant');
+                // Trigger the second instance; the leader exhausts and the remaining trigger can no longer be paid
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
-                expect(context.fleetLieutenant.exhausted).toBeTrue();
                 expect(context.jangoFett.exhausted).toBeTrue();
+
+                // The leader can only exhaust once, so exactly one enemy unit was exhausted
+                expect([context.battlefieldMarine, context.fleetLieutenant, context.volunteerSoldier].filter((c) => c.exhausted).length).toBe(1);
 
                 // CASE 5: Trigger Jango's ability from an upgrade's granted ability
 
@@ -130,17 +127,21 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     [context.fleetLieutenant, 1],
                 ]));
 
-                // Choose resolution order
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant');
+                // The two on-attack triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Exhaust leader and exhaust the damaged enemy unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
-                // Pass for Fleet Lieutenant
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant');
+                // Pass on the first instance
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
 
-                // Resolve for Battlefield Marine
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine');
+                // Trigger the second instance; the leader exhausts
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
-                expect(context.battlefieldMarine.exhausted).toBeTrue();
+
+                // The leader can only exhaust once, so exactly one enemy unit was exhausted
+                expect([context.battlefieldMarine, context.fleetLieutenant].filter((c) => c.exhausted).length).toBe(1);
 
                 // CASE 6: Trigger Jango's ability when a unit is defeated at the end of the phase
 
@@ -292,7 +293,10 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.grogu.damage).toBe(1);
             });
 
-            it('should display prompt correctly for exhausting multiple enemy units and only select one', async function() {
+            // Note: the per-target triggers are now grouped into one modal, so the player no longer picks
+            // which enemy to exhaust. Since the leader can only exhaust once, exactly one (engine-ordered)
+            // enemy unit ends up exhausted.
+            it('should group the per-target triggers and exhaust only one enemy unit since the leader exhausts once', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -316,21 +320,17 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     [context.volunteerSoldier, 1]
                 ]));
 
-                // Choose resolution order
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine',
-                    'Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant',
-                    'Exhaust leader and exhaust the damaged enemy unit: Volunteer Soldier'
-                ]);
+                // The three triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Exhaust leader and exhaust the damaged enemy unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
 
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine');
-
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine');
+                // Resolve a single instance; the leader exhausts and only one enemy unit can be exhausted
+                context.player1.clickPrompt('Resolve next');
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
 
-                expect(context.battlefieldMarine.exhausted).toBeTrue();
                 expect(context.jangoFett.exhausted).toBeTrue();
+                expect([context.battlefieldMarine, context.fleetLieutenant, context.volunteerSoldier].filter((c) => c.exhausted).length).toBe(1);
             });
         });
 
@@ -431,38 +431,21 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     [context.volunteerSoldier, 1]
                 ]));
 
-                // Choose resolution order
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust the damaged enemy unit: Volunteer Soldier',
-                    'Exhaust the damaged enemy unit: Fleet Lieutenant',
-                    'Exhaust the damaged enemy unit: Battlefield Marine'
-                ]);
+                // The three triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Exhaust the damaged enemy unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
+                context.player1.clickPrompt('Resolve all remaining (3)');
 
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Volunteer Soldier');
-
-                // Exhaust Volunteer Soldier
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Volunteer Soldier');
+                // Resolve each grouped instance (the deployed side does not exhaust the leader, so all resolve)
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
+
                 expect(context.volunteerSoldier.exhausted).toBeTrue();
-
-                // Choose resolution order again
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust the damaged enemy unit: Fleet Lieutenant',
-                    'Exhaust the damaged enemy unit: Battlefield Marine'
-                ]);
-
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
-
-                // Exhaust Fleet Lieutenant
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
-                context.player1.clickPrompt('Trigger');
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
-
-                // Exhaust Battlefield Marine
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
-                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
                 // CASE 5: Trigger Jango's ability from an upgrade's granted ability
@@ -478,18 +461,18 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     [context.fleetLieutenant, 1],
                 ]));
 
-                // Choose resolution order
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
+                // The two on-attack (Vambrace) triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Exhaust the damaged enemy unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
-                // Exhaust Fleet Lieutenant
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
+                // Resolve both grouped instances (Fleet Lieutenant and Battlefield Marine)
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
 
-                // Exhaust for Battlefield Marine
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
-                context.player1.clickPrompt('Trigger');
-
-                // Exhaust Volunteer Soldier
+                // Combat damage to the defending Volunteer Soldier triggers Jango separately (single, ungrouped)
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
                 context.player1.clickPrompt('Trigger');
 
@@ -531,38 +514,21 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     [context.p2Base, 1],
                 ]));
 
-                // Choose resolution order
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust the damaged enemy unit: Fleet Lieutenant',
-                    'Exhaust the damaged enemy unit: Battlefield Marine',
-                    'Exhaust the damaged enemy unit: Volunteer Soldier',
-                ]);
+                // The three triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Exhaust the damaged enemy unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
+                context.player1.clickPrompt('Resolve all remaining (3)');
 
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Volunteer Soldier');
-
-                // Exhaust Volunteer Soldier
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Volunteer Soldier');
+                // Resolve each grouped instance (the deployed side does not exhaust the leader, so all resolve)
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
+
                 expect(context.volunteerSoldier.exhausted).toBeTrue();
-
-                // Choose resolution order again
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust the damaged enemy unit: Fleet Lieutenant',
-                    'Exhaust the damaged enemy unit: Battlefield Marine',
-                ]);
-
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
-
-                // Exhaust Battlefield Marine
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
-                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
-
-                // Exhaust Fleet Lieutenant
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
-                context.player1.clickPrompt('Trigger');
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
             });
         });
@@ -643,7 +609,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
         });
 
         describe('Jango Fett\'s deployed leader ability', function() {
-            it('should trigger correctly on multiple targets based on the selected target from the trigger window', async function() {
+            it('should trigger for each enemy unit damaged simultaneously by a friendly unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -672,35 +638,24 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 context.player1.clickCard(context.admiralPiett);
                 context.player1.clickDone();
 
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust the damaged enemy unit: Pantoran Starship Thief',
-                    'Exhaust the damaged enemy unit: Admiral Piett',
-                    'Exhaust the damaged enemy unit: Captain Tarkin',
-                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
-                ]);
+                // All four triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Exhaust the damaged enemy unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (4)']);
+                context.player1.clickPrompt('Resolve all remaining (4)');
 
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Captain Tarkin');
+                // Resolve each grouped instance (the deployed side does not exhaust the leader, so all resolve)
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Trigger');
+
                 expect(context.captainTarkin.exhausted).toBeTrue();
-
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust the damaged enemy unit: Pantoran Starship Thief',
-                    'Exhaust the damaged enemy unit: Admiral Piett',
-                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
-                ]);
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Pantoran Starship Thief');
-                context.player1.clickPrompt('Trigger');
                 expect(context.pantoranStarshipThief.exhausted).toBeTrue();
-
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Exhaust the damaged enemy unit: Admiral Piett',
-                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
-                ]);
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Quasar TIE Carrier');
-                context.player1.clickPrompt('Trigger');
                 expect(context.quasarTieCarrier.exhausted).toBeTrue();
-
-                context.player1.clickPrompt('Trigger');
                 expect(context.admiralPiett.exhausted).toBeTrue();
             });
         });

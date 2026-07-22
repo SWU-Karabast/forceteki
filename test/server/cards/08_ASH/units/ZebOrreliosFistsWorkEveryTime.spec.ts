@@ -266,18 +266,18 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
                 context.player2.clickCard(context.advantage);
                 context.player2.clickDone();
 
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Deal 1 damage to a base: Advantage',
-                    'Deal 1 damage to a base: Experience'
-                ]);
+                // Zeb's two triggers (one per defeated upgrade) share a static title and source,
+                // so they collapse into a single grouped entry. Since they are the only triggers,
+                // the resolution modal appears directly.
+                expect(context.player1).toHavePrompt('Resolve "Deal 1 damage to a base"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
 
-                context.player1.clickPrompt('Deal 1 damage to a base: Experience');
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
-                // Should prompt to deal 1 damage to a base
+                // Each grouped instance resolves its own base-selection prompt in sequence
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
 
-                // Should prompt to deal 1 damage to a base
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
 
@@ -353,18 +353,18 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.wampa);
 
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Deal 1 damage to a base: Advantage',
-                    'Deal 1 damage to a base: Experience'
-                ]);
+                // Zeb's two triggers (one per defeated upgrade) share a static title and source,
+                // so they collapse into a single grouped entry. Since they are the only triggers,
+                // the resolution modal appears directly.
+                expect(context.player1).toHavePrompt('Resolve "Deal 1 damage to a base"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
 
-                context.player1.clickPrompt('Deal 1 damage to a base: Experience');
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
-                // Should prompt to deal 1 damage to a base
+                // Each grouped instance resolves its own base-selection prompt in sequence
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
 
-                // Should prompt to deal 1 damage to a base
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
 
@@ -496,12 +496,13 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
 
                 expect(context.zebOrrelios).toBeInZone('discard');
 
-                // Both of Zeb's own upgrades were defeated simultaneously with him, triggering his ability twice
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Deal 1 damage to a base: Advantage',
-                    'Deal 1 damage to a base: Experience'
-                ]);
-                context.player1.clickPrompt('Deal 1 damage to a base: Experience');
+                // Both of Zeb's own upgrades were defeated simultaneously with him, so his ability
+                // triggers twice; the two triggers share a static title and source and collapse into
+                // a single grouped entry. Since they are the only triggers, the modal appears directly.
+                expect(context.player1).toHavePrompt('Resolve "Deal 1 damage to a base"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                context.player1.clickPrompt('Resolve all remaining (2)');
+
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
 

@@ -273,13 +273,12 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickCard(context.missionBriefing);
                 context.player1.clickPrompt('You');
 
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base',
-                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base'
-                ]);
+                // the two identical Rey triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Reveal Rey to deal 2 damage to a unit and 2 damage to a base"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
                 // Activate the first Rey's trigger
-                context.player1.clickPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
 
@@ -336,13 +335,12 @@ describe('Rey, With Palpatine\'s Power', function() {
                 context.player1.clickCard(context.missionBriefing);
                 context.player1.clickPrompt('You');
 
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base',
-                    'Reveal Rey to deal 2 damage to a unit and 2 damage to a base'
-                ]);
+                // the two identical Rey triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Reveal Rey to deal 2 damage to a unit and 2 damage to a base"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
-                // Activate the first Rey's trigger
-                context.player1.clickPrompt('Reveal Rey to deal 2 damage to a unit and 2 damage to a base');
+                // Pass on the first Rey's trigger
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
 

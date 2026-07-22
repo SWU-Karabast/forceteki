@@ -325,9 +325,10 @@ describe('Uniqueness rule', function() {
                 expect(context.yularenInHand).toBeInZone('groundArena');
                 expect(context.yularenInPlay).toBeInZone('discard');
 
-                // triggered ability from both copies of Yularen
-                expect(context.player1).toHaveExactPromptButtons(['Heal 1 damage from your base', 'Heal 1 damage from your base']);
-                context.player1.clickPrompt('Heal 1 damage from your base');
+                // triggered ability from both copies of Yularen, grouped into a single entry that opens a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Heal 1 damage from your base"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                context.player1.clickPrompt('Resolve all remaining (2)');
                 expect(context.p1Base.damage).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();
@@ -672,14 +673,11 @@ describe('Uniqueness rule', function() {
                 expect(obi3).toBeInZone('groundArena');
                 expect(context.getChatLogs(1)).toContain('player1 defeats 2 copies of Obi-Wan Kenobi due to the uniqueness rule');
 
-                // Once both are defeated, the player can resolve the When Defeated abilities
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.',
-                    'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.'
-                ]);
+                // Once both are defeated, the two identical When Defeated abilities are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card."');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
 
-                context.player1.clickPrompt('Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.');
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
                 expect(context.player1).toBeAbleToSelectExactly([obi3]);
 
@@ -742,14 +740,11 @@ describe('Uniqueness rule', function() {
                 expect(obi2).toBeInZone('discard');
                 expect(obi3).toBeInZone('discard');
 
-                // Once both are defeated, the player can resolve the When Defeated abilities
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.',
-                    'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.'
-                ]);
+                // Once both are defeated, the two identical When Defeated abilities are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card."');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
 
-                context.player1.clickPrompt('Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.');
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
                 expect(context.player1).toBeAbleToSelectExactly([obi1]);
 

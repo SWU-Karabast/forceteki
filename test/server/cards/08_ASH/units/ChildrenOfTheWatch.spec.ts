@@ -11,7 +11,7 @@ describe('Children of the Watch', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.childrenOfTheWatch);
-            context.player1.clickPrompt('Shielded');
+            context.player1.clickPrompt('Resolve all remaining (2)');
 
             expect(context.player2).toBeActivePlayer();
 

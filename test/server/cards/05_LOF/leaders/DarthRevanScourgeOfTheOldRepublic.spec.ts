@@ -627,20 +627,18 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickDone();
 
-                // Choose resolution order
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                // TODO: these names are unintuitive, since it names the attack target and not Maul. Need to find a way to improve this
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Give an Experience token to the attacking unit: Warzone Lieutenant',
-                    'Give an Experience token to the attacking unit: Battlefield Marine'
-                ]);
-                context.player1.clickPrompt('Give an Experience token to the attacking unit: Warzone Lieutenant');
+                // The two identical Experience triggers are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt('Resolve "Give an Experience token to the attacking unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                context.player1.clickPrompt('Resolve all remaining (2)');
 
-                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit: Warzone Lieutenant');
+                // Resolve the first instance
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
                 expect(context.darthMaul).toHaveExactUpgradeNames(['experience']);
 
-                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit: Battlefield Marine');
+                // Resolve the second instance
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Trigger');
                 expect(context.darthMaul).toHaveExactUpgradeNames(['experience', 'experience']);
             });

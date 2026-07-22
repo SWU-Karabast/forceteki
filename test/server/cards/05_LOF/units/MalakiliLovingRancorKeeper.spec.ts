@@ -61,15 +61,13 @@ describe('Malakili, Loving Rancor Keeper', function () {
 
             context.player1.clickCard(context.wildRancor);
 
-            const promptTable = [
-                'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage: Malakili',
-                'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage: Wampa',
-                'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage: Battlefield Marine'
-            ];
-
-            expect(context.player1).toHaveExactPromptButtons(promptTable);
-            context.player1.clickPrompt(promptTable[0]);
-            context.player1.clickPrompt(promptTable[1]);
+            // The three simultaneous prevent-damage replacement effects (one per friendly unit)
+            // are grouped into a single entry. Since they are the only triggers, the resolution
+            // modal appears directly. Resolving all of them prevents damage to every friendly unit.
+            const groupedTitle = 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage';
+            expect(context.player1).toHavePrompt(`Resolve "${groupedTitle}"`);
+            expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (3)']);
+            context.player1.clickPrompt('Resolve all remaining (3)');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.atst.damage).toBe(2);

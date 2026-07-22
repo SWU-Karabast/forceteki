@@ -119,7 +119,7 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.dedicatedWingmen);
-                context.player1.clickPrompt('Shielded'); // There are two simultaneous Shielded triggers here
+                context.player1.clickPrompt('Resolve all remaining (2)'); // Two simultaneous Shielded triggers, grouped into one modal
 
                 const xwings = context.player1.findCardsByName('xwing');
                 expect(xwings.length).toBe(2);

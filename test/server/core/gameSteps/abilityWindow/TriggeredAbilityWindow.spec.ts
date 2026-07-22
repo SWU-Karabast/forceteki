@@ -152,7 +152,7 @@ describe('Simultaneous triggers', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should create a named trigger button for each target if the ability does not have a collective trigger', async function () {
+            it('should group the identical triggers into one choice that still resolves once per target if the ability does not have a collective trigger', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -176,22 +176,25 @@ describe('Simultaneous triggers', function() {
                     [context.battlefieldMarine, 1],
                 ]));
 
-                expect(context.player1).toHaveEnabledPromptButtons([
-                    'Defeat a non-unique upgrade on the unit: Battlefield Marine',
-                    'Defeat a non-unique upgrade on the unit: Wampa'
-                ]);
+                // Pryde's ability triggers once per damaged unit; the two identical triggers are grouped into
+                // a single choice that opens the batch-resolution modal
+                expect(context.player1).toHavePrompt('Resolve "Defeat a non-unique upgrade on the unit"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
 
-                context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Battlefield Marine');
+                // Resolving the first instance still prompts for the upgrade on its own unit
+                context.player1.clickPrompt('Resolve next');
                 expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
                 context.player1.clickCard(context.devotion);
 
-                expect(context.player1).toHavePrompt('Defeat a non-unique upgrade on the unit: Wampa');
+                // The last instance resolves automatically as the only remaining trigger, targeting the other unit
                 expect(context.player1).toBeAbleToSelectExactly([context.shield]);
                 context.player1.clickCard(context.shield);
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.devotion).toBeInZone('discard');
+                expect(context.shield).toBeInZone('outsideTheGame');
                 expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
+                expect(context.wampa.isUpgraded()).toBeFalse();
             });
 
             it('should work correctly if sharing the window with another ability and only one of them has collective trigger', async function () {
@@ -219,17 +222,21 @@ describe('Simultaneous triggers', function() {
                     [context.battlefieldMarine, 1],
                 ]));
 
+                // Pryde's two identical triggers are grouped into one choice; Boba's collective-trigger leader
+                // ability remains its own choice alongside it
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Exhaust this leader to deal 1 indirect damage to a player',
-                    'Defeat a non-unique upgrade on the unit: Battlefield Marine',
-                    'Defeat a non-unique upgrade on the unit: Wampa'
+                    'Defeat a non-unique upgrade on the unit'
                 ]);
 
-                context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Battlefield Marine');
+                // Resolve Pryde's grouped triggers all at once, choosing the upgrade on each unit in turn
+                context.player1.clickPrompt('Defeat a non-unique upgrade on the unit');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all remaining (2)']);
+                context.player1.clickPrompt('Resolve all remaining (2)');
+
                 expect(context.player1).toBeAbleToSelectExactly([context.devotion]);
                 context.player1.clickCard(context.devotion);
 
-                context.player1.clickPrompt('Defeat a non-unique upgrade on the unit: Wampa');
                 expect(context.player1).toBeAbleToSelectExactly([context.shield]);
                 context.player1.clickCard(context.shield);
 
