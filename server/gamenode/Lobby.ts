@@ -1377,6 +1377,7 @@ export class Lobby {
             id: uuidv4(),
             allowSpectators: false,
             owner: 'Order66',
+            format: this.gameFormat,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
