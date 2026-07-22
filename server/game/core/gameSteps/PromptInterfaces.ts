@@ -22,6 +22,7 @@ export enum PromptType {
     DisplayCards = 'displayCards',
     DistributeAmongTargets = 'distributeAmongTargets',
     TriggerWindow = 'triggerWindow',
+    PassDelay = 'passDelay',
 }
 
 export interface IButton {

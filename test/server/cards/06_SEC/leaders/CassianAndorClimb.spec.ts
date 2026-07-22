@@ -525,6 +525,9 @@ describe('Cassian Andor, Climb!', function() {
             context.player1.clickCard(context.cassianAndor);
             context.player1.clickCard(context.darthTyranus);
 
+            // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+            context.player2.clickPrompt('Skip');
+
             // Darth Tyranus should be in play and Cassian should be defeated
             expect(context.darthTyranus).toBeInZone('groundArena');
             expect(context.darthTyranus.damage).toBe(0);

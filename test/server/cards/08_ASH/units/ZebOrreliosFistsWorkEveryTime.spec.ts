@@ -139,6 +139,9 @@ describe('Zeb Orrelios, Fists Work Every Time', function () {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.atst);
 
+                // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+                context.player2.clickPrompt('Skip');
+
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(0);
             });

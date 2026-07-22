@@ -104,7 +104,7 @@ describe('Cantwell Arrestor Cruiser\'s when played ability', function() {
         });
 
         describe('When player does not have required aspects in hand', function() {
-            it('The ability is automatically skipped', async function() {
+            it('shows a skippable pause instead of resolving', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -124,7 +124,11 @@ describe('Cantwell Arrestor Cruiser\'s when played ability', function() {
                 // Play Cantwell Arrestor Cruiser
                 context.player1.clickCard(context.cantwellArrestorCruiser);
 
-                // Ability is skipped since player does not have required aspects in hand
+                // Player 1 can't disclose, so a skippable masking pause is shown instead of resolving instantly
+                expect(context.player1).toHavePrompt('Pausing for Disclose');
+                expect(context.player1).toHaveEnabledPromptButton('Skip');
+                context.player1.clickPrompt('Skip');
+
                 expect(context.player2).toBeActivePlayer();
             });
         });

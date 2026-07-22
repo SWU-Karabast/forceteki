@@ -58,6 +58,8 @@ import { SelectCardPrompt } from './gameSteps/prompts/SelectCardPrompt';
 import { DisplayCardsWithButtonsPrompt } from './gameSteps/prompts/DisplayCardsWithButtonsPrompt';
 import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCardsForSelectionPrompt';
 import { DisplayCardsBasicPrompt } from './gameSteps/prompts/DisplayCardsBasicPrompt';
+import { PassDelayPrompt } from './gameSteps/prompts/PassDelayPrompt';
+import type { IPassDelayPromptProperties } from './gameSteps/prompts/PassDelayPrompt';
 import { validateGameConfiguration, validateGameOptions } from './GameInterfaces';
 import type { GameConfiguration, GameOptions, ICurrentlyResolving } from './GameInterfaces';
 import type { GameObjectBase } from './GameObjectBase';
@@ -1010,6 +1012,17 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DisplayCardsBasicPrompt(this, player, properties));
+    }
+
+    /**
+     * Prompts a player with a brief, skippable pause used to mask hidden information (e.g. when
+     * an optional effect that depends on secret cards can't be performed). The wait duration and
+     * skip control are driven entirely by the client so the engine remains deterministic.
+     */
+    public promptForPassDelay(player: Player, properties: IPassDelayPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new PassDelayPrompt(this, player, properties));
     }
 
     /**
