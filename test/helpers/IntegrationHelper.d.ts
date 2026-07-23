@@ -152,6 +152,9 @@ declare namespace jasmine {
         toBeCapturedBy(card: any): boolean;
         toBeAttachedTo(card: any): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
+        toHaveExactOngoingEffects(expectedEffects: (string | { description: string; targets?: Card[] })[]): boolean;
+        toHaveOngoingEffect(expectedEffect: string | { description: string; targets?: Card[] }): boolean;
+        toHaveNoOngoingEffects(): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
         toHaveNumericPromptRange<T extends PlayerInteractionWrapper>(this: Matchers<T>, min: number, max: number): boolean;

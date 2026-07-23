@@ -27,6 +27,7 @@ export default class ForceIllusion extends EventCard {
                     controller: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        title: `Gains ${TextHelper.Sentinel} for this phase`,
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
                     })
                 }),

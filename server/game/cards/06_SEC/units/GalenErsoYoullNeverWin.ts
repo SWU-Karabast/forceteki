@@ -14,13 +14,13 @@ export default class GalenErsoYoullNeverWin extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Name a card. Cards the opponent owns with that name are blank while Galen Erso is in play.',
+            title: 'Name a card. Cards the opponent owns with that name lose all abilities while Galen Erso is in play.',
             targetResolver: {
                 mode: TargetMode.DropdownList,
                 options: this.game.allNonLeaderCardTitles,
             },
             then: (thenContext) => ({
-                title: `While this is in play, cards the opponent owns named ${thenContext.ability.card.title} are blank`,
+                title: `While this unit is in play, cards the opponent owns named ${thenContext.select} lose all abilities`,
                 immediateEffect: abilityHelper.immediateEffects.allCardsForPlayerLastingEffect((context) => ({
                     duration: Duration.WhileSourceInPlay,
                     target: context.player.opponent,

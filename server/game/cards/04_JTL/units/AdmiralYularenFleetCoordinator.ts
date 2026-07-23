@@ -21,7 +21,7 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
         const shielded = TextHelper.Shielded;
 
         registrar.addWhenPlayedAbility({
-            title: `Choose ${grit}, ${restore1}, ${sentinel}, or ${shielded}. While ${this.title} is in play, each friendly ${TextHelper.Trait.Vehicle} unit gains the chosen keyword.`,
+            title: `Choose ${grit}, ${restore1}, ${sentinel}, or ${shielded}. While this unit is in play, each friendly ${TextHelper.Trait.Vehicle} unit gains the chosen keyword.`,
             contextTitle: (context) => `Choose ${grit}, ${restore1}, ${sentinel}, or ${shielded}. While ${context.source.title} is in play, each friendly ${TextHelper.Trait.Vehicle} unit gains the chosen keyword.`,
             targetResolver: {
                 mode: TargetMode.Select,
@@ -41,6 +41,7 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
 
     private buildYularenEffect(choice: KeywordNameOrProperties, AbilityHelper: IAbilityHelper, playedByPlayer: Player) {
         return AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
+            title: `Each friendly ${TextHelper.Trait.Vehicle} unit gains ${TextHelper.keyword(choice)} while this unit is in play`,
             ongoingEffectDescription: `give ${TextHelper.keyword(choice)} to`,
             ongoingEffectTargetDescription: `each friendly ${TextHelper.Trait.Vehicle} unit`,
             effect: AbilityHelper.ongoingEffects.gainAbility({

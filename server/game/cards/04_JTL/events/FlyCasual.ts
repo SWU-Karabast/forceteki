@@ -21,6 +21,7 @@ export default class FlyCasual extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.ready(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        title: 'Can\'t attack bases for this phase',
                         effect: AbilityHelper.ongoingEffects.cannotAttackBase()
                     })
                 ])

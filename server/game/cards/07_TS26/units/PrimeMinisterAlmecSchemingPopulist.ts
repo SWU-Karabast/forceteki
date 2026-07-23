@@ -19,6 +19,7 @@ export default class PrimeMinisterAlmecSchemingPopulist extends NonLeaderUnitCar
                 controller: RelativePlayer.Self,
                 immediateEffect: abilityHelper.immediateEffects.sequential([
                     abilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        title: 'Gets +2/+2 for this phase',
                         effect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                     }),
                     abilityHelper.immediateEffects.exhaust((context) => ({
