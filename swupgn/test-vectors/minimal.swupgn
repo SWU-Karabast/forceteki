@@ -1,0 +1,26 @@
+[Game "SWU-PGN/1.1"]
+[GameId "vector-minimal"]
+[Date "2026-06-16T00:00:00Z"]
+[Format "Premier"] [CardPool "SOR"] [Engine "forceteki@reference"]
+[Seed "0"] [Perspective "P1"]
+[P1Id "sha256:aaaa"] [P2Id "sha256:bbbb"] [P1 "Player 1"] [P2 "Player 2"]
+[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]
+[Result "Incomplete"] [Reason "Sample"] [Rounds "1"]
+
+%%% DECKS
+{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]]}
+{"p":2,"leader":"SOR#005","base":"SOR#020","deck":[["SOR#045",3]]}
+
+%%% SETUP
+{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108"],"p2DeckOrder":["SOR#045"]}
+
+%%% EVENTS
+{"seq":"R1.start","t":"ROUND_START","round":1}
+{"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
+{"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
+{"seq":"R1.A.2","t":"ATTACK","p":1,"atk":"SOR#108","def":"base","defenderType":"base"}
+{"seq":"R1.A.2a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":2,"damageType":"combat","hp":28}
+{"seq":"R1.A.2b","t":"EXHAUST","card":"SOR#108"}
+
+%%% ANNOTATIONS
+{"ref":"R1.A.2","nag":"?!","text":"attacking the base too early"}
