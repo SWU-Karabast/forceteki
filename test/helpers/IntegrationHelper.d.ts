@@ -105,8 +105,16 @@ interface PlayerInfo {
     username: string;
 }
 
-interface SwuSetupTestOptions extends ISerializedGameState {
+type SwuSetupPlayerOptions = import('../../server/game/Interfaces').IPlayerSerializedState & {
+    // Per-player override of the game-level autoSingleTarget setting.
     autoSingleTarget?: boolean;
+};
+
+interface SwuSetupTestOptions extends Omit<ISerializedGameState, 'player1' | 'player2'> {
+    // Game-level default applied to both players (per-player values override it).
+    autoSingleTarget?: boolean;
+    player1?: SwuSetupPlayerOptions;
+    player2?: SwuSetupPlayerOptions;
     phaseTransitionHandler?: (phase: PhaseName) => void;
     testUndo?: boolean;
     enableConfirmationToUndo?: boolean;

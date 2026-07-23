@@ -1438,7 +1438,8 @@ export class Lobby {
 
     private buildGameSettings(): GameConfiguration {
         const players: IUser[] = this.users.map((user) => {
-            const cosmeticsSelection = user.socket.user.getPreferences()?.cosmetics;
+            const preferences = user.socket.user.getPreferences();
+            const cosmeticsSelection = preferences?.cosmetics;
             const resolvedCosmetics = this.server.cosmeticsService
                 ? this.server.cosmeticsService.resolveActiveCosmetics(cosmeticsSelection)
                 : CosmeticsService.resolveDefaultCosmetics(cosmeticsSelection);
@@ -1448,7 +1449,10 @@ export class Lobby {
                 username: user.username,
                 settings: {
                     optionSettings: {
-                        autoSingleTarget: false,
+                        // Persisted prefs nest prompt-reduction settings under gameOptions.autoResolve;
+                        // the engine keeps optionSettings flat. Anonymous users have no persisted
+                        // preferences; default to off to preserve prior behavior.
+                        autoSingleTarget: preferences?.gameOptions?.autoResolve?.singleTarget ?? false,
                     }
                 },
                 cosmetics: resolvedCosmetics,

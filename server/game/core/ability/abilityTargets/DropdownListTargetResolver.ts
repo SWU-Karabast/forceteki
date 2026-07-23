@@ -31,6 +31,8 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
             return;
         }
 
+        // A single option is a decision-free menu choice, so we always auto-resolve it regardless of the
+        // player's autoSingleTarget setting (which only governs single *card* target selection, not text menus).
         if (options.length === 1) {
             this.setTargetResult(context, options[0]);
         } else {
