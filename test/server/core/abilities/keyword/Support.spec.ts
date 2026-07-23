@@ -241,10 +241,11 @@ describe('Support keyword', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
                 // Since Battlefield Marine has 2 instances of Krell's When Defeated ability
-                // the player should be prompted to choose which one to trigger when it is defeated
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Draw a card']);
-                context.player1.clickPrompt('Draw a card');
+                // (same static title and source), they collapse into one grouped entry and the
+                // resolution modal appears directly when it is defeated.
+                expect(context.player1).toHavePrompt('Resolve "Draw a card"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Ability is optional, so we click trigger once for each instance of the ability
                 context.player1.clickPrompt('Trigger');

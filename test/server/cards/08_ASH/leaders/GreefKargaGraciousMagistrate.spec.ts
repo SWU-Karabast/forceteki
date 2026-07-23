@@ -138,8 +138,8 @@ describe('Greef Karga, Gracious Magistrate', function() {
                 // Play an event that creates 2 tokens — Greef triggers once per token entering play
                 context.player1.clickCard(context.dedicatedWingmen);
 
-                // Both tokens trigger simultaneously — ordering prompt appears first
-                context.player1.clickPrompt(`${abilityTitle('X-Wing')}`);
+                // Both tokens trigger simultaneously and are grouped — the resolution modal appears directly
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Accept the trigger for the first X-Wing
                 expect(context.player1).toHavePassAbilityPrompt(`${abilityTitle('X-Wing')}`);
@@ -182,8 +182,6 @@ describe('Greef Karga, Gracious Magistrate', function() {
         });
 
         describe('his leader unit side ability', function() {
-            const abilityTitle = (unitTitle: string) => `Give an Advantage token to ${unitTitle}`;
-
             describe('when the player plays a unit', function() {
                 beforeEach(async function() {
                     await contextRef.setupTestAsync({
@@ -268,9 +266,9 @@ describe('Greef Karga, Gracious Magistrate', function() {
 
                 const { context } = contextRef;
 
-                // Play an event that creates 2 tokens — ordering prompt appears since both trigger simultaneously
+                // Play an event that creates 2 tokens — both triggers are grouped, so the modal appears directly
                 context.player1.clickCard(context.dedicatedWingmen);
-                context.player1.clickPrompt(`${abilityTitle('X-Wing')}`);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Both X-Wing tokens receive an Advantage token automatically (no exhaust cost)
                 const xwings = context.player1.findCardsByName('xwing');

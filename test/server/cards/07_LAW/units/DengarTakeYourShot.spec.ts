@@ -258,18 +258,17 @@ describe('Dengar, Take Your Shot', function () {
                 expect(context.chandrilanSponsor).toBeInZone('discard');
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
-                // Ability triggers twice since they're both the highest cost
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Create a Credit token: Battlefield Marine',
-                    'Create a Credit token: Chandrilan Sponsor'
-                ]);
+                // Ability triggers twice since both are the highest cost. The two triggers share
+                // a static title and source, so they collapse into one grouped entry and the
+                // resolution modal appears directly. Resolving all of them still only creates one
+                // Credit token since the ability is limited to once per round.
+                expect(context.player1).toHavePrompt('Resolve "Create a Credit token"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
-                // Arbitrarily pick the first one to resolve
-                context.player1.clickPrompt('Create a Credit token: Battlefield Marine');
+                context.player1.clickPrompt('Resolve all (2)');
                 expect(context.player1.credits).toBe(1);
 
-                // No further action to resolve for the second trigger since the limit is once per round
+                // The second instance has no effect since the limit is once per round
                 expect(context.player2).toBeActivePlayer();
             });
 

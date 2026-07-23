@@ -319,8 +319,7 @@ describe('The Twins, We Don\'t Want War', function() {
 
             context.player2.clickCard(context.superlaserBlast);
 
-            context.player1.clickPrompt('When another friendly unit is defeated, heal 1 damage from your base: Jedi Consular');
-            context.player1.clickPrompt('When another friendly unit is defeated, heal 1 damage from your base: Grand Inquisitor');
+            context.player1.clickPrompt('Resolve all (3)');
 
             expect(context.p1Base.damage).toBe(2);
             expect(context.p2Base.damage).toBe(5);
