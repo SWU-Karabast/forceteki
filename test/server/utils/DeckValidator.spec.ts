@@ -12,7 +12,7 @@ import {
 
 // Format-independent validation behavior. These checks run before (or regardless of) any format-specific
 // rules, so they are exercised once here under a representative format (Open) rather than in every format
-// file. Format-specific behavior lives in the per-format specs (Premier/Eternal/Open/Limited/NextSet).
+// file. Format-specific behavior lives in the per-format specs (Premier/Eternal/Open/Limited/NextSet/TwinSuns).
 const LEADER = 'luke-skywalker#faithful-friend'; // SOR
 const BASE = 'kestro-city';                      // SOR
 

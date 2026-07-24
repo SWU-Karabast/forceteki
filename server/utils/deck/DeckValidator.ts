@@ -24,6 +24,7 @@ interface ICardCheckData {
     titleAndSubtitle: string;
     type: CardType;
     sets: SwuSetId[];
+    aspects: string[];
     implemented: boolean;
     minDeckSizeModifier?: number;
     maxCopiesOfCardOverride?: number;
@@ -53,6 +54,10 @@ export class DeckValidator {
         }
 
         return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
+    }
+
+    public static createForTesting(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>): DeckValidator {
+        return new DeckValidator(allCardsData, setCodeToId);
     }
 
     protected parseSets(cardData: ICardDataJson): SwuSetId[] {
@@ -174,6 +179,7 @@ export class DeckValidator {
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
                 sets: this.parseSets(cardData),
+                aspects: cardData.aspects ?? [],
                 implemented: !overrideNotImplementedCardIds.has(cardData.id) && (!Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
                 maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
@@ -232,6 +238,15 @@ export class DeckValidator {
             unimplemented.push({ id: deck.leader.id, name: leaderData.titleAndSubtitle });
         }
 
+        // check second leader if present
+        const secondLeaderEntry = (deck as ISwuDbFormatDecklist).secondleader ?? (deck as IDecklistInternal).secondLeader;
+        if (secondLeaderEntry) {
+            const secondLeaderData = this.getCardCheckData(secondLeaderEntry.id);
+            if (secondLeaderData && !secondLeaderData.implemented) {
+                unimplemented.push({ id: secondLeaderEntry.id, name: secondLeaderData.titleAndSubtitle });
+            }
+        }
+
         // check base
         const baseData = this.getCardCheckData(deck.base.id);
         if (baseData && !baseData.implemented) {
@@ -256,8 +271,10 @@ export class DeckValidator {
 
     // Validate the ISwuDbDeckList
     public validateSwuDbDeck(deck: ISwuDbFormatDecklist, properties: IDeckValidationProperties): IDeckValidationFailures {
-        // SWU‑DB decks additionally must not have a second leader; all other checks are shared below.
-        if (deck?.secondleader) {
+        // SWU‑DB decks must not have a second leader in non-TwinSuns formats; all other checks are shared below.
+        // TODO: audit other deck builders before shipping — only SWUDB is handled here.
+        const rules = formatRules.get(properties.format);
+        if (deck?.secondleader && rules?.leaderCount !== 2) {
             return { [DeckValidationFailureReason.TooManyLeaders]: true };
         }
         return this.validateStructuredDeck(deck, properties);
@@ -356,6 +373,33 @@ export class DeckValidator {
             } else {
                 this.checkCardLocation(deck.leader, leaderData, DecklistLocation.Leader, failures);
                 this.checkFormatLegality(leaderData, format, legalSets, failures);
+            }
+
+            // Validate second leader (TwinSuns formats only).
+            const rules = formatRules.get(format);
+            if (rules?.leaderCount === 2) {
+                const secondLeaderEntry = (deck as ISwuDbFormatDecklist).secondleader ?? (deck as IDecklistInternal).secondLeader;
+
+                if (!secondLeaderEntry) {
+                    failures[DeckValidationFailureReason.MissingSecondLeader] = true;
+                } else {
+                    secondLeaderEntry.id = this.normalizeSetCodeId(secondLeaderEntry.id);
+                    const secondLeaderData = this.getCardCheckData(secondLeaderEntry.id);
+                    if (!secondLeaderData) {
+                        failures[DeckValidationFailureReason.UnknownCardId].push({ id: secondLeaderEntry.id });
+                    } else {
+                        this.checkCardLocation(secondLeaderEntry, secondLeaderData, DecklistLocation.Leader, failures);
+                        this.checkFormatLegality(secondLeaderData, format, legalSets, failures);
+                        if (leaderData) {
+                            this.checkTwinSunsLeaderAspectConflict(leaderData, secondLeaderData, failures);
+                        }
+                    }
+                }
+            } else {
+                const secondLeaderEntry = (deck as IDecklistInternal).secondLeader;
+                if (secondLeaderEntry) {
+                    failures[DeckValidationFailureReason.TooManyLeaders] = true;
+                }
             }
 
             // Validate base.
@@ -461,6 +505,20 @@ export class DeckValidator {
                 card: { id: card.id, name: cardData.titleAndSubtitle },
                 location
             });
+        }
+    }
+
+    /**
+     * Checks if the given leaders are legal for the Twin Suns gamemode
+     * @param leader1Data The first leader
+     * @param leader2Data The second leader
+     * @param failures The validation failures
+     */
+    protected checkTwinSunsLeaderAspectConflict(leader1Data: ICardCheckData, leader2Data: ICardCheckData, failures: IDeckValidationFailures): void {
+        const eitherHasHeroism = leader1Data.aspects.includes('heroism') || leader2Data.aspects.includes('heroism');
+        const eitherHasVillainy = leader1Data.aspects.includes('villainy') || leader2Data.aspects.includes('villainy');
+        if (eitherHasHeroism && eitherHasVillainy) {
+            failures[DeckValidationFailureReason.MixedAlignmentLeaders] = true;
         }
     }
 

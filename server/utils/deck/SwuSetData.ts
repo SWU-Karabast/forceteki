@@ -66,7 +66,7 @@ export const rotationBlocks: IRotationBlock[] = [
 export const nonRotatingSets: INonRotatingSet[] = [
     {
         id: SwuSetId.TS26,
-        legalFormats: new Set([SwuGameFormat.Eternal]),
+        legalFormats: new Set([SwuGameFormat.Eternal, SwuGameFormat.FauxSuns]),
         released: true,
         mainline: false
     },
@@ -77,6 +77,7 @@ export interface IFormatRules {
     maxCardCopies?: number;
     bannedCards: Map<string, string>;
     rotationBlockCount?: number;
+    leaderCount: number;
 }
 
 const bannedPremierCards = new Map<string, string>();
@@ -87,10 +88,11 @@ const bannedEternalCards = new Map([
 ]);
 
 export const formatRules = new Map<SwuGameFormat, IFormatRules>([
-    [SwuGameFormat.Premier, { minDeckSize: 50, maxCardCopies: 3, rotationBlockCount: 2, bannedCards: bannedPremierCards }],
-    [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: bannedEternalCards }],
-    [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
-    [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map() }],
+    [SwuGameFormat.Premier, { minDeckSize: 50, maxCardCopies: 3, rotationBlockCount: 2, bannedCards: bannedPremierCards, leaderCount: 1 }],
+    [SwuGameFormat.Eternal, { minDeckSize: 50, maxCardCopies: 3, bannedCards: bannedEternalCards, leaderCount: 1 }],
+    [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map(), leaderCount: 1 }],
+    [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map(), leaderCount: 1 }],
+    [SwuGameFormat.FauxSuns, { minDeckSize: 80, maxCardCopies: 1, bannedCards: new Map(), leaderCount: 2 }],
 ]);
 
 /**

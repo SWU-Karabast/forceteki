@@ -9,7 +9,7 @@ const { Deck } = require('../../server/utils/deck/Deck.js');
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
-const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
+const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'secondLeader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
 const deckFillerCard = 'underworld-thug';
 const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
@@ -128,6 +128,7 @@ class DeckBuilder {
         let resources = [];
 
         const leader = this.getLeaderCard(playerCards, playerNumber);
+        const secondLeader = this.getSecondLeaderCard(playerCards);
         const base = this.getBaseCard(playerCards, playerNumber);
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
@@ -166,7 +167,7 @@ class DeckBuilder {
         // Add all the cards already captured by the opponent
         deckCards = deckCards.concat(playerCards.unitsCapturedByOpponent);
 
-        return [this.buildDeck(deckCards, leader, base), namedCards, resources, playerCards.deck];
+        return [this.buildDeck(deckCards, leader, base, secondLeader), namedCards, resources, playerCards.deck];
     }
 
     getAllNamedCards(playerObject) {
@@ -247,6 +248,22 @@ class DeckBuilder {
         }
 
         throw new TestSetupError(`Unknown test leader specifier format: '${playerCards}'`);
+    }
+
+    getSecondLeaderCard(playerCards) {
+        if (!playerCards.secondLeader) {
+            return null;
+        }
+
+        if (typeof playerCards.secondLeader === 'string') {
+            return playerCards.secondLeader;
+        }
+
+        if ('card' in playerCards.secondLeader) {
+            return playerCards.secondLeader.card;
+        }
+
+        throw new TestSetupError(`Unknown test secondLeader specifier format: '${playerCards.secondLeader}'`);
     }
 
     getBaseCard(playerCards, playerNumber) {
@@ -366,7 +383,7 @@ class DeckBuilder {
     }
 
     /** @returns {import('../../server/utils/deck/Deck').Deck} */
-    buildDeck(deckCards, leader, base) {
+    buildDeck(deckCards, leader, base, secondLeader = null) {
         const safeGetSetCode = (card) => {
             const internalName = typeof card === 'string' ? card : card.card;
             var setCode = this.internalNameToSetCode.get(internalName);
@@ -377,6 +394,7 @@ class DeckBuilder {
         /** @type {import('../../server/utils/deck/DeckInterfaces.js').IDecklistInternal} */
         const decklist = {
             leader: { id: safeGetSetCode(leader), count: 1 },
+            ...(secondLeader ? { secondleader: { id: safeGetSetCode(secondLeader), count: 1 } } : {}),
             base: { id: safeGetSetCode(base), count: 1 },
             deck: []
         };

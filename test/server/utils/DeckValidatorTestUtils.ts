@@ -69,18 +69,22 @@ export function getFirstCardInSet(cardDataGetter: UnitTestCardDataGetter, set: s
     throw new Error(`No playable card found in set '${set}'`);
 }
 
-/** Returns the first leader card entry from the given sets, or throws if none found. */
-export function getFirstLeader(cardDataGetter: UnitTestCardDataGetter, legalSets: Set<string> = RELEASED_SETS): IInternalCardEntry {
+/** Returns the first leader card entry from the given sets matching an optional predicate, or throws if none found. */
+export function getFirstLeader(cardDataGetter: UnitTestCardDataGetter, legalSets: Set<string> = RELEASED_SETS, filter?: (card: ICardDataJson) => boolean): IInternalCardEntry {
     for (const cardId of cardDataGetter.cardIds) {
         const card = cardDataGetter.getCardSync(cardId);
         if (!legalSets.has(card.setId.set)) {
             continue;
         }
-        if (card.types.includes('leader')) {
-            return { id: setCodeToString(card.setId), count: 1, internalName: card.internalName };
+        if (!card.types.includes('leader')) {
+            continue;
         }
+        if (filter && !filter(card)) {
+            continue;
+        }
+        return { id: setCodeToString(card.setId), count: 1, internalName: card.internalName };
     }
-    throw new Error('No leader found in provided sets');
+    throw new Error('No leader found in provided sets matching the given filter');
 }
 
 /** Returns the first base card entry from the given sets, or throws if none found. */

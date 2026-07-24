@@ -50,6 +50,57 @@ describe('Dooku\'s Palace', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.dookusPalace.epicActionSpent).toBeTrue();
             });
+
+            it('should reduce cost by 1 for each of two deployed leaders in Faux Suns', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        base: 'dookus-palace',
+                        leader: { card: 'chewbacca#walking-carpet', deployed: true },
+                        secondLeader: { card: 'darth-vader#dark-lord-of-the-sith', deployed: true },
+                        hand: ['wampa'], // cost 4
+                    },
+                    player2: {
+                        leader: 'luke-skywalker#faithful-friend'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.dookusPalace);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
+                // 2 friendly leader units → cost 4 reduced by 2
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.dookusPalace.epicActionSpent).toBeTrue();
+            });
+
+            it('should count a Darksaber-bearing unit as a friendly leader unit for its cost reduction', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'dookus-palace',
+                        leader: { card: 'chewbacca#walking-carpet', deployed: true },
+                        groundArena: [{ card: 'mace-windu#party-crasher', upgrades: ['the-darksaber#icon-of-leadership'] }],
+                        hand: ['wampa'], // cost 4
+                    },
+                    player2: {
+                        leader: 'luke-skywalker#faithful-friend'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.dookusPalace);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
+                // chewbacca (leader) + Mace with the Darksaber (a leader unit) = 2 leader units
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.dookusPalace.epicActionSpent).toBeTrue();
+            });
         });
     });
 });

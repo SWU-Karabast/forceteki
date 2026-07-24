@@ -419,6 +419,7 @@ export interface IPlayerSerializedState {
     resources?: ISafeSerializedType<number | IResourceState> | ISafeSerializedArrayType<(string | ISerializedCardState)>;
     base?: ISafeSerializedType<string | ISerializedCardState>;
     leader?: ISafeSerializedType<string | ISerializedCardState>;
+    secondLeader?: ISafeSerializedType<string | ISerializedCardState>;
     deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string>;
     hasInitiative?: ISafeSerializedType<boolean>;
     hasForceToken?: ISafeSerializedType<boolean>;
