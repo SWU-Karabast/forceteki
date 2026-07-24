@@ -45,5 +45,40 @@ describe('Twin Suns Blast counter', function () {
                 expect(context.p2Base.damage).toBe(0);
             });
         });
+
+        describe('Blast counter base damage triggers', function () {
+            it('triggers the defender\'s "when your base is dealt damage" ability (Blade Three)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        leader: 'luke-skywalker#faithful-friend',
+                        secondLeader: 'saw-gerrera#bring-down-the-empire',
+                        base: 'kestro-city',
+                        hand: [],
+                        deck: ['battlefield-marine', 'wampa'],
+                    },
+                    player2: {
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        base: 'administrators-tower',
+                        spaceArena: ['blade-three#bane-of-the-devastator'],
+                        hand: [],
+                        deck: ['wampa', 'moment-of-peace'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.bladeThree).toHaveExactUpgradeNames([]);
+
+                context.player1.clickPrompt('Claim Blast');
+
+                // The Blast damage to player2's base triggers player2's Blade Three
+                expect(context.p2Base.damage).toBe(1);
+                expect(context.bladeThree).toHaveExactUpgradeNames(['advantage']);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
