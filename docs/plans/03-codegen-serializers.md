@@ -127,8 +127,9 @@ load-bearing interface between this plan and Plan 4, so it is pinned here:
 ### hasRef latch contract (must preserve)
 
 On main, every ref-decorated setter eagerly calls `getObjectId()` on stored
-values (`GameObjectUtils.ts:417, 438, 479, 606` via `createIdArray`/
-`createIdMap`/...), which latches `_hasRef` (`GameObjectBase.ts:154-166`).
+values (`GameObjectUtils.ts:417, 438, 479, 523, 565, 606` via
+`createIdArray`/`createIdMap`/`createIdSet`/`createIdRecord`/...), which
+latches `_hasRef` (`GameObjectBase.ts:154-167`).
 `buildGameStateForSnapshot` (`GameStateManager.ts:136-141`) calls
 `removeUnusedGameObjects()` **before** serializing, trusting that latch — an
 object stored in a ref field but never otherwise `getObjectId()`'d survives
@@ -162,13 +163,23 @@ change and lands first as its own PR.
    through the accessor, and the constructor bag-write is deleted. Retire
    `CopyMode.UseBulkCopy` and `copyState`'s `bulkCopyMetadata` branch
    (`GameObjectUtils.ts:222-227, 731-733`) — `StateWatcher` is their only
-   user. Watcher entries are arbitrary `TState[]` plain objects containing
-   `GameObjectId` strings (dev-enforced in `StateWatcher.addUpdater`, lines
-   90-114), so the generic `stateValue` encoder serializes them. Audit for
-   other direct bag writers; the only other `declare state` is
-   `TokenCards.ts:20,36,45` (`declare state: never`, inert). This changes
-   watcher restore from bulk-copy to field-copy — same data, but gate it on
-   the existing suite + `npm run test-undo` before the rest of Phase A.
+   user. Watcher entries are near-flat `TState[]` structs of `GameObjectId`
+   strings and primitives — plus `Set<Trait>` in two watchers
+   (`AttacksThisPhaseWatcher.ts:17` `attackerAttributes`,
+   `CardsDefeatedThisPhaseWatcher.ts:18-22` `lastKnownInformation`; same
+   survey as Plan 2's watcher section) — so the **recursive** `stateValue`
+   encoder handles them, Sets via the `$set` tag. Note that
+   `StateWatcher.addUpdater`'s dev check (lines 90-114) inspects the
+   listener *config* object (`when`/`update` — `IStateListenerProperties`,
+   `Interfaces.ts:302-305`), not entry payloads; no entry-shape enforcement
+   exists today, and this step adds none — the step 2 encoder's hard-fail is
+   deliberately the first real enforcement. Audit for other direct bag
+   writers; the only other `declare state` is `TokenCards.ts:20,36,45`
+   (`declare state: never`, inert), and a grep for `this.state.` also
+   matches ~30 writes in `Game.ts` — that is `Game.state: IGameState`
+   (`Game` is not a `GameObjectBase`), not the bag. This changes watcher
+   restore from bulk-copy to field-copy — same data, but gate it on the
+   existing suite + `npm run test-undo` before the rest of Phase A.
 1. Port the `-morph` generator to current main: scan `@registerState` /
    `@registerStateBase` classes and decorated `accessor` fields; resolve
    mixin chains statically; emit per-class serialize/deserialize plus the
@@ -188,7 +199,15 @@ change and lands first as its own PR.
    of card files) via ts-node on every build. Add a generation cache: find
    candidate files with a cheap text scan for the decorator names *before*
    instantiating ts-morph, hash the candidate set + contents, embed the hash
-   in the artifact header, and skip regeneration on match. Under
+   in the artifact header, and skip regeneration on match. The candidate
+   set is the decorator-name files **plus the transitive files the mixin
+   resolver visited on the last generation** (embed that file list in the
+   artifact header too) — a pure mixin-composition file like
+   `AllAbilityTypeRegistrations.ts` mentions no decorator name yet sits in
+   the ancestry of every `InPlayCard` (`InPlayCard.ts:31`); the text scan
+   alone would serve a stale artifact after a mixin reorder there. The
+   step 5 cross-check is the runtime backstop for anything the scan
+   misses. Under
    `npm run test-fast` (`scripts/build-test.js:11-31`, `--fast-build`) the
    cached check still runs — never skip it outright, or a stale gitignored
    artifact silently compiles (the test tsconfig includes `../server/**/*`).
@@ -218,7 +237,10 @@ change and lands first as its own PR.
      RegExp, typed arrays are legal today). The encoder **throws** on any
      value it cannot tag-encode (invariants 1 and 4); do a one-time audit of
      current `stateValue` payloads in this step and add encoders or fix call
-     sites as needed. `NaN`/`Infinity` survive in-memory records but not
+     sites as needed. The audit must inspect **stored** values, not declared
+     entry types — e.g. `DefeatedCardEntry.wasDefeatedWhileAttacking` is
+     typed `IDefeatSource` (which carries a live `Player`) but the updater
+     actually stores a boolean (`CardsDefeatedThisPhaseWatcher.ts:29,140`). `NaN`/`Infinity` survive in-memory records but not
      `JSON.stringify` — flag them in the encoder audit for Plan 6. The
      encoding-tag vocabulary reserves `$num` for non-finite numbers
      (`{ "$num": "NaN" | "Infinity" | "-Infinity" }`): a **file-level**
@@ -251,9 +273,18 @@ change and lands first as its own PR.
 5. **Coverage/staleness cross-check:** the thin decorators keep recording
    field names into `context.metadata` (they already do on main —
    `GameObjectUtils.ts:221-233` and the per-decorator `metaState` writes).
-   At startup in dev, and in a spec that instantiates every registered
-   class, compare the runtime metadata field set against the generated
-   serializer's field set per class; **hard-fail on any delta.** This is the
+   At startup in dev, and in a spec that force-loads every module
+   containing a registered class (reuse the card-loading path
+   `validate-cards` exercises — decorator metadata materializes at module
+   load; instantiation adds nothing and needs a live `Game`; card-file
+   classes like `Bamboozle.ts`'s load only via dynamic card import, so a
+   dev-startup check alone never sees them), compare the runtime metadata
+   field set **and per-field kind** (the metadata already buckets by
+   decorator symbol — `stateSimpleMetadata`/array/map/set/record/object)
+   against the generated serializer's model per class; **hard-fail on any
+   delta.** Kinds matter, not just names: once the Phase A parity gate
+   retires, a kind misclassification on a new field would pass a name-set
+   check and mis-encode silently. This is the
    real "generator missed a field" detector — a decorated accessor added
    somewhere the static resolver can't follow (a card class under
    `server/game/cards/**`, a class expression, a new mixin pattern) must
@@ -279,10 +310,33 @@ change and lands first as its own PR.
    JSON-safe (`GameObjectId` strings throughout), so this is nearly free and
    keeps the snapshot uniform; do not leave it v8-serialized. (`-morph` went
    further and made `Game.state` a GameObject — that belongs to Plan 4,
-   don't pull it into this cutover.)
+   don't pull it into this cutover.) `Game.state` restore deep-clones/
+   decodes the stored record exactly like per-object deserialization —
+   never assign the retained record by reference. It sits outside the
+   per-object deserializers that step 4's no-aliasing rule names, but the
+   same hazard applies: the live game mutates it in place
+   (`this.state.winnerNames.push`, `Game.ts:850-853`; `allCards.push`,
+   `:1609`; `movedCards.push`, `:1634`), and today's freshness guarantee is
+   `v8.deserialize` (`GameStateManager.ts:152`).
 3. Restore path: per-object `deserialize<Class>(game, instance, record)`
-   assigning fields directly, with ref resolution through the existing
-   registry lookups. Preserve the lifecycle contract exactly:
+   assigning fields **through the retained accessor setters** (as `-morph`'s
+   generated `instance.field = ...` statements do —
+   `buildDeserializeStatement`, its `generate-state-serializers.ts:604-616`),
+   never raw backing storage. The setters are what re-wrap mutable
+   collections (`UndoArray`/`UndoMap`/`UndoSet`/`UndoSafeRecord`) and
+   re-latch `_hasRef` on restore — today's hydrators reconstruct wrappers
+   for the same reason (`hydrateUndoMapFromIds`,
+   `CreateUndoArrayInternalFromIds`, `GameObjectUtils.ts:120-158, 710-722`).
+   Assign raw storage instead and after the first rollback every mutable
+   ref collection is a plain array/Map/Set: later pushes never latch, the
+   object is culled by `removeUnusedGameObjects()` at the next snapshot,
+   and the rollback after that dies in `getFromUuidUnsafe` →
+   `SevereHaltGame`. Spec: after a rollback, assert `deckZone.deck` is
+   still the wrapper type (or that a post-rollback push latches
+   `_hasRef`). Ref resolution goes through the existing registry lookups.
+   **Plan 4 handoff:** Plan 4 should assume delta recording is suppressed
+   during rollback-driven setter writes. Preserve the lifecycle contract
+   exactly:
    `afterSetState` per object → removals + `cleanupOnRemove` →
    `afterSetAllState` (order documented in `GameStateManager.ts:143-223`).
    Include `-morph`'s zone-membership reconciliation if the Phase A restore
@@ -296,7 +350,9 @@ change and lands first as its own PR.
    non-primitive value is decoded/cloned to a fresh object on restore, as
    `-morph`'s `deserializeStateValue` (`structuredClone`) does. Spec: roll
    back to the same snapshot twice with mutation in between; assert
-   identical results.
+   identical results. The mutations must include at least one game-level
+   array (`winnerNames`/`movedCards`) so the `Game.state` clone rule in
+   step 2 is exercised, not just per-object fields.
 5. **`oldState` for the lifecycle hooks is manufactured at rollback time.**
    `afterSetState`/`afterSetAllState`/`cleanupOnRemove` today receive the
    retained live bag (`GameStateManager.ts:165-178, 216`). After the bag is
@@ -314,13 +370,19 @@ change and lands first as its own PR.
    the oldState pass)" or the "replace runtime cost" headline is overstated
    for the rollback path.
 6. **Registry key policy** (the contract handed to Plan 5): registry keys
-   are the names of concrete `@registerState`-decorated exported classes
-   only. Mixin factories mint a new class per call with the same name
-   (`AsUnit` at `UnitProperties.ts:116`, `WithDamage` at `Damage.ts:30`) and
+   are the names of concrete `@registerState`-decorated classes — exported
+   or module-local (serialization is name-keyed and structurally typed, so
+   no import of the class is needed; two of the three required card-file
+   registrations below, `PlayBamboozleAction` and `FirstLightSmuggleAction`,
+   are module-local). Mixin factories mint a new class per call with the
+   same name (`AsUnit` at `UnitProperties.ts:116`, `WithDamage` at
+   `Damage.ts:30`) and
    different flattened ancestor chains — mixin fragments are an internal
    generator concept, flattened into each concrete class's serializer, and
    are never registered as lookup targets. The generator **hard-fails on
-   duplicate registered key names** whose flattened field sets differ.
+   any duplicate registered key name** — even when the flattened field sets
+   are identical (they would silently share a serializer, harmless here but
+   ambiguous for Plan 5's name→constructor lookup).
    Lookup walks `constructor.name` up the prototype chain (as `-morph`'s
    `StateSerializers.ts:96-110`) — safe because the auto-init wrapper copies
    the target class's `name`. **The registry must cover the three
@@ -330,7 +392,15 @@ change and lands first as its own PR.
    static-resolver blind spot. The generator's scan must include them (or
    they must be covered by explicit entries); the coverage cross-check
    treats them as required registrations, never acceptable misses. Plan 5's
-   A1 factory registry extends these same entries.
+   A1 factory registry extends these same entries. **Plan 5 handoff
+   (resolved — decision recorded in Plan 5 A1):** a module-local class
+   cannot be imported for name→constructor recreation. Decided: the three
+   non-exported `@registerState` classes (`PlayBamboozleAction`,
+   `FirstLightSmuggleAction`, `CustomDurationEvent` — note the last is in
+   core, `OngoingEffectEngine.ts`, not under `cards/**`) are exported so the
+   generated registry can import them, and the generator hard-forbids new
+   module-local `@registerState` classes going forward (generation-time
+   failure). See `05-gameobject-recreation.md` A1.
 7. **Value-collection mutation:** with live Maps/Sets/arrays in native
    fields, in-place mutation of a `stateValue`-typed collection is invisible
    to the retained setters (only whole-value reassignment is observed).
@@ -339,9 +409,10 @@ change and lands first as its own PR.
    `stateArray` decorator split (a known `-morph` TODO) now, in this phase,
    while touching every call site anyway — those decorators get wrappers on
    the ref-collection pattern, giving Plan 4 its value-collection hook.
-8. Keep the parity harness available behind a flag for one release cycle
-   (old path preserved in a test shim or snapshot-fixture comparison), then
-   delete the old system.
+8. Keep the parity harness available behind a flag for one release cycle,
+   comparing against committed snapshot fixtures (golden serialized
+   records) — B1 deletes the bag and every dual-write, so there is no old
+   path left for a live test shim to preserve. Then delete the harness.
 9. Update `docs/` developer docs: "adding a state field" workflow now
    includes the codegen step; document the hard-fail behavior.
 10. **Lint job — lands with Phase A step 1, not at cutover:**
@@ -401,3 +472,37 @@ change and lands first as its own PR.
   *at rest* (serialize the record map to a Buffer after building it) — keeps
   the invariant (records are JSON-able) while restoring compactness. Measure
   first.
+
+---
+
+## Performance capture (required on completion)
+
+Capture **after each phase**, not just at the end — Phase B is the cutover and
+is the one that can regress memory:
+
+```bash
+npm run benchmark -- --name after-plan-03-phase-a --compare initial-performance
+npm run benchmark -- --name after-plan-03 --compare initial-performance
+```
+
+Commit both generated files under `docs/plans/performance/`. See
+[Plan 0](00-performance-benchmarks.md) for the method and
+[the capture index](performance/README.md) for the rules.
+
+**What this plan should move.** Replacing runtime decorator cost with generated
+serializers should lower `manager/moveToNextTimepoint(Action)`,
+`full/createSnapshotForCurrentTimepoint`, and allocation per operation.
+
+**This is the plan where the capture is a decision input, not a report.** The
+risk note above — "JSON-record snapshots are larger in memory than v8 buffers" —
+is exactly what `payload/fullSnapshotTotal` and `payload/retainedChain` measure.
+If those regress materially at Phase B, that triggers the documented fallback:
+JSON-safe structure with v8 encoding at rest. Take the capture *before*
+deciding, per "Measure first".
+
+**Benchmark maintenance.** Phase B changes what
+`GameStateManager.buildGameStateForSnapshot` returns, so the `full/*` diagnostic
+rows change meaning here. That is expected and allowed — they are diagnostic
+tier. The `manager/*`, `payload/*` and `sustained/*` rows **must stay
+comparable**; if the cutover makes that impossible, resolve it in this plan's doc
+before landing, not quietly in the spec.

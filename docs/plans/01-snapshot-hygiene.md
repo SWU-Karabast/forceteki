@@ -5,8 +5,9 @@
 **Unblocks:** Shrinks the payload every later plan operates on; enables replay-for-repro
 **Shape:** 4 small PRs (items A, B, C, E; item D is documented as a
 prerequisite for a future feature, not scheduled work). Work items are
-independent of each other **except B, which requires item A's
-rollback-allocation fix to land first** (see B's direction for why).
+independent of each other **except B, which requires item A in full — both
+the transient-churn fix and the related context fix — to land first** (see
+B's ordering dependency for why).
 
 ## Goal
 
@@ -55,11 +56,19 @@ a state-carrying GameObject with its own `@stateRef`/`@stateValue` fields
 GameObject-bearing values into decorated state would violate Invariant 1
 (JSON-representable state). Therefore:
 
-- **In scope:** the raw-value churn path only — values wrapped at `:64`.
-- **Out of scope:** wrapper subclass instances returned directly by `calculate`
-  (`GainAbility`, `AdditionalPhaseEffect`) and any value that is a function or
-  contains GameObject references. These keep today's immutable-pinned-wrapper
-  semantics.
+- **In scope:** the raw-value churn path — values wrapped at `:64` — plus the
+  *allocation timing* of the dynamic `GainKeyword` builders:
+  `gainKeyword(fn)` and `gainKeywords` (`OngoingEffectLibrary.ts:137-138`,
+  `:143-144`) construct a `GainKeyword` GameObject *inside the `calculate`
+  closure*, so the subclass early-return (`recalculateValue`, `:60-62`)
+  registers a transient on every recalculation even when the value is
+  unchanged — and real cards use these builders today
+  (`AvarKrissForLightAndLife.ts:18`, `ImprovisedIdentity.ts:37`). See the
+  churn paragraph below.
+- **Out of scope:** *retention* semantics for wrapper subclass instances
+  returned directly by `calculate` (`GainAbility`, `AdditionalPhaseEffect`,
+  `GainKeyword`) and for any value that is a function or contains GameObject
+  references. These keep today's immutable-pinned-wrapper semantics.
 
 **Direction.** Options, in order of preference (implementer to validate):
 
@@ -78,11 +87,27 @@ Prefer option 1 unless validation rules it out: Plan 5's stage 5b builds its
 `OngoingEffectValueWrapper` recreation recipe on exactly the JSON-safe
 decorated-value subset option 1 establishes (see Plan 5, "Closure-bearing
 families" — the wrapper family split), so choosing option 2 would force that
-plan to redo the state-modeling work.
+plan to redo the state-modeling work. (One subset, two consumers: option 1
+puts the values in decorated state, and 5b then serializes exactly that
+subset into recreation recipes at serialize time.)
 
-Either way, also kill the transient-churn term: when the value is unchanged,
-avoid registering a throwaway GameObject at all (e.g. compare before wrapping,
-or use the existing `createWithoutRefsUnsafe` pattern deliberately).
+Either way, also kill the transient-churn term — **both** wrap paths:
+
+- **Raw values (`:64`):** when the value is unchanged, avoid registering a
+  throwaway GameObject at all — compare before wrapping. Do **not** reach for
+  `createWithoutRefsUnsafe` here: it only sets `_disableRegistration`, which
+  gates the `allGameObjects`/`gameObjectMapping` insert — `register()` still
+  assigns a uuid and increments `_lastGameObjectId` unconditionally
+  (`GameStateManager.ts:87-94`, `:124-134`) — so it fails the
+  zero-registration acceptance below and would trip item B's rollback guard.
+- **Dynamic wrapper subclasses:** the `GainKeyword` builders above allocate
+  inside `calculate`, *before* `compareValues` can run. Restructure so the
+  closure returns the raw keyword props and the `GainKeyword` wrapper is
+  constructed only when `compareValues` detects a change (e.g. the dynamic
+  builder supplies the raw calculate plus a wrap step applied
+  post-comparison). Changed values still get a fresh pinned wrapper —
+  retention semantics untouched. Without this, item B's zero-registration
+  contract is unreachable in any game with one of these effects live.
 
 **Related fix in the same area (prerequisite for item B):**
 `OngoingEffect.refreshContext()` runs on every rollback via `afterSetAllState`
@@ -101,11 +126,28 @@ the wrong source and player, silently. Instead:
 
 - Cache the context **per `OngoingEffect`** and have `refreshContext` update
   its fields in place instead of reallocating (the field updates are still
-  needed on rollback — the controller can change).
+  needed on rollback — the controller can change). Note the aliasing change:
+  today each refresh allocates a fresh context, so holders of the old one
+  (`impl.setContext` propagates it to the value wrapper,
+  `StaticOngoingEffectImpl.ts:49-52`) are insulated from later
+  `source`/`player` changes; with in-place mutation every retainer observes
+  post-rollback values retroactively. Audit retainers of
+  `OngoingEffect.context` / `impl.context` across rollback boundaries before
+  landing.
 - The remaining throwaway allocation — the `OngoingEffectSource` created when
   `AbilityContext` is constructed without a source (`AbilityContext.ts:63`) —
-  can become a shared per-game instance supplied via `getFrameworkContext`,
-  since `refreshContext` overwrites `context.source` immediately anyway.
+  should be handled **in the OngoingEffect path only**: pass an explicit
+  shared source when the effect's context is first built, or simply accept
+  the one transient allocation per effect *construction* (it never recurs
+  once the context is cached, and the sweep collects it at the next
+  timepoint). Do **not** push a shared source into `getFrameworkContext`
+  itself: it has ~15 other call sites (`Game.ts:1386`/`:1395`, setup/regroup
+  phases, mulligan prompts, several game systems) whose contexts never
+  overwrite `source`, so a per-game shared instance changes `context.source`
+  identity semantics game-wide — colliding with the non-goal that item A not
+  change observable behavior — and buys nothing here anyway: once contexts
+  are cached per effect, `refreshContext` stops calling `getFrameworkContext`
+  after construction.
 
 **Acceptance.**
 - Heap benchmark before/after over a scripted long game (port or adapt the
@@ -116,9 +158,10 @@ the wrong source and player, silently. Instead:
   effect **whose value actually changes every round** (e.g. a `calculate`-based
   buff of "+1 per friendly unit" over a changing board). A stable dynamic value
   is already bounded today and validates nothing.
-- After the related fix: a rollback performs **zero** GameObject registrations
-  (assertable via `GameStateManager.lastGameObjectId` before/after, or the
-  item-B rollback guard once it exists).
+- After **both** the churn fix (including the dynamic `GainKeyword` wrap
+  sites) and the related fix: a rollback performs **zero** GameObject
+  registrations (assertable via `GameStateManager.lastGameObjectId`
+  before/after, or the item-B rollback guard once it exists).
 - Full suite + `npm run test-undo` pass.
 
 ## Work item B: Restore `lastGameObjectId` on rollback
@@ -131,29 +174,60 @@ collisions by accident), but it makes uuid assignment non-reproducible, which
 Plans 5/6 need, and it silently grows uuid strings.
 
 **Ordering dependency.** This item **cannot land alone**: rollback itself
-currently allocates GameObjects. The `afterSetAllState` pass
-(`GameStateManager.ts:214-217`) runs `OngoingEffect.refreshContext`
-(`OngoingEffect.ts:205-207`) → `new AbilityContext` → `new OngoingEffectSource`
-(`AbilityContext.ts:63`), each registering via the `GameObjectBase` constructor
-(`GameObjectBase.ts:87`) and incrementing `_lastGameObjectId`
-(`GameStateManager.ts:87-89`). Restoring the counter before that pass means the
+currently allocates GameObjects from **two** sources.
+
+1. The `afterSetAllState` pass (`GameStateManager.ts:214-217`) runs
+   `OngoingEffect.refreshContext` (`OngoingEffect.ts:205-207`) →
+   `new AbilityContext` → `new OngoingEffectSource` (`AbilityContext.ts:63`).
+   The `OngoingEffectSource` registers via the `GameObjectBase` constructor
+   (`GameObjectBase.ts:87`) and increments `_lastGameObjectId`
+   (`GameStateManager.ts:87-89`); `AbilityContext` itself is a plain class
+   (`AbilityContext.ts:37`) and does not register. Item A's related fix
+   (context caching) removes this source.
+2. The same pass runs `OngoingEffectEngine.afterSetAllState`
+   (`OngoingEffectEngine.ts:329-332`) → `resolveEffects(true)` →
+   `resolveEffectTargets()` → `impl.recalculate(target)`
+   (`OngoingEffect.ts:176`), and for every **dynamic** effect
+   `recalculateValue` constructs a fresh wrapper GameObject — either at
+   `DynamicOngoingEffectImpl.ts:64` or a `GainKeyword` inside the `calculate`
+   closure (`OngoingEffectLibrary.ts:137-138`, `:143-144`) — one registration
+   per (dynamic effect, target) per rollback, **independent of context
+   caching**. Item A's transient-churn fix removes this source.
+
+Restoring the counter before that pass means the
 transients consume the ids replayed objects should get; restoring it after
 leaves transients registered above the counter until the next sweep, and a
 replayed object counting up from the restored value can collide —
 `register()` does a **silent** `gameObjectMapping.set` overwrite
 (`GameStateManager.ts:93`); only the per-object uuid setter asserts
-(`GameObjectBase.ts:73-76`). So: **item A's related fix (no rollback-time
-allocation) must land first.**
+(`GameObjectBase.ts:73-76`). So: **item A must land first in full — both the
+transient-churn fix (covering the dynamic wrapper paths) and the related
+context fix.** Landing this item after only the context fix would make the
+unconditional guard below crash every rollback in any game with a live
+dynamic ongoing effect.
+
+Even with item A in full, zero-registration rollback rests on two residual
+assumptions, which the guard turns into loud failures if violated: (a)
+`calculate` is deterministic over restored state — the RNG is restored with
+the snapshot (`SnapshotContainerBase.ts:78`) — and (b) no `calculate` closure
+allocates a GameObject itself. Item A's builder restructure removes the only
+known closure-allocation sites (the `GainKeyword` builders); a lint rule or
+review gate should keep new dynamic builders from reintroducing the pattern.
 
 **Direction.**
-- Land after A's related fix. Additionally, activate the existing
+- Land after item A in full. Additionally, activate the existing
   `_isRollingBack` hook (`GameStateManager.ts:35-36`) so that `register()`
   hard-fails during rollback — no silent degradation (Invariant 4). This turns
   any future reintroduction of rollback-time allocation into a loud test
   failure instead of a uuid-drift regression. (This item lands the guard
   unconditional; Plan 5's A2 rehydration scopes later relax its contract to
   "registration *outside an active rehydration scope* hard-fails" — the
-  carve-out arrives with Plan 5, not here.)
+  carve-out arrives with Plan 5, not here.) The guard must be
+  **nesting-safe**: `rollbackToSnapshot` re-enters itself on the
+  error-recovery path (`GameStateManager.ts:145`, `:190-200`, `:221`), and
+  the inner call's `finally` clears the plain boolean while the outer frame
+  is still live — use a depth counter, or explicitly reason about the
+  recovery recursion.
 - Restore `_lastGameObjectId` from the snapshot at the end of rollback (after
   `afterSetAllState`, which by then allocates nothing). The error-recovery path
   (`rollbackToSnapshot(beforeRollbackSnapshot)`, `GameStateManager.ts:190-200`)
@@ -176,7 +250,10 @@ allocation) must land first.**
   around rollback, or a demonstration that all inbound messages are
   drained/invalidated before rollback completes.
 
-**Acceptance.** A test on a game containing at least one live ongoing effect
+**Acceptance.** A test on a game containing at least one live **dynamic**
+ongoing effect with at least one current target — a static effect's
+`recalculate` is a no-op returning `false` without allocating
+(`StaticOngoingEffectImpl.ts:45-47`) and validates nothing here —
 that: snapshots, creates objects, rolls back, recreates the same game actions,
 and asserts (a) the recreated objects receive the same uuids and (b) the
 rollback itself performed zero registrations (the `_isRollingBack` guard did
@@ -194,9 +271,11 @@ any future replay-based repro tooling and improves bug reports at low cost.
 - Generate an explicit seed at `Game` construction (e.g. from the lobby or a
   crypto-random string), pass it to `Randomness`, store it on the game.
 - Include the seed in `captureGameState` bug-report output and in the
-  game-start log line. Both sinks are server-side only today — the Discord
-  dispatcher (`Lobby.ts:1652-1665`, `:1686-1699`) and server logs — keep it
-  that way.
+  game-start log line. All three sinks are server-side only today — the
+  Discord dispatcher for automated error reports (`Lobby.ts:1652-1665`,
+  `:1686-1699`) and for player-submitted reports (`Lobby.ts:2424-2426` →
+  `formatAndSendReportAsync`; the client receives only a success boolean,
+  `:2476-2480`) — plus server logs; keep it that way.
 - **The seed is a server-side secret for the duration of the match.** Because
   the engine is fully seed-deterministic (`Randomness.ts` wraps seedrandom),
   seed + message history reveals the deck order. The seed must never appear in
@@ -274,8 +353,9 @@ specs pass.
   patterns.
 - Work item A does not change retention semantics for function-typed or
   GameObject-bearing wrapper values, nor for wrapper subclasses
-  (`GainAbility`, `AdditionalPhaseEffect`) — those keep the
-  immutable-pinned-wrapper model.
+  (`GainAbility`, `AdditionalPhaseEffect`, `GainKeyword`) — those keep the
+  immutable-pinned-wrapper model. (The churn fix changes only *when* a new
+  `GainKeyword` is constructed, not what is retained.)
 
 ## Risks / notes for reviewer
 
@@ -291,5 +371,37 @@ specs pass.
   as `GainAbility._abilityUuidByTargetCard` (`@stateValue`, `GainAbility.ts:28`)
   live inside the serialized state and are rolled back with everything else —
   they are safe by construction and not what the audit is for.
-- Work items A and B are ordered (B depends on A's related fix); the header's
+- Work items A and B are ordered (B depends on A in full — both the
+  transient-churn fix and the related context fix); the header's
   "independent PRs" applies to the rest.
+
+---
+
+## Performance capture (required on completion)
+
+```bash
+npm run benchmark -- --name after-plan-01 --compare initial-performance
+```
+
+Commit both generated files under `docs/plans/performance/`. See
+[Plan 0](00-performance-benchmarks.md) for the method and
+[the capture index](performance/README.md) for the rules.
+
+**What this plan should move.** Item A is the clearest signal: eliminating
+transient `OngoingEffectValueWrapper` churn should show up as lower allocation
+and lower GC pause share in `sustained/snapshotAndUndoCycle`, and the permanent
+pinning fix should shrink `payload/fullSnapshotTotal` and
+`payload/retainedChain`. Per-operation times may barely move — that is expected;
+this plan targets memory, not speed.
+
+**What would be a red flag.** Any increase in `payload/fullSnapshotTotal`, or in
+`manager/moveToNextTimepoint(Action)` beyond noise. Item B adds work to the
+rollback path (uuid counter restore), so a small `manager/rollbackTo(Manual)`
+increase is acceptable — quantify it rather than waving it through.
+
+**While you are in here (item E territory).** `test/helpers/IntegrationHelper.js:78`
+passes `UndoMode.Full`, which is not a member of the `UndoMode` enum
+(`Disabled | Request | Free`), leaving every undo-mode test game with
+`undoMode === undefined`. It works only because each guard tests for
+`Disabled` specifically. The benchmark spec pins the mode explicitly to work
+around it; the helper itself should be fixed here.

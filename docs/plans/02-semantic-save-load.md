@@ -3,7 +3,7 @@
 **Status:** Proposed (revised after adversarial review; product decisions folded in — bug-report customer, degrade+manifest writer)
 **Depends on:** Nothing hard; Plan 1 recommended first
 **Unblocks:** Plan 6 (the schema defined here grows into the full-fidelity format)
-**Shape:** One feature arc, landable in 4–5 PRs (schema+writer+manifest, watcher encoding, loader+prompt driver, artifact plumbing, hardening). Work item D shrank under the bug-report decision — no lobby consent/sharing flow in v1.
+**Shape:** One feature arc, landable in 4–5 PRs (schema+writer+manifest, watcher encoding, loader+prompt driver, artifact plumbing, hardening). Work item D shrank under the bug-report decision — no lobby consent/sharing flow in v1 — and regained a small piece: the armed one-shot save trigger, so a save can be *requested* at any moment while still being *taken* at a boundary.
 
 ## Goal
 
@@ -78,6 +78,11 @@ A versioned top-level document, `ISavedMatch`:
   "formatVersion": 1,
   "cardDataVersion": "20260423_00",       // diagnostic metadata only, NOT a load gate (see C.1)
   "savedAt": "2026-07-25T18:00:00Z",      // ISO 8601 string (never a Date object)
+  "saveTrigger": {                        // how this save was taken — see "Requesting a save" below
+    "kind": "deferred",                   // "immediate" = requested at a boundary; "deferred" = armed and fired later
+    "requestedAtActionNumber": 16,        // action in progress when the save was *requested*
+    "requestedAtPhase": "action"
+  },
   "gameId": "...",
   "settings": { "gameMode": ..., "undoMode": ..., "useActionTimer": ... },
   "rng": { "seed": "...", "state": { /* seedrandom state */ } },
@@ -95,7 +100,7 @@ A versioned top-level document, `ISavedMatch`:
       "name": "...",                      // display name at save time, informational only
       "decklist": { /* ISwuDbFormatDecklist as provided at lobby time */ },
       "base": { "card": "<internalName>", "damage": 4, "limits": [ ... ] },
-      "leader": { "card": "...", "deployed": true, "side": "front", "exhausted": false,
+      "leader": { "card": "...", "deployed": true, "exhausted": false,
                   "damage": 2, "epicDeployUsed": true, "upgrades": [...], "limits": [ ... ] },
       "hand": ["<internalName>", ...],                  // ordered
       "deck": ["<internalName>", ...],                  // ordered, top first
@@ -121,7 +126,7 @@ A versioned top-level document, `ISavedMatch`:
       "description": "Wampa gets +2/+2 for this phase (Force Choke on p2's Wampa)" }
   ],
   "chat": [ /* uuid-scrubbed messages, ISO dates — see A */ ],
-  "timers": { "p1": { "remainingSeconds": 120, "isOnMainTimer": true }, ... }
+  "timers": { "p1": { "mainRemainingSeconds": 120 }, ... }  // main-timer remaining only — see C.5
 }
 ```
 
@@ -156,12 +161,22 @@ Schema rules (these are the load-bearing decisions):
   A top-level `(card, abilityIdentifier)` table cannot say which of two
   Wampas spent its once-per-round use. Note the engine keys per-player use
   maps by **player name** (`AbilityLimit.ts:102-104,180-182`); the file keys
-  them by seat, and the loader remaps seat → loaded player name.
+  them by seat, and the loader remaps seat → loaded player name. One limit
+  class does not fit the `usesByPlayer` map: `PerGameAbilityLimit` holds a
+  single `@statePrimitive` `useCount` plus an **undecorated**
+  `currentUser: string | null` (`AbilityLimit.ts:108-112`); it encodes as
+  `{ "useCount": n, "currentUserSeat": "p1" | null }`, and the writer must
+  read the undecorated `currentUser` field directly.
 - Ordered zones (deck, discard, hand, resources) preserve order.
 - **Leader deploy limit:** "leader in base but deploy already used" is a real
   position — `EpicActionLimit.reset()` is deliberately a no-op so defeat does
   not refund the deploy (`AbilityLimit.ts:263-265`). The leader entry
   therefore carries `epicDeployUsed` explicitly, independent of `deployed`.
+  The deploy epic action is itself an action ability carrying that
+  `EpicActionLimit`, so a generic limit walk would represent it twice:
+  `epicDeployUsed` is the **only** representation of the deploy limit — the
+  writer excludes it from `leader.limits`, and the loader restores it solely
+  from `epicDeployUsed` (one canonical form per fact).
 - **Leader deployed as a pilot is out of scope for v1 — decided.**
   `DeployType.LeaderUpgrade` (`server/game/core/Constants.ts:51-54`; used by
   the JTL pilot leaders via `DeployAndAttachPilotLeaderSystem.ts`) attaches
@@ -205,6 +220,47 @@ manifest rather than refuse (the bug-report customer needs the artifact even
 when it is degraded). See work item A (manifest categories), A2 (watchers are
 encoded, not dropped, except unresolvable referents), and E (measure the
 actual degradation rate).
+
+### Requesting a save from a non-quiescent moment (the armed one-shot)
+
+The restriction above governs where a save may be *taken*, not when a user
+may *ask* for one — and those are rarely the same moment. A player notices a
+bug precisely because a resolution did something wrong, so by the time they
+open the report dialog the game is typically mid-prompt, mid-attack, or on
+the opponent's turn. Gating the button on quiescence would therefore miss the
+common reporting moment outright. A save request is instead **armed, not
+executed**:
+
+- If the game is already at an action-window boundary, save immediately
+  (`saveTrigger.kind: "immediate"`).
+- Otherwise record the current `actionNumber`/phase and set a one-shot armed
+  flag. `ActionWindow.checkUpdateSnapshot` (`ActionWindow.ts:125-136`) is
+  already reached on the first `continue()` of every action window, for
+  *either* player, so the flag fires at the very next boundary — **bounded
+  drift of at most one action** (`saveTrigger.kind: "deferred"`). The report
+  submits when the save lands, not when the button is clicked.
+- **Arm independently of `undoMode`.** Hook the boundary itself, not the
+  snapshot: `SnapshotManager.moveToNextTimepoint`/`takeSnapshot` early-return
+  when undo is disabled (`SnapshotManager.ts:116,134`), so a flag keyed to a
+  snapshot actually being taken would never fire in undo-disabled games. The
+  boundary is reached regardless; the save does not depend on undo history.
+
+The drift is declared, never hidden: `saveTrigger.requestedAtActionNumber`
+read against `game.actionNumber` tells the dev opening the artifact exactly
+how far the saved position sits past the reported behavior (invariant 4 —
+enumerated, not silent). A deferred save that never fires — game ends, player
+disconnects, game halts — submits the report with no save attached; the
+existing `captureGameState` Discord summary is unaffected and still goes out.
+
+**This mechanism deliberately does not cover the automated error paths.**
+`Lobby.handleError` (`Lobby.ts:1652`) and `handleSerializationFailure`
+(`Lobby.ts:1686`) fire from arbitrary pipeline points, on states the engine
+has already declared unrecoverable, with the game halted — there is no next
+boundary to arm, and re-entering a crashed game to produce an artifact risks
+turning one incident into two. Those paths keep the `captureGameState`
+summary only. Closing the gap requires writing the save from the *last action
+snapshot's buffers* instead of from the live game, which is deferred (see
+non-goals and Plan 6 item B).
 
 ### Load sequence (the resume contract)
 
@@ -254,11 +310,14 @@ Rebuilding the pipeline is the only way to reach `roundNumber > 1` or
    is not `Action` (or the action number mismatches) and takes the first
    action snapshot itself. Do **not** port GameStateBuilder's manual
    `takeSnapshot` calls (`GameStateBuilder.js:237-253`) — they exist only
-   because that path never re-enters the pipeline. One spec point for PR 3:
-   if `SnapshotManager` asserts a timepoint ordering that requires a
-   start-of-phase marker before an action snapshot, seed the marker only
-   (never a snapshot presented as an undo target); undo history restarting
-   at load is already a stated non-goal. Once Plan 4's delta snapshots
+   because that path never re-enters the pipeline. The timepoint-ordering
+   question is resolved from code: `moveToNextTimepoint` has no ordering
+   assertion (`SnapshotManager.ts:113-131`), the snapshot-factory getters
+   are null-safe (`SnapshotFactory.ts:38-60`), and `Phase.initialise` skips
+   the start-of-phase snapshot in every rollback mode (`Phase.ts:46-49`) —
+   today's rollback already takes an action snapshot with no fresh
+   start-of-phase marker, so the loader needs no marker seeding.
+   Once Plan 4's delta snapshots
    exist, this first full snapshot is also the delta tracker's window
    anchor: after load, the tracker must not start until it is taken —
    Plan 4's `startTracking` asserts an anchor snapshot exists (see Plan 4,
@@ -307,6 +366,13 @@ them by only saving at action timepoints in the action phase.
     would break `abilityIdentifier` matching is a coordinate-integrity
     failure, not unrepresentable state — a save whose coordinates cannot be
     trusted is corrupt, not degraded, so the writer hard-fails on it.
+    The detection procedure (defined here because `nextAbilityIdx` is
+    private and cannot be read directly — `Card.ts:319-320`): for every
+    ability limit being serialized, the writer re-derives the identifier
+    set from a pristine instance of the card class (fresh construction
+    mints identifiers deterministically via `Card.buildGeneralAbilityProps`)
+    and hard-fails if the identifier it is about to emit is absent from
+    that set.
   - **The degrade+manifest rule is write-side only.** It applies to *game
     state the format cannot yet represent* — never to *files that cannot be
     trusted*. Load-side validation is unchanged: unresolvable card/ability
@@ -328,14 +394,29 @@ entries verbatim would violate the no-uuid rule and dangle after load.
 for unresolvable referents.** Reasoning: dropping *any* non-empty watcher
 would degrade essentially every save past the first action of a phase for
 most decks (any play/attack/action populates a registered watcher); whereas
-the encoding work is mechanical — all ~15 watchers in
-`server/game/stateWatchers/` have flat entry structs of GameObjectIds +
-primitives.
+the encoding work is mechanical — the ~15 watchers in
+`server/game/stateWatchers/` have near-flat entry structs of GameObjectIds +
+primitives. Two exceptions carry a `Set<Trait>` captured at event time
+(`AttacksThisPhaseWatcher`'s `attackerAttributes: ICardAttributes`,
+`AttacksThisPhaseWatcher.ts:17` / `Interfaces.ts:639-642`, and
+`CardsDefeatedThisPhaseWatcher`'s `lastKnownInformation`,
+`CardsDefeatedThisPhaseWatcher.ts:18-22`) — captured-at-event-time semantic
+data that cannot be re-derived post-load, so it is serialized with the same
+tagged-Set JSON encoding that B names for `Set` state, not dropped.
 
 - Define one shared reference encoding used by all watcher serializers:
   `ISavedCardRef = { card: internalName, controllerSeat, zone, ordinal }`
   where `(zone, ordinal)` index into that seat's zone arrays *within this
-  save file*; `Player` references encode as a seat label.
+  save file*; `Player` references encode as a seat label. The zone domain is
+  **wider than the array zones**: it includes the singleton positions
+  `leader` and `base` (with `ordinal: 0`), because watchers reference exactly
+  those (`LeadersDeployedThisPhaseWatcher.ts:10-12`,
+  `BasesHealedThisPhaseWatcher.ts:9-11`) — without them, every save in the
+  phase after a leader deploy or base heal would degrade spuriously under the
+  unresolvable-referent rule below. It also includes a sub-position form for
+  cards nested inside an arena entry's `upgrades`/`capturedCards` arrays,
+  since a card referenced by `CardsLeftPlayThisPhaseWatcher` or
+  `CardsDefeatedThisPhaseWatcher` may now sit in a capture zone.
 - **Unresolvable-referent rule:** if an entry references an object that no
   longer exists in any saved zone (a defeated token unit — tokens cease to
   exist; anything else outside the save's zones), the writer **drops that
@@ -344,12 +425,43 @@ primitives.
   encoding that *pretended* to be complete is what is forbidden). (Most
   defeated non-token cards land in discard and remain resolvable.) This
   raises the degradation rate — measured in E.
-- **Runtime counters** in entries must be translated, not copied:
-  `playEventId` is preserved only as entry ordering (entries are ordered
-  arrays; the loader rewrites ids in a way that preserves relative order);
-  `inPlayId`/`parentCardInPlayId` are saved as a "refers to the referent's
-  current stint in play" flag and rehydrated against the loaded card's fresh
-  `inPlayId` (current stint) or a sentinel non-current value.
+- **Runtime counters** in entries must be translated, not copied — and the
+  `CardsPlayedThisPhaseWatcher` trio above is an example, not the inventory
+  (`AttacksThisPhaseWatcher` adds `attackId`, `attackerInPlayId`,
+  `targetInPlayId`, `actionNumber`; `DamageDealtThisPhaseWatcher` adds
+  `damageSourceEventId`, `damageSourceInPlayIds[]`, `activeAttackId`). The
+  A2 PR therefore produces a **per-watcher field inventory**: every
+  non-`GameObjectId` field of every entry struct gets an explicit
+  classification — semantic data, stint flag, order-only counter, or
+  live-comparison counter — before its serializer is written. Translation by
+  class:
+  - *Order-only counters* (`playEventId`, …) are preserved only as entry
+    ordering (entries are ordered arrays); cross-entry groupings (e.g.
+    `activeAttackId` linking damage entries to one attack) are preserved as
+    save-local ordinals.
+  - *Stint flags* (`inPlayId`/`parentCardInPlayId`/…) are saved as a "refers
+    to the referent's current stint in play" flag and rehydrated against the
+    loaded card's fresh `inPlayId` (current stint) or a sentinel non-current
+    value.
+  - *Live-comparison counters* additionally need a **disjointness rule**:
+    some saved counters are compared post-load against ids the live game
+    generates — Ki-Adi-Mundi compares a saved `playEventId` to the live
+    `event.eventId` (`KiAdiMundiComposedAndConfident.ts:41`), and Flash the
+    Vents compares a saved `activeAttackId` to the live attack's id
+    (`FlashTheVents.ts:42`). Live event ids come from
+    `game.state.lastGameEventId` (`Game.ts:1663-1666`), which the loader does
+    not restore, and live attack ids from `Game._lastAttackId`, an
+    undecorated plain field that restarts at -1 in a fresh process
+    (`Game.ts:303,669-672`) — so an order-preserving rewrite alone can equal
+    a *future* live id (a rewritten `activeAttackId` of 2 colliding with the
+    third post-load attack would make Flash the Vents count stale pre-save
+    damage as dealt during that attack). **Decided: the loader mints
+    rewritten counter ids from a negative range, order-preserving** — live
+    generators only ever produce non-negative ids, so collision is
+    impossible and no engine change is needed. (The alternative — adding
+    `lastGameEventId` to the restored scalar list and bumping
+    `_lastAttackId`, which is not part of `game.state` today — was rejected
+    as the heavier engine change.)
 - On load, each watcher's entries are rebuilt with the `GameObjectId`s of the
   newly constructed objects, so `mapCurrentValue`
   (`CardsPlayedThisPhaseWatcher.ts:35-37`) works unmodified.
@@ -397,7 +509,11 @@ from *save files*.)
   4. Inject position: port the `GameStateBuilder` operations
      (`moveAllNonBaseZonesToRemoved`, `setGroundArenaUnits`, `setHand`,
      `setDeck`, `setLeaderStatus`, `setBaseStatus`, `setResourceCards`,
-     `setDiscard`, upgrade/capture attachment, damage/exhaust state)
+     `setDiscard`, `setHasTheForce`, `setCreditTokenCount`
+     (`PlayerInteractionWrapper.ts:967,995`), upgrade/capture attachment,
+     damage/exhaust state, and explicit `outsideTheGame` placement — the
+     helpers only ever use that zone as staging, but it is a real schema
+     zone the loader must populate deliberately)
      from `test/helpers/PlayerInteractionWrapper.ts` into engine-side code.
      The test helpers then become thin wrappers over the engine
      implementation (large incidental win: state injection becomes a
@@ -420,7 +536,21 @@ from *save files*.)
      for all limits, including `epicDeployUsed` → the leader's
      `EpicActionLimit`), watcher entries (per A2), chat, timers, RNG state,
      `Game.state` scalars, and the `passedActionPhase` derivation — exactly
-     as specified in "Load sequence" above.
+     as specified in "Load sequence" above. Two semantics to pin down here
+     so PR 4 doesn't discover them by surprise:
+     - **Chat restore replaces the message log**, never appends — the driven
+       setup in step 3 generates its own messages, and appending would fail
+       E's round-trip property on chat.
+     - **Timer restore: the only durable fact is main-timer remaining.** The
+       turn timer resets on every prompt by design, so `isOnMainTimer` is
+       not persisted (the loaded player simply starts on a fresh turn
+       timer). `ByoyomiTimer` has no restore surface today — `isOnMainTimer`
+       and both inner timers are private (`ByoyomiTimer.ts:27-36`) — so PR 4
+       adds a small public restore method for main-time remaining. Ordering
+       is safe: the re-entered ActionWindow's constructor calls
+       `activePlayer.actionTimer.stop()` (`ActionWindow.ts:41`), but
+       `stop()` only stops the turn timer and *pauses* the main timer,
+       preserving its remaining time (`ByoyomiTimer.ts:173-181`).
   6. `resolveGameState(true)`, `clearAllSnapshots()`, then
      `postRollbackOperations({ Round, WithinActionPhase })` per the load
      sequence; the re-entered ActionWindow takes the first action snapshot.
@@ -444,6 +574,15 @@ load path.
 - Save: expose on the lobby/game socket surface. Output: JSON document to
   the client (download / bug-report attachment) — server-side storage is
   optional and out of scope for v1.
+- **The armed one-shot trigger** (per "Requesting a save from a non-quiescent
+  moment"): a request arriving at a boundary saves inline; otherwise the
+  lobby stores `{ requestedAtActionNumber, requestedAtPhase }` and arms a
+  one-shot flag that the next action-window boundary consumes, independent of
+  `undoMode`. The request is attached to the in-flight bug report, which
+  submits on completion. Bound the armed state to the current game instance
+  and clear it on game end, phase exit to regroup, or disconnect — a stale
+  flag firing into a later round would produce an artifact that silently
+  misrepresents the reported moment.
 - Load: dev-facing flow accepting an `ISavedMatch`, binding users to seats
   (each user picks or is assigned a seat; the seat determines their decklist
   and all seat-keyed state), constructing the game via `MatchLoader`, and
@@ -467,8 +606,9 @@ load path.
   in the library (`GameStateBuilder.js:233,262-271`) while production games
   register only the watchers their cards request, the two sides will not have
   identical watcher sets. For a *degraded* first save, the property is:
-  re-saving the loaded game yields the same document with an **empty**
-  manifest (the dropped facts no longer exist to drop).
+  the two documents are equal after excluding `engineOnlyFacts` and
+  `savedAt`, and the re-save's manifest is **empty** (the dropped facts no
+  longer exist to drop).
 - **Continuation tests** (must pass for **non-degraded** saves — empty
   manifest): save mid-game in an integration test, load, and play several
   representative actions asserting identical outcomes to the unloaded
@@ -482,6 +622,9 @@ load path.
     GameStateBuilder cannot reach);
   - a save with non-empty watcher entries consumed by a watcher-reading card
     post-load (exercises A2 end-to-end);
+  - a save taken in the same phase as a leader deploy (the
+    `LeadersDeployedThisPhaseWatcher` entry must round-trip via the `leader`
+    singleton coordinate rather than degrade);
   - a once-per-round ability used by one of two copies pre-save: post-load,
     only the *other* copy may use it (exercises per-copy limits);
   - a deployed leader and a defeated-then-undeployed leader
@@ -491,6 +634,14 @@ load path.
   unresolvable watcher referent), construct a position containing the fact,
   save, and assert the manifest **accurately enumerates exactly what was
   dropped** — correct category, source, target, duration — and nothing else.
+- **Armed-one-shot trigger tests:** a request issued at a boundary saves
+  inline with `saveTrigger.kind: "immediate"` and equal
+  `requestedAtActionNumber`/`game.actionNumber`; a request issued mid-prompt
+  and mid-attack fires at the next boundary with `kind: "deferred"` and a
+  drift of exactly one action; a request in an **undo-disabled** game still
+  fires (guards the `SnapshotManager.ts:116,134` early-return); an armed flag
+  is cleared by game end and by phase exit rather than firing into a later
+  round.
 - Writer hard-refusal test for the remaining refusal case
   (`Card.nextAbilityIdx` coordinate drift), plus load-side rejection tests
   for untrustworthy files (unknown coordinates, schema violations,
@@ -508,7 +659,16 @@ load path.
 - A player-facing save button (v1's customer is the bug-report attachment;
   a button would additionally need a lobby consent/sharing flow and a
   product call on loading degraded positions).
-- Saving mid-prompt, mid-attack, or mid-ability resolution.
+- Saving mid-prompt, mid-attack, or mid-ability resolution. (A save may be
+  *requested* there; it is *taken* at the next boundary — see the armed
+  one-shot.)
+- **Semantic saves from the automated error paths** (`Lobby.handleError`,
+  `handleSerializationFailure`). They fire on halted, unrecoverable states
+  with no next boundary to arm, and keep the existing `captureGameState`
+  Discord summary. The enabling mechanism — writing the save from the last
+  action snapshot's buffers rather than the live game — is deferred to
+  Plan 6 (item B), where the writer already reads serialized records and the
+  second read path is far cheaper to add.
 - Preserving active duration-bound ongoing effects, gained abilities, delayed
   effects (dropped with `engineOnlyFacts` manifest entries instead).
 - Leader deployed as a pilot upgrade (dropped with a manifest entry; schema
@@ -521,16 +681,46 @@ load path.
 
 ## Risks / open questions for reviewer
 
-- **`abilityIdentifier` stability:** identifiers embed a per-card ability
-  index; card refactors that reorder ability registration change coordinates.
-  Acceptable for ability-limit matching in v1 (worst case: a limit count fails
-  to resolve and the load is refused by C.1's resolution check)? Or should
-  limits be keyed by `(card, abilityType, ordinal)` with fuzzy matching?
+- **`abilityIdentifier` stability — decided: exact matching, loud refusal.**
+  Identifiers embed a per-card ability index; card refactors that reorder
+  ability registration change coordinates, and the worst case is a limit
+  count that fails to resolve, refusing the load via C.1's resolution check.
+  That is the accepted cost: v1 saves are short-lived bug-report artifacts,
+  not a durable format (migration is a non-goal; Plan 6 fails loudly on
+  version drift). The rejected alternative — keying limits by
+  `(card, abilityType, ordinal)` with fuzzy matching — could silently bind a
+  limit count to the *wrong* ability after a refactor, exactly the silent
+  wrongness invariant 4 forbids. Both enforcement ends already exist: the
+  writer hard-fails on identifier drift (pristine-instance re-derivation
+  check, work item A), and the loader refuses unresolvable limits (C.1).
 - **Setup determinism in the loader:** step C.3 assumes advancing a fresh game
   to the action phase is safe with arbitrary RNG (state is overwritten after
   injection). `GameStateBuilder` proves this for tests; confirm no
   setup-phase player choices leak into injected state (mulligan and resourcing
   are all overwritten by injection).
-- **Snapshot-manager timepoint ordering on re-entry** (load sequence step 5):
-  verify in PR 3 whether an action snapshot may be taken without a preceding
-  start-of-phase timepoint, and seed only the marker if not.
+- **Snapshot-manager timepoint ordering on re-entry — resolved.** An action
+  snapshot without a preceding start-of-phase timepoint is already today's
+  rollback behavior (`Phase.ts:46-49`; no ordering assertion in
+  `SnapshotManager.ts:113-131`); no marker seeding needed. See load sequence
+  step 5.
+
+---
+
+## Performance capture (required on completion)
+
+```bash
+npm run benchmark -- --name after-plan-02 --compare initial-performance
+```
+
+Commit both generated files under `docs/plans/performance/`. See
+[Plan 0](00-performance-benchmarks.md) for the method and
+[the capture index](performance/README.md) for the rules.
+
+**What this plan should move: nothing.** Save/load is an out-of-band operation
+on an explicit request; it is not on the per-action or undo path. This capture
+exists to prove that — specifically that the dev-mode JSON-representability
+assertion introduced here has not been left enabled on a hot path.
+
+**What would be a red flag.** Any movement in `manager/*` or `sustained/*`
+beyond noise. If the assertion costs measurable time in dev mode, say so and
+state where it is gated off.

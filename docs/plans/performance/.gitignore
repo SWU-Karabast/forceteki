@@ -1,0 +1,3 @@
+# Per-run intermediate JSON consumed by scripts/run-performance-benchmarks.js.
+# The committed artifacts are <name>.json and <name>.md in this directory.
+.raw/

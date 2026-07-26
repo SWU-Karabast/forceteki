@@ -1,7 +1,7 @@
 # Plan 5 — GameObject Release & Recreation
 
 **Status:** Proposed (revised after adversarial review)
-**Depends on:** Plan 3 (class registry, per-class serializers); Plan 1 work item B (uuid counter restore + rollback registration guard). Coordinates with Plan 4 (its "zero registrations during rollback" spec is amended by 5a — see A2).
+**Depends on:** Plan 3 (class registry, per-class serializers); Plan 1 work item B (uuid counter restore + rollback registration guard). Coordinates with Plan 4 (its rollback-registration guard spec gains 5a's rehydration-scope companion case — see A2).
 **Unblocks:** Plan 6 (full-fidelity save); bounded memory for long games
 **Shape:** Three separately-landable stages (5a infrastructure + leaf recreation, 5b composite recreation + closure recipes, 5c release policy). Each stage is useful alone. Cards moved from 5a to 5b — see the staging note in 5a.
 
@@ -32,20 +32,30 @@ plan's recreation path must be reconciled explicitly; A2 does so.
    (`Game.initialiseTokens`), and state watchers (`StateWatcherRegistrar`,
    idempotent by enum — the best in-repo model) have id→constructor maps. The
    ~85 `@registerState()` classes across 80 files have no factory registry —
-   and three of them are card-file-local (`Bamboozle.ts`,
-   `FirstLightHeadquartersOfTheCrimsonDawn.ts`, `Advantage.ts` under
-   `server/game/cards/**`), territory Plan 3's static generator explicitly
-   treats as unresolvable — the factory registry must not miss them.
+   and two distinct gap sets must not be conflated: (i) three classes live
+   under `server/game/cards/**` (`Bamboozle.ts`,
+   `FirstLightHeadquartersOfTheCrimsonDawn.ts`, `Advantage.ts`), territory
+   Plan 3's static generator explicitly treats as unresolvable; (ii) three
+   classes are **non-exported** (module-local), so no generated registry can
+   import them: `PlayBamboozleAction` (`Bamboozle.ts:55`),
+   `FirstLightSmuggleAction` (`FirstLightHeadquartersOfTheCrimsonDawn.ts:40`),
+   and `CustomDurationEvent` (`OngoingEffectEngine.ts:20` — in core, not
+   cards; `AdvantageAbility` by contrast is exported, `Advantage.ts:26`).
+   The factory registry must miss neither set; A1 records the decided
+   handling.
 3. **Fail-fast refs.** `getFromUuidUnsafe` escalates a miss to
    `SevereHaltGame`; no lazy/materialize-on-demand hook exists.
 4. **Closures are object identity** for abilities/effects: props objects with
    up to 32 function-typed keys (`server/game/Interfaces.ts`), held outside
    state (`PlayerOrCardAbility.properties`, `OngoingEffect.ongoingEffect`,
    `DynamicOngoingEffectImpl.calculate`, `CustomDurationEvent.handler`).
-5. **Listener identity on `Game`.** Six holders register raw closures via
-   `game.on` and unregister by function identity (`TriggeredAbility`,
-   `StateWatcher`, `CustomDurationEvent`, `RepeatableAbilityLimit`,
-   `EventRegistrar` users). The current mitigation — an `isRegistered`
+5. **Listener identity on `Game`.** Five per-object holders register raw
+   closures via `game.on` and unregister by function identity
+   (`TriggeredAbility`, `StateWatcher`, `CustomDurationEvent`,
+   `RepeatableAbilityLimit`, `EventRegistrar` users). (The sixth `game.on`
+   site, `UnitProperties.ts:119-151`, is a static game-level rules
+   registration, not a per-object holder — out of scope for recreation.)
+   The current mitigation — an `isRegistered`
    boolean in state reconciled by `afterSetState` — works only because the
    object survives.
 6. **Construction is not atomic.** The `@registerState` /
@@ -88,9 +98,19 @@ collects exactly one object.
 stable `classTag`. Extend the Plan-3 generated registry to also emit factory
 entries: `classTag → (game, record, links) => instance`. Handle the
 `@registerState` anonymous wrapper class (registry keys on the declared class
-name, as `buildAutoInitializingCardClass` already does for cards) and the
-three card-file-local `@registerState` classes the static resolver can't
-follow. Cards use the card constructor map keyed by `cardData` id — but note
+name, as `buildAutoInitializingCardClass` already does for cards) and both
+gap sets from blocker 2. **Decided (resolves the open decision flagged in
+`03-codegen-serializers.md`, "Plan 5 handoff"):** the three non-exported
+`@registerState` classes — `PlayBamboozleAction`, `FirstLightSmuggleAction`,
+`CustomDurationEvent` — are **exported** so the generated factory registry
+can import them, and the generator **hard-forbids new module-local
+`@registerState` classes** going forward (a non-exported `@registerState`
+class is a generation-time failure, same enforcement tier as Plan 3's
+coverage cross-check). No self-registration hook. The cards-directory
+classes the static resolver can't traverse (`Bamboozle.ts`,
+`FirstLightHeadquartersOfTheCrimsonDawn.ts`, `Advantage.ts`) get explicit
+registry entries per Plan 3's coverage cross-check.
+Cards use the card constructor map keyed by `cardData` id — but note
 card construction today is **async** (`server/utils/deck/Deck.ts:207-228`
 awaits `cardDataGetter.getCardBySetCodeAsync` at `:218`) and rollback is
 synchronous, and a released card's `cardData` dies with it. Therefore: build a
@@ -101,8 +121,11 @@ set-code/id in each card's record. Tokens key by token enum; watchers by
 `StateWatcherName`. **Flag for Plan 6:** `classTag` = TS class name is a
 runtime coordinate, not a stable one (standing invariant 2 excludes class
 names). Fine for in-memory rollback; when Plan 6 dumps records to disk, a
-class rename silently breaks saves — Plan 6 must add a versioning/aliasing
-layer over `classTag`, noted here as an explicit handoff.
+class rename invalidates saves — handed to Plan 6, which answered in its
+work item D: **no aliasing layer** — the schema-surface hash makes a rename
+a loud engine-tier incompatibility that degrades to the semantic tier, and
+renaming a `@registerState` class becomes a release-noted save-breaking
+change.
 
 **A2. Registration during rollback: the rehydration scope.** Plans 1B and 4
 pin "rollback performs zero registrations" with a hard-fail guard
@@ -127,11 +150,12 @@ class it exists to catch (`register()` silently overwrites
   registration *outside an active rehydration scope* hard-fails." The Plan 1B
   assert and Plan 4's "registration during delta rollback asserts" spec keep
   their tests and gain a companion spec: registration *inside* a scope
-  succeeds, is matched, and is rekeyed. (Cross-plan: Plans 1B and 4 spec text
-  changes from "zero registrations" to "zero *organic* registrations"; the
-  guard implementation gains the scope carve-out. Plan 4's delta-rollback path
-  opens no scopes until this plan's delta integration lands, so its behavior
-  is unchanged until then.)
+  succeeds, is matched, and is rekeyed. (Cross-plan: Plan 1B's spec text
+  changes from "zero registrations" to "zero *organic* registrations" —
+  Plan 4's doc already uses the organic phrasing and anticipates this
+  carve-out; the guard implementation gains the scope carve-out. Plan 4's
+  delta-rollback path opens no scopes until this plan's delta integration
+  lands, so its behavior is unchanged until then.)
 - **Scope close: match → rekey → adopt.** Each collected object is matched to
   a serialized record (per-family coordinates — trivial for 5a leaves, the
   full table is in 5b), then **rekeyed**: scratch mapping entry dropped, the
@@ -151,7 +175,10 @@ class it exists to catch (`register()` silently overwrites
   scope close in a pairing mode — match collected objects to records exactly
   as here, but record a `fileUuid → liveUuid` pairing and keep live uuids
   rather than adopting the record's uuid. The occupancy assert and the
-  no-scratch-leak sweep apply unchanged under either key policy.
+  no-scratch-leak sweep apply unchanged under either key policy. (That load
+  runs outside any rollback, so when Plan 6's work item C lands, the scope's
+  only-while-`_isRollingBack` gate gains a load-mode counterpart — the
+  amendment 06 C records.)
 - **Failure mid-rehydration (the nested recovery path).** Order the restore so
   all recreation scopes run **before** any existing object's state is
   overwritten; a throw during recreation then leaves every pre-existing live
@@ -171,7 +198,9 @@ class it exists to catch (`register()` silently overwrites
 refs (`Card` needs `Player`; `CaptureZone` needs a captor `Card`;
 `OngoingEffect` needs source `Card` + impl). Restore order becomes:
 
-1. Determine the recreation set: snapshot uuids with no live instance.
+1. Determine the recreation set: snapshot uuids with no live instance. A
+   composite closure (see the eviction-unit rule in 5b) appears here as one
+   unit: its root plus its recorded constructor-time fan-out.
 2. Recreate in **ascending numeric uuid order** — the numeric suffix is global
    creation order (`GameStateManager.ts:87-88`), so this reproduces original
    dependency order for the non-cyclic majority (Player before its cards,
@@ -179,11 +208,23 @@ refs (`Card` needs `Player`; `CaptureZone` needs a captor `Card`;
    deferred-link machinery. Each recreation runs the real factory inside a
    rehydration scope (A2); constructor arguments that are object refs resolve
    through the registry (already-live or already-recreated by ordering).
+   Recreation-set uuids already produced by an earlier scope's composite
+   fan-out are **skipped** — they were matched and rekeyed at that scope's
+   close, not recreated standalone.
    Reserve a deferred-link variant for genuine cycles only if one is actually
    hit (none are known: `Player`/`Zone`/engine singletons are pinned by 5c
    policy and never in the recreation set).
 3. Scope close registers everything under original uuids — now every ref
-   resolves.
+   resolves. **The `Game.state` container swap lands here, after all
+   recreation scopes close and before any state overlay** (today
+   `game.state = v8.deserialize(...)` runs first, `GameStateManager.ts:152` —
+   this plan moves it). Placing the swap after recreation makes A2's
+   failure-ordering claim true as stated: a throw during recreation leaves
+   every pre-existing live object *and* the live `Game.state` untouched. If
+   implementation finds recreation-time constructors genuinely need the
+   restored `Game.state` (none is known to), the fallback is swap-before —
+   in which case A2's "untouched" claim must be re-qualified to lean on the
+   recovery path (`beforeRollbackSnapshot` also restores `Game.state`).
 4. Deserialize state into every object (existing + recreated). This
    naturally lands where the old `copyState` ordering TODO pointed: ref
    hydration happens after the new objects exist. Recreated composites get
@@ -218,7 +259,10 @@ pattern: registration state (which events, active or not) lives in state;
 handlers are rebuilt in `onRehydrate` and tracked by registration record (not
 raw function identity) so a recreated object can unregister listeners it
 didn't originally register. Closes the TODOs at `Card.ts:1143` and
-`TriggeredAbility.ts:301`.
+`TriggeredAbility.ts:242` ("aggregateWhen is readonly, which means we can
+reliably recreate the eventRegistrations array" — literally this design; the
+separate trigger-removal lifecycle TODO at `TriggeredAbility.ts:301` is not
+this work item).
 
 **A6. Inbound-pointer rule (applies from the first eviction).** Plain
 (undecorated) JS fields are never rehydrated — only decorated fields pass
@@ -291,6 +335,26 @@ coordinates, per family in the fan-out — every family must have one:
   classTag sequence, or coordinate collision is a hard failure, never a
   best-effort match.
 
+**Eviction unit (decided): atomic, at exactly two granularities.** An
+eviction is either (i) a **standalone-factory leaf** (5a families), or (ii) a
+**composite closure** — a root plus its *entire* constructor-time fan-out,
+evicted together. Partial eviction of a composite is unsupported and excluded
+by construction, in both directions: a child evicted under a live root has no
+standalone factory (a printed `TriggeredAbility` constructor requires
+closure-bearing props, `PlayerOrCardAbility.ts:66,77`) and its card's uuid is
+occupied by the live instance, so no scope can open — A3 step 2 would
+hard-fail; a root evicted under live children would re-run setup and collide
+freshly-constructed fan-out instances with uuids held by the live children at
+scope close — the occupancy assert (A2) fires. **Fan-out membership is
+recorded at construction time**: the rehydration scope already collects
+exactly this set when a composite is first built (and the serializer records
+scope-relative ordinals), so the composite closure's member uuids are
+persisted with the root's record. Fuzz eligibility (see Verification) is
+computed from per-family flags *plus this rule* — leaves are individually
+eligible; a composite is eligible only as a whole closure. A3 step 1 treats a
+closure as one recreation unit and step 2 skips member uuids already produced
+by the root scope's fan-out.
+
 Worked uuid walk-through (the contract, in one example): `wampa`'s
 `TriggeredAbility` holds uuid `PlayerOrCardAbility_57` in the snapshot. The
 card's factory re-runs setup; the ability registers into the scope as
@@ -318,7 +382,16 @@ classified non-recreatable and pinned.
   sourceAbilityCoordinate, targetCardRef, gainKind)`; recreation re-derives
   props from the source card's definition and re-applies the grant. Requires
   fixing the gained-ability identifier scheme first (unique per grant
-  instance).
+  instance). **Determinism caveat (mandatory):** the grant path consumes the
+  *target* card's `nextAbilityIdx` (`addGained*Ability` →
+  `createTriggeredAbility` → `buildGeneralAbilityProps`, `Card.ts:555-568`),
+  and at re-grant time during rollback that counter holds either a
+  fresh-construction or live post-timeline value — neither necessarily the
+  original grant-time value — so any idx-derived coordinate drifts. The
+  per-grant identifier must be **recorded in the snapshot record at grant
+  time and never re-derived from `nextAbilityIdx` at re-grant time**; the
+  re-grant-then-overlay ordering (A3 step 4 overlays state, including
+  `nextAbilityIdx`, *after* the re-grant mutates it) is mandatory.
 - **OngoingEffect — split into two sub-families; do not conflate them:**
   - **(a) Constant-ability effects** (`persistent()` from
     `setupCardAbilities`, `OngoingEffectSource.ts:20-23`): genuinely
@@ -373,20 +446,37 @@ classified non-recreatable and pinned.
   `value` is a plain non-decorated field
   (`OngoingEffectValueWrapper.ts:11`) and Plan 1 deliberately keeps
   function-typed/GameObject-bearing values out of state. Split: **JSON-safe
-  raw values** move into the record's recipe section at serialize time
-  (supersedes Plan 1's plain-field treatment for exactly this subset —
-  Plan 1A option 1 already points this way; cross-plan note), making those
-  wrappers recreatable. **Function- or GameObject-bearing values and wrapper
-  subclasses** (`GainAbility`, `AdditionalPhaseEffect`) are non-recreatable
-  and pinned, enforced by the family flag. Note 5c's tier-1 release makes
+  raw values** move into the record's recipe section at serialize time —
+  exactly the JSON-safe decorated-value subset Plan 1A option 1 establishes
+  (option 1 puts the values in decorated state; 5b serializes that subset
+  into recipes — the stated reason Plan 1 prefers option 1; cross-plan
+  note) — making those wrappers recreatable. **Function- or GameObject-bearing values and all
+  wrapper subclasses** (e.g. `GainAbility`, `AdditionalPhaseEffect`,
+  `GainKeyword`, `CloneUnitEffect`, `CopyStandardTriggeredAbilitiesEffect`,
+  `GainNonKeywordAbilitiesFromUnitEffect`, `Restriction`,
+  `UnitsEnterPlayReadyForPlayer`) are non-recreatable and pinned, enforced by
+  the family flag. Note 5c's tier-1 release makes
   most wrapper release *independent of recreation* — see 5c — so this split
   costs less than it appears.
-- **`CustomDurationEvent.handler`:** built by
+- **`CustomDurationEvent`: pinned-with-its-effect (decided).**
+  `CustomDurationEvent`s are created in exactly one place, gated on
+  `effect.duration === Duration.Custom` (`OngoingEffectEngine.ts:90-94`), and
+  every `Duration.Custom` producer in the codebase is resolution-created —
+  `Clone.ts:32`, `GiveInToYourAnger.ts:23`, `FivesIHaveProof.ts:30`, all
+  inside `immediateEffect` closures; `DelayedEffectSystem` forbids Custom
+  (`DelayedEffectSystem.ts:147-150`); constant abilities go through
+  `persistent()`/`whileSourceInPlay()` (`OngoingEffectSource.ts`) and never
+  mint Custom (`lastingEffect()`, the one other Custom site, has no callers).
+  So every effect owning a `CustomDurationEvent` is in pinned sub-family (b),
+  and the event is classified **unconditionally pinned with its effect** for
+  in-memory rollback (it holds plain refs to the effect,
+  `OngoingEffectEngine.ts:20-33`). Its recreation recipe — effect ref,
+  re-derived by re-calling
   `OngoingEffectEngine.createCustomDurationHandler(effect)`
-  (`OngoingEffectEngine.ts:313-320`) — recipe is the effect ref, re-derived by
-  calling the same builder. Only meaningful for recreatable effects; events
-  whose effect is pinned are pinned with it (they hold plain refs to it,
-  `OngoingEffectEngine.ts:20-33`).
+  (`OngoingEffectEngine.ts:313-320`) — is **deferred to Plan 6 work item A**,
+  alongside `until` capture (the handler and the `until` closures are the
+  same capture problem). The classification dev-assert (below) covers
+  `CustomDurationEvent` explicitly.
 - **Out of scope by design:** `then`/`ifYouDo` sub-steps and
   `createWithoutRefsUnsafe` transients (never survive to a snapshot
   boundary). **Assert the whole classification rather than assume it:** a dev
@@ -405,10 +495,12 @@ tokens, and all recipe families; recreation-fuzz mode (see Verification)
 covering composites; targeted specs: rollback recreates an evicted token card
 end-to-end (fan-out matched, stale-pointer detection clean); rollback
 recreates a card with an active gained ability; rollback recreates a
-constant-ability ongoing effect with a dynamic value; custom duration event
-fires correctly after its (constant-ability) effect holder was evicted and
-recreated; the classification dev-assert demonstrably fails when a lasting
-effect is force-marked recreatable.
+constant-ability ongoing effect with a dynamic value; a pinned custom-duration
+lasting effect and its `CustomDurationEvent`s survive a rollback with
+recreation active for other families (evictions exercised in the same
+rollback) and still fire correctly afterwards; the classification dev-assert
+demonstrably fails when a lasting effect is force-marked recreatable, and
+covers `CustomDurationEvent` (pinned-with-its-effect).
 
 ## Stage 5c — Release policy (the payoff)
 
@@ -439,7 +531,8 @@ effect is force-marked recreatable.
     prerequisite contract) — the unbounded growth term is gone even though
     the non-recreatable families exist.
   - **Tier 2 (recreation-backed, per-family flag):** families with a
-    *complete* recreation story (5a leaves, 5b cards/recipes) may additionally
+    *complete* recreation story (5a leaves, 5b recipe families — not Cards,
+    which are pinned by the family policy below) may additionally
     be released while still referenced **only by manual snapshots**; a manual
     restore recreates them. This resolves the previous draft's contradiction
     (release criterion forbade the very scenario its acceptance test
@@ -522,7 +615,13 @@ ref-extractor deep-scan spec demonstrably fails when an extractor is removed.
 
 `ENABLE_UNDO_ALL_TESTS=true` is the primary gate for every stage. Add a
 "recreation fuzz" mode to the undo harness: randomly evict eligible objects
-before each rollback in test mode, forcing the recreation path constantly —
+before each rollback in test mode. **Eligibility is computed from per-family
+flags plus the eviction-unit rule (5b):** an object is eligible if its
+family's recreation flag is enabled *and* it is either a standalone-factory
+leaf (evicted individually) or the root of a composite closure (evicted
+atomically with its entire recorded constructor-time fan-out); fan-out
+members are never individually eligible. This forces the recreation path
+constantly —
 with the stale-pointer poison + `FinalizationRegistry` checks active so
 split-brain and leaked-retainer failures are loud, not silent. Deep-compare
 recreated objects' serialized state against their pre-eviction records in
@@ -548,3 +647,38 @@ fuzz mode (recreation parity, invariant 4).
 - The ordinal-within-scope matching coordinate rides on setup determinism. It
   is dev-asserted per scope (count + classTag sequence), so a card whose setup
   becomes nondeterministic fails loudly in the fuzz gate, not silently.
+
+---
+
+## Performance capture (required on completion)
+
+Capture after **each stage**, since each is separately landable:
+
+```bash
+npm run benchmark -- --name after-plan-05a --compare initial-performance
+npm run benchmark -- --name after-plan-05b --compare initial-performance
+npm run benchmark -- --name after-plan-05c --compare initial-performance
+```
+
+Commit both generated files under `docs/plans/performance/`. See
+[Plan 0](00-performance-benchmarks.md) for the method and
+[the capture index](performance/README.md) for the rules.
+
+**What this plan should move.** Stage 5c is the one with a performance thesis:
+once GameObjects can be released, the live-object count drops, and snapshot cost
+is O(live objects). Watch the `live GameObjects` count printed per scenario,
+then `payload/fullSnapshotTotal` and `payload/retainedChain`. The standalone
+card-allocation benchmark — bytes per `Card` object, 6.3 KiB at baseline — is the
+other number this plan owns.
+
+**What would be a red flag.** Stages 5a and 5b add recreation machinery without
+yet releasing anything, so they should be roughly performance-neutral. A
+regression there is pure overhead with no offsetting win yet, and needs an
+explanation. In 5c, watch `manager/rollbackTo(Manual)`: recreating released
+objects during rollback is new work on the undo path.
+
+**Caveat on the harness.** The benchmark scenarios set up a board and mutate it
+in place; they do not play a long game, which is where release has the most
+effect. If 5c's benefit does not show up here, say whether that is a limitation
+of the harness or of the change — and if it is the harness, add a new long-game
+scenario rather than editing an existing one.

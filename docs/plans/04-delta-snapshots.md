@@ -47,6 +47,11 @@ Cheap, but the benchmark must record delta *size* distribution, not just time.
   `@registerState` GameObject with `alwaysTrackState = true` (`-morph`'s
   `server/game/core/GameState.ts`, 161 lines — port it). This removes the
   per-delta `v8.serialize(Game.state)` and unifies the tracking story.
+  (Port note: `-morph`'s file predates Plan 3 B7's `stateArray` split and
+  hand-rolls `recordFieldChange` calls in `addWinnerName` /
+  `incrementLastGameEventId` / `clearMovedCards` because `_winnerNames` is
+  `@stateValue`; after the split those become decorator-hooked fields — do
+  not fossilize the manual hooks.)
 
 ### Chain selection, contiguity, and eviction
 
@@ -59,8 +64,11 @@ actions must unwind the opponent's intervening windows. Therefore:
   (`-morph`'s `deltaSnapshotsById`; its filter
   `id > target && id <= current`, applied newest-first). Containers hold
   per-player *entry points* only: port `-morph`'s `DeltaSnapshotContainer`
-  (mixed ordered list of `{type:'full'} | {type:'delta'}` entries, capped at
-  `MaxDeltaEntries` — `-morph` used 3), replacing `MetaSnapshotArray`'s
+  (mixed ordered list of `{type:'full'} | {type:'delta'}` entries;
+  `enforceMaxDeltaCount` caps only the *action delta* entries at
+  `MaxDeltaEntries` — `-morph` used 3 — while full entries persist until
+  `clearNewerSnapshots` or backing-map eviction; keep that scope, don't
+  accidentally cap full entries in the port), replacing `MetaSnapshotArray`'s
   closure-index scheme. A per-container chain would skip the opponent's
   windows and every bridge delta and silently restore corrupt state; the
   global filter is not an accident of either prior branch, it is required.
@@ -80,6 +88,19 @@ actions must unwind the opponent's intervening windows. Therefore:
   shifting quick-undo confirmation behavior near phase edges. The shared-id
   rule keeps the confirmation policy byte-identical (an explicit non-goal to
   change); a boundary-adjacent confirmation-policy spec locks it in.
+- **Rollback dispatch keys on entry type, never on index membership.** Under
+  the shared-id rule a boundary id is *both* a container `{type:'full'}`
+  entry and a bridge delta in the global index, so `-morph`'s dispatch
+  predicates — `deltaSnapshotsById.has(id)` in `quickRollback`, the
+  Action-rollback case, and `takeManualSnapshot` — become wrong here: on a
+  quick rollback to a boundary, `DeltaSnapshotContainer.rollbackToSnapshot`
+  executes the full restore inside the `{type:'full'}` entry, then the
+  `has()` check sees the bridge and re-enters `rollbackToDeltaSnapshotId` on
+  top of the freshly restored state (and applies a stale pending delta — see
+  protocol step 3). Rule: dispatch is decided solely by the container/manual
+  entry type (`{type:'full'}` → full restore, `{type:'delta'}` → delta
+  chain); index membership is never a dispatch predicate. Audit every ported
+  `deltaSnapshotsById.has(...)` site against this rule.
 - **The index is age-evicted — this is where the memory claim lives.**
   `-morph` never evicts by age (`pruneDeltaSnapshotIndex` only removes
   *newer* ids on rollback); that is simultaneously what makes its filter safe
@@ -97,20 +118,35 @@ actions must unwind the opponent's intervening windows. Therefore:
 ### Rollback protocol
 
 The restore path has more moving parts than "apply the chain"; all of them are
-load-bearing and all are ported from `-morph`'s `rollbackToDeltaSnapshotId` /
-`rollbackToDeltaChain`:
+load-bearing and all are ported from `-morph`'s `rollbackToInternal` /
+`rollbackToDeltaSnapshotId` / `rollbackToDeltaChain`:
 
-1. **Stop the tracker** at rollback entry. Delta restore writes old values
-   back *through the hooked decorator setters*; without suspension the
-   restore pollutes the live window, and first-write-wins makes the pollution
-   sticky (the pre-restore value gets locked in as "window start").
+1. **Stop the tracker at the shared rollback entry point** — the
+   `rollbackToInternal`-equivalent that *every* rollback type (quick, action,
+   manual, phase) funnels through, exactly where `-morph` puts it — never
+   scoped to the delta path alone. Delta restore writes old values back
+   *through the hooked decorator setters*; without suspension the restore
+   pollutes the live window, and first-write-wins makes the pollution sticky
+   (the pre-restore value gets locked in as "window start"). And after
+   Plan 3, *full*-snapshot restore writes through the same hooked setters, so
+   a tracker left live during a manual/phase full rollback mid-action-phase
+   poisons the next delta checkpoint the same way. This single shared
+   stop/restart is what discharges Plan 3's handoff ("assume delta recording
+   is suppressed during rollback-driven setter writes") for the full-restore
+   path as well as the delta path.
 2. **Build the chain** from the global index, contiguity-checked as above.
 3. **Prepend the pending-window delta.** The current action's mutations live
    in the un-checkpointed live tracker, not in any stored delta
    (`createPendingRollbackDelta`). For the single most common undo — revert
    the current action, `QuickRollbackPoint.Current`, target id == current
    id — the stored chain is *empty* and the entire rollback is the pending
-   delta.
+   delta. The prepend must be guarded by an *actually live* tracked window,
+   and the window data must be **invalidated** — not merely
+   `_tracking = false`, which is all `-morph`'s `stopTracking` does while
+   `hasTrackedWindow()` stays true — once any rollback path other than the
+   delta chain has consumed or bypassed it; otherwise a stale pending delta
+   of pre-rollback window-start values gets applied over a completed full
+   restore.
 4. **Materialize a recovery snapshot from live state** (`-morph`'s
    `createRecoverySnapshot` — a full O(all objects) serialize) and pass it as
    `beforeRollbackSnapshot`, preserving main's nested-recovery contract
@@ -125,6 +161,12 @@ load-bearing and all are ported from `-morph`'s `rollbackToDeltaSnapshotId` /
    generated field deserializer, and collect `createdObjectUuids` removals
    (tolerating already-culled uuids via mapping-lookup-then-skip — an object
    created and culled within one window is in no mapping and that is fine).
+   That tolerance — and delta/full culling parity generally — rests on a
+   retained invariant: `removeUnusedGameObjects` runs at **every** checkpoint
+   (first thing in `-morph`'s `checkpointDelta`), before the tracker
+   checkpoint, so no-ref objects never survive to a snapshot boundary;
+   optimizing the cull out of delta checkpoints would silently diverge delta
+   and full restores.
 6. **Lifecycle ordering — pinned, and deliberately different from the
    full-snapshot path:** field writes for all deltas → `cleanupOnRemove` for
    created objects → registry removal → `-morph`'s
@@ -139,13 +181,24 @@ load-bearing and all are ported from `-morph`'s `rollbackToDeltaSnapshotId` /
    explicitly. It is also an O(all objects) serialize pass per rollback —
    benchmark it (see Verification).
 7. **On success:** replace the current snapshot with a hollow entry
-   (`updateCurrentSnapshotFromDelta`, `states: {}`) that lazily
-   rematerializes on demand — the materialization correctness rule is in the
-   manual-snapshots section. Prune newer snapshots and newer index entries;
-   **restart the tracker** from the new current snapshot.
-8. **On failure:** restore from the recovery snapshot, alert the player, and
-   restart the tracker — the tracker restarts on *both* success and failure
-   paths, as `-morph` does in `rollbackToInternal`.
+   (`states: {}`) that lazily rematerializes on demand — the materialization
+   correctness rule is in the manual-snapshots section. Its
+   `rngState`/`lastGameObjectId` must clone the **post-restore live** values
+   (by construction equal to the target state's) or be explicitly nulled —
+   do not port `updateCurrentSnapshotFromDelta`'s stamping of the target
+   delta's values, which are the window-*start* (the state one window
+   earlier) and would hand off-by-one metadata to any reader of
+   current-snapshot metadata (the snapshot-read save path Plan 6 B adds is
+   the obvious one; Plan 2's writer walks the live game and never reads
+   snapshot metadata). Prune
+   newer snapshots and newer index entries.
+8. **Restart the tracker at the shared exit**, anchored to the new current
+   snapshot, on *both* success and failure paths (failure additionally
+   restores from the recovery snapshot and alerts the player). Like step 1's
+   stop, the restart lives in the `rollbackToInternal`-equivalent and covers
+   every rollback type — full or delta, success or failure — one code path,
+   not two kept in sync by hand. Re-anchoring is not optional after a full
+   rollback either: the old window anchor describes a discarded timeline.
 
 **Rollback performs zero *organic* registrations — enforced, not assumed.**
 `recordObjectCreation` is guarded by `isTracking`, and tracking is stopped
@@ -176,7 +229,15 @@ succeeds and rekeys.
 - Every full snapshot starts a fresh tracking window; a "bridge" delta lets a
   chain terminate at the preceding full snapshot across the boundary. Bridges
   live only in the global index and share the boundary full snapshot's id and
-  timepoint number (see "Chain selection").
+  timepoint number (see "Chain selection"). **Universal pairing rule:** every
+  full snapshot taken after tracking begins records a bridge sharing its id,
+  *including zero-mutation bridges* for consecutive boundary timepoints
+  (EndOfPhase → StartOfPhase → RegroupResource each consume an id with
+  possibly no mutations between them) — the contiguity assert depends on it.
+  The only bridge-less full snapshots are the first of a game or of a loaded
+  session (`-morph` skips the bridge whenever the tracker is not live, which
+  is correct in exactly those two cases); the contiguity assert correctly
+  rejects any chain that would cross them.
 - Manual snapshots: always full — see the next section for the policy, the
   anchor rule, and what it does to the test gate.
 - Load (Plan 2 integration): a loaded game re-enters at an action-window safe
@@ -229,7 +290,11 @@ Under `ENABLE_UNDO_ALL_TESTS`:
 - `undoIt` rolls back through the **delta chain** (hard-failing if the chain
   is not intact — never falling back silently), then deep-compares the
   resulting live serialization against the stored full manual snapshot: a
-  per-spec **delta-vs-full parity check** (invariant 4).
+  per-spec **delta-vs-full parity check** (invariant 4). Under delta-parity
+  mode the only legal skip is the existing null-`snapshotId`
+  (non-action-phase) case; any other rollback failure fails the spec —
+  today's `undoIt` treats every failed rollback as a silent skip
+  (`IntegrationHelper.js:254-257`), and that leniency does not survive.
 
 Resulting gate coverage: every spec whose start-of-test snapshot is taken
 during the action phase — the large majority of the integration suite (the
@@ -295,6 +360,10 @@ restart) — fall back to **per-object serialization memoization**:
 
 The plan should implement hooks → memoization → (optionally) deltas, in that
 order, so the fallback is the intermediate landed state rather than a rewrite.
+The memoization stage has its own gate: today's `ENABLE_UNDO_ALL_TESTS` form
+of the whole-suite harness plus the serialize-time benchmark — the
+delta-parity harness mode does not exist in the intermediate state and only
+arrives with the delta stage.
 
 ## Verification
 
@@ -315,7 +384,10 @@ order, so the fallback is the intermediate landed state rather than a rewrite.
   Plan 5 A2);
   delta-backed rollback followed by a manual snapshot (the `-morph`
   regression case in its `SnapshotTypes.spec.ts` addition, +43 lines — port
-  it); **mid-window manual snapshot** (anchor rule); boundary-adjacent
+  it); **full manual rollback mid-window, then a delta checkpoint, then a
+  delta rollback, asserting clean values** (tracker stop/restart at the
+  shared entry point covers full restores too — protocol steps 1/8);
+  **mid-window manual snapshot** (anchor rule); boundary-adjacent
   quick-undo confirmation policy unchanged (shared-id rule); phase-boundary
   prompt cases (Sneak Attack, Thrawn); index eviction behavior (horizon
   advances, no holes, chains older than the horizon rejected loudly).
@@ -339,3 +411,38 @@ order, so the fallback is the intermediate landed state rather than a rewrite.
   window's recorded values); and the delta payload carries a first-removal
   full-record slot (see "Mechanism") so objects removed within a chain
   window remain recreatable.
+
+---
+
+## Performance capture (required on completion)
+
+```bash
+npm run benchmark -- --name after-plan-04 --compare initial-performance
+```
+
+Also compare against `after-plan-03`, since Plan 3 is this plan's immediate
+baseline. Commit both generated files under `docs/plans/performance/`. See
+[Plan 0](00-performance-benchmarks.md) for the method and
+[the capture index](performance/README.md) for the rules.
+
+**What this plan should move — and this is the headline result of the roadmap.**
+Quick snapshots become reverse deltas, so `manager/moveToNextTimepoint(Action)`
+and `payload/retainedChain(13 snapshots)` should both drop substantially.
+
+The sparse scenarios exist for exactly this test:
+`forty-cards-sparse-mutations` and `forty-cards-four-mutated` hold total card
+count fixed while shrinking the mutated set, so delta savings should scale with
+mutation density rather than board size. If `forty-cards-four-mutated` does not
+improve markedly more than `forty-cards-per-player`, the delta path is not
+exploiting sparsity — chase that before landing.
+
+**What would be a red flag.** A rise in `manager/rollbackTo(Manual)` p95. Delta
+chain replay is more work per undo than a single full restore, and the mid-plan
+decision checkpoint (full deltas vs. memoization fallback) should weigh that
+measured cost, not an estimate.
+
+**Benchmark addition.** Delta-specific diagnostics — start-tracking cost,
+checkpoint cost, delta payload bytes — belong in the diagnostic tier as **new
+rows**. The `-morph` branch's spec has all three and can be ported directly. Do
+not repurpose existing row names; that breaks the comparison against
+`initial-performance`.

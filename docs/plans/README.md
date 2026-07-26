@@ -12,18 +12,51 @@ accurate as of that commit and may drift; treat them as pointers, not gospel.
 
 | # | Plan | Depends on | Size | Deliverable |
 |---|------|-----------|------|-------------|
+| 0 | [Performance benchmarks & baseline](00-performance-benchmarks.md) | — | Small (one PR) | Benchmark harness + runner + the `initial-performance` capture. **Done first; everything else is measured against it.** |
 | 1 | [Snapshot hygiene & enablers](01-snapshot-hygiene.md) | — | Small (4 small PRs — items A, B, C, E; item B after item A; item D is prerequisite-only, not scheduled) | Memory-growth fixes, RNG seeding, dead-code cleanup |
-| 2 | [Semantic save/load v1](02-semantic-save-load.md) | — (Plan 1 recommended first) | Medium | Bug-report save/load artifact at action-window boundaries; unrepresentable state degrades with an `engineOnlyFacts` manifest |
+| 2 | [Semantic save/load v1](02-semantic-save-load.md) | — (Plan 1 recommended first) | Medium | Bug-report save/load artifact; requestable at any moment, taken at the next action-window boundary; unrepresentable state degrades with an `engineOnlyFacts` manifest |
 | 3 | [Codegen state serializers](03-codegen-serializers.md) | Plan 1 recommended | Large (two phases) | Build-time generated serializers replacing runtime decorator cost; schema-surface hash for Plan 6 |
 | 4 | [Delta snapshots](04-delta-snapshots.md) | Plan 3 | Medium-Large | Quick snapshots as reverse deltas; full snapshots only at phase boundaries |
 | 5 | [GameObject release & recreation](05-gameobject-recreation.md) | Plan 3; Plan 1 item B | Very Large (three stages: 5a infrastructure + leaf recreation, 5b composite recreation + closure recipes — cards/tokens live here, not 5a — 5c release policy) | GameObjects can be GC'd and recreated from state |
-| 6 | [Full-fidelity save/load](06-full-fidelity-save.md) | Plans 2, 3, 5 | Large | Two-tier save: semantic tier + full engine-state records; inherits Plan 2's `engineOnlyFacts` manifest and drives it to empty |
+| 6 | [Full-fidelity save/load](06-full-fidelity-save.md) | Plans 2, 3, 5 | Large | Two-tier save: semantic tier + full engine-state records; inherits Plan 2's `engineOnlyFacts` manifest (repurposed to declare engine-tier-only facts) and drives the non-capturable residue to empty |
 
-Dependency chains: `1 → (everything)`, `2` is independent, `3 → 4`, `3 → 5 → 6`,
+Dependency chains: `0 → (everything)`, `1 → (everything)`, `2` is independent, `3 → 4`, `3 → 5 → 6`,
 `2 → 6` (schema continuity); Plan 5 additionally hard-depends on Plan 1 item B
 (uuid counter restore + rollback registration guard) and coordinates with
 Plan 4 (rehydration-scope carve-out, delta-payload removal records). Plans 2
 and 3 can proceed in parallel.
+
+## Performance is a tracked deliverable, not a side effect
+
+The roadmap exists to make two things better, and both are measured:
+
+1. **Speed of operations** — snapshot cost per action, undo latency.
+2. **Memory and GC pressure** — allocation, retained snapshot memory, and the
+   share of wall time lost to garbage collection. This is the term that has
+   actually hurt in production.
+
+[Plan 0](00-performance-benchmarks.md) builds the tooling and captures
+[`initial-performance`](performance/initial-performance.md) **before any other
+plan starts**. Every plan then captures its own report on completion:
+
+```bash
+npm run benchmark -- --name after-plan-NN --compare initial-performance
+```
+
+Captures live in [`docs/plans/performance/`](performance/README.md). Only the
+**initial → final** delta is a roadmap deliverable; the intermediate captures
+exist so a developer can see which plan moved which number, and so a silent
+regression is caught when it lands rather than at the end.
+
+Baseline highlights (see the capture for the full picture): ~350–380 bytes of
+serialized state per live GameObject, 0.66–1.3 MiB pinned by a 13-snapshot chain,
+~6.3 KiB retained per `Card` object, and 4–6% of wall time in GC pauses under
+sustained snapshot/undo churn.
+
+Two rules make the comparison meaningful, and both are easy to break by accident:
+**do not edit an existing benchmark scenario** (it invalidates every prior
+capture), and **do not redefine a headline benchmark** (`manager/*`, `payload/*`,
+`sustained/*`) without saying so in the plan that does it.
 
 ## Standing invariants (apply to all plans)
 

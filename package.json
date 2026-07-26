@@ -22,7 +22,9 @@
     "lint-fix": "eslint --quiet --fix",
     "lint-verbose": "eslint",
     "get-cards": "node ./scripts/fetchdata.js",
-    "validate-cards": "ts-node scripts/validateCards.ts"
+    "validate-cards": "ts-node scripts/validateCards.ts",
+    "benchmark": "node scripts/run-performance-benchmarks.js",
+    "benchmark-card-memory": "cross-env NODE_ENV=test node --expose-gc scripts/card-memory-benchmark.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.758.0",
