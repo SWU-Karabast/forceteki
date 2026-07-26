@@ -3,9 +3,10 @@
 **Status:** Proposed (revised after adversarial review)
 **Depends on:** Nothing
 **Unblocks:** Shrinks the payload every later plan operates on; enables replay-for-repro
-**Shape:** 4–5 small PRs. Work items are independent of each other **except B,
-which requires item A's rollback-allocation fix to land first** (see B's
-direction for why).
+**Shape:** 4 small PRs (items A, B, C, E; item D is documented as a
+prerequisite for a future feature, not scheduled work). Work items are
+independent of each other **except B, which requires item A's
+rollback-allocation fix to land first** (see B's direction for why).
 
 ## Goal
 
@@ -72,6 +73,12 @@ GameObject-bearing values into decorated state would violate Invariant 1
    value-type restriction, and only for the `:64` wrap path (the subclass path
    must keep returning GameObjects). Check what depends on wrapper object
    identity (`setContext`, effect description plumbing) before choosing this.
+
+Prefer option 1 unless validation rules it out: Plan 5's stage 5b builds its
+`OngoingEffectValueWrapper` recreation recipe on exactly the JSON-safe
+decorated-value subset option 1 establishes (see Plan 5, "Closure-bearing
+families" — the wrapper family split), so choosing option 2 would force that
+plan to redo the state-modeling work.
 
 Either way, also kill the transient-churn term: when the value is unchanged,
 avoid registering a throwaway GameObject at all (e.g. compare before wrapping,
@@ -143,13 +150,18 @@ allocation) must land first.**
   `_isRollingBack` hook (`GameStateManager.ts:35-36`) so that `register()`
   hard-fails during rollback — no silent degradation (Invariant 4). This turns
   any future reintroduction of rollback-time allocation into a loud test
-  failure instead of a uuid-drift regression.
+  failure instead of a uuid-drift regression. (This item lands the guard
+  unconditional; Plan 5's A2 rehydration scopes later relax its contract to
+  "registration *outside an active rehydration scope* hard-fails" — the
+  carve-out arrives with Plan 5, not here.)
 - Restore `_lastGameObjectId` from the snapshot at the end of rollback (after
   `afterSetAllState`, which by then allocates nothing). The error-recovery path
   (`rollbackToSnapshot(beforeRollbackSnapshot)`, `GameStateManager.ts:190-200`)
   must restore the counter too.
-- Consider adding an assert in `register()` against overwriting an existing
-  `gameObjectMapping` key while you are here.
+- Add an assert in `register()` against overwriting an existing
+  `gameObjectMapping` key while you are here — no longer optional: Plan 5's
+  A2 scope-close protocol requires this occupancy assert (it is what turns
+  the silent overwrite at `GameStateManager.ts:93` into a loud failure).
 - Verify no code relies on post-rollback uuids being globally unique versus
   pre-rollback removed ones — removed objects are deleted from
   `gameObjectMapping`, and re-created objects would now reuse their ids.
@@ -198,29 +210,38 @@ any future replay-based repro tooling and improves bug reports at low cost.
 identical shuffles. Seed visible in bug-report payload. A check (test or code
 review gate) that the seed is absent from client-bound game/lobby state.
 
-## Work item D: Bound manual snapshots
+## Work item D: Bound manual snapshots — not scheduled; prerequisite for client-facing bookmarks
 
-**Problem.** Manual snapshots are stored in `SnapshotMap` keyed by
-`snapshotId`, one map per player, unbounded in key count
-(`SnapshotManager.ts:214-226`). Each retained snapshot holds full game-state
-buffers. Today this is **dormant, not exploitable**: `Game.takeManualSnapshot`
+**Status: dropped from near-term scope. No PR planned.** `Game.takeManualSnapshot`
 (`Game.ts:1794`) is reachable only from test helpers
 (`test/helpers/IntegrationHelper.js:50,111,316`) and undo specs — no socket
-handler in `server/gamenode/` creates a manual snapshot. This item is
-defense-in-depth to land **before** bookmarks are ever exposed to clients.
+handler in `server/gamenode/` creates a manual snapshot — so the unbounded map
+is dormant, and a cap value cannot be chosen sensibly without knowing the
+product shape of the feature that would expose it. The analysis below is kept
+for the future implementer; its status is prerequisite-only.
 
-**Direction.**
-- Cap manual snapshots per player (config constant, e.g. 5–10), evicting
-  oldest. Confirm with product expectations before choosing the number.
-- Eviction makes rollback-to-a-missing-bookmark a reachable state:
-  `rollbackManualSnapshot` currently hard-fails via `Contract.assertNotNullLike`
-  (`SnapshotManager.ts:350`), which would throw through the game error handler.
-  The same PR must add a graceful "bookmark expired" path with client-visible
-  signaling instead of a contract error.
+**The problem (real, verified).** Manual snapshots are stored in `SnapshotMap`
+keyed by `snapshotId`, one map per player, unbounded in key count
+(`SnapshotManager.ts:214-226`). Each retained snapshot holds full game-state
+buffers.
 
-**Acceptance.** Unit test on eviction behavior; a test that rolling back to an
-evicted snapshot id fails gracefully (no thrown contract error, player-visible
-message); existing manual-snapshot specs pass.
+**Prerequisite contract.** Whatever feature first exposes manual snapshots
+("bookmarks") to clients must land, **in the same change**:
+
+- (a) a bound on the per-player map (cap + oldest-first eviction), and
+- (b) a graceful "bookmark expired" path with client-visible signaling —
+  eviction makes rollback-to-a-missing-bookmark a reachable state, and
+  `rollbackManualSnapshot` currently hard-asserts on a missing snapshot via
+  `Contract.assertNotNullLike` (`SnapshotManager.ts:350`), which would throw
+  through the game error handler.
+
+The cap value is chosen when that feature is specified, and should derive from
+the existing undo retention window rather than a magic constant.
+
+**Acceptance (for that future change, not this plan).** Unit test on eviction
+behavior; a test that rolling back to an evicted snapshot id fails gracefully
+(no thrown contract error, player-visible message); existing manual-snapshot
+specs pass.
 
 ## Work item E: Housekeeping (single cleanup PR)
 
@@ -272,12 +293,3 @@ message); existing manual-snapshot specs pass.
   they are safe by construction and not what the audit is for.
 - Work items A and B are ordered (B depends on A's related fix); the header's
   "independent PRs" applies to the rest.
-
-## Open questions for the author
-
-- **Item D priority:** Is there a product roadmap item that will actually
-  expose manual snapshots ("bookmarks") to clients? If not, is bounding a
-  dormant, test-only feature worth a PR now, versus deferring the cap and
-  landing only the graceful "bookmark expired" path when the feature ships?
-- **Item D cap value:** the 5–10 constant needs a product decision before the
-  PR merges.

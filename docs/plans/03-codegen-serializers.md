@@ -172,10 +172,17 @@ change and lands first as its own PR.
 1. Port the `-morph` generator to current main: scan `@registerState` /
    `@registerStateBase` classes and decorated `accessor` fields; resolve
    mixin chains statically; emit per-class serialize/deserialize plus the
-   registry. Generated file stays gitignored (add the path to `.gitignore`;
-   carry over `-morph`'s eslint-disable header from `buildGeneratedFile`);
-   generation runs as a build step, and the runtime import is
-   **non-optional** so a missing artifact is a compile error.
+   registry. **Generated-file policy (decided): gitignored + build-step,
+   with hard-fail + CI verification.** Committed generated files drift from
+   their sources, bloat every review diff, and produce meaningless merge
+   conflicts; both prior-art branches chose gitignored; staleness is covered
+   by the coverage cross-check (step 5) and the generation cache (below).
+   Concretely: add the path to `.gitignore`; carry over `-morph`'s
+   eslint-disable header from `buildGeneratedFile`; generation runs as a
+   build step, and the runtime import is **non-optional** so a missing
+   artifact is a compile error. The lint-job fix (Phase B step 10) must land
+   in the **same PR** as this non-optional import — the lint workflow runs
+   no build step and would otherwise break on every PR from that point on.
    **Generation cost is a first-class concern:** the `-morph` generator loads
    the whole tsconfig project (`getSourceFiles('server/**/*.ts')` — thousands
    of card files) via ts-node on every build. Add a generation cache: find
@@ -186,6 +193,16 @@ change and lands first as its own PR.
    cached check still runs — never skip it outright, or a stale gitignored
    artifact silently compiles (the test tsconfig includes `../server/**/*`).
    Record cold and warm generator wall-clock as Phase A acceptance numbers.
+   The generator also emits a **schema-surface hash** constant in the
+   generated module — distinct from the generation *cache* hash (which
+   covers build inputs and changes on any edit). Its inputs are exactly the
+   semantic surface: the sorted `classTag → sorted field names + field kinds
+   (primitive/ref/refArray/refMap/value)` model, recipe-section field names
+   (once Plan 5 A4 adds recipe sections), the encoding-tag vocabulary
+   (`$map`, `$set`, `$num`, …), and the engine-tier format version. Comment
+   edits and refactors that don't change that surface must not change the
+   hash. Plan 6 gates engine-tier save compatibility on it (Plan 6, work
+   item D).
 2. Serialized record format: plain JSON-safe objects. Encode:
    - `GameObjectId` refs: as the branded string (already JSON-safe), read
      via `.uuid` (see latch contract);
@@ -202,7 +219,12 @@ change and lands first as its own PR.
      value it cannot tag-encode (invariants 1 and 4); do a one-time audit of
      current `stateValue` payloads in this step and add encoders or fix call
      sites as needed. `NaN`/`Infinity` survive in-memory records but not
-     `JSON.stringify` — flag them in the encoder audit for Plan 6.
+     `JSON.stringify` — flag them in the encoder audit for Plan 6. The
+     encoding-tag vocabulary reserves `$num` for non-finite numbers
+     (`{ "$num": "NaN" | "Infinity" | "-Infinity" }`): a **file-level**
+     encoding applied by Plan 6's writer — in-memory records keep raw
+     non-finite numbers unchanged, but the tag is part of the vocabulary
+     (and the schema-surface hash) from the start.
    Copy semantics must match today's v8-clone (no aliasing of live
    collections into stored records).
 3. **Parity harness, serialize leg:** a test-mode hook that, at every
@@ -301,7 +323,14 @@ change and lands first as its own PR.
    duplicate registered key names** whose flattened field sets differ.
    Lookup walks `constructor.name` up the prototype chain (as `-morph`'s
    `StateSerializers.ts:96-110`) — safe because the auto-init wrapper copies
-   the target class's `name`.
+   the target class's `name`. **The registry must cover the three
+   card-file-local `@registerState` classes under `server/game/cards/**`**
+   (`Bamboozle.ts`, `FirstLightHeadquartersOfTheCrimsonDawn.ts`,
+   `Advantage.ts`) — the same territory Phase A step 5 flags as a
+   static-resolver blind spot. The generator's scan must include them (or
+   they must be covered by explicit entries); the coverage cross-check
+   treats them as required registrations, never acceptable misses. Plan 5's
+   A1 factory registry extends these same entries.
 7. **Value-collection mutation:** with live Maps/Sets/arrays in native
    fields, in-place mutation of a `stateValue`-typed collection is invisible
    to the retained setters (only whole-value reassignment is observed).
@@ -315,13 +344,17 @@ change and lands first as its own PR.
    delete the old system.
 9. Update `docs/` developer docs: "adding a state field" workflow now
    includes the codegen step; document the hard-fail behavior.
-10. **Lint job:** `.github/workflows/pullrequest.yml:24` runs
-    `npx eslint --quiet` with no build/generation step, so the non-optional
-    import of a gitignored module trips `eslint-plugin-import-x`'s resolver.
-    Carve the generated module path out of the import resolver /
-    `no-unresolved` rule (one settings entry) rather than paying full
-    generation in the lint job; the test job, which builds, is the
-    generation gate.
+10. **Lint job — lands with Phase A step 1, not at cutover:**
+    `.github/workflows/pullrequest.yml:24` runs `npx eslint --quiet` with no
+    build/generation step, so the non-optional import of a gitignored module
+    trips `eslint-plugin-import-x`'s resolver. This fix is **required in the
+    same PR as the non-optional import** (Phase A step 1): that workflow
+    needs either a generation step in the lint job or a resolver carve-out
+    for the generated path. Chosen shape: carve the generated module path
+    out of the import resolver / `no-unresolved` rule (one settings entry)
+    rather than paying full generation in the lint job; the test job, which
+    builds, is the generation gate. (Listed here with the other CI work for
+    reference; the timing constraint is Phase A's.)
 
 ## Verification
 
@@ -355,9 +388,6 @@ change and lands first as its own PR.
 
 ## Risks / open questions for reviewer
 
-- **Generated-file policy:** gitignored+build-step (both branches' choice) vs
-  committed. Recommend gitignored with hard-fail + CI verification; committed
-  files drift and bloat review diffs. Confirm.
 - **ts-morph ↔ TypeScript version coupling:** the repo pins
   `typescript ^5.5.4`; ts-morph releases lag new TS syntax. Pin ts-morph
   exactly, and treat any TypeScript upgrade PR as requiring a generator run

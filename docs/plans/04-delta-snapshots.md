@@ -38,6 +38,11 @@ Cheap, but the benchmark must record delta *size* distribution, not just time.
   lastGameObjectId }`. No `gameState` buffer, no `states` buffer. This is the
   point of the plan — the plain `quick-undo-deltas` branch still ran a full
   serialization per action to seed its tracker, making deltas additive cost.
+  Forward-compat (Plan 5, "Interaction with Plan 4 deltas"): once objects can
+  be removed within a chain window, the payload must capture the object's
+  **full serialized record at first-removal time** so it remains recreatable
+  by a later delta rollback — design the payload shape with that slot in
+  mind now, even though nothing populates it before Plan 5.
 - **`Game.state` flows through the same path** by promoting it to a real
   `@registerState` GameObject with `alwaysTrackState = true` (`-morph`'s
   `server/game/core/GameState.ts`, 161 lines — port it). This removes the
@@ -142,7 +147,7 @@ load-bearing and all are ported from `-morph`'s `rollbackToDeltaSnapshotId` /
    restart the tracker — the tracker restarts on *both* success and failure
    paths, as `-morph` does in `rollbackToInternal`.
 
-**Rollback performs zero registrations — enforced, not assumed.**
+**Rollback performs zero *organic* registrations — enforced, not assumed.**
 `recordObjectCreation` is guarded by `isTracking`, and tracking is stopped
 during rollback, so a GameObject registered mid-rollback (lifecycle hooks run
 arbitrary code) is invisible to every delta and — because delta culling is
@@ -151,12 +156,17 @@ absence-based — can never be removed by any later delta rollback: it leaks,
 and any refs it latches (`hasRef` is monotonic, `GameObjectBase.ts:154-166`)
 pin it into every subsequent full snapshot. Resolution: the delta rollback
 path sets `_isRollingBack` (as `-morph`'s `rollbackToDeltaChain` does) and
-`register()` hard-fails while it is set — this is exactly the dormant guard
-main's `GameStateManager.ts:35-36` comment anticipates and **Plan 1 item B
-activates** (after item A removes the last rollback-time allocation). If Plan
-1 item B has not landed first, activating that guard becomes a prerequisite of
-this plan; either way, a spec asserts that registration during a delta
-rollback fails loudly.
+registration **outside an active rehydration scope** hard-fails while it is
+set — this is exactly the dormant guard main's `GameStateManager.ts:35-36`
+comment anticipates and **Plan 1 item B activates** (after item A removes the
+last rollback-time allocation), with the scope carve-out defined by Plan 5's
+A2 rehydration scopes (the delta-rollback path opens no scopes until Plan 5's
+delta integration lands, so until then the guard is total in practice). If
+Plan 1 item B has not landed first, activating that guard becomes a
+prerequisite of this plan; either way, a spec asserts that organic
+registration during a delta rollback fails loudly, with a companion case
+(once Plan 5 lands): registration inside an active rehydration scope
+succeeds and rekeys.
 
 ## Cadence
 
@@ -180,7 +190,9 @@ rollback fails loudly.
 pins its entire chain in the global index for as long as it lives — defeating
 the eviction policy the memory claim depends on — or silently dies when a
 chain link evicts. Bookmarks are product-facing and must outlive any delta
-window (their *count* is bounded by Plan 1 item D). `-morph` chose
+window. (Bounding their *count* is not scheduled: Plan 1 item D records it as
+a prerequisite for whatever feature first exposes bookmarks to clients, since
+manual snapshots have no client route today.) `-morph` chose
 delta-backed manuals (`manualDeltaSnapshots`) and got away with it only
 because it never evicted the index.
 
@@ -297,7 +309,10 @@ order, so the fallback is the intermediate landed state rather than a rewrite.
   delta target twice with mutation in between; object created+destroyed
   within one window; **corrupted chain: deliberately delete an intermediate
   index delta and assert the loud contiguity failure** (invariant 4);
-  **registration during delta rollback asserts** (`_isRollingBack` guard);
+  **organic registration during delta rollback asserts** (`_isRollingBack`
+  guard; companion case once Plan 5's delta integration lands —
+  registration inside an active rehydration scope succeeds and rekeys, per
+  Plan 5 A2);
   delta-backed rollback followed by a manual snapshot (the `-morph`
   regression case in its `SnapshotTypes.spec.ts` addition, +43 lines — port
   it); **mid-window manual snapshot** (anchor rule); boundary-adjacent
@@ -318,4 +333,9 @@ order, so the fallback is the intermediate landed state rather than a rewrite.
   `opponentActedSinceLastSnapshot` behavior unchanged).
 - GameObject recreation (deltas still assume live objects; Plan 5 changes
   that and its restore path must compose with delta chains — note this as a
-  Plan 5 integration point).
+  Plan 5 integration point). Two boundary facts pinned now for that
+  integration: Plan 5c's release sweep runs only at **full-snapshot
+  boundaries**, never per action delta (a mid-chain sweep would race the
+  window's recorded values); and the delta payload carries a first-removal
+  full-record slot (see "Mechanism") so objects removed within a chain
+  window remain recreatable.

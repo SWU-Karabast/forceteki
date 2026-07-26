@@ -1,18 +1,29 @@
 # Plan 2 — Semantic Save/Load v1
 
-**Status:** Proposed (revised after adversarial review)
+**Status:** Proposed (revised after adversarial review; product decisions folded in — bug-report customer, degrade+manifest writer)
 **Depends on:** Nothing hard; Plan 1 recommended first
 **Unblocks:** Plan 6 (the schema defined here grows into the full-fidelity format)
-**Shape:** One feature arc, landable in 4–5 PRs (schema+writer, watcher encoding, loader+prompt driver, server plumbing, hardening)
+**Shape:** One feature arc, landable in 4–5 PRs (schema+writer+manifest, watcher encoding, loader+prompt driver, artifact plumbing, hardening). Work item D shrank under the bug-report decision — no lobby consent/sharing flow in v1.
 
 ## Goal
 
-Players can save a match to a JSON document and later load it into a fresh
-server process, resuming at the same board position. The save captures the
-**logical game position** (what a human would need to reconstruct the board),
-not the engine's internal object graph. This makes saves robust to engine
-changes: a loaded position picks up current card implementations and rules,
-exactly as a physical game re-set-up would.
+**v1's customer is the bug-report attachment, not a player-facing save
+button.** A match can be saved to a JSON document and attached to a bug
+report; the dev team later loads it into a fresh server process, resuming at
+the same board position to reproduce the reported behavior. The save captures
+the **logical game position** (what a human would need to reconstruct the
+board), not the engine's internal object graph. This makes saves robust to
+engine changes: a loaded position picks up current card implementations and
+rules, exactly as a physical game re-set-up would.
+
+Because the customer is a bug report, a save of state the format cannot yet
+fully represent is still valuable: the writer **saves degraded, with an
+explicit machine-readable manifest of what was dropped** (`engineOnlyFacts`,
+defined in work item A) rather than refusing. Invariant 4 is preserved —
+what it forbids is *silent* degradation, and here every dropped fact is
+enumerated. If a player-facing save button is wanted later, two things
+change: a lobby consent/sharing flow (see D), and a product call on whether
+degraded positions are acceptable to load at all.
 
 ## Why semantic save (and not replay, and not v8 buffers)
 
@@ -102,6 +113,13 @@ A versioned top-level document, `ISavedMatch`:
   ],
   "stateWatchers": [ { "watcher": "cardsPlayedThisPhase",
                        "entries": [ /* semantic encoding — see work item A2 */ ] } ],
+  "engineOnlyFacts": [ /* manifest of dropped facts — see A; empty ⇒ non-degraded save */
+    { "category": "lastingEffect",      // | "gainedAbility" | "delayedEffect" | "watcherEntry" | "pilotLeader" | ...
+      "source": { /* ISavedCardRef */ },
+      "target": { /* ISavedCardRef, seat label, or null */ },
+      "duration": "untilEndOfPhase",
+      "description": "Wampa gets +2/+2 for this phase (Force Choke on p2's Wampa)" }
+  ],
   "chat": [ /* uuid-scrubbed messages, ISO dates — see A */ ],
   "timers": { "p1": { "remainingSeconds": 120, "isOnMainTimer": true }, ... }
 }
@@ -144,18 +162,21 @@ Schema rules (these are the load-bearing decisions):
   position — `EpicActionLimit.reset()` is deliberately a no-op so defeat does
   not refund the deploy (`AbilityLimit.ts:263-265`). The leader entry
   therefore carries `epicDeployUsed` explicitly, independent of `deployed`.
-- **Leader deployed as a pilot is out of scope for v1.** `DeployType.LeaderUpgrade`
-  (`server/game/core/Constants.ts:51-54`; used by the JTL pilot leaders via
-  `DeployAndAttachPilotLeaderSystem.ts`) attaches the leader to a unit as an
-  upgrade — a boolean `deployed` cannot represent it. v1: the **writer refuses**
-  on a pilot-deployed leader (see A). The schema reserves
+- **Leader deployed as a pilot is out of scope for v1 — decided.**
+  `DeployType.LeaderUpgrade` (`server/game/core/Constants.ts:51-54`; used by
+  the JTL pilot leaders via `DeployAndAttachPilotLeaderSystem.ts`) attaches
+  the leader to a unit as an upgrade — a boolean `deployed` cannot represent
+  it. v1: a pilot-deployed leader is state the format cannot represent, so
+  the writer **saves degraded** with a `pilotLeader` manifest entry (see A);
+  the save records the leader as undeployed. The schema reserves
   `leader.deployType: 'unit' | 'pilot'` plus an attachment coordinate as the
-  v-next extension; the refusal is preferred over the extension for v1 because
+  v-next extension — documented but explicitly **not built in v1** — because
   the injection path being ported only supports `DeployType.LeaderUnit`
   (`PlayerInteractionWrapper.ts:125-126`) and pilot leaders have *two* deploy
   epic actions, which also breaks the helper's title-string limit bookkeeping
   (`.includes('Deploy')`, `PlayerInteractionWrapper.ts:129`) — the port must
-  use `isEpicActionLimit()` instead regardless (see C.4).
+  use `isEpicActionLimit()` instead regardless (see C.4; that correctness fix
+  stands independent of the deploy-type question).
 - **Chat is scrubbed at write time.** `GameChat.tryFormatPlaceholder` resolves
   GameObject args via `getShortSummary()`
   (`server/game/core/chat/GameChat.ts:133-134`), which embeds `uuid`
@@ -179,10 +200,11 @@ effects are guaranteed gone at an action boundary. `UntilEndOfPhase` and
 persist, and state watchers only reset at end of phase
 (`StateWatcher.ts:43-47`). "For this phase" buffs are bread-and-butter SWU
 card text, so mid-phase saves will **routinely** hit the writer's
-unsupported-state checks. See work item A (refusal list), A2 (watchers are
-handled, not refused), E (measure the actual refusal rate), and the open
-questions section (whether refusal should become degraded-save for the
-bug-report use case).
+unsupported-state checks — which is exactly why those checks degrade with a
+manifest rather than refuse (the bug-report customer needs the artifact even
+when it is degraded). See work item A (manifest categories), A2 (watchers are
+encoded, not dropped, except unresolvable referents), and E (measure the
+actual degradation rate).
 
 ### Load sequence (the resume contract)
 
@@ -236,7 +258,11 @@ Rebuilding the pipeline is the only way to reach `roundNumber > 1` or
    if `SnapshotManager` asserts a timepoint ordering that requires a
    start-of-phase marker before an action snapshot, seed the marker only
    (never a snapshot presented as an undo target); undo history restarting
-   at load is already a stated non-goal.
+   at load is already a stated non-goal. Once Plan 4's delta snapshots
+   exist, this first full snapshot is also the delta tracker's window
+   anchor: after load, the tracker must not start until it is taken —
+   Plan 4's `startTracking` asserts an anchor snapshot exists (see Plan 4,
+   "Cadence").
 
 Note: two timepoints currently `throw` in `getEntryPointAfterRollback`
 (end-of-setup, end-of-regroup — `SnapshotManager.ts:401,408`). v1 sidesteps
@@ -254,21 +280,38 @@ them by only saving at action timepoints in the action phase.
   deliberately truncates: top-5 deck cards only, no limits/effects — do not
   reuse it).
 - Chat scrubbing per the schema rule above (name-only summaries, ISO dates).
-- **Unsupported-state detection:** the writer must detect state the schema
-  cannot represent and refuse rather than silently drop it (invariant 4).
-  v1 refusal list, detectable from the engine:
+- **Unsupported-state detection → degrade with manifest:** the writer must
+  detect state the schema cannot represent and declare it rather than
+  silently drop it (invariant 4 forbids *silent* degradation — degradation
+  that is enumerated and explicit is the design). The detection list,
+  detectable from the engine:
   - active ongoing effects with non-permanent durations
     (`UntilEndOfPhase`/`UntilEndOfRound` effects registered in
     `OngoingEffectEngine` beyond those re-derived from printed constant
     abilities);
   - gained abilities on cards (granted by another card's effect);
   - pending delayed effects / custom-duration events;
-  - `Card.nextAbilityIdx` drift that would break `abilityIdentifier` matching;
   - **leader deployed as a pilot** (`DeployType.LeaderUpgrade`);
   - **watcher entries whose referents cannot be re-identified** (see A2).
-  Do not assume these are rare: as noted above, phase/round-duration effects
-  survive at action boundaries, so refusals will be common mid-phase. Every
-  refusal must name the offending category and card(s) in its error.
+  For each detected fact the writer drops it from the saved position and
+  appends an **`engineOnlyFacts` manifest entry** — one entry per dropped
+  fact: `category` (from the list above), `source` (`ISavedCardRef` of the
+  card whose effect/ability it is), `target` (`ISavedCardRef`, seat label,
+  or null), `duration`, and a human-readable `description`. This is exactly
+  the data the detection checks compute anyway — the checks produce the
+  manifest instead of an error. The name and shape are shared with Plan 6,
+  which inherits this schema for its engine-tier manifest. Do not assume
+  these facts are rare: phase/round-duration effects survive at action
+  boundaries, so degraded saves will be common mid-phase (measured in E).
+  - **What still refuses at write time:** `Card.nextAbilityIdx` drift that
+    would break `abilityIdentifier` matching is a coordinate-integrity
+    failure, not unrepresentable state — a save whose coordinates cannot be
+    trusted is corrupt, not degraded, so the writer hard-fails on it.
+  - **The degrade+manifest rule is write-side only.** It applies to *game
+    state the format cannot yet represent* — never to *files that cannot be
+    trusted*. Load-side validation is unchanged: unresolvable card/ability
+    coordinates, schema violations, and corrupt or truncated files still
+    hard-fail loudly (see C).
 
 ### A2. State-watcher entry encoding
 
@@ -281,11 +324,11 @@ counters `playEventId`, `inPlayId`, `parentCardInPlayId`
 phase, so mid-phase saves will routinely have non-empty entries. Serializing
 entries verbatim would violate the no-uuid rule and dangle after load.
 
-**Decision: per-watcher semantic encoding, with writer refusal for
-unresolvable referents.** Reasoning: refusal on *any* non-empty watcher would
-collapse the savable moments to "first action window of the phase" for most
-decks (any play/attack/action populates a registered watcher), gutting the
-feature; whereas the encoding work is mechanical — all ~15 watchers in
+**Decision: per-watcher semantic encoding, with manifest-declared dropping
+for unresolvable referents.** Reasoning: dropping *any* non-empty watcher
+would degrade essentially every save past the first action of a phase for
+most decks (any play/attack/action populates a registered watcher); whereas
+the encoding work is mechanical — all ~15 watchers in
 `server/game/stateWatchers/` have flat entry structs of GameObjectIds +
 primitives.
 
@@ -295,10 +338,12 @@ primitives.
   save file*; `Player` references encode as a seat label.
 - **Unresolvable-referent rule:** if an entry references an object that no
   longer exists in any saved zone (a defeated token unit — tokens cease to
-  exist; anything else outside the save's zones), the **writer refuses**,
-  naming the watcher. No lossy encoding, per invariant 4. (Most defeated
-  non-token cards land in discard and remain resolvable.) This raises the
-  refusal rate further — measured in E, and feeds the open questions below.
+  exist; anything else outside the save's zones), the writer **drops that
+  entry and appends a `watcherEntry` manifest entry** naming the watcher and
+  the vanished referent (invariant 4: enumerated, never silent — a lossy
+  encoding that *pretended* to be complete is what is forbidden). (Most
+  defeated non-token cards land in discard and remain resolvable.) This
+  raises the degradation rate — measured in E.
 - **Runtime counters** in entries must be translated, not copied:
   `playEventId` is preserved only as entry ordering (entries are ordered
   arrays; the loader rewrites ids in a way that preserves relative order);
@@ -333,8 +378,8 @@ from *save files*.)
      `abilityIdentifier` in the file must resolve against current card data;
      fail loudly (invariant 4) on genuine resolution failures, reporting
      the saved vs. current `cardDataVersion` as diagnostics in the error.
-  2. Bind seats to users: the loading lobby maps each consenting user to a
-     seat label and its decklist (see D). All seat-keyed data (`usesByPlayer`,
+  2. Bind seats to users: the loading lobby maps each user to a seat label
+     and its decklist (see D). All seat-keyed data (`usesByPlayer`,
      `timers`, `ownerSeat`, watcher refs) is remapped through this binding;
      remember engine limit maps key by player *name* (`AbilityLimit.ts:102-104`).
   3. Fresh `Game` via the normal `Lobby` construction path with the saved
@@ -381,22 +426,35 @@ from *save files*.)
      sequence; the re-entered ActionWindow takes the first action snapshot.
 - Loading must be rejected cleanly (not crash) on: unknown card names or
   ability identifiers, invalid positions (e.g. upgrade on empty arena),
-  format-version mismatch, staging-zone residue.
+  format-version mismatch, corrupt or truncated files, staging-zone residue.
+  The degrade+manifest rule never applies here — an untrustworthy *file*
+  always hard-fails, regardless of how tolerant the *writer* is of
+  unrepresentable state.
+- A save with a non-empty `engineOnlyFacts` manifest loads normally — the
+  loaded position simply lacks the dropped facts — and the loader surfaces
+  the manifest to the caller (for the bug-report customer: the dev sees
+  exactly what the reproduction is missing).
 
-### D. Server plumbing
+### D. Server plumbing (shrunk under the bug-report decision)
 
-- Save: expose on the lobby/game socket surface; gate on game settings
-  (private lobbies first). Output: JSON document to the client (download) —
-  server-side storage is optional and out of scope for v1.
-- Load: lobby flow accepting an uploaded `ISavedMatch`, validating both
-  players' consent, binding consenting users to seats (each user picks or is
-  assigned a seat; the seat determines their decklist and all seat-keyed
-  state), constructing the game via `MatchLoader`.
-- Decide and document: who may load (both original players? anyone with the
-  file? — recommend: anyone, it's a card game position, there is no hidden
-  secret beyond deck order, but flag that **deck order and hands are in the
-  file in cleartext**, so sharing a save leaks hidden information; consider a
-  "scrubbed" variant later).
+Saves go to the dev team via bug reports, not between players, so v1 needs
+no lobby consent or sharing flow — only artifact production and a dev-facing
+load path.
+
+- Save: expose on the lobby/game socket surface. Output: JSON document to
+  the client (download / bug-report attachment) — server-side storage is
+  optional and out of scope for v1.
+- Load: dev-facing flow accepting an `ISavedMatch`, binding users to seats
+  (each user picks or is assigned a seat; the seat determines their decklist
+  and all seat-keyed state), constructing the game via `MatchLoader`, and
+  surfacing the `engineOnlyFacts` manifest.
+- **Hidden information — decided: documentation-only for v1.** Deck order
+  and hands are in the file in cleartext. For the bug-report customer this
+  is a feature, not a leak: the hidden information is exactly what makes a
+  report reproducible, and the recipient is the dev team. Document the
+  constraint here (a shared save reveals hands and deck order); a real
+  scrubbing writer mode is required only when player-to-player sharing
+  ships, and is deliberately not built in v1.
 
 ### E. Verification
 
@@ -408,9 +466,12 @@ from *save files*.)
   because `GameStateBuilder.registerAllStateWatchers` registers every watcher
   in the library (`GameStateBuilder.js:233,262-271`) while production games
   register only the watchers their cards request, the two sides will not have
-  identical watcher sets.
-- **Continuation tests:** save mid-game in an integration test, load, and play
-  several representative actions asserting identical outcomes to the unloaded
+  identical watcher sets. For a *degraded* first save, the property is:
+  re-saving the loaded game yields the same document with an **empty**
+  manifest (the dropped facts no longer exist to drop).
+- **Continuation tests** (must pass for **non-degraded** saves — empty
+  manifest): save mid-game in an integration test, load, and play several
+  representative actions asserting identical outcomes to the unloaded
   original. Required scenarios:
   - attack, play unit, use triggered ability;
   - claim initiative *after* load;
@@ -425,21 +486,35 @@ from *save files*.)
     only the *other* copy may use it (exercises per-copy limits);
   - a deployed leader and a defeated-then-undeployed leader
     (exercises `epicDeployUsed` without double-count).
-- Writer-refusal tests for each refusal-list category, including
-  pilot-deployed leader and unresolvable watcher referent.
-- **Refusal-rate measurement:** instrument the writer against the positions
-  constructed by the existing integration-test suite and report what fraction
-  of action-window positions would be refused and by which category. This
-  number is an input to the open product question below, not a pass/fail
-  gate.
+- **Degraded-save manifest tests:** for each manifest category (duration
+  effects, gained abilities, delayed effects, pilot-deployed leader,
+  unresolvable watcher referent), construct a position containing the fact,
+  save, and assert the manifest **accurately enumerates exactly what was
+  dropped** — correct category, source, target, duration — and nothing else.
+- Writer hard-refusal test for the remaining refusal case
+  (`Card.nextAbilityIdx` coordinate drift), plus load-side rejection tests
+  for untrustworthy files (unknown coordinates, schema violations,
+  truncation).
+- **Degradation-rate measurement:** instrument the writer against the
+  positions constructed by the existing integration-test suite and report
+  what fraction of action-window positions save degraded and by which
+  manifest category. Worth measuring for visibility into how complete the
+  format is; it is **not a ship gate** — the bug-report customer accepts
+  degraded artifacts (it would become a gate only if a player-facing button
+  is ever built).
 
 ## Explicit non-goals (v1)
 
+- A player-facing save button (v1's customer is the bug-report attachment;
+  a button would additionally need a lobby consent/sharing flow and a
+  product call on loading degraded positions).
 - Saving mid-prompt, mid-attack, or mid-ability resolution.
 - Preserving active duration-bound ongoing effects, gained abilities, delayed
-  effects (writer refuses instead).
-- Leader deployed as a pilot upgrade (writer refuses; schema reserves the
-  extension point).
+  effects (dropped with `engineOnlyFacts` manifest entries instead).
+- Leader deployed as a pilot upgrade (dropped with a manifest entry; schema
+  reserves the extension point, not built in v1).
+- A scrubbing writer mode for hidden information (documentation-only in v1;
+  required only when player-to-player sharing ships — see D).
 - Preserving undo history across a load (snapshot history restarts).
 - Schema migration between format versions (fail loudly instead; Plan 6).
 - Server-side save storage/persistence infrastructure.
@@ -459,30 +534,3 @@ from *save files*.)
 - **Snapshot-manager timepoint ordering on re-entry** (load sequence step 5):
   verify in PR 3 whether an action snapshot may be taken without a preceding
   start-of-phase timepoint, and seed only the marker if not.
-- **Hidden-information handling** in shared save files (see D).
-
-## Open questions for the author
-
-These are product decisions the code cannot answer; they fork parts of the
-design as noted.
-
-1. **Who is v1's real customer — the player-facing save button, or bug-report
-   attachment?** The refusal-rate reality (duration effects and watcher
-   referents make mid-phase refusals common; see A, A2, E) makes the
-   player-facing button least useful exactly when games get interesting,
-   while a bug-report attachment is valuable even degraded. If the answer is
-   bug-report-first: the writer's refusal behavior in A flips to
-   "save degraded, with an explicit machine-readable list of what was
-   dropped" (still no *silent* degradation — invariant 4 is about silence),
-   the D work item shrinks (no lobby consent flow needed for v1), and the
-   E continuation tests only need to pass for non-degraded saves. If
-   player-facing-first: everything stands as written, and the refusal-rate
-   measurement in E becomes a ship gate worth agreeing on up front.
-2. **Is refusing saves for JTL pilot-leader decks acceptable for v1?** Four
-   released leaders hit the pilot-deploy refusal whenever deployed. If not
-   acceptable, the reserved `leader.deployType` extension moves into v1 and
-   C.4 must extend the ported injection to call
-   `deploy({ type: DeployType.LeaderUpgrade, ... })` with an attachment
-   coordinate — a scope increase in PR 3.
-3. **Scrubbed-save variant priority** (hidden information in shared files,
-   D): v1 documentation-only, or a real writer mode?
