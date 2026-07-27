@@ -8,6 +8,7 @@ import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 import { Helpers } from '../core/utils/Helpers';
 import type { FormatMessage } from '../core/chat/GameChat';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 
 export interface ICreateTokenUnitRequiredProperties {
     amount: number;
@@ -34,7 +35,7 @@ export class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityCont
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         const players = Helpers.asArray(properties.target);
-        const tokenTitle = context.game.cardDataGetter.tokenData[properties.tokenType]?.title ?? properties.tokenType;
+        const tokenTitle = EnumHelpers.tokenTitle[properties.tokenType];
         const indefiniteArticle = properties.tokenType === TokenUnitName.XWing ? 'an' : 'a';
 
         const effectMessage = (player: Player): FormatMessage => {

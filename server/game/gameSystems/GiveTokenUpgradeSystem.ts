@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { CardTypeFilter, TokenUpgradeName } from '../core/Constants';
+import type { CardTypeFilter } from '../core/Constants';
+import { TokenUpgradeName } from '../core/Constants';
 import { EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -36,9 +37,10 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         const tokenTitle = EnumHelpers.tokenTitle[properties.tokenType];
-        const article = /^[aeiou]/i.test(tokenTitle) ? 'an' : 'a';
+        const indefiniteArticle = new Set([TokenUpgradeName.Experience, TokenUpgradeName.Advantage])
+            .has(properties.tokenType) ? 'an' : 'a';
 
-        return ['give {0} to {1}', [ChatHelpers.pluralize(properties.amount, `${article} ${tokenTitle} token`, `${tokenTitle} tokens`), this.getTargetMessage(properties.target, context)]];
+        return ['give {0} to {1}', [ChatHelpers.pluralize(properties.amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`), this.getTargetMessage(properties.target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
