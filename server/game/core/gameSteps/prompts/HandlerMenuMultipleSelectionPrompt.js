@@ -58,7 +58,8 @@ class HandlerMenuMultipleSelectionPrompt extends HandlerMenuPrompt {
             controls: this.getAdditionalPromptControls(),
             promptTitle: this.properties.source.name,
             promptUuid: this.uuid,
-            promptType: this.properties.promptType
+            promptType: this.properties.promptType,
+            optionalTrigger: this.properties.optionalTrigger
         };
     }
 

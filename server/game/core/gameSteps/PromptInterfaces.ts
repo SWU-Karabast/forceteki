@@ -24,6 +24,7 @@ export enum PromptType {
     TriggerWindow = 'triggerWindow',
     PassDelay = 'passDelay',
     BatchTriggerResolution = 'batchTriggerResolution',
+    OptionalTrigger = 'optionalTrigger',
 }
 
 export interface IButton {
@@ -75,6 +76,16 @@ export interface IBatchTriggerResolutionPromptData {
     sourceCard?: ITriggerWindowSourceCard;
     title: string;
     remainingCount: number;
+}
+
+/**
+ * Payload for the optional triggered-ability "Trigger or Pass" prompt, letting the client render the
+ * source card as the trigger button. Omitted when the ability's source isn't a real card, in which case
+ * the client falls back to a plain text prompt.
+ */
+export interface IOptionalTriggerPromptData {
+    sourceCard?: ITriggerWindowSourceCard;
+    abilityText: string;
 }
 
 export interface INumberPromptData {

@@ -13,6 +13,18 @@ import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityRes
 import { BatchTriggerResolutionPrompt } from '../prompts/BatchTriggerResolutionPrompt';
 import type { IResolutionChoice, ITriggerWindowSourceCard } from '../PromptInterfaces';
 
+/** Builds the lightweight card summary attached to trigger-style prompt buttons, or undefined if the source isn't a real card. */
+export function getTriggerSourceCardSummary(card: Card): ITriggerWindowSourceCard | undefined {
+    if (!card?.isCard?.()) {
+        return undefined;
+    }
+
+    return {
+        ...card.getShortSummary(),
+        type: card.type
+    };
+}
+
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
@@ -335,14 +347,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     protected getSourceCardSummary(card: Card): ITriggerWindowSourceCard | undefined {
-        if (!card?.isCard?.()) {
-            return undefined;
-        }
-
-        return {
-            ...card.getShortSummary(),
-            type: card.type
-        };
+        return getTriggerSourceCardSummary(card);
     }
 
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */

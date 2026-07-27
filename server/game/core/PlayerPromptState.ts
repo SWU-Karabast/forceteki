@@ -1,5 +1,5 @@
 import type { Card } from './card/Card';
-import type { IBatchTriggerResolutionPromptData, IButton, IDisplayCard, IDistributeAmongTargetsPromptData, INumberPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
+import type { IBatchTriggerResolutionPromptData, IButton, IDisplayCard, IDistributeAmongTargetsPromptData, INumberPromptData, IOptionalTriggerPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
 import type { Player } from './Player';
 
 export interface IPlayerPromptStateProperties {
@@ -15,6 +15,7 @@ export interface IPlayerPromptStateProperties {
     selectNumber?: INumberPromptData;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
     batchTriggerResolution?: IBatchTriggerResolutionPromptData;
+    optionalTrigger?: IOptionalTriggerPromptData;
     dropdownListOptions?: string[];
     displayCards?: IDisplayCard[];
     perCardButtons?: IButton[];
@@ -37,6 +38,7 @@ export class PlayerPromptState {
     public selectNumber?: INumberPromptData = null;
     public distributeAmongTargets?: IDistributeAmongTargetsPromptData = null;
     public batchTriggerResolution?: IBatchTriggerResolutionPromptData = null;
+    public optionalTrigger?: IOptionalTriggerPromptData = null;
     public menuTitle = '';
     public promptTitle = '';
     public promptUuid = '';
@@ -89,6 +91,7 @@ export class PlayerPromptState {
         this.menuTitle = prompt.menuTitle ?? '';
         this.distributeAmongTargets = prompt.distributeAmongTargets;
         this.batchTriggerResolution = prompt.batchTriggerResolution;
+        this.optionalTrigger = prompt.optionalTrigger;
         this.dropdownListOptions = prompt.dropdownListOptions ?? [];
         this.promptUuid = prompt.promptUuid;
         this.buttons = prompt.buttons ?? [];
@@ -138,6 +141,7 @@ export class PlayerPromptState {
             selectNumber: this.selectNumber,
             distributeAmongTargets: this.distributeAmongTargets,
             batchTriggerResolution: this.batchTriggerResolution,
+            optionalTrigger: this.optionalTrigger,
             dropdownListOptions: this.dropdownListOptions,
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,

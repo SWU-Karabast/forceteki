@@ -6,6 +6,8 @@ import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { MsgArg } from '../core/chat/GameChat';
+import { PromptType } from '../core/gameSteps/PromptInterfaces';
+import { getTriggerSourceCardSummary } from '../core/gameSteps/abilityWindow/TriggerWindowBase';
 
 export interface IOptionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     title: string;
@@ -40,10 +42,13 @@ export class OptionalSystem<TContext extends AbilityContext = AbilityContext> ex
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const sourceCard = getTriggerSourceCardSummary(context.source);
 
         context.game.promptWithHandlerMenu(context.player, {
             activePromptTitle: `Trigger the ability '${properties.title}' or pass`,
             choices: ['Trigger', 'Pass'],
+            promptType: PromptType.OptionalTrigger,
+            optionalTrigger: sourceCard ? { sourceCard, abilityText: properties.title } : undefined,
             handlers: [
                 () => {
                     context.game.queueSimpleStep(() => {
