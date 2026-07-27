@@ -8,6 +8,10 @@ All plans are grounded in a code survey performed against `main` at commit
 `7a0526549` (2026-07-25). File and line references throughout the plans are
 accurate as of that commit and may drift; treat them as pointers, not gospel.
 
+These are **design docs, not implementation handoffs.**
+[`IMPLEMENTATION-ORDER.md`](IMPLEMENTATION-ORDER.md) breaks them into
+PR-sized units and is the entry point for actually building any of this.
+
 ## Plan index and ordering
 
 | # | Plan | Depends on | Size | Deliverable |
