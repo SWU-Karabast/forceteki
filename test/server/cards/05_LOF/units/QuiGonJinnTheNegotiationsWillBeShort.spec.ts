@@ -78,11 +78,8 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
             });
         });
 
-        // Regression test for a server crash: when there is exactly one legal unit to choose and the
-        // choosing player has the autoSingleTarget setting enabled, the game offers a single "trigger or
-        // pass" prompt instead of the usual multi-card selection prompt. Declining that prompt resolves the
-        // optional 'unit' target to null, which previously crashed the dependent 'deck' target's
-        // choosingPlayer/activePromptTitle callbacks (they assumed a unit was always chosen).
+        // Regression test: with exactly one legal unit and autoSingleTarget on, declining the single-target
+        // "trigger or pass" prompt previously crashed the dependent 'deck' target.
         it('does not crash and does not move any unit if the player declines the single-legal-target prompt', async () => {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -98,8 +95,6 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
             });
             const { context } = contextRef;
 
-            // Defeat Qui-Gon Jinn with Rival's Fall. Wampa is now the only legal non-leader ground unit,
-            // so player1 (who controls the triggered ability) is offered a single "trigger or pass" prompt.
             context.player2.clickCard(context.rivalsFall);
             context.player2.clickCard(context.quigonJinn);
 
