@@ -302,9 +302,6 @@ describe('autoSingleTarget: single-target scenarios', function() {
             });
         });
 
-        // The optional single-target prompt renders the effect's activePromptTitle into a plain handler menu. When
-        // that title is a dynamic function (e.g. The Eye of Aldhani computes it from the player's resources/units),
-        // it must be resolved to a concrete string rather than leaking the raw function source into the prompt.
         describe('when an optional single-target prompt has a function-valued activePromptTitle', function() {
             it('resolves the dynamic title to a concrete string in the play-or-pass prompt when autoSingleTarget is on', async function() {
                 await contextRef.setupTestAsync({

@@ -266,12 +266,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     private promptForSingleOptionalTarget(player: Player, context: AbilityContext, target: Card) {
-        // This resolver's buildConcreteActivePromptTitle override intentionally returns null for function-valued
-        // titles so the raw function can be resolved later by the select-card prompt (with the selection set).
-        // Here we build a plain handler menu instead, so resolve the title to a concrete string ourselves via the
-        // base implementation, falling back to the ability title when no activePromptTitle was provided.
         const effectName = super.buildConcreteActivePromptTitle(context) ?? context.ability?.getTitle(context);
-
         const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${this.selector.appendToDefaultTitle ? ' ' + this.selector.appendToDefaultTitle : ''}`;
 
         context.game.promptWithHandlerMenu(player, {
