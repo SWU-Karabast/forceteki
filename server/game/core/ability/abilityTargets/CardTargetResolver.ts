@@ -275,8 +275,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             choices: [`${effectName} -> ${target.title}`, 'Pass'],
             handlers: [
                 () => this.setTargetResult(context, target),
-                // finalize the resolution with no target so the resolver doesn't re-prompt (mirrors the "choose nothing" path)
-                () => this.setTargetResult(context, null)
+                // Use the same "nothing selected" representation as the standard multi-card "Choose nothing"
+                // path (an empty array, not null) so that declining this target behaves identically whether
+                // or not autoSingleTarget caused this single-candidate prompt to be shown. Card implementations
+                // that read a dependent target's properties have only ever had to handle the empty-array case.
+                () => this.setTargetResult(context, [])
             ]
         });
     }
