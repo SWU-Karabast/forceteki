@@ -425,7 +425,25 @@ baseline. Commit both generated files under `docs/plans/performance/`. See
 [Plan 0](00-performance-benchmarks.md) for the method and
 [the capture index](performance/README.md) for the rules.
 
-**What this plan should move — and this is the headline result of the roadmap.**
+**This capture is the roadmap's performance deliverable.** Plan 4 is the last
+plan whose thesis is performance — Plans 5 and 6 are save/load-oriented, and
+their captures are no-regression checks. The `initial-performance` →
+`after-plan-04` comparison is therefore the one that answers the roadmap's
+central question. Read it against the two things the roadmap set out to fix:
+
+1. **Speed** — `manager/moveToNextTimepoint(Action)` and
+   `manager/rollbackTo(Manual)`, avg and p95.
+2. **Memory / GC pressure** — `payload/retainedChain(13 snapshots)`, allocation
+   per operation (heap + external), and the GC pause share in
+   `sustained/snapshotAndUndoCycle`.
+
+Write the verdict into this doc, including anything that got worse. If a
+headline benchmark was redefined earlier in the roadmap, state explicitly which
+parts of the comparison are honest and which are not. (Plan 5c's release policy
+may later improve the memory numbers further — that is a bonus tracked in Plan
+5's capture, not part of this verdict.)
+
+**What this plan should move.**
 Quick snapshots become reverse deltas, so `manager/moveToNextTimepoint(Action)`
 and `payload/retainedChain(13 snapshots)` should both drop substantially.
 

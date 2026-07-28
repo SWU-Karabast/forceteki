@@ -544,9 +544,6 @@ turns that failure mode into a test-time error.
 
 ## Performance capture (required on completion)
 
-This is the final plan, so its capture is the one that answers the roadmap's
-central question:
-
 ```bash
 npm run benchmark -- --name final-performance --compare initial-performance
 ```
@@ -555,23 +552,23 @@ Commit both generated files under `docs/plans/performance/`, and update the
 capture index. See [Plan 0](00-performance-benchmarks.md) for the method and
 [the capture index](performance/README.md) for the rules.
 
+**The roadmap's performance verdict is written at Plan 4, not here.** Plan 4
+(delta snapshots) is the last plan whose thesis is performance; this plan and
+Plan 5 are save/load-oriented. This capture is the closing bookend: a
+no-regression check confirming the save/load work did not give back the wins
+recorded in the `initial-performance` → `after-plan-04` comparison. Also
+compare against the latest prior capture (`after-plan-05c` or wherever the
+roadmap left off) so a regression introduced here is attributable to this plan
+rather than smeared across the whole roadmap diff.
+
 **What this plan itself should move: nothing on the hot path.** Full-fidelity
-save is out-of-band, like Plan 2. Its own capture is a no-regression check — with
-one thing to watch: if Plan 5's recreation recipes or this plan's lasting-effect
-capture added per-object state in the *serialized record* (capture recipes live
-in record recipe sections, Plan 5 A4), it shows up in
-`payload/fullSnapshotTotal` and in bytes-per-GameObject.
+save is out-of-band, like Plan 2 — with one thing to watch: if Plan 5's
+recreation recipes or this plan's lasting-effect capture added per-object state
+in the *serialized record* (capture recipes live in record recipe sections,
+Plan 5 A4), it shows up in `payload/fullSnapshotTotal` and in
+bytes-per-GameObject.
 
-**The `initial-performance` → `final-performance` comparison is the roadmap
-deliverable.** Read it against the two things the roadmap set out to fix:
-
-1. **Speed** — `manager/moveToNextTimepoint(Action)` and
-   `manager/rollbackTo(Manual)`, avg and p95.
-2. **Memory / GC pressure** — `payload/retainedChain(13 snapshots)`, allocation
-   per operation (heap + external), and the GC pause share in
-   `sustained/snapshotAndUndoCycle`.
-
-Write the verdict into this doc, including anything that got worse. If a headline
-benchmark was redefined somewhere along the roadmap, state explicitly which parts
-of the comparison are honest and which are not — a redefined row silently carried
+If anything got worse, write it into this doc. If a headline benchmark was
+redefined somewhere along the roadmap, state explicitly which parts of the
+comparison are honest and which are not — a redefined row silently carried
 through six plans is worse than a missing one.

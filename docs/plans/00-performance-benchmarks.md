@@ -144,7 +144,10 @@ quick containers.
 3. Note anything that would distort the comparison (machine change, scenario
    added, headline benchmark redefined) in the plan's own doc.
 
-Only the **initial vs. final** delta is a deliverable. Intermediate captures exist
+The **initial vs. after-plan-04** delta is the roadmap's performance
+deliverable — Plan 4 (delta snapshots) is the last plan whose thesis is
+performance; Plans 5 and 6 are save/load-oriented and their captures are
+no-regression checks. Intermediate captures exist
 so a developer can see which plan moved which number, and to catch a plan that
 regresses something silently. A plan is not required to improve every number —
 Plan 3, for instance, is expected to trade build-time complexity for runtime cost

@@ -126,6 +126,10 @@ Replace the "Plans 4-6 - not decomposed yet" section with the real tables.
 - Assign each plan's performance capture to exactly one final unit, and have
   every other invocation explicitly forbid running it. The capture commands are
   `npm run benchmark -- --name after-plan-NN --compare initial-performance`.
+  Plan 4's capture is the roadmap's performance deliverable (the last plan whose
+  thesis is performance — Plans 5 and 6 are save/load-oriented, their captures
+  no-regression checks), so the unit owning `after-plan-04` also owns writing
+  the performance verdict into Plan 4's doc.
 - Do not edit an existing benchmark scenario or redefine a headline benchmark
   (manager/*, payload/*, sustained/*) in any unit without the fence saying so
   explicitly - Plan 4 in particular is expected to pressure this, since it

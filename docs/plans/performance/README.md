@@ -61,9 +61,12 @@ land.
    across both avg and p95 to mean anything; memory and payload can be trusted at
    much finer resolution.
 
-Only the initial → final delta is a roadmap deliverable. Intermediate captures
-exist so a developer can see which plan moved which number, and so a silent
-regression gets caught when it happens rather than at the end.
+The initial → after-plan-04 delta is the roadmap's performance deliverable —
+Plan 4 (delta snapshots) is the last plan whose thesis is performance; Plans 5
+and 6 are save/load-oriented and their captures are no-regression checks.
+Intermediate captures exist so a developer can see which plan moved which
+number, and so a silent regression gets caught when it happens rather than at
+the end.
 
 ## Raw runs
 

@@ -47,10 +47,16 @@ plan starts**. Every plan then captures its own report on completion:
 npm run benchmark -- --name after-plan-NN --compare initial-performance
 ```
 
-Captures live in [`docs/plans/performance/`](performance/README.md). Only the
-**initial → final** delta is a roadmap deliverable; the intermediate captures
-exist so a developer can see which plan moved which number, and so a silent
-regression is caught when it lands rather than at the end.
+Captures live in [`docs/plans/performance/`](performance/README.md). The
+**initial → after-plan-04** delta is the roadmap's performance deliverable:
+Plan 4 (delta snapshots) is the last plan whose thesis is performance, so its
+capture is the one that answers whether the roadmap fixed speed and GC
+pressure. Plans 5 and 6 are save/load-oriented — their captures still get
+taken, but as no-regression checks (plus Plan 5c's bounded-memory numbers,
+which are a bonus on top of the Plan 4 verdict, not part of it). The other
+intermediate captures exist so a developer can see which plan moved which
+number, and so a silent regression is caught when it lands rather than at the
+end.
 
 Baseline highlights (see the capture for the full picture): ~350–380 bytes of
 serialized state per live GameObject, 0.66–1.3 MiB pinned by a 13-snapshot chain,
