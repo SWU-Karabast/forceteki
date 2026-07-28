@@ -78,6 +78,39 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
             });
         });
 
+        // Regression test for a server crash: when there is exactly one legal unit to choose and the
+        // choosing player has the autoSingleTarget setting enabled, the game offers a single "trigger or
+        // pass" prompt instead of the usual multi-card selection prompt. Declining that prompt resolves the
+        // optional 'unit' target to null, which previously crashed the dependent 'deck' target's
+        // choosingPlayer/activePromptTitle callbacks (they assumed a unit was always chosen).
+        it('does not crash and does not move any unit if the player declines the single-legal-target prompt', async () => {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['quigon-jinn#the-negotiations-will-be-short'],
+                    autoSingleTarget: true,
+                },
+                player2: {
+                    hand: ['rivals-fall'],
+                    groundArena: ['wampa'],
+                    hasInitiative: true,
+                }
+            });
+            const { context } = contextRef;
+
+            // Defeat Qui-Gon Jinn with Rival's Fall. Wampa is now the only legal non-leader ground unit,
+            // so player1 (who controls the triggered ability) is offered a single "trigger or pass" prompt.
+            context.player2.clickCard(context.rivalsFall);
+            context.player2.clickCard(context.quigonJinn);
+
+            expect(context.player1).toHaveExactPromptButtons([`Choose a non-leader ground unit. Its owner puts it on the top or bottom of their deck -> ${context.wampa.title}`, 'Pass']);
+            context.player1.clickPrompt('Pass');
+
+            // Ability should resolve as a no-op, with no further prompts for either player
+            expect(context.player1).toBeActivePlayer();
+            expect(context.wampa).toBeInZone('groundArena');
+        });
+
         it('Qui-Gon Jinn\'s when defeated ability with No Glory Only Results allows player1 to choose a non-leader ground unit and player2 puts it on bottom of their deck', async () => {
             await contextRef.setupTestAsync({
                 phase: 'action',
