@@ -2408,6 +2408,21 @@ export class Lobby {
         const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
         const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
 
+        // Reporting can be disabled for a player as a moderation action. Enforce it server-side so it
+        // can't be bypassed by a modified client (the FE also hides the report entry points).
+        if (reportType === ReportType.PlayerReport && this.server.modActionService?.isReportingDisabled(socket.user.getId())) {
+            logger.info(`Lobby (submitReport): Blocked player report from ${socket.user.getId()} \u2014 reporting is disabled`, {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+            socket.send(resultEvent, {
+                id: uuid(),
+                success: false,
+                message: 'Reporting has been disabled for your account'
+            });
+            return;
+        }
+
         try {
             let parsedDescription = '';
             let screenResolution = null;

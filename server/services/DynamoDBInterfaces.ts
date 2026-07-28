@@ -32,10 +32,17 @@ export interface IUserDataEntity {
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
     mustRequestUsernameChange?: ModerationFieldState;
-    reportingDisabled?: ModerationFieldState;
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
     timerPopupSeenDate?: string;
+}
+
+/**
+ * Client-facing representation of an active ReportingDisabled restriction.
+ * Presence (non-null) means reporting is disabled; `hasSeen` drives the one-time notification popup.
+ */
+export interface IReportingDisabledState {
+    hasSeen: boolean;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {
@@ -153,9 +160,15 @@ export enum ModActionType {
     Mute = 'Mute',
     Warning = 'Warning',
     Rename = 'Rename',
+    ReportingDisabled = 'ReportingDisabled',
 }
 
-export type TimedModActionType = ModActionType.Mute | ModActionType.Rename;
+/**
+ * Action types that are tracked as "active" — indexed in the ACTIVE_MODACTION sparse GSI and held in
+ * the in-memory ModActionService cache. This is distinct from having a duration: Mute is timed, while
+ * Rename and ReportingDisabled are indefinite but still tracked. Warning is untracked (paper trail).
+ */
+export type TrackedModActionType = ModActionType.Mute | ModActionType.Rename | ModActionType.ReportingDisabled;
 
 export interface IModActionEntity {
     id: string;
@@ -171,6 +184,9 @@ export interface IModActionEntity {
     cancelledAt?: string;
     cancelledById?: string;
     cancelledByUsername?: string;
+    // Notification-style flag, currently only meaningful for ReportingDisabled: whether the user has
+    // seen the one-time popup informing them of the restriction.
+    hasSeen?: boolean;
 }
 
 export interface IActiveModActionCacheEntry {
@@ -180,6 +196,7 @@ export interface IActiveModActionCacheEntry {
     startedAt?: string;
     expiresAt?: string;
     modActionId: string;
+    hasSeen?: boolean;
 }
 
 export enum UsernameChangeSource {

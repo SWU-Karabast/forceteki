@@ -4,9 +4,10 @@ import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
 import {
     type IActiveModActionCacheEntry,
     type IModActionEntity,
+    type IReportingDisabledState,
     ModActionType
 } from '../services/DynamoDBInterfaces';
-import { isTimedModAction } from '../game/core/utils/EnumHelpers';
+import { isTrackedModAction } from '../game/core/utils/EnumHelpers';
 import { Contract } from '../game/core/utils/Contract';
 import { v4 as uuid } from 'uuid';
 
@@ -18,6 +19,8 @@ import { v4 as uuid } from 'uuid';
  *   Pending mutes activate on the user's first login.
  *   If multiple mutes exist, the one with the longer duration/later expiresAt stays active.
  * - Rename: no expiry, stays active until user renames or mod cancels it.
+ * - ReportingDisabled: no expiry, indefinite; stays active until a mod cancels it. Carries a `hasSeen`
+ *   flag driving a one-time notification popup for the user.
  * - Warning: not cached (just a paper trail).
  */
 type ModActionCacheMap = Map<string, Map<ModActionType, IActiveModActionCacheEntry>>;
@@ -131,6 +134,7 @@ export class ModActionService {
             startedAt: modAction.startedAt,
             expiresAt: modAction.expiresAt,
             modActionId: modAction.id,
+            hasSeen: modAction.hasSeen,
         });
     }
 
@@ -344,6 +348,55 @@ export class ModActionService {
         return this.validateMuteExpiry(muteEntry) ? muteEntry : null;
     }
 
+    /**
+     * Checks if a player has an active ReportingDisabled restriction.
+     */
+    public isReportingDisabled(playerId: string): boolean {
+        return !!this.getPlayerActions(playerId)?.get(ModActionType.ReportingDisabled);
+    }
+
+    /**
+     * Gets the client-facing ReportingDisabled state for a player, or null if reporting is not disabled.
+     * `hasSeen` drives the one-time notification popup.
+     */
+    public getReportingDisabledState(playerId: string): IReportingDisabledState | null {
+        const entry = this.getPlayerActions(playerId)?.get(ModActionType.ReportingDisabled);
+        if (!entry) {
+            return null;
+        }
+        return { hasSeen: !!entry.hasSeen };
+    }
+
+    /**
+     * Marks a player's active ReportingDisabled restriction as seen (sets hasSeen in both DB and cache).
+     * @returns True if there was an active restriction to update, false otherwise.
+     */
+    public async markReportingDisabledSeenAsync(playerId: string): Promise<boolean> {
+        const entry = this.getPlayerActions(playerId)?.get(ModActionType.ReportingDisabled);
+        if (!entry) {
+            return false;
+        }
+
+        // Already seen — nothing to do
+        if (entry.hasSeen) {
+            return true;
+        }
+
+        const db = await this.dbServicePromise;
+        try {
+            await db.setModActionSeenAsync(playerId, entry.modActionId);
+        } catch (error) {
+            logger.error(`ModActionService: Failed to mark ReportingDisabled seen for player ${playerId}`, {
+                error: { message: error.message, stack: error.stack },
+                userId: playerId,
+            });
+            return false;
+        }
+
+        entry.hasSeen = true;
+        return true;
+    }
+
     // ==================== Mute Activation ====================
 
     /**
@@ -417,7 +470,7 @@ export class ModActionService {
 
         const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, moderatorUsername, note, durationDays);
 
-        if (!isTimedModAction(modAction.actionType)) {
+        if (!isTrackedModAction(modAction.actionType)) {
             return {
                 success: true,
                 message: `${modAction.actionType} submitted successfully for player ${playerId}.`,

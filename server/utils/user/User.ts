@@ -63,8 +63,6 @@ export abstract class User {
 
     public abstract mustRequestUsernameChange(): ModerationFieldState | null;
 
-    public abstract reportingDisabled(): ModerationFieldState | null;
-
     /**
      * Gets the user's moderation status
      */
@@ -139,10 +137,6 @@ export class AuthenticatedUser extends User {
         return this.userData.mustRequestUsernameChange ?? null;
     }
 
-    public reportingDisabled(): ModerationFieldState | null {
-        return this.userData.reportingDisabled ?? null;
-    }
-
     public getModeration(): IModerationAction | null {
         return this.userData.moderation ?? null;
     }
@@ -201,10 +195,6 @@ export class AnonymousUser extends User {
     }
 
     public mustRequestUsernameChange(): ModerationFieldState | null {
-        return null;
-    }
-
-    public reportingDisabled(): ModerationFieldState | null {
         return null;
     }
 

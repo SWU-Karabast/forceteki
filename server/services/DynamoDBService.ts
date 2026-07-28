@@ -26,7 +26,7 @@ import { z } from 'zod';
 import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
-import { isTimedModAction } from '../game/core/utils/EnumHelpers';
+import { isTrackedModAction } from '../game/core/utils/EnumHelpers';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -825,8 +825,8 @@ class DynamoDBService {
                 ...modAction,
             };
 
-            // Active action types (Mute, Rename) get indexed via the sparse GSI
-            if (isTimedModAction(modAction.actionType) && !modAction.cancelledAt) {
+            // Active action types (Mute, Rename, ReportingDisabled) get indexed via the sparse GSI
+            if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
                 item.GSI_PK = 'ACTIVE_MODACTION';
             }
 
@@ -850,6 +850,23 @@ class DynamoDBService {
                 }
             );
         }, 'Error activating mute');
+    }
+
+    /**
+     * Mark a mod action as seen (sets hasSeen = true).
+     * Used for notification-style actions such as ReportingDisabled once the user has seen the popup.
+     */
+    public setModActionSeenAsync(playerId: string, modActionId: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
+                `USER#${playerId}`,
+                `MODACTION#${modActionId}`,
+                'SET hasSeen = :hasSeen',
+                {
+                    ':hasSeen': true,
+                }
+            );
+        }, 'Error setting mod action seen');
     }
 
     /**

@@ -48,7 +48,8 @@ import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
-    IModerationAction } from '../services/DynamoDBInterfaces';
+    IModerationAction,
+    IReportingDisabledState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
@@ -471,10 +472,13 @@ export class GameServer {
                 // Start with legacy values (backwards compatibility)
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
+                let reportingDisabled: IReportingDisabledState | null = null;
 
                 if (user.isAuthenticatedUser()) {
                     const userId = user.getId();
                     const activeActions = this.modActionService.getActiveActionsForPlayer(userId);
+
+                    reportingDisabled = this.modActionService.getReportingDisabledState(userId);
 
                     if (activeActions) {
                         if (activeActions.some((action) => action.actionType === ModActionType.Rename)) {
@@ -510,7 +514,7 @@ export class GameServer {
                         ? this.cosmeticsService.resolveActiveCosmetics(user.getPreferences()?.cosmetics)
                         : CosmeticsService.resolveDefaultCosmetics(user.getPreferences()?.cosmetics),
                     mustRequestUsernameChange: user.mustRequestUsernameChange(),
-                    reportingDisabled: user.reportingDisabled(),
+                    reportingDisabled,
                     needsUsernameChange,
                     moderation
                 } });
@@ -813,7 +817,11 @@ export class GameServer {
                     });
                 }
 
-                const result = await this.userFactory.setReportingDisabledSeenAsync(user.getId());
+                if (!this.modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                const result = await this.modActionService.markReportingDisabledSeenAsync(user.getId());
 
                 return res.status(200).json({
                     success: result,
@@ -1710,6 +1718,7 @@ export class GameServer {
                     lastLogin: profile.lastLogin,
                     isMuted: this.modActionService?.isPlayerMuted(profile.id) ?? false,
                     activeRename: this.modActionService?.playerActiveRename(profile.id) ?? null,
+                    reportingDisabled: this.modActionService?.isReportingDisabled(profile.id) ?? false,
                 }));
 
                 // If single match, include mod actions directly

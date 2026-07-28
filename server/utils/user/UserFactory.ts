@@ -412,7 +412,6 @@ export class UserFactory {
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
                 mustRequestUsernameChange: null,
-                reportingDisabled: null,
                 swuStatsRefreshToken: null,
                 swubaseRefreshToken: null,
                 moderation: null,
@@ -634,31 +633,6 @@ export class UserFactory {
             return false;
         } catch (error) {
             logger.error('Error setting mustRequestUsernameChange seen status:', {
-                error: { message: error.message, stack: error.stack },
-                userId
-            });
-            throw error;
-        }
-    }
-
-    public async setReportingDisabledSeenAsync(userId: string): Promise<boolean> {
-        try {
-            const dbService = await this.dbServicePromise;
-            const userProfile = await dbService.getUserProfileAsync(userId);
-            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-
-            if (userProfile.reportingDisabled === ModerationFieldState.Enabled) {
-                await dbService.updateUserProfileAsync(userId, {
-                    reportingDisabled: ModerationFieldState.EnabledAndSeen
-                });
-
-                logger.info(`UserFactory: Set reportingDisabled as seen for user ${userId}`, { userId });
-                return true;
-            }
-
-            return false;
-        } catch (error) {
-            logger.error('Error setting reportingDisabled seen status:', {
                 error: { message: error.message, stack: error.stack },
                 userId
             });

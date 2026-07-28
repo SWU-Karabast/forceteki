@@ -15,7 +15,7 @@ import { v4 as uuid } from 'uuid';
 import '../server/env';
 import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
 import { ModActionType } from '../server/services/DynamoDBInterfaces';
-import { isTimedModAction } from '../server/game/core/utils/EnumHelpers';
+import { isTrackedModAction } from '../server/game/core/utils/EnumHelpers';
 
 const MY_USER_ID: string | null = ''; // guid of the target user to apply the action to
 const ACTION_TYPE: ModActionType = ModActionType.Mute;
@@ -69,7 +69,7 @@ async function run() {
     }
 
     // Active action types get indexed via the sparse GSI
-    if (isTimedModAction(ACTION_TYPE)) {
+    if (isTrackedModAction(ACTION_TYPE)) {
         item.GSI_PK = 'ACTIVE_MODACTION';
     }
 

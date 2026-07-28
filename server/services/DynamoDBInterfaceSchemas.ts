@@ -65,6 +65,15 @@ export const ModActionSubmitSchema = z.object({
         return true;
     },
     { message: 'durationDays is required and must be positive for Mute actions', path: ['durationDays'] }
+).refine(
+    (data) => {
+        // ReportingDisabled requires a note (like Mute/Warning; only Rename is note-optional)
+        if (data.actionType === ModActionType.ReportingDisabled) {
+            return typeof data.note === 'string' && data.note.trim().length > 0;
+        }
+        return true;
+    },
+    { message: 'note is required for ReportingDisabled actions', path: ['note'] }
 );
 
 export const ModActionCancelSchema = z.object({
@@ -91,6 +100,7 @@ export const ModActionEntitySchema = z.object({
     cancelledAt: z.string().optional(),
     cancelledById: z.string().optional(),
     cancelledByUsername: z.string().optional(),
+    hasSeen: z.boolean().optional(),
 }) as z.ZodType<IModActionEntity>;
 
 export const UsernameChangeEntitySchema = z.object({
