@@ -78,6 +78,34 @@ describe('Qui-Gon Jinn, The Negotiations Will Be Short', () => {
             });
         });
 
+        // Regression test: with exactly one legal unit and autoSingleTarget on, declining the single-target
+        // "trigger or pass" prompt previously crashed the dependent 'deck' target.
+        it('does not crash and does not move any unit if the player declines the single-legal-target prompt', async () => {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['quigon-jinn#the-negotiations-will-be-short'],
+                    autoSingleTarget: true,
+                },
+                player2: {
+                    hand: ['rivals-fall'],
+                    groundArena: ['wampa'],
+                    hasInitiative: true,
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.rivalsFall);
+            context.player2.clickCard(context.quigonJinn);
+
+            expect(context.player1).toHaveExactPromptButtons([`Choose a non-leader ground unit. Its owner puts it on the top or bottom of their deck -> ${context.wampa.title}`, 'Pass']);
+            context.player1.clickPrompt('Pass');
+
+            // Ability should resolve as a no-op, with no further prompts for either player
+            expect(context.player1).toBeActivePlayer();
+            expect(context.wampa).toBeInZone('groundArena');
+        });
+
         it('Qui-Gon Jinn\'s when defeated ability with No Glory Only Results allows player1 to choose a non-leader ground unit and player2 puts it on bottom of their deck', async () => {
             await contextRef.setupTestAsync({
                 phase: 'action',
