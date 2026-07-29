@@ -45,10 +45,9 @@ export class OptionalSystem<TContext extends AbilityContext = AbilityContext> ex
         const sourceCard = getTriggerSourceCardSummary(context.source);
 
         context.game.promptWithHandlerMenu(context.player, {
-            activePromptTitle: `Trigger the ability '${properties.title}' or pass`,
-            choices: ['Trigger', 'Pass'],
+            activePromptTitle: 'You may trigger this ability',
+            choices: [{ text: 'Trigger', sourceCard, label: properties.title }, 'Pass'],
             promptType: PromptType.OptionalTrigger,
-            optionalTrigger: sourceCard ? { sourceCard, abilityText: properties.title } : undefined,
             handlers: [
                 () => {
                     context.game.queueSimpleStep(() => {

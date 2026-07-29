@@ -19,7 +19,10 @@ const { UiPrompt } = require('./UiPrompt.js');
  * cardHandler        - handler which is called when a card button is clicked
  * selectedCards      - an array of cards selected in previous step which are relevant for choices
  * promptType         - optional PromptType tag passed through to the client unchanged
- * optionalTrigger    - optional IOptionalTriggerPromptData passed through to the client unchanged
+ *
+ * Each entry in `choices` may be a plain string or an object. Object choices carry `text` plus optional
+ * `sourceCard`/`label` fields, which are passed through onto the button unchanged so richer prompt UIs
+ * (e.g. the optional-trigger card button) can render a card image and display label.
  */
 class HandlerMenuPrompt extends UiPrompt {
     constructor(game, player, properties) {
@@ -67,9 +70,14 @@ class HandlerMenuPrompt extends UiPrompt {
             });
         }
         buttons = buttons.concat(this.properties.choices.map((choice, index) => {
+            if (typeof choice === 'string') {
+                return { text: choice, arg: index };
+            }
             return {
-                text: typeof choice === 'string' ? choice : choice.text,
-                arg: index
+                text: choice.text,
+                arg: index,
+                ...(choice.sourceCard != null && { sourceCard: choice.sourceCard }),
+                ...(choice.label != null && { label: choice.label })
             };
         }));
         if (this.game.manualMode && (!this.properties.choices || this.properties.choices.every((choice) => (typeof choice === 'string' ? choice : choice.text) !== 'Cancel'))) {
@@ -81,8 +89,7 @@ class HandlerMenuPrompt extends UiPrompt {
             controls: this.getAdditionalPromptControls(),
             promptTitle: this.properties.source.name,
             promptUuid: this.uuid,
-            promptType: this.properties.promptType,
-            optionalTrigger: this.properties.optionalTrigger
+            promptType: this.properties.promptType
         };
     }
 

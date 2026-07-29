@@ -32,6 +32,9 @@ export interface IButton {
     arg: string;
     command?: string;
     disabled?: boolean;
+
+    /** Optional display label rendered in place of `text` by richer prompt UIs (e.g. the ability name on an optional-trigger card button). Never used for command matching. */
+    label?: string;
 }
 
 export interface ITriggerWindowSourceCard {
@@ -76,16 +79,6 @@ export interface IBatchTriggerResolutionPromptData {
     sourceCard?: ITriggerWindowSourceCard;
     title: string;
     remainingCount: number;
-}
-
-/**
- * Payload for the optional triggered-ability "Trigger or Pass" prompt, letting the client render the
- * source card as the trigger button. Omitted when the ability's source isn't a real card, in which case
- * the client falls back to a plain text prompt.
- */
-export interface IOptionalTriggerPromptData {
-    sourceCard?: ITriggerWindowSourceCard;
-    abilityText: string;
 }
 
 export interface INumberPromptData {

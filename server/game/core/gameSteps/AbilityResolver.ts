@@ -403,10 +403,9 @@ export class AbilityResolver extends BaseStepWithPipeline {
             const sourceCard = getTriggerSourceCardSummary(this.context.source);
 
             this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
-                activePromptTitle: `Trigger the ability '${abilityText}' or pass`,
-                choices: ['Trigger', this.passAbilityHandler.buttonText],
+                activePromptTitle: 'You may trigger this ability',
+                choices: [{ text: 'Trigger', sourceCard, label: abilityText }, this.passAbilityHandler.buttonText],
                 promptType: PromptType.OptionalTrigger,
-                optionalTrigger: sourceCard ? { sourceCard, abilityText } : undefined,
                 handlers: [
                     () => undefined,
                     () => {
