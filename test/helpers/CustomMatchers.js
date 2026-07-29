@@ -536,7 +536,7 @@ var customMatchers = {
                     result.message = `Expected ${player.name} not to have pass-ability prompt for '${abilityText}' but it did.`;
                 } else {
                     result.message = `Expected ${player.name} to have pass-ability prompt for '${abilityText}' ` +
-                      `(header '${headerText}' with a 'Trigger' button labeled '${abilityText}') but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                    `(header '${headerText}' with a 'Trigger' button labeled '${abilityText}') but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
