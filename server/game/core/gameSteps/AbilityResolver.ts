@@ -8,7 +8,6 @@ import type { ITargetResult } from '../ability/abilityTargets/TargetResolver.js'
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { Player } from '../Player.js';
 import { Helpers } from '../utils/Helpers.js';
-import { PromptType } from './PromptInterfaces.js';
 import { getTriggerSourceCardSummary } from './abilityWindow/TriggerWindowBase.js';
 
 export interface IPassAbilityHandler {
@@ -399,19 +398,12 @@ export class AbilityResolver extends BaseStepWithPipeline {
         if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
             this.passAbilityHandler.hasBeenShown = true;
 
-            const abilityText = this.getAbilityPromptTitle(this.context);
-            const sourceCard = getTriggerSourceCardSummary(this.context.source);
-
-            this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
-                activePromptTitle: 'You may trigger this ability',
-                choices: [{ text: 'Trigger', sourceCard, label: abilityText }, this.passAbilityHandler.buttonText],
-                promptType: PromptType.OptionalTrigger,
-                handlers: [
-                    () => undefined,
-                    () => {
-                        this.passAbilityHandler.handler();
-                    }
-                ]
+            this.game.promptWithOptionalTrigger(this.passAbilityHandler.playerChoosing, {
+                sourceCard: getTriggerSourceCardSummary(this.context.source),
+                abilityText: this.getAbilityPromptTitle(this.context),
+                passButtonText: this.passAbilityHandler.buttonText,
+                onTrigger: () => undefined,
+                onPass: () => this.passAbilityHandler.handler()
             });
         }
     }

@@ -13,6 +13,8 @@ import { RegroupPhase } from './gameSteps/phases/RegroupPhase';
 import { SimpleStep } from './gameSteps/SimpleStep';
 import MenuPrompt from './gameSteps/prompts/MenuPrompt';
 import HandlerMenuPrompt from './gameSteps/prompts/HandlerMenuPrompt';
+import { OptionalTriggerPrompt } from './gameSteps/prompts/OptionalTriggerPrompt';
+import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/OptionalTriggerPrompt';
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
@@ -994,6 +996,16 @@ export class Game extends EventEmitter {
         } else {
             this.queueStep(new HandlerMenuPrompt(this, player, properties));
         }
+    }
+
+    /**
+     * Prompts a player to resolve or decline a single optional triggered ability, rendering its source
+     * card as the Trigger button.
+     */
+    public promptWithOptionalTrigger(player: Player, properties: IOptionalTriggerPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new OptionalTriggerPrompt(this, player, properties));
     }
 
     public promptDisplayCardsWithButtons(player: Player, properties: IDisplayCardsWithButtonsPromptProperties): void {

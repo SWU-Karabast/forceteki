@@ -6,7 +6,6 @@ import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { MsgArg } from '../core/chat/GameChat';
-import { PromptType } from '../core/gameSteps/PromptInterfaces';
 import { getTriggerSourceCardSummary } from '../core/gameSteps/abilityWindow/TriggerWindowBase';
 
 export interface IOptionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
@@ -44,22 +43,19 @@ export class OptionalSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const sourceCard = getTriggerSourceCardSummary(context.source);
 
-        context.game.promptWithHandlerMenu(context.player, {
-            activePromptTitle: 'You may trigger this ability',
-            choices: [{ text: 'Trigger', sourceCard, label: properties.title }, 'Pass'],
-            promptType: PromptType.OptionalTrigger,
-            handlers: [
-                () => {
-                    context.game.queueSimpleStep(() => {
-                        const [effectMessage, effectArgs] = properties.innerSystem.getEffectMessage(context);
-                        const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
-                        context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+        context.game.promptWithOptionalTrigger(context.player, {
+            sourceCard,
+            abilityText: properties.title,
+            onTrigger: () => {
+                context.game.queueSimpleStep(() => {
+                    const [effectMessage, effectArgs] = properties.innerSystem.getEffectMessage(context);
+                    const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
+                    context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
 
-                        properties.innerSystem.queueGenerateEventGameSteps(events, context, additionalProperties);
-                    }, `queue generate event game steps for ${this.name}`);
-                },
-                () => undefined,
-            ],
+                    properties.innerSystem.queueGenerateEventGameSteps(events, context, additionalProperties);
+                }, `queue generate event game steps for ${this.name}`);
+            },
+            onPass: () => undefined,
         });
     }
 
