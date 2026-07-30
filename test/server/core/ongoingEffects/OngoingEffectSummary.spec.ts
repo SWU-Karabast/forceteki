@@ -104,6 +104,41 @@ describe('Ongoing effect summary', function() {
             });
         });
 
+        describe('abilities and keywords granted to an attached unit', function() {
+            it('names the numeric keyword an upgrade grants to its attached unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['devotion'] }] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                expect(context.devotion).toHaveOngoingEffect('Give Restore 2 to the attached unit');
+            });
+
+            it('names the non-numeric keyword an upgrade grants to its attached unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['protector'] }] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                expect(context.protector).toHaveOngoingEffect('Give Sentinel to the attached unit');
+            });
+
+            it('describes the triggered ability an upgrade grants to its attached unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['battle-fury'] }] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                expect(context.battleFury).toHaveOngoingEffect('Give “On Attack: Discard a card from your hand” to the attached unit');
+            });
+        });
+
         describe('delayed effects', function() {
             it('describes a delayed effect using its own title', async function() {
                 await contextRef.setupTestAsync({

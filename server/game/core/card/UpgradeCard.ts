@@ -10,6 +10,7 @@ import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationEffectAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../Interfaces';
 import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
+import { giveAbilityToAttachedUnitTitle, giveKeywordToAttachedUnitTitle } from '../ongoingEffect/effectImpl/GainAbilityDescription';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
@@ -93,11 +94,12 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
      */
     private addGainConstantAbilityTargetingAttached(properties: IConstantAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
+        const gainedAbility = { type: AbilityType.Constant as const, ...gainedAbilityProperties };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Constant, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbility)
         }, registrar);
     }
 
@@ -107,31 +109,34 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
      */
     private addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
+        const gainedAbility = { type: AbilityType.Triggered as const, ...gainedAbilityProperties };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbility)
         }, registrar);
     }
 
     private addReplacementEffectAbilityTargetingAttached(properties: IReplacementEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
+        const gainedAbility = { type: AbilityType.ReplacementEffect as const, ...gainedAbilityProperties };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.ReplacementEffect, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbility)
         }, registrar);
     }
 
     private addDamageModificationAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
+        const gainedAbility = { type: AbilityType.DamageModification as const, ...gainedAbilityProperties };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainDamageModificationAbility({ type: AbilityType.DamageModification, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainDamageModificationAbility(gainedAbility)
         }, registrar);
     }
 
@@ -141,11 +146,12 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
      */
     private addGainActionAbilityTargetingAttached(properties: IActionAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
+        const gainedAbility = { type: AbilityType.Action as const, ...gainedAbilityProperties };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbility)
         }, registrar);
     }
 
@@ -156,22 +162,24 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     private addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.OnAttack]: true };
+        const gainedAbility = { type: AbilityType.Triggered as const, ...gainedAbilityProperties, when };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties, when })
+            ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbility)
         }, registrar);
     }
 
     private addGainOnDefenseAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.OnDefense]: true };
+        const gainedAbility = { type: AbilityType.Triggered as const, ...gainedAbilityProperties, when };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties, when })
+            ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbility)
         }, registrar);
     }
 
@@ -184,12 +192,12 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     private addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
-        const propsWithWhen = Object.assign(gainedAbilityProperties, { when });
+        const gainedAbility = { type: AbilityType.Triggered as const, ...gainedAbilityProperties, when };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
+            ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbility)
         }, registrar);
     }
 
@@ -198,11 +206,12 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         const when: WhenTypeOrStandard = {
             onAttackEnd: (event, context) => event.attack.attacker === context.source
         };
+        const gainedAbility = { type: AbilityType.Triggered as const, ...gainedAbilityProperties, when };
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give ability to the attached card',
+            title: giveAbilityToAttachedUnitTitle(gainedAbility),
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties, when })
+            ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbility)
         }, registrar);
     }
 
@@ -214,7 +223,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         const { gainCondition, ...keywordProperties } = properties;
 
         this.addConstantAbilityTargetingAttached({
-            title: 'Give keyword to the attached card',
+            title: giveKeywordToAttachedUnitTitle(keywordProperties),
             condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: OngoingEffectLibrary.gainKeyword(keywordProperties)
         }, registrar);
