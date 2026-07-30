@@ -19,6 +19,7 @@ describe('Cunning Ploy', function() {
 
                 context.player1.clickCard(context.cunningPloy);
 
+                expect(context.player1).toHavePrompt('Discard a card. If you do, that player draws a card.');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.wampa, context.atst]
                 });
@@ -170,7 +171,7 @@ describe('Cunning Ploy', function() {
                 context.player1.clickCard(context.cunningPloy);
                 context.player1.clickCard(context.sundariPeacekeeper); // Resolve the mandatory exhaust step
 
-                expect(context.player1).toHavePrompt('You may attack with a unit. It gets +3/+0 for this attack');
+                expect(context.player1).toHavePrompt('Attack with a unit. It gets +3/+0 for this attack');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 expect(context.player1).toHavePassAbilityButton();
 

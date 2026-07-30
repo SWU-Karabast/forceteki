@@ -15,6 +15,7 @@ export default class CunningPloy extends EventCard {
         registrar.setEventAbility({
             title: 'Look at an opponent\'s hand. You may discard a card from it. If you do, that player draws a card. Exhaust an enemy unit. You may attack with a unit. It gets +3/+0 for this attack.',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
+                activePromptTitle: 'Discard a card. If you do, that player draws a card.',
                 target: context.player.opponent.hand,
                 canChooseFewer: true,
                 immediateEffect: AbilityHelper.immediateEffects.sequential({
@@ -32,7 +33,7 @@ export default class CunningPloy extends EventCard {
                     immediateEffect: AbilityHelper.immediateEffects.exhaust(),
                 },
                 then: {
-                    title: 'You may attack with a unit. It gets +3/+0 for this attack',
+                    title: 'Attack with a unit. It gets +3/+0 for this attack',
                     optional: true,
                     targetResolver: {
                         immediateEffect: AbilityHelper.immediateEffects.attack({
