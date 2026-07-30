@@ -42,6 +42,20 @@ describe('Ongoing effect summary', function() {
                 expect(context.millenniumFalcon).toHaveNoOngoingEffects();
             });
 
+            it('never surfaces an effect sourced from a facedown resource, even to its controller', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { resources: ['millennium-falcon#piece-of-junk', 'atst', 'atst', 'atst', 'atst'] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                // the Falcon's "enters play ready" is active from any zone, but as a blanked resource it must
+                // not appear as a board effect for anyone - not even its controller
+                expect(context.millenniumFalcon).toHaveNoOngoingEffects();
+                expect(context.millenniumFalcon).toHaveNoOngoingEffectsForPlayer(context.player1);
+            });
+
             it('shows an effect sourced from a hidden zone to the card\'s controller but not the opponent', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

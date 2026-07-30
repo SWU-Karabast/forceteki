@@ -1,4 +1,4 @@
-import { Duration, EffectName, EventName, RelativePlayer } from '../Constants';
+import { Duration, EffectName, EventName, RelativePlayer, ZoneName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
 import type { OngoingEffect } from './OngoingEffect';
 import type { OngoingEffectSourceBase } from './OngoingEffectSource';
@@ -246,6 +246,14 @@ export class OngoingEffectEngine extends GameObjectBase {
             }
 
             const source = effect.source as Card;
+
+            // Don't surface effects sourced from a facedown resource. Cards active from the resource zone
+            // (e.g. "enters play ready" or Smuggle-related modifiers, all active-from-any-zone) only modify
+            // how that card itself plays/enters, so showing them as board effects on a blank resource is
+            // misleading rather than informative.
+            if (source.zoneName === ZoneName.Resource) {
+                continue;
+            }
 
             // Don't surface effects sourced from a hidden zone (e.g. a card active from hand/deck
             // such as "enters play ready") since that would leak the presence of a hidden card.
