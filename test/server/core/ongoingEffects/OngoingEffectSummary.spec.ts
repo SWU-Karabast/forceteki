@@ -21,8 +21,7 @@ describe('Ongoing effect summary', function() {
             it('shows an effect sourced from a visible in-play card, even one active from any zone', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { spaceArena: ['millennium-falcon#piece-of-junk'] },
-                    player2: {}
+                    player1: { spaceArena: ['millennium-falcon#piece-of-junk'] }
                 });
                 const { context } = contextRef;
 
@@ -32,8 +31,7 @@ describe('Ongoing effect summary', function() {
             it('hides an effect sourced from a hidden zone so the card is not leaked', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { hand: ['millennium-falcon#piece-of-junk'] },
-                    player2: {}
+                    player1: { hand: ['millennium-falcon#piece-of-junk'] }
                 });
                 const { context } = contextRef;
 
@@ -45,8 +43,7 @@ describe('Ongoing effect summary', function() {
             it('never surfaces an effect sourced from a facedown resource, even to its controller', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { resources: ['millennium-falcon#piece-of-junk', 'atst', 'atst', 'atst', 'atst'] },
-                    player2: {}
+                    player1: { resources: ['millennium-falcon#piece-of-junk', 'atst', 'atst', 'atst', 'atst'] }
                 });
                 const { context } = contextRef;
 
@@ -59,8 +56,7 @@ describe('Ongoing effect summary', function() {
             it('shows an effect sourced from a hidden zone to the card\'s controller but not the opponent', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { hand: ['millennium-falcon#piece-of-junk'] },
-                    player2: {}
+                    player1: { hand: ['millennium-falcon#piece-of-junk'] }
                 });
                 const { context } = contextRef;
 
@@ -109,8 +105,7 @@ describe('Ongoing effect summary', function() {
             it('uses the lasting effect\'s explicit title for a keyword chosen via Select', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { hand: ['admiral-yularen#fleet-coordinator'], spaceArena: ['cartel-spacer'] },
-                    player2: {}
+                    player1: { hand: ['admiral-yularen#fleet-coordinator'], spaceArena: ['cartel-spacer'] }
                 });
                 const { context } = contextRef;
 
@@ -123,8 +118,7 @@ describe('Ongoing effect summary', function() {
             it('describes each constant ability of a unit using its ability title', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { spaceArena: ['millennium-falcon#get-out-and-push'] },
-                    player2: {}
+                    player1: { spaceArena: ['millennium-falcon#get-out-and-push'] }
                 });
                 const { context } = contextRef;
 
@@ -139,8 +133,7 @@ describe('Ongoing effect summary', function() {
             it('names the numeric keyword an upgrade grants to its attached unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['devotion'] }] },
-                    player2: {}
+                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['devotion'] }] }
                 });
                 const { context } = contextRef;
 
@@ -150,8 +143,7 @@ describe('Ongoing effect summary', function() {
             it('names the non-numeric keyword an upgrade grants to its attached unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['protector'] }] },
-                    player2: {}
+                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['protector'] }] }
                 });
                 const { context } = contextRef;
 
@@ -161,8 +153,7 @@ describe('Ongoing effect summary', function() {
             it('describes the triggered ability an upgrade grants to its attached unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['battle-fury'] }] },
-                    player2: {}
+                    player1: { groundArena: [{ card: 'battlefield-marine', upgrades: ['battle-fury'] }] }
                 });
                 const { context } = contextRef;
 
@@ -174,8 +165,7 @@ describe('Ongoing effect summary', function() {
             it('describes a delayed effect using its own title', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { hand: ['sneak-attack', 'wampa'] },
-                    player2: {}
+                    player1: { hand: ['sneak-attack', 'wampa'] }
                 });
                 const { context } = contextRef;
 
