@@ -524,15 +524,15 @@ export class Game extends EventEmitter {
     /**
      * Checks if a player is a spectator
      */
-    public isSpectator(player: Player | Spectator): player is Spectator {
-        return player.constructor === Spectator;
+    public isSpectator(player: Player | Spectator | AnonymousSpectator): player is Spectator | AnonymousSpectator {
+        return !this.isPlayer(player);
     }
 
     /**
      * Checks if a player is a player
      */
-    public isPlayer(player: Player | Spectator): player is Player {
-        return !this.isSpectator(player);
+    public isPlayer(player: Player | Spectator | AnonymousSpectator): player is Player {
+        return player.constructor === Player;
     }
 
     /**
@@ -1684,7 +1684,8 @@ export class Game extends EventEmitter {
                 for (const player of this.getPlayers()) {
                     playerState[player.id] = player.getStateSummary(activePlayer);
                 }
-                const ongoingEffects = this.ongoingEffectEngine.summarizeOngoingEffectsForState();
+
+                const ongoingEffects = this.ongoingEffectEngine.summarizeOngoingEffectsForState(this.isPlayer(activePlayer) ? activePlayer : null);
                 const allMessages = this.gameChat.messages;
                 const totalMessages = allMessages.length;
                 const newMessages = allMessages.slice(lastMessageOffset);

@@ -14,6 +14,7 @@ import { registerState, stateRefArray, statePrimitive, type GameObjectId } from 
 import type { MsgArg } from '../chat/GameChat';
 import type { IOngoingEffectSummary } from '../../Interfaces';
 import type { Card } from '../card/Card';
+import type { Player } from '../Player';
 
 interface ICustomDurationEventState extends IGameObjectBaseState {
     isRegistered: boolean;
@@ -228,23 +229,34 @@ export class OngoingEffectEngine extends GameObjectBase {
     /**
      * Returns the currently active ongoing effects in a shape the FE renders directly.
      */
-    public summarizeOngoingEffectsForState(): IOngoingEffectSummary[] {
+    public summarizeOngoingEffectsForState(activePlayer?: Player): IOngoingEffectSummary[] {
         const summaries: IOngoingEffectSummary[] = [];
+
+        const getRelativePlayer = (activePlayer: Player | null | undefined, otherPlayer: Player) => {
+            if (!activePlayer) {
+                return RelativePlayer.Self;
+            }
+
+            return EnumHelpers.asRelativePlayer(activePlayer, otherPlayer);
+        };
 
         for (const effect of this.effects) {
             if (!effect.isEffectActive() || !effect.source?.isCard?.()) {
                 continue;
             }
+
+            const source = effect.source as Card;
+
             // Don't surface effects sourced from a hidden zone (e.g. a card active from hand/deck
             // such as "enters play ready") since that would leak the presence of a hidden card.
-            if (EnumHelpers.isHiddenFromOpponent(effect.source.zoneName, RelativePlayer.Self)) {
+            if (EnumHelpers.isHiddenFromOpponent(source.zoneName, getRelativePlayer(activePlayer, source.controller.opponent))) {
                 continue;
             }
+
             if (effectLimitReached(effect)) {
                 continue;
             }
 
-            const source = effect.source as Card;
             summaries.push({
                 sourceCardUuid: source.uuid,
                 source: {
@@ -259,7 +271,7 @@ export class OngoingEffectEngine extends GameObjectBase {
                 targets: effect.targets
                     .filter((effectTarget) =>
                         effectTarget?.isCard?.() &&
-                        !EnumHelpers.isHiddenFromOpponent(effectTarget.zoneName, RelativePlayer.Self))
+                        !EnumHelpers.isHiddenFromOpponent(effectTarget.zoneName, getRelativePlayer(activePlayer, effectTarget.controller.opponent)))
                     .map((effectTarget) => effectTarget.uuid),
             });
         }
