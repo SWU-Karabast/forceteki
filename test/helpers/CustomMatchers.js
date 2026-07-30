@@ -1306,6 +1306,46 @@ var customMatchers = {
     },
 
     /**
+     * Per-viewer counterpart to `toHaveExactOngoingEffects`. Asserts the exact set of ongoing effects
+     * a card sources as seen by `player` (a player interaction wrapper), since hidden-zone effects are
+     * only visible to the controlling player.
+     */
+    toHaveExactOngoingEffectsForPlayer: function () {
+        return {
+            compare: function (card, player, expectedEffects) {
+                if (!Array.isArray(expectedEffects)) {
+                    throw new TestSetupError(`Parameter 'expectedEffects' is not an array: ${expectedEffects}`);
+                }
+                return compareOngoingEffects(card, expectedEffects, { exact: true, viewer: player });
+            }
+        };
+    },
+
+    /**
+     * Per-viewer counterpart to `toHaveOngoingEffect`. Asserts the card sources at least one ongoing
+     * effect matching the expectation as seen by `player` (a player interaction wrapper).
+     */
+    toHaveOngoingEffectForPlayer: function () {
+        return {
+            compare: function (card, player, expectedEffect) {
+                return compareOngoingEffects(card, [expectedEffect], { exact: false, viewer: player });
+            }
+        };
+    },
+
+    /**
+     * Per-viewer counterpart to `toHaveNoOngoingEffects`. Asserts the card sources no ongoing effects
+     * visible to `player` (a player interaction wrapper).
+     */
+    toHaveNoOngoingEffectsForPlayer: function () {
+        return {
+            compare: function (card, player) {
+                return compareOngoingEffects(card, [], { exact: true, viewer: player });
+            }
+        };
+    },
+
+    /**
      * Checks if the actual array contains at least the elements of the expected array. Required for the new UndoArray class.
      * @param {jasmine.MatchersUtil} matchersUtil
      */
@@ -1376,8 +1416,29 @@ function checkConsistentZoneState(card, result) {
     return true;
 }
 
-/** Returns the ongoing effect summary entries whose source is the given card. */
-function getOngoingEffectSummariesForCard(card) {
+/**
+ * Resolves the perspective an ongoing effect expectation should be evaluated from. Accepts a player
+ * interaction wrapper (or a raw Player) and returns the underlying Player, or `null` for the default
+ * spectator perspective (which mirrors what the frontend sends to a non-player observer).
+ */
+function resolveOngoingEffectViewer(viewer) {
+    if (viewer == null) {
+        return null;
+    }
+    if (typeof viewer === 'string') {
+        throw new TestSetupError('This expectation requires a player (or player interaction wrapper), not a name');
+    }
+
+    // PlayerInteractionWrapper exposes the underlying Player via `.player`; allow a raw Player too.
+    const player = viewer.player ?? viewer;
+    if (player == null || typeof player.id !== 'string') {
+        throw new TestSetupError('This expectation requires a player (or player interaction wrapper)');
+    }
+    return player;
+}
+
+/** Returns the ongoing effect summary entries whose source is the given card, from `viewer`'s perspective. */
+function getOngoingEffectSummariesForCard(card, viewer) {
     if (typeof card === 'string') {
         throw new TestSetupError('This expectation requires a card object, not a name');
     }
@@ -1388,7 +1449,7 @@ function getOngoingEffectSummariesForCard(card) {
     const resolveName = (uuid) => card.game.gameObjectManager.get(uuid)?.internalName ?? uuid;
 
     return card.game.ongoingEffectEngine
-        .summarizeOngoingEffectsForState()
+        .summarizeOngoingEffectsForState(viewer)
         .filter((entry) => entry.sourceCardUuid === card.uuid)
         .map((entry) => ({
             description: entry.source.effectDescription,
@@ -1452,10 +1513,14 @@ function formatExpectedOngoingEffect(expected) {
     return formatOngoingEffectDescription(expected.description, expected.targetNames);
 }
 
-function compareOngoingEffects(card, expectedEffectsRaw, { exact }) {
+function compareOngoingEffects(card, expectedEffectsRaw, { exact, viewer }) {
     const result = {};
-    const actual = getOngoingEffectSummariesForCard(card);
+    const viewerPlayer = resolveOngoingEffectViewer(viewer);
+    const actual = getOngoingEffectSummariesForCard(card, viewerPlayer);
     const expected = expectedEffectsRaw.map(normalizeExpectedOngoingEffect);
+
+    // only annotate the perspective when a viewer was explicitly given (the *ForPlayer matchers)
+    const perspective = viewer === undefined ? '' : ` (as seen by ${viewerPlayer ? viewerPlayer.name : 'a spectator'})`;
 
     // greedily match each expectation against a distinct actual effect
     const remainingActual = [...actual];
@@ -1505,7 +1570,7 @@ function compareOngoingEffects(card, expectedEffectsRaw, { exact }) {
         }
     }
 
-    message += `\n\nAll ongoing effects currently sourced by ${card.internalName}:\n${allActualStr}`;
+    message += `\n\nAll ongoing effects currently sourced by ${card.internalName}${perspective}:\n${allActualStr}`;
     result.message = message;
 
     return result;

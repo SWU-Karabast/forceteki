@@ -38,7 +38,24 @@ describe('Ongoing effect summary', function() {
                 const { context } = contextRef;
 
                 // "enters play ready" is active from any zone, but the Falcon is in hand - it must stay hidden
+                // from the default (spectator) perspective the matchers use
                 expect(context.millenniumFalcon).toHaveNoOngoingEffects();
+            });
+
+            it('shows an effect sourced from a hidden zone to the card\'s controller but not the opponent', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { hand: ['millennium-falcon#piece-of-junk'] },
+                    player2: {}
+                });
+                const { context } = contextRef;
+
+                // the Falcon is active-from-hand for player1, so only player1 may see the effect (and its
+                // own hidden-zone card as the target); player2 must not have it leaked to them
+                expect(context.millenniumFalcon).toHaveExactOngoingEffectsForPlayer(context.player1, [
+                    { description: 'This unit enters play ready', targets: [context.millenniumFalcon] }
+                ]);
+                expect(context.millenniumFalcon).toHaveNoOngoingEffectsForPlayer(context.player2);
             });
 
             it('uses the lasting effect\'s explicit title for a modal-choice effect (ability title is just a header)', async function() {

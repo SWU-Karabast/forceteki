@@ -152,6 +152,9 @@ declare namespace jasmine {
         toHaveExactOngoingEffects(expectedEffects: (string | { description: string; targets?: Card[] })[]): boolean;
         toHaveOngoingEffect(expectedEffect: string | { description: string; targets?: Card[] }): boolean;
         toHaveNoOngoingEffects(): boolean;
+        toHaveExactOngoingEffectsForPlayer(player: PlayerInteractionWrapper, expectedEffects: (string | { description: string; targets?: Card[] })[]): boolean;
+        toHaveOngoingEffectForPlayer(player: PlayerInteractionWrapper, expectedEffect: string | { description: string; targets?: Card[] }): boolean;
+        toHaveNoOngoingEffectsForPlayer(player: PlayerInteractionWrapper): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
         toHaveNumericPromptRange<T extends PlayerInteractionWrapper>(this: Matchers<T>, min: number, max: number): boolean;
