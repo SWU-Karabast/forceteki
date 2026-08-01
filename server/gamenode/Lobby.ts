@@ -1087,6 +1087,7 @@ export class Lobby {
             return {
                 id: this.id,
                 isPrivate: this.isPrivate,
+                allowSpectators: this.spectationAllowed,
                 player1Leader: player1.deck.leader,
                 player1Base: player1.deck.base,
                 player2Leader: player2.deck.leader,
