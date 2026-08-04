@@ -280,7 +280,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             : ByoyomiTimer.MainTimeWarningSeconds;
         const alertType = status === PlayerTimeRemainingStatus.Danger ? AlertType.Danger : AlertType.Warning;
 
-        this.game.addAlert(alertType, `${this.name} has ${secondsRemaining} seconds of main time remaining.`);
+        this.game.addAlert(alertType, '{0} has {1} seconds of main time remaining.', this, secondsRemaining);
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
