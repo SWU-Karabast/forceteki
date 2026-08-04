@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://karabast.net/swu-pgn/1.1/deck.schema.json",
+  "type": "object",
+  "required": ["p","leader","base","deck"],
+  "properties": {
+    "p": { "enum": [1,2] },
+    "leader": { "type": "string" },
+    "base": { "type": "string" },
+    "deck": { "type": "array", "items": { "type": "array", "prefixItems": [{ "type": "string" }, { "type": "integer" }], "minItems": 2, "maxItems": 2 } },
+    "sideboard": { "type": "array", "items": { "type": "array", "prefixItems": [{ "type": "string" }, { "type": "integer" }], "minItems": 2, "maxItems": 2 } }
+  },
+  "additionalProperties": false
+}

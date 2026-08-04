@@ -1,0 +1,10 @@
+{
+  "round": 1,
+  "phase": "action",
+  "initiative": null,
+  "players": {
+    "1": { "seat": 1, "baseHp": 30, "baseMaxHp": 30, "handSize": 0, "hand": [], "resourcesReady": 0, "resourcesExhausted": 0, "credits": 0, "hasForce": false, "discard": [],
+           "cards": [ { "id": "SOR#108", "zone": "ground", "damage": 0, "exhausted": true, "upgrades": [], "shields": 0, "experience": 0, "statusTokens": {} } ] },
+    "2": { "seat": 2, "baseHp": 28, "baseMaxHp": 30, "handSize": 0, "hand": [], "resourcesReady": 0, "resourcesExhausted": 0, "credits": 0, "hasForce": false, "discard": [], "cards": [] }
+  }
+}
