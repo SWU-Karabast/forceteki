@@ -774,7 +774,7 @@ export class Game extends EventEmitter {
         }
 
         player.opponent.actionTimer.stop();
-        this.addAlert(AlertType.Notification, `Game ended due to ${player.name} timing out.`);
+        this.addAlert(AlertType.Notification, 'Game ended due to {0} timing out.', player);
 
         if (player.opponent.actionTimer.totalTimeRemainingSeconds < 3) {
             // Both players nearly timed out - treat as draw, don't forfeit Bo3 set
