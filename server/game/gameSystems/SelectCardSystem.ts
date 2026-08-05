@@ -23,6 +23,7 @@ export type ISelectCardProperties<TContext extends AbilityContext = AbilityConte
       effect?: string;
       effectArgs?: (context) => string[];
       cancelIfNoTargets?: boolean;
+      showCancelButton?: boolean;
   };
 
 /**
@@ -77,7 +78,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         }
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const canCancel = properties.cancelHandler != null;
+        const canCancel = properties.cancelHandler != null && (properties.showCancelButton ?? true);
 
         const targetResolver = this.generateTargetResolver(context, additionalProperties);
         const targetResults = context.ability?.getDefaultTargetResults(context, canCancel) ?? {

@@ -136,6 +136,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                         interactMode: ViewCardInteractMode.ViewOnly
                     }),
                     cancelHandler: events ? () => events.forEach((event) => event.cancel()) : null,
+                    showCancelButton: false,
                     onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
                     cancelIfNoTargets: true,
                 });
@@ -158,6 +159,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                         interactMode: ViewCardInteractMode.ViewOnly
                     }),
                     cancelHandler: events ? () => events.forEach((event) => event.cancel()) : null,
+                    showCancelButton: false,
                     onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
                     cancelIfNoTargets: true,
                 });
@@ -179,6 +181,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                         interactMode: ViewCardInteractMode.ViewOnly
                     }),
                     cancelHandler: events ? () => events.forEach((event) => event.cancel()) : null,
+                    showCancelButton: false,
                     onSelectHandler: (cards) => this.updateEventsWithSelectedCards(events, cards),
                     cancelIfNoTargets: true,
                 });
