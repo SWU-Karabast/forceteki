@@ -233,6 +233,42 @@ const mockCards = [
         arena: 'ground',
         internalName: 'jar-jar-binks#bumbling-representative'
     }),
+    buildMockCard({
+        title: 'Grand Admiral Thrawn',
+        subtitle: 'Listen to Me Carefully',
+        cost: 6,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 24
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-admiral-thrawn#listen-to-me-carefully'
+    }),
+    buildMockCard({
+        title: 'Qui-Gon Jinn',
+        subtitle: 'Unwavering Belief',
+        cost: 5,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['republic', 'force', 'jedi'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 79
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'quigon-jinn#unwavering-belief'
+    }),
     // -------- End Mock Cards --------
 ];
 
