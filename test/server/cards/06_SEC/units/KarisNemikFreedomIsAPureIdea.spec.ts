@@ -65,5 +65,38 @@ describe('Karis Nemik, Freedom Is A Pure Idea', function() {
             expect(spies).toAllBeInZone('groundArena');
             expect(spies.every((spy) => spy.exhausted)).toBeFalse();
         });
+
+        it('Karis Nemik\'s when defeated ability should trigger for its controller after an opponent-controlled Grav Charge defeats it', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['wrecker#boom'],
+                    groundArena: [{
+                        card: 'karis-nemik#freedom-is-a-pure-idea',
+                        upgrades: [{ card: 'grav-charge', ownerAndController: 'player2' }]
+                    }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.karisNemik);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.karisNemik).toBeInZone('discard', context.player1);
+            expect(context.gravCharge).toBeInZone('discard', context.player2);
+            expect(context.player1).toHavePrompt('Disclose Aggression, Heroism to create a Spy token and ready it');
+            expect(context.player1).toBeAbleToSelectExactly([context.wrecker]);
+            context.player1.clickCard(context.wrecker);
+
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([context.wrecker]);
+            context.player2.clickDone();
+
+            const spies = context.player1.findCardsByName('spy');
+            expect(spies.length).toBe(1);
+            expect(spies).toAllBeInZone('groundArena');
+            expect(spies.every((spy) => spy.exhausted)).toBeFalse();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

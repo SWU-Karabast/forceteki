@@ -352,9 +352,10 @@ class GameStateBuilder {
      * this is so that we can access things as "this.<cardName>"
      */
     convertNonDuplicateCardNamesToProperties(players, cardNames, controlSwapped = []) {
-        let mapToPropertyNamesWithCards = (cardNames, player) => cardNames.map((cardName) =>
+        let mapToPropertyNamesWithCards = (cardNames, player, playerNumber) => cardNames.map((cardName) =>
             this.internalNameToPropertyNames(cardName).map((propertyName) => {
-                const isControlSwapped = controlSwapped.filter((card) => card.card === cardName && card.ownerAndController !== player.player.name);
+                const isOwnedByPlayer = (card) => card.ownerAndController === player.player.name || card.ownerAndController.endsWith(playerNumber);
+                const isControlSwapped = controlSwapped.filter((card) => card.card === cardName && !isOwnedByPlayer(card));
                 return {
                     propertyName: propertyName,
                     cardObj: (isControlSwapped.length > 0) ? player.findCardByName(cardName, 'any', 'opponent') : player.findCardByName(cardName)
@@ -362,8 +363,8 @@ class GameStateBuilder {
             })
         ).flat();
 
-        let propertyNamesWithCards = mapToPropertyNamesWithCards(cardNames[0], players[0])
-            .concat(mapToPropertyNamesWithCards(cardNames[1], players[1]));
+        let propertyNamesWithCards = mapToPropertyNamesWithCards(cardNames[0], players[0], '1')
+            .concat(mapToPropertyNamesWithCards(cardNames[1], players[1], '2'));
 
         // remove all instances of any names that are duplicated
         propertyNamesWithCards.sort((a, b) => {
