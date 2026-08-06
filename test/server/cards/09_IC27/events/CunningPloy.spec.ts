@@ -9,7 +9,7 @@ describe('Cunning Ploy', function() {
                     },
                     player2: {
                         hand: ['wampa', 'atst'],
-                        deck: ['pyke-sentinel']
+                        deck: ['pyke-sentinel', 'sundari-peacekeeper']
                     }
                 });
             });
@@ -30,6 +30,7 @@ describe('Cunning Ploy', function() {
                 // The chosen card is discarded and the opponent draws a replacement
                 expect(context.wampa).toBeInZone('discard', context.player2);
                 expect(context.pykeSentinel).toBeInZone('hand', context.player2);
+                expect(context.sundariPeacekeeper).toBeInZone('deck', context.player2); // Only 1 card was drawn, so the other card remains in the deck
                 expect(context.player2.handSize).toBe(2);
 
                 // No enemy units or friendly units exist, so the rest of the ability has no legal targets
@@ -73,11 +74,13 @@ describe('Cunning Ploy', function() {
 
             // Opponent's hand is empty, so the look-at-hand step has no legal target and is skipped;
             // the ability proceeds directly to the mandatory exhaust step
+            expect(context.player1).toHavePrompt('Exhaust an enemy unit');
             expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper]);
             context.player1.clickCard(context.sundariPeacekeeper);
             expect(context.sundariPeacekeeper.exhausted).toBe(true);
 
             // The optional attack step still resolves normally
+            expect(context.player1).toHavePrompt('Attack with a unit. It gets +3/+0 for this attack');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCard(context.p2Base);
@@ -141,11 +144,38 @@ describe('Cunning Ploy', function() {
                 // No enemy units exist, so the exhaust step has no legal target and is skipped
 
                 // Effect 3 still resolves
+                expect(context.player1).toHavePrompt('Attack with a unit. It gets +3/+0 for this attack');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(6); // 3 power + 3 from the attack buff
 
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('has no effect if the opponents only units are already exhausted', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['cunning-ploy']
+                    },
+                    player2: {
+                        hand: [],
+                        groundArena: [{ card: 'sundari-peacekeeper', exhausted: true }],
+                        spaceArena: [{ card: 'tieln-fighter', exhausted: true }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.cunningPloy);
+
+                // Effect 1 is skipped because the opponent's hand is empty, so the ability proceeds directly to the mandatory exhaust step
+                // Effect 2 is skipped because there are no ready enemy units to exhaust
+                // Effect 3 is skipped because there are no friendly units to attack with
+
+                expect(context.tielnFighter.exhausted).toBe(true);
+                expect(context.sundariPeacekeeper.exhausted).toBe(true);
                 expect(context.player2).toBeActivePlayer();
             });
         });
