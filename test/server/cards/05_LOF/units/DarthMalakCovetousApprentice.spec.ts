@@ -44,5 +44,30 @@ describe('Darth Malak, Covetous Apprentice', function() {
             expect(context.player2).toBeActivePlayer();
             expect(context.darthMalak.exhausted).toBe(true);
         });
+
+        it('should allow readying when just one of two deployed leaders is a Sith leader unit (Faux Suns)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    hand: ['darth-malak#covetous-apprentice'],
+                    leader: { card: 'chewbacca#walking-carpet', deployed: true }, // not Sith
+                    secondLeader: { card: 'darth-vader#dark-lord-of-the-sith', deployed: true } // Sith
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    leader: 'luke-skywalker#faithful-friend'
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMalak);
+            expect(context.player1).toHavePassAbilityPrompt('Ready Darth Malak');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.darthMalak.exhausted).toBe(false);
+        });
     });
 });

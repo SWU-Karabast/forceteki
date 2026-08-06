@@ -289,6 +289,7 @@ export enum EventName {
     OnAttackDeclared = 'onAttackDeclared',
     OnAttackEnd = 'onAttackEnd',
     OnBeginRound = 'onBeginRound',
+    OnBlastCounterClaimed = 'onBlastCounterClaimed',
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
@@ -328,6 +329,8 @@ export enum EventName {
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
+    OnPlanCounterClaimed = 'onPlanCounterClaimed',
+    OnPlanCounterPutOnBottom = 'onPlanCounterPutOnBottom',
     OnReadyResources = 'onReadyResources',
     OnRescue = 'onRescue',
     OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
@@ -666,6 +669,7 @@ export enum SwuGameFormat {
     Open = 'open',
     Eternal = 'eternal',
     Limited = 'limited',
+    FauxSuns = 'fauxSuns',
 }
 
 export enum CardPool {

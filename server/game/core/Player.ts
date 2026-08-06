@@ -135,9 +135,19 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this._deckZone;
     }
 
-    @stateRef() private accessor _deckLeader: ILeaderCard | null = null;
+    @stateRefArray() private accessor _deckLeaders: readonly ILeaderCard[] = [];
+
     public get deckLeader(): ILeaderCard {
-        return this._deckLeader;
+        return this._deckLeaders[0];
+    }
+
+    public getSingleLeader(): ILeaderCard {
+        Contract.assertEqual(this._deckLeaders.length, 1, `Expected exactly one leader but found ${this._deckLeaders.length}`);
+        return this._deckLeaders[0];
+    }
+
+    public getAllDeckLeaders(): ILeaderCard[] {
+        return this._deckLeaders as ILeaderCard[];
     }
 
     @stateRef() private accessor _base: IBaseCard | null = null;
@@ -764,7 +774,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         const preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
         this._base = this.game.getFromId(preparedDecklist.base);
-        this._deckLeader = this.game.getFromId(preparedDecklist.leader);
+
+        const deckLeaders = [this.game.getFromId(preparedDecklist.leader)];
+        if (preparedDecklist.secondLeader) {
+            deckLeaders.push(this.game.getFromId(preparedDecklist.secondLeader));
+        }
+        this._deckLeaders = deckLeaders;
 
         this.deckZone.initializeDeck(preparedDecklist.deckCards.map((x) => this.game.getFromId(x)));
 
@@ -782,7 +797,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this._baseZone = new BaseZone(this.game, this, this.base, this.deckLeader);
+        this._baseZone = new BaseZone(this.game, this, this.base, this.getAllDeckLeaders());
 
         this._decklist = preparedDecklist;
     }
@@ -849,18 +864,18 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     public getAspectsForCosts() {
         const provided = this.getOngoingEffectValues<Aspect[]>(EffectName.ProvidesAspectsForCosts);
         return [
-            ...this.deckLeader.aspects,
+            ...this.getAllDeckLeaders().flatMap((leader) => leader.aspects),
             ...this.base.aspects,
             ...provided.flat(),
         ];
     }
 
     /**
-     * Returns the aspects for this player's deck (derived from base and leader only, not including
+     * Returns the aspects for this player's deck (derived from base and leader(s) only, not including
      * any active `ProvidesAspectsForCosts` ongoing effects on this player).
      */
     public getDeckAspects() {
-        return [...this.deckLeader.aspects, ...this.base.aspects];
+        return [...this.getAllDeckLeaders().flatMap((leader) => leader.aspects), ...this.base.aspects];
     }
 
     public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
@@ -1233,7 +1248,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.deckLeader?.getSummary(activePlayer),
+            leaders: this.getAllDeckLeaders().map((l) => l.getSummary(activePlayer)),
             base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
@@ -1365,8 +1380,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                     )));
             }
 
-            // Leader
-            state.leader = Helpers.safeSerialize(this.game, () => this.deckLeader.captureCardState(), null);
+            // Leader(s)
+            const allLeaders = this.getAllDeckLeaders();
+            state.leader = Helpers.safeSerialize(this.game, () => allLeaders[0].captureCardState(), null);
+            if (allLeaders[1]) {
+                state.secondLeader = Helpers.safeSerialize(this.game, () => allLeaders[1].captureCardState(), null);
+            }
 
             // Base
             state.base = Helpers.safeSerialize(this.game, () => this.base.captureCardState(), null);

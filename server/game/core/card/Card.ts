@@ -987,7 +987,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected removeFromCurrentZone() {
         if (this.zone.name === ZoneName.Base) {
             if (this.isLeader()) {
-                this.zone.removeLeader();
+                this.zone.removeLeader(this);
             } else if (this.isForceToken()) {
                 this.zone.removeForceToken();
             } else if (this.isCreditToken()) {
