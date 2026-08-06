@@ -14,7 +14,7 @@ export default class GrandAdmiralThrawnListenToMeCarefully extends NonLeaderUnit
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: `Give an Experience token to a friendly unit. It gains ${TextHelper.keyword(KeywordName.Sentinel)} for this phase`,
+            title: `Give an Experience token to another friendly unit. It gains ${TextHelper.Sentinel} for this phase`,
             when: {
                 whenPlayed: true,
                 onAttack: true,
@@ -24,6 +24,7 @@ export default class GrandAdmiralThrawnListenToMeCarefully extends NonLeaderUnit
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
+                cardCondition: (card, context) => card !== context.source,
                 immediateEffect: abilityHelper.immediateEffects.simultaneous([
                     abilityHelper.immediateEffects.giveExperience(),
                     abilityHelper.immediateEffects.forThisPhaseCardEffect({

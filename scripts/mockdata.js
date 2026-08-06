@@ -259,6 +259,7 @@ const mockCards = [
         hp: 5,
         hasNonKeywordAbility: true,
         aspects: ['command', 'heroism'],
+        keywords: ['sentinel'],
         traits: ['republic', 'force', 'jedi'],
         types: ['unit'],
         setId: {

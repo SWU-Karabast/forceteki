@@ -1,7 +1,7 @@
 describe('Grand Admiral Thrawn, Listen to Me Carefully', function() {
     integration(function(contextRef) {
         describe('Thrawn\'s triggered ability', function() {
-            it('should give an Experience token and Sentinel for this phase to a friendly unit when played', async function () {
+            it('should give an Experience token and Sentinel for this phase to another friendly unit when played', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -17,8 +17,9 @@ describe('Grand Admiral Thrawn, Listen to Me Carefully', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawn);
+                expect(context.player1).toHavePrompt('Give an Experience token to another friendly unit. It gains Sentinel for this phase');
 
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.grandAdmiralThrawn, context.awing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.awing]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
 
