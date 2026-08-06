@@ -4,6 +4,7 @@ import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
 import { Contract } from '../../core/utils/Contract';
+import { TextHelper } from '../../core/utils/TextHelper';
 import { ConditionalSystem } from '../../gameSystems/ConditionalSystem';
 import { InitiateAttackSystem } from '../../gameSystems/InitiateAttackSystem';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
@@ -17,7 +18,7 @@ export class AmbushAbility extends TriggeredAbilityBase {
 
     public static buildAmbushAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {
-            title: 'Ambush',
+            title: `${TextHelper.Ambush}`,
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,

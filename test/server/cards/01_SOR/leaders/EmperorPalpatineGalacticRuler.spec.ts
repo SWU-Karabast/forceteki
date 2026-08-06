@@ -17,6 +17,7 @@ describe('Emperor Palpatine, Galactic Ruler', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.emperorPalpatine);
+            expect(context.player1).toHavePrompt('Choose a friendly unit to defeat');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.tieAdvanced]);
             expect(context.player1).not.toHavePassAbilityButton();
 

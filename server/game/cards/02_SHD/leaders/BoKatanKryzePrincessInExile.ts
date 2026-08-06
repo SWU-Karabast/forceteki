@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
 
@@ -21,7 +22,7 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'If you attacked with a Mandalorian unit this phase, deal 1 damage to a unit',
+            title: `If you attacked with a ${TextHelper.Trait.Mandalorian} unit this phase, deal 1 damage to a unit`,
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -16,6 +16,7 @@ export default class CravingPower extends UpgradeCard {
 
         registrar.addWhenPlayedAbility({
             title: 'Deal damage to an enemy unit equal to attached unit\'s power',
+            contextTitle: (context) => `Deal ${context.source.parentCard?.getPower() ?? 0} damage to an enemy unit`,
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 zoneFilter: WildcardZoneName.AnyArena,

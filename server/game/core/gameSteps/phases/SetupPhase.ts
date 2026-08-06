@@ -39,7 +39,7 @@ export class SetupPhase extends Phase {
             [
                 ...setupStep,
                 ...mulliganStep,
-                new ResourcePrompt(game, 2)
+                new ResourcePrompt(game, 2, true)
             ],
             initializeMode
         );
@@ -74,6 +74,7 @@ export class SetupPhase extends Phase {
             activePromptTitle,
             source: 'choose initiative player',
             choices: ['Yourself', 'Opponent'],
+            resetActionTimerOnComplete: true,
             handlers: [
                 () => {
                     this.game.initiativePlayer = firstPlayer;

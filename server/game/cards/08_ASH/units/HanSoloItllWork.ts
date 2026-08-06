@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class HanSoloItllWork extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'han-solo#itll-work-id',
+            id: '8474739433',
             internalName: 'han-solo#itll-work',
         };
     }

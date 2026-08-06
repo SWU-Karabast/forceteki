@@ -14,6 +14,7 @@ export default class DrydenVosIGetAllWorkedUp extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Double this unit\'s power for this attack. If you do, this unit does not ready during the next regroup phase.',
+            contextTitle: (context) => `Double this unit's power (+${context.source.getPower()}/+0) for this attack. If you do, this unit does not ready during the next regroup phase.`,
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                 target: context.source,

@@ -17,7 +17,7 @@ export default class MonMothmaFormingACoalition extends LeaderUnitCard {
 
     private buildMonMothmaAbilityProperties(abilityHelper: IAbilityHelper) {
         return {
-            title: `Ignore the aspect penalty on non-${TextHelper.Villainy} Official units you play`,
+            title: `Ignore the aspect penalty on non-${TextHelper.Villainy} ${TextHelper.Trait.Official} units you play`,
             targetController: RelativePlayer.Self,
             ongoingEffect: abilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.Unit,
@@ -34,7 +34,7 @@ export default class MonMothmaFormingACoalition extends LeaderUnitCard {
         registrar.addConstantAbility(this.buildMonMothmaAbilityProperties(abilityHelper));
 
         registrar.addConstantAbility({
-            title: 'Each other friendly Official unit gets +0/+1',
+            title: `Each other friendly ${TextHelper.Trait.Official} unit gets +0/+1`,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             matchTarget: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Official),

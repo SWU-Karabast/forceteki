@@ -23,7 +23,7 @@ export default class TimelyIntervention extends EventCard {
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous({
                     gameSystems: [
-                        AbilityHelper.immediateEffects.playCardFromHand({ playAsType: WildcardCardType.Unit }),
+                        AbilityHelper.immediateEffects.playCardFromHand({ playAsType: WildcardCardType.Unit, nested: true }),
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                             effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
                         }),

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, WildcardCardType, EventName, EffectName } from '../core/Constants';
+import { GameStateChangeRequired, WildcardCardType, EventName, EffectName, EntryType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 
@@ -36,7 +36,8 @@ export class RescueSystem<TContext extends AbilityContext = AbilityContext, TPro
             new PutIntoPlaySystem({
                 target: card,
                 controller: card.owner,
-                entersReady: card.owner.hasOngoingEffect(EffectName.RescuedUnitsEnterPlayReady)
+                entersReady: card.owner.hasOngoingEffect(EffectName.RescuedUnitsEnterPlayReady),
+                entryType: EntryType.Rescued,
             }).generateEvent(event.context)
         ]);
     }

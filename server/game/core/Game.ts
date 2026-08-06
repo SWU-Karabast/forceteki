@@ -45,6 +45,8 @@ import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmon
 import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
 import { DropdownListPrompt } from './gameSteps/prompts/DropdownListPrompt';
 import type { IDropdownListPromptProperties } from './gameSteps/prompts/DropdownListPrompt';
+import { NumberPrompt } from './gameSteps/prompts/NumberPrompt';
+import type { INumberPromptProperties } from './gameSteps/prompts/NumberPrompt';
 import { UnitPropertiesCard } from './card/propertyMixins/UnitProperties';
 import type { Card } from './card/Card';
 import { GroundArenaZone } from './zone/GroundArenaZone';
@@ -56,6 +58,8 @@ import { SelectCardPrompt } from './gameSteps/prompts/SelectCardPrompt';
 import { DisplayCardsWithButtonsPrompt } from './gameSteps/prompts/DisplayCardsWithButtonsPrompt';
 import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCardsForSelectionPrompt';
 import { DisplayCardsBasicPrompt } from './gameSteps/prompts/DisplayCardsBasicPrompt';
+import { PassDelayPrompt } from './gameSteps/prompts/PassDelayPrompt';
+import type { IPassDelayPromptProperties } from './gameSteps/prompts/PassDelayPrompt';
 import { validateGameConfiguration, validateGameOptions } from './GameInterfaces';
 import type { GameConfiguration, GameOptions, ICurrentlyResolving } from './GameInterfaces';
 import type { GameObjectBase } from './GameObjectBase';
@@ -84,7 +88,6 @@ import { PerGameUndoLimit, UnlimitedUndoLimit } from './snapshot/UndoLimit';
 import type { UndoLimit } from './snapshot/UndoLimit';
 import UndoConfirmationPrompt from './gameSteps/prompts/UndoConfirmationPrompt';
 import type { AdditionalPhaseEffect } from './ongoingEffect/effectImpl/AdditionalPhaseEffect';
-import { AttackRulesVersion } from './attack/AttackFlow';
 import type { IStep } from './gameSteps/IStep';
 import type { ITokenCard } from './card/propertyMixins/Token';
 import type { IClientUIProperties, ISerializedGameState } from '../Interfaces';
@@ -166,6 +169,10 @@ export class Game extends EventEmitter {
 
     public get winnerNames(): readonly string[] {
         return this.state.winnerNames;
+    }
+
+    public get isEnded(): boolean {
+        return this.state.winnerNames.length > 0;
     }
 
     public get currentPhase() {
@@ -272,7 +279,6 @@ export class Game extends EventEmitter {
 
     // #region ──── Instance Fields ────────────────────────────────────────────
 
-    public readonly attackRulesVersion: AttackRulesVersion;
     private readonly _snapshotManager: SnapshotManager;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
@@ -299,6 +305,7 @@ export class Game extends EventEmitter {
     public readonly buildSafeTimeoutHandler: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
+    public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
     public gameMode: GameMode;
     public currentlyResolving: ICurrentlyResolving;
@@ -328,7 +335,6 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
-        this.attackRulesVersion = details.attackRulesVersion ?? AttackRulesVersion.CR7;
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
         this._router = options.router;
@@ -361,6 +367,7 @@ export class Game extends EventEmitter {
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
+        this.onBo3SetForfeit = details.onBo3SetForfeit;
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this._debug = { pipeline: false };
@@ -757,14 +764,29 @@ export class Game extends EventEmitter {
         const player = this.getPlayerById(playerId);
 
         player.incrementActionId();
-        player.actionTimer.restartIfRunning();
     }
 
-    public onActionTimerExpired(player: Player): null {
-        player.opponent.actionTimer.stop();
+    public onGameTimerExpired(player: Player): null {
+        if (this.isEnded) {
+            // Stale timer fired after game already ended (e.g. for a previous game in a Bo3 set).
+            // Skip to avoid spurious endGame / onBo3SetForfeit side effects on the wrong game.
+            return null;
+        }
 
-        this.userTimeoutDisconnect(player.id);
-        this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
+        player.opponent.actionTimer.stop();
+        this.addAlert(AlertType.Notification, 'Game ended due to {0} timing out.', player);
+
+        if (player.opponent.actionTimer.totalTimeRemainingSeconds < 3) {
+            // Both players nearly timed out - treat as draw, don't forfeit Bo3 set
+            this.endGame([player, player.opponent], GameEndReason.Timeout);
+        } else {
+            // Single player timeout - forfeit Bo3 set if applicable
+            if (this.onBo3SetForfeit) {
+                this.onBo3SetForfeit(player.id);
+            }
+            this.endGame(player.opponent, GameEndReason.Timeout);
+        }
+
         return null;
     }
 
@@ -807,7 +829,7 @@ export class Game extends EventEmitter {
     public endGame(winnerPlayers: Player[] | Player, reasonCode: GameEndReason): void {
         this.gameEndReason = reasonCode;
 
-        if (this.state.winnerNames.length > 0) {
+        if (this.isEnded) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
         }
@@ -839,6 +861,21 @@ export class Game extends EventEmitter {
             this._router.sendGameState(this);
         } else {
             this.queueStep(new GameOverPrompt(this));
+        }
+    }
+
+    /**
+     * Push game state to players in response to a timer-driven state change
+     * (e.g. byoyomi turn timer expired and we transitioned to the main timer).
+     * No-op if the game has ended — timers should not drive updates after end-of-game,
+     * which can otherwise cause stale state pushes from a prior game in a Bo3 set.
+     */
+    public sendTimerUpdatedGameStateToPlayers() {
+        if (this.isEnded) {
+            return;
+        }
+        if (typeof this._router?.sendGameState === 'function') {
+            this._router.sendGameState(this);
         }
     }
 
@@ -978,12 +1015,32 @@ export class Game extends EventEmitter {
     }
 
     /**
+     * Prompts a player with a brief, skippable pause used to mask hidden information (e.g. when
+     * an optional effect that depends on secret cards can't be performed). The wait duration and
+     * skip control are driven entirely by the client so the engine remains deterministic.
+     */
+    public promptForPassDelay(player: Player, properties: IPassDelayPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new PassDelayPrompt(this, player, properties));
+    }
+
+    /**
      * Prompts a player with a menu for selecting a string from a list of options
      */
     public promptWithDropdownListMenu(player: Player, properties: IDropdownListPromptProperties): void {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DropdownListPrompt(this, player, properties));
+    }
+
+    /**
+     * Prompts a player with a bounded number input
+     */
+    public promptWithNumberMenu(player: Player, properties: INumberPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new NumberPrompt(this, player, properties));
     }
 
     /**
@@ -1081,6 +1138,7 @@ export class Game extends EventEmitter {
             []
         );
 
+        this.started = true;
         this.resolveGameState(true);
         this.initializePipelineForSetup();
 
@@ -1979,7 +2037,6 @@ export class Game extends EventEmitter {
 
         return {
             phase: this.currentPhase,
-            attackRulesVersion: this.attackRulesVersion,
             player1: Helpers.safeSerialize(this, () => player1.capturePlayerState('player1'), null),
             player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
         };

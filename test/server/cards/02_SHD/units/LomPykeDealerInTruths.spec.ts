@@ -82,9 +82,7 @@ describe('Lom Pyke, Dealer in Truths', function() {
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.lomPyke);
 
-                // TODO: replacement effect ordering logic is not fully in place. since both shields are owned by player1,
-                // that player is then prompted to order the shield defeat resolution. This will be fixed eventually.
-                context.player1.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+                context.player1.clickPrompt('You');
 
                 expect(context.cartelSpacer).toHaveExactUpgradeNames(['shield']);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);

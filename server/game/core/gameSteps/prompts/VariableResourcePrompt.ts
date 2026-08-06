@@ -24,11 +24,16 @@ export class VariableResourcePrompt extends ResourcePrompt {
         const promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`;
 
         const hasEnoughSelected = this.hasEnoughSelected(player);
+        const selectedCount = this.selectedCards[player.name].length;
 
         return {
             selectCardMode: SelectCardMode.Multiple,
             menuTitle: promptText,
-            buttons: [{ text: 'Done', arg: 'done', disabled: !hasEnoughSelected }],
+            buttons: [{
+                text: selectedCount === 0 ? 'Skip Resourcing' : 'Confirm Resources',
+                arg: 'done',
+                disabled: !hasEnoughSelected,
+            }],
             promptTitle: VariableResourcePrompt.title,
             promptUuid: this.uuid,
             promptType: PromptType.Resource

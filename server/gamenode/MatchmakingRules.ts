@@ -33,6 +33,11 @@ class RematchCooldownRule implements IMatchmakingRule {
     }
 
     public canMatch(playerEntry1: IMatchmakingPlayerEntry, playerEntry2: IMatchmakingPlayerEntry): boolean {
+        // disable the matching delay in local dev
+        if (process.env.ENVIRONMENT === 'development') {
+            return true;
+        }
+
         const now = Date.now();
 
         const p1PreviousMatch = playerEntry1.previousMatch;

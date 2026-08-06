@@ -14,7 +14,6 @@ export default class R2D2PartOfThePlan extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Search the top 5 cards of your deck for a unit that shares an aspect with a friendly unit, reveal it, and draw it',
-            optional: true,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card, context) => card.isUnit() && context.player.isAspectInPlay([...card.aspects]),

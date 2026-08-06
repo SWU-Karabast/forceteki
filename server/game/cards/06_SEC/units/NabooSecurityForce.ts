@@ -15,14 +15,14 @@ export default class NabooSecurityForce extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command];
         registrar.addTriggeredAbility({
-            title: `Disclose ${TextHelper.aspectList(aspects)} to give a friendly unit Sentinel for this phase`,
+            title: `Disclose ${TextHelper.aspectList(aspects)} to give a friendly unit ${TextHelper.Sentinel} for this phase`,
             when: {
                 whenPlayed: true,
                 whenDefeated: true,
             },
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
-                title: 'Give a friendly unit Sentinel for this phase',
+                title: `Give a friendly unit ${TextHelper.Sentinel} for this phase`,
                 targetResolver: {
                     controller: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.Unit,

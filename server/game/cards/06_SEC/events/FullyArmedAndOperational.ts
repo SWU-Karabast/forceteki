@@ -4,6 +4,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { EventCard } from '../../../core/card/EventCard';
 import { CardType, KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 import type { ActionsThisPhaseWatcher } from '../../../stateWatchers/ActionsThisPhaseWatcher';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
@@ -29,7 +30,7 @@ export default class FullyArmedAndOperational extends EventCard {
         AbilityHelper: IAbilityHelper
     ) {
         registrar.setEventAbility({
-            title: 'If an opponent attacked your base during their previous action this phase, play a unit from your hand. Give it Ambush for this phase.',
+            title: `If an opponent attacked your base during their previous action this phase, play a unit from your hand. Give it ${TextHelper.Ambush} for this phase.`,
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 condition: this.opponentDidAttackBaseLastAction(context),
                 onTrue: AbilityHelper.immediateEffects.selectCard({

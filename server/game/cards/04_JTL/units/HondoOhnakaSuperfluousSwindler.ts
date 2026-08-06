@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class HondoOhnakaSuperfluousSwindler extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,11 +14,11 @@ export default class HondoOhnakaSuperfluousSwindler extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Take control of a non-Pilot upgrade on a unit and attach it to a different eligible unit',
+            title: `Take control of a non-${TextHelper.Trait.Pilot} upgrade on a unit and attach it to a different eligible unit`,
             optional: true,
             targetResolvers: {
                 upgrade: {
-                    activePromptTitle: 'Choose a non-Pilot upgrade to take control of',
+                    activePromptTitle: `Choose a non-${TextHelper.Trait.Pilot} upgrade to take control of`,
                     controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Upgrade,
                     cardCondition: (card) => !card.hasSomeTrait(Trait.Pilot),

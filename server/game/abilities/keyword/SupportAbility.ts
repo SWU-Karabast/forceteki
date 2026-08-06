@@ -1,6 +1,6 @@
 import { TriggeredAbilityBase } from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
-import { KeywordName } from '../../core/Constants';
+import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
 import { Contract } from '../../core/utils/Contract';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
@@ -20,22 +20,26 @@ export class SupportAbility extends TriggeredAbilityBase {
                 onLeaderDeployed: (event, context) => event.card === context.source,
                 onUnitEntersPlay: (event, context) => event.card === context.source && context.source.isToken()
             },
+            zoneFilter: WildcardZoneName.AnyArena,
             targetResolver: {
                 activePromptTitle: `Attack with another unit. It gains ${source.title}'s abilities for this attack.`,
-                immediateEffect: new InitiateAttackSystem((context) => ({
-                    attackerCondition: (card) => card !== context.source,
-                    attackerLastingEffects: {
-                        effect: [
-                            context.game.abilityHelper.ongoingEffects
-                                .gainNonKeywordAbilitiesFromUnit(context.source),
-                            context.game.abilityHelper.ongoingEffects.gainKeywords(() =>
-                                context.source.keywords
-                                    .filter((instance) => instance.name !== KeywordName.Support)
-                                    .map((keyword) => keyword.toProperties())
-                            )
-                        ]
-                    }
-                }))
+                immediateEffect: new InitiateAttackSystem((context) => {
+                    // Snapshot keywords at the time of attack so dynamically gained keywords don't continue to update
+                    // after the attack is initiated.
+                    const keywords = context.source.keywords.filter((instance) => instance.name !== KeywordName.Support);
+                    return {
+                        attackerCondition: (card) => card !== context.source,
+                        attackerLastingEffects: {
+                            effect: [
+                                context.game.abilityHelper.ongoingEffects
+                                    .gainNonKeywordAbilitiesFromUnit(context.source),
+                                context.game.abilityHelper.ongoingEffects.gainKeywords(() =>
+                                    keywords.map((keyword) => keyword.toProperties())
+                                )
+                            ]
+                        }
+                    };
+                })
             }
         };
     }

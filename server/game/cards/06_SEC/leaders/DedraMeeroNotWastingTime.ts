@@ -5,6 +5,7 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, NamedAction, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DedraMeeroNotWastingTime extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -24,17 +25,21 @@ export default class DedraMeeroNotWastingTime extends LeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit
                 },
                 opponentsChoice: {
-                    mode: TargetMode.Select,
+                    mode: TargetMode.SelectUnless,
                     dependsOn: 'targetUnit',
                     choosingPlayer: RelativePlayer.Opponent,
                     activePromptTitle: (context) => `${context.targets.targetUnit.title} takes 2 [Damage] or Opponent [Draws] a card`,
-                    choices: (context) => ({
-                        [NamedAction.Damage]: abilityHelper.immediateEffects.damage({
+                    unlessEffect: {
+                        effect: (context) => abilityHelper.immediateEffects.damage({
                             target: context.targets.targetUnit,
                             amount: 2
                         }),
-                        [NamedAction.Draw]: abilityHelper.immediateEffects.draw({ amount: 1 })
-                    }),
+                        promptButtonText: NamedAction.Damage
+                    },
+                    defaultEffect: {
+                        effect: abilityHelper.immediateEffects.draw({ amount: 1 }),
+                        promptButtonText: NamedAction.Draw
+                    },
                     highlightCards: (context) => context.targets.targetUnit,
                 }
             }
@@ -43,7 +48,7 @@ export default class DedraMeeroNotWastingTime extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you have more cards in hand than an opponent, this unit gains Raid 2',
+            title: `While you have more cards in hand than an opponent, this unit gains ${TextHelper.Raid(2)}`,
             condition: (context) => context.player.hand.length > context.player.opponent.hand.length,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 2 })
         });

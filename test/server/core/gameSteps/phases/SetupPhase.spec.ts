@@ -104,16 +104,16 @@ describe('Setup Phase', function() {
 
                 // We check if player1's hand has the only selectable cards
                 expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
-                expect(context.player1).toHaveExactPromptButtons(['Done']);
-                expect(context.player2).toHaveExactPromptButtons(['Done']);
-                expect(context.player1).toHaveDisabledPromptButton('Done');
-                expect(context.player2).toHaveDisabledPromptButton('Done');
+                expect(context.player1).toHaveExactPromptButtons(['Confirm Resources']);
+                expect(context.player2).toHaveExactPromptButtons(['Confirm Resources']);
+                expect(context.player1).toHaveDisabledPromptButton('Confirm Resources');
+                expect(context.player2).toHaveDisabledPromptButton('Confirm Resources');
 
                 context.player1.clickCard(context.player1.hand[1]);
-                expect(context.player1).toHaveExactPromptButtons(['Done']);
-                expect(context.player2).toHaveExactPromptButtons(['Done']);
-                expect(context.player1).toHaveEnabledPromptButton('Done');
-                expect(context.player2).toHaveDisabledPromptButton('Done');
+                expect(context.player1).toHaveExactPromptButtons(['Confirm Resources']);
+                expect(context.player2).toHaveExactPromptButtons(['Confirm Resources']);
+                expect(context.player1).toHaveEnabledPromptButton('Confirm Resources');
+                expect(context.player2).toHaveDisabledPromptButton('Confirm Resources');
 
                 // Check that player1 cannot select any additional cards
                 context.player1.clickCardNonChecking(context.player1.hand[2]);
@@ -143,8 +143,8 @@ describe('Setup Phase', function() {
                 context.player2.clickFirstCardInHand();
                 expect(context.player2.selectedCards.length).toBe(1);
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
-                expect(context.player2).toHaveExactPromptButtons(['Done']);
-                expect(context.player2).toHaveDisabledPromptButton('Done');
+                expect(context.player2).toHaveExactPromptButtons(['Confirm Resources']);
+                expect(context.player2).toHaveDisabledPromptButton('Confirm Resources');
 
                 // we check if player2's hand has the only selectable cards
                 expect(context.player2).toBeAbleToSelectExactly(context.player2.hand);
@@ -152,8 +152,8 @@ describe('Setup Phase', function() {
                 // click the second card to resource
                 context.player2.clickCard(context.player2.hand[1]);
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
-                expect(context.player2).toHaveExactPromptButtons(['Done']);
-                expect(context.player2).toHaveEnabledPromptButton('Done');
+                expect(context.player2).toHaveExactPromptButtons(['Confirm Resources']);
+                expect(context.player2).toHaveEnabledPromptButton('Confirm Resources');
 
                 // Check that player2 cannot select any additional cards
                 context.player2.clickCardNonChecking(context.player2.hand[2]);

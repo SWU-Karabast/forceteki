@@ -35,6 +35,11 @@ export class DamageModificationSystem<
             }
 
             switch (properties.modificationType) {
+                case DamageModificationType.Cap:
+                    return {
+                        format: 'prevent all but {0} damage to {1}',
+                        args: [String(properties.amount), this.getTargetMessage(context.event.card, context)],
+                    };
                 case DamageModificationType.PreventAll:
                     return {
                         format: 'prevent all damage to {0}',
@@ -48,6 +53,11 @@ export class DamageModificationSystem<
                 case DamageModificationType.Increase:
                     return {
                         format: 'increase damage to {0} by {1}',
+                        args: [this.getTargetMessage(context.event.card, context), String(properties.amount)],
+                    };
+                case DamageModificationType.Multiply:
+                    return {
+                        format: 'multiply damage to {0} by {1}',
                         args: [this.getTargetMessage(context.event.card, context), String(properties.amount)],
                     };
                 case DamageModificationType.Replace:
@@ -73,6 +83,15 @@ export class DamageModificationSystem<
         }
 
         switch (properties.modificationType) {
+            case DamageModificationType.Cap:
+                Contract.assertPositiveNonZero(properties.amount, `capAmount must be a positive non-zero number for DamageModificationType.Cap. Found: ${properties.amount}`);
+                return new DamageSystem((context) => ({
+                    target: context.event.card,
+                    amount: properties.amount,
+                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
+                    type: context.event.type,
+                    sourceAttack: context.event.damageSource.attack,
+                }));
             case DamageModificationType.PreventAll:
                 return null;
             case DamageModificationType.Reduce:
@@ -95,6 +114,17 @@ export class DamageModificationSystem<
                     isUnpreventable: context.event.isUnpreventable,
                     sourceAttack: context.event.damageSource.attack,
                 }));
+            case DamageModificationType.Multiply:
+                Contract.assertPositiveNonZero(properties.amount, `amount must be a positive non-zero number for DamageModificationType.Multiply. Found: ${properties.amount}`);
+                return new DamageSystem((context) => ({
+                    target: context.event.card,
+                    amount: context.event.amount * properties.amount,
+                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
+                    type: context.event.type,
+                    isIndirect: context.event.isIndirect,
+                    isUnpreventable: context.event.isUnpreventable,
+                    sourceAttack: context.event.damageSource.attack,
+                }));
             case DamageModificationType.Replace:
                 const replaceWith = properties.replaceWithEffect;
                 Contract.assertNotNullLike(replaceWith, 'replaceWith must be defined for DamageModificationType.Replace');
@@ -107,9 +137,17 @@ export class DamageModificationSystem<
 
     protected override shouldReplace (context: TContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
-        if (properties.modificationType === DamageModificationType.Increase) {
+        if (properties.modificationType === DamageModificationType.Increase || properties.modificationType === DamageModificationType.Multiply) {
             return true;
         }
-        return !context.event.isUnpreventable;
+
+        if (context.event.isUnpreventable) {
+            return false;
+        }
+
+        if (properties.modificationType === DamageModificationType.Cap) {
+            return context.event.amount > properties.amount;
+        }
+        return true;
     }
 }

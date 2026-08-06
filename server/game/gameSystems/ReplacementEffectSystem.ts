@@ -127,7 +127,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             return false;
         }
 
-        const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context);
+        const replacementGameAction = this.getReplacementImmediateEffect(context, additionalProperties);
 
         return (
             (!replacementGameAction || replacementGameAction.hasLegalTarget(context, additionalProperties, GameStateChangeRequired.None))

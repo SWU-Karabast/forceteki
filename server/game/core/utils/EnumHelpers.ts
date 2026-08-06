@@ -1,7 +1,9 @@
-import type { CardTypeFilter, ZoneFilter, MoveZoneDestination } from '../Constants';
-import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
+import type { CardTypeFilter, ZoneFilter, MoveZoneDestination, TokenName } from '../Constants';
+import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName, TokenCardName, TokenUpgradeName, TokenUnitName } from '../Constants';
 import type { Player } from '../Player';
 import { Helpers } from './Helpers';
+import type { TimedModActionType } from '../../../services/DynamoDBInterfaces';
+import { ModActionType } from '../../../services/DynamoDBInterfaces';
 
 // Cache for enum lookup maps (lowercase string -> enum value)
 const enumLookupCache = new Map<object, Map<string, unknown>>();
@@ -20,6 +22,19 @@ function getEnumLookupMap<T extends object>(enumObj: T): Map<string, T[keyof T]>
 }
 
 export namespace EnumHelpers {
+    // convert a set of strings to an enum type, silently dropping values not present in the enum
+    export function tryConvertToEnum<T extends object>(values: string | string[], enumObj: T): T[keyof T][] {
+        const lookupMap = getEnumLookupMap(enumObj);
+        const result: T[keyof T][] = [];
+        for (const value of Helpers.asArray(values)) {
+            const matchingValue = lookupMap.get(value.toLowerCase());
+            if (matchingValue !== undefined) {
+                result.push(matchingValue);
+            }
+        }
+        return result;
+    }
+
     // convert a set of strings to map to an enum type, throw if any of them is not a legal value
     export function checkConvertToEnum<T extends object>(values: string | string[], enumObj: T): T[keyof T][] {
         const result: T[keyof T][] = [];
@@ -301,4 +316,32 @@ export namespace EnumHelpers {
     export const asRelativePlayer = (player: Player, otherPlayer: Player): RelativePlayer => {
         return player === otherPlayer ? RelativePlayer.Self : RelativePlayer.Opponent;
     };
+
+    export const tokenTitle: Record<TokenName, string> = {
+        [TokenUnitName.BattleDroid]: 'Battle Droid',
+        [TokenUnitName.CloneTrooper]: 'Clone Trooper',
+        [TokenUnitName.XWing]: 'X-Wing',
+        [TokenUnitName.TIEFighter]: 'TIE Fighter',
+        [TokenUnitName.Spy]: 'Spy',
+        // eslint-disable-next-line forceteki/no-raw-token-text -- token display name, not a trait reference
+        [TokenUnitName.Mandalorian]: 'Mandalorian',
+        [TokenUpgradeName.Shield]: 'Shield',
+        [TokenUpgradeName.Experience]: 'Experience',
+        [TokenUpgradeName.Advantage]: 'Advantage',
+        [TokenCardName.Credit]: 'Credit',
+        [TokenCardName.Force]: 'The Force'
+    };
+
+    export const arenaName = (zone: ZoneName.GroundArena | ZoneName.SpaceArena): string => {
+        switch (zone) {
+            case ZoneName.GroundArena:
+                return 'ground arena';
+            case ZoneName.SpaceArena:
+                return 'space arena';
+        }
+    };
 }
+
+export const isTimedModAction = (actionType: ModActionType): actionType is TimedModActionType => {
+    return actionType === ModActionType.Mute || actionType === ModActionType.Rename;
+};

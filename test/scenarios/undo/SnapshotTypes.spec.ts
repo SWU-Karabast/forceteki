@@ -67,12 +67,12 @@ describe('Snapshot types', function() {
                 context.player2.clickPrompt('Keep');
 
                 expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
                     'battlefield-marine',
-                    'covert-strength',
-                    'battlefield-marine',
-                    'moment-of-peace',
-                    'moment-of-peace',
                     'chewbacca#pykesbane',
+                    'moment-of-peace',
+                    'battlefield-marine',
                 ]);
                 expect(context.player2.hand.map((card) => card.internalName)).toEqual([
                     'atst',
@@ -92,8 +92,8 @@ describe('Snapshot types', function() {
                 context.player2.clickDone();
 
                 expect(context.player1.resources.map((card) => card.internalName)).toEqual([
-                    'battlefield-marine',
-                    'covert-strength',
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
                 ]);
                 expect(context.player2.resources.map((card) => card.internalName)).toEqual([
                     'atst',
@@ -137,12 +137,12 @@ describe('Snapshot types', function() {
 
             const assertSetupPhaseBeforeResourceState = (context) => {
                 expect(context.player1.hand.map((card) => card.internalName)).toEqual([
+                    'armed-to-the-teeth',
+                    'collections-starhopper',
                     'battlefield-marine',
-                    'covert-strength',
-                    'battlefield-marine',
-                    'moment-of-peace',
-                    'moment-of-peace',
                     'chewbacca#pykesbane',
+                    'moment-of-peace',
+                    'battlefield-marine',
                 ]);
                 expect(context.player2.hand.map((card) => card.internalName)).toEqual([
                     'atst',
@@ -240,8 +240,8 @@ describe('Snapshot types', function() {
                     context.player2.clickDone();
 
                     expect(context.player1.resources.map((card) => card.internalName)).toEqual([
-                        'battlefield-marine',
-                        'covert-strength',
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
                     ]);
                     expect(context.player2.resources.map((card) => card.internalName)).toEqual([
                         'atst',
@@ -269,8 +269,8 @@ describe('Snapshot types', function() {
                     context.player2.clickDone();
 
                     expect(context.player1.resources.map((card) => card.internalName)).toEqual([
-                        'battlefield-marine',
-                        'covert-strength',
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
                     ]);
                     expect(context.player2.resources.map((card) => card.internalName)).toEqual([
                         'atst',
@@ -351,8 +351,8 @@ describe('Snapshot types', function() {
                     context.player2.clickDone();
 
                     expect(context.player1.resources.map((card) => card.internalName)).toEqual([
-                        'battlefield-marine',
-                        'covert-strength',
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
                     ]);
                     expect(context.player2.resources.map((card) => card.internalName)).toEqual([
                         'atst',
@@ -379,8 +379,8 @@ describe('Snapshot types', function() {
                     context.player2.clickDone();
 
                     expect(context.player1.resources.map((card) => card.internalName)).toEqual([
-                        'battlefield-marine',
-                        'covert-strength',
+                        'armed-to-the-teeth',
+                        'collections-starhopper',
                     ]);
                     expect(context.player2.resources.map((card) => card.internalName)).toEqual([
                         'atst',

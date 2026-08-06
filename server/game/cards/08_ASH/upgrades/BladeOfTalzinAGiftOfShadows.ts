@@ -6,7 +6,7 @@ import { Trait, ZoneName } from '../../../core/Constants';
 export default class BladeOfTalzinAGiftOfShadows extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'blade-of-talzin#a-gift-of-shadows-id',
+            id: '8297084135',
             internalName: 'blade-of-talzin#a-gift-of-shadows',
         };
     }

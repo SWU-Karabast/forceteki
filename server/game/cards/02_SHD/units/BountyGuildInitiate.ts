@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BountyGuildInitiate extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class BountyGuildInitiate extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Deal 2 damage to a ground unit if you control another Bounty Hunter unit',
+            title: `Deal 2 damage to a ground unit if you control another ${TextHelper.Trait.BountyHunter} unit`,
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,

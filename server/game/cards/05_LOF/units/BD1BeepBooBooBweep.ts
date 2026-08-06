@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BD1BeepBooBooBweep extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class BD1BeepBooBooBweep extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Choose another friendly unit. While this unit is in play, the chosen unit gets +1/+0 and gains Saboteur.',
+            title: `Choose another friendly unit. While this unit is in play, the chosen unit gets +1/+0 and gains ${TextHelper.Saboteur}.`,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,

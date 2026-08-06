@@ -3,6 +3,7 @@ import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
 import { Contract } from '../../core/utils/Contract';
+import { TextHelper } from '../../core/utils/TextHelper';
 import { GiveShieldSystem } from '../../gameSystems/GiveShieldSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
@@ -14,7 +15,7 @@ export class ShieldedAbility extends TriggeredAbilityBase {
 
     public static buildShieldedAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {
-            title: 'Shielded',
+            title: `${TextHelper.Shielded}`,
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
                 onLeaderDeployed: (event, context) => event.card === context.source,

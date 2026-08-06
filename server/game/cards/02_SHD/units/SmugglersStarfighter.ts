@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SmugglersStarfighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class SmugglersStarfighter extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Give -3/-0 to an enemy unit if you control another Underworld unit',
+            title: `Give -3/-0 to an enemy unit if you control another ${TextHelper.Trait.Underworld} unit`,
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,

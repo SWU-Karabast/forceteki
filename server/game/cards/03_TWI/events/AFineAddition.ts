@@ -2,14 +2,14 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType, ZoneName } from '../../../core/Constants';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { Card } from '../../../core/card/Card';
 import type { Player } from '../../../core/Player';
 
 export default class AFineAddition extends EventCard {
-    private unitsDefeatedWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -19,11 +19,11 @@ export default class AFineAddition extends EventCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected wasEnemyUnitDefeatedThisPhaseForPlayer(player: Player): boolean {
-        return this.unitsDefeatedWatcher.someDefeatedUnitControlledByPlayer(player);
+        return this.cardsDefeatedWatcher.someDefeatedUnitControlledByPlayer(player);
     }
 
     protected checkZoneAndOwnershipOfCard(card: Card, controllingPlayer: Player): boolean {

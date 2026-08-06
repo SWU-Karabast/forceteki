@@ -234,7 +234,7 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
         if (controllerProp === RelativePlayer.Opponent && card.controller !== context.player.opponent) {
             return false;
         }
-        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter) && card.zoneName !== ZoneName.Capture) {
+        if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter)) {
             return false;
         }
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardConditionsAreSatisfied(card, selectedCards, context);

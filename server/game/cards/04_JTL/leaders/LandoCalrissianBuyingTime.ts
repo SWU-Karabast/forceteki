@@ -26,6 +26,8 @@ export default class LandoCalrissianBuyingTime extends LeaderUnitCard {
             title: 'Play a unit from your hand. If you do and you control a ground unit and a space unit, give a Shield token to a unit',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
+                cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({ playAsType: WildcardCardType.Unit })

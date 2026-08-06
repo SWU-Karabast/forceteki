@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DarthNihilusLordOfHunger extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class DarthNihilusLordOfHunger extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Deal 3 damage to the unit with the least remaining HP among other units. (If multiple units are tied, choose one.). If it\'s a non-Vehicle unit, give an Experience token to this unit.',
+            title: `Deal 3 damage to the unit with the least remaining HP among other units. (If multiple units are tied, choose one.). If it's a non-${TextHelper.Trait.Vehicle} unit, give an Experience token to this unit.`,
             when: {
                 whenPlayed: true,
                 onAttack: true,

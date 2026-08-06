@@ -23,7 +23,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `The first Creature unit you play each phase costs ${TextHelper.resource(1)} less`,
+            title: `The first ${TextHelper.Trait.Creature} unit you play each phase costs ${TextHelper.resource(1)} less`,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             targetZoneFilter: WildcardZoneName.AnyArena,
@@ -36,7 +36,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         });
 
         registrar.addDamageModificationAbility({
-            title: 'If a friendly Creature unit would deal damage to a friendly unit, prevent that damage',
+            title: `If a friendly ${TextHelper.Trait.Creature} unit would deal damage to a friendly unit, prevent that damage`,
             modificationType: DamageModificationType.PreventAll,
             shouldCardHaveDamageModification: (card, context) => this.isDamageFromFriendlyCreatureUnit(card, context),
         });

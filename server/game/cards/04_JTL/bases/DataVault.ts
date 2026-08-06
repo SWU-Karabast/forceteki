@@ -1,6 +1,6 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 
-// TODO: tests for this once we have deck validation test framework in place
+// @no-test-required: base card with no card-level abilities; behavior lives in DeckValidator
 export default class DataVault extends BaseCard {
     protected override getImplementationId () {
         return {

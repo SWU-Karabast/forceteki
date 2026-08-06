@@ -4,7 +4,6 @@ describe('Maul, Master of the Shadow Collective', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         hand: ['bravado'],
                         groundArena: ['maul#master-of-the-shadow-collective', 'battlefield-marine'],
@@ -151,7 +150,6 @@ describe('Maul, Master of the Shadow Collective', function() {
         it('Maul\'s on attack ability should take control of an enemy unit if he dealt combat damage to a base via "direct" Overwhelm', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     groundArena: [{ card: 'maul#master-of-the-shadow-collective', damage: 2, upgrades: ['vambrace-flamethrower'] }],
                 },
@@ -178,7 +176,6 @@ describe('Maul, Master of the Shadow Collective', function() {
         it('Maul\'s on attack ability should defeat the stolen unit instead of returning it if it has become a leader unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     leader: 'asajj-ventress#i-work-alone',
                     groundArena: ['maul#master-of-the-shadow-collective'],

@@ -182,7 +182,7 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 ]);
 
                 // Verify we could choose nothing
-                expect(context.player1).toHaveEnabledPromptButton('Pass');
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
 
                 // Choose Fallen Lightsaber
                 context.player1.clickCard(context.fallenLightsaber);
@@ -263,7 +263,7 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 ]);
 
                 // Verify we could choose nothing
-                expect(context.player1).toHaveEnabledPromptButton('Pass');
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
 
                 // Choose Craving Power
                 context.player1.clickCard(context.cravingPower);
@@ -277,7 +277,7 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                     'craving-power'
                 ]);
 
-                expect(context.player1).toHavePrompt('Deal damage to an enemy unit equal to attached unit\'s power');
+                expect(context.player1).toHavePrompt('Deal 7 damage to an enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.devastator]);
                 context.player1.clickCard(context.devastator);
                 expect(context.devastator.damage).toBe(7);
@@ -429,10 +429,10 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                     context.constructedLightsaber,
                     context.devotion
                 ]);
-                expect(context.player1).toHaveEnabledPromptButton('Pass');
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
 
                 // Choose nothing
-                context.player1.clickPrompt('Pass');
+                context.player1.clickPrompt('Choose nothing');
 
                 // P1's turn ends without attaching any upgrades
                 expect(context.kyloRen).toBeInZone('groundArena');

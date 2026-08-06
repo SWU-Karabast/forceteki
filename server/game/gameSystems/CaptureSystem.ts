@@ -9,6 +9,8 @@ export interface ICaptureProperties extends ICardTargetSystemProperties {
 
     /** Defaults to context.source, if used in an event must be provided explicitly */
     captor?: ICaptorCard;
+
+    fromOutOfPlay?: boolean;
 }
 
 /**
@@ -20,16 +22,20 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
     public override readonly effectDescription = 'capture {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
+    protected override defaultProperties: ICaptureProperties = {
+        fromOutOfPlay: false,
+    };
+
     public eventHandler(event): void {
         this.leavesPlayEventHandler(event.card, ZoneName.Capture, event.context, () => event.card.moveToCaptureZone(event.captor.captureZone));
     }
 
     public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (!card.isUnit() || !card.isInPlay()) {
+        const properties = this.generatePropertiesFromContext(context);
+        if (!card.isUnit() || (!properties.fromOutOfPlay && !card.isInPlay())) {
             return false;
         }
 
-        const properties = this.generatePropertiesFromContext(context);
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeCaptured, context)) {
             return false;
         }
@@ -79,6 +85,8 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
-        this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
+        if (card.canBeInPlay() && card.isInPlay()) {
+            this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
+        }
     }
 }

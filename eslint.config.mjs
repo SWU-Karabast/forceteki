@@ -8,6 +8,7 @@ import tsParser from '@typescript-eslint/parser';
 import unusedImports from "eslint-plugin-unused-imports";
 import noRawTokenText from './eslint-rules/no-raw-token-text.mjs';
 import stateRefArrayRequiresIStateArray from './eslint-rules/state-ref-array-requires-istatearray.mjs';
+import noEventGeneratedTokens from './eslint-rules/no-event-generated-tokens.mjs';
 
 export default tseslint.config(
     {
@@ -254,12 +255,14 @@ export default tseslint.config(
                 rules: {
                     'no-raw-token-text': noRawTokenText,
                     'state-ref-array-requires-istatearray': stateRefArrayRequiresIStateArray,
+                    'no-event-generated-tokens': noEventGeneratedTokens,
                 }
             }
         },
         rules: {
             'forceteki/no-raw-token-text': 'error',
             'forceteki/state-ref-array-requires-istatearray': 'error',
+            'forceteki/no-event-generated-tokens': 'error',
         }
     }
 );

@@ -113,6 +113,9 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
         if (props.abilityIdentifier) {
             result.abilityIdentifier = props.abilityIdentifier;
         }
+        if (props.gainAbilitySource) {
+            result.gainAbilitySource = props.gainAbilitySource;
+        }
 
         return result as unknown as IOngoingEffectFactory<TTarget>;
     }

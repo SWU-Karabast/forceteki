@@ -3,7 +3,6 @@ describe('Flash the Vents', function () {
         it('Flash the Vents\'s ability should initiate an attack, give +2/+0 and Overwhelm, and defeat the unit if it dealt combat damage to a base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['flash-the-vents'],
                     groundArena: ['battlefield-marine']
@@ -29,7 +28,6 @@ describe('Flash the Vents', function () {
         it('Flash the Vents\'s ability should initiate an attack and defeat the unit if it dealt overwhelm damage to a base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['flash-the-vents'],
                     groundArena: ['battlefield-marine']
@@ -56,7 +54,6 @@ describe('Flash the Vents', function () {
         it('Flash the Vents\'s ability should initiate an attack and should not defeat the unit if it did not damage a base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['flash-the-vents'],
                     groundArena: ['battlefield-marine']
@@ -83,7 +80,6 @@ describe('Flash the Vents', function () {
         it('Flash the Vents\'s ability should initiate an attack and defeat the unit if it dealt ability damage to a base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['flash-the-vents'],
                     leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
@@ -110,7 +106,6 @@ describe('Flash the Vents', function () {
         it('Flash the Vents\'s ability should initiate an attack and defeat the unit if it dealt ability damage to your base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['flash-the-vents'],
                     spaceArena: ['rebellion-ywing'],
@@ -141,7 +136,6 @@ describe('Flash the Vents', function () {
         it('Flash the Vents\'s ability should initiate an attack and should not defeat the unit if another unit damaged a base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['flash-the-vents'],
                     groundArena: ['battlefield-marine'],
@@ -174,7 +168,6 @@ describe('Flash the Vents', function () {
         it('Flash the Vents\'s ability should initiate an attack and defeat the unit if it dealt ability damage to a base when the attack ends', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['flash-the-vents'],
                     groundArena: ['cassian-andor#everything-for-the-rebellion'],
@@ -202,10 +195,41 @@ describe('Flash the Vents', function () {
             expect(context.cassianAndor).toBeInZone('discard');
         });
 
+        it('can be played with no units that can attack after a unit has already dealt combat damage to a base this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['flash-the-vents'],
+                    groundArena: [{ card: 'cassian-andor#everything-for-the-rebellion', exhausted: true }]
+                },
+                player2: {
+                    groundArena: ['battlefield-marine']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.passAction();
+
+            // A unit deals combat damage to a base, populating the DamageDealtThisPhaseWatcher
+            context.player2.clickCard(context.battlefieldMarine);
+            context.player2.clickCard(context.p1Base);
+            expect(context.p1Base.damage).toBe(3);
+
+            // Now Flash the Vents is played with no ready unit to attack with, so the main
+            // initiateAttack effect has no legal target and the `then` sub-step is evaluated for
+            // legality with no attacker selected (undefined target). With the watcher already
+            // populated this used to crash on `card.canBeInPlay()`.
+            context.player1.clickCard(context.flashTheVents);
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.cassianAndor).toBeInZone('groundArena');
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('does nothing when played with no units that can attack', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['flash-the-vents'],
                     groundArena: [{ card: 'cassian-andor#everything-for-the-rebellion', exhausted: true }],

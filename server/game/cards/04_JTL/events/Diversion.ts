@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class Diversion extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class Diversion extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Give a unit Sentinel for this phase',
+            title: `Give a unit ${TextHelper.Sentinel} for this phase`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({

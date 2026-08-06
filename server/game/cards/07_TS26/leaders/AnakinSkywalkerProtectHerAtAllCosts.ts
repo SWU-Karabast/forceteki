@@ -1,7 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import type { IInPlayCard } from '../../../core/card/baseClasses/InPlayCard';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
@@ -31,9 +30,13 @@ export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard 
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) =>
                     card.canBeInPlay() &&
-                    this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
+                    this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
+                        entry.card.controller === context.player &&
+                        entry.playedBy === context.player &&
+                        entry.card.isInPlay()
+                    ).includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => this.friendlyUnitsThatEnteredPlayThisPhase(context).length >= 2,
+                    condition: (context) => this.friendlyUnitsEnteredPlayThisPhaseCount(context) >= 2,
                     onTrue: AbilityHelper.immediateEffects.giveShield()
                 })
             }
@@ -50,16 +53,17 @@ export default class AnakinSkywalkerProtectHerAtAllCosts extends LeaderUnitCard 
                 cardCondition: (card, context) =>
                     card !== context.source &&
                     card.canBeInPlay() &&
-                    this.friendlyUnitsThatEnteredPlayThisPhase(context).includes(card),
+                    this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
+                        entry.card.controller === context.player
+                    ).includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()
             }
         });
     }
 
-    private friendlyUnitsThatEnteredPlayThisPhase(context: AbilityContext): IInPlayCard[] {
+    private friendlyUnitsEnteredPlayThisPhaseCount(context: AbilityContext): number {
         return this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) =>
-            entry.card.controller === context.player &&
-            entry.card.isInPlay()
-        );
+            entry.playedBy === context.player
+        ).length;
     }
 }

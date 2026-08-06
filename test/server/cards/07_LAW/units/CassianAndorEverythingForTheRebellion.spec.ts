@@ -3,7 +3,6 @@ describe('Cassian Andor, Everything for the Rebellion', function() {
         describe('Cassian Andor\'s triggered ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
-                    attackRulesVersion: 'cr7',
                     phase: 'action',
                     player1: {
                         groundArena: ['cassian-andor#everything-for-the-rebellion', 'battlefield-marine'],

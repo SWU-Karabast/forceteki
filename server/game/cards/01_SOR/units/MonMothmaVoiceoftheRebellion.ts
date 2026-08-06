@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 5 cards of your deck for a Rebel card, then reveal and draw it.',
+            title: `Search the top 5 cards of your deck for a ${TextHelper.Trait.Rebel} card, then reveal and draw it.`,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Rebel),

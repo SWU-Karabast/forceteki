@@ -3,6 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { EventName, GameStateChangeRequired, KeywordName, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 
 export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
@@ -20,7 +21,7 @@ export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
                 AbilityHelper.costs.abilityActivationResourceCost(1),
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.returnToHandFromPlay({
-                    activePromptTitle: 'Return a friendly Underworld unit to hand',
+                    activePromptTitle: `Return a friendly ${TextHelper.Trait.Underworld} unit to hand`,
                     controller: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Underworld)
@@ -32,7 +33,7 @@ export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play an Underworld unit unit from your hand',
+            title: `Play an ${TextHelper.Trait.Underworld} unit unit from your hand`,
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
@@ -44,8 +45,8 @@ export default class JabbaTheHuttCrimeBoss extends LeaderUnitCard {
                         playAsType: WildcardCardType.Unit
                     }),
                     AbilityHelper.immediateEffects.delayedCardEffect((outerContext) => ({
-                        title: 'It gains Ambush for the phase if a Credit token was used to pay its cost',
-                        effectDescription: 'conditionally give it Ambush for the phase',
+                        title: `It gains ${TextHelper.Ambush} for the phase if a Credit token was used to pay its cost`,
+                        effectDescription: `conditionally give it ${TextHelper.Ambush} for the phase`,
                         limit: AbilityHelper.limit.perGame(1),
                         when: {
                             onCardPlayed: (event) =>

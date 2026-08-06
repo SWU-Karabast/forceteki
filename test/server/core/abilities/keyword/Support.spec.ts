@@ -191,6 +191,30 @@ describe('Support keyword', function() {
             });
         });
 
+        it('the Raid value is captured when the attack is initiated, not updated dynamically during the attack', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['ezra-bridger#the-force-is-all-i-need'],
+                    spaceArena: ['the-ghost#heart-of-the-family', 'red-three#unstoppable']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Ezra (Raid 2: 1 from Red Three, 1 from Ghost)
+            context.player1.clickCard(context.ezraBridger);
+
+            // Select The Ghost
+            expect(context.player1).toBeAbleToSelectExactly([context.theGhost, context.redThree]);
+            context.player1.clickCard(context.theGhost);
+            context.player1.clickCard(context.p2Base);
+
+            // The Ghost should gain Raid 3 (1 from Red Three, 2 from Ezra via Support)
+            expect(context.p2Base.damage).toBe(8);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         describe('When the Support unit gains triggered abilities from another source', function() {
             it('the Support target gains the triggered ability for the attack', async function() {
                 await contextRef.setupTestAsync({
@@ -217,10 +241,11 @@ describe('Support keyword', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
                 // Since Battlefield Marine has 2 instances of Krell's When Defeated ability
-                // the player should be prompted to choose which one to trigger when it is defeated
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Draw a card']);
-                context.player1.clickPrompt('Draw a card');
+                // (same static title and source), they collapse into one grouped entry and the
+                // resolution modal appears directly when it is defeated.
+                expect(context.player1).toHavePrompt('Resolve "Draw a card"');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Ability is optional, so we click trigger once for each instance of the ability
                 context.player1.clickPrompt('Trigger');
@@ -232,6 +257,45 @@ describe('Support keyword', function() {
                 expect(context.restock).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
             });
+        });
+
+        it('Supported unit should copy Saboteur keyword early enough for attack target selection', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['unsanctioned-patrol'],
+                    spaceArena: ['stolen-athauler'],
+                },
+                player2: {
+                    spaceArena: [{
+                        card: 'alkenzi-patroller',
+                        upgrades: ['shield', 'shield']
+                    }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Initiate an attack with Stolen AT-Hauler; it can only target the space Sentinel
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.player1).toBeAbleToSelectExactly([context.alkenziPatroller]);
+            context.player1.clickPrompt('Cancel');
+
+            // Instead, play Unsanctioned Patrol, which should copy Saboteur to Stolen AT-Hauler and initiate an attack with it
+            context.player1.clickCard(context.unsanctionedPatrol);
+            context.player1.clickCard(context.stolenAthauler);
+
+            // Base is targetable because abilities were copied in time for the attack target selection
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.alkenziPatroller,
+                context.p2Base
+            ]);
+
+            context.player1.clickCard(context.alkenziPatroller);
+
+            // Alkenzi Patroller should be defeated because Saboteur allowed Stolen AT-Hauler to defeat Shields on attack
+            expect(context.alkenziPatroller).toBeInZone('discard');
+            expect(context.stolenAthauler.damage).toBe(2);
         });
     });
 });

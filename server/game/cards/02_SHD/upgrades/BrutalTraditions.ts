@@ -3,10 +3,10 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import { WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class BrutalTraditions extends UpgradeCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -16,13 +16,13 @@ export default class BrutalTraditions extends UpgradeCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
             title: 'If an enemy unit was defeated this phase, play this upgrade from your discard pile',
-            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player.opponent),
+            condition: (context) => this.cardsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player.opponent),
             immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Upgrade }),
             zoneFilter: ZoneName.Discard
         });

@@ -7,7 +7,6 @@ const fs = require('fs');
 const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager');
 const { StateWatcherLibrary } = require('../../server/game/stateWatchers/StateWatcherLibrary');
-const { AttackRulesVersion } = require('../../server/game/core/attack/AttackFlow');
 
 class GameStateBuilder {
     constructor() {
@@ -108,7 +107,6 @@ class GameStateBuilder {
         this.validatePlayerOptions(options.player2, 'player2', options.phase);
 
         context.game.gameMode = SwuGameFormat.Premier;
-        context.game.attackRulesVersion = options.attackRulesVersion ?? AttackRulesVersion.CR7;
 
         if (options.hasOwnProperty('enableConfirmationToUndo')) {
             context.game.setUndoConfirmationRequired(!!options.enableConfirmationToUndo);
@@ -123,10 +121,19 @@ class GameStateBuilder {
         const player1OwnedCards = this.deckBuilder.getOwnedCards(1, options.player1, options.player2);
         const player2OwnedCards = this.deckBuilder.getOwnedCards(2, options.player2, options.player1);
 
+        // Game-level autoSingleTarget sets both players (kept for backwards compatibility of existing tests).
         if (options.hasOwnProperty('autoSingleTarget')) {
             const autoSingleTarget = !!options.autoSingleTarget; // Ensures a boolean value
             context.player1Object.user.settings.optionSettings.autoSingleTarget = autoSingleTarget;
             context.player2Object.user.settings.optionSettings.autoSingleTarget = autoSingleTarget;
+        }
+
+        // Per-player autoSingleTarget overrides the game-level value, so each player can be set independently.
+        if (options.player1.hasOwnProperty('autoSingleTarget')) {
+            context.player1Object.user.settings.optionSettings.autoSingleTarget = !!options.player1.autoSingleTarget;
+        }
+        if (options.player2.hasOwnProperty('autoSingleTarget')) {
+            context.player2Object.user.settings.optionSettings.autoSingleTarget = !!options.player2.autoSingleTarget;
         }
 
         // pass decklists to players. they are initialized into real card objects in the startGame() call
@@ -298,7 +305,8 @@ class GameStateBuilder {
             'deck',
             'resource',
             'hasForceToken',
-            'credits'
+            'credits',
+            'autoSingleTarget'
         ];
         // list of approved property names for setup phase
         const setupPhase = [
@@ -306,7 +314,8 @@ class GameStateBuilder {
             'deck',
             'base',
             'hand',
-            'hasInitiative'
+            'hasInitiative',
+            'autoSingleTarget'
         ];
 
         // Check for unknown properties
@@ -327,8 +336,7 @@ class GameStateBuilder {
             'phaseTransitionHandler',
             'autoSingleTarget',
             'testUndo',
-            'enableConfirmationToUndo',
-            'attackRulesVersion'
+            'enableConfirmationToUndo'
         ];
 
         // Check for unknown properties

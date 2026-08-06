@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class RenownedDignitaries extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class RenownedDignitaries extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Heal 2 damage from your base for each friendly Official unit',
+            title: `Heal 2 damage from your base for each friendly ${TextHelper.Trait.Official} unit`,
             immediateEffect: abilityHelper.immediateEffects.heal((context) => ({
                 target: context.player.base,
                 amount: 2 * context.player.getArenaUnits({ trait: Trait.Official }).length,

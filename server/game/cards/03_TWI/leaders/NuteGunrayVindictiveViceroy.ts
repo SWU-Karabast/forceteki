@@ -2,10 +2,10 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -15,7 +15,7 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -23,7 +23,7 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
             title: 'Create a Battle Droid token.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player).length >= 2,
+                condition: (context) => this.cardsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player).length >= 2,
                 onTrue: AbilityHelper.immediateEffects.createBattleDroid(),
             })
         });

@@ -2,10 +2,10 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class SanHillChairmanOfTheBankingClan extends NonLeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId () {
         return {
@@ -15,7 +15,7 @@ export default class SanHillChairmanOfTheBankingClan extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -23,7 +23,7 @@ export default class SanHillChairmanOfTheBankingClan extends NonLeaderUnitCard {
             title: 'For each friendly unit that was defeated this phase, ready a friendly resource.',
             immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
                 target: context.player,
-                amount: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player).length
+                amount: this.cardsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player).length
             }))
         });
     }

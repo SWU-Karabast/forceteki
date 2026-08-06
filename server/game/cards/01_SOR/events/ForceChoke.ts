@@ -14,7 +14,7 @@ export default class ForceChoke extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: `If you control a Force unit, this costs ${TextHelper.resource(1)} less to play`,
+            title: `If you control a ${TextHelper.Trait.Force} unit, this costs ${TextHelper.resource(1)} less to play`,
             amount: 1,
             condition: (context) => context.player.isTraitInPlay(Trait.Force)
         });

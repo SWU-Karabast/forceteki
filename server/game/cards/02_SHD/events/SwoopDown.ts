@@ -3,6 +3,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EffectName, KeywordName, ZoneName } from '../../../core/Constants';
 import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SwoopDown extends EventCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class SwoopDown extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a space unit. It gains Saboteur and can attack ground units for this attack. If it attacks a ground unit, it gets +2/+0 and the defender gets –2/–0 for this attack.',
+            title: `Attack with a space unit. It gains ${TextHelper.Saboteur} and can attack ground units for this attack. If it attacks a ground unit, it gets +2/+0 and the defender gets –2/–0 for this attack.`,
             initiateAttack: {
                 attackerCondition: (card) => card.zoneName === ZoneName.SpaceArena,
                 attackerLastingEffects: [

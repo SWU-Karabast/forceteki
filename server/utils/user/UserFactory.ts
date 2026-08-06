@@ -6,8 +6,8 @@ import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
-import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity } from '../../services/DynamoDBInterfaces';
-import { ModerationFieldState, ModerationType } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, IUsernameChangeEntity } from '../../services/DynamoDBInterfaces';
+import { CardImageLocale, ModerationFieldState, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
 
@@ -29,9 +29,19 @@ const getDefaultKeyboardShortcuts = () => ({
     undo: 'U',
 });
 
+const getDefaultGameOptionsPreferences = () => ({
+    muteChat: false,
+    cardLanguage: CardImageLocale.English,
+    timerVisibility: TimerVisibility.Standard,
+    autoResolve: {
+        singleTarget: false,
+    },
+});
+
 export const getDefaultPreferences = (): IUserPreferences => ({
     sound: getDefaultSoundPreferences(),
     cosmetics: getDefaultCosmeticsPreferences(),
+    gameOptions: getDefaultGameOptionsPreferences(),
     keyboardShortcuts: getDefaultKeyboardShortcuts(),
 });
 
@@ -134,6 +144,21 @@ export class UserFactory {
         }
     }
 
+    public async setTimerPopupSeenStatus(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+            await dbService.updateUserProfileAsync(userId, {
+                timerPopupSeenDate: new Date().toISOString()
+            });
+            return true;
+        } catch (error) {
+            logger.error('Error setting timerPopupSeen status:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
     /**
      * • Unlimited username changes during the first week (7 days) after account creation.
      * • After that, a 1‑month (30‑days) cooldown between changes.
@@ -216,13 +241,16 @@ export class UserFactory {
      * • Unlimited username changes during the first week (7 days) after account creation.
      * • After that, a 1‑month (30‑days) cooldown between changes.
      */
-    public async changeUsernameAsync(userId: string, newUsername: string): Promise<{
-        success: boolean;
-        username?: string;
-        message?: string;
-        nextChangeAllowedAt?: string; // ISO timestamp when they can change again
-        daysRemaining?: number;
-    }> {
+    public async changeUsernameAsync(userId: string, newUsername: string, options?: {
+        source?: UsernameChangeSource;
+        relatedModActionId?: string;
+    }): Promise<{
+            success: boolean;
+            username?: string;
+            message?: string;
+            nextChangeAllowedAt?: string; // ISO timestamp when they can change again
+            daysRemaining?: number;
+        }> {
         try {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
@@ -271,14 +299,32 @@ export class UserFactory {
                 }
             }
 
+            // update the GSI username
+            await dbService.deleteUsernameLinkAsync(userProfile.username, userId);
+            await dbService.saveUsernameLinkAsync(newUsername, userId);
+
             // Update username and set the timestamp
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
                 needsUsernameChange: false,
             });
-
             logger.info(`Username for ${userId} changed to ${newUsername}`);
+
+            // Record the change in the username history. This is best-effort tracking data, so a
+            // failure here must not fail the rename (which is already committed) or block the caller
+            // from completing follow-up steps such as clearing an active forced-rename.
+            try {
+                await this.recordUsernameChangeAsync(
+                    userId,
+                    userProfile.username,
+                    newUsername,
+                    options?.source ?? UsernameChangeSource.UserInitiated,
+                    options?.relatedModActionId,
+                );
+            } catch {
+                // error already logged in recordUsernameChangeAsync
+            }
 
             return {
                 success: true,
@@ -377,17 +423,28 @@ export class UserFactory {
                 swubaseRefreshToken: null,
                 moderation: null,
                 undoPopupSeenDate: null,
+                timerPopupSeenDate: null,
             };
 
             // Create OAuth link
             await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
             // Save the user profile
             await dbService.saveUserProfileAsync(newUser);
+            // create username link
+            await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
             // Create email link if email is available
             if (!email) {
                 throw new Error(`Email not found for user ${newUser.id}`);
             }
             await dbService.saveEmailLinkAsync(email, newUser.id);
+            // Record the initial username in the change history. This runs after all essential account
+            // records are created and is best-effort, so a failure here won't leave the account in a
+            // half-finished state or abort account creation.
+            try {
+                await this.recordUsernameChangeAsync(newUser.id, null, newUser.username, UsernameChangeSource.AccountCreation);
+            } catch {
+                // error already logged in recordUsernameChangeAsync
+            }
             logger.info(`Created new user: ${newUser.id} (${username}) with ${provider} authentication`);
             return {
                 id: newUser.id,
@@ -503,6 +560,7 @@ export class UserFactory {
     }
 
     /**
+     * TODO remove this function after 1 month of new mod actions since its legacy
      * Processes moderation logic for a user
      * @param userData User data from database
      * @returns Updated user data with moderation processed
@@ -633,6 +691,115 @@ export class UserFactory {
             return false;
         } catch (error) {
             logger.error('Error setting moderation seen status:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    // ------------------ MOD ACTIONS ------------------
+    /**
+     * Find user profile(s) by ID or username.
+     * - If searchQuery matches a userId: returns a single profile.
+     * - Otherwise tries username lookup: can return multiple profiles.
+     * @returns Array of matching user profiles, or empty array if not found.
+     */
+    public async findUserProfilesAsync(searchQuery: string): Promise<IUserProfileDataEntity[]> {
+        try {
+            const dbService = await this.dbServicePromise;
+
+            // Try direct lookup by userId first
+            const directProfile = await dbService.getUserProfileAsync(searchQuery);
+            if (directProfile) {
+                return [directProfile];
+            }
+
+            // Fallback to username search
+            const userIds = await dbService.getUserIdsByUsernameAsync(searchQuery);
+            if (!userIds || userIds.length === 0) {
+                return [];
+            }
+
+            const profiles: IUserProfileDataEntity[] = [];
+            for (const userId of userIds) {
+                const profile = await dbService.getUserProfileAsync(userId);
+                if (profile) {
+                    profiles.push(profile);
+                }
+            }
+
+            return profiles;
+        } catch (error) {
+            logger.error('Error finding user profiles:', {
+                error: { message: error.message, stack: error.stack },
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Get the full mod action history for a player (all actions, including cancelled/expired).
+     * Sorted by createdAt descending (newest first).
+     */
+    public async getModActionHistoryAsync(userId: string): Promise<IModActionEntity[]> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const modActions = await dbService.getModActionsAsync({ userId });
+            modActions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return modActions;
+        } catch (error) {
+            logger.error('Error getting mod action history:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Record a username change in the user's history.
+     */
+    public async recordUsernameChangeAsync(
+        userId: string,
+        previousUsername: string | null,
+        newUsername: string,
+        source: UsernameChangeSource,
+        relatedModActionId?: string,
+    ): Promise<void> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const record: IUsernameChangeEntity = {
+                id: uuid(),
+                playerId: userId,
+                previousUsername,
+                newUsername,
+                source,
+                relatedModActionId,
+                createdAt: new Date().toISOString(),
+            };
+            await dbService.saveUsernameChangeAsync(record);
+        } catch (error) {
+            logger.error('Error recording username change:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Get the full username change history for a player.
+     * Sorted by createdAt descending (newest first).
+     */
+    public async getUsernameChangeHistoryAsync(userId: string): Promise<IUsernameChangeEntity[]> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const usernameChanges = await dbService.getUsernameChangesAsync(userId);
+            usernameChanges.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return usernameChanges;
+        } catch (error) {
+            logger.error('Error getting username change history:', {
                 error: { message: error.message, stack: error.stack },
                 userId
             });

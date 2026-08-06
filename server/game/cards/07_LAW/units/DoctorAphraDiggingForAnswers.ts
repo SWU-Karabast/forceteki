@@ -2,6 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventName, RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DoctorAphraDiggingForAnswers extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class DoctorAphraDiggingForAnswers extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Discard the top 3 cards of your deck. You may return an Underworld card discarded this way to your hand',
+            title: `Discard the top 3 cards of your deck. You may return an ${TextHelper.Trait.Underworld} card discarded this way to your hand`,
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 3,
                 target: context.player
@@ -25,7 +26,7 @@ export default class DoctorAphraDiggingForAnswers extends NonLeaderUnitCard {
                     .filter((card) => card.hasSomeTrait(Trait.Underworld));
 
                 return {
-                    title: 'Return a discarded Underworld card to your hand',
+                    title: `Return a discarded ${TextHelper.Trait.Underworld} card to your hand`,
                     optional: true,
                     targetResolver: {
                         controller: RelativePlayer.Self,

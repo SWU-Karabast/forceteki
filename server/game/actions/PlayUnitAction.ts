@@ -1,9 +1,10 @@
-import { AbilityRestriction, PlayType, ZoneName } from '../core/Constants.js';
+import { AbilityRestriction, EntryType, PlayType, ZoneName } from '../core/Constants.js';
 import type { Restriction } from '../core/ongoingEffect/effectImpl/Restriction.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import { Contract } from '../core/utils/Contract.js';
+import { TextHelper } from '../core/utils/TextHelper.js';
 import type { Card } from '../core/card/Card.js';
 import type { Game } from '../core/Game';
 import type { FormatMessage } from '../core/chat/GameChat.js';
@@ -36,7 +37,8 @@ export abstract class PlayUnitActionBase extends PlayCardAction {
             new PutIntoPlaySystem({
                 target: context.source,
                 controller: context.player,
-                entersReady: this.entersReady
+                entersReady: this.entersReady,
+                entryType: EntryType.Played,
             }).generateEvent(context),
             this.generateOnPlayEvent(context)
         ];
@@ -51,7 +53,7 @@ export abstract class PlayUnitActionBase extends PlayCardAction {
     public override displayMessage(context: AbilityContext): void {
         let playTypeDescription = '';
         if (context.playType === PlayType.Smuggle) {
-            playTypeDescription = ' using Smuggle';
+            playTypeDescription = ` using ${TextHelper.Smuggle}`;
         }
         let costDescription: FormatMessage | string = '';
         const costMessages = this.getCostsMessages(context);

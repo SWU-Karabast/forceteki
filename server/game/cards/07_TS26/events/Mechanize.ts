@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class Mechanize extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class Mechanize extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper): void {
         registrar.setEventAbility({
-            title: 'Play a non-Vehicle unit from your discard pile and give an Experience token to it',
+            title: `Play a non-${TextHelper.Trait.Vehicle} unit from your discard pile and give an Experience token to it`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,

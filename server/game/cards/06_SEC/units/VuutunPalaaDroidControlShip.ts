@@ -14,12 +14,12 @@ export default class VuutunPalaaDroidControlShip extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addDecreaseCostAbility({
-            title: `This unit costs ${TextHelper.resource(1)} less to play for each friendly Droid unit`,
+            title: `This unit costs ${TextHelper.resource(1)} less to play for each friendly ${TextHelper.Trait.Droid} unit`,
             amount: (_, player) => player.getArenaUnits({ trait: Trait.Droid }).length
         });
 
         registrar.addConstantAbility({
-            title: 'Each friendly Droid unit may be exhausted to pay costs as if it were a resource',
+            title: `Each friendly ${TextHelper.Trait.Droid} unit may be exhausted to pay costs as if it were a resource`,
             ongoingEffect: AbilityHelper.ongoingEffects.canExhaustUnitsInsteadOfResources({
                 canExhaustUnitCondition: (card, _) => card.hasSomeTrait(Trait.Droid)
             })

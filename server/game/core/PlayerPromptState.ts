@@ -1,5 +1,5 @@
 import type { Card } from './card/Card';
-import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
+import type { IBatchTriggerResolutionPromptData, IButton, IDisplayCard, IDistributeAmongTargetsPromptData, INumberPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
 import type { Player } from './Player';
 
 export interface IPlayerPromptStateProperties {
@@ -12,7 +12,9 @@ export interface IPlayerPromptStateProperties {
 
     selectCardMode?: SelectCardMode;
     selectOrder?: boolean;
+    selectNumber?: INumberPromptData;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
+    batchTriggerResolution?: IBatchTriggerResolutionPromptData;
     dropdownListOptions?: string[];
     displayCards?: IDisplayCard[];
     perCardButtons?: IButton[];
@@ -32,7 +34,9 @@ export interface ICardSelectionState {
 export class PlayerPromptState {
     public selectCardMode? = null;
     public selectOrder = false;
+    public selectNumber?: INumberPromptData = null;
     public distributeAmongTargets?: IDistributeAmongTargetsPromptData = null;
+    public batchTriggerResolution?: IBatchTriggerResolutionPromptData = null;
     public menuTitle = '';
     public promptTitle = '';
     public promptUuid = '';
@@ -81,8 +85,10 @@ export class PlayerPromptState {
         this.promptType = prompt.promptType;
         this.selectCardMode = prompt.selectCardMode;
         this.selectOrder = prompt.selectOrder ?? false;
+        this.selectNumber = prompt.selectNumber;
         this.menuTitle = prompt.menuTitle ?? '';
         this.distributeAmongTargets = prompt.distributeAmongTargets;
+        this.batchTriggerResolution = prompt.batchTriggerResolution;
         this.dropdownListOptions = prompt.dropdownListOptions ?? [];
         this.promptUuid = prompt.promptUuid;
         this.buttons = prompt.buttons ?? [];
@@ -129,7 +135,9 @@ export class PlayerPromptState {
         return {
             selectCardMode: this.selectCardMode,
             selectOrder: this.selectOrder,
+            selectNumber: this.selectNumber,
             distributeAmongTargets: this.distributeAmongTargets,
+            batchTriggerResolution: this.batchTriggerResolution,
             dropdownListOptions: this.dropdownListOptions,
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,

@@ -2,6 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, TargetMode, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class PrepareForTakeoff extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class PrepareForTakeoff extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Search the top 8 cards for up to 2 Vehicle units, reveal them, and draw them',
+            title: `Search the top 8 cards for up to 2 ${TextHelper.Trait.Vehicle} units, reveal them, and draw them`,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 targetMode: TargetMode.UpTo,
                 selectCount: 2,

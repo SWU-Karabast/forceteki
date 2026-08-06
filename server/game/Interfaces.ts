@@ -38,6 +38,8 @@ import type { IOngoingAllCardsForPlayerEffectProps, OngoingAllCardsForPlayerEffe
 
 // ********************************************** EXPORTED TYPES **********************************************
 
+export type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
+
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
 export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
@@ -99,6 +101,7 @@ export interface IOngoingEffectProps<TTarget> {
     optional?: boolean;
     delayedEffectType?: DelayedEffectType;
     isLastingEffect?: boolean;
+    gainAbilitySource?: Card;
 }
 
 export type IOngoingCardOrPlayerEffectProps<TTarget extends Card | Player> = TTarget extends Card ? IOngoingCardEffectProps : IOngoingPlayerEffectProps;
@@ -108,7 +111,7 @@ export interface IOngoingPlayerEffectProps extends IOngoingEffectProps<Player> {
 }
 
 export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
-    targetController?: RelativePlayer;
+    targetController?: RelativePlayerFilter;
 }
 
 // TODO: since many of the files that use this are JS, it's hard to know if it's fully correct.
@@ -117,6 +120,15 @@ export interface IOngoingCardEffectProps extends IOngoingEffectProps<Card> {
 export interface IAbilityProps<TContext extends AbilityContext> {
     title: string;
     contextTitle?: (context: TContext) => string;
+
+    /**
+     * When an ability is triggered multiple times in the same window, the trigger resolution prompt
+     * normally appends the affected card's name to each choice to differentiate them. If `contextTitle`
+     * is set it usually already differentiates the choices, so the appended name is suppressed. Set this
+     * to `true` to force the name to be appended anyway (e.g. when `contextTitle` does not name the card).
+     */
+    appendOverrideTitle?: boolean;
+
     zoneFilter?: ZoneFilter | ZoneFilter[];
     limit?: any;
     cardName?: string;
@@ -415,7 +427,6 @@ export interface IPlayerSerializedState {
 
 export interface ISerializedGameState {
     phase?: string;
-    attackRulesVersion?: string;
     reportingPlayer?: ISafeSerializedType<IPlayerSerializedState>;
     opponent?: ISafeSerializedType<IPlayerSerializedState>;
     player1?: ISafeSerializedType<IPlayerSerializedState>;
@@ -457,6 +468,7 @@ export interface ISerializedReportState {
     lobbyId: string;
     timestamp: string;
     messages: ISerializedMessage[];
+    chatMessages?: ISerializedMessage[];
     gameStepsSinceLastUndo: string;
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
@@ -481,7 +493,7 @@ export interface IEventRegistration<Handler = () => void> {
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler' | 'then' | 'ifYouDo' | 'ifYouDoNot'
 > {
-    replaceWith?: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
+    replaceWith?: PropsFactory<IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>, TriggeredAbilityContext<TSource>>;
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 }
 
@@ -505,7 +517,7 @@ interface IKeywordPropertiesBase {
     keyword: KeywordName;
 }
 
-interface INumericKeywordProperties extends IKeywordPropertiesBase {
+export interface INumericKeywordProperties extends IKeywordPropertiesBase {
     amount: number;
 }
 
@@ -594,6 +606,21 @@ export type NonParameterKeywordName =
   | KeywordName.Saboteur
   | KeywordName.Sentinel
   | KeywordName.Shielded
+  | KeywordName.Support;
+
+export type NonNumericKeywordName =
+  | KeywordName.Ambush
+  | KeywordName.Bounty
+  | KeywordName.Coordinate
+  | KeywordName.Grit
+  | KeywordName.Hidden
+  | KeywordName.Overwhelm
+  | KeywordName.Piloting
+  | KeywordName.Plot
+  | KeywordName.Saboteur
+  | KeywordName.Sentinel
+  | KeywordName.Shielded
+  | KeywordName.Smuggle
   | KeywordName.Support;
 
 export type NumericKeywordName =

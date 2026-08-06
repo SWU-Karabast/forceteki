@@ -4,7 +4,6 @@ describe('Chirrut Imwe, I Don\'t Need Luck', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         hand: ['one-way-out', 'bravado'],
                         groundArena: [{ card: 'chirrut-imwe#i-dont-need-luck', damage: 2 }, { card: 'atst', damage: 5 }],
@@ -99,7 +98,6 @@ describe('Chirrut Imwe, I Don\'t Need Luck', function() {
         it('Chirrut Imwe\'s on attack ability should heal 4 damage from another unit if he dealt combat damage to a base via "direct" Overwhelm', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     hand: ['one-way-out'],
                     groundArena: [{ card: 'chirrut-imwe#i-dont-need-luck', damage: 2, upgrades: ['vambrace-flamethrower'] }, { card: 'atst', damage: 5 }],

@@ -5,6 +5,7 @@ import { AbilityType, ZoneName } from '../Constants';
 import type { IUnitAbilityRegistrar, IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { EnumHelpers } from '../utils/EnumHelpers';
+import { TextHelper } from '../utils/TextHelper';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
@@ -185,7 +186,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
         }
 
         this.deployEpicActions.push(registrar.addActionAbility({
-            title: `Deploy ${this.title} as a Pilot`,
+            title: `Deploy ${this.title} as a ${TextHelper.Trait.Pilot}`,
             requiresConfirmation: true,
             limit: this.deployEpicActionLimit,
             condition: (context) => context.player.resources.length >= context.source.cost,

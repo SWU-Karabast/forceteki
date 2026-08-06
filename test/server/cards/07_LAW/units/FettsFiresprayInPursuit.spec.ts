@@ -4,7 +4,6 @@ describe('Fett\'s Firespray, In Pursuit', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         hand: ['heroic-sacrifice'],
                         spaceArena: ['fetts-firespray#in-pursuit'],

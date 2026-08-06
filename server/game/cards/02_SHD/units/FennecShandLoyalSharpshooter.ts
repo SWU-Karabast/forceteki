@@ -13,6 +13,7 @@ export default class FennecShandLoyalSharpshooter extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Deal 1 damage to the defender (if it\'s a unit) for each different cost among cards in your discard pile',
+            contextTitle: (context) => `Deal ${new Set(context.player.discard.map((card) => card.cost)).size} damage to the defender (if it's a unit)`,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.event.attack.targetIsUnit(),
                 onTrue: AbilityHelper.immediateEffects.damage((context) => ({

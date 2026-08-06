@@ -3,11 +3,11 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 
 export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -17,7 +17,7 @@ export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -30,7 +30,7 @@ export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.unitsDefeatedThisPhaseWatcher),
+                condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.cardsDefeatedThisPhaseWatcher),
                 onTrue: AbilityHelper.immediateEffects.exhaust(),
             }),
             ifYouDo: {
@@ -49,7 +49,7 @@ export default class BobaFettKraytsClawCommander extends LeaderUnitCard {
                     event.attack.attacker.hasSomeTrait(Trait.BountyHunter)
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.unitsDefeatedThisPhaseWatcher),
+                condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.cardsDefeatedThisPhaseWatcher),
                 onTrue: AbilityHelper.immediateEffects.createCreditToken()
             })
         });

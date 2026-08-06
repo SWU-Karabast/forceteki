@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ResistanceXWing extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ResistanceXWing extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While this unit has a Pilot on it, it gets +1/+1',
+            title: `While this unit has a ${TextHelper.Trait.Pilot} on it, it gets +1/+1`,
             condition: (context) => context.source.isUpgraded() && context.source.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })
         });

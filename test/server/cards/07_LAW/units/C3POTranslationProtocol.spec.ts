@@ -54,6 +54,40 @@ describe('C-3PO, Translation Protocol', function () {
             expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['experience']);
         });
 
+        it('should target a unit that shares a trait with a Darksaber-bearing unit (it becomes a leader unit)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'sebulba#especially-dangerous-dug', // Only Fringe trait
+                    groundArena: [
+                        'c3po#translation-protocol',
+                        'the-max-rebo-band#jatzwailers', // Underworld, Musician
+                        'battlefield-marine', // Rebel
+                        {
+                            card: 'max-rebo#encore',    // Underworld, Musician
+                            upgrades: ['the-darksaber#icon-of-leadership'] // Makes attached unit a leader unit
+                        }
+                    ]
+                },
+                player2: {
+                    leader: 'sabine-wren#galvanized-revolutionary' // Mandalorian, Rebel, Spectre
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Attack with C-3PO
+            context.player1.clickCard(context.c3po);
+            context.player1.clickCard(context.p2Base);
+
+            // Ability triggers; Only Max Rebo Band is selectable because it shares its traits with Max Rebo
+            expect(context.player1).toHavePrompt('Give an Experience token to another non-leader unit that shares a Trait with a friendly leader');
+            expect(context.player1).toBeAbleToSelectExactly([context.theMaxReboBand]);
+            context.player1.clickCard(context.theMaxReboBand);
+
+            expect(context.theMaxReboBand).toHaveExactUpgradeNames(['experience']);
+        });
+
         it('C-3PO\'s ability should give an Experience token to another non-leader unit that shares a Trait with a friendly leader (some trait are lost)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

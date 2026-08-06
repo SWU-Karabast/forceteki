@@ -38,7 +38,7 @@ export class InitiateAttackAction extends PlayerAction {
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
             zoneFilter: WildcardZoneName.AnyAttackable,
             attackTargetingHighlightAttacker: card,
-            activePromptTitle: 'Choose a target for attack'
+            activePromptTitle: attackProperties?.activePromptTitle ?? 'Choose a target for attack'
         });
 
         this.initiateAttackSource = initiateAttackSource;

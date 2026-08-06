@@ -6,15 +6,27 @@ import {
     PutCommand,
     QueryCommand,
     ScanCommand,
-    UpdateCommand
+    UpdateCommand,
+    BatchWriteCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
-import { type IDeckDataEntity, type IDeckStatsEntity, type IUserProfileDataEntity, type IUserPreferences, type IServerRoleUsersListsEntity } from './DynamoDBInterfaces';
+import type {
+    IModActionEntity,
+    IUsernameChangeEntity
+} from './DynamoDBInterfaces';
+import {
+    type IDeckDataEntity,
+    type IDeckStatsEntity,
+    type IUserProfileDataEntity,
+    type IUserPreferences,
+    type IServerRoleUsersListsEntity
+} from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { IDeckDataEntitySchema, IDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
+import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
-import { type IRegisteredCosmeticOption, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import { isTimedModAction } from '../game/core/utils/EnumHelpers';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -219,6 +231,43 @@ class DynamoDBService {
             });
             return this.client.send(command);
         }, 'DynamoDB putItem error');
+    }
+
+    /**
+     * Batch write multiple items to DynamoDB.
+     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items.
+     */
+    public batchWriteItemsAsync(items: Record<string, any>[]) {
+        return this.executeDbOperationAsync(async () => {
+            const chunks = [];
+            for (let i = 0; i < items.length; i += 25) {
+                chunks.push(items.slice(i, i + 25));
+            }
+
+            for (const chunk of chunks) {
+                let unprocessed = chunk;
+
+                while (unprocessed.length > 0) {
+                    const result = await this.client.send(new BatchWriteCommand({
+                        RequestItems: {
+                            [this.tableName]: unprocessed.map((item) => ({
+                                PutRequest: { Item: item }
+                            }))
+                        }
+                    }));
+
+                    const retryItems = result.UnprocessedItems?.[this.tableName];
+                    if (retryItems && retryItems.length > 0) {
+                        logger.info(`Retrying ${retryItems.length} unprocessed items...`);
+                        unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
+                        // Back off before retry
+                        await new Promise((resolve) => setTimeout(resolve, 500));
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }, 'Error in batch write');
     }
 
     public queryItemsAsync(pk: string, options: {
@@ -536,132 +585,73 @@ class DynamoDBService {
     }
 
     /**
-     * Check if the error is because of missing keys in the preference object
-     * @param userId the users ID
-     * @param defaultPreferences preference object
+     * Read the stored preferences object for a user (or undefined if none exist yet).
      */
-    private async checkValidationExceptionAsync(userId: string, defaultPreferences: IUserPreferences): Promise<boolean> {
-        const getCommand = new GetCommand({
+    private async getStoredPreferencesAsync(userId: string): Promise<Record<string, any> | undefined> {
+        const result = await this.client.send(new GetCommand({
             TableName: this.tableName,
             Key: { pk: `USER#${userId}`, sk: 'PROFILE' }
-        });
+        }));
 
-        const result = await this.client.send(getCommand);
-        const currentPreferences = result.Item?.preferences;
+        return result.Item?.preferences;
+    }
 
-        let shouldResetToDefaults = false;
-
-        const expectedKeys = Object.keys(defaultPreferences);
-        const missingKeys = expectedKeys.filter((key) => !(key in currentPreferences));
-        if (missingKeys.length > 0) {
-            shouldResetToDefaults = true;
-            logger.info(`User ${userId} is missing preferences keys: ${missingKeys.join(', ')}, will reset to defaults`, { userId });
+    /**
+     * Deep-merge plain-object preferences. Values from `source` win; nested objects are merged
+     * recursively so partial updates don't clobber unrelated saved settings. `undefined` values
+     * in `source` are skipped.
+     */
+    private deepMergePreferences(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
+        const result: Record<string, any> = { ...target };
+        for (const key in source) {
+            const sourceValue = source[key];
+            if (sourceValue === undefined) {
+                continue;
+            }
+            const targetValue = result[key];
+            const bothPlainObjects =
+              typeof sourceValue === 'object' && sourceValue !== null && !Array.isArray(sourceValue) &&
+              typeof targetValue === 'object' && targetValue !== null && !Array.isArray(targetValue);
+            result[key] = bothPlainObjects ? this.deepMergePreferences(targetValue, sourceValue) : sourceValue;
         }
-        return shouldResetToDefaults;
+        return result;
     }
 
 
     /**
-     * Update user preferences partially (supports nested updates)
+     * Update user preferences, merging the given partial update into what's already stored.
+     *
+     * Uses a read-merge-replace strategy: load the stored preferences, layer the current defaults
+     * underneath to backfill any keys added since the profile was last written, apply the incoming
+     * update on top, then write the whole object back. This deliberately avoids per-field nested
+     * update expressions, which fail when a parent map (e.g. gameOptions.autoResolve) doesn't yet
+     * exist. As a result, adding a new preference only requires extending getDefaultPreferences().
+     *
+     * Note: this is a non-atomic read-modify-write. Concurrent updates for the same user resolve
+     * last-write-wins, which is acceptable for single-user settings saved from the preferences UI.
+     *
      * @param userId User ID
-     * @param preferences Partial preferences to update
+     * @param preferences Partial preferences to merge in
      */
     public updateUserPreferencesAsync(userId: string, preferences: Partial<IUserPreferences>): Promise<void> {
         return this.executeDbOperationAsync(async () => {
-            const updateExpressions: string[] = [];
-            const expressionAttributeValues: Record<string, any> = {};
-            const expressionAttributeNames: Record<string, string> = {};
+            const currentPrefs = await this.getStoredPreferencesAsync(userId);
+            const merged = this.deepMergePreferences(
+                this.deepMergePreferences(getDefaultPreferences(), currentPrefs ?? {}),
+                preferences
+            );
 
-            const buildNestedUpdate = (obj: any, basePath: string[], valuePrefix: string) => {
-                for (const key in obj) {
-                    const value = obj[key];
-                    if (value !== undefined) {
-                        if (value instanceof Map) {
-                            Contract.fail('Map types are not supported in buildNestedUpdate. Convert to object first.');
-                        }
-                        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                            // It's a nested object, recurse
-                            buildNestedUpdate(value, [...basePath, key], `${valuePrefix}_${key}`);
-                        } else {
-                            const pathParts = [...basePath, key];
-                            const pathExpression = pathParts.map((part, idx) => {
-                                const attrName = `#${part}`;
-                                expressionAttributeNames[attrName] = part;
-                                return attrName;
-                            }).join('.');
-
-                            const valueName = `:${valuePrefix}_${key}`;
-                            updateExpressions.push(`${pathExpression} = ${valueName}`);
-                            expressionAttributeValues[valueName] = value;
-                        }
-                    }
-                }
-            };
-            buildNestedUpdate(preferences, ['preferences'], 'pref');
-            if (updateExpressions.length === 0) {
-                return;
-            }
-            let validationExceptionOccurred = false;
-            try {
-                const command = new UpdateCommand({
-                    TableName: this.tableName,
-                    Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                    UpdateExpression: `SET ${updateExpressions.join(', ')}`,
-                    ExpressionAttributeValues: expressionAttributeValues,
-                    ExpressionAttributeNames: expressionAttributeNames,
-                });
-
-                await this.client.send(command);
-            } catch (error: any) {
-                if (error.name === 'ValidationException' &&
-                  error.message?.includes('document path provided in the update expression is invalid')) {
-                    logger.info(`Detected NULL markers in preferences for user ${userId}, resetting to defaults`, { userId });
-                    validationExceptionOccurred = true;
-                } else {
-                    // Re-throw if it's a different error
-                    logger.error(`An error occured when updating preferences for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
-                    throw error;
-                }
-            }
-
-            if (validationExceptionOccurred) {
-                logger.info(`Attempting to see whether the validation exception is expected for ${userId}`, { userId });
-                try {
-                    // we read and then attempt
-                    const defaultPrefs = getDefaultPreferences();
-                    if (await this.checkValidationExceptionAsync(userId, defaultPrefs)) {
-                        // Get defaults and merge with new preferences
-                        const merged = { ...defaultPrefs, ...preferences };
-
-                        for (const key in preferences) {
-                            if (typeof preferences[key] === 'object' && preferences[key] !== null &&
-                              typeof defaultPrefs[key] === 'object' && defaultPrefs[key] !== null) {
-                                merged[key] = { ...defaultPrefs[key], ...preferences[key] };
-                            }
-                        }
-
-                        // Update with the merged preferences (full replace)
-                        const resetCommand = new UpdateCommand({
-                            TableName: this.tableName,
-                            Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                            UpdateExpression: 'SET preferences = :p',
-                            ExpressionAttributeValues: { ':p': merged }
-                        });
-
-                        await this.client.send(resetCommand);
-                    } else {
-                        throw new Error(`An unexpected validation exception occured when updating preferences for user ${userId}`);
-                    }
-                } catch (error) {
-                    logger.error(`An error occured when resetting to defaults the validation Exception for user ${userId}`, { error: { message: error.message, stack: error.stack }, userId });
-                    throw error;
-                }
-            }
+            await this.client.send(new UpdateCommand({
+                TableName: this.tableName,
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                UpdateExpression: 'SET preferences = :preferences',
+                ExpressionAttributeValues: { ':preferences': merged }
+            }));
         }, 'Error updating user preferences');
     }
 
     // Registered Cosmetics Methods
-    public getCosmeticsAsync(): Promise<IRegisteredCosmeticOption[]> {
+    public getCosmeticsAsync(): Promise<ICosmeticEntity[]> {
         return this.executeDbOperationAsync(async () => {
             const result = await this.queryItemsAsync('COSMETICS', { beginsWith: 'ITEM#' });
 
@@ -670,12 +660,11 @@ class DynamoDBService {
                 title: item.title as string,
                 type: item.type as RegisteredCosmeticType,
                 path: item.path as string,
-                darkened: item.darkened as boolean | undefined
             }));
         }, 'Error getting cosmetics data');
     }
 
-    public saveCosmeticAsync(cosmeticData: IRegisteredCosmeticOption) {
+    public saveCosmeticAsync(cosmeticData: ICosmeticEntity) {
         return this.executeDbOperationAsync(() => {
             const item = {
                 pk: 'COSMETICS',
@@ -688,7 +677,7 @@ class DynamoDBService {
         }, 'Error saving cosmetic item');
     }
 
-    public initializeCosmeticsAsync(cosmetics: IRegisteredCosmeticOption[]) {
+    public initializeCosmeticsAsync(cosmetics: ICosmeticEntity[]) {
         return this.executeDbOperationAsync(async () => {
             const savePromises = cosmetics.map((cosmetic) => this.saveCosmeticAsync(cosmetic));
             await Promise.all(savePromises);
@@ -742,6 +731,210 @@ class DynamoDBService {
         }, 'Error getting admin users');
     }
 
+    // Mod Actions
+    /**
+     * Query items using the GSI_PK_INDEX
+     * @param gsiPkValue The value for the GSI_PK partition key
+     */
+    public queryByGSIAsync(gsiPkValue: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new QueryCommand({
+                TableName: this.tableName,
+                IndexName: 'GSI_PK_INDEX',
+                KeyConditionExpression: 'GSI_PK = :gsiPk',
+                ExpressionAttributeValues: { ':gsiPk': gsiPkValue }
+            });
+
+            return this.client.send(command);
+        }, 'DynamoDB queryByGSI error');
+    }
+
+    /**
+     * Get mod actions from DynamoDB.
+     * - { playerId }  All mod actions for a specific player (main table query)
+     */
+    public getModActionsAsync(options: { userId?: string } = {}): Promise<IModActionEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = options.userId
+                ? await this.queryItemsAsync(`USER#${options.userId}`, { beginsWith: 'MODACTION#' })
+                : await this.queryByGSIAsync('ACTIVE_MODACTION');
+
+            if (!result.Items || result.Items.length === 0) {
+                return [];
+            }
+
+            return Promise.all(
+                result.Items.map((item: any) =>
+                    this.validateAndHandleAsync<IModActionEntity>(
+                        ModActionEntitySchema,
+                        item,
+                        `getModActionsAsync (action ${item.id})`,
+                    )
+                )
+            ).then((actions) => actions.filter(Boolean));
+        }, 'Error getting mod actions');
+    }
+
+    /**
+     * Get the username change history for a player (main table query).
+     */
+    public getUsernameChangesAsync(userId: string): Promise<IUsernameChangeEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USER#${userId}`, { beginsWith: 'NAMECHANGE#' });
+
+            if (!result.Items || result.Items.length === 0) {
+                return [];
+            }
+
+            return Promise.all(
+                result.Items.map((item: any) =>
+                    this.validateAndHandleAsync<IUsernameChangeEntity>(
+                        UsernameChangeEntitySchema,
+                        item,
+                        `getUsernameChangesAsync (record ${item.id})`,
+                    )
+                )
+            ).then((records) => records.filter(Boolean));
+        }, 'Error getting username changes');
+    }
+
+    /**
+     * Save a username change history record.
+     */
+    public saveUsernameChangeAsync(record: IUsernameChangeEntity) {
+        return this.executeDbOperationAsync(() => {
+            const item: Record<string, any> = {
+                pk: `USER#${record.playerId}`,
+                sk: `NAMECHANGE#${record.id}`,
+                ...record,
+            };
+
+            return this.putItemAsync(item);
+        }, 'Error saving username change');
+    }
+
+    /**
+     * Save a new mod action item.
+     * For Mute actions, GSI_PK is set to 'ACTIVE_MODACTION' so it appears in the sparse index.
+     */
+    public saveModActionAsync(modAction: IModActionEntity) {
+        return this.executeDbOperationAsync(() => {
+            const item: Record<string, any> = {
+                pk: `USER#${modAction.playerId}`,
+                sk: `MODACTION#${modAction.id}`,
+                ...modAction,
+            };
+
+            // Active action types (Mute, Rename) get indexed via the sparse GSI
+            if (isTimedModAction(modAction.actionType) && !modAction.cancelledAt) {
+                item.GSI_PK = 'ACTIVE_MODACTION';
+            }
+
+            return this.putItemAsync(item);
+        }, 'Error saving mod action');
+    }
+
+    /**
+     * Activate a pending mute: set startedAt and expiresAt.
+     * Called when the muted user first logs in.
+     */
+    public activateMuteAsync(playerId: string, modActionId: string, startedAt: string, expiresAt: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.updateItemAsync(
+                `USER#${playerId}`,
+                `MODACTION#${modActionId}`,
+                'SET startedAt = :startedAt, expiresAt = :expiresAt',
+                {
+                    ':startedAt': startedAt,
+                    ':expiresAt': expiresAt,
+                }
+            );
+        }, 'Error activating mute');
+    }
+
+    /**
+     * Cancel a mod action: set cancelledAt and cancelledBy, remove GSI_PK to drop it from the active index.
+     */
+    public cancelModActionAsync(playerId: string, modActionId: string, cancelledById: string, cancelledByUsername: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: {
+                    pk: `USER#${playerId}`,
+                    sk: `MODACTION#${modActionId}`,
+                },
+                UpdateExpression: 'SET cancelledAt = :cancelledAt, cancelledById = :cancelledById, cancelledByUsername = :cancelledByUsername ' +
+                  'REMOVE GSI_PK',
+                ConditionExpression: 'attribute_exists(pk) AND attribute_not_exists(cancelledAt)',
+                ExpressionAttributeValues: {
+                    ':cancelledAt': new Date().toISOString(),
+                    ':cancelledById': cancelledById,
+                    ':cancelledByUsername': cancelledByUsername
+                },
+                ReturnValues: 'ALL_NEW'
+            });
+
+            return this.client.send(command);
+        }, 'Error cancelling mod action');
+    }
+
+    /**
+     * Remove GSI_PK from an expired mod action (cleanup only, doesn't set cancelledAt/cancelledBy).
+     * This drops the item from the ACTIVE_MODACTION sparse index.
+     */
+    public removeModActionFromActiveIndexAsync(playerId: string, modActionId: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: {
+                    pk: `USER#${playerId}`,
+                    sk: `MODACTION#${modActionId}`,
+                },
+                UpdateExpression: 'REMOVE GSI_PK',
+                ReturnValues: 'ALL_NEW'
+            });
+
+            return this.client.send(command);
+        }, 'Error removing mod action from active index');
+    }
+
+    // Username
+    /**
+     * Save a username -> userId link for mod tools username search.
+     * Uses lowercase username to ensure case-insensitive lookups.
+     */
+    public saveUsernameLinkAsync(username: string, userId: string) {
+        return this.executeDbOperationAsync(() => {
+            const item = {
+                pk: `USERNAME#${username.toLowerCase()}`,
+                sk: `USER#${userId}`,
+                GSI_PK: userId,
+            };
+            return this.putItemAsync(item);
+        }, 'Error saving username link');
+    }
+
+    /**
+     * Look up all userIds that share a given username.
+     * @returns Array of userIds
+     */
+    public getUserIdsByUsernameAsync(username: string): Promise<string[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USERNAME#${username.toLowerCase()}`);
+            return (result.Items || []).map((item: any) => item.GSI_PK as string);
+        }, 'Error getting user IDs by username');
+    }
+
+    /**
+     * Delete a specific username link for a user.
+     * Uses both username and userId
+     */
+    public deleteUsernameLinkAsync(username: string, userId: string) {
+        return this.executeDbOperationAsync(() => {
+            return this.deleteItemAsync(`USERNAME#${username.toLowerCase()}`, `USER#${userId}`);
+        }, 'Error deleting username link');
+    }
+
     // Clear all data (for testing purposes only)
     public clearAllDataAsync() {
         if (!this.isLocalMode) {
@@ -771,5 +964,33 @@ class DynamoDBService {
             await Promise.all(deletePromises);
             logger.info(`Cleared all data from local DynamoDB table '${this.tableName}'`);
         }, 'Error clearing local DynamoDB data');
+    }
+
+    /**
+     * Get all user profiles via table scan.
+     * Note: Use sparingly scans are expensive on large tables.
+     */
+    public getAllUserProfilesAsync(): Promise<IUserProfileDataEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const profiles: IUserProfileDataEntity[] = [];
+            let lastEvaluatedKey: Record<string, any> | undefined;
+
+            do {
+                const result = await this.client.send(new ScanCommand({
+                    TableName: this.tableName,
+                    FilterExpression: 'sk = :sk',
+                    ExpressionAttributeValues: { ':sk': 'PROFILE' },
+                    ExclusiveStartKey: lastEvaluatedKey,
+                }));
+
+                for (const item of result.Items || []) {
+                    profiles.push(item as IUserProfileDataEntity);
+                }
+
+                lastEvaluatedKey = result.LastEvaluatedKey;
+            } while (lastEvaluatedKey);
+
+            return profiles;
+        }, 'Error scanning all user profiles');
     }
 }

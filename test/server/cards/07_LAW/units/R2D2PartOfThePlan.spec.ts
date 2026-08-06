@@ -17,8 +17,6 @@ describe('R2-D2, Part of the Plan', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.r2d2);
-                // Ability is optional, click Trigger
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.chopper, context.battlefieldMarine, context.pykeSentinel],
@@ -36,27 +34,6 @@ describe('R2-D2, Part of the Plan', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should allow passing on the ability without triggering deck search', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['r2d2#part-of-the-plan'],
-                        groundArena: ['ezra-bridger#spectre-six'],
-                        deck: ['chopper#spectre-three', 'wampa', 'atst', 'pyke-sentinel', 'sabine-wren#explosives-artist']
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.r2d2);
-
-                // Pass on the optional ability
-                context.player1.clickPrompt('Pass');
-
-                expect(context.chopper).toBeInZone('deck', context.player1);
-                expect(context.player2).toBeActivePlayer();
-            });
-
             it('should allow taking nothing after triggering deck search', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -70,7 +47,6 @@ describe('R2-D2, Part of the Plan', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.r2d2);
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                 context.player1.clickPrompt('Take nothing');
@@ -92,7 +68,6 @@ describe('R2-D2, Part of the Plan', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.r2d2);
-                context.player1.clickPrompt('Trigger');
 
                 // All cards are invalid, must click Take nothing
                 expect(context.player1).toHaveExactDisplayPromptCards({

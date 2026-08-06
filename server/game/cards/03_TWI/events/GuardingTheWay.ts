@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GuardingTheWay extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class GuardingTheWay extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Give Sentinel for the phase. If you have the initiative, also give that unit +2/+2 for this phase.',
+            title: `Give ${TextHelper.Sentinel} for the phase. If you have the initiative, also give that unit +2/+2 for this phase.`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([

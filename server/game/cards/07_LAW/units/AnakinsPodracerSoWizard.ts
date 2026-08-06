@@ -21,10 +21,12 @@ export default class AnakinsPodracerSoWizard extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'While attacking, if no other units have attacked this phase, this unit deals combat damage before the defender.',
-            condition: (context) => this.attacksThisPhaseWatcher.getAttackers((attackEvent) =>
-                attackEvent.attacker !== context.source ||
-                attackEvent.attackerInPlayId !== context.source.inPlayId
-            ).length === 0,
+            condition: (context) =>
+                context.source.isAttacking() &&
+                this.attacksThisPhaseWatcher.getAttackers((attackEvent) =>
+                    attackEvent.attacker !== context.source ||
+                    attackEvent.attackerInPlayId !== context.source.inPlayId
+                ).length === 0,
             ongoingEffect: AbilityHelper.ongoingEffects.dealsCombatDamageFirst(),
         });
     }

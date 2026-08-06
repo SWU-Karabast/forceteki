@@ -4,10 +4,10 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class AnakinSkywalkerPrescientPodracer extends NonLeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
 
     protected override getImplementationId() {
@@ -18,7 +18,7 @@ export default class AnakinSkywalkerPrescientPodracer extends NonLeaderUnitCard 
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
         this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase();
     }
 
@@ -33,7 +33,7 @@ export default class AnakinSkywalkerPrescientPodracer extends NonLeaderUnitCard 
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    AttackHelpers.attackerSurvived(context.event.attack, this.unitsDefeatedThisPhaseWatcher) &&
+                    AttackHelpers.attackerSurvived(context.event.attack, this.cardsDefeatedThisPhaseWatcher) &&
                     this.noOtherUnitsHaveAttackedThisPhase(context.event),
                 onTrue: AbilityHelper.immediateEffects.returnToHand((context) => ({
                     target: context.event.attack.attacker

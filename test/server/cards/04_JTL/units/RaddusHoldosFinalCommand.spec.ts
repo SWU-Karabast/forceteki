@@ -108,6 +108,7 @@ describe('Raddus', function () {
                 context.player1.clickCard(context.avengerHuntingStarDestroyer);
                 context.player1.clickCard(context.raddusHoldosFinalCommand);
                 context.player2.clickCard(context.raddusHoldosFinalCommand);
+                expect(context.player2).toHavePrompt('Deal 8 damage to an enemy unit');
                 context.player2.clickCard(context.devastatorInescapable);
                 expect(context.raddusHoldosFinalCommand.zoneName).toBe('discard');
                 expect(context.devastatorInescapable.damage).toBe(8);
@@ -122,6 +123,7 @@ describe('Raddus', function () {
                 context.player1.clickCard(context.avengerHuntingStarDestroyer);
                 context.player1.clickCard(context.raddusHoldosFinalCommand);
                 context.player2.clickCard(context.raddusHoldosFinalCommand);
+                expect(context.player2).toHavePrompt('Deal 9 damage to an enemy unit');
                 context.player2.clickCard(context.devastatorInescapable);
                 expect(context.raddusHoldosFinalCommand.zoneName).toBe('discard');
                 expect(context.devastatorInescapable.damage).toBe(9);

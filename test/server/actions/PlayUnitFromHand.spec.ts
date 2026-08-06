@@ -49,5 +49,36 @@ describe('Play unit from hand', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(6);
             });
         });
+
+        describe('When a unit in hand has aspect penalties', function() {
+            it('should include the specific missing aspects in the active player summary', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            // villainy, cunning
+                            'cartel-spacer',
+                            // double cunning
+                            'zuckuss#the-findsman',
+                            // heroism
+                            'alliance-xwing',
+                            // heroism, command
+                            'battlefield-marine'
+                        ],
+                        // villainy, cunning
+                        leader: 'boba-fett#collecting-the-bounty',
+                        // aggression
+                        base: 'kestro-city'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.cartelSpacer.getSummary(context.player1Object).aspectPenaltyAspects).toBeUndefined();
+                expect(context.zuckuss.getSummary(context.player1Object).aspectPenaltyAspects).toEqual(['cunning']);
+                expect(context.allianceXwing.getSummary(context.player1Object).aspectPenaltyAspects).toEqual(['heroism']);
+                expect(context.battlefieldMarine.getSummary(context.player1Object).aspectPenaltyAspects).toEqual(['command', 'heroism']);
+            });
+        });
     });
 });

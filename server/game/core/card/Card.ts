@@ -53,6 +53,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
 import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
+import type Advantage from '../../cards/08_ASH/tokens/Advantage';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -639,6 +640,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return false;
     }
 
+    public isAdvantage(): this is Advantage {
+        return false;
+    }
+
     /** Returns true if the card is of a type that can legally be damaged. Note that the card might still be in a zone where damage is not legal. */
     public canBeDamaged(): this is ICardWithDamageProperty {
         return false;
@@ -717,7 +722,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
-        return keywordInstances;
+        return KeywordHelpers.dedupeKeywords(keywordInstances, this);
     }
 
     public getKeywordsWithCostValues(keywordName: KeywordName): KeywordWithCostValues[] {
@@ -1386,6 +1391,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         const selectionState = activePlayer.getCardSelectionState(this);
         const shouldBeHidden = this.zone.hiddenForPlayers === WildcardRelativePlayer.Any ||
           (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent);
+        const aspectPenaltyAspects = this.zoneName === ZoneName.Hand && isActivePlayer
+            ? activePlayer.getPenaltyAspects(this.aspects)
+            : [];
 
         // Check if card is blocked from play by opponent effect (for lock icon display)
         const context = new AbilityContext({
@@ -1413,6 +1421,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 printedType: this.printedType,
                 isBlanked: this.isBlank(),
                 blockedFromPlayReason,
+                aspectPenaltyAspects: aspectPenaltyAspects.length > 0 ? aspectPenaltyAspects : undefined,
                 ...selectionState
             };
 
@@ -1530,4 +1539,3 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return this.internalName;
     }
 }
-

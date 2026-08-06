@@ -215,5 +215,49 @@ describe('Alliance Outpost', function() {
                 expect(context.player1.credits).toBe(2);
             });
         });
+
+        describe('Epic Action - Val when-defeated shield interaction', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'alliance-outpost',
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        groundArena: ['val#its-been-a-ride-babe']
+                    }
+                });
+            });
+
+            it('can defeat a shield on a friendly unit created by an opponent', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.valItsBeenARideBabe);
+
+                expect(context.player2).toHavePrompt('Give a Shield token to an enemy unit');
+                expect(context.player1).toHavePrompt('Waiting for opponent to select a unit for Val\'s ability');
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa]);
+                context.player2.clickCard(context.wampa);
+
+                expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.allianceOutpost);
+                expect(context.player1).toHavePrompt('Select one');
+                context.player1.clickPrompt('Create Credit');
+
+                expect(context.player1).toHavePrompt('Choose a friendly token to defeat');
+                const shield = context.player1.findCardByName('shield');
+                expect(context.player1).toBeAbleToSelectExactly([shield]);
+                context.player1.clickCard(shield);
+
+                // Shield is gone, and a Credit token was created
+                expect(shield).toBeInZone('outsideTheGame');
+                expect(context.player1.credits).toBe(1);
+            });
+        });
     });
 });

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SteelaGerreraBelovedTactician extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class SteelaGerreraBelovedTactician extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Deal 2 damage to your base. If you do, search the top 8 cards of your deck for a Tactic card, reveal it, and draw it',
+            title: `Deal 2 damage to your base. If you do, search the top 8 cards of your deck for a ${TextHelper.Trait.Tactic} card, reveal it, and draw it`,
             when: {
                 whenPlayed: true,
                 whenDefeated: true
@@ -24,7 +25,7 @@ export default class SteelaGerreraBelovedTactician extends NonLeaderUnitCard {
                 target: context.player.base
             })),
             ifYouDo: {
-                title: 'Search the top 8 cards of your deck for a Tactic card, reveal it, and draw it',
+                title: `Search the top 8 cards of your deck for a ${TextHelper.Trait.Tactic} card, reveal it, and draw it`,
                 immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                     searchCount: 8,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Tactic),

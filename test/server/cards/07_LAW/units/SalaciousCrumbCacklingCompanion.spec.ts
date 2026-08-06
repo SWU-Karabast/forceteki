@@ -85,7 +85,7 @@ describe('Salacious Crumb, Cackling Companion', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should NOT be ready when not controlling and Jabba leaders or units ', async function() {
+        it('should NOT enter play ready when not controlling and Jabba leaders or units ', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -119,6 +119,77 @@ describe('Salacious Crumb, Cackling Companion', function() {
             context.player1.clickCard(context.salaciousCrumbCacklingCompanion);
             expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeTrue();
             expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should NOT enter play ready when played from opponent\'s deck via Vermillion and the player does not control Jabba', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['vermillion#qiras-auction-house']
+                },
+                player2: {
+                    deck: ['salacious-crumb#cackling-companion'],
+                    leader: 'jabba-the-hutt#his-high-exaltedness'
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks with Vermillion
+            context.player1.clickCard(context.vermillion);
+            context.player1.clickCard(context.p2Base);
+
+            // Choose opponent's deck
+            context.player1.clickPrompt('Opponent\'s deck');
+
+            // View revealed card
+            context.player1.clickDone();
+
+            // Choose yourself to play Salacious Crumb
+            context.player1.clickPrompt('You');
+
+            // Choose to play the card for free
+            context.player1.clickPrompt('Trigger');
+
+            // Crumb should NOT enter play ready: P1 does not control Jabba the Hutt.
+            // Before the fix, the condition would check P2 (the card owner), who does control Jabba.
+            expect(context.salaciousCrumbCacklingCompanion).toBeInZone('groundArena', context.player1);
+            expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeTrue();
+        });
+
+        it('should enter play ready when played from opponent\'s deck via Vermillion and the player controls Jabba', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['vermillion#qiras-auction-house'],
+                    leader: 'jabba-the-hutt#his-high-exaltedness'
+                },
+                player2: {
+                    deck: ['salacious-crumb#cackling-companion']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // P1 attacks with Vermillion
+            context.player1.clickCard(context.vermillion);
+            context.player1.clickCard(context.p2Base);
+
+            // Choose opponent's deck
+            context.player1.clickPrompt('Opponent\'s deck');
+
+            // View revealed card
+            context.player1.clickDone();
+
+            // Choose yourself to play Salacious Crumb
+            context.player1.clickPrompt('You');
+
+            // Choose to play the card for free
+            context.player1.clickPrompt('Trigger');
+
+            // Crumb SHOULD enter play ready: P1 controls Jabba the Hutt.
+            expect(context.salaciousCrumbCacklingCompanion).toBeInZone('groundArena', context.player1);
+            expect(context.salaciousCrumbCacklingCompanion.exhausted).toBeFalse();
         });
     });
 });

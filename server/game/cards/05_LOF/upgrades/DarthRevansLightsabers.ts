@@ -3,7 +3,7 @@ import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistr
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 
-export default class DarthRevanLightsabers extends UpgradeCard {
+export default class DarthRevansLightsabers extends UpgradeCard {
     protected override getImplementationId() {
         return {
             id: '9566815036',

@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
-export default class DrydenVos extends NonLeaderUnitCard {
+export default class DrydenVosOfferingNoEscape extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '0598830553',

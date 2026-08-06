@@ -135,19 +135,16 @@ describe('Guardian of the Whills', function () {
                 expect(context.player1).toBeAbleToSelect(context.constructedLightsaber);
                 context.player1.clickCard(context.constructedLightsaber);
 
-                expect(context.player1).toBeAbleToSelectExactly([
-                    context.guardianOfTheWhills,
-                    // TODO: Jedi Guardian should not even be selectable in this scenario
-                    // https://github.com/SWU-Karabast/forceteki/issues/1970
-                    context.jediGuardian
-                ]);
+                // Only Guardian of the Whills is selectable: attaching to Jedi Guardian costs the full amount,
+                // which the player can't afford, so it is excluded from targeting (issue #1970)
+                expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills]);
+                expect(context.player1).not.toBeAbleToSelect(context.jediGuardian);
 
-                context.player1.clickCard(context.jediGuardian);
+                context.player1.clickCard(context.guardianOfTheWhills);
 
-                // Action is cancelled because player cannot pay full cost
-                expect(context.player1.exhaustedResourceCount).toBe(0);
-                expect(context.jediGuardian).toHaveExactUpgradeNames([]);
-                expect(context.player1).toBeActivePlayer();
+                // Constructed Lightsaber is played on Guardian with the cost reduction
+                expect(context.guardianOfTheWhills).toHaveExactUpgradeNames(['constructed-lightsaber']);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
         });
     });

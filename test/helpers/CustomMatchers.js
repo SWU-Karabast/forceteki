@@ -905,7 +905,13 @@ var customMatchers = {
                     throw new TestSetupError(`Parameter 'options' is not an array: ${expectedOptions}`);
                 }
 
-                const actualOptions = player.currentPrompt().dropdownListOptions;
+                const currentPrompt = player.currentPrompt();
+                const actualOptions = currentPrompt.selectNumber
+                    ? Array.from(
+                        { length: currentPrompt.selectNumber.max - currentPrompt.selectNumber.min + 1 },
+                        (_x, i) => `${currentPrompt.selectNumber.min + i}`
+                    )
+                    : currentPrompt.dropdownListOptions;
 
                 result.pass = stringArraysEqual(actualOptions, expectedOptions);
 
@@ -913,6 +919,28 @@ var customMatchers = {
                     result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.formatDropdownListOptions(expectedOptions)}'`;
                 } else {
                     result.message = `Expected ${player.name} to have this exact list of options: '${Util.formatDropdownListOptions(expectedOptions)}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+
+                return result;
+            }
+        };
+    },
+    toHaveNumericPromptRange: function () {
+        return {
+            compare: function (player, min, max) {
+                let result = {};
+
+                const actualRange = player.currentPrompt().selectNumber;
+
+                result.pass = actualRange?.min === min && actualRange?.max === max;
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have numeric prompt range ${min}-${max} but it does`;
+                } else {
+                    const actualRangeText = actualRange ? `${actualRange.min}-${actualRange.max}` : 'no numeric prompt range';
+                    result.message = `Expected ${player.name} to have numeric prompt range ${min}-${max} but it has ${actualRangeText}`;
                 }
 
                 result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;

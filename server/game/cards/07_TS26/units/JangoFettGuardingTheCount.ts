@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
 
@@ -21,7 +22,7 @@ export default class JangoFettGuardingTheCount extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While an enemy unit has attacked your base this phase, this unit gains Ambush',
+            title: `While an enemy unit has attacked your base this phase, this unit gains ${TextHelper.Ambush}`,
             condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({ controller: context.player.opponent, filter: (entry) => entry.targets.includes(context.player.base) }),
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
         });

@@ -8,11 +8,9 @@ type CardWithDamageProperty = import('../../server/game/core/card/CardTypes').Ca
 type Game = import('../../server/game/core/Game');
 type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
-type PlayerInteractionWrapper = import('./PlayerInteractionWrapper');
+type PlayerInteractionWrapper = import('./PlayerInteractionWrapper').PlayerInteractionWrapper;
 type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
 type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
-type IGetSnapshotSettings = import('../../server/game/core/snapshot/SnapshotInterfaces').IGetSnapshotSettings;
-type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
 type QuickUndoAvailableState = import('../../server/game/core/snapshot/SnapshotInterfaces').QuickUndoAvailableState;
 
 declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
@@ -94,6 +92,9 @@ interface SwuTestContext {
     startGameAsync(): Promise;
 
     setupCallCount: number;
+    isUndoTest?: boolean;
+    hasSetupGame?: boolean;
+    undoReplayInProgress?: boolean;
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;
@@ -104,8 +105,16 @@ interface PlayerInfo {
     username: string;
 }
 
-interface SwuSetupTestOptions extends ISerializedGameState {
+type SwuSetupPlayerOptions = import('../../server/game/Interfaces').IPlayerSerializedState & {
+    // Per-player override of the game-level autoSingleTarget setting.
     autoSingleTarget?: boolean;
+};
+
+interface SwuSetupTestOptions extends Omit<ISerializedGameState, 'player1' | 'player2'> {
+    // Game-level default applied to both players (per-player values override it).
+    autoSingleTarget?: boolean;
+    player1?: SwuSetupPlayerOptions;
+    player2?: SwuSetupPlayerOptions;
     phaseTransitionHandler?: (phase: PhaseName) => void;
     testUndo?: boolean;
     enableConfirmationToUndo?: boolean;
@@ -153,6 +162,7 @@ declare namespace jasmine {
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
+        toHaveNumericPromptRange<T extends PlayerInteractionWrapper>(this: Matchers<T>, min: number, max: number): boolean;
         toHaveExactDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedPromptState: ICardDisplaySelectionState): boolean;
         toHaveExactSelectableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: (Card | { card: Card; displayText: string })[]): boolean;
         toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: (Card | { card: Card; displayText: string })[]): boolean;

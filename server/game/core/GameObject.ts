@@ -91,6 +91,24 @@ export abstract class GameObject extends GameObjectBase {
         return result;
     }
 
+    /**
+     * Returns each ongoing effect of the given type along with the {@link AbilityContext} that applied it.
+     * Useful when the caller needs metadata about the effect's source (e.g. the originating card or
+     * `gainAbilitySource`) for building chat messages.
+     */
+    public getOngoingEffectDetails<V = any>(type: EffectName): { value: V; context: AbilityContext }[] {
+        const effects = this._ongoingEffects;
+        const result: { value: V; context: AbilityContext }[] = [];
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < effects.length; i++) {
+            const effect = effects[i];
+            if (effect.type === type) {
+                result.push({ value: effect.getValue(this), context: effect.context });
+            }
+        }
+        return result;
+    }
+
     public hasOngoingEffect(type: EffectName): boolean {
         const effects = this._ongoingEffects;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of

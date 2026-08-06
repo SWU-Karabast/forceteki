@@ -3,11 +3,11 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 
 export default class CassianAndorEverythingForTheRebellion extends NonLeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -17,7 +17,7 @@ export default class CassianAndorEverythingForTheRebellion extends NonLeaderUnit
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -28,7 +28,7 @@ export default class CassianAndorEverythingForTheRebellion extends NonLeaderUnit
                     event.attack.attacker.controller === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional(() => ({
-                condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.unitsDefeatedThisPhaseWatcher),
+                condition: (context) => AttackHelpers.defenderWasDefeated(context.event.attack, this.cardsDefeatedThisPhaseWatcher),
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Select a base to deal 2 damage to',
                     cardTypeFilter: CardType.Base,

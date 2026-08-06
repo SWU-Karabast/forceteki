@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class RioDurantBeckettsRightHands extends NonLeaderUnitCard {
@@ -23,7 +24,7 @@ export default class RioDurantBeckettsRightHands extends NonLeaderUnitCard {
             },
             then: (thenContext) => ({
                 thenCondition: () => thenContext.target,
-                title: `Play ${thenContext.target?.title} for free. It gains Shielded for this phase`,
+                title: `Play ${thenContext.target?.title} for free. It gains ${TextHelper.Shielded} for this phase`,
                 optional: true,
                 // TODO: Update this to use a GameSystem that lets the opponent play a card
                 canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.player, thenContext.target?.owner),

@@ -168,5 +168,31 @@ describe('Jetpack', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jetpack']);
             });
         });
+
+        describe('with Moff Jerjerrod', function() {
+            it('creates 2 shields and defeats both at the beginning of the regroup phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['jetpack'],
+                        groundArena: ['battlefield-marine', 'moff-jerjerrod#we-shall-redouble-our-efforts'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.jetpack);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Shield tokens instead');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.moffJerjerrod).toBeInZone('discard');
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jetpack', 'shield', 'shield']);
+
+                context.moveToRegroupPhase();
+
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jetpack']);
+            });
+        });
     });
 });

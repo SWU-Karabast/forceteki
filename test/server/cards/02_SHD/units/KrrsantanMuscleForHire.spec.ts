@@ -73,6 +73,7 @@ describe('Krrsantan, Muscle For Hire', function() {
                 context.player1.clickCard(context.krrsantan);
                 context.player1.clickCard(context.p2Base);
 
+                expect(context.player1).toHavePrompt('Deal 3 damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.krrsantan]);
                 expect(context.player1).toHavePassAbilityButton();
 

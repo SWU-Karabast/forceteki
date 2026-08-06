@@ -3,7 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
-export default class QiraIAloneSuvived extends LeaderUnitCard {
+export default class QiraIAloneSurvived extends LeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '2432897157',

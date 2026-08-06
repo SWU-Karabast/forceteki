@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CinDralligEsteemedBlademaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class CinDralligEsteemedBlademaster extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'You may play a Lightsaber upgrade from your hand for free on this unit',
+            title: `You may play a ${TextHelper.Trait.Lightsaber} upgrade from your hand for free on this unit`,
             targetResolver: {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,

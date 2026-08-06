@@ -3,6 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FocusFire extends EventCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class FocusFire extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Choose a unit. Each friendly Vehicle unit in the same arena deals damage equal to its power that unit',
+            title: `Choose a unit. Each friendly ${TextHelper.Trait.Vehicle} unit in the same arena deals damage equal to its power that unit`,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => (this.getDamageFromContext(context, AbilityHelper))),

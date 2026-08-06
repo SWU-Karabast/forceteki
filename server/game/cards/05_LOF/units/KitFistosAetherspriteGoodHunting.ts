@@ -25,7 +25,7 @@ export default class KitFistosAetherspriteGoodHunting extends NonLeaderUnitCard 
                     canChooseNoCards: true,
                     cardTypeFilter: WildcardCardType.Upgrade,
                     mode: TargetMode.Unlimited,
-                    cardCondition: (card, context) => context.targets.selectedUnit.upgrades.includes(card),
+                    cardCondition: (card, context) => context.targets.selectedUnit.upgrades?.includes(card) ?? false,
                     immediateEffect: AbilityHelper.immediateEffects.defeat(),
                 }
             }

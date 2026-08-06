@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
-export default class AtTeVanguard extends NonLeaderUnitCard {
+export default class ATTEVanguard extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '5350889336',

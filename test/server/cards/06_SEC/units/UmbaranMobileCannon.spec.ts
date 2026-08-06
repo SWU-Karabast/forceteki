@@ -111,7 +111,7 @@ describe('Umbaran Mobile Cannon', function () {
 
             expect(context.player1).toHaveExactPromptButtons([
                 'The first time this unit would take damage each phase, prevent that damage',
-                'Defeat shield to prevent attached unit from taking damage'
+                'Defeat Shield to prevent Umbaran Mobile Cannon from taking damage'
             ]);
             context.player1.clickPrompt('The first time this unit would take damage each phase, prevent that damage');
 
@@ -154,9 +154,9 @@ describe('Umbaran Mobile Cannon', function () {
 
             expect(context.player1).toHaveExactPromptButtons([
                 'The first time this unit would take damage each phase, prevent that damage',
-                'Defeat shield to prevent attached unit from taking damage'
+                'Defeat Shield to prevent Umbaran Mobile Cannon from taking damage'
             ]);
-            context.player1.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+            context.player1.clickPrompt('Defeat Shield to prevent Umbaran Mobile Cannon from taking damage');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.umbaranMobileCannon.damage).toBe(0);

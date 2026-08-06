@@ -14,6 +14,7 @@ export default class BansheeCripplingCommand extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Deal damage to a unit equal to the amount of damage on this unit',
+            contextTitle: (context) => `Deal ${context.source.damage} damage to a unit`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

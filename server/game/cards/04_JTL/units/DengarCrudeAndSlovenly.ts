@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, TargetMode, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DengarCrudeAndSlovenly extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,7 +15,8 @@ export default class DengarCrudeAndSlovenly extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
-            title: 'Deal 2 indirect damage to a player. If attached unit is Underworld, deal 3 indirect damage instead.',
+            title: `Deal 2 indirect damage to a player. If attached unit is ${TextHelper.Trait.Underworld}, deal 3 indirect damage instead.`,
+            contextTitle: (context) => `Deal ${context.source.hasSomeTrait(Trait.Underworld) ? 3 : 2} indirect damage to a player`,
             when: {
                 onAttack: true,
             },

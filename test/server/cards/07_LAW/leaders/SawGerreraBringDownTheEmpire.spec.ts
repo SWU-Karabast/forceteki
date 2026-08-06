@@ -114,7 +114,6 @@ describe('Saw Gerrera, Bring Down the Empire', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         leader: { card: 'saw-gerrera#bring-down-the-empire', deployed: true },
                         groundArena: ['battlefield-marine'],

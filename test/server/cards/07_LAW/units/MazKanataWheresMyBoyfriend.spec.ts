@@ -4,7 +4,6 @@ describe('Maz Kanata, Where\'s My Boyfriend', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
-                    attackRulesVersion: 'cr7',
                     player1: {
                         hand: ['second-chance'],
                         groundArena: ['maz-kanata#wheres-my-boyfriend'],
@@ -136,7 +135,6 @@ describe('Maz Kanata, Where\'s My Boyfriend', function () {
         it('should not trigger ability if deck is empty', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     groundArena: ['maz-kanata#wheres-my-boyfriend'],
                     deck: [],
@@ -153,7 +151,6 @@ describe('Maz Kanata, Where\'s My Boyfriend', function () {
         it('cannot select Underworld event or Underworld unit with too high cost', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
-                attackRulesVersion: 'cr7',
                 player1: {
                     groundArena: ['maz-kanata#wheres-my-boyfriend'],
                     deck: ['bounty-hunter-crew', 'strafing-gunship', 'cartel-spacer', 'atst', 'ma-klounkee'],

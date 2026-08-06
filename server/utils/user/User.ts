@@ -40,6 +40,11 @@ export abstract class User {
     public abstract getUndoPopupSeenDate(): Date | null;
 
     /**
+     * Gets the date the user last saw the timer tutorial popup
+     */
+    public abstract getTimerPopupSeenDate(): Date | null;
+
+    /**
      * Gets the user's preferences
      */
     public abstract getPreferences(): IUserPreferences;
@@ -107,6 +112,10 @@ export class AuthenticatedUser extends User {
 
     public getUndoPopupSeenDate(): Date | null {
         return this.userData.undoPopupSeenDate ? new Date(this.userData.undoPopupSeenDate) : null;
+    }
+
+    public getTimerPopupSeenDate(): Date | null {
+        return this.userData.timerPopupSeenDate ? new Date(this.userData.timerPopupSeenDate) : null;
     }
 
     public getUsername(): string {
@@ -216,6 +225,10 @@ export class AnonymousUser extends User {
     }
 
     public override getUndoPopupSeenDate(): Date | null {
+        return null;
+    }
+
+    public override getTimerPopupSeenDate(): Date | null {
         return null;
     }
 

@@ -87,6 +87,32 @@ describe('L3-37, Get Out of my seat', function() {
                 expect(context.atst.damage).toBe(0);
                 expect(context.player1).toBeActivePlayer();
             });
+
+            xit('should keep cards captured by a pilot captured by L3 if the replacement effect is used', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'l337#get-out-of-my-seat', capturedUnits: ['secretive-sage'] }, 'admiral-ackbar#brilliant-strategist'],
+                        spaceArena: ['corvus#inferno-squadron-raider']
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.l337);
+
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.corvus);
+
+                expect(context.corvus).toHaveExactUpgradeNames(['l337#get-out-of-my-seat']);
+                expect(context.secretiveSage).not.toBeInZone('groundArena');
+                expect(context.secretiveSage).toBeCapturedBy(context.l337);
+            });
         });
 
         describe('L3-37\'s ability timing', function() {

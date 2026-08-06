@@ -5,10 +5,10 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { WildcardCardType } from '../../../core/Constants';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -18,7 +18,7 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -46,7 +46,7 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
 
     private getWatTamborEffect(AbilityHelper: IAbilityHelper): GameSystem<TriggeredAbilityContext<this>> {
         return AbilityHelper.immediateEffects.conditional({
-            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
+            condition: (context) => this.cardsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
             onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                 effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
             }),

@@ -85,7 +85,7 @@ describe('Boba Fett\'s Armor', function () {
             // Prompt from Sabine ping
             expect(context.player2).toHaveExactPromptButtons([
                 'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
-                'Defeat shield to prevent attached unit from taking damage'
+                'Defeat Shield to prevent Boba Fett from taking damage'
             ]);
             context.player2.clickPrompt('If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage');
             expect(context.bobaFettDisintegrator.damage).toBe(0);
@@ -95,9 +95,9 @@ describe('Boba Fett\'s Armor', function () {
             // Prompt from Sabine combat
             expect(context.player2).toHaveExactPromptButtons([
                 'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
-                'Defeat shield to prevent attached unit from taking damage'
+                'Defeat Shield to prevent Boba Fett from taking damage'
             ]);
-            context.player2.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+            context.player2.clickPrompt('Defeat Shield to prevent Boba Fett from taking damage');
             expect(context.bobaFettDisintegrator.damage).toBe(0);
             expect(context.bobaFettDisintegrator).toHaveExactUpgradeNames(['boba-fetts-armor']);
 
@@ -111,7 +111,7 @@ describe('Boba Fett\'s Armor', function () {
             context.player1.clickCard(context.bobaFettDisintegrator);
             expect(context.player2).toHaveExactPromptButtons([
                 'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
-                'Defeat shield to prevent attached unit from taking damage'
+                'Defeat Shield to prevent Boba Fett from taking damage'
             ]);
             context.player2.clickPrompt('If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage');
             expect(context.bobaFettDisintegrator.damage).toBe(0);

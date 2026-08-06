@@ -2,7 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 
-export default class TheInvasionofChristophsis extends EventCard {
+export default class TheInvasionOfChristophsis extends EventCard {
     protected override getImplementationId() {
         return {
             id: '2565830105',

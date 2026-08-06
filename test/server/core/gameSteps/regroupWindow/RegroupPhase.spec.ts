@@ -75,12 +75,12 @@ describe('Regroup phase', function() {
                     oldResourcesPlayer1.push(context.wroshyrTreeTender);
 
                     // we check that both players have the correct prompt
-                    expect(context.player1).toHaveExactPromptButtons(['Done']);
-                    expect(context.player2).toHaveExactPromptButtons(['Done']);
+                    expect(context.player1).toHaveExactPromptButtons(['Confirm Resources']);
+                    expect(context.player2).toHaveExactPromptButtons(['Skip Resourcing']);
 
                     context.player1.clickDone();
                     expect(context.player1).toHavePrompt('Waiting for opponent to choose cards to resource');
-                    expect(context.player2).toHaveExactPromptButtons(['Done']);
+                    expect(context.player2).toHaveExactPromptButtons(['Skip Resourcing']);
                     context.player2.clickDone();
 
                     expect(context.getChatLogs(4)).toContain('player1 has resourced 1 card from hand');

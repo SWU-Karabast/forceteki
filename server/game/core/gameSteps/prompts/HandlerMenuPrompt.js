@@ -7,7 +7,7 @@ const { UiPrompt } = require('./UiPrompt.js');
  * a handler for each. Handlers should return nothing or true in order to complete the prompt.
  *
  * The properties option object may contain the following:
- * choices            - an array of titles for menu buttons
+ * choices            - an array of titles for menu buttons, or objects with text
  * handlers           - an array of handlers corresponding to the menu buttons
  * activePromptTitle  - the title that should be used in the prompt for the
  *                      choosing player.
@@ -21,7 +21,7 @@ const { UiPrompt } = require('./UiPrompt.js');
  */
 class HandlerMenuPrompt extends UiPrompt {
     constructor(game, player, properties) {
-        super(game);
+        super(game, properties.resetActionTimerOnComplete);
         this.player = player;
         if (typeof properties.source === 'string') {
             properties.source = new OngoingEffectSource(game, properties.source);
@@ -65,9 +65,12 @@ class HandlerMenuPrompt extends UiPrompt {
             });
         }
         buttons = buttons.concat(this.properties.choices.map((choice, index) => {
-            return { text: choice, arg: index };
+            return {
+                text: typeof choice === 'string' ? choice : choice.text,
+                arg: index
+            };
         }));
-        if (this.game.manualMode && (!this.properties.choices || this.properties.choices.every((choice) => choice !== 'Cancel'))) {
+        if (this.game.manualMode && (!this.properties.choices || this.properties.choices.every((choice) => (typeof choice === 'string' ? choice : choice.text) !== 'Cancel'))) {
             buttons = buttons.concat({ text: 'Cancel Prompt', arg: 'cancel' });
         }
         return {
@@ -127,7 +130,7 @@ class HandlerMenuPrompt extends UiPrompt {
         return [{
             type: 'targeting',
             source: this.context.source.getShortSummary(),
-            targets: targets.map((target) => target.getShortSummaryForControls(this.player))
+            targets: targets.filter((x) => x != null).map((target) => target.getShortSummaryForControls(this.player))
         }];
     }
 

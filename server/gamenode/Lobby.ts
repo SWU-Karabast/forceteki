@@ -13,11 +13,12 @@ import { getUserWithDefaultsSet } from '../Settings';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
-import type { IDeckValidationFailures, IDeckValidationProperties } from '../utils/deck/DeckInterfaces';
-import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
+import { DeckSource, DeckValidationFailureReason, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
+import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
 import {
     AlertType,
@@ -44,7 +45,6 @@ import {
     StatsSource,
     updateStatsMessage
 } from '../utils/stats/statsMessages';
-import { AttackRulesVersion } from '../game/core/attack/AttackFlow';
 
 interface LobbySpectatorWrapper {
     id: string;
@@ -148,7 +148,7 @@ export class Lobby {
     private readonly swuBaseEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
-    private readonly cardPool: CardPool;
+    public readonly cardPool: CardPool;
 
     // configurable lobby properties
     private undoMode: UndoMode = UndoMode.Disabled;
@@ -356,6 +356,14 @@ export class Lobby {
         };
     }
 
+    private isUserChatDisabled(user: LobbyUserWrapper): boolean {
+        const isModerationMuted = user.socket?.user.getModeration()?.moderationType === ModerationType.Mute;
+        const lobbyChatMuted = user.id === this.userWhoMutedChat;
+        const playerAccountChatSettingDisabled = user.socket?.user.getPreferences()?.gameOptions?.muteChat === true;
+
+        return isModerationMuted || lobbyChatMuted || playerAccountChatSettingDisabled;
+    }
+
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
         const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
 
@@ -375,7 +383,7 @@ export class Lobby {
             state: user.state,
             ready: user.ready,
             authenticated: authenticatedStatus,
-            chatDisabled: user.socket?.user.getModeration()?.moderationType === ModerationType.Mute || user.id === this.userWhoMutedChat,
+            chatDisabled: this.isUserChatDisabled(user)
         };
 
         const extendedData = fullData ? {
@@ -385,7 +393,7 @@ export class Lobby {
             importDeckErrors: user.importDeckValidationErrors,
             unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
             minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.format) : 50,
-            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format, this.cardPool),
+            maxSideBoard: DeckValidator.getMaxSideboardSize(this.format, this.cardPool),
         } : {
             deck: user.deck?.getLeaderBase(),
         };
@@ -853,8 +861,9 @@ export class Lobby {
 
         const user = this.getUser(userId);
 
-        // If there's an active game that hasn't finished, concede it first
-        if (this.game && this.game.finishedAt == null) {
+        // If there's an active game that hasn't finished and no winner has been determined yet, concede it first
+        // (Skip if game already has a winner, e.g., from timeout - endGame guard will prevent double-recording)
+        if (this.game && this.game.finishedAt == null && !this.game.isEnded) {
             this.game.concede(userId);
         }
 
@@ -938,22 +947,37 @@ export class Lobby {
     }
 
     private changeDeck(socket: Socket, ...args) {
-        // Changing decks is not allowed after game 1 in a Bo3 set
-        Contract.assertFalse(
-            this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2,
-            'Changing decks is not allowed after game 1 in a Bo3 set'
-        );
+        this.changeDeckForUser(socket.user.getId(), args[0]);
+    }
 
-        const activeUser = this.users.find((u) => u.id === socket.user.getId());
+    /**
+     * Applies a deck-change for the given user in this lobby. Used by both the
+     * `changeDeck` socket handler and the lobby-scoped REST endpoint
+     * (`POST /api/lobby/:lobbyId/change-deck`). Throws if the lobby is in a
+     * Bo3 game ≥ 2 state where deck-changes are disallowed; callers should
+     * translate that to an appropriate user-facing error.
+     */
+    public changeDeckForUser(userId: string, deck: ISwuDbFormatDecklist): IDeckValidationFailures | undefined {
+        // Changing decks is not allowed after game 1 in a Bo3 set
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber >= 2) {
+            throw new Error('Changing decks is not allowed after game 1 in a Bo3 set');
+        }
+
+        const activeUser = this.users.find((u) => u.id === userId);
+        Contract.assertNotNullLike(activeUser, `Lobby.changeDeckForUser: user ${userId} not found in lobby ${this.id}`);
 
         // we check if the deck is valid.
         const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
-        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], validationProperties);
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
-        // if the deck doesn't have any errors that block import, set it as active
-        const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
-        if (Object.keys(filteredErrors).length === 0) {
-            activeUser.deck = new Deck(args[0], this.cardDataGetter);
+        // Determine which failures block accepting this deck as the active (playable) deck.
+        // Quick lobbies auto-start with no editing step, so the deck must be immediately legal;
+        // editable lobbies allow an in-progress deck since game start re-validates size.
+        const blockingErrors = this.matchmakingType === MatchmakingType.Quick
+            ? activeUser.importDeckValidationErrors
+            : DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
+        if (Object.keys(blockingErrors).length === 0) {
+            activeUser.deck = new Deck(deck, this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 validationProperties
@@ -967,6 +991,8 @@ export class Lobby {
         logger.info(`Lobby: user ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
         this.updateUserLastActivity(activeUser.id);
+
+        return activeUser.importDeckValidationErrors;
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -1061,11 +1087,13 @@ export class Lobby {
             return {
                 id: this.id,
                 isPrivate: this.isPrivate,
+                allowSpectators: this.spectationAllowed,
                 player1Leader: player1.deck.leader,
                 player1Base: player1.deck.base,
                 player2Leader: player2.deck.leader,
                 player2Base: player2.deck.base,
                 format: this.gameFormat,
+                cardPool: this.cardPool,
                 gamesToWinMode: this.gamesToWinMode,
             };
         } catch (error) {
@@ -1215,6 +1243,15 @@ export class Lobby {
     }
 
     private async startGameAsync() {
+        // Authoritative deck-size gate. Various flows allow an undersized/oversized deck to be held
+        // while editing (size errors are filtered at import time), so we re-validate here - the single
+        // entry point for starting a game - to guarantee no game begins with an illegal deck.
+        const usersWithInvalidDeckSize = this.getUsersWithInvalidDeckSize();
+        if (usersWithInvalidDeckSize.length > 0) {
+            this.handleInvalidDeckSizeAtStart(usersWithInvalidDeckSize);
+            return;
+        }
+
         try {
             this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
@@ -1222,7 +1259,6 @@ export class Lobby {
 
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
-            game.started = true;
 
             logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
 
@@ -1238,6 +1274,10 @@ export class Lobby {
             this.users.forEach((user) => {
                 this.server.registerDisconnect(user.socket, user.id);
             });
+
+            // Ask each player's client for their screen resolution so we can log it for analytics.
+            // Fire-and-forget; clients reply via the `reportScreenResolution` lobby command.
+            this.requestScreenResolutionsForGameStart();
 
             // For each user, if they have a deck, select it in the game
             this.users.forEach((user) => {
@@ -1267,6 +1307,74 @@ export class Lobby {
                 });
             }
         }
+    }
+
+    /**
+     * Deck-validation failures that indicate an illegal deck to actually play with (as opposed
+     * to in-progress editing state). These are the failures that in-lobby flows filter out at
+     * import time, so they must be re-checked before a game can start.
+     */
+    private static readonly startBlockingDeckSizeFailures: readonly DeckValidationFailureReason[] = [
+        DeckValidationFailureReason.MinMainboardSizeNotMet,
+        DeckValidationFailureReason.MinDecklistSizeNotMet,
+        DeckValidationFailureReason.MaxSideboardSizeExceeded,
+    ];
+
+    /**
+     * Returns the lobby users whose active deck cannot legally start a game because of its size
+     * (missing deck, undersized mainboard/decklist, or oversized sideboard). Also refreshes each
+     * user's `deckValidationErrors` so the current state is surfaced to clients.
+     */
+    private getUsersWithInvalidDeckSize(): LobbyUserWrapper[] {
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
+        const invalidUsers: LobbyUserWrapper[] = [];
+
+        for (const user of this.users) {
+            if (!user.deck) {
+                invalidUsers.push(user);
+                continue;
+            }
+
+            const errors = this.deckValidator.validateInternalDeck(user.deck.getDecklist(), validationProperties);
+            user.deckValidationErrors = errors;
+
+            if (Lobby.startBlockingDeckSizeFailures.some((reason) => reason in errors)) {
+                invalidUsers.push(user);
+            }
+        }
+
+        return invalidUsers;
+    }
+
+    /**
+     * Handles the case where one or more players cannot legally start due to deck size. Quick
+     * lobbies have no in-lobby editing step, so they are torn down and both players are requeued
+     * (requeue re-validates decks without filtering size errors, rejecting any tampered deck).
+     * Editable lobbies are kept open with ready state cleared and the errors surfaced so the
+     * affected player(s) can fix their deck and ready up again.
+     */
+    private handleInvalidDeckSizeAtStart(usersWithInvalidDeckSize: LobbyUserWrapper[]): void {
+        const names = usersWithInvalidDeckSize.map((u) => u.username).join(', ');
+        logger.warn(
+            `Lobby: refusing to start game, invalid deck size for user(s): ${names}`,
+            { lobbyId: this.id, userIds: usersWithInvalidDeckSize.map((u) => u.id) }
+        );
+
+        this.bo3LobbyReadyTimer?.stop();
+
+        if (this.matchmakingType === MatchmakingType.Quick) {
+            this.matchmakingFailed(new Error('Cannot start game: one or more players have an invalid deck'));
+            return;
+        }
+
+        this.users.forEach((user) => {
+            user.ready = false;
+        });
+        this.gameChat.addAlert(
+            AlertType.Danger,
+            `Cannot start game: ${names} ${usersWithInvalidDeckSize.length > 1 ? 'have' : 'has'} an invalid deck (check deck size). Please fix your deck and ready up again.`
+        );
+        this.sendLobbyState();
     }
 
     private matchmakingFailed(error?: Error) {
@@ -1330,25 +1438,33 @@ export class Lobby {
     }
 
     private buildGameSettings(): GameConfiguration {
-        const players: IUser[] = this.users.map((user) =>
-            getUserWithDefaultsSet({
+        const players: IUser[] = this.users.map((user) => {
+            const preferences = user.socket.user.getPreferences();
+            const cosmeticsSelection = preferences?.cosmetics;
+            const resolvedCosmetics = this.server.cosmeticsService
+                ? this.server.cosmeticsService.resolveActiveCosmetics(cosmeticsSelection)
+                : CosmeticsService.resolveDefaultCosmetics(cosmeticsSelection);
+
+            return getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
                 settings: {
                     optionSettings: {
-                        autoSingleTarget: false,
+                        // Persisted prefs nest prompt-reduction settings under gameOptions.autoResolve;
+                        // the engine keeps optionSettings flat. Anonymous users have no persisted
+                        // preferences; default to off to preserve prior behavior.
+                        autoSingleTarget: preferences?.gameOptions?.autoResolve?.singleTarget ?? false,
                     }
                 },
-                cosmetics: user.socket.user.getPreferences()?.cosmetics,
-            })
-        );
+                cosmetics: resolvedCosmetics,
+            });
+        });
 
         return {
             id: uuidv4(),
             allowSpectators: false,
             owner: 'Order66',
             gameMode: GameMode.Premier,
-            attackRulesVersion: AttackRulesVersion.CR7,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
@@ -1358,6 +1474,9 @@ export class Lobby {
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),
             userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
+            onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
+                ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
+                : undefined,
         };
     }
 
@@ -1765,8 +1884,8 @@ export class Lobby {
             const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Lose : ScoreType.Win;
 
             // Only update stats if the game has a winner and made it into the second round at least
-            if (game.winnerNames.length === 0 || !game.finishedAt) {
-                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${game.winnerNames.length === 0
+            if (!game.isEnded || !game.finishedAt) {
+                throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${!game.isEnded
                     ? `winnerNames length being ${game.winnerNames.length}` : ''}
                     ${!game.finishedAt ? 'game finishedAt missing' : ''} `);
             }
@@ -2227,6 +2346,58 @@ export class Lobby {
         Contract.assertTrue(typeof settingValue === expectedType, `Invalid setting value for ${settingName}, expected ${expectedType} but received: ` + settingValue);
     }
 
+    /**
+     * Sends a `requestScreenResolution` socket event to every connected player at game start.
+     * Players reply via the `reportScreenResolution` lobby command, which logs the result.
+     */
+    private requestScreenResolutionsForGameStart(): void {
+        for (const user of this.users) {
+            try {
+                user.socket?.send('requestScreenResolution');
+            } catch (error) {
+                logger.warn('Lobby: failed to send requestScreenResolution to user', {
+                    lobbyId: this.id,
+                    userId: user.id,
+                    error: { message: error?.message, stack: error?.stack },
+                });
+            }
+        }
+    }
+
+    /**
+     * Lobby command handler invoked by clients in response to `requestScreenResolution`.
+     * Logs the player's screen resolution as a structured field for log aggregation.
+     */
+    private reportScreenResolution(socket: Socket, payload: any): void {
+        const userId = socket.user.getId();
+        const user = this.getUser(userId);
+        if (!user || !this.game) {
+            return;
+        }
+
+        const width = payload?.width;
+        const height = payload?.height;
+        if (
+            !Number.isInteger(width) || !Number.isInteger(height) ||
+            width <= 0 || height <= 0
+        ) {
+            logger.warn('Lobby: received invalid screen resolution payload', {
+                lobbyId: this.id,
+                userId,
+                payload,
+            });
+            return;
+        }
+
+        logger.info(`[Lobby] Player screen resolution at game start: ${width}x${height}`, {
+            lobbyId: this.id,
+            gameId: this.game.id,
+            userId,
+            username: user.username,
+            screenResolution: { width, height },
+        });
+    }
+
     private async submitReport(socket: Socket, ...args: any[]): Promise<void> {
         Contract.assertTrue(
             args[0] === 'bugReport' || args[0] === 'playerReport',
@@ -2256,11 +2427,15 @@ export class Lobby {
                 : { phase: 'action', player1: {}, player2: {} };
 
             let gameMessages: ISerializedMessage[];
+            let chatMessages: ISerializedMessage[] | undefined;
             let opponent: { id: string; username: string };
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
                 opponent = { id: opponentObject.id, username: opponentObject.user.username };
                 gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+                if (reportType === ReportType.PlayerReport) {
+                    chatMessages = this.game.gameChat.getPlayerChatMessages();
+                }
             } else {
                 // this is for lobby player reports
                 const opponentObject = this.users.find((u) => u.id !== socket.user.getId());
@@ -2270,6 +2445,7 @@ export class Lobby {
                     throw new Error(`${reportLabel} failed since opponent wasn't found`);
                 }
                 gameMessages = this.gameChat.messages;
+                chatMessages = this.gameChat.getPlayerChatMessages();
             }
 
             const report = this.discordDispatcher.formatReport(
@@ -2285,7 +2461,8 @@ export class Lobby {
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
-                viewport
+                viewport,
+                chatMessages
             );
 
             const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);

@@ -21,14 +21,18 @@ export default class Jetpack extends UpgradeCard {
                     target: context.source.parentCard,
                     highPriorityRemoval: true
                 })),
-                AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
-                    title: 'Defeat the Jetpack Shield token',
-                    when: {
-                        onPhaseStarted: (context) => context.phase === PhaseName.Regroup
-                    },
-                    immediateEffect: AbilityHelper.immediateEffects.defeat(),
-                    target: context.events?.[0]?.generatedTokens?.[0]
-                }))
+                AbilityHelper.immediateEffects.simultaneous((context) =>
+                    context.resolvedEvents[0]?.generatedTokens?.map((token) =>
+                        AbilityHelper.immediateEffects.delayedCardEffect({
+                            title: 'Defeat the Jetpack Shield token',
+                            when: {
+                                onPhaseStarted: (context) => context.phase === PhaseName.Regroup
+                            },
+                            immediateEffect: AbilityHelper.immediateEffects.defeat(),
+                            target: token
+                        })
+                    ) ?? []
+                )
             ])
         });
     }

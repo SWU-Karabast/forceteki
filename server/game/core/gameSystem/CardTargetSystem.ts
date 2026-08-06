@@ -5,6 +5,7 @@ import { EffectName, EventName, GameStateChangeRequired, WildcardCardType, ZoneN
 import type { IGameSystemProperties as IGameSystemProperties } from './GameSystem';
 import { GameSystem as GameSystem } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
+import { addLastKnownInformationToEvent, buildLastKnownInformation } from '../event/LastKnownInformation';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
@@ -152,7 +153,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
 
         const event = this.createEvent(nonArrayTarget, context, additionalProperties);
         if (addLastKnownInformation) {
-            (event as any).lastKnownInformation = this.buildLastKnownInformation(nonArrayTarget);
+            (event as any).lastKnownInformation = buildLastKnownInformation(nonArrayTarget);
         }
         this.updateEvent(event, nonArrayTarget, context, additionalProperties);
         return event;
@@ -173,7 +174,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
+    // `card` is typed as a scalar-or-array because some batched systems (e.g. ViewCardSystem) pass an array of targets here
+    protected override addPropertiesToEvent(event, card: Card | Card[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }
@@ -200,7 +202,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 card
             });
 
-            this.addLastKnownInformationToEvent(onCardLeavesPlayEvent, card);
+            addLastKnownInformationToEvent(onCardLeavesPlayEvent, card);
 
             let contingentEvents = [onCardLeavesPlayEvent];
 

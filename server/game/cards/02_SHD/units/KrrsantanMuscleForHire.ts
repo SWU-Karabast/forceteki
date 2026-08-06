@@ -23,6 +23,7 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
 
         registrar.addOnAttackAbility({
             title: 'Deal 1 damage to a unit for each damage on this unit',
+            contextTitle: (context) => `Deal ${context.source.damage} damage to a unit`,
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,

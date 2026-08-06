@@ -23,6 +23,7 @@ describe('GreatPitOfCarkoon', function() {
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.theSarlaccOfCarkoonHorrorOfTheDuneSea],
+                    invalid: [context.atst, context.superlaserTechnician, context.takedown, context.blizzardAssaultAtat],
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -100,20 +101,26 @@ describe('GreatPitOfCarkoon', function() {
                 context.player1.clickCard(context.greatPitOfCarkoon);
                 context.player1.clickCard(context.wampa);
 
+                // No Sarlacc in deck — the full deck is shown but every card is invalid; take nothing.
+                // superlaser-blast exists in both hand and deck so we disambiguate by zone.
+                const deckSuperlaserBlast = context.player1.findCardByName('superlaser-blast', 'deck');
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [],
+                    invalid: [context.atst, deckSuperlaserBlast, context.superlaserTechnician, context.takedown, context.blizzardAssaultAtat],
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                const preShuffleDeck = context.player1.deck;
+                context.player1.clickPrompt('Take nothing');
+
                 expect(context.getChatLogs(2)).toEqual([
                     'player1 uses Great Pit of Carkoon, discarding Wampa to search their deck',
                     'player1 uses Great Pit of Carkoon to take no cards and to shuffle their deck'
                 ]);
 
                 expect(context.wampa).toBeInZone('discard', context.player1);
-                expect(context.player1.deck.map((card) => card.internalName)).toEqual([
-                    // Deck was shuffled after search, even with no valid targets
-                    'superlaser-technician',
-                    'atst',
-                    'superlaser-blast',
-                    'takedown',
-                    'blizzard-assault-atat',
-                ]);
+                // Deck was shuffled after search, even with no valid targets
+                expect(context.player1.deck).not.toEqual(preShuffleDeck);
                 expect(context.player2).toBeActivePlayer();
             });
 

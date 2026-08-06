@@ -65,5 +65,25 @@ describe('Reckless Torrent', function() {
             context.player1.clickCard(context.recklessTorrent);
             expect(context.player2).toBeActivePlayer();
         });
+
+        xit('should allow damaging an enemy unit even if there are no friendly units in the arena', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['corvus#inferno-squadron-raider', 'cartel-spacer'],
+                    hand: ['reckless-torrent']
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.recklessTorrent);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine.damage).toBe(2);
+        });
     });
 });

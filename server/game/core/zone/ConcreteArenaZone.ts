@@ -2,7 +2,7 @@ import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
 import type { ZoneName } from '../Constants';
 import type { Game } from '../Game';
 import { registerStateBase } from '../GameObjectUtils';
-import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
+import type { IInPlayZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
 import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';
 import type { IAddRemoveZone } from './ZoneAbstract';
 
@@ -20,7 +20,7 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
         this.hiddenForPlayers = null;
     }
 
-    public override getCards(filter?: IArenaZoneCardFilterProperties): IInPlayCard[] {
+    public override getCards(filter?: IInPlayZoneCardFilterProperties): IInPlayCard[] {
         const filterFn = this.buildFilterFn(filter);
 
         let cards = this.cards;
@@ -31,7 +31,7 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
         return cards.filter(filterFn);
     }
 
-    public override hasSomeCard(filter: IArenaZoneCardFilterProperties): boolean {
+    public override hasSomeCard(filter: IInPlayZoneCardFilterProperties): boolean {
         const filterFn = this.buildFilterFn(filter);
         for (const card of this.cards) {
             if (filter?.controller && card.controller !== filter.controller) {

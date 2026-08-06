@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
-export default class DoctorPershing extends NonLeaderUnitCard {
+export default class DoctorPershingExperimentingWithLife extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '6722700037',

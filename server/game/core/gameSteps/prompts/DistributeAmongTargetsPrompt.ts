@@ -41,7 +41,10 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
                 this.distributeType = 'healing';
                 break;
             case StatefulPromptType.DistributeExperience:
-                this.distributeType = 'experience';
+                this.distributeType = 'Experience tokens';
+                break;
+            case StatefulPromptType.DistributeAdvantage:
+                this.distributeType = 'Advantage tokens';
                 break;
             default:
                 Contract.fail(`Unknown prompt type: ${this.properties.type}`);
@@ -75,11 +78,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             promptUuid: this.uuid,
             promptType: PromptType.DistributeAmongTargets
         };
-    }
-
-    protected override startActionTimer(player: Player): void {
-        // give players a little extra time during distribution prompts
-        player.actionTimer.start(120);
     }
 
     protected override highlightSelectableCards(): void {

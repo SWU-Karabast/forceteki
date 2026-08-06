@@ -4,10 +4,10 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class JynErsoTimeToFight extends LeaderUnitCard {
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {
         return {
@@ -17,7 +17,7 @@ export default class JynErsoTimeToFight extends LeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -53,7 +53,7 @@ export default class JynErsoTimeToFight extends LeaderUnitCard {
     }
 
     private friendlyRebelUnitWasDefeatedThisPhase(context: AbilityContext): boolean {
-        return this.unitsDefeatedThisPhaseWatcher
+        return this.cardsDefeatedThisPhaseWatcher
             .someUnitDefeatedThisPhase((entry) =>
                 entry.controlledBy === context.player &&
                 entry.lastKnownInformation.traits.has(Trait.Rebel)

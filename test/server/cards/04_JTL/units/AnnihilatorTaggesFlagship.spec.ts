@@ -162,7 +162,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 // Player sees the opponent's deck
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [inDeckBoba, inDeckPilotBoba],
-                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                    invalid: [context.cartelSpacer, context.eliteP38Starfighter, context.craftySmuggler]
                 });
 
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -228,7 +228,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 // Player sees the opponent's deck
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [inDeckBoba, inDeckPilotBoba],
-                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                    invalid: [context.cartelSpacer]
                 });
 
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -312,7 +312,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 // Player sees the opponent's deck
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [inDeckBoba, inDeckPilotBoba],
-                    // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                    invalid: [context.cartelSpacer]
                 });
 
                 context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
@@ -374,7 +374,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             // Search deck for Bobas
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [inDeckBoba, inDeckPilotBoba],
-                // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                invalid: [context.cartelSpacer]
             });
 
             context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
@@ -426,7 +426,7 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             // Search deck for L3's
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [inDeckL337, inDeckL337Pilot],
-                // invalid: [context.cartelSpacer]      // TODO: uncomment when we re-enable full deck search
+                invalid: [context.cartelSpacer]
             });
 
             context.player1.clickCardInDisplayCardPrompt(inDeckL337);
@@ -441,6 +441,81 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             expect(inDeckL337).toBeInZone('discard');
             expect(inHandL337Pilot).toBeInZone('discard');
             expect(inDeckL337Pilot).toBeInZone('discard');
+        });
+
+        describe('Annihilator\'s deck search', function() {
+            it('shuffles the opponent\'s deck, and not the resolving player\'s', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['annihilator#tagges-flagship'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                        deck: [
+                            'pyke-sentinel',
+                            'wing-leader',
+                            'seasoned-fleet-admiral',
+                            'death-star-stormtrooper',
+                            'superlaser-technician',
+                            'snowtrooper-lieutenant'
+                        ]
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        deck: [
+                            'battlefield-marine',
+                            'cartel-spacer',
+                            'crafty-smuggler',
+                            'elite-p38-starfighter',
+                            'wampa',
+                            'consortium-starviper',
+                            'system-patrol-craft',
+                            'tieln-fighter',
+                            'vanguard-infantry',
+                            'volunteer-soldier'
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const wampaInPlay = context.player2.findCardByName('wampa', 'groundArena');
+                const wampaInDeck = context.player2.findCardByName('wampa', 'deck');
+                const ownDeck = context.player1.deck;
+
+                // Seeded so the shuffle result is identical on every run.
+                context.game.setRandomSeed('annihilator-shuffle');
+
+                context.player1.clickCard(context.annihilator);
+                context.player1.clickCard(wampaInPlay);
+
+                context.player1.clickCardInDisplayCardPrompt(wampaInDeck);
+                context.player1.clickDone();
+
+                expect(wampaInDeck).toBeInZone('discard');
+
+                // Wampa is gone, remaining cards are in a different order
+                expect(context.player2.deck.map((c) => c.internalName)).toEqual([
+                    'tieln-fighter',
+                    'volunteer-soldier',
+                    'system-patrol-craft',
+                    'elite-p38-starfighter',
+                    'battlefield-marine',
+                    'consortium-starviper',
+                    'crafty-smuggler',
+                    'cartel-spacer',
+                    'vanguard-infantry'
+                ]);
+
+                // Only the searched deck is shuffled: the resolving player's own deck is untouched.
+                expect(context.player1.deck.map((c) => c.internalName)).toEqual([
+                    'pyke-sentinel',
+                    'wing-leader',
+                    'seasoned-fleet-admiral',
+                    'death-star-stormtrooper',
+                    'superlaser-technician',
+                    'snowtrooper-lieutenant'
+                ]);
+            });
         });
     });
 });

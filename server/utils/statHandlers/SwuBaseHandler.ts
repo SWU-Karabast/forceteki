@@ -124,7 +124,7 @@ export class SwuBaseHandler {
         return {
             id: player.id,
             accessToken: accessToken,
-            leader: player.leader?.id,
+            leader: player.deckLeader?.id,
             base: player.base?.id,
             deck: {
                 id: accessToken ? deckId : 'unknown', // "unknown" deck ids for players NOT linked to swubase

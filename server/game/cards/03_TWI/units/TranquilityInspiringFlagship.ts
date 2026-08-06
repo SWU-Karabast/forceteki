@@ -14,7 +14,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Return a Republic unit from your discard pile to your hand',
+            title: `Return a ${TextHelper.Trait.Republic} unit from your discard pile to your hand`,
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.Discard,
@@ -25,7 +25,7 @@ export default class TranquilityInspiringFlagship extends NonLeaderUnitCard {
         });
 
         registrar.addOnAttackAbility({
-            title: `Each of the next 3 Republic cards you play this phase costs ${TextHelper.resource(1)} less`,
+            title: `Each of the next 3 ${TextHelper.Trait.Republic} cards you play this phase costs ${TextHelper.resource(1)} less`,
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     match: (card) => card.hasSomeTrait(Trait.Republic),

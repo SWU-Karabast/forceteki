@@ -52,8 +52,8 @@ describe('Claiming initiative', function() {
 
                 // Regroup phase
                 expect(context.ardentSympathizer.getPower()).toBe(3);
-                expect(context.player2).toHaveExactPromptButtons(['Done']);
-                expect(context.player1).toHaveExactPromptButtons(['Done']);
+                expect(context.player2).toHaveExactPromptButtons(['Skip Resourcing']);
+                expect(context.player1).toHaveExactPromptButtons(['Skip Resourcing']);
 
                 context.player2.clickDone();
                 context.player1.clickDone();
@@ -70,8 +70,8 @@ describe('Claiming initiative', function() {
                 context.player2.passAction();
 
                 // Regroup phase
-                expect(context.player2).toHaveExactPromptButtons(['Done']);
-                expect(context.player1).toHaveExactPromptButtons(['Done']);
+                expect(context.player2).toHaveExactPromptButtons(['Skip Resourcing']);
+                expect(context.player1).toHaveExactPromptButtons(['Skip Resourcing']);
 
                 context.player2.clickDone();
                 context.player1.clickDone();

@@ -217,6 +217,44 @@ describe('Krayt Dragon', function () {
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(2);
             });
+
+            xit('should nest krayt with when played and have yoda resolve last', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['yoda#my-ally-is-the-force'],
+                        hand: ['ahsoka-tano#chasing-whispers'],
+                        leader: 'quigon-jinn#student-of-the-living-force',
+                        hasForceToken: true
+                    },
+                    player2: {
+                        groundArena: ['krayt-dragon'],
+                        hand: ['daring-raid']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.quigonJinn);
+                context.player1.clickPrompt('Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-Villainy unit that costs less than the returned unit for free');
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.ahsokaTano);
+                // AP should now be able to choose between their triggers and opponent triggers
+                context.player1.clickPrompt('You');
+                expect(context.player2).toBeAbleToSelectExactly(context.daringRaid);
+                context.player2.clickCard(context.daringRaid);
+
+                // Now Krayt
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.ahsokaTano]);
+                context.player2.clickCard(context.p1Base);
+
+                // Now Yoda
+                context.player1.clickCard(context.kraytDragon);
+
+                expect(context.p1Base.damage).toBe(4);
+                expect(context.kraytDragon.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

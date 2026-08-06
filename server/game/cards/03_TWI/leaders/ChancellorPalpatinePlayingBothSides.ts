@@ -5,11 +5,11 @@ import { Aspect } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { TextHelper } from '../../../core/utils/TextHelper';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 
 export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLeaderCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
-    private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
+    private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
     protected override getImplementationId() {
         return {
             id: '0026166404',
@@ -19,7 +19,7 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
-        this.unitsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.unitsDefeatedThisPhase();
+        this.cardsDefeatedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsDefeatedThisPhase();
     }
 
     protected override setupLeaderSideAbilities(registrar: IDoubleSidedLeaderAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -55,9 +55,9 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
     }
 
     private friendlyHeroismCardDefeatedThisPhase(context): boolean {
-        return this.unitsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((defeatedUnitEntry) =>
-            defeatedUnitEntry.controlledBy === context.player &&
-            defeatedUnitEntry.unit.hasSomeAspect(Aspect.Heroism));
+        return this.cardsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((entry) =>
+            entry.controlledBy === context.player &&
+            entry.card.hasSomeAspect(Aspect.Heroism));
     }
 
     private villainyCardPlayedThisPhase(context): boolean {

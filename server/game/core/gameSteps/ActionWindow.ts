@@ -36,6 +36,8 @@ export class ActionWindow extends UiPrompt {
         this.actionNumber = actionNumber;
 
         this.activePlayer = this.game.actionPhaseActivePlayer;
+
+        // always restart the player's action timer when their action starts
         this.activePlayer.actionTimer.stop();
 
         Contract.assertNotNullLike(this.activePlayer);
@@ -46,8 +48,6 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override onCardClicked(player: Player, card: Card) {
-        this.stopActionTimer();
-
         if (player !== this.activePlayer) {
             return false;
         }
@@ -135,10 +135,6 @@ export class ActionWindow extends UiPrompt {
         }
     }
 
-    private stopActionTimer() {
-        this.activePlayer.actionTimer.stop();
-    }
-
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
 
@@ -165,8 +161,6 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override menuCommand(player: Player, choice: string, uuid: string) {
-        this.stopActionTimer();
-
         switch (choice) {
             // case 'manual':
             //     this.game.promptForSelect(this.activePlayer, {

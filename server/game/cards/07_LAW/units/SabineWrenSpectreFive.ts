@@ -15,6 +15,7 @@ export default class SabineWrenSpectreFive extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: `Defeat a non-unique upgrade. If you control a ${TextHelper.aspectList([Aspect.Vigilance, Aspect.Command], Conjunction.Or)} unit, you may defeat an upgrade instead.`,
+            contextTitle: (context) => (context.player.isAspectInPlay([Aspect.Vigilance, Aspect.Command]) ? 'Defeat an upgrade' : 'Defeat a non-unique upgrade'),
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.isAspectInPlay([Aspect.Vigilance, Aspect.Command]),

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Return another friendly non-leader Underworld unit to its owner’s hand. If you do, exhaust an enemy unit or resource',
+            title: `Return another friendly non-leader ${TextHelper.Trait.Underworld} unit to its owner’s hand. If you do, exhaust an enemy unit or resource`,
             when: {
                 whenPlayed: true,
                 onAttack: true,

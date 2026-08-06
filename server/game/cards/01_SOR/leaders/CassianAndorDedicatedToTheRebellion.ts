@@ -5,7 +5,7 @@ import { CardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
 
-export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard {
+export default class CassianAndorDedicatedToTheRebellion extends LeaderUnitCard {
     private damageDealtThisPhaseWatcher: DamageDealtThisPhaseWatcher;
 
     protected override getImplementationId() {

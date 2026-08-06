@@ -28,6 +28,7 @@ describe('Survivors Gauntlet', function() {
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.frozenInCarbonite);
+                expect(context.player1).toHavePrompt('Attach Frozen in Carbonite to another eligible unit controlled by the same player');
                 expect(context.player1).toBeAbleToSelectExactly([context.fugitiveWookiee, context.battlefieldMarine, context.avenger, context.survivorsGauntlet]);
 
                 context.player1.clickCard(context.fugitiveWookiee);
@@ -173,6 +174,36 @@ describe('Survivors Gauntlet', function() {
             // should not have experience and damage from paige tico's ability
             expect(context.survivorsGauntlet.damage).toBe(0);
             expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['paige-tico#dropping-the-hammer']);
+        });
+
+        it('Survivor\'s Gauntlet controller should not be able to move an enemy pilot from a unit they took control of', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['corvus#inferno-squadron-raider', 'cartel-spacer'],
+                    hand: ['clone-pilot']
+
+                },
+                player2: {
+                    spaceArena: [{ card: 'awing', upgrades: ['legal-authority'] }, 'survivors-gauntlet'],
+                    hand: ['traitorous']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.clonePilot);
+            context.player1.clickPrompt('Play Clone Pilot with piloting');
+            context.player1.clickCard(context.cartelSpacer);
+
+            context.player2.clickCard(context.traitorous);
+            context.player2.clickCard(context.cartelSpacer);
+            context.player1.clickPrompt('Claim initiative');
+
+            context.player2.clickCard(context.survivorsGauntlet);
+            context.player2.clickCard(context.p1Base);
+            expect(context.player2).toBeAbleToSelectExactly([context.legalAuthority, context.traitorous]);
+            context.player2.clickPrompt('Pass');
         });
     });
 });

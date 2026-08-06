@@ -37,6 +37,10 @@ export default class LeiaOrganaSomeoneWhoLovesYou extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Choose a unit. Give an Experience token to that unit for each different aspect among units you control',
+            contextTitle: (context) => {
+                const aspectCount = new Set(context.player.getArenaUnits().flatMap((u) => u.aspects)).size;
+                return `Give ${aspectCount === 1 ? 'an Experience token' : `${aspectCount} Experience tokens`} to a unit`;
+            },
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },

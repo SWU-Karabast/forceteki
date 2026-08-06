@@ -133,6 +133,41 @@ describe('Luke Skywalker, You Still With Me?', function() {
                 expect(context.lukeSkywalker.exhausted).toBeTrue();
                 expect(context.escortSkiff).toBeInZone('discard', context.player1);
             });
+
+            xit('should return Luke pilot to his owner\'s ground arena after changing control and being defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['cartel-spacer'],
+                        groundArena: ['luke-skywalker#you-still-with-me'],
+                        hand: ['confiscate'],
+                        leader: 'hondo-ohnaka#thats-good-business',
+                        resources: ['timely-intervention', 'daring-raid', 'wampa', 'wampa', 'wampa']
+
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'awing', upgrades: ['legal-authority'] }, 'survivors-gauntlet'],
+                        groundArena: ['battlefield-marine'],
+                        hand: ['traitorous', 'corvus#inferno-squadron-raider'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.traitorous);
+                context.player2.clickCard(context.lukeSkywalker);
+                context.player1.passAction();
+
+                context.player2.clickCard(context.corvus);
+                context.player2.clickCard(context.lukeSkywalker);
+
+                context.player1.clickCard(context.confiscate);
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Trigger');
+                expect(context.lukeSkywalker).toBeInZone('groundArena', context.player1);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

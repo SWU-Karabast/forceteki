@@ -1,4 +1,3 @@
-
 describe('The Sarlacc of Carkoon, Horror of the Dune Sea', function () {
     integration(function (contextRef) {
         it('should move a unit from discard to bottom of deck and deal damage equal to its power to an enemy ground unit', async function () {
@@ -20,9 +19,11 @@ describe('The Sarlacc of Carkoon, Horror of the Dune Sea', function () {
             context.player1.clickCard(context.theSarlaccOfCarkoon);
             context.player1.clickCard(context.p2Base);
 
+            expect(context.player1).toHavePrompt('Put a unit from your discard pile on the bottom of your deck');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
             context.player1.clickCard(context.wampa);
 
+            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy ground unit');
             expect(context.player1).toBeAbleToSelectExactly([context.atst, context.consularSecurityForce]);
             context.player1.clickCard(context.consularSecurityForce);
 

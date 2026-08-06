@@ -15,13 +15,13 @@ export default class KhetannaUponTheDuneSea extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: `The next Underworld unit you play this phase costs ${TextHelper.resource(1)} less`,
+            title: `The next ${TextHelper.Trait.Underworld} unit you play this phase costs ${TextHelper.resource(1)} less`,
             when: {
                 whenPlayed: true,
                 onAttack: true,
             },
             immediateEffect: abilityHelper.immediateEffects.forThisPhasePlayerEffect({
-                ongoingEffectDescription: 'discount the next Underworld unit played by',
+                ongoingEffectDescription: `discount the next ${TextHelper.Trait.Underworld} unit played by`,
                 ongoingEffectTargetDescription: 'them',
                 effect: abilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,

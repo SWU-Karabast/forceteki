@@ -53,7 +53,15 @@ npm test **/LukeSkywalkerFaithfulFriend.spec.js # use path globbing (may look di
 
 # re-run a specific test file w/o rebuilding the server folder or copying the card json unless they are missing from the build folder.
 npm run test-fast test/server/cards/01_SOR/leaders/LukeSkywalkerFaithfulFriend.spec.js
+
+# run the whole suite in "undo mode": each test runs, rolls back to its start via a snapshot, then runs again
+npm run test-undo
+
+# run the whole suite in undo mode in parallel for higher speed
+npm run test-parallel-undo
 ```
+
+**Undo mode**: `npm run test-undo` runs every normal test twice with a snapshot rollback in between to verify that game state undo behaves correctly. The dedicated undo test files under `test/scenarios/undo/` are automatically skipped in this mode since they already run under undo as part of the normal suite.
 
 **Known issue with `test-parallel`**: in some cases when a test fails using `npm run test-parallel`, there will be a json stringify and it will not explain which test failed, only which suite. In this case you must re-run the tests using the standard `npm test` to determine the specifics.
 

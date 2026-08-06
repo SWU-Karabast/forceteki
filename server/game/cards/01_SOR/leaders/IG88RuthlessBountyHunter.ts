@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class IG88RuthlessBountyHunter extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -30,7 +31,7 @@ export default class IG88RuthlessBountyHunter extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each other friendly unit gains Raid 1',
+            title: `Each other friendly unit gains ${TextHelper.Raid(1)}`,
             matchTarget: (card, context) => card !== context.source && card.isUnit(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({
                 keyword: KeywordName.Raid,
