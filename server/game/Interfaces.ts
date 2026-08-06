@@ -468,6 +468,7 @@ export interface ISerializedReportState {
     lobbyId: string;
     timestamp: string;
     messages: ISerializedMessage[];
+    chatMessages?: ISerializedMessage[];
     gameStepsSinceLastUndo: string;
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;

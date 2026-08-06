@@ -79,13 +79,7 @@ export interface IFormatRules {
     rotationBlockCount?: number;
 }
 
-const bannedPremierCards = new Map([
-    ['4626028465', 'boba-fett#collecting-the-bounty'],
-    ['4002861992', 'dj#blatant-thief'],
-    ['5696041568', 'triple-dark-raid'],
-    ['9155536481', 'jango-fett#concealing-the-conspiracy'],
-    ['1705806419', 'force-throw']
-]);
+const bannedPremierCards = new Map<string, string>();
 
 const bannedEternalCards = new Map([
     ['4203363893', 'war-juggernaut'],
@@ -98,3 +92,16 @@ export const formatRules = new Map<SwuGameFormat, IFormatRules>([
     [SwuGameFormat.Open, { minDeckSize: 50, maxCardCopies: 3, bannedCards: new Map() }],
     [SwuGameFormat.Limited, { minDeckSize: 30, bannedCards: new Map() }],
 ]);
+
+/**
+ * Bundles the set/format data the {@link DeckValidator} reads when computing legal sets. Production uses
+ * {@link defaultSetCatalog}; tests can supply an alternate catalog (e.g. one containing a synthetic preview
+ * set) so preview/NextSet behaviour can be exercised deterministically regardless of the real release state.
+ */
+export interface ISetCatalog {
+    rotationBlocks: IRotationBlock[];
+    nonRotatingSets: INonRotatingSet[];
+    formatRules: Map<SwuGameFormat, IFormatRules>;
+}
+
+export const defaultSetCatalog: ISetCatalog = { rotationBlocks, nonRotatingSets, formatRules };

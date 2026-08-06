@@ -228,7 +228,7 @@ describe('Diplomatic Immunity', function() {
                 expect(context.battlefieldMarine.damage).toBe(2);
             });
 
-            it('should not trigger if the hand does not have the disclose cards', function () {
+            it('does not apply -2/-0 if the hand does not have the disclose cards', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.diplomaticImmunity);
@@ -245,6 +245,11 @@ describe('Diplomatic Immunity', function() {
 
                 context.player2.clickCard(context.rebelPathfinder);
                 context.player2.clickCard(context.battlefieldMarine);
+
+                // Both players now have on-attack triggers; player2 resolves theirs first, then player1 passes
+                // on the optional Diplomatic Immunity ability (their hand can't satisfy the disclose)
+                context.player2.clickPrompt('You');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.rebelPathfinder).toBeInZone('discard');
                 expect(context.battlefieldMarine.damage).toBe(2);

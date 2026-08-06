@@ -436,7 +436,10 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.moistureFarmer);
             context.player1.clickDone();
 
-            context.player2.clickPrompt('Defeat Shield to prevent Wampa from taking damage');
+            // Both Shield triggers are grouped (same token upgrade), opening a resolution modal directly
+            expect(context.player2).toHavePrompt('Resolve "Defeat Shield to prevent attached unit from taking damage"');
+            expect(context.player2).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+            context.player2.clickPrompt('Resolve all (2)');
 
             expect(context.darthMaul.damage).toBe(4);
             expect(context.moistureFarmer.damage).toBe(0);
@@ -487,8 +490,10 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickDone();
 
             expect(context.darthMaul.damage).toBe(0);
-            expect(context.player1).toHaveEnabledPromptButtons(['Deal 2 damage to the defending player’s base: Cantina Braggart', 'Deal 2 damage to the defending player’s base: Moisture Farmer']);
-            context.player1.clickPrompt('Deal 2 damage to the defending player’s base: Cantina Braggart');
+            // The two Ruthlessness triggers are grouped, opening a resolution modal directly
+            expect(context.player1).toHavePrompt('Resolve "Deal 2 damage to the defending player’s base"');
+            expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+            context.player1.clickPrompt('Resolve all (2)');
             expect(context.p2Base.damage).toBe(4);
         });
 

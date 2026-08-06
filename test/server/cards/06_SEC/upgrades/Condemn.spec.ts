@@ -52,7 +52,7 @@ describe('Condemn', function () {
                 expect(context.ravenousRathtar.damage).toBe(4);
             });
 
-            it('is automatically skipped if the required aspects cannot be disclosed', async function () {
+            it('shows a skippable pause instead of resolving if the required aspects cannot be disclosed', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -82,8 +82,11 @@ describe('Condemn', function () {
                 context.player2.clickCard(context.ravenousRathtar);
                 context.player2.clickCard(context.awakenedSpecters);
 
-                // P1 is not prompted to disclose Vigilance/Villainy
-                expect(context.player1).not.toHavePrompt(disclosePrompt(context.ravenousRathtar.title));
+                // P1 can't disclose Vigilance/Villainy, so a skippable masking pause is shown instead of
+                // resolving instantly (which would leak to P2 that P1's hand can't satisfy the requirement)
+                expect(context.player1).toHavePrompt('Pausing for Disclose');
+                expect(context.player1).toHaveEnabledPromptButton('Skip');
+                context.player1.clickPrompt('Skip');
 
                 // Attack resolves, defeating Awakened Specters
                 expect(context.awakenedSpecters).toBeInZone('discard', context.player1);
@@ -116,6 +119,9 @@ describe('Condemn', function () {
                 // P1 attacks base with Axe Woves
                 context.player1.clickCard(context.axeWoves);
                 context.player1.clickCard(context.p2Base);
+
+                // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+                context.player2.clickPrompt('Skip');
 
                 // Axe only hits for 3 because his constant ability is removed for the attack
                 expect(context.p2Base.damage).toBe(3);
@@ -150,6 +156,9 @@ describe('Condemn', function () {
                     context.p2Base
                 ]);
                 context.player1.clickCard(context.battlefieldMarine);
+
+                // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+                context.player2.clickPrompt('Skip');
 
                 // It loses the ability to defeat all shields on attack
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);
@@ -192,6 +201,9 @@ describe('Condemn', function () {
                 context.player1.clickCard(context.nihilMarauder);
                 context.player1.clickCard(context.ionCannon);
 
+                // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+                context.player2.clickPrompt('Skip');
+
                 // It loses Raid and does not gain Grit from Grim Resolve, so only deals 2 damage
                 expect(context.ionCannon.damage).toBe(2);
 
@@ -204,6 +216,9 @@ describe('Condemn', function () {
                 // Nihil Marauder attacks Battle Droid
                 context.player1.clickCard(context.nihilMarauder);
                 context.player1.clickCard(context.battleDroid);
+
+                // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+                context.player2.clickPrompt('Skip');
 
                 // It does not have Overwhelm, so no damage goes to base
                 expect(context.p2Base.damage).toBe(0);
@@ -231,6 +246,9 @@ describe('Condemn', function () {
                 // P1 attacks base with Seventh Sister
                 context.player1.clickCard(context.seventhSister);
                 context.player1.clickCard(context.p2Base);
+
+                // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+                context.player2.clickPrompt('Skip');
 
                 // Neither Fallen Lightsaber nor Seventh Sister's triggered ability trigger
                 // Attack ends with no damage dealt to Consular Security Force
@@ -261,6 +279,9 @@ describe('Condemn', function () {
                 context.player1.clickCard(context.val);
                 context.player1.clickCard(context.reinforcementWalker);
 
+                // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+                context.player2.clickPrompt('Skip');
+
                 // Val is defeated and does not trigger her When Defeated or Bounty abilities
                 expect(context.val).toBeInZone('discard', context.player1);
                 expect(context.consularSecurityForce.upgrades.length).toBe(0); // No Experience given from When Defeated
@@ -286,6 +307,9 @@ describe('Condemn', function () {
                 // P1 attacks base with Ezra Bridger
                 context.player1.clickCard(context.ezraBridger);
                 context.player1.clickCard(context.p2Base);
+
+                // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+                context.player2.clickPrompt('Skip');
 
                 // No post-attack trigger, it is now P2's turn
                 expect(context.player2).toBeActivePlayer();
