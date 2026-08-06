@@ -52,6 +52,13 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 context.player1.clickCard(context.chancellorPalpatine);
                 context.player1.clickPrompt('Deploy Chancellor Palpatine');
                 expect(context.chancellorPalpatine).toBeInZone('groundArena');
+
+                // Declare which Plot cards to play
+                expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.dogmaticShockSquad, context.unveiledMight] });
+                context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
+                context.player1.clickCardInDisplayCardPrompt(context.unveiledMight);
+                context.player1.clickDone();
+
                 expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 resources less.', 'Play Dogmatic Shock Squad using Plot', 'Play Unveiled Might using Plot']);
 
                 // Reduce the next card played using Plot by 3
@@ -59,13 +66,10 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
 
                 // Play Dogmatic for 3
                 context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
-                context.player1.clickPrompt('Trigger');
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.dogmaticShockSquad).toBeInZone('groundArena');
 
-                // Play Unveiled Might for 4
-                expect(context.player1).toHavePassAbilityPrompt('Play Unveiled Might using Plot');
-                context.player1.clickPrompt('Trigger');
+                // Unveiled Might was also declared, so it auto-resolves as the last remaining Plot card, going straight to target selection
                 expect(context.player1).toBeAbleToSelectExactly([context.chancellorPalpatine, context.dogmaticShockSquad]);
                 context.player1.clickCard(context.dogmaticShockSquad);
                 expect(context.player1.exhaustedResourceCount).toBe(7);
@@ -92,11 +96,17 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 context.player1.clickCard(context.chancellorPalpatineHowLibertyDies);
                 context.player1.clickPrompt('Deploy Chancellor Palpatine');
                 expect(context.chancellorPalpatineHowLibertyDies).toBeInZone('groundArena');
+
+                // Declare which Plot cards to play
+                expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.jarJarBinks, context.chancellorPalpatineIAmTheSenate] });
+                context.player1.clickCardInDisplayCardPrompt(context.jarJarBinks);
+                context.player1.clickCardInDisplayCardPrompt(context.chancellorPalpatineIAmTheSenate);
+                context.player1.clickDone();
+
                 expect(context.player1).toHaveExactPromptButtons(['The next card you play using Plot this phase costs 3 resources less.', 'Play Jar Jar Binks using Plot', 'Play Chancellor Palpatine using Plot']);
 
                 // Play Jar Jar Binks for 2
                 context.player1.clickPrompt('Play Jar Jar Binks using Plot');
-                context.player1.clickPrompt('Trigger');
                 expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.jarJarBinks).toBeInZone('groundArena');
                 context.player1.clickCard(context.chancellorPalpatineHowLibertyDies); // Give Palp +2/+2
@@ -104,9 +114,7 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 // Reduce the next card played using Plot by 3
                 context.player1.clickPrompt('The next card you play using Plot this phase costs 3 resources less.');
 
-                // Play Chancellor Palpatine unit for 0
-                expect(context.player1).toHavePassAbilityPrompt('Play Chancellor Palpatine using Plot');
-                context.player1.clickPrompt('Trigger');
+                // Chancellor Palpatine was also declared, so it auto-resolves as the last remaining Plot card
 
                 // Verify 2 Spy tokens were created for player1
                 const spies = context.player1.findCardsByName('spy');

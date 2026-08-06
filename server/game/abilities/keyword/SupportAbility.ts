@@ -9,7 +9,7 @@ import { InitiateAttackSystem } from '../../gameSystems/InitiateAttackSystem';
 
 @registerState()
 export class SupportAbility extends TriggeredAbilityBase {
-    public readonly keyword: KeywordName = KeywordName.Support;
+    public override readonly keyword: KeywordName = KeywordName.Support;
 
     public static buildSupportAbilityProperties<TSource extends Card = Card>(source: TSource): ITriggeredAbilityProps<TSource> {
         return {
