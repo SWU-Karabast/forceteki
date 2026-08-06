@@ -36,7 +36,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IDiscloseAspectsProperties> = {}): void {
         const generatedEvents = [];
         for (const target of this.targets(context, additionalProperties)) {
-            if (this.canAffect(target, context, additionalProperties)) {
+            if (target.isPlayer() && this.canSatisfyDisclose(target, context, additionalProperties)) {
                 const event = this.generateRetargetedEvent(target, context, additionalProperties);
                 generatedEvents.push(event);
                 events.push(event);
@@ -48,8 +48,22 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
                 // Create new context with the targeted player so the RelativePlayer
                 // is resolved correctly in the SelectCardSystem
                 const newContext = context.copy({ player: target }) as TContext;
-                this.generateSelectCardSystem(newContext, additionalProperties, generatedEvents)
-                    .queueGenerateEventGameSteps(events, newContext);
+                if (this.canSatisfyDisclose(target, context, additionalProperties)) {
+                    this.generateSelectCardSystem(newContext, additionalProperties, generatedEvents)
+                        .queueGenerateEventGameSteps(events, newContext);
+                } else if (this.shouldMaskDisclose(context)) {
+                    // A triggered/automatic disclose can't meet the requirement. Resolving instantly would
+                    // leak to the opponent that this player's hand can't satisfy the requirement, so instead
+                    // queue a brief client-driven pause that is indistinguishable from a player who could
+                    // disclose but declined. No disclose event is generated, so any dependent "if you do"
+                    // effect correctly does not resolve.
+                    newContext.game.promptForPassDelay(target, {
+                        source: context.source.name,
+                        activePromptTitle: 'Pausing for Disclose'
+                    });
+                }
+                // For a player-initiated disclose the player already chose to use the ability (and was warned
+                // it would have no effect), so we resolve with no effect and no masking pause.
             }
         }
     }
@@ -64,12 +78,40 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         additionalProperties?: Partial<IDiscloseAspectsProperties>,
         mustChangeGameState?: GameStateChangeRequired
     ): boolean {
+        // For a triggered/automatic disclose we always treat disclosing as a legal action so that the
+        // ability triggers even when the hand can't satisfy the requirement. This lets us show a masking
+        // pause during resolution (see queueGenerateEventGameSteps) instead of silently passing, which
+        // would leak hidden information to the opponent. For player-initiated abilities (actions, events)
+        // the player provides their own visible interaction, so we report the true legality and preserve
+        // the normal "this ability will have no effect" confirmation flow.
+        if (this.shouldMaskDisclose(context)) {
+            return true;
+        }
+        return this.canSatisfyDisclose(player, context, additionalProperties, mustChangeGameState);
+    }
+
+    // Private helpers
+
+    /** Whether the player's hand contains cards that can be revealed to satisfy the required aspects. */
+    private canSatisfyDisclose(
+        player: Player,
+        context: TContext,
+        additionalProperties?: Partial<IDiscloseAspectsProperties>,
+        mustChangeGameState?: GameStateChangeRequired
+    ): boolean {
         const newContext = context.copy({ player }) as TContext;
         const selectCardSystem = this.generateSelectCardSystem(newContext, additionalProperties);
         return selectCardSystem.hasLegalTarget(newContext, null, mustChangeGameState);
     }
 
-    // Private helpers
+    /**
+     * Whether a disclose that can't meet the requirement should be masked with a pause rather than
+     * resolving instantly. Only triggered/automatic abilities need masking; player-initiated abilities
+     * (actions, events) already involve a visible interaction, so an instant pass reveals nothing new.
+     */
+    private shouldMaskDisclose(context: TContext): boolean {
+        return context.ability?.isTriggeredAbility() === true;
+    }
 
     private generateSelectCardSystem(
         context: TContext,

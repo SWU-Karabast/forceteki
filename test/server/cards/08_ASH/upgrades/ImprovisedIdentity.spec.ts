@@ -653,9 +653,10 @@ describe('Improvised Identity', function() {
                     context.player1.clickCard(context.cloneDeserter);
                     expect(context.cloneDeserter).toBeInZone('discard');
 
-                    // Two "Draw a card" triggers fire (printed + gained) — resolve both
+                    // Two "Draw a card" triggers fire (printed + gained); they are grouped in the ordering prompt.
+                    // Select the grouped entry, then resolve both via the modal.
                     context.player1.clickPrompt('Draw a card');
-                    context.player1.clickPrompt('Draw a card');
+                    context.player1.clickPrompt('Resolve all (2)');
 
                     // Clone Deserter's Bounty — player1 (the defeater) collects it
                     context.player1.clickPrompt('Trigger');

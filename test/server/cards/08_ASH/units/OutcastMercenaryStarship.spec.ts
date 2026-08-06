@@ -84,8 +84,8 @@ describe('Outcast, Mercenary Starship', function() {
                 // Play Droid Deployment — creates 2 Battle Droid tokens simultaneously
                 context.player1.clickCard(context.droidDeployment);
 
-                // Resolve the trigger ordering prompt for the two simultaneous "enters play" triggers
-                context.player1.clickPrompt('Give Battle Droid +1/+0 for this phase');
+                // The two simultaneous "enters play" triggers are grouped — resolve them via the modal
+                context.player1.clickPrompt('Resolve all (2)');
 
                 // Each Battle Droid (printed power 1) should have received +1/+0 from Outcast
                 const battleDroids = context.player1.findCardsByName('battle-droid');

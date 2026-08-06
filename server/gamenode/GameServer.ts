@@ -1541,6 +1541,11 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid game format '${format}'` });
                 }
 
+                if (!EnumHelpers.isEnumValue(cardPool, CardPool)) {
+                    logger.error(`GameServer (enter-queue): Invalid card pool parameter ${cardPool}`);
+                    return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
+                }
+
                 // Check Bo3 access restrictions for anonymous users (queue is always public)
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, false, 'queue for a best of three match');
                 if (bo3AccessError) {

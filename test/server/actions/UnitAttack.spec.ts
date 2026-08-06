@@ -478,6 +478,9 @@ describe('Basic attack', function() {
             context.player1.clickCard(context.val);
             context.player1.clickCard(context.reinforcementWalker);
 
+            // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+            context.player2.clickPrompt('Skip');
+
             // Val is defeated and does not trigger her When Defeated or Bounty abilities
             expect(context.val).toBeInZone('discard', context.player1);
             expect(context.consularSecurityForce.upgrades.length).toBe(0); // No Experience given from When Defeated
@@ -503,6 +506,9 @@ describe('Basic attack', function() {
             // P1 attacks base with Ezra Bridger
             context.player1.clickCard(context.ezraBridger);
             context.player1.clickCard(context.p2Base);
+
+            // Condemn's gained on-attack disclose targets the defender, who can't disclose; skip the pause
+            context.player2.clickPrompt('Skip');
 
             // No post-attack trigger, it is now P2's turn
             expect(context.player2).toBeActivePlayer();
