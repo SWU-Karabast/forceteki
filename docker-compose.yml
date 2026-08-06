@@ -4,7 +4,9 @@ services:
     container_name: karabast-dynamodb-local
     ports:
       - "8000:8000"
-    command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data"
+    volumes:
+      - dynamodb-data:/home/dynamodblocal/data
     environment:
       - DYNAMODB_LOCAL=true
     networks:
@@ -17,3 +19,5 @@ services:
 networks:
   karabast-network:
     driver: bridge
+volumes:
+  dynamodb-data:
