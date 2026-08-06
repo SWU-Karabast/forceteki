@@ -928,10 +928,9 @@ export class GameServer {
             }
         });
 
-        app.put('/api/user/:userId/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
+        app.put('/api/user/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
             try {
                 const { preferences } = req.body;
-                const { userId } = req.params;
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
                     logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
@@ -940,7 +939,7 @@ export class GameServer {
                         message: 'Error attempting to save preferences'
                     });
                 }
-                await this.userFactory.updateUserPreferencesAsync(userId, preferences);
+                await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences);
                 return res.status(200).json({
                     success: true,
                     message: 'Preferences saved successfully',
