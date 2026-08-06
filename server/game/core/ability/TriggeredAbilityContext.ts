@@ -22,7 +22,7 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
     public readonly retriggeredByAbility: boolean;
 
     private _overrideTitle: string = null;
-    private _preConfirmed: boolean = false;
+    private _preConfirmed = false;
 
     public get overrideTitle(): string | null {
         return this._overrideTitle;
