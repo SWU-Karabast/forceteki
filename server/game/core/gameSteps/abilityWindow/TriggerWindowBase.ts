@@ -12,6 +12,7 @@ import type { Game } from '../../Game';
 import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityResolutionPrompt';
 import { BatchTriggerResolutionPrompt } from '../prompts/BatchTriggerResolutionPrompt';
 import type { IResolutionChoice, ITriggerWindowSourceCard } from '../PromptInterfaces';
+import { TextHelper } from '../../utils/TextHelper';
 
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -364,9 +365,9 @@ export abstract class TriggerWindowBase extends BaseStep {
         const plotSourceCards = plotContexts.map((context) => context.source);
 
         this.game.promptDisplayCardsForSelection(player, {
-            activePromptTitle: 'Choose any number of cards to play from resources using Plot',
-            waitingPromptTitle: 'Waiting for opponent to choose cards to play using Plot',
-            source: 'Plot',
+            activePromptTitle: `Choose any number of cards to play from resources using ${TextHelper.Plot}`,
+            waitingPromptTitle: `Waiting for opponent to choose cards to play using ${TextHelper.Plot}`,
+            source: `${TextHelper.Plot}`,
             displayCards: plotSourceCards,
             maxCards: plotSourceCards.length,
             canChooseFewer: true,
