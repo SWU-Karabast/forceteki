@@ -292,14 +292,20 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 context.player1.clickDone();
 
                 expect(context.bailOrgana.deployed).toBe(true);
+
+                // Declare which Plot cards to play
+                expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.unveiledMight, context.armorOfFortune] });
+                context.player1.clickCardInDisplayCardPrompt(context.unveiledMight);
+                context.player1.clickCardInDisplayCardPrompt(context.armorOfFortune);
+                context.player1.clickDone();
+
                 expect(context.player1).toHaveExactPromptButtons(['Play Unveiled Might using Plot', 'Play Armor of Fortune using Plot']);
                 context.player1.clickPrompt('Play Unveiled Might using Plot');
-                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.bailOrgana);
                 expect(context.unveiledMight).toBeAttachedTo(context.bailOrgana);
                 expect(context.p1Base.damage).toBe(4);
 
-                context.player1.clickPrompt('Trigger');
+                // Armor of Fortune was also declared, so it auto-resolves as the last remaining Plot card
                 context.player1.clickCard(context.bailOrgana);
                 expect(context.armorOfFortune).toBeAttachedTo(context.bailOrgana);
                 expect(context.p1Base.damage).toBe(3);
