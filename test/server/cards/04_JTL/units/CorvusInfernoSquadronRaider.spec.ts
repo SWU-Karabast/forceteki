@@ -198,5 +198,16 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 expect(context.corvus).toHaveExactUpgradeNames(['dagger-squadron-pilot']);
             });
         });
+
+        describe('Corvus\'s When Played ability when doubled', function() {
+            // Ruling 2025-11-25: Corvus's attachment restriction is just "Attach to Corvus" with no
+            // one-pilot limit, so if its When Played ability is doubled (e.g. by Qui-Gon Jinn's
+            // Aethersprite), two friendly Pilots can be attached to Corvus as upgrades.
+            xit('can attach two pilots when its When Played ability is doubled', function () {
+                // With Qui-Gon Jinn's Aethersprite in play, attack with the Aethersprite to set up its
+                // "use the next When Played ability again" effect, then play Corvus. Corvus's When
+                // Played resolves twice, attaching two different friendly Pilot units as upgrades.
+            });
+        });
     });
 });

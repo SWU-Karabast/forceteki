@@ -263,5 +263,20 @@ describe('Darth Maul\'s Lightsaber', () => {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('When the Lightsaber is defeated by the uniqueness rule before its When Played resolves', () => {
+            // Ruling 2025-09-29: Darth Maul's Lightsaber's When Played checks the name of the unit it is
+            // attached to at resolution. If the Lightsaber is defeated (e.g. a second copy is played and
+            // this one is chosen to be defeated by the uniqueness rule) so that it is no longer attached
+            // to a unit, then "if attached unit is Darth Maul" cannot be satisfied and it does not grant
+            // the attack.
+            xit('does not grant the attack if the Lightsaber is defeated by uniqueness (no attached unit at resolution)', function () {
+                // A Darth Maul unit has a Darth Maul's Lightsaber attached. Play a second Darth Maul's
+                // Lightsaber and choose (via the uniqueness rule) to defeat one of them so that the copy
+                // whose When Played is resolving is no longer attached to a unit. Because it is not
+                // attached to a unit, "if attached unit is Darth Maul" is not met and no attack is
+                // granted.
+            });
+        });
     });
 });

@@ -59,5 +59,17 @@ describe('Targeting Computer', function () {
             expect(context.p2Base.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
+
+        // Ruling 2025-03-25 / 2025-04-30: Last Known Information covers information needed to resolve an
+        // ability, but granted abilities are not active from the discard pile while resolving a "When
+        // Defeated" ability. So Targeting Computer's "assign indirect damage" ability does NOT apply
+        // when the attached unit is defeated and resolves a When-Defeated indirect-damage ability —
+        // the controller cannot assign that indirect damage via Targeting Computer.
+        xit('does not let you assign indirect damage from a When Defeated ability (it is not active from the discard)', function () {
+            // A unit has Targeting Computer attached and a "When Defeated: deal indirect damage" ability
+            // (e.g. Droid Missile Platform / General Krell-granted). The unit is defeated and its When
+            // Defeated indirect damage resolves. Targeting Computer's assign-indirect-damage ability is
+            // not active from the discard, so the controller does not get to assign that indirect damage.
+        });
     });
 });

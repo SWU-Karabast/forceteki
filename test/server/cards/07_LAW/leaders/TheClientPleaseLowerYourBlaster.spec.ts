@@ -214,6 +214,16 @@ describe('The Client, Please Lower Your Blaster', function() {
                 expect(context.theClient.exhausted).toBeTrue();
                 expect(context.wampa.exhausted).toBeTrue();
             });
+
+            // Ruling 2026-05-06: the controller of the ability that creates a token is responsible for
+            // creating it, UNLESS the ability specifies another player's responsibility. So a token that
+            // an ability has the OPPONENT create (e.g. Vel Sartha: "An opponent creates a Credit token")
+            // does not count as The Client's controller having created a token this phase.
+            xit('does NOT trigger when an ability makes the opponent create the token (Vel Sartha)', function () {
+                // The Client's controller resolves an ability that says "An opponent creates a token"
+                // (e.g. Vel Sartha). Because the opponent is the one creating the token, The Client's
+                // "if you created a token this phase" condition is not met for its controller.
+            });
         });
     });
 });

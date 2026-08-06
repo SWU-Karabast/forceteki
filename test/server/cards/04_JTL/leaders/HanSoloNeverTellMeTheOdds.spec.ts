@@ -272,6 +272,18 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 // Han should ready 1 reesource - for just himself
                 expect(context.player1.readyResourceCount).toBe(1);
             });
+
+            // Ruling 2025-09-29: all cards to be played with Plot are revealed when the leader deploys,
+            // then each Plot is played one at a time. Like Smuggle, a Plot card and the card that
+            // replaces it from the deck enter play at the same time, so the resource count stays
+            // consistent while resolving Plots — and Han's "ready a resource per odd-cost unit/upgrade"
+            // can be sequenced with Plot resolution to ready resources for subsequent Plots.
+            xit('interacts with Plot: resources readied by Han\'s deploy can be sequenced with Plot cards', function () {
+                // Deploy Han (Never Tell Me The Odds) as a pilot upgrade with one or more Plot cards
+                // available. The Plot cards are revealed on deploy and played one at a time; Han's
+                // "ready a resource for each friendly odd-cost unit or upgrade" trigger readies resources
+                // that can be used to pay for subsequent Plot cards when sequenced appropriately.
+            });
         });
     });
 });

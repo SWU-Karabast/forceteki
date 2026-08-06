@@ -165,5 +165,27 @@ describe('Traitorous', function() {
                 expect(context.darthVader.exhausted).toBeTrue();
             });
         });
+
+        describe('Traitorous\'s unattach trigger when the stolen unit becomes an upgrade', function() {
+            // Ruling 2025-11-25: the unattach trigger nests inside the action that caused it and
+            // resolves after that action finishes, returning control of the card (now an upgrade)
+            // to its owner even though it remains attached to the opponent's unit.
+
+            xit('returns control to the owner after L3-37\'s defeat-replacement attaches her to the controller\'s vehicle', function () {
+                // Player 1 plays Traitorous on Player 2's L3-37 (taking control of her).
+                // Player 2 plays Takedown defeating L3-37; Player 1 uses her replacement effect to
+                // attach her as a pilot to a friendly Vehicle. Traitorous is defeated by the attach.
+                // After Takedown finishes resolving, the unattach trigger gives control of L3-37
+                // back to Player 2, while she stays attached to Player 1's vehicle as an upgrade.
+            });
+
+            xit('returns control to the owner after Corvus\'s When Played attaches a stolen pilot, who can later redeploy under the owner\'s control', function () {
+                // Player 1 plays Traitorous on Player 2's Luke Skywalker (You Still With Me?) pilot
+                // unit, then plays Corvus and attaches Luke with its When Played ability. Once the
+                // When Played finishes resolving, Luke's owner (Player 2) takes control of the
+                // upgrade. If Luke would later be defeated, Player 2 may instead move him to the
+                // ground arena as a unit under their control, exhausted.
+            });
+        });
     });
 });

@@ -46,5 +46,15 @@ describe('Millennium Falcon, Get Out And Push', function() {
             expect(context.millenniumFalcon.getPower()).toBe(7);
             expect(context.millenniumFalcon.getHp()).toBe(6);
         });
+
+        // Ruling 2024: two pilots (e.g. Chewbacca and Han) can be attached to the Millennium Falcon in
+        // either order, including when one is a leader pilot (deployed as an upgrade) and one is a
+        // non-leader pilot (played via Piloting).
+        xit('allows a leader pilot and a non-leader pilot to be attached to the Falcon in either order', function () {
+            // With the Millennium Falcon (Get Out And Push, which can hold an additional pilot), attach
+            // a leader pilot (deployed as an upgrade) and a non-leader pilot (played via Piloting).
+            // Both orders — leader first then non-leader, and non-leader first then leader — should be
+            // legal and result in both pilots attached to the Falcon.
+        });
     });
 });

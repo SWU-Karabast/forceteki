@@ -159,5 +159,38 @@ describe('Overwhelm keyword', function() {
                 expect(context.p2Base.damage).toBe(6); // 1 for stormtrooper, 6 for base
             });
         });
+
+        describe('When conditional Overwhelm is lost before combat damage resolves', function() {
+            // Ruling 2024: Overwhelm must be present at the moment combat damage is resolved for excess
+            // damage to spill to the base. If a unit's Overwhelm was granted conditionally and the
+            // condition stops being true before combat damage resolution, the unit no longer has
+            // Overwhelm at that point, so excess damage is NOT dealt to the base.
+            // NOTE: needs a concrete conditional-Overwhelm source that can be turned off mid-attack.
+            xit('does not deal excess damage to the base if the attacker loses conditional Overwhelm before damage resolution', function () {
+                // An attacker has Overwhelm granted by a conditional effect (e.g. "while <condition>,
+                // this unit has Overwhelm") and attacks a defender it will over-kill. The condition
+                // becomes false before the combat damage step resolves, so the attacker no longer has
+                // Overwhelm and the excess damage does not carry over to the defending base.
+            });
+        });
+
+        describe('When a defender is defeated by a replacement effect during an Overwhelm attack with two defenders', function() {
+            // Ruling 2026-05-06: an Overwhelm attacker attacking two defenders calculates its full damage
+            // against each. If the defending player uses a replacement effect (e.g. Queen Amidala,
+            // Championing Her People: "you may defeat another friendly unit that shares a trait to
+            // prevent that damage") to defeat one defender in order to prevent Amidala's own damage, the
+            // defeated defender is defeated and dealt the attacker's full damage simultaneously — so the
+            // excess (attacker power minus that defender's HP) carries to the base via Overwhelm, and the
+            // attacker takes combat damage from BOTH defenders.
+            xit('applies excess to the base and full return damage when Amidala defeats the other defender to prevent her own damage', function () {
+                // Player A: Darth Maul (Revenge At Last) with Darth Maul's Lightsaber (gains Overwhelm,
+                // attacks 2 units, power 9). Player B: Queen Amidala (Championing Her People, 5/3) and a
+                // trait-sharing Furtive Handmaiden (2/2). Maul attacks both Amidala and the Handmaiden.
+                // Player B uses Amidala's replacement to defeat the Handmaiden and prevent Amidala's
+                // damage. The Handmaiden is defeated and dealt 9 simultaneously, so 7 excess is dealt to
+                // Player B's base via Overwhelm, and Darth Maul takes 7 (2 from the Handmaiden + 5 from
+                // Amidala).
+            });
+        });
     });
 });

@@ -233,5 +233,16 @@ describe('Capture system', function() {
                 expect(context.discerningVeteran).toBeInZone('discard');
             });
         });
+
+        describe('When a token unit with a bounty is captured', function() {
+            // Ruling 2024: capturing a token unit that has a bounty does count as capturing it at the
+            // moment it is set aside (rather than the token simply ceasing to exist), and the bounty is
+            // collectable as part of that capture.
+            xit('counts the token as captured when set aside and lets the opponent collect its bounty', function () {
+                // A token unit that has a bounty (e.g. a bounty upgrade attached, or a token created with
+                // a bounty) is captured. It is treated as captured when set aside, and the opponent of
+                // the token's controller may collect its bounty.
+            });
+        });
     });
 });

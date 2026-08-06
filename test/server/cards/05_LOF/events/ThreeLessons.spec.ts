@@ -156,5 +156,17 @@ describe('Three Lessons', function () {
             context.player2.clickCard(context.p1Base);
             expect(context.player1).toBeActivePlayer();
         });
+
+        describe('Three Lessons resolving as a single modified Play a Card action', function () {
+            // Ruling 2026-02-10: for a modified Play a Card action like "Play a unit and give it an
+            // Experience token," the unit enters play and is given the token simultaneously. So a
+            // low-HP unit can survive an enemy -X/-X aura that would otherwise defeat it on entry,
+            // because the +1/+1 Experience (and Shield) are applied at the same time it enters.
+            xit('a low-HP unit played under an enemy -2/-2 aura (Snoke) survives because the Experience is given simultaneously', function () {
+                // Opponent controls Supreme Leader Snoke (each enemy non-leader unit gets -2/-2). Play a
+                // 2-HP unit via Three Lessons. The unit enters and is given Experience (+1/+1) and a
+                // Shield simultaneously, so it is not defeated by Snoke's -2/-2 on entry.
+            });
+        });
     });
 });

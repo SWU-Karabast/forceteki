@@ -197,5 +197,25 @@ describe('Poe Dameron, I Can Fly Anything', function() {
                 expect(context.player1).not.toBeAbleToSelect([context.poeDameron]);
             });
         });
+
+        describe('Poe Dameron\'s interaction with change of control while attached', function() {
+            // Ruling 2025: Poe does not make attached units into leader units, so change-of-control
+            // effects can steal the host vehicle while Poe remains attached. Poe's owner still controls
+            // Poe and can activate his ability to move him to a friendly vehicle. (He can also deploy
+            // as a unit even if previously in play, e.g. via an upgrade + Eject combo.)
+            xit('remains attached and controllable by its owner when the host vehicle is stolen', function () {
+                // Poe (deployed as a pilot upgrade) is attached to a friendly vehicle that does not
+                // become a leader unit. An opponent's change-of-control effect steals that vehicle.
+                // Poe stays attached, and his owner can still use his ability to move him to another
+                // friendly vehicle.
+            });
+
+            // Ruling 2025: a vehicle can only have one Pilot at a time, so Poe cannot be attached as a
+            // pilot to a vehicle that R2 is already piloting — R2 would have to be attached after Poe.
+            xit('cannot attach Poe as a pilot to a vehicle that R2 is already piloting', function () {
+                // A friendly vehicle already has R2 attached as a pilot. Attempting to deploy Poe as a
+                // pilot on that same vehicle is not allowed (it already has a Pilot).
+            });
+        });
     });
 });

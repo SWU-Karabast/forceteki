@@ -174,6 +174,15 @@ describe('Chirrut Îmwe, One with the Force', function() {
                 expect(context.chirrutImwe.getPower()).toBe(3);
                 expect(context.chirrutImwe.getHp()).toBe(5);
             });
+
+            // Ruling 2025: because a deployed Chirrut leader can't be defeated by damage during the
+            // action phase, indirect damage can only be assigned to him up to his remaining HP — it
+            // can't be over-assigned (wasted) onto him beyond that amount.
+            xit('can only have indirect damage assigned to it up to its remaining HP', function () {
+                // With a deployed Chirrut leader unit in play, an opponent distributes indirect damage.
+                // The amount assignable to Chirrut is capped at his remaining HP (excess must go to other
+                // valid targets), since he can't be defeated by damage during the action phase.
+            });
         });
     });
 });

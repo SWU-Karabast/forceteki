@@ -51,6 +51,31 @@ describe('A New Adventure', function() {
             });
         });
 
+        // Ruling 2025-02-18: "Unit" applies to the entire ability, so a pilot unit returned by
+        // A New Adventure can only be replayed for free as a unit, not attached as an upgrade.
+        it('should only allow a returned pilot unit to be replayed as a unit, not as a pilot upgrade', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-new-adventure'],
+                    groundArena: ['luke-skywalker#you-still-with-me', 'snowspeeder']
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            // Play A New Adventure on the friendly pilot unit, returning it to hand
+            context.player1.clickCard(context.aNewAdventure);
+            context.player1.clickCard(context.lukeSkywalker);
+            expect(context.lukeSkywalker).toBeInZone('hand');
+
+            // The free replay only offers playing Luke as a unit, not attaching him as a pilot upgrade
+            context.player1.clickPrompt('Trigger');
+            expect(context.lukeSkywalker).toBeInZone('groundArena');
+            expect(context.snowspeeder.isUpgraded()).toBeFalse();
+        });
+
         it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the owner can play it for free', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

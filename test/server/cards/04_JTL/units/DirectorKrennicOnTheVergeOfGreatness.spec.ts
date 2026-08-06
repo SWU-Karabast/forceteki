@@ -163,5 +163,12 @@ describe('Director Krennic, On the Verge of Greatness', function() {
             context.player1.clickCard(context.rhokaiGunship);
             expect(context.player1.exhaustedResourceCount).toBe(6);
         });
+
+        // Ruling 2025: Krennic's discount still applies even while Krennic is being sacrificed to an
+        // Exploit cost, stacking with the Exploit discount. Cost discounts may be applied in any order.
+        xit('still provides his discount while being sacrificed to an Exploit cost', function () {
+            // Play a unit with Exploit and choose Krennic as one of the units to exploit. Krennic's
+            // cost discount still applies to the played unit, stacking with the Exploit discount.
+        });
     });
 });

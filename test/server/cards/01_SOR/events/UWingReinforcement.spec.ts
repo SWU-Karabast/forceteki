@@ -345,5 +345,15 @@ describe('U-Wing Reinforcement', function() {
             context.player1.clickPrompt('Play cards in selection order');
             expect(context.daggerSquadronPilot).toBeInZone('groundArena');
         });
+
+        // Ruling 2025-01-20 (CR 8.27.8): a card chosen to be played by U-Wing Reinforcements that
+        // becomes no longer valid to play before it is played (e.g. an intervening Regional Governor
+        // names it) is handled by 8.27.8 — it does not get played and is dealt with per that rule.
+        xit('does not play a chosen card that becomes invalid mid-resolution (Regional Governor names it)', function () {
+            // Play U-Wing Reinforcements choosing two Fleet Lieutenants. Playing the first triggers a
+            // chain (e.g. Ezra attacks, plays A New Adventure, opponent re-plays Regional Governor and
+            // names Fleet Lieutenant). The second Fleet Lieutenant is now invalid to play, so it is not
+            // played and is handled per CR 8.27.8.
+        });
     });
 });
