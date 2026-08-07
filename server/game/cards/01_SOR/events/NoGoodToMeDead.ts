@@ -19,6 +19,7 @@ export default class NoGoodToMeDead extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.exhaust(),
                     AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                        title: 'Cannot ready this round (including during the regroup phase)',
                         effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Ready)
                     })
                 ])

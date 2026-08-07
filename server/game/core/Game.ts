@@ -528,15 +528,15 @@ export class Game extends EventEmitter {
     /**
      * Checks if a player is a spectator
      */
-    public isSpectator(player: Player | Spectator): player is Spectator {
-        return player.constructor === Spectator;
+    public isSpectator(player: Player | Spectator | AnonymousSpectator): player is Spectator | AnonymousSpectator {
+        return !this.isPlayer(player);
     }
 
     /**
      * Checks if a player is a player
      */
-    public isPlayer(player: Player | Spectator): player is Player {
-        return !this.isSpectator(player);
+    public isPlayer(player: Player | Spectator | AnonymousSpectator): player is Player {
+        return player.constructor === Player;
     }
 
     /**
@@ -1700,6 +1700,7 @@ export class Game extends EventEmitter {
                     clientUIProperties: {},
                     spectators: {},
                     winners: [],
+                    ongoingEffects: [],
                 };
             }
 
@@ -1709,6 +1710,7 @@ export class Game extends EventEmitter {
                     playerState[player.id] = player.getStateSummary(activePlayer);
                 }
 
+                const ongoingEffects = this.ongoingEffectEngine.summarizeOngoingEffectsForState(this.isPlayer(activePlayer) ? activePlayer : null);
                 const allMessages = this.gameChat.messages;
                 const totalMessages = allMessages.length;
                 const newMessages = allMessages.slice(lastMessageOffset);
@@ -1735,6 +1737,7 @@ export class Game extends EventEmitter {
                     gameMode: this.gameMode,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
+                    ongoingEffects,
                 };
 
                 // Advance the offset for this participant

@@ -640,3 +640,20 @@ export interface ICardAttributes {
     // TODO: Add more attributes as needed
     traits: Set<Trait>;
 }
+
+/* Ongoing effects */
+export interface IOngoingEffectSourceSummary {
+    setId: { set: string; number: number };
+    type?: string;
+    controllerId: string;
+    sourceZone?: string;
+    sourceTitle: string;
+    sourceSubtitle?: string;
+    effectDescription?: string;
+}
+
+export interface IOngoingEffectSummary {
+    sourceCardUuid: string;
+    source: IOngoingEffectSourceSummary;
+    targets: string[];
+}
