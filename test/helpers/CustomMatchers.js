@@ -520,13 +520,23 @@ var customMatchers = {
                     throw new TestSetupError('toHavePassAbilityPrompt requires an abilityText parameter');
                 }
 
-                const passPromptText = `Trigger the ability '${abilityText}' or pass`;
-                result.pass = player.hasPrompt(passPromptText);
+                // The optional-trigger prompt renders a generic header, with the ability's text carried on
+                // the "Trigger" card button's label rather than in the header itself.
+                const headerText = 'You may trigger this ability';
+                const hasHeader = player.hasPrompt(headerText);
+                const triggerButton = (player.currentPrompt().buttons ?? []).find(
+                    (button) => button.text != null && button.text.toString().toLowerCase() === 'trigger'
+                );
+                // Case-insensitive to match the prior hasPrompt-based behavior (some specs assert differently-cased titles).
+                const labelMatches = triggerButton?.label != null &&
+                  triggerButton.label.toString().toLowerCase() === abilityText.toLowerCase();
+                result.pass = hasHeader && labelMatches;
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have pass prompt '${passPromptText}' but it did.`;
+                    result.message = `Expected ${player.name} not to have pass-ability prompt for '${abilityText}' but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have pass prompt '${passPromptText}' but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                    result.message = `Expected ${player.name} to have pass-ability prompt for '${abilityText}' ` +
+                    `(header '${headerText}' with a 'Trigger' button labeled '${abilityText}') but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
