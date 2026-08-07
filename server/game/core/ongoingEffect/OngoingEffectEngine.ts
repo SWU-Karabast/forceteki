@@ -276,6 +276,9 @@ export class OngoingEffectEngine extends GameObjectBase {
                     sourceSubtitle: source.subtitle,
                     effectDescription: describeEffect(effect),
                 },
+                // Sources in a hidden zone survive the skip check above only when the viewer is the controller
+                // (never the opponent), so flag those effects as controller-only for the FE.
+                hiddenFromOpponent: EnumHelpers.isHiddenFromOpponent(source.zoneName, RelativePlayer.Self),
                 targets: effect.targets
                     .filter((effectTarget) =>
                         effectTarget?.isCard?.() &&

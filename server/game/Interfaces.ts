@@ -656,4 +656,10 @@ export interface IOngoingEffectSummary {
     sourceCardUuid: string;
     source: IOngoingEffectSourceSummary;
     targets: string[];
+
+    /**
+     * True when this effect's source is in a zone the controller's opponent can't see (e.g. hand), so the
+     * summary is only sent to the controller. Lets the FE reassure the player no hidden info has been leaked.
+     */
+    hiddenFromOpponent?: boolean;
 }
