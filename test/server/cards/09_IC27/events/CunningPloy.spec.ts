@@ -109,6 +109,7 @@ describe('Cunning Ploy', function() {
                 expect(context.player1).toHavePrompt('Exhaust an enemy unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper]);
                 expect(context.player1).not.toHavePassAbilityButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.sundariPeacekeeper);
                 expect(context.sundariPeacekeeper.exhausted).toBe(true);
