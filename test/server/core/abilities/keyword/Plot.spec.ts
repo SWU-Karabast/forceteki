@@ -248,11 +248,17 @@ describe('Plot keyword', function() {
 
                 context.player1.clickCard(context.idenVersio);
                 context.player1.clickPrompt('Deploy Iden Versio');
+
+                // Declare which Plot cards to play
+                expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.dogmaticShockSquad, context.cadBane] });
+                context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
+                context.player1.clickCardInDisplayCardPrompt(context.cadBane);
+                context.player1.clickDone();
+
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot', 'Shielded']);
 
                 // Resolve Cad Banea
                 context.player1.clickPrompt('Play Cad Bane using Plot');
-                context.player1.clickPrompt('Trigger');
                 expect(context.cadBane).toBeInZone('groundArena');
                 expect(context.pykeSentinel).toBeInZone('resource');
                 expect(context.player1).toHavePrompt('Defeat a unit with 2 or less remaining HP');
@@ -261,7 +267,6 @@ describe('Plot keyword', function() {
 
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Shielded']);
                 context.player1.clickPrompt('Shielded');
-                context.player1.clickPrompt('Trigger');
                 expect(context.dogmaticShockSquad).toBeInZone('groundArena');
                 expect(context.moistureFarmer).toBeInZone('resource');
 
@@ -287,11 +292,17 @@ describe('Plot keyword', function() {
 
                 context.player1.clickCard(context.idenVersio);
                 context.player1.clickPrompt('Deploy Iden Versio');
+
+                // Declare which Plot cards to play
+                expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.dogmaticShockSquad, context.cadBane] });
+                context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
+                context.player1.clickCardInDisplayCardPrompt(context.cadBane);
+                context.player1.clickDone();
+
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot', 'Shielded']);
 
                 // Resolve Cad Banea
                 context.player1.clickPrompt('Play Cad Bane using Plot');
-                context.player1.clickPrompt('Trigger');
                 expect(context.cadBane).toBeInZone('groundArena');
                 expect(context.pykeSentinel).toBeInZone('resource');
 
@@ -308,7 +319,6 @@ describe('Plot keyword', function() {
 
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Shielded']);
                 context.player1.clickPrompt('Shielded');
-                context.player1.clickPrompt('Trigger');
                 expect(context.dogmaticShockSquad).toBeInZone('groundArena');
                 expect(context.moistureFarmer).toBeInZone('resource');
 
@@ -339,20 +349,51 @@ describe('Plot keyword', function() {
 
                 context.player1.clickCard(context.idenVersio);
                 context.player1.clickPrompt('Deploy Iden Versio');
-                expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot', 'Shielded']);
 
-                // Resolve Cad Banea
-                context.player1.clickPrompt('Play Cad Bane using Plot');
-                context.player1.clickPrompt('Pass');
-                expect(context.cadBane).toBeInZone('resource');
+                // Declare which Plot cards to play - decline Cad Bane by not selecting it
+                expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.dogmaticShockSquad, context.cadBane] });
+                context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
+                context.player1.clickDone();
 
+                // Cad Bane was never declared, so it is not offered as a trigger at all
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Shielded']);
                 context.player1.clickPrompt('Shielded');
-                context.player1.clickPrompt('Trigger');
                 expect(context.dogmaticShockSquad).toBeInZone('groundArena');
                 expect(context.pykeSentinel).toBeInZone('resource');
+                expect(context.cadBane).toBeInZone('resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(6);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should be able to immediately decline all Plot cards at once', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'iden-versio#inferno-squad-commander',
+                        resources: ['dogmatic-shock-squad', 'cad-bane#impressed-now', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                        deck: ['pyke-sentinel', 'moisture-farmer']
+                    },
+                    player2: {
+                        groundArena: [{ card: 'battlefield-marine', damage: 1 }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickPrompt('Deploy Iden Versio');
+
+                // Decline Plot entirely in a single action, even though two cards are eligible
+                expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.dogmaticShockSquad, context.cadBane] });
+                expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
+                context.player1.clickPrompt('Choose nothing');
+
+                // Neither Plot card is offered afterward; Shielded is the only remaining trigger and resolves on its own
+                expect(context.dogmaticShockSquad).toBeInZone('resource');
+                expect(context.cadBane).toBeInZone('resource');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -478,23 +519,23 @@ describe('Plot keyword', function() {
             context.player1.clickCard(context.admiralTrench);
             context.player1.clickPrompt('Deploy Admiral Trench');
             expect(context.player1.exhaustedResourceCount).toBe(3);
-            expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot', 'Play Topple the Summit using Plot',
+
+            // Declare which Plot cards to play - only Topple the Summit this time
+            expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.dogmaticShockSquad, context.cadBane, context.toppleTheSummit] });
+            context.player1.clickCardInDisplayCardPrompt(context.toppleTheSummit);
+            context.player1.clickDone();
+
+            expect(context.player1).toHaveExactPromptButtons(['Play Topple the Summit using Plot',
                 '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
 
             // Resolve Topple the Summit
             context.player1.clickPrompt('Play Topple the Summit using Plot');
-            context.player1.clickPrompt('Trigger');
             expect(context.player1.exhaustedResourceCount).toBe(7); // This is one less than normal because the Topple the Summit was not replaced due to the empty deck
             expect(context.battlefieldMarine).toBeInZone('discard');
 
-            // Resolve Cad Bane
-            context.player1.clickPrompt('Play Cad Bane using Plot');
-            context.player1.clickPrompt('Pass');
+            // Cad Bane and Dogmatic Shock Squad were never declared, so they remain resources untouched
             expect(context.cadBane).toBeInZone('resource');
-
-            // Resolve Dogmatic Shock Squad
-            context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
-            context.player1.clickPrompt('Pass');
+            expect(context.dogmaticShockSquad).toBeInZone('resource');
 
             expect(context.player2).toBeActivePlayer();
             context.player2.clickCard(context.rivalsFall);
@@ -506,19 +547,20 @@ describe('Plot keyword', function() {
             context.player1.clickCard(context.admiralTrench);
             context.player1.clickPrompt('Deploy Admiral Trench');
             expect(context.player1.exhaustedResourceCount).toBe(3);
-            expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot',
-                '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
 
-            // Resolve Cad Bane
-            context.player1.clickPrompt('Play Cad Bane using Plot');
-            context.player1.clickPrompt('Pass');
-            expect(context.cadBane).toBeInZone('resource');
+            // Declare which Plot cards to play - only Dogmatic Shock Squad this time
+            expect(context.player1).toHaveExactDisplayPromptCards({ selectable: [context.dogmaticShockSquad, context.cadBane] });
+            context.player1.clickCardInDisplayCardPrompt(context.dogmaticShockSquad);
+            context.player1.clickDone();
+
+            expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot',
+                '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
 
             // Resolve Dogmatic Shock Squad
             context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
-            context.player1.clickPrompt('Trigger');
             expect(context.dogmaticShockSquad).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(10); // This is one less than normal because the Dogmatic Shock Squad was not replaced due to the empty deck
+            expect(context.cadBane).toBeInZone('resource');
 
             expect(context.player2).toBeActivePlayer();
         });

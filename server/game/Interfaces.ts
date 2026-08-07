@@ -252,6 +252,12 @@ export type IAbilityPropsWithType<TSource extends Card = Card> =
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
+    /**
+     * The keyword this triggered ability implements, if any. Used so that generic engine code (e.g. the
+     * Plot declare-step in TriggerWindowBase) can identify the keyword an ability instance represents even
+     * when it's constructed via the generic `TriggeredAbility` class rather than a keyword-specific subclass.
+     */
+    keyword?: KeywordName;
     collectiveTrigger?: boolean;
     targetResolver?: ITriggeredAbilityTargetResolver<TriggeredAbilityContext<TSource>>;
     targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;

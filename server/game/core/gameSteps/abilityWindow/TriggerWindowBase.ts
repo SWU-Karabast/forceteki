@@ -1,7 +1,7 @@
 import type { Player } from '../../Player';
 import type { GameEvent } from '../../event/GameEvent';
 import type { EventWindow } from '../../event/EventWindow';
-import { AbilityType, SubStepCheck } from '../../Constants';
+import { AbilityType, KeywordName, SubStepCheck } from '../../Constants';
 import { Contract } from '../../utils/Contract';
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
@@ -12,6 +12,7 @@ import type { Game } from '../../Game';
 import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityResolutionPrompt';
 import { BatchTriggerResolutionPrompt } from '../prompts/BatchTriggerResolutionPrompt';
 import type { IResolutionChoice, ITriggerWindowSourceCard } from '../PromptInterfaces';
+import { TextHelper } from '../../utils/TextHelper';
 
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -37,6 +38,12 @@ export abstract class TriggerWindowBase extends BaseStep {
      * resolve before the next (SWU 7.6.11), and cleared once the group is exhausted.
      */
     private pendingBatchResolve?: { player: Player; groupKey: string } = null;
+
+    /**
+     * Players who have already completed the Plot "declare which cards to play" step for this
+     * window (SWU 7.6.2b). Tracked per-window since each leader deploy opens its own window.
+     */
+    private plotDeclarationComplete = new Set<Player>();
 
     protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect;
 
@@ -183,6 +190,19 @@ export abstract class TriggerWindowBase extends BaseStep {
             }
 
             abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
+        }
+
+        if (!this.plotDeclarationComplete.has(this.currentlyResolvingPlayer)) {
+            this.plotDeclarationComplete.add(this.currentlyResolvingPlayer);
+
+            const pendingPlotContexts = abilitiesToResolve.filter((context) => context.ability.keyword === KeywordName.Plot);
+
+            // Only worth a separate declare step when there's an actual subset to choose between (SWU 7.6.2b);
+            // with a single eligible card, the normal Trigger / Pass flow already covers the same choice.
+            if (pendingPlotContexts.length > 1) {
+                this.promptPlotDeclaration(this.currentlyResolvingPlayer, pendingPlotContexts);
+                return false;
+            }
         }
 
         // Check to if we're dealing with a multi-selection of the 'same' ability
@@ -332,6 +352,43 @@ export abstract class TriggerWindowBase extends BaseStep {
                 this.promptUnresolvedAbilities();
             },
         }));
+    }
+
+    /**
+     * Prompts the player to declare, in one action, which of their pending Plot-eligible cards they
+     * intend to play this turn (SWU 7.6.2b: "show your opponent each card with Plot you plan to
+     * play"). Declared cards are marked pre-confirmed so their later resolution skips the redundant
+     * Trigger / Pass prompt; undeclared cards are dropped from the window entirely so they're never
+     * asked about individually.
+     */
+    private promptPlotDeclaration(player: Player, plotContexts: TriggeredAbilityContext[]) {
+        const plotSourceCards = plotContexts.map((context) => context.source);
+
+        this.game.promptDisplayCardsForSelection(player, {
+            activePromptTitle: `Choose any number of cards to play from resources using ${TextHelper.Plot}`,
+            waitingPromptTitle: `Waiting for opponent to choose cards to play using ${TextHelper.Plot}`,
+            source: `${TextHelper.Plot}`,
+            displayCards: plotSourceCards,
+            maxCards: plotSourceCards.length,
+            canChooseFewer: true,
+            noSelectedCardsButtonText: 'Choose nothing',
+            selectedCardsHandler: (cards) => {
+                this.applyPlotDeclaration(player, plotContexts, cards);
+                this.promptUnresolvedAbilities();
+            }
+        });
+    }
+
+    private applyPlotDeclaration(player: Player, plotContexts: TriggeredAbilityContext[], chosenCards: Card[]) {
+        for (const context of plotContexts) {
+            if (chosenCards.includes(context.source)) {
+                context.markPreConfirmed();
+            }
+        }
+
+        const notSelected = new Set(plotContexts.filter((context) => !chosenCards.includes(context.source)));
+        const remaining = this.unresolved.get(player) ?? [];
+        this.unresolved.set(player, remaining.filter((context) => !notSelected.has(context)));
     }
 
     protected getSourceCardSummary(card: Card): ITriggerWindowSourceCard | undefined {
