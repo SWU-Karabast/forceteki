@@ -218,6 +218,9 @@ export function createSpy<TContext extends AbilityContext = AbilityContext>(prop
 export function createMandalorian<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
     return createTokenUnit<TContext>(propertyFactory, TokenUnitName.Mandalorian);
 }
+export function createBeast<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
+    return createTokenUnit<TContext>(propertyFactory, TokenUnitName.Beast);
+}
 export function createCreditToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCreditTokenProperties, TContext> = {}) {
     return new CreateCreditTokenSystem<TContext>(propertyFactory);
 }
@@ -317,6 +320,9 @@ export function giveShield<TContext extends AbilityContext = AbilityContext>(pro
 }
 export function giveAdvantage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
     return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Advantage);
+}
+export function giveWeakness<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
+    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Weakness);
 }
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);

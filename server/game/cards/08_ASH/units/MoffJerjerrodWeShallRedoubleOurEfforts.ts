@@ -65,11 +65,13 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
             [TokenUnitName.TIEFighter]: AbilityHelper.immediateEffects.createTieFighter(doubledUnitTokenProperties),
             [TokenUnitName.Spy]: AbilityHelper.immediateEffects.createSpy(doubledUnitTokenProperties),
             [TokenUnitName.Mandalorian]: AbilityHelper.immediateEffects.createMandalorian(doubledUnitTokenProperties),
+            [TokenUnitName.Beast]: AbilityHelper.immediateEffects.createBeast(doubledUnitTokenProperties),
             // Upgrades: token upgrades are given as a single creation event spanning every affected unit (event.cards),
             // so double the amount for all of them at once
             [TokenUpgradeName.Shield]: AbilityHelper.immediateEffects.giveShield({ amount: amount * 2, target: context.event.cards }),
             [TokenUpgradeName.Experience]: AbilityHelper.immediateEffects.giveExperience({ amount: amount * 2, target: context.event.cards }),
             [TokenUpgradeName.Advantage]: AbilityHelper.immediateEffects.giveAdvantage({ amount: amount * 2, target: context.event.cards }),
+            [TokenUpgradeName.Weakness]: AbilityHelper.immediateEffects.giveWeakness({ amount: amount * 2, target: context.event.cards }),
             // Miscellaneous
             [TokenCardName.Credit]: AbilityHelper.immediateEffects.createCreditToken({ amount: amount * 2, target: player }),
             [TokenCardName.Force]: AbilityHelper.immediateEffects.theForceIsWithYou({ target: player }),
