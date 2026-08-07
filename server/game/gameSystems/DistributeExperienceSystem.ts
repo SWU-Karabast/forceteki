@@ -1,11 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { MetaEventName } from '../core/Constants';
+import { MetaEventName, TokenUpgradeName } from '../core/Constants';
 import type { DistributePromptType } from '../core/gameSteps/PromptInterfaces';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
-import { GiveExperienceSystem } from './GiveExperienceSystem';
+import { GiveTokenUpgradeSystem } from './GiveTokenUpgradeSystem';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { FormatMessage } from '../core/chat/GameChat';
 
@@ -21,8 +21,8 @@ export class DistributeExperienceSystem<TContext extends AbilityContext = Abilit
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeExperience;
 
-    protected override generateEffectSystem(target: Card = null, amount = 1): GiveExperienceSystem {
-        return new GiveExperienceSystem({ target, amount });
+    protected override generateEffectSystem(target: Card = null, amount = 1): GiveTokenUpgradeSystem {
+        return new GiveTokenUpgradeSystem({ target, amount, tokenType: TokenUpgradeName.Experience });
     }
 
     protected override canDistributeLessDefault(): boolean {
