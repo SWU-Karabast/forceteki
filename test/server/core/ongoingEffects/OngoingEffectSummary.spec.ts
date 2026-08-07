@@ -68,6 +68,31 @@ describe('Ongoing effect summary', function() {
                 expect(context.millenniumFalcon).toHaveNoOngoingEffectsForPlayer(context.player2);
             });
 
+            it('flags a hidden-zone effect as controller-only but leaves a visible in-play effect unflagged', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['millennium-falcon#piece-of-junk'],
+                        spaceArena: ['millennium-falcon#get-out-and-push']
+                    }
+                });
+                const { context } = contextRef;
+
+                const summariesForController = context.game.ongoingEffectEngine
+                    .summarizeOngoingEffectsForState(context.player1.player);
+
+                // the hand Falcon's "enters play ready" is only sent to its controller, so it must be flagged
+                const handFalconEffect = summariesForController
+                    .find((summary) => summary.sourceCardUuid === context.millenniumFalconPieceOfJunk.uuid);
+                expect(handFalconEffect.hiddenFromOpponent).toBe(true);
+
+                // the in-play Falcon's effects are visible to both players, so they must not be flagged
+                const arenaFalconEffects = summariesForController
+                    .filter((summary) => summary.sourceCardUuid === context.millenniumFalconGetOutAndPush.uuid);
+                expect(arenaFalconEffects.length).toBeGreaterThan(0);
+                expect(arenaFalconEffects.every((summary) => !summary.hiddenFromOpponent)).toBe(true);
+            });
+
             it('uses the lasting effect\'s explicit title for a modal-choice effect (ability title is just a header)', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
