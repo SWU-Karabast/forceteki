@@ -51,6 +51,7 @@ const TOKEN_CATEGORIES = [
             'TIE Fighter',
             // "Mandalorian" is both a trait and a token; skip only the token ("Mandalorian token(s)").
             'Mandalorian\\s+tokens?',
+            'Beast\\s+tokens?',
             // Proper card / character names.
             'Jabba the Hutt',
             'The Mandalorian',

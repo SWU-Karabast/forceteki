@@ -54,6 +54,7 @@ import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStati
 import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
 import type Advantage from '../../cards/08_ASH/tokens/Advantage';
+import type Weakness from '../../cards/09_HMW/tokens/Weakness';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -641,6 +642,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     public isAdvantage(): this is Advantage {
+        return false;
+    }
+
+    public isWeakness(): this is Weakness {
         return false;
     }
 
