@@ -320,6 +320,7 @@ const mockCards = [
         hp: 7,
         hasNonKeywordAbility: true,
         aspects: ['command', 'heroism'],
+        keywords: ['overwhelm'],
         traits: ['rebel', 'vehicle', 'walker'],
         types: ['unit'],
         setId: {
