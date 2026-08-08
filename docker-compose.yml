@@ -2,6 +2,9 @@ services:
   dynamodb-local:
     image: amazon/dynamodb-local:latest
     container_name: karabast-dynamodb-local
+    # Docker creates named volumes as root, so DynamoDB Local needs root access
+    # to initialize its SQLite database in the mounted data directory.
+    user: root
     ports:
       - "8000:8000"
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data"
@@ -12,7 +15,9 @@ services:
     networks:
       - karabast-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000 || exit 1"]
+      # DynamoDB returns HTTP 400 for an unsigned request, which still proves
+      # that the local service is up and accepting connections.
+      test: ["CMD-SHELL", "curl -sS -o /dev/null http://localhost:8000"]
       interval: 10s
       timeout: 5s
       retries: 3
