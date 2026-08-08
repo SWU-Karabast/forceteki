@@ -79,6 +79,25 @@ export class UserFactory {
         }
     }
 
+    /** Loads one of the two database-backed test accounts for local development test games. */
+    public async createDevelopmentTestUserAsync(providerId: 'order66' | 'this-is-the-way'): Promise<AuthenticatedUser | null> {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be loaded in development');
+
+        const dbService = await this.dbServicePromise;
+        const userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+        if (!userId) {
+            return null;
+        }
+
+        let userData = await dbService.getUserProfileAsync(userId);
+        if (!userData) {
+            return null;
+        }
+
+        userData = await this.processModerationAsync(userData);
+        return new AuthenticatedUser(userData);
+    }
+
     /**
      * Creates an anonymous user with a generated ID or provided ID
      * @param id Optional ID for the anonymous user
