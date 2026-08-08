@@ -472,7 +472,8 @@ export class GameServer {
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
 
-                if (user.isAuthenticatedUser()) {
+                // Ephemeral authenticated test users can exist in development without the database-backed moderation service.
+                if (user.isAuthenticatedUser() && this.modActionService) {
                     const userId = user.getId();
                     const activeActions = this.modActionService.getActiveActionsForPlayer(userId);
 
@@ -928,10 +929,9 @@ export class GameServer {
             }
         });
 
-        app.put('/api/user/:userId/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
+        app.put('/api/user/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
             try {
                 const { preferences } = req.body;
-                const { userId } = req.params;
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
                     logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
@@ -940,7 +940,7 @@ export class GameServer {
                         message: 'Error attempting to save preferences'
                     });
                 }
-                await this.userFactory.updateUserPreferencesAsync(userId, preferences);
+                await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences);
                 return res.status(200).json({
                     success: true,
                     message: 'Preferences saved successfully',
@@ -1505,10 +1505,10 @@ export class GameServer {
             }
         });
 
-        app.post('/api/start-test-game', async (req, res, next) => {
+        app.post('/api/start-test-game', this.buildAuthMiddleware('start-test-game'), async (req, res, next) => {
             const { filename } = req.body;
             try {
-                await this.startTestGame(filename);
+                await this.startTestGame(filename, req.user as User);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer: Error in start-test=game:', err);
@@ -2123,7 +2123,7 @@ export class GameServer {
         this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
     }
 
-    private async startTestGame(filename: string) {
+    private async startTestGame(filename: string, requestingUser: User) {
         const lobby = new Lobby(
             'Test Game',
             MatchmakingType.PublicLobby,
@@ -2137,13 +2137,45 @@ export class GameServer {
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
-        const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
-        const theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
+        const requestingUsername = requestingUser.getUsername();
+        Contract.assertTrue(
+            requestingUsername === 'Order66' || requestingUsername === 'ThisIsTheWay',
+            `User ${requestingUser.getId()} is not a development test user`
+        );
+
+        let order66: User;
+        let theWay: User;
+        if (requestingUser.isAuthenticatedUser()) {
+            // Database-backed test games use both accounts' real IDs so either browser can connect.
+            const order66Account = await this.userFactory.createDevelopmentTestUserAsync('order66');
+            const theWayAccount = await this.userFactory.createDevelopmentTestUserAsync('this-is-the-way');
+            Contract.assertNotNullLike(order66Account, 'Database-backed test user Order66 has not logged in yet');
+            Contract.assertNotNullLike(theWayAccount, 'Database-backed test user ThisIsTheWay has not logged in yet');
+
+            const expectedRequestingAccount = requestingUsername === 'Order66' ? order66Account : theWayAccount;
+            Contract.assertEqual(
+                requestingUser.getId(),
+                expectedRequestingAccount.getId(),
+                `Authenticated user ${requestingUser.getId()} is not the ${requestingUsername} development test account`
+            );
+
+            order66 = order66Account;
+            theWay = theWayAccount;
+        } else {
+            Contract.assertTrue(requestingUser.isDevTestUser(), `Anonymous user ${requestingUser.getId()} is not a development test user`);
+            // Browser-only development users retain the legacy IDs stored in localStorage.
+            order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
+            theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
+        }
         lobby.createLobbyUser(order66);
         lobby.createLobbyUser(theWay);
-        this.userLobbyMap.set(order66.id, { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(theWay.id, { lobbyId: lobby.id, role: UserRole.Player });
-        await lobby.startTestGameAsync(filename);
+        this.userLobbyMap.set(order66.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.userLobbyMap.set(theWay.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        await lobby.startTestGameAsync(
+            filename,
+            { id: order66.getId(), username: order66.getUsername() },
+            { id: theWay.getId(), username: theWay.getUsername() }
+        );
     }
 
     private getTestSetupGames() {
