@@ -47,6 +47,13 @@ const refreshTokenFieldMap: Record<RefreshTokenSource, {
     [RefreshTokenSource.SWUBase]: 'swubaseRefreshToken',
 };
 
+type DevelopmentTestProviderId = 'order66' | 'this-is-the-way';
+
+const developmentTestUsers: Record<DevelopmentTestProviderId, { id: string; username: string }> = {
+    order66: { id: 'exe66', username: 'Order66' },
+    'this-is-the-way': { id: 'th3w4y', username: 'ThisIsTheWay' },
+};
+
 
 /**
  * Factory class responsible for creating the appropriate User instance
@@ -64,6 +71,10 @@ export class UserFactory {
     public async createUserFromTokenAsync(token: string): Promise<User> {
         try {
             const dbService = await this.dbServicePromise;
+            if (!dbService) {
+                return this.createEphemeralDevelopmentTestUserFromToken(token);
+            }
+
             const basicUser = await this.authenticateWithTokenAsync(token);
             Contract.assertNotNullLike(basicUser, 'Token authentication failed, User not found from token');
 
@@ -79,11 +90,15 @@ export class UserFactory {
         }
     }
 
-    /** Loads one of the two database-backed test accounts for local development test games. */
-    public async createDevelopmentTestUserAsync(providerId: 'order66' | 'this-is-the-way'): Promise<AuthenticatedUser | null> {
+    /** Loads one of the two test accounts for local development test games. */
+    public async createDevelopmentTestUserAsync(providerId: DevelopmentTestProviderId): Promise<AuthenticatedUser | null> {
         Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be loaded in development');
 
         const dbService = await this.dbServicePromise;
+        if (!dbService) {
+            return this.createEphemeralDevelopmentTestUser(providerId);
+        }
+
         const userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
         if (!userId) {
             return null;
@@ -96,6 +111,35 @@ export class UserFactory {
 
         userData = await this.processModerationAsync(userData);
         return new AuthenticatedUser(userData);
+    }
+
+    private createEphemeralDevelopmentTestUserFromToken(token: string): AuthenticatedUser {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Ephemeral test users can only authenticate in development');
+
+        const secret = process.env.NEXTAUTH_SECRET;
+        Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+        const decoded = jwt.verify(token, secret) as any;
+        Contract.assertEqual(decoded.provider, 'dev-user', 'Ephemeral authentication is restricted to the development user provider');
+        Contract.assertTrue(
+            decoded.providerId === 'order66' || decoded.providerId === 'this-is-the-way',
+            'Unknown development test user'
+        );
+
+        const providerId = decoded.providerId as DevelopmentTestProviderId;
+        const expectedUser = developmentTestUsers[providerId];
+        Contract.assertEqual(decoded.name, expectedUser.username, 'Development test user name does not match its provider identity');
+        return this.createEphemeralDevelopmentTestUser(providerId);
+    }
+
+    private createEphemeralDevelopmentTestUser(providerId: DevelopmentTestProviderId): AuthenticatedUser {
+        const testUser = developmentTestUsers[providerId];
+        return new AuthenticatedUser({
+            id: testUser.id,
+            username: testUser.username,
+            showWelcomeMessage: false,
+            preferences: getDefaultPreferences(),
+            needsUsernameChange: false,
+        });
     }
 
     /**
