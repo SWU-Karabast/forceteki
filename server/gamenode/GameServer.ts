@@ -472,7 +472,8 @@ export class GameServer {
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
 
-                if (user.isAuthenticatedUser()) {
+                // Ephemeral authenticated test users can exist in development without the database-backed moderation service.
+                if (user.isAuthenticatedUser() && this.modActionService) {
                     const userId = user.getId();
                     const activeActions = this.modActionService.getActiveActionsForPlayer(userId);
 
