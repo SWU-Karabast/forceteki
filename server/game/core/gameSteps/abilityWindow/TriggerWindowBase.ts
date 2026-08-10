@@ -1,7 +1,7 @@
 import type { Player } from '../../Player';
 import type { GameEvent } from '../../event/GameEvent';
 import type { EventWindow } from '../../event/EventWindow';
-import { AbilityType, KeywordName, SubStepCheck } from '../../Constants';
+import { AbilityType, SubStepCheck } from '../../Constants';
 import { Contract } from '../../utils/Contract';
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
@@ -12,7 +12,7 @@ import type { Game } from '../../Game';
 import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityResolutionPrompt';
 import { BatchTriggerResolutionPrompt } from '../prompts/BatchTriggerResolutionPrompt';
 import type { IResolutionChoice, ITriggerWindowSourceCard } from '../PromptInterfaces';
-import { TextHelper } from '../../utils/TextHelper';
+import { EnumHelpers } from '../../utils/EnumHelpers';
 
 /** Builds the lightweight card summary attached to trigger-style prompt buttons. */
 export function getTriggerSourceCardSummary(card: Card): ITriggerWindowSourceCard {
@@ -50,10 +50,15 @@ export abstract class TriggerWindowBase extends BaseStep {
     private pendingBatchResolve?: { player: Player; groupKey: string } = null;
 
     /**
-     * Players who have already completed the Plot "declare which cards to play" step for this
-     * window (SWU 7.6.2b). Tracked per-window since each leader deploy opens its own window.
+     * Per-player sets of "declare group" keys (see `getDeclareGroupKey`) that have already gone through
+     * the "declare which cards to play" step for this window, for abilities that opt in via
+     * `declareGroupLabel` (see the base class field of the same name). Grouping by zone + label, rather
+     * than gating the whole player once, keeps unrelated declare-eligible mechanics that happen to be
+     * pending at the same time (e.g. two different labels, or the same label from two different zones)
+     * from being merged into a single misleading prompt. Tracked per-window since each triggering event
+     * opens its own window.
      */
-    private plotDeclarationComplete = new Set<Player>();
+    private declaredGroupKeys = new Map<Player, Set<string>>();
 
     protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect;
 
@@ -202,15 +207,23 @@ export abstract class TriggerWindowBase extends BaseStep {
             abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
         }
 
-        if (!this.plotDeclarationComplete.has(this.currentlyResolvingPlayer)) {
-            this.plotDeclarationComplete.add(this.currentlyResolvingPlayer);
+        const declaredGroups = this.declaredGroupKeys.get(this.currentlyResolvingPlayer) ?? new Set<string>();
+        const nextUndeclaredContext = abilitiesToResolve.find((context) =>
+            context.ability.declareGroupLabel && !declaredGroups.has(this.getDeclareGroupKey(context))
+        );
 
-            const pendingPlotContexts = abilitiesToResolve.filter((context) => context.ability.keyword === KeywordName.Plot);
+        if (nextUndeclaredContext) {
+            const groupKey = this.getDeclareGroupKey(nextUndeclaredContext);
+            const groupContexts = abilitiesToResolve.filter((context) => this.getDeclareGroupKey(context) === groupKey);
 
-            // Only worth a separate declare step when there's an actual subset to choose between (SWU 7.6.2b);
-            // with a single eligible card, the normal Trigger / Pass flow already covers the same choice.
-            if (pendingPlotContexts.length > 1) {
-                this.promptPlotDeclaration(this.currentlyResolvingPlayer, pendingPlotContexts);
+            declaredGroups.add(groupKey);
+            this.declaredGroupKeys.set(this.currentlyResolvingPlayer, declaredGroups);
+
+            // Only worth a separate declare step when there's an actual subset to choose between (e.g. SWU
+            // 7.6.2b for Plot); with a single eligible card, the normal Trigger / Pass flow already covers
+            // the same choice.
+            if (groupContexts.length > 1) {
+                this.promptDeclareStep(this.currentlyResolvingPlayer, groupContexts);
                 return false;
             }
         }
@@ -365,38 +378,49 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     /**
-     * Prompts the player to declare, in one action, which of their pending Plot-eligible cards they
-     * intend to play this turn (SWU 7.6.2b: "show your opponent each card with Plot you plan to
-     * play"). Declared cards are marked pre-confirmed so their later resolution skips the redundant
-     * Trigger / Pass prompt; undeclared cards are dropped from the window entirely so they're never
-     * asked about individually.
+     * Groups pending `declareGroupLabel` contexts so unrelated mechanics that happen to be pending for
+     * the same player at once (different labels, or the same label from different zones) each get their
+     * own declare step rather than being merged into a single prompt.
      */
-    private promptPlotDeclaration(player: Player, plotContexts: TriggeredAbilityContext[]) {
-        const plotSourceCards = plotContexts.map((context) => context.source);
+    private getDeclareGroupKey(context: TriggeredAbilityContext): string {
+        return `${context.source.zoneName}::${context.ability.declareGroupLabel}`;
+    }
+
+    /**
+     * Prompts the player to declare, in one action, which of their pending `declareGroupLabel` abilities
+     * they intend to resolve (e.g. SWU 7.6.2b for Plot: "show your opponent each card with Plot you plan
+     * to play"). Declared instances are marked pre-confirmed so their later resolution skips the
+     * redundant Trigger / Pass prompt; undeclared instances are dropped from the window entirely so
+     * they're never asked about individually.
+     */
+    private promptDeclareStep(player: Player, declareContexts: TriggeredAbilityContext[]) {
+        const declareSourceCards = declareContexts.map((context) => context.source);
+        const groupLabel = declareContexts[0].ability.declareGroupLabel;
+        const zoneText = EnumHelpers.zoneToPlayFromText(declareContexts[0].source.zoneName);
 
         this.game.promptDisplayCardsForSelection(player, {
-            activePromptTitle: `Choose any number of cards to play from resources using ${TextHelper.Plot}`,
-            waitingPromptTitle: `Waiting for opponent to choose cards to play using ${TextHelper.Plot}`,
-            source: `${TextHelper.Plot}`,
-            displayCards: plotSourceCards,
-            maxCards: plotSourceCards.length,
+            activePromptTitle: `Choose any number of cards to play from ${zoneText} using ${groupLabel}`,
+            waitingPromptTitle: `Waiting for opponent to choose cards to play using ${groupLabel}`,
+            source: groupLabel,
+            displayCards: declareSourceCards,
+            maxCards: declareSourceCards.length,
             canChooseFewer: true,
             noSelectedCardsButtonText: 'Choose nothing',
             selectedCardsHandler: (cards) => {
-                this.applyPlotDeclaration(player, plotContexts, cards);
+                this.applyDeclareStep(player, declareContexts, cards);
                 this.promptUnresolvedAbilities();
             }
         });
     }
 
-    private applyPlotDeclaration(player: Player, plotContexts: TriggeredAbilityContext[], chosenCards: Card[]) {
-        for (const context of plotContexts) {
+    private applyDeclareStep(player: Player, declareContexts: TriggeredAbilityContext[], chosenCards: Card[]) {
+        for (const context of declareContexts) {
             if (chosenCards.includes(context.source)) {
                 context.markPreConfirmed();
             }
         }
 
-        const notSelected = new Set(plotContexts.filter((context) => !chosenCards.includes(context.source)));
+        const notSelected = new Set(declareContexts.filter((context) => !chosenCards.includes(context.source)));
         const remaining = this.unresolved.get(player) ?? [];
         this.unresolved.set(player, remaining.filter((context) => !notSelected.has(context)));
     }

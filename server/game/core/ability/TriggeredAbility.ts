@@ -55,6 +55,7 @@ export abstract class TriggeredAbilityBase extends CardAbility {
     public readonly keyword?: KeywordName;
     public readonly anyPlayer: boolean;
     public readonly collectiveTrigger: boolean;
+    public readonly declareGroupLabel?: string;
     public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
 
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
@@ -103,6 +104,7 @@ export abstract class TriggeredAbilityBase extends CardAbility {
         }
 
         this.collectiveTrigger = !!properties.collectiveTrigger;
+        this.declareGroupLabel = properties.declareGroupLabel;
 
         if (properties.keyword) {
             this.keyword = properties.keyword;
