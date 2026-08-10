@@ -260,6 +260,7 @@ export enum TokenUpgradeName {
     Experience = 'experience',
     Shield = 'shield',
     Advantage = 'advantage',
+    Weakness = 'weakness',
 }
 
 export enum TokenUnitName {
@@ -269,6 +270,7 @@ export enum TokenUnitName {
     TIEFighter = 'tieFighter',
     Spy = 'spy',
     Mandalorian = 'mandalorian',
+    Beast = 'beast',
 }
 
 export enum TokenCardName {
