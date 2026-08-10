@@ -216,5 +216,28 @@ describe('Finn, This is a Rescue', function () {
             expect(shield).toBeInZone('outsideTheGame');
             expect(context.wampa).toHaveExactUpgradeNames(['shield']);
         });
+
+        it('cannot target a friendly Fortify upgrade attached to a base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'finn#this-is-a-rescue', deployed: false },
+                    base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                    groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber'] }],
+                    resources: 4
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.finn);
+
+            // The friendly base upgrade is not "on a unit" and can't be targeted
+            expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber]);
+            context.player1.clickCard(context.jediLightsaber);
+
+            expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+        });
     });
 });
