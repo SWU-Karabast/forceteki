@@ -19,7 +19,9 @@ export default class EvidenceOfTheCrime extends EventCard {
                     activePromptTitle: 'Choose an upgrade to take control of',
                     controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Upgrade,
-                    cardCondition: (card) => card.hasCost() && card.cost <= 3,
+                    // "attach it to an eligible unit" - excludes base upgrades (Fortify): taking control of one
+                    // (its controller flips to you) would otherwise let it be re-homed onto your own base
+                    cardCondition: (card) => card.isUpgrade() && card.parentCard.isUnit() && card.hasCost() && card.cost <= 3,
                 },
                 unit: {
                     dependsOn: 'upgrade',
