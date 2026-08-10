@@ -23,7 +23,6 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     protected override readonly defaultProperties: ICardLastingEffectProperties = {
         duration: null,
         effect: [],
-        ability: null,
         ongoingEffectDescription: null
     };
 

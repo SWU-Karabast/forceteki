@@ -30,7 +30,6 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
     protected override readonly defaultProperties: IAllCardsForPlayerLastingEffectProperties = {
         duration: null,
         effect: [],
-        ability: null,
         cardTitle: null,
         includeLeaders: false,
         cardTargetMode: AllCardsTargetMode.OnlyOwned
