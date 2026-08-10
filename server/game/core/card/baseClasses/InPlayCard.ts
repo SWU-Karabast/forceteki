@@ -40,7 +40,8 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
-    get parentCard(): IUnitCard;
+    get parentCard(): ICardWithUpgrades;
+    get parentUnit(): IUnitCard;
     get pendingDefeat(): boolean;
     getUpgradeHp(): number;
     getUpgradePower(): number;
@@ -114,20 +115,29 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     /**
-     * The card that this card is underneath. Typed as {@link IUnitCard} because that is the host for
-     * the overwhelming majority of upgrades; base upgrades (Fortify) whose host is a base should read
-     * the host through the internal {@link _parentCard} / {@link isAttached} machinery instead.
+     * The card this upgrade is underneath: a unit for most upgrades, or a base for Fortify upgrades.
+     * For upgrades that can only ever attach to units, prefer {@link parentUnit} to read it typed as a unit.
      */
-    public get parentCard(): IUnitCard {
+    public get parentCard(): ICardWithUpgrades {
         Contract.assertNotNullLike(this._parentCard);
         // TODO: move IsInPlay to be usable here
         Contract.assertTrue(this.isInPlay());
 
-        return this._parentCard as IUnitCard;
+        return this._parentCard;
     }
 
     protected set parentCard(value: ICardWithUpgrades | null) {
         this._parentCard = value;
+    }
+
+    /**
+     * The unit this upgrade is attached to. Only valid for upgrades that can exclusively attach to units;
+     * asserts the parent is a unit (it never is for a Fortify base upgrade).
+     */
+    public get parentUnit(): IUnitCard {
+        const parent = this.parentCard;
+        Contract.assertTrue(parent.isUnit(), `Expected the parent of ${this.internalName} to be a unit but it is ${parent.internalName}`);
+        return parent;
     }
 
     // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts

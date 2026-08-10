@@ -20,7 +20,7 @@ export default class LukesLightsaber extends UpgradeCard {
                 target: context.source.parentCard,
                 condition: context.source.parentCard?.title === 'Luke Skywalker',
                 onTrue: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.heal({ amount: context.source.parentCard.damage }),
+                    AbilityHelper.immediateEffects.heal({ amount: context.source.parentUnit.damage }),
                     AbilityHelper.immediateEffects.giveShield()]),
             }))
         });
