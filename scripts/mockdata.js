@@ -270,6 +270,141 @@ const mockCards = [
         arena: 'ground',
         internalName: 'quigon-jinn#unwavering-belief'
     }),
+    buildMockCard({
+        title: 'Beast',
+        cost: 0,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        traits: ['creature'],
+        types: ['token', 'unit'],
+        setId: {
+            set: 'HMW',
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'beast'
+    }),
+    buildMockCard({
+        title: 'Weakness',
+        cost: 0,
+        power: -1,
+        upgradePower: -1,
+        hp: -1,
+        upgradeHp: -1,
+        hasNonKeywordAbility: false,
+        traits: ['condition'],
+        types: ['token', 'upgrade'],
+        setId: {
+            set: 'HMW',
+        },
+        unique: false,
+        internalName: 'weakness'
+    }),
+    buildMockCard({
+        title: 'Chewbacca',
+        subtitle: 'Relentless Rebel',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel', 'wookiee'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 9
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'chewbacca#relentless-rebel'
+    }),
+    buildMockCard({
+        title: 'Dune Sea',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance'],
+        traits: [],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 19
+        },
+        unique: false,
+        internalName: 'dune-sea'
+    }),
+    buildMockCard({
+        title: 'Clone X Assassin',
+        cost: 2,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'clone', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 59
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'clone-x-assassin'
+    }),
+    buildMockCard({
+        title: 'Hijacked AT-ST',
+        cost: 5,
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        keywords: ['overwhelm'],
+        traits: ['rebel', 'vehicle', 'walker'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 121
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'hijacked-atst'
+    }),
+    buildMockCard({
+        title: 'Chewbacca\'s Bowcaster',
+        subtitle: 'Handcrafted Tradition',
+        cost: 3,
+        power: 3,
+        upgradePower: 3,
+        hp: 1,
+        upgradeHp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['item', 'weapon'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 127
+        },
+        unique: true,
+        internalName: 'chewbaccas-bowcaster#handcrafted-tradition'
+    }),
+    buildMockCard({
+        title: 'Ezra Bridger',
+        subtitle: 'What Are You Afraid Of?',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['force', 'rebel', 'spectre'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 158
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ezra-bridger#what-are-you-afraid-of'
+    }),
     // -------- End Mock Cards --------
 ];
 
