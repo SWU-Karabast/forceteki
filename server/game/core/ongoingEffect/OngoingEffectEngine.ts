@@ -105,12 +105,27 @@ const summaryExcludedEffectNames: ReadonlySet<EffectName> = new Set([
 ]);
 
 /**
+ * "Play-time modifier" effects change how or whether a card can be played, so they only carry useful
+ * information while the card sits in a zone it can be played from. Once the card moves elsewhere (into
+ * play, or a zone it can't be played from) the effect is inert noise and is suppressed. Each entry maps
+ * the effect type to the zone(s) in which it stays relevant.
+ *
+ * e.g. R2-D2's "can be played on a Vehicle with a Pilot" only matters while he's a playable card in hand.
+ * (CanPlayFromDiscard is intentionally absent: it's a temporary effect only ever created while the card
+ * is in the discard pile, where it is genuinely relevant, so it needs no gating.)
+ */
+const playModifierEffectRelevantZones: ReadonlyMap<EffectName, ReadonlySet<ZoneName>> = new Map([
+    [EffectName.CanBePlayedWithPilotingIgnoringPilotLimit, new Set([ZoneName.Hand])],
+]);
+
+/**
  * Whether an effect is noise that shouldn't appear in the ongoing effect summary, per player feedback:
  *   - the setup-only / "enters play ready" effect types above.
  *   - self cost adjusters (e.g. Mastery) whose ability only changes the cost to play the source card
  *     itself. Their constant ability opts out via `omitFromOngoingEffectSummary`. Temporary or
  *     other-card cost adjusters (e.g. GNK Power Droid's "next unit costs 1 less", a leader discounting
  *     friendly units) are still surfaced.
+ *   - play-time modifiers whose source card has left the zone the effect is relevant in (see above).
  */
 function isExcludedFromSummary(effect: OngoingEffect): boolean {
     if (summaryExcludedEffectNames.has(effect.type)) {
@@ -119,6 +134,12 @@ function isExcludedFromSummary(effect: OngoingEffect): boolean {
 
     if (effect.type === EffectName.CostAdjuster) {
         return !!findRegisteringConstantAbility(effect)?.omitFromOngoingEffectSummary;
+    }
+
+    const relevantZones = playModifierEffectRelevantZones.get(effect.type);
+    if (relevantZones) {
+        const sourceZone = (effect.source as Card | undefined)?.zoneName;
+        return !sourceZone || !relevantZones.has(sourceZone);
     }
 
     return false;

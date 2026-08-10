@@ -18,16 +18,31 @@ describe('Ongoing effect summary', function() {
                 );
             });
 
-            it('shows an effect sourced from a visible in-play card, even one active from any zone', async function() {
+            it('shows a play-time modifier while its source is in the zone it can be played from', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { hand: ['r2d2#artooooooooo'] }
+                });
+                const { context } = contextRef;
+
+                // R2-D2's "can be played on a Vehicle with a Pilot" only matters while he's a playable card
+                // in hand, so it is surfaced there (to its controller)
+                expect(context.r2d2).toHaveOngoingEffectForPlayer(
+                    context.player1,
+                    'This upgrade can be played on a friendly Vehicle unit with a Pilot on it.'
+                );
+            });
+
+            it('suppresses a play-time modifier once its source has left the zone it can be played from', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: { groundArena: ['r2d2#artooooooooo'] }
                 });
                 const { context } = contextRef;
 
-                // R2-D2's "can be played on a Vehicle with a Pilot" ability is active from any zone; while
-                // he's a visible in-play unit it should be surfaced to everyone
-                expect(context.r2d2).toHaveOngoingEffect('This upgrade can be played on a friendly Vehicle unit with a Pilot on it.');
+                // in play, R2-D2's "can be played on a Vehicle with a Pilot" is inert - it must not be shown
+                expect(context.r2d2).toHaveNoOngoingEffects();
+                expect(context.r2d2).toHaveNoOngoingEffectsForPlayer(context.player1);
             });
 
             it('hides an effect sourced from a hidden zone so the card is not leaked', async function() {
