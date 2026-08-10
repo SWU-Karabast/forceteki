@@ -89,5 +89,44 @@ describe('Fortify keyword', function() {
                 context.player1.clickPrompt('Cancel');
             });
         });
+
+        describe('Test setup', function() {
+            it('can place a Fortify upgrade already attached to a base', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                        groundArena: ['wampa'],
+                    },
+                    player2: {},
+                });
+
+                const { context } = contextRef;
+
+                expect(context.allianceShieldGenerator).toBeAttachedTo(context.p1Base);
+                expect(context.allianceShieldGenerator).toBeInZone('base', context.player1);
+                expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+            });
+
+            it('throws if a non-Fortify upgrade is placed on a base', async function () {
+                await expectAsync(contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'echo-base', upgrades: ['foundling'] },
+                    },
+                    player2: {},
+                })).toBeRejectedWithError(/does not have the Fortify keyword/);
+            });
+
+            it('throws if a Fortify upgrade is placed on a unit', async function () {
+                await expectAsync(contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', upgrades: ['alliance-shield-generator'] }],
+                    },
+                    player2: {},
+                })).toBeRejectedWithError(/Fortify upgrade .* to non-base/);
+            });
+        });
     });
 });
