@@ -21,7 +21,8 @@ export default class HondoOhnakaSuperfluousSwindler extends NonLeaderUnitCard {
                     activePromptTitle: `Choose a non-${TextHelper.Trait.Pilot} upgrade to take control of`,
                     controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Upgrade,
-                    cardCondition: (card) => !card.hasSomeTrait(Trait.Pilot),
+                    // "an upgrade on a unit" - excludes base upgrades (Fortify), which can't be moved onto a unit
+                    cardCondition: (card) => card.isUpgrade() && card.parentCard.isUnit() && !card.hasSomeTrait(Trait.Pilot),
                 },
                 unit: {
                     dependsOn: 'upgrade',
