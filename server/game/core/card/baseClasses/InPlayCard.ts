@@ -307,19 +307,22 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             return false;
         }
 
-        const hasFortify = this.hasSomeKeyword(KeywordName.Fortify);
+        return this.canAttachToTargetType(targetCard, controller);
+    }
 
-        // Fortify (`SWU` base upgrades) overrides the default "attach to a unit" restriction: the upgrade
+    /**
+     * Checks whether the target is a legal _type_ of card for this upgrade to attach to, independent of any
+     * per-card {@link attachCondition} refinement. Defaults to the standard "attach to a unit" restriction;
+     * attach-restriction keywords such as Fortify override this.
+     */
+    protected canAttachToTargetType(targetCard: Card, controller: Player): boolean {
+        // The Fortify keyword replaces the default "attach to a unit" restriction: the upgrade
         // attaches to its controller's own base instead, and can't attach to a unit.
-        if (targetCard.isBase()) {
-            return hasFortify && targetCard.controller === controller;
+        if (this.hasSomeKeyword(KeywordName.Fortify)) {
+            return targetCard.isBase() && targetCard.controller === controller;
         }
 
-        if (!targetCard.isUnit() || hasFortify) {
-            return false;
-        }
-
-        return true;
+        return targetCard.isUnit();
     }
 
     /**
