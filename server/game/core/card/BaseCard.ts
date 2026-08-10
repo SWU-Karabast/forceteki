@@ -17,11 +17,12 @@ import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityReg
 import type { IAbilityHelper } from '../../AbilityHelper';
 import type { ICardWithCaptureZone } from '../zone/CaptureZone';
 import { CaptureZone } from '../zone/CaptureZone';
-import { registerStateBase, stateRef } from '../GameObjectUtils';
+import { registerStateBase, stateRef, stateRefArray } from '../GameObjectUtils';
+import type { ICardWithUpgrades, IUpgradeCard } from './CardInterfaces';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
-export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard>, ICardWithCaptureZone {
+export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard>, ICardWithCaptureZone, ICardWithUpgrades {
     get epicActionSpent(): boolean;
 }
 
@@ -45,6 +46,28 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     public get capturedUnits() {
         Contract.assertNotNullLike(this._captureZone, `Attempting to access captured units for card ${this.internalName}, but capture zone is not initialized`);
         return this.captureZone.cards;
+    }
+
+    @stateRefArray()
+    private accessor _upgrades: readonly IUpgradeCard[] = [];
+
+    public get upgrades(): IUpgradeCard[] {
+        return [...this._upgrades];
+    }
+
+    /**
+     * Add the passed upgrade to this base's upgrade list. The upgrade must already have been moved into
+     * the base zone (mirrors {@link IUnitCard.attachUpgrade} for units in an arena).
+     */
+    public attachUpgrade(upgrade: IUpgradeCard) {
+        Contract.assertEqual(upgrade.zoneName, this.zoneName);
+        Contract.assertTrue(this.zone.hasCard(upgrade));
+
+        this._upgrades = [...this._upgrades, upgrade];
+    }
+
+    public unattachUpgrade(upgrade: IUpgradeCard, event = null) {
+        this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
     }
 
     public constructor(owner: Player, cardData: ICardDataJson) {
