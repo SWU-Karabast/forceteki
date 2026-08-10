@@ -26,6 +26,7 @@ export default class CantwellArrestorCruiser extends NonLeaderUnitCard {
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.exhaust(),
                         AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
+                            title: 'Cannot ready while this unit is in play',
                             effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Ready)
                         })
                     ])

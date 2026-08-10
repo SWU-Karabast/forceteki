@@ -16,6 +16,7 @@ export default class ScrambleFighters extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.createTieFighter({ amount: 8, entersReady: true }),
                 AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+                    title: 'Can\'t attack bases this phase',
                     effect: AbilityHelper.ongoingEffects.cannotAttackBase(),
                     target: context.resolvedEvents[0]?.generatedTokens
                 }))

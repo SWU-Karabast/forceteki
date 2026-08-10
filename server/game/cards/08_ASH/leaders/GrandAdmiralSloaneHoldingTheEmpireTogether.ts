@@ -41,6 +41,7 @@ export default class GrandAdmiralSloaneHoldingTheEmpireTogether extends LeaderUn
 
     private giveArenaUnitsKeywordsForThisPhase(arena: Arena, abilityHelper: IAbilityHelper) {
         return abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+            title: `Gains ${TextHelper.Sentinel} and ${TextHelper.Overwhelm} for this phase`,
             target: context.game.getArenaUnits({ arena }),
             effect: [
                 abilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel),
