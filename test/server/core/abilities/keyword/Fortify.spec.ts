@@ -27,6 +27,9 @@ describe('Fortify keyword', function() {
                 expect(context.allianceShieldGenerator).toBeInZone('base', context.player1);
                 expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
                 expect(context.player2).toBeActivePlayer();
+
+                // the base upgrade is serialized to the client nested on the base summary
+                expect(context.p1Base.getSummary(context.player1Object).upgrades.length).toBe(1);
             });
 
             it('cannot be attached to the enemy base or to a friendly or enemy unit', function () {
