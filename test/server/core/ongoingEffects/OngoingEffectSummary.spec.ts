@@ -21,58 +21,60 @@ describe('Ongoing effect summary', function() {
             it('shows an effect sourced from a visible in-play card, even one active from any zone', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { spaceArena: ['millennium-falcon#piece-of-junk'] }
+                    player1: { groundArena: ['r2d2#artooooooooo'] }
                 });
                 const { context } = contextRef;
 
-                expect(context.millenniumFalcon).toHaveOngoingEffect('This unit enters play ready');
+                // R2-D2's "can be played on a Vehicle with a Pilot" ability is active from any zone; while
+                // he's a visible in-play unit it should be surfaced to everyone
+                expect(context.r2d2).toHaveOngoingEffect('This upgrade can be played on a friendly Vehicle unit with a Pilot on it.');
             });
 
             it('hides an effect sourced from a hidden zone so the card is not leaked', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { hand: ['millennium-falcon#piece-of-junk'] }
+                    player1: { hand: ['r2d2#artooooooooo'] }
                 });
                 const { context } = contextRef;
 
-                // "enters play ready" is active from any zone, but the Falcon is in hand - it must stay hidden
-                // from the default (spectator) perspective the matchers use
-                expect(context.millenniumFalcon).toHaveNoOngoingEffects();
+                // R2-D2's ability is active from any zone, but he's in hand - it must stay hidden from the
+                // default (spectator) perspective the matchers use
+                expect(context.r2d2).toHaveNoOngoingEffects();
             });
 
             it('never surfaces an effect sourced from a facedown resource, even to its controller', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { resources: ['millennium-falcon#piece-of-junk', 'atst', 'atst', 'atst', 'atst'] }
+                    player1: { resources: ['r2d2#artooooooooo', 'atst', 'atst', 'atst', 'atst'] }
                 });
                 const { context } = contextRef;
 
-                // the Falcon's "enters play ready" is active from any zone, but as a blanked resource it must
-                // not appear as a board effect for anyone - not even its controller
-                expect(context.millenniumFalcon).toHaveNoOngoingEffects();
-                expect(context.millenniumFalcon).toHaveNoOngoingEffectsForPlayer(context.player1);
+                // R2-D2's ability is active from any zone, but as a blanked resource it must not appear as a
+                // board effect for anyone - not even its controller
+                expect(context.r2d2).toHaveNoOngoingEffects();
+                expect(context.r2d2).toHaveNoOngoingEffectsForPlayer(context.player1);
             });
 
             it('shows an effect sourced from a hidden zone to the card\'s controller but not the opponent', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
-                    player1: { hand: ['millennium-falcon#piece-of-junk'] }
+                    player1: { hand: ['r2d2#artooooooooo'] }
                 });
                 const { context } = contextRef;
 
-                // the Falcon is active-from-hand for player1, so only player1 may see the effect (and its
-                // own hidden-zone card as the target); player2 must not have it leaked to them
-                expect(context.millenniumFalcon).toHaveExactOngoingEffectsForPlayer(context.player1, [
-                    { description: 'This unit enters play ready', targets: [context.millenniumFalcon] }
+                // R2-D2 is active-from-hand for player1, so only player1 may see the effect (and its own
+                // hidden-zone card as the target); player2 must not have it leaked to them
+                expect(context.r2d2).toHaveExactOngoingEffectsForPlayer(context.player1, [
+                    { description: 'This upgrade can be played on a friendly Vehicle unit with a Pilot on it.', targets: [context.r2d2] }
                 ]);
-                expect(context.millenniumFalcon).toHaveNoOngoingEffectsForPlayer(context.player2);
+                expect(context.r2d2).toHaveNoOngoingEffectsForPlayer(context.player2);
             });
 
             it('flags a hidden-zone effect as controller-only but leaves a visible in-play effect unflagged', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['millennium-falcon#piece-of-junk'],
+                        hand: ['r2d2#artooooooooo'],
                         spaceArena: ['millennium-falcon#get-out-and-push']
                     }
                 });
@@ -81,14 +83,14 @@ describe('Ongoing effect summary', function() {
                 const summariesForController = context.game.ongoingEffectEngine
                     .summarizeOngoingEffectsForState(context.player1.player);
 
-                // the hand Falcon's "enters play ready" is only sent to its controller, so it must be flagged
-                const handFalconEffect = summariesForController
-                    .find((summary) => summary.sourceCardUuid === context.millenniumFalconPieceOfJunk.uuid);
-                expect(handFalconEffect.hiddenFromOpponent).toBe(true);
+                // the hand R2-D2's ability is only sent to its controller, so it must be flagged
+                const handR2D2Effect = summariesForController
+                    .find((summary) => summary.sourceCardUuid === context.r2d2.uuid);
+                expect(handR2D2Effect.hiddenFromOpponent).toBe(true);
 
                 // the in-play Falcon's effects are visible to both players, so they must not be flagged
                 const arenaFalconEffects = summariesForController
-                    .filter((summary) => summary.sourceCardUuid === context.millenniumFalconGetOutAndPush.uuid);
+                    .filter((summary) => summary.sourceCardUuid === context.millenniumFalcon.uuid);
                 expect(arenaFalconEffects.length).toBeGreaterThan(0);
                 expect(arenaFalconEffects.every((summary) => !summary.hiddenFromOpponent)).toBe(true);
             });
@@ -151,6 +153,68 @@ describe('Ongoing effect summary', function() {
                     'You may play or deploy 1 additional Pilot on this unit',
                     'This unit gets +1/+0 for each Pilot on it'
                 ]);
+            });
+        });
+
+        describe('excluded effects', function() {
+            it('omits an "enters play ready" effect even from a visible in-play card', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { spaceArena: ['millennium-falcon#piece-of-junk'] }
+                });
+                const { context } = contextRef;
+
+                // the Falcon's only ability is "enters play ready", which describes how it already entered
+                // play - it carries no useful board information and is never surfaced
+                expect(context.millenniumFalcon).toHaveNoOngoingEffects();
+            });
+
+            it('omits a self cost-adjuster constant ability, even from a visible discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { discard: ['mastery'] }
+                });
+                const { context } = contextRef;
+
+                // Mastery's discount only changes the cost to play Mastery itself, so it is noise in every
+                // zone (here the discard pile, which is visible to everyone)
+                expect(context.mastery).toHaveNoOngoingEffects();
+            });
+
+            it('omits a setup-only starting-hand base ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { base: 'colossus' }
+                });
+                const { context } = contextRef;
+
+                // Colossus only modifies the starting hand size during setup and is inert afterwards
+                expect(context.p1Base).toHaveNoOngoingEffects();
+            });
+
+            it('omits setup-only starting-hand and mulligan base abilities', async function() {
+                // Nabat Village's no-mulligan effect changes the setup flow, so this can't use the action-phase
+                // auto-setup; the base and its constant abilities are already in play during the setup phase
+                await contextRef.setupTestAsync({
+                    phase: 'setup',
+                    player1: { base: 'nabat-village' }
+                });
+                const { context } = contextRef;
+
+                // Nabat Village's starting-hand and no-mulligan effects are both setup-only
+                expect(context.p1Base).toHaveNoOngoingEffects();
+            });
+
+            it('still surfaces a board-relevant cost-adjuster constant ability that discounts other cards', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { groundArena: ['jabba-the-hutt#cunning-daimyo'] }
+                });
+                const { context } = contextRef;
+
+                // this discount applies to other cards the player plays (Trick events), so unlike a self
+                // cost adjuster it is genuine board information and must still be shown
+                expect(context.jabbaTheHutt).toHaveOngoingEffect('Each Trick event you play costs 1 resource less');
             });
         });
 

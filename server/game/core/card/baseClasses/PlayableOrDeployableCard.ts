@@ -431,7 +431,11 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             sourceZoneFilter: WildcardZoneName.Any,
             targetController: WildcardRelativePlayer.Any,
             condition,
-            ongoingEffect
+            ongoingEffect,
+
+            // These self cost adjusters only change the cost to play this card itself (e.g. Mastery), so they
+            // carry no useful board information in any zone and are omitted from the ongoing effect summary.
+            omitFromOngoingEffectSummary: true
         };
 
         return costAdjustAbilityProps;

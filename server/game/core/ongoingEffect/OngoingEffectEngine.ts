@@ -94,6 +94,37 @@ function findRegisteringConstantAbility(effect: OngoingEffect) {
 }
 
 /**
+ * Effect types that never carry useful board information and are hidden from the summary per player
+ * feedback: "enters play ready" only describes how a card already entered play (already resolved), and
+ * the starting-hand-size / no-mulligan base modifiers are setup-only and inert for the rest of the game.
+ */
+const summaryExcludedEffectNames: ReadonlySet<EffectName> = new Set([
+    EffectName.EntersPlayReady,
+    EffectName.ModifyStartingHandSize,
+    EffectName.NoMulligan,
+]);
+
+/**
+ * Whether an effect is noise that shouldn't appear in the ongoing effect summary, per player feedback:
+ *   - the setup-only / "enters play ready" effect types above.
+ *   - self cost adjusters (e.g. Mastery) whose ability only changes the cost to play the source card
+ *     itself. Their constant ability opts out via `omitFromOngoingEffectSummary`. Temporary or
+ *     other-card cost adjusters (e.g. GNK Power Droid's "next unit costs 1 less", a leader discounting
+ *     friendly units) are still surfaced.
+ */
+function isExcludedFromSummary(effect: OngoingEffect): boolean {
+    if (summaryExcludedEffectNames.has(effect.type)) {
+        return true;
+    }
+
+    if (effect.type === EffectName.CostAdjuster) {
+        return !!findRegisteringConstantAbility(effect)?.omitFromOngoingEffectSummary;
+    }
+
+    return false;
+}
+
+/**
  * Resolves a description for an ongoing effect, in priority order:
  *   1. An explicit `title` set on the effect itself — for lasting effects via their props, for delayed
  *      effects via their value. Authors set this when the creating ability's title is just a header
@@ -242,6 +273,10 @@ export class OngoingEffectEngine extends GameObjectBase {
 
         for (const effect of this.effects) {
             if (!effect.isEffectActive() || !effect.source?.isCard?.()) {
+                continue;
+            }
+
+            if (isExcludedFromSummary(effect)) {
                 continue;
             }
 
