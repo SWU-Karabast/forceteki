@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://karabast.net/schemas/swu-pgn-replay.schema.json",
+  "title": "SWU-PGN replay record",
+  "description": "Schema for a single JSON object in the `=== REPLAY ===` section of a .swureplay file (one record per line). The format version is carried in the file's [Game] header tag (currently \"SWU-PGN v1.0\"). Records are intentionally open (additionalProperties is allowed) so readers tolerate fields added in later versions.",
+  "type": "object",
+  "required": ["seq", "type"],
+  "additionalProperties": true,
+  "properties": {
+    "seq": {
+      "type": "string",
+      "description": "Position of the event in the game. Forms: R{round}.{phase}.{action} (top-level), R{round}.{phase}.{action}{letter} (sub-event), R{round}.{phase}.{counter} (setup/regroup), R{round}.start / R{round}.end (round boundaries), R{round}.{phase}.start / .end (phase boundaries), and {actionSeq}-snapshot (full state snapshot). Phase is S=Setup, A=Action, G=Regroup.",
+      "examples": ["R1.A.5", "R1.A.5a", "R1.A.5a-snapshot", "R2.start", "R1.A.end"]
+    },
+    "type": {
+      "type": "string",
+      "description": "What this record represents.",
+      "enum": [
+        "PLAY", "PLAY_SMUGGLE", "PLAY_UPGRADE", "PLAY_EVENT", "DEPLOY_LEADER",
+        "ATTACK", "PASS", "CLAIM_INITIATIVE", "TRIGGER", "DAMAGE", "DEFEAT",
+        "EXHAUST", "READY", "DRAW", "DISCARD", "RESOURCE", "SHUFFLE",
+        "CREATE_TOKEN", "CAPTURE", "RESCUE", "HEAL", "TAKE_CONTROL",
+        "SEARCH", "REVEAL",
+        "GAME_STATE", "GAME_END", "PHASE_START", "PHASE_END", "ROUND_START", "ROUND_END",
+        "MOVE", "SHIELD_GAIN", "SHIELD_USE", "EXPERIENCE_GAIN", "STATUS_TOKEN",
+        "MULLIGAN", "KEEP_HAND", "MODAL_CHOICE", "ABILITY_ACTIVATE", "OVERWHELM"
+      ]
+    },
+    "player": {
+      "type": "string",
+      "description": "Anonymized acting player.",
+      "enum": ["Player 1", "Player 2", "unknown"]
+    },
+    "card": { "type": "string", "description": "Card reference: SET#NUM, SET#NUM:N for the Nth copy of a card in play, or TOKEN:{name} / TOKEN:{name}:N for tokens.", "examples": ["SOR#108", "SOR#095:2", "TOKEN:X-Wing"] },
+    "source": { "type": "string", "description": "Card reference for the source of an effect (e.g. damage)." },
+    "target": { "type": "string", "description": "Card reference for the target of an effect." },
+    "attacker": { "type": "string", "description": "Card reference of the attacking unit (ATTACK records)." },
+    "defender": { "type": "string", "description": "Card reference of the defending unit or base (ATTACK records)." },
+    "defenderType": { "type": "string", "description": "Printed type of the defender (e.g. \"base\")." },
+    "defeatedBy": { "type": "string", "description": "Card reference that caused a DEFEAT." },
+    "zone": { "type": "string", "description": "Zone name (e.g. Ground, Space, Hand)." },
+    "playType": { "type": "string", "description": "How a card was played (e.g. playFromHand, smuggle, piloting)." },
+    "amount": { "type": "number", "description": "Magnitude for DAMAGE / HEAL / count-bearing records." },
+    "damageType": { "type": "string", "description": "Damage classification (e.g. combat)." },
+    "remainingHp": { "type": "number", "description": "Target's remaining HP after the effect." },
+    "reason": { "type": "string", "description": "Reason string for DEFEAT or GAME_END." },
+    "count": { "type": "number", "description": "Number of cards drawn (DRAW) or searched (SEARCH)." },
+    "wholeDeck": { "type": "boolean", "description": "True when a SEARCH looked at the entire deck." },
+    "cards": { "type": "array", "items": { "type": "string" }, "description": "Card references for multi-card records (DRAW, REVEAL)." },
+    "cardName": { "type": "string", "description": "Human-readable card name (RESOURCE)." },
+    "token": { "type": "string", "description": "Token name (CREATE_TOKEN)." },
+    "power": { "type": "number", "description": "Token power (CREATE_TOKEN)." },
+    "hp": { "type": "number", "description": "Token HP (CREATE_TOKEN)." },
+    "winner": { "type": "string", "description": "Winner code for GAME_END (e.g. P1, P2)." },
+    "phase": { "type": "string", "description": "Phase abbreviation for PHASE_START / PHASE_END." },
+    "round": { "type": "number", "description": "Round number for ROUND_START / ROUND_END." },
+    "snapshot": {
+      "type": "object",
+      "description": "Full serialized game state for a -snapshot GAME_STATE record (the same structure the spectator UI renders). Player names/ids are anonymized to Player 1 / Player 2.",
+      "additionalProperties": true
+    }
+  }
+}

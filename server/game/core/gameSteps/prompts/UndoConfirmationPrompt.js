@@ -34,7 +34,10 @@ class UndoConfirmationPrompt extends HandlerMenuPrompt {
             activePromptTitle: `Your opponent would like to undo ${promptTypeMessage}`,
             waitingPromptTitle: 'Waiting for opponent to decide whether to allow undo',
             choices,
-            handlers
+            handlers,
+            // Administrative confirmation (undo Allow/Deny) — not a gameplay decision. Opt out of
+            // the SWU-PGN MODAL_CHOICE emit so undo housekeeping never pollutes the recorded log.
+            pgnLog: false
         };
 
         game.undoConfirmationOpen = true;

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://karabast.net/swu-pgn/1.1/event.schema.json",
+  "title": "SWU-PGN/1.1 Event",
+  "type": "object",
+  "required": ["seq","t"],
+  "properties": {
+    "seq": { "type": "string", "pattern": "^R\\d+\\.(S|A|G)(\\.[A-Za-z0-9-]+)?$|^R\\d+\\.(start|end)$" },
+    "t": { "type": "string" },
+    "p": { "enum": [1,2] }
+  },
+  "additionalProperties": true
+}

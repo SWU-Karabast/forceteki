@@ -16,3 +16,7 @@ test/gameSetups/*.json
 Dockerfile.test
 .claude/settings.local.json
 *.code-workspace
+
+# gstack/superpowers tooling state
+.superpowers/
+docs/superpowers/

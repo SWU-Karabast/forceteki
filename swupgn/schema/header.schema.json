@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://karabast.net/swu-pgn/1.1/header.schema.json",
+  "title": "SWU-PGN/1.1 Header",
+  "type": "object",
+  "required": ["Game","GameId","Date","CardPool","Engine","Seed","P1Id","P2Id","P1","P2","P1Leader","P1Base","P2Leader","P2Base","Result","Reason","Rounds"],
+  "properties": {
+    "Game": { "const": "SWU-PGN/1.1" },
+    "Result": { "enum": ["P1","P2","Draw","Incomplete"] },
+    "Perspective": { "enum": ["P1","P2"] },
+    "Rounds": { "type": "integer" }
+  },
+  "additionalProperties": true
+}

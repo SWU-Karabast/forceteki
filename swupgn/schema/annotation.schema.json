@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://karabast.net/swu-pgn/1.1/annotation.schema.json",
+  "type": "object",
+  "required": ["ref"],
+  "properties": {
+    "ref": { "type": "string" },
+    "nag": { "type": "string" },
+    "text": { "type": "string" },
+    "by": { "type": "string" },
+    "line": { "type": "array" }
+  },
+  "additionalProperties": false
+}
