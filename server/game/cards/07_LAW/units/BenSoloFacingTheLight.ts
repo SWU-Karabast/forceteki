@@ -25,6 +25,7 @@ export default class BenSoloFacingTheLight extends NonLeaderUnitCard {
                 immediateEffect: abilityHelper.immediateEffects.simultaneous([
                     abilityHelper.immediateEffects.ready(),
                     abilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        title: 'Can\'t be attacked this phase',
                         effect: abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
                     })
                 ])

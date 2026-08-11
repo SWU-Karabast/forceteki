@@ -16,7 +16,6 @@ export class PlayerPhaseLastingEffectSystem<TContext extends AbilityContext = Ab
     protected override readonly defaultProperties: IPlayerLastingEffectProperties = {
         duration: null,
         effect: [],
-        ability: null
     };
 
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class

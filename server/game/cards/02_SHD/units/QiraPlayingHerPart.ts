@@ -26,7 +26,7 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
                     options: this.game.playableCardTitles,
                 },
                 then: (thenContext) => ({
-                    title: `While this unit is in play, each card with that name costs ${TextHelper.resource(3)} more for your opponents to play`,
+                    title: `While this unit is in play, each card named ${thenContext.select} costs ${TextHelper.resource(3)} more for your opponents to play`,
                     immediateEffect: AbilityHelper.immediateEffects.playerLastingEffect((context) => ({
                         duration: Duration.WhileSourceInPlay,
                         target: context.player.opponent,
