@@ -505,8 +505,10 @@ async function main() {
 
     downloadProgressBar.stop();
 
+    const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames } = buildCardLists(cards);
+
     // Validate that all bases have traits
-    const basesWithoutTraits = cards.filter((card) => card.types.includes('base') && (!card.traits || card.traits.length === 0));
+    const basesWithoutTraits = uniqueCards.filter((card) => card.types.includes('base') && (!card.traits || card.traits.length === 0));
     if (basesWithoutTraits.length > 0) {
         console.error('\nERROR: The following bases are missing traits:');
         for (const base of basesWithoutTraits) {
@@ -514,8 +516,6 @@ async function main() {
         }
         throw new Error('Bases are missing traits. Please add traits to these bases.');
     }
-
-    const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
