@@ -1,6 +1,6 @@
 import type { AbilityContext } from './AbilityContext.js';
 import type { ZoneFilter } from '../Constants.js';
-import { Duration, WildcardZoneName } from '../Constants.js';
+import { Duration, WildcardZoneName, ZoneName } from '../Constants.js';
 import type { IConstantAbilityProps, IOngoingEffectFactory, IOngoingEffectGenerator } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type { Game } from '../Game.js';
@@ -73,7 +73,10 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
 
         this.properties = properties;
         this.duration = Duration.Persistent;
-        this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
+        // An upgrade may be in play attached to a unit (an arena) or, via Fortify, attached to a base,
+        // so its constant abilities must be active in the base zone too.
+        this.sourceZoneFilter = properties.sourceZoneFilter ||
+          (card.isUpgrade() ? [WildcardZoneName.AnyArena, ZoneName.Base] : WildcardZoneName.AnyArena);
         this.sourceCard = card;
     }
 

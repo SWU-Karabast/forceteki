@@ -17,30 +17,21 @@ describe('Fortify keyword', function() {
             it('can be played and attached to its controller\'s own base', function () {
                 const { context } = contextRef;
 
+                // Play the Fortify upgrade
                 context.player1.clickCard(context.allianceShieldGenerator);
 
                 // The controller's own base is the only legal attach target
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base]);
                 context.player1.clickCard(context.p1Base);
 
+                // Upgrade is attached to the base
                 expect(context.allianceShieldGenerator).toBeAttachedTo(context.p1Base);
                 expect(context.allianceShieldGenerator).toBeInZone('base', context.player1);
                 expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
                 expect(context.player2).toBeActivePlayer();
 
-                // the base upgrade is serialized to the client nested on the base summary
+                // The base upgrade is serialized to the client nested on the base summary
                 expect(context.p1Base.getSummary(context.player1Object).upgrades.length).toBe(1);
-            });
-
-            it('cannot be attached to the enemy base or to a friendly or enemy unit', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.allianceShieldGenerator);
-
-                // Fortify overrides the default "attach to a unit" restriction and only allows the
-                // controller's own base - never the enemy base (p2Base) or any unit (wampa / battlefieldMarine)
-                expect(context.player1).toBeAbleToSelectExactly([context.p1Base]);
-                context.player1.clickPrompt('Cancel');
             });
         });
 
@@ -58,13 +49,16 @@ describe('Fortify keyword', function() {
 
                 const { context } = contextRef;
 
+                // Attach the Fortify upgrade to the base
                 context.player1.clickCard(context.allianceShieldGenerator);
                 context.player1.clickCard(context.p1Base);
                 expect(context.allianceShieldGenerator).toBeAttachedTo(context.p1Base);
 
+                // Defeat the base upgrade like any other upgrade
                 context.player2.clickCard(context.confiscate);
                 context.player2.clickCard(context.allianceShieldGenerator);
 
+                // Upgrade is discarded and no longer attached to the base
                 expect(context.allianceShieldGenerator).toBeInZone('discard', context.player1);
                 expect(context.p1Base.upgrades).toEqual([]);
             });
@@ -85,6 +79,7 @@ describe('Fortify keyword', function() {
 
                 const { context } = contextRef;
 
+                // Play the non-Fortify upgrade
                 context.player1.clickCard(context.foundling);
 
                 // Only units are legal targets - neither base is selectable
@@ -93,15 +88,13 @@ describe('Fortify keyword', function() {
             });
         });
 
-        describe('Test setup', function() {
+        describe('Test setup handling of base upgrades', function() {
             it('can place a Fortify upgrade already attached to a base', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
-                        groundArena: ['wampa'],
-                    },
-                    player2: {},
+                    }
                 });
 
                 const { context } = contextRef;
@@ -116,9 +109,8 @@ describe('Fortify keyword', function() {
                     phase: 'action',
                     player1: {
                         base: { card: 'echo-base', upgrades: ['foundling'] },
-                    },
-                    player2: {},
-                })).toBeRejectedWithError(/does not have the Fortify keyword/);
+                    }
+                })).toBeRejectedWithError('Attempting to attach upgrade \'foundling\' to a base, but it does not have the Fortify keyword');
             });
 
             it('throws if a Fortify upgrade is placed on a unit', async function () {
@@ -126,9 +118,8 @@ describe('Fortify keyword', function() {
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', upgrades: ['alliance-shield-generator'] }],
-                    },
-                    player2: {},
-                })).toBeRejectedWithError(/Fortify upgrade .* to non-base/);
+                    }
+                })).toBeRejectedWithError('Attempting to attach Fortify upgrade \'alliance-shield-generator\' to non-base card \'wampa\'');
             });
         });
     });

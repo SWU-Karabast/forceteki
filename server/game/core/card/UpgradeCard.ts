@@ -4,7 +4,7 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import { Contract } from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
-import { AbilityType, CardType, ZoneName, WildcardRelativePlayer, StandardTriggeredAbilityType } from '../Constants';
+import { AbilityType, CardType, ZoneName, WildcardCardType, WildcardRelativePlayer, WildcardZoneName, StandardTriggeredAbilityType } from '../Constants';
 import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { AbilityContext } from '../ability/AbilityContext';
@@ -15,7 +15,7 @@ import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup'
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
-import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
+import type { ICardCanChangeControllers, ICardWithUpgrades, IUpgradeCard } from './CardInterfaces';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar, IUpgradeAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
@@ -84,6 +84,9 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             condition: properties.condition || (() => true),
             matchTarget: (card, context) => this.isInPlay() && card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
             targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+            // the attached card is a unit, or a base for Fortify upgrades; matchTarget pins it to the exact parent
+            targetZoneFilter: WildcardZoneName.AnyAttackable,
+            targetCardTypeFilter: [WildcardCardType.Unit, CardType.Base],
             ongoingEffect: properties.ongoingEffect
         });
     }
@@ -92,7 +95,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
      * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    private addGainConstantAbilityTargetingAttached(properties: IConstantAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
+    private addGainConstantAbilityTargetingAttached<TTarget extends ICardWithUpgrades = IUnitCard>(properties: IConstantAbilityPropsWithGainCondition<UpgradeCard, TTarget>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const gainedAbility = { type: AbilityType.Constant as const, ...gainedAbilityProperties };
 
@@ -107,7 +110,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
      * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    private addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
+    private addGainTriggeredAbilityTargetingAttached<TTarget extends ICardWithUpgrades = IUnitCard>(properties: ITriggeredAbilityPropsWithGainCondition<UpgradeCard, TTarget>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const gainedAbility = { type: AbilityType.Triggered as const, ...gainedAbilityProperties };
 
@@ -118,7 +121,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         }, registrar);
     }
 
-    private addReplacementEffectAbilityTargetingAttached(properties: IReplacementEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
+    private addReplacementEffectAbilityTargetingAttached<TTarget extends ICardWithUpgrades = IUnitCard>(properties: IReplacementEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const gainedAbility = { type: AbilityType.ReplacementEffect as const, ...gainedAbilityProperties };
 
@@ -129,7 +132,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         }, registrar);
     }
 
-    private addDamageModificationAbilityTargetingAttached(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
+    private addDamageModificationAbilityTargetingAttached<TTarget extends ICardWithUpgrades = IUnitCard>(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const gainedAbility = { type: AbilityType.DamageModification as const, ...gainedAbilityProperties };
 
@@ -144,7 +147,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
      * Adds an "attached card gains [X]" ability, where X is an action ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    private addGainActionAbilityTargetingAttached(properties: IActionAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
+    private addGainActionAbilityTargetingAttached<TTarget extends ICardWithUpgrades = IUnitCard>(properties: IActionAbilityPropsWithGainCondition<UpgradeCard, TTarget>, registrar: IConstantAbilityRegistrar<UpgradeCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const gainedAbility = { type: AbilityType.Action as const, ...gainedAbilityProperties };
 
@@ -256,11 +259,11 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         return {
             ...registrar,
             addConstantAbilityTargetingAttached: (properties) => this.addConstantAbilityTargetingAttached(properties, registrar),
-            addGainConstantAbilityTargetingAttached: (properties) => this.addGainConstantAbilityTargetingAttached(properties, registrar),
-            addGainTriggeredAbilityTargetingAttached: (properties) => this.addGainTriggeredAbilityTargetingAttached(properties, registrar),
-            addReplacementEffectAbilityTargetingAttached: (properties) => this.addReplacementEffectAbilityTargetingAttached(properties, registrar),
-            addDamageModificationAbilityTargetingAttached: (properties) => this.addDamageModificationAbilityTargetingAttached(properties, registrar),
-            addGainActionAbilityTargetingAttached: (properties) => this.addGainActionAbilityTargetingAttached(properties, registrar),
+            addGainConstantAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IConstantAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addGainConstantAbilityTargetingAttached<TTarget>(properties, registrar),
+            addGainTriggeredAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: ITriggeredAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addGainTriggeredAbilityTargetingAttached<TTarget>(properties, registrar),
+            addReplacementEffectAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IReplacementEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addReplacementEffectAbilityTargetingAttached<TTarget>(properties, registrar),
+            addDamageModificationAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IDamageModificationEffectAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addDamageModificationAbilityTargetingAttached<TTarget>(properties, registrar),
+            addGainActionAbilityTargetingAttached: <TTarget extends ICardWithUpgrades = IUnitCard>(properties: IActionAbilityPropsWithGainCondition<UpgradeCard, TTarget>) => this.addGainActionAbilityTargetingAttached<TTarget>(properties, registrar),
             addGainOnAttackAbilityTargetingAttached: (properties) => this.addGainOnAttackAbilityTargetingAttached(properties, registrar),
             addGainOnDefenseAbilityTargetingAttached: (properties) => this.addGainOnDefenseAbilityTargetingAttached(properties, registrar),
             addGainWhenDefeatedAbilityTargetingAttached: (properties) => this.addGainWhenDefeatedAbilityTargetingAttached(properties, registrar),
