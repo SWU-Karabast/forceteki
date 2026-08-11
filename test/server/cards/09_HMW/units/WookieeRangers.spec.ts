@@ -1,7 +1,7 @@
 describe('Wookiee Rangers', function() {
     integration(function(contextRef) {
         describe('Wookiee Rangers\'s ability', function() {
-            it('should not have Sentinel when no other Wookiee unit is controlled and no Kashyyk base', async function() {
+            it('should not have Sentinel when no other Wookiee unit is controlled and no Kashyyyk base', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -38,7 +38,24 @@ describe('Wookiee Rangers', function() {
                 context.player1.clickCard(context.wookieeRangers);
             });
 
-            // TODO: Add test for when controlling a Kashyyk base - need actual Kashyyk base card
+            it('should have Sentinel when you have a Kashyyyk base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['wookiee-rangers'],
+                        base: 'origin-tree'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toBeAbleToSelectExactly([context.wookieeRangers]);
+                context.player1.clickCard(context.wookieeRangers);
+            });
         });
     });
 });

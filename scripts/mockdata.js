@@ -439,6 +439,90 @@ const mockCards = [
         arena: 'ground',
         internalName: 'adamant-ewoks'
     }),
+    buildMockCard({
+        title: 'Origin Tree',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        traits: ['kashyyyk'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 24
+        },
+        unique: false,
+        internalName: 'origin-tree'
+    }),
+    buildMockCard({
+        title: 'Great Grass Plains',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance'],
+        traits: ['naboo'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 20
+        },
+        unique: false,
+        internalName: 'great-grass-plains'
+    }),
+    buildMockCard({
+        title: 'Dendroid Wilds',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression'],
+        traits: ['endor'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 27
+        },
+        unique: false,
+        internalName: 'dendroid-wilds'
+    }),
+    buildMockCard({
+        title: 'Kyyyalstaad Swamp',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        traits: ['kashyyyk'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 31
+        },
+        unique: false,
+        internalName: 'kyyyalstaad-swamp'
+    }),
+    buildMockCard({
+        title: 'Otoh Gunga',
+        hp: 33,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        traits: ['naboo'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 31
+        },
+        unique: false,
+        internalName: 'otoh-gunga'
+    }),
+    buildMockCard({
+        title: 'Research Station 9',
+        hp: 34,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        traits: ['endor'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 31
+        },
+        unique: false,
+        internalName: 'research-station-9'
+    }),
     // -------- End Mock Cards --------
 ];
 

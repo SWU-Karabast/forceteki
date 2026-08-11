@@ -502,7 +502,7 @@ export enum Trait {
     Ilum = 'ilum',
     Jedha = 'jedha',
     Kamino = 'kamino',
-    Kashyyk = 'kashyyk',
+    Kashyyyk = 'kashyyyk',
     Kessel = 'kessel',
     Kalevala = 'kalevala',
     Lothal = 'lothal',
