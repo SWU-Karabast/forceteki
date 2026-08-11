@@ -45,9 +45,6 @@ export type IDoubleSidedLeaderAbilityRegistrar = ILeaderAbilityRegistrar<DoubleS
 export type IUpgradeAbilityRegistrar = IBasicAbilityRegistrar<UpgradeCard> &
   IInPlayCardAbilityRegistrar<UpgradeCard> & {
       addConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<UpgradeCard>, 'title' | 'condition' | 'matchTarget' | 'ongoingEffect'>): void;
-      // Each `*TargetingAttached` helper grants an ability to the upgrade's host. The host is a unit by default;
-      // Fortify upgrades attach to a base, so an explicit `<IBaseCard>` type arg selects the generic overload
-      // (the non-generic default overload preserves parameter bivariance for the many existing unit-upgrade callers).
       addGainConstantAbilityTargetingAttached(properties: IConstantAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>): void;
       addGainConstantAbilityTargetingAttached<TTarget extends ICardWithUpgrades>(properties: IConstantAbilityPropsWithGainCondition<UpgradeCard, TTarget>): void;
       addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<UpgradeCard, IUnitCard>): void;

@@ -523,9 +523,6 @@ const mockCards = [
         unique: false,
         internalName: 'research-station-9'
     }),
-    // Base upgrades (Fortify keyword) from the upcoming Homeworlds (HMW) set. Added as vanilla mocks so the
-    // Fortify attach mechanic can be tested ahead of reveal; each is dropped automatically once the official
-    // card data (and a full implementation) ships for that set/number.
     buildMockCard({
         title: 'Alliance Shield Generator',
         cost: 2,

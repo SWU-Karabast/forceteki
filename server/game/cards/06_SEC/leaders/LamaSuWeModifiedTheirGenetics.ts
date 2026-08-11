@@ -28,8 +28,10 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
                 immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
                     playAsType: WildcardCardType.Upgrade,
-                    // "on a friendly non-Vehicle unit" - excludes the base, so a Fortify upgrade can't be played here
-                    attachTargetCondition: (target, context) => target.isUnit() && target.controller === context.player && !target.hasSomeTrait(Trait.Vehicle),
+                    attachTargetCondition: (target, context) =>
+                        target.isUnit() &&
+                        target.controller === context.player &&
+                        !target.hasSomeTrait(Trait.Vehicle),
                 }),
             },
             ifYouDo: (ifYouDoContext) => {
@@ -56,8 +58,10 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
                     playAsType: WildcardCardType.Upgrade,
                     canPlayFromAnyZone: true,
-                    // "on a friendly non-Vehicle unit" - excludes the base, so a Fortify upgrade can't be played here
-                    attachTargetCondition: (target, context) => target.isUnit() && target.controller === context.player && !target.hasSomeTrait(Trait.Vehicle),
+                    attachTargetCondition: (target, context) =>
+                        target.isUnit() &&
+                        target.controller === context.player &&
+                        !target.hasSomeTrait(Trait.Vehicle),
                 }),
             },
         });

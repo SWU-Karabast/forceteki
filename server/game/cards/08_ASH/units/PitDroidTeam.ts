@@ -30,7 +30,6 @@ export default class PitDroidTeam extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Upgrade,
                 amount: 1,
                 match: (card, adjusterSource) => this.isFirstUpgradePlayedOnAnotherFriendlyUnitThisPhase(card, adjusterSource),
-                // "on another friendly unit" - excludes base upgrades (Fortify), whose attach target is a base
                 attachTargetCondition: (attachTarget, context, adjusterSource) =>
                     attachTarget.isUnit() &&
                     attachTarget.controller === context.player &&

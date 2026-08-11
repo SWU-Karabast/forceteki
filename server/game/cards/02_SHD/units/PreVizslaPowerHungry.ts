@@ -24,8 +24,11 @@ export default class PreVizslaPowerHungry extends NonLeaderUnitCard {
                 activePromptTitle: 'Choose an upgrade to pay the cost of',
                 controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Upgrade,
-                // "attached to another non-Vehicle unit" - excludes base upgrades (Fortify), whose parent is a base
-                cardCondition: (card, context) => card.isUpgrade() && card.parentCard.isUnit() && card.parentCard !== context.source && !card.parentCard.hasSomeTrait(Trait.Vehicle),
+                cardCondition: (card, context) =>
+                    card.isUpgrade() &&
+                    card.parentCard.isUnit() &&
+                    card.parentCard !== context.source &&
+                    !card.parentCard.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: AbilityHelper.immediateEffects.payCardPrintedCost((context) => ({
                     player: context.player,
                 }))

@@ -84,7 +84,6 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             condition: properties.condition || (() => true),
             matchTarget: (card, context) => this.isInPlay() && card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
             targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
-            // the attached card is a unit, or a base for Fortify upgrades; matchTarget pins it to the exact parent
             targetZoneFilter: WildcardZoneName.AnyAttackable,
             targetCardTypeFilter: [WildcardCardType.Unit, CardType.Base],
             ongoingEffect: properties.ongoingEffect

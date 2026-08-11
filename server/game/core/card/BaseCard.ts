@@ -122,9 +122,6 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
             ...super.getSummary(activePlayer, overrideHidden),
             epicActionSpent: this.epicActionSpentInternal(),
             isDefender: this.isDefending(),
-
-            // Attached upgrades (via the Fortify keyword) are nested on the base summary rather than
-            // sent as a separate card pile; the client renders them tucked against the base.
             upgrades: this.upgrades.map((upgrade) => upgrade.getSummary(activePlayer, overrideHidden)),
         };
     }

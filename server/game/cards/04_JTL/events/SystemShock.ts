@@ -16,7 +16,6 @@ export default class SystemShock extends EventCard {
             title: 'Defeat a non-leader upgrade attached to a unit. If you do, deal 1 damage to that unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUpgrade,
-                // "attached to a unit" - excludes base upgrades (Fortify)
                 cardCondition: (card) => card.isUpgrade() && card.parentCard.isUnit(),
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             },
