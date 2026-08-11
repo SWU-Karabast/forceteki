@@ -507,7 +507,7 @@ function populateMissingData(attributes, id) {
             break;
         case '4631699773': // Dooku's Palace: Serenno
             attributes.traits = {
-                data: [{ attributes: { name: 'Serrenno' } }]
+                data: [{ attributes: { name: 'Serenno' } }]
             };
             break;
         case '7349221421': // Fortress of the Great Mothers: Peridea
