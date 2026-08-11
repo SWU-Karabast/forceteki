@@ -14,12 +14,12 @@ export default class DrengirSpawn extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Give a number of Experience tokens to this unit equal to the defeated unit\'s cost',
-            contextTitle: (context) => `Give ${context.event.card.cost} Experience tokens to this unit`,
+            contextTitle: (context) => `Give ${context.event.lastKnownInformation?.cost ?? context.event.card.cost} Experience tokens to this unit`,
             when: {
                 onCardDefeated: (event, context) =>
                     event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event) === context.source
             },
-            immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({ amount: context.event.card.cost }))
+            immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({ amount: context.event.lastKnownInformation?.cost ?? context.event.card.cost }))
         });
     }
 }
