@@ -14,7 +14,7 @@ export default class WookieeRangers extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `While you control another ${TextHelper.Trait.Wookiee} unit or a Kashyyk base, this unit gains ${TextHelper.Sentinel}`,
+            title: `While you control another ${TextHelper.Trait.Wookiee} unit or a ${TextHelper.Trait.Kashyyk} base, this unit gains ${TextHelper.Sentinel}`,
             condition: (context) => context.player.isTraitInPlay(Trait.Wookiee, context.source) || context.player.base.hasSomeTrait(Trait.Kashyyk),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
