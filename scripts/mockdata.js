@@ -324,7 +324,7 @@ const mockCards = [
         hp: 30,
         hasNonKeywordAbility: false,
         aspects: ['vigilance'],
-        traits: [],
+        traits: ['tatooine'],
         types: ['base'],
         setId: {
             set: 'HMW',
@@ -404,6 +404,40 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'ezra-bridger#what-are-you-afraid-of'
+    }),
+    buildMockCard({
+        title: 'Wookiee Rangers',
+        cost: 5,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['wookiee'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 142
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'wookiee-rangers'
+    }),
+    buildMockCard({
+        title: 'Adamant Ewoks',
+        cost: 2,
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 177
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'adamant-ewoks'
     }),
     // -------- End Mock Cards --------
 ];
