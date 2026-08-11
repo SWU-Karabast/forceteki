@@ -2,7 +2,7 @@ describe('Chewbacca, Relentless Rebel', function () {
     integration(function (contextRef) {
         const promptAbility = 'Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack';
 
-        it('Chewbacca\'s leader side ability should initiate an attack with a unit (even if it\'s exhausted). It cannot attack base for this attack', async function () {
+        it('Chewbacca\'s leader side ability should initiate an attack with a unit. It cannot attack base for this attack', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -39,6 +39,33 @@ describe('Chewbacca, Relentless Rebel', function () {
             context.player1.clickCard(context.wampa);
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.yoda]);
             context.player1.clickCard(context.p2Base);
+        });
+
+        it('Chewbacca\'s leader side ability should initiate an attack with an exhausted unit. It cannot attack base for this attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'chewbacca#relentless-rebel',
+                    groundArena: ['lothwolf', { card: 'atst', exhausted: true }],
+                    resources: 2
+                },
+                player2: {
+                    groundArena: ['porg', 'yoda#old-master']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.chewbacca);
+            // we cannot select Loth Wolf, this unit can't attack
+            expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+            context.player1.clickCard(context.atst);
+            expect(context.player1).toBeAbleToSelectExactly([context.porg, context.yoda]);
+            context.player1.clickCard(context.porg);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.atst.exhausted).toBeTrue();
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.chewbacca.exhausted).toBeTrue();
         });
 
         it('Chewbacca\'s leader unit side ability should initiate an attack with a unit (even if it\'s exhausted). It cannot attack base for this attack', async function () {
