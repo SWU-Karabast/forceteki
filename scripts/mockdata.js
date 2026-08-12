@@ -540,7 +540,7 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'nuvo-vindi#blue-shadow-perfected'
-    }),      
+    }),
     buildMockCard({
         title: 'Ritual Dragon',
         cost: 8,
