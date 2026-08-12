@@ -1,7 +1,7 @@
 describe('Ritual Dragon', function() {
     integration(function(contextRef) {
         describe('Ritual Dragon\'s ability', function() {
-            it('should enter play ready when you control a Tatooine base', async function() {
+            it('should enter play ready (and friendly units) when you control a Tatooine base', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -31,7 +31,7 @@ describe('Ritual Dragon', function() {
                 expect(context.wampa.exhausted).toBeFalse();
             });
 
-            it('should enter play ready when you control a Tatooine base', async function() {
+            it('should make enter play ready stolen captured units when you control a Tatooine base', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
