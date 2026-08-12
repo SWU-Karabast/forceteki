@@ -8,6 +8,7 @@ const path = require('path');
 const cliProgress = require('cli-progress');
 const { addMockCards } = require('./mockdata');
 const { computeCardDataHash } = require('./cardDataHash');
+const { populateBaseTraits } = require('./baseTraits');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
@@ -210,6 +211,9 @@ function populateMissingData(attributes, id) {
             };
             break;
     }
+
+    // Bases trait
+    populateBaseTraits(attributes, id);
 }
 
 const promoPrefixes = ['C', 'G', 'J', 'P', 'MV'];
@@ -387,7 +391,9 @@ function buildCardLists(cards) {
         ['SEC', 6],
         ['LAW', 7],
         ['TS26', 7.5],
-        ['ASH', 8]
+        ['ASH', 8],
+        ['HMW', 9],
+        ['IC27', 9.5]
     ]);
 
     for (const card of cards) {
@@ -500,6 +506,16 @@ async function main() {
     downloadProgressBar.stop();
 
     const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames } = buildCardLists(cards);
+
+    // Validate that all bases have traits
+    const basesWithoutTraits = uniqueCards.filter((card) => card.types.includes('base') && (!card.traits || card.traits.length === 0));
+    if (basesWithoutTraits.length > 0) {
+        console.error('\nERROR: The following bases are missing traits:');
+        for (const base of basesWithoutTraits) {
+            console.error(`  - ${base.title} (${makeSetCodeString(base.setId)})`);
+        }
+        throw new Error('Bases are missing traits. Please add traits to these bases (mockdata.js if it is a mock card, or baseTraits.js if it is a released card).');
+    }
 
     cards.map((card) => delete card.debugObject);
 
