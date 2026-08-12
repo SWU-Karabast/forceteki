@@ -325,9 +325,11 @@ export namespace EnumHelpers {
         [TokenUnitName.Spy]: 'Spy',
         // eslint-disable-next-line forceteki/no-raw-token-text -- token display name, not a trait reference
         [TokenUnitName.Mandalorian]: 'Mandalorian',
+        [TokenUnitName.Beast]: 'Beast',
         [TokenUpgradeName.Shield]: 'Shield',
         [TokenUpgradeName.Experience]: 'Experience',
         [TokenUpgradeName.Advantage]: 'Advantage',
+        [TokenUpgradeName.Weakness]: 'Weakness',
         [TokenCardName.Credit]: 'Credit',
         [TokenCardName.Force]: 'The Force'
     };

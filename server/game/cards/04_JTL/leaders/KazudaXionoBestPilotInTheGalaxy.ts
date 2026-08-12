@@ -22,6 +22,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                        title: 'Lose all abilities for this round',
                         effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
                         ongoingEffectDescription: 'remove all abilities from'
                     })
@@ -36,7 +37,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Choose any number of friendly units. They lose all abilities for this round.',
+            title: 'Remove all abilities from any number of friendly units',
             targetResolver: {
                 activePromptTitle: 'Choose friendly units to lose all abilities for this round',
                 mode: TargetMode.Unlimited,
@@ -44,6 +45,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 canChooseNoCards: true,
                 immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                    title: 'Lose all abilities for this round',
                     effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
                     ongoingEffectDescription: 'remove all abilities from'
                 })
@@ -51,7 +53,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
         });
 
         registrar.addPilotingGainTriggeredAbilityTargetingAttached({
-            title: 'Choose any number of friendly units. They lose all abilities for this round.',
+            title: 'Remove all abilities from any number of friendly units',
             when: {
                 onAttack: true,
             },
@@ -62,6 +64,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 canChooseNoCards: true,
                 immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                    title: 'Lose all abilities for this round',
                     effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
                     ongoingEffectDescription: 'remove all abilities from'
                 })

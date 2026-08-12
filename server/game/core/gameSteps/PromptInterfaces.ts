@@ -24,6 +24,7 @@ export enum PromptType {
     TriggerWindow = 'triggerWindow',
     PassDelay = 'passDelay',
     BatchTriggerResolution = 'batchTriggerResolution',
+    OptionalTrigger = 'optionalTrigger',
 }
 
 export interface IButton {
@@ -42,8 +43,19 @@ export interface ITriggerWindowSourceCard {
     printedType?: string;
 }
 
-export interface ITriggerWindowButton extends IButton {
+/**
+ * A menu button that renders a source card, with an optional display label shown in place of `text`.
+ * Richer than a plain text button but not tied to the trigger-resolution window (which layers on
+ * `hasLegalEffects`/`count` via ITriggerWindowButton).
+ */
+export interface IButtonWithSourceCard extends IButton {
     sourceCard?: ITriggerWindowSourceCard;
+
+    /** Display label rendered in place of `text` by richer prompt UIs (e.g. the ability name on an optional-trigger card button). Never used for command matching. */
+    label?: string;
+}
+
+export interface ITriggerWindowButton extends IButtonWithSourceCard {
     hasLegalEffects: boolean;
 
     /** Number of similar triggers this button represents (> 1 when several were grouped into one choice) */

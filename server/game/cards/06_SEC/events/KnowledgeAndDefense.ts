@@ -18,6 +18,7 @@ export default class KnowledgeAndDefense extends EventCard {
                 AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        title: 'Gets -2/-2 for this phase',
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
                     }),
                 }),

@@ -30,6 +30,7 @@ import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatC
 import type { ICaptorCard, ICardWithCaptureZone } from '../../zone/CaptureZone';
 import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
+import { giveAbilityToAttachedUnitTitle, giveKeywordToAttachedUnitTitle } from '../../ongoingEffect/effectImpl/GainAbilityDescription';
 import type { Player } from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 import type { IUpgradeCard } from '../CardInterfaces';
@@ -567,7 +568,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const { gainCondition, ...gainedKeywordProperties } = properties;
 
             this.addPilotingConstantAbilityTargetingAttached({
-                title: 'Give keyword to the attached card',
+                title: giveKeywordToAttachedUnitTitle(gainedKeywordProperties),
                 condition: this.addZoneCheckToGainCondition(gainCondition),
                 ongoingEffect: OngoingEffectLibrary.gainKeyword(gainedKeywordProperties)
             });
@@ -577,7 +578,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const { gainCondition, ...gainedAbilityProperties } = properties;
 
             this.addPilotingConstantAbilityTargetingAttached({
-                title: 'Give ability to the attached card',
+                title: giveAbilityToAttachedUnitTitle(gainedAbilityProperties),
                 condition: this.addZoneCheckToGainCondition(gainCondition),
                 ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProperties)
             });
