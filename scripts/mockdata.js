@@ -523,6 +523,24 @@ const mockCards = [
         unique: false,
         internalName: 'research-station-9'
     }),
+    buildMockCard({
+        title: 'Nuvo Vindi',
+        subtitle: 'Blue Shadow Perfected',
+        cost: 3,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['separatist'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'nuvo-vindi#blue-shadow-perfected'
+    }),
     // -------- End Mock Cards --------
 ];
 
