@@ -20,9 +20,6 @@ export class DefeatBaseSystem<TContext extends AbilityContext = AbilityContext, 
         const base: Card = event.card;
         Contract.assertTrue(base.isBase());
         base.defeatBase();
-
-        // End the game immediately if this defeat resolves a win condition.
-        event.context.game.checkWinCondition();
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
