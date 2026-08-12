@@ -39,7 +39,7 @@ const TOKEN_CATEGORIES = [
             // bases traits
             'Aldhani', 'Atollon', 'Bracca', 'Cantonica', 'Castilon', 'Christophsis', 'Cloud City', 'Concordia',
             'Coruscant', 'Corellia', 'Dagobah', 'Dathomir', 'Death Star', 'D\'Qar', 'Eadu', 'Endor', 'Ferrix',
-            'Geonosis', 'Hoth', 'Hosnian Prime', 'Ilum', 'Jedha', 'Kamino', 'Kashyyk', 'Kessel', 'Kalevala',
+            'Geonosis', 'Hoth', 'Hosnian Prime', 'Ilum', 'Jedha', 'Kamino', 'Kashyyyk', 'Kessel', 'Kalevala',
             'Lothal', 'Lowick', 'Malachor', 'Mandalore', 'Mortis', 'Mustafar', 'Nadiri', 'Narkina 5', 'Nevarro',
             'Oba Diah', 'Onderon', 'Peridea', 'Pillio', 'Quarzite', 'Ryloth', 'Scarif', 'Seatos', 'Segra Milo',
             'Serenno', 'Sorgan', 'Starkiller Base', 'Starlight Beacon', 'Stygeon Prime', 'Takodana', 'Tatooine',
