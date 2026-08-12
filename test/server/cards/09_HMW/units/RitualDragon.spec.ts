@@ -31,6 +31,55 @@ describe('Ritual Dragon', function() {
                 expect(context.wampa.exhausted).toBeFalse();
             });
 
+            it('should created token enters play ready when you control a Tatooine base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['ritual-dragon', 'dedra-meero#with-verifiable-data'],
+                        base: 'dune-sea'
+                    },
+                    player2: {
+                        hand: ['atst'],
+                        base: 'jabbas-palace'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.dedraMeero);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player2).toBeActivePlayer();
+                const spy = context.player1.findCardByName('spy');
+                expect(spy.exhausted).toBeFalse();
+            });
+
+            it('should rescued unit enters play ready when you control a Tatooine base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['l337#droid-revolutionary'],
+                        groundArena: ['ritual-dragon', 'yoda#old-master'],
+                        base: 'dune-sea'
+                    },
+                    player2: {
+                        hand: ['discerning-veteran'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.discerningVeteran);
+                context.player2.clickCard(context.yoda);
+
+                context.player1.clickCard(context.l337);
+                context.player1.clickCard(context.yoda);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.yoda.exhausted).toBeFalse();
+            });
+
             it('should make enter play ready stolen captured units when you control a Tatooine base', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

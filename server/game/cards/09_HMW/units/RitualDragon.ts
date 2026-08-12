@@ -19,7 +19,7 @@ export default class RitualDragon extends NonLeaderUnitCard {
             sourceZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Self,
             ongoingEffect: abilityHelper.ongoingEffects.unitsEnterPlayReady({
-                entryType: new Set<EntryType>([EntryType.Played, EntryType.Deployed, EntryType.Rescued, EntryType.Deployed]),
+                entryType: new Set<EntryType>([EntryType.Played, EntryType.Created, EntryType.Rescued, EntryType.Deployed]),
                 cardTypeFilter: WildcardCardType.Unit,
             })
         });
