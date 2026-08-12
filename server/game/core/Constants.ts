@@ -293,6 +293,7 @@ export enum EventName {
     OnBeginRound = 'onBeginRound',
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
+    OnBaseDefeated = 'onBaseDefeated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardCaptured = 'onCardCaptured',
     OnCardDefeated = 'onCardDefeated',

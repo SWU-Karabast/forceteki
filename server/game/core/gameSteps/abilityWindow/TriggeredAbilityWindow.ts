@@ -25,7 +25,9 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
     }
 
     protected resolveAbility(context: TriggeredAbilityContext) {
-        const resolver = this.game.resolveAbility(context, ['player']);
+        // Triggered abilities can't be cancelled once they resolve (an optional one is declined via its
+        // "Pass" button), so suppress the spurious "Cancel" button that a top-level resolver would show.
+        const resolver = this.game.resolveAbility(context, ['player'], false);
         this.game.queueSimpleStep(() => {
             if (resolver.resolutionCommitted) {
                 this.postResolutionUpdate(resolver);

@@ -29,6 +29,8 @@ import type { IAbilityDamageProperties, ICombatDamageProperties, IDamageProperti
 import { DamageSystem } from './DamageSystem';
 import type { IDefeatCardProperties } from './DefeatCardSystem';
 import { DefeatCardSystem } from './DefeatCardSystem';
+import type { IDefeatBaseProperties } from './DefeatBaseSystem';
+import { DefeatBaseSystem } from './DefeatBaseSystem';
 import type { IDelayedEffectProperties } from './DelayedEffectSystem';
 import { DelayedEffectSystem, DelayedEffectType } from './DelayedEffectSystem';
 import type { IDeployLeaderProperties } from './DeployLeaderSystem';
@@ -267,6 +269,9 @@ export function deployAndAttachPilotLeader<TContext extends AbilityContext = Abi
 }
 export function defeat<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDefeatCardProperties, TContext> = {}) {
     return new DefeatCardSystem<TContext>(propertyFactory);
+}
+export function defeatBase<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDefeatBaseProperties, TContext> = {}) {
+    return new DefeatBaseSystem<TContext>(propertyFactory);
 }
 export function discardFromDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardFromDeckProperties, TContext> = {}) {
     return new DiscardFromDeckSystem<TContext>(propertyFactory);
