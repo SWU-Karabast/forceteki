@@ -512,9 +512,9 @@ async function main() {
     if (basesWithoutTraits.length > 0) {
         console.error('\nERROR: The following bases are missing traits:');
         for (const base of basesWithoutTraits) {
-            console.error(`  - ${base.title} (${base.setId.set}_${String(base.setId.number).padStart(3, '0')})`);
+            console.error(`  - ${base.title} (${makeSetCodeString(base.setId)})`);
         }
-        throw new Error('Bases are missing traits. Please add traits to these bases.');
+        throw new Error('Bases are missing traits. Please add traits to these bases (mockdata.js if it is a mock card, or baseTraits.js if it is a released card).');
     }
 
     cards.map((card) => delete card.debugObject);
