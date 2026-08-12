@@ -1,7 +1,7 @@
 describe('Scorch, Imperial Commando', function() {
     integration(function(contextRef) {
         describe('Scorch\'s ability', function() {
-            it('should not give Hidden to himself', async function() {
+            it('should deal 1 damage to an upgraded unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
