@@ -540,6 +540,42 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'nuvo-vindi#blue-shadow-perfected'
+    }),      
+    buildMockCard({
+        title: 'Ritual Dragon',
+        cost: 8,
+        power: 6,
+        hp: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['creature'],
+        keywords: ['saboteur'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 234
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ritual-dragon'
+    }),
+    buildMockCard({
+        title: 'Gunga City Guards',
+        cost: 2,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['gungan'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 84
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'gunga-city-guards'
     }),
     // -------- End Mock Cards --------
 ];
