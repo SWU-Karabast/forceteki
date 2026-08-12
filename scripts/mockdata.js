@@ -523,6 +523,61 @@ const mockCards = [
         unique: false,
         internalName: 'research-station-9'
     }),
+    buildMockCard({
+        title: 'Teebo',
+        subtitle: 'Striped Hunter',
+        cost: 1,
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['hidden'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 162
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'teebo#striped-hunter'
+    }),
+    buildMockCard({
+        title: 'Chief Chirpa',
+        subtitle: 'Defiant Elder',
+        cost: 2,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 164
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'chief-chirpa#defiant-elder'
+    }),
+    buildMockCard({
+        title: 'Scorch',
+        subtitle: 'Imperial Commando',
+        cost: 3,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'clone', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 64
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'scorch#imperial-commando'
+    }),
     // -------- End Mock Cards --------
 ];
 
