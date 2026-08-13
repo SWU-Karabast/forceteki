@@ -559,6 +559,59 @@ const mockCards = [
         arena: 'ground',
         internalName: 'gunga-city-guards'
     }),
+    buildMockCard({
+        title: 'C-3PO',
+        subtitle: 'Captivating Storyteller',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['rebel', 'droid'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 255
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'c3po#captivating-storyteller'
+    }),
+    buildMockCard({
+        title: 'Doctor Hemlock',
+        subtitle: 'Emotion Has No Place Here',
+        cost: 6,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 3
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'doctor-hemlock#emotion-has-no-place-here'
+    }),
+    buildMockCard({
+        title: 'Remote Scout',
+        cost: 2,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['imperial', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 85
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'remote-scout'
+    }),
     // -------- End Mock Cards --------
 ];
 
