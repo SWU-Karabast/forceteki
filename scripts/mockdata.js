@@ -559,6 +559,23 @@ const mockCards = [
         arena: 'ground',
         internalName: 'gunga-city-guards'
     }),
+    buildMockCard({
+        title: 'Ewok Archers',
+        cost: 3,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 257
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ewok-archers'
+    }),
     // -------- End Mock Cards --------
 ];
 
