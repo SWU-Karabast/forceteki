@@ -559,6 +559,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'gunga-city-guards'
     }),
+    buildMockCard({
+        title: 'Leia Organa',
+        subtitle: 'These Are My Friends',
+        cost: 1,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 115
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'leia-organa#these-are-my-friends'
+    }),
     // -------- End Mock Cards --------
 ];
 
