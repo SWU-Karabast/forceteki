@@ -113,6 +113,54 @@ export class UserFactory {
         return new AuthenticatedUser(userData);
     }
 
+    /** Ensures the two persistent local-development test accounts exist without requiring an initial browser login. */
+    public async ensureDevelopmentTestUsersAsync(): Promise<void> {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be initialized in development');
+
+        const dbService = await this.dbServicePromise;
+        if (!dbService) {
+            return;
+        }
+
+        for (const providerId of Object.keys(developmentTestUsers) as DevelopmentTestProviderId[]) {
+            const testUser = developmentTestUsers[providerId];
+            let userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+
+            if (!userId) {
+                userId = testUser.id;
+                try {
+                    await dbService.saveOAuthLinkAsync('dev-user', providerId, userId);
+                } catch (error) {
+                    if (error.name !== 'ConditionalCheckFailedException') {
+                        throw error;
+                    }
+
+                    // Another initializer won the race. Use the ID it registered.
+                    userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+                    Contract.assertNotNullLike(userId, `Development test user ${testUser.username} OAuth link could not be initialized`);
+                }
+            }
+
+            const existingProfile = await dbService.getUserProfileAsync(userId);
+            if (!existingProfile) {
+                const now = new Date().toISOString();
+                await dbService.saveUserProfileAsync({
+                    id: userId,
+                    username: testUser.username,
+                    lastLogin: now,
+                    createdAt: now,
+                    usernameLastUpdatedAt: now,
+                    showWelcomeMessage: false,
+                    preferences: getDefaultPreferences(),
+                    needsUsernameChange: false,
+                });
+            }
+
+            // This write is idempotent and also repairs databases created before username links were required.
+            await dbService.saveUsernameLinkAsync(testUser.username, userId);
+        }
+    }
+
     private createEphemeralDevelopmentTestUserFromToken(token: string): AuthenticatedUser {
         Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Ephemeral test users can only authenticate in development');
 
