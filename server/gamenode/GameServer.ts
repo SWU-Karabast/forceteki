@@ -150,13 +150,21 @@ export class GameServer {
         // increase stack trace limit for better error logging
         Error.stackTraceLimit = 50;
 
+        const userFactory = new UserFactory();
+        if (process.env.ENVIRONMENT === 'development') {
+            console.log('SETUP: Initializing development test users.');
+            await userFactory.ensureDevelopmentTestUsersAsync();
+            console.log('SETUP: Development test users initialized.');
+        }
+
         return new GameServer(
             cardDataGetter,
             deckValidator,
             serverRoleUsersCache,
             cosmeticsService,
             modActionCache,
-            testGameBuilder
+            testGameBuilder,
+            userFactory
         );
     }
 
@@ -205,7 +213,7 @@ export class GameServer {
         intervalStartTime: 0
     };
 
-    private readonly userFactory: UserFactory = new UserFactory();
+    private readonly userFactory: UserFactory;
     public readonly deckService: DeckService = new DeckService();
     public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
@@ -223,7 +231,8 @@ export class GameServer {
         serverRoleUsersCache?: ServerRoleUsersCache,
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
-        testGameBuilder?: any
+        testGameBuilder?: any,
+        userFactory?: UserFactory
     ) {
         const app = express();
         app.use(express.json());
@@ -237,6 +246,7 @@ export class GameServer {
         this.serverRoleUsersCache = serverRoleUsersCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
+        this.userFactory = userFactory ?? new UserFactory();
 
         const corsOptions = {
             origin: env.corsOrigins,
