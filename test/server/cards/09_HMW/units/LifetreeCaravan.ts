@@ -31,6 +31,7 @@ describe('Lifetree Caravan', function() {
                 player1: {
                     hand: ['lifetree-caravan'],
                     groundArena: ['battlefield-marine'],
+                    deck: [],
                     spaceArena: ['awing']
                 },
             });
