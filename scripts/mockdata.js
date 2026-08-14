@@ -1084,6 +1084,7 @@ const mockCards = [
         hasNonKeywordAbility: true,
         aspects: ['aggression'],
         traits: ['creature'],
+        keywords: ['overwhelm'],
         types: ['unit'],
         setId: {
             set: 'HMW',
