@@ -651,11 +651,10 @@ function buildMockCard(cardData) {
         text = abilityText;
     }
 
-    // Allow explicit overrides for cards whose sides carry distinct printed text (e.g. leaders whose
-    // deployed side differs from the leader side). Falls back to the derived placeholder text otherwise.
     if (cardData.text != null) {
         text = cardData.text;
     }
+
     if (cardData.deployBox != null) {
         deployBox = cardData.deployBox;
     }

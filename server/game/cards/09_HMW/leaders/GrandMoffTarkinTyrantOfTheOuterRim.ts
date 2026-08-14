@@ -1,25 +1,13 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { CardType, KeywordName, PhaseName, RelativePlayer, WildcardRelativePlayer } from '../../../core/Constants';
+import { CardType, KeywordName, PhaseName, RelativePlayer } from '../../../core/Constants';
 
 export default class GrandMoffTarkinTyrantOfTheOuterRim extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: 'grand-moff-tarkin#tyrant-of-the-outer-rim-id',
             internalName: 'grand-moff-tarkin#tyrant-of-the-outer-rim',
-        };
-    }
-
-    // Shared between both sides, so it must be built fresh each time rather than stored as a class field.
-    private buildIgnoreFortifyAspectPenaltyProperties(AbilityHelper: IAbilityHelper) {
-        return {
-            title: 'Ignore the aspect penalties on upgrades with Fortify you play',
-            targetController: RelativePlayer.Self,
-            ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
-                cardTypeFilter: CardType.BasicUpgrade,
-                match: (card) => card.hasSomeKeyword(KeywordName.Fortify)
-            })
         };
     }
 
@@ -37,11 +25,21 @@ export default class GrandMoffTarkinTyrantOfTheOuterRim extends LeaderUnitCard {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
             },
             targetResolver: {
-                controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: CardType.Base,
                 cardCondition: (card) => card.isBase() && card.remainingHp <= 10,
                 immediateEffect: AbilityHelper.immediateEffects.defeatBase()
             }
         });
+    }
+
+    private buildIgnoreFortifyAspectPenaltyProperties(AbilityHelper: IAbilityHelper) {
+        return {
+            title: 'Ignore the aspect penalties on upgrades with Fortify you play',
+            targetController: RelativePlayer.Self,
+            ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
+                cardTypeFilter: CardType.BasicUpgrade,
+                match: (card) => card.hasSomeKeyword(KeywordName.Fortify)
+            })
+        };
     }
 }
