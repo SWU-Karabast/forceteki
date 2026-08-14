@@ -183,6 +183,44 @@ describe('C-3PO, Captivating Storyteller', function () {
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
             });
+
+            it('should work if there are no Ewoks', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['c3po#captivating-storyteller'],
+                        groundArena: ['bossk#join-our-merry-band', 'battlefield-marine'],
+                        spaceArena: ['green-squadron-awing'],
+                    },
+                    player2: {
+                        groundArena: ['atst'],
+                        spaceArena: ['cartel-spacer'],
+                        leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.c3po);
+
+                expect(context.player1).toHavePrompt('Give a Rebel unit +2/+2 for this phase');
+                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.lukeSkywalker, context.c3po]);
+
+                // Give +2/+2 to Battlefield Marine
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                expect(context.battlefieldMarine.getHp()).toBe(5);
+
+                expect(context.player2).toBeActivePlayer();
+
+                // Ensure that the effect is only for this phase
+                context.moveToRegroupPhase();
+
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.battlefieldMarine.getHp()).toBe(3);
+            });
         });
     });
 });

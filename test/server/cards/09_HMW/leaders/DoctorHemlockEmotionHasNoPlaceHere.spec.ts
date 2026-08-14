@@ -20,6 +20,8 @@ describe('Doctor Hemlock, Emotion Has No Place Here', () => {
 
                 context.player1.clickCard(context.doctorHemlock);
                 expect(context.player1).toHavePrompt(leaderPrompt);
+                expect(context.player1).not.toHaveChooseNothingButton();
+                expect(context.player1).not.toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
 
@@ -110,7 +112,7 @@ describe('Doctor Hemlock, Emotion Has No Place Here', () => {
                 // Resolve ability
                 expect(context.player1).toHavePrompt(unitPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender, context.consularSecurityForce, context.doctorHemlock]);
-                expect(context.player1).toHaveEnabledPromptButtons(['Pass']);
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.echoBaseDefender);
 
@@ -139,7 +141,7 @@ describe('Doctor Hemlock, Emotion Has No Place Here', () => {
                 // Resolve ability
                 expect(context.player1).toHavePrompt(unitPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.doctorHemlock]);
-                expect(context.player1).toHaveEnabledPromptButton('Pass');
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickPrompt('Pass');
 
@@ -161,7 +163,7 @@ describe('Doctor Hemlock, Emotion Has No Place Here', () => {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.doctorHemlock]);
-                expect(context.player1).toHaveEnabledPromptButton('Pass');
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.doctorHemlock);
 

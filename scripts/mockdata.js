@@ -630,6 +630,7 @@ const mockCards = [
         arena: 'ground',
         internalName: 'remote-scout'
     }),
+    buildMockCard({
         title: 'Teebo',
         subtitle: 'Striped Hunter',
         cost: 1,

@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class DoctorHemlockEmotionHasNoPlaceHere extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -29,7 +30,7 @@ export default class DoctorHemlockEmotionHasNoPlaceHere extends LeaderUnitCard {
             title: 'Give a Weakness token to a unit',
             optional: true,
             targetResolver: {
-                cardCondition: (card) => card.isUnit(),
+                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.giveWeakness()
             }
         });
