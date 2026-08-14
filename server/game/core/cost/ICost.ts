@@ -16,7 +16,7 @@ export interface ICost<TContext extends AbilityContext = AbilityContext> {
     canPay(context: TContext): boolean;
 
     gameSystem?: GameSystem<TContext>;
-    activePromptTitle?: string;
+    activePromptTitle?: string | ((context: TContext) => string);
 
     selectCardName?(player: Player, cardName: string, context: TContext): boolean;
     promptsPlayer?: boolean;

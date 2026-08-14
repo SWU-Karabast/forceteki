@@ -1,6 +1,6 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import { PlotAbility } from '../../../abilities/keyword/PlotAbility';
-import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
+import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, IPlayCostProperties, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
@@ -23,6 +23,9 @@ import { Card } from '../Card';
 import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import type { ICost } from '../../cost/ICost';
+import { GameSystemCost } from '../../cost/GameSystemCost';
+import type { CardTargetSystem } from '../../gameSystem/CardTargetSystem';
+import { getSelectCost } from '../../../costs/CostLibrary';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
@@ -233,10 +236,29 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     /**
      * Registers an additional cost to be paid whenever this card is played. Called by the ability
-     * registrar's `addAdditionalPlayCost`. See {@link additionalPlayCosts}.
+     * registrar's `addAdditionalPlayCost`. Builds a {@link GameSystemCost} from an `immediateEffect`, or a
+     * {@link MetaActionCost}-wrapped {@link SelectCardSystem} from a `targetResolver`. See {@link additionalPlayCosts}.
      */
-    protected registerAdditionalPlayCost(cost: ICost | ICost[]): void {
-        this.additionalPlayCosts = this.additionalPlayCosts.concat(Helpers.asArray(cost));
+    protected registerAdditionalPlayCost(properties: IPlayCostProperties<this>): void {
+        this.additionalPlayCosts = this.additionalPlayCosts.concat(this.buildPlayCost(properties));
+    }
+
+    /** Builds the {@link ICost}(s) described by a {@link IPlayCostProperties} bundle. */
+    private buildPlayCost(properties: IPlayCostProperties<this>): ICost[] {
+        if (properties.cost) {
+            return Helpers.asArray(properties.cost);
+        }
+
+        if (properties.targetResolver) {
+            const { immediateEffect, activePromptTitle, ...selectProperties } = properties.targetResolver;
+            return [getSelectCost(
+                immediateEffect as CardTargetSystem<AbilityContext<this>>,
+                { ...selectProperties, name: properties.costName },
+                activePromptTitle ?? properties.title ?? ''
+            )];
+        }
+
+        return [new GameSystemCost(properties.immediateEffect, false, properties.costName)];
     }
 
     /** The additional play costs registered on this card (see `addAdditionalPlayCost`). */
@@ -255,10 +277,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             return properties;
         }
 
-        return {
-            ...properties,
-            additionalCosts: [...(properties.additionalCosts ?? []), ...additionalPlayCosts]
-        } as T;
+        return Helpers.mergeArrayProperty(properties, 'additionalCosts', additionalPlayCosts);
     }
 
     public exhaust() {

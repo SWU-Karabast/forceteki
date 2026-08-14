@@ -1,5 +1,4 @@
-import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IPlayRestrictionAbilityProps, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition } from '../../Interfaces';
-import type { ICost } from '../cost/ICost';
+import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IPlayCostProperties, IPlayRestrictionAbilityProps, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition } from '../../Interfaces';
 import type { BaseCard } from './BaseCard';
 import type { ICardWithUpgrades } from './CardInterfaces';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './baseClasses/PlayableOrDeployableCard';
@@ -28,9 +27,9 @@ export interface IInPlayCardAbilityRegistrar<T extends Card> extends IBasicAbili
      * Registers an additional cost that must be paid whenever this card is played (e.g. "As an additional
      * cost to play this unit, ..."). The cost is merged into every play action generated for this card
      * (from hand, out of play, Piloting, Smuggle, etc.) and participates in `canPay` gating, so the card
-     * cannot be played unless the additional cost can be paid.
+     * cannot be played unless it can be paid. See {@link IPlayCostProperties}.
      */
-    addAdditionalPlayCost(cost: ICost | ICost[]): void;
+    addAdditionalPlayCost(properties: IPlayCostProperties<T>): void;
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<T>): void;
     addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<T>): void;
     addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<T>): void;
@@ -78,6 +77,7 @@ export type IBaseAbilityRegistrar = IBasicAbilityRegistrar<BaseCard> & {
 
 export type IEventAbilityRegistrar = IBasicAbilityRegistrar<EventCard> & {
     setEventAbility(properties: IEventAbilityProps): void;
+    addAdditionalPlayCost(properties: IPlayCostProperties<EventCard>): void;
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void;
     addPlayRestrictionAbility(properties: IPlayRestrictionAbilityProps): void;
 };

@@ -92,7 +92,14 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             const card: Card = event.card;
             if (card.canRegisterPreEnterPlayAbilities()) {
                 for (const ability of card.getPreEnterPlayAbilities()) {
-                    context.game.resolveAbility(ability.createContext(context.player, event));
+                    const preEnterPlayContext = ability.createContext(context.player, event);
+
+                    // Pre-enter-play abilities resolve on their own context, so propagate the costs paid
+                    // for the current play/ability. This lets a pre-enter-play ability read back selections
+                    // made while paying costs (e.g. an "additional cost to play this unit" that chose cards).
+                    preEnterPlayContext.costs = { ...context.costs };
+
+                    context.game.resolveAbility(preEnterPlayContext);
                 }
                 context.game.queueSimpleStep(() => {
                     if (!event.entersReady) {

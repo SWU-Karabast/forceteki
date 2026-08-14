@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { Card } from '../card/Card';
 import { WildcardZoneName, RelativePlayer } from '../Constants';
 import type { ICost, ICostResult } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
@@ -10,7 +11,7 @@ import type { Player } from '../Player';
 export class MetaActionCost<TContext extends AbilityContext = AbilityContext> extends GameSystemCost<TContext> implements ICost<TContext> {
     public constructor(
         public override gameSystem: GameSystem<TContext, ISelectCardProperties>,
-        public activePromptTitle: string
+        public activePromptTitle: string | ((context: TContext) => string)
     ) {
         super(gameSystem);
     }
@@ -31,17 +32,18 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
     public override queueGameStepsForAdjustmentsAndPayment(events: GameEvent[], context: TContext, result: ICostResult): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context);
 
+        // Record the card(s) chosen to pay this cost on the context so the ability can read them back
+        // (e.g. via `context.costs[costName]`). This runs when the selection resolves, before the
+        // wrapped immediate effect executes, so it captures the chosen cards before they move zones.
+        // Keyed off the resolver's name (settable via the select system's `name`, default 'cost'), which
+        // is also the key the selection is stored under in `context.targets`.
         const additionalProps = {
             activePromptTitle: this.activePromptTitle,
             zone: properties.zoneFilter || WildcardZoneName.Any,
             controller: RelativePlayer.Self,
             cancelHandler: !result.canCancel ? null : () => (result.cancelled = true),
-            subActionProperties: (target: any) => {
-                context.costs[properties.immediateEffect.name] = target;
-                if (target.createSnapshot) {
-                    context.costs[properties.immediateEffect.name + 'StateWhenChosen'] = target.createSnapshot();
-                }
-                return {};
+            onSelectHandler: (target: Card | Card[]) => {
+                context.costs[properties.name] = target;
             }
         };
         this.gameSystem.queueGenerateEventGameSteps(events, context, additionalProps);
