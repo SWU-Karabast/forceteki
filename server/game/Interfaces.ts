@@ -208,6 +208,13 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
 
     /** If this is a gained ability, gives the source card that is giving the ability */
     gainAbilitySource?: Card;
+
+    /**
+     * When true, effects registered by this ability are omitted from the ongoing effect summary sent to
+     * the client. Set on abilities whose effects don't describe the board, such as self cost adjusters
+     * that only change the cost to play the source card itself.
+     */
+    omitFromOngoingEffectSummary?: boolean;
 }
 
 export type ITriggeredAbilityPropsWithType<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {
