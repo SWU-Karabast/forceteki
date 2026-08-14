@@ -1138,10 +1138,34 @@ const mockCards = [
         unique: false,
         internalName: 'nightfall'
     }),
+    buildMockCard({
+        title: 'Grand Moff Tarkin',
+        subtitle: 'Tyrant of the Outer Rim',
+        backSideTitle: 'The Death Star',
+        backSideSubtitle: 'Icon of Tyranny',
+        cost: 9,
+        power: 2,
+        hp: 12,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        backSideTraits: ['imperial', 'vehicle', 'capital ship'],
+        types: ['leader'],
+        text: 'Ignore the aspect penalties on upgrades with Fortify you play.',
+        epicAction: 'Epic Action: If you control 9 or more resources, deploy this leader.',
+        deployBox: 'Ignore the aspect penalties on upgrades with Fortify you play.\n\nWhen the regroup phase starts: You may defeat a base with 10 or less remaining HP.',
+        setId: {
+            set: 'HMW',
+            number: 4
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'grand-moff-tarkin#tyrant-of-the-outer-rim'
+    }),
     // -------- End Mock Cards --------
 ];
 
-/** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
+/** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string, text: string?, deployBox: string?, epicAction: string?, backSideTitle: string?, backSideSubtitle: string?, backSideTraits: string[]?, backSideAspects: string[]? }} cardData */
 function buildMockCard(cardData) {
     let textElements = [];
     let keywords = [];
@@ -1165,6 +1189,14 @@ function buildMockCard(cardData) {
         text = abilityText;
     }
 
+    if (cardData.text != null) {
+        text = cardData.text;
+    }
+
+    if (cardData.deployBox != null) {
+        deployBox = cardData.deployBox;
+    }
+
     const data = {
         title: cardData.title,
         subtitle: cardData.subtitle || '',
@@ -1173,7 +1205,7 @@ function buildMockCard(cardData) {
         power: cardData.power ?? null,
         text,
         deployBox,
-        epicAction: '',
+        epicAction: cardData.epicAction ?? '',
         unique: cardData.unique,
         rules: null,
         upgradePower: cardData.upgradePower ?? null,
@@ -1187,6 +1219,20 @@ function buildMockCard(cardData) {
         internalName: cardData.internalName,
         arena: cardData.arena || null,
     };
+
+    // Optional back-side attributes for leaders whose deployed side differs from the leader side.
+    if (cardData.backSideTitle != null) {
+        data.backSideTitle = cardData.backSideTitle;
+    }
+    if (cardData.backSideSubtitle != null) {
+        data.backSideSubtitle = cardData.backSideSubtitle;
+    }
+    if (cardData.backSideTraits != null) {
+        data.backSideTraits = cardData.backSideTraits;
+    }
+    if (cardData.backSideAspects != null) {
+        data.backSideAspects = cardData.backSideAspects;
+    }
 
     if (!data.types.includes('token')) {
         // Don't set this property for tokens
