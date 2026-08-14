@@ -1004,6 +1004,140 @@ const mockCards = [
         arena: 'ground',
         internalName: 'leia-organa#these-are-my-friends'
     }),
+    buildMockCard({
+        title: 'Darth Vader',
+        subtitle: 'Might of the Empire',
+        cost: 6,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['force', 'imperial', 'sith'],
+        keywords: ['raid 1'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 7
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'darth-vader#mightof-the-empire'
+    }),
+    buildMockCard({
+        title: 'Stormtrooper Patrol',
+        cost: 3,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['imperial', 'trooper'],
+        keywords: ['sentinel'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 107
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'stormtrooper-patrol'
+    }),
+    buildMockCard({
+        title: 'Ewok Brigade',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'heroism'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 116
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ewok-brigade'
+    }),
+    buildMockCard({
+        title: 'Emperor Palpatine',
+        subtitle: 'Consolidating Power',
+        cost: 5,
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['force', 'imperial', 'sith', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 110
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'emperor-palpatine#consolidating-power'
+    }),
+    buildMockCard({
+        title: 'Giant Gorax',
+        cost: 7,
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 189
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'giant-gorax'
+    }),
+    buildMockCard({
+        title: 'Village Troublemaker',
+        cost: 1,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 175
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'village-troublemaker'
+    }),
+    buildMockCard({
+        title: 'Breach',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 114
+        },
+        unique: false,
+        internalName: 'breach'
+    }),
+    buildMockCard({
+        title: 'Nightfall',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['disaster'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 193
+        },
+        unique: false,
+        internalName: 'nightfall'
+    }),
     // -------- End Mock Cards --------
 ];
 
