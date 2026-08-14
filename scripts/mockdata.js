@@ -631,6 +631,206 @@ const mockCards = [
         internalName: 'remote-scout'
     }),
     buildMockCard({
+        title: 'Wicket',
+        subtitle: 'Few Greater Battles to Fight',
+        cost: 4,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['ewok'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 14
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'wicket#few-greater-battles-to-fight'
+    }),
+    buildMockCard({
+        title: 'Darth Vader',
+        subtitle: 'Any Methods Necessary',
+        cost: 9,
+        power: 9,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'command', 'villainy'],
+        traits: ['force', 'imperial', 'sith'],
+        types: ['unit'],
+        keywords: ['saboteur'],
+        setId: {
+            set: 'HMW',
+            number: 43
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'darth-vader#any-methods-necessary'
+    }),
+    buildMockCard({
+        title: 'Logray',
+        subtitle: 'Bright Tree Shaman',
+        cost: 2,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'aggression'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 45
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'logray#bright-tree-shaman'
+    }),
+    buildMockCard({
+        title: 'Vernestra Rwoh',
+        subtitle: 'We Should Handle This Ourselves',
+        cost: 6,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        traits: ['force', 'jedi'],
+        types: ['unit'],
+        keywords: ['sentinel'],
+        setId: {
+            set: 'HMW',
+            number: 48
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'vernestra-rwoh#we-should-handle-this-ourselves'
+    }),
+    buildMockCard({
+        title: 'Vice Admiral Rampart',
+        subtitle: 'A New Era of Safety',
+        cost: 2,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 60
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'vice-admiral-rampart#a-new-era-of-safety'
+    }),
+    buildMockCard({
+        title: 'Director Krennic',
+        subtitle: 'The Work Has Stalled',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 61
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'director-krennic#the-work-has-stalled'
+    }),
+    buildMockCard({
+        title: 'Boss Nass',
+        subtitle: 'Otoh Gunga Boss',
+        cost: 4,
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['gungan', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 77
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'boss-nass#otoh-gunga-boss'
+    }),
+    buildMockCard({
+        title: 'Luminara Unduli',
+        subtitle: 'Besieged General',
+        cost: 7,
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 124
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'luminara-unduli#besieged-general'
+    }),
+    buildMockCard({
+        title: 'Lifetree Caravan',
+        cost: 3,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 136
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'lifetree-caravan'
+    }),
+    buildMockCard({
+        title: 'Inferno Squad',
+        subtitle: 'We Can Grieve Later',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['imperial', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 202
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'inferno-squad#we-can-grieve-later'
+    }),
+    buildMockCard({
+        title: 'Rish Loo',
+        subtitle: 'Traitorous Minister',
+        cost: 4,
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['separatist', 'gungan', 'official'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 200
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rish-loo#traitorous-minister'
+    }),
+    buildMockCard({
         title: 'Teebo',
         subtitle: 'Striped Hunter',
         cost: 1,
