@@ -497,31 +497,49 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Otoh Gunga',
-        hp: 33,
+        hp: 30,
         hasNonKeywordAbility: false,
         aspects: ['cunning'],
         traits: ['naboo'],
         types: ['base'],
         setId: {
             set: 'HMW',
-            number: 31
+            number: 33
         },
         unique: false,
         internalName: 'otoh-gunga'
     }),
     buildMockCard({
         title: 'Research Station 9',
-        hp: 34,
+        hp: 30,
         hasNonKeywordAbility: false,
         aspects: ['cunning'],
         traits: ['endor'],
         types: ['base'],
         setId: {
             set: 'HMW',
-            number: 31
+            number: 34
         },
         unique: false,
         internalName: 'research-station-9'
+    }),
+    buildMockCard({
+        title: 'Nuvo Vindi',
+        subtitle: 'Blue Shadow Perfected',
+        cost: 3,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['separatist'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'nuvo-vindi#blue-shadow-perfected'
     }),
     buildMockCard({
         title: 'Ritual Dragon',
@@ -558,6 +576,59 @@ const mockCards = [
         unique: false,
         arena: 'ground',
         internalName: 'gunga-city-guards'
+    }),
+    buildMockCard({
+        title: 'C-3PO',
+        subtitle: 'Captivating Storyteller',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['rebel', 'droid'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 255
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'c3po#captivating-storyteller'
+    }),
+    buildMockCard({
+        title: 'Doctor Hemlock',
+        subtitle: 'Emotion Has No Place Here',
+        cost: 6,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 3
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'doctor-hemlock#emotion-has-no-place-here'
+    }),
+    buildMockCard({
+        title: 'Remote Scout',
+        cost: 2,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['imperial', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 85
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'remote-scout'
     }),
     buildMockCard({
         title: 'Teebo',
@@ -613,6 +684,90 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'scorch#imperial-commando'
+    }),
+    buildMockCard({
+        title: 'Kachirho',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance'],
+        traits: ['kashyyyk'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 21
+        },
+        unique: false,
+        internalName: 'kachirho'
+    }),
+    buildMockCard({
+        title: 'Tusken Camp',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        traits: ['tatooine'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 26
+        },
+        unique: false,
+        internalName: 'tusken-camp'
+    }),
+    buildMockCard({
+        title: 'Bright Tree Village',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        traits: ['endor'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 23
+        },
+        unique: false,
+        internalName: 'bright-tree-village'
+    }),
+    buildMockCard({
+        title: 'Shadowlands',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression'],
+        traits: ['kashyyyk'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 30
+        },
+        unique: false,
+        internalName: 'shadowlands'
+    }),
+    buildMockCard({
+        title: 'Bioweapons Lab',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression'],
+        traits: ['naboo'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 27
+        },
+        unique: false,
+        internalName: 'bioweapons-lab'
+    }),
+    buildMockCard({
+        title: 'Jundland Wastes',
+        hp: 30,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression'],
+        traits: ['tatooine'],
+        types: ['base'],
+        setId: {
+            set: 'HMW',
+            number: 28
+        },
+        unique: false,
+        internalName: 'jundland-wastes'
     }),
     // -------- End Mock Cards --------
 ];
