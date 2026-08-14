@@ -22,6 +22,7 @@ import { Helpers } from '../../utils/Helpers';
 import { Card } from '../Card';
 import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
+import type { ICost } from '../../cost/ICost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
@@ -68,6 +69,12 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
 @registerStateBase()
 export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
+
+    /**
+     * Additional costs that must be paid whenever this card is played, registered via the ability
+     * registrar's `addAdditionalPlayCost`. These are merged into every play action generated for the card.
+     */
+    protected additionalPlayCosts: ICost[] = [];
 
     @statePrimitive()
     private accessor _exhausted: boolean | null = null;
@@ -184,7 +191,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Smuggle, playType);
             }
         } else {
-            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverridesWithExploit, playType });
+            defaultPlayAction = this.buildPlayCardAction(this.applyAdditionalPlayCosts({ ...propertyOverridesWithExploit, playType }));
         }
 
         // if there's not a basic play action available for the requested play type, return nothing
@@ -213,7 +220,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
                 alternatePlayActionAspects: keywordWithCostValue.aspects
             };
 
-            return this.buildPlayCardAction(alternateActionProps);
+            return this.buildPlayCardAction(this.applyAdditionalPlayCosts(alternateActionProps));
         });
 
         return KeywordHelpers.getCheapestPlayAction(playType, alternatePlayActions);
@@ -222,6 +229,36 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     // can't do abstract due to mixins
     public buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction {
         Contract.fail('This method should be overridden by the subclass');
+    }
+
+    /**
+     * Registers an additional cost to be paid whenever this card is played. Called by the ability
+     * registrar's `addAdditionalPlayCost`. See {@link additionalPlayCosts}.
+     */
+    protected registerAdditionalPlayCost(cost: ICost | ICost[]): void {
+        this.additionalPlayCosts = this.additionalPlayCosts.concat(Helpers.asArray(cost));
+    }
+
+    /** The additional play costs registered on this card (see `addAdditionalPlayCost`). */
+    protected getAdditionalPlayCosts(): ICost[] {
+        return this.additionalPlayCosts;
+    }
+
+    /**
+     * Merges this card's registered additional play costs (see `addAdditionalPlayCost`) into the
+     * `additionalCosts` of a play action's properties. Applied at action-build time so the costs are
+     * captured into the action's `createdWithProperties` and therefore preserved across `clone()`.
+     */
+    protected applyAdditionalPlayCosts<T extends IPlayCardActionPropertiesBase>(properties: T): T {
+        const additionalPlayCosts = this.getAdditionalPlayCosts();
+        if (additionalPlayCosts.length === 0) {
+            return properties;
+        }
+
+        return {
+            ...properties,
+            additionalCosts: [...(properties.additionalCosts ?? []), ...additionalPlayCosts]
+        } as T;
     }
 
     public exhaust() {

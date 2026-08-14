@@ -1365,6 +1365,27 @@ const mockCards = [
         unique: false,
         internalName: 'beast-lair',
     }),
+    // vernestra-rwoh#we-should-handle-this-ourselves
+    buildMockCard({
+        title: 'Vernestra Rwoh',
+        subtitle: 'We Should Handle This Ourselves',
+        cost: 6,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        text: 'As an additional cost to play this unit, put up to 2 units that each cost 5 or less from your discard pile on the bottom of your deck. This unit gains those units\' "When Played" abilities for this phase.',
+        aspects: ['command', 'cunning'],
+        traits: ['force', 'jedi'],
+        types: ['unit'],
+        keywords: ['sentinel'],
+        setId: {
+            set: 'HMW',
+            number: 48
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'vernestra-rwoh#we-should-handle-this-ourselves'
+    }),
     // -------- End Mock Cards --------
 ];
 

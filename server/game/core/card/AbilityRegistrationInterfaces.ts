@@ -1,4 +1,5 @@
 import type { IAbilityPropsWithType, IActionAbilityPropsWithGainCondition, IAttachCardContext, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IDamageModificationEffectAbilityPropsWithGainCondition, IEpicActionProps, IEventAbilityProps, IKeywordPropertiesWithGainCondition, IPlayRestrictionAbilityProps, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition } from '../../Interfaces';
+import type { ICost } from '../cost/ICost';
 import type { BaseCard } from './BaseCard';
 import type { ICardWithUpgrades } from './CardInterfaces';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './baseClasses/PlayableOrDeployableCard';
@@ -22,6 +23,14 @@ export type IBasicAbilityRegistrar<T extends Card> =
   IPreEnterPlayAbilityRegistrar<T>;
 
 export interface IInPlayCardAbilityRegistrar<T extends Card> extends IBasicAbilityRegistrar<T> {
+
+    /**
+     * Registers an additional cost that must be paid whenever this card is played (e.g. "As an additional
+     * cost to play this unit, ..."). The cost is merged into every play action generated for this card
+     * (from hand, out of play, Piloting, Smuggle, etc.) and participates in `canPay` gating, so the card
+     * cannot be played unless the additional cost can be paid.
+     */
+    addAdditionalPlayCost(cost: ICost | ICost[]): void;
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<T>): void;
     addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<T>): void;
     addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<T>): void;
