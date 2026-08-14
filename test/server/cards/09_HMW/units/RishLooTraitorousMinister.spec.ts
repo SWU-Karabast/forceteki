@@ -12,7 +12,7 @@ describe('Rish Loo, Traitorous Minister', function() {
                     },
                     player2: {
                         hand: ['vanquish'],
-                        groundArena: [{ card: 'battlefield-marine', owner: 'player1', upgrades: ['weakness'] }, { card: 'wampa', upgrades: ['weakness'] }]
+                        groundArena: [{ card: 'battlefield-marine', owner: 'player1', upgrades: ['weakness'] }, { card: 'wampa', upgrades: ['weakness'] }, 'rebel-pathfinder']
                     }
                 });
             });

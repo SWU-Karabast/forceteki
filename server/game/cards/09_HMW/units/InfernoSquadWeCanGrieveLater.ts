@@ -13,7 +13,7 @@ export default class InfernoSquadWeCanGrieveLater extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Deal 1 damage to a unit and give a weakness token to it',
+            title: 'Deal 1 damage to a unit and give a Weakness token to it',
             when: {
                 whenPlayed: true,
                 whenDefeated: true

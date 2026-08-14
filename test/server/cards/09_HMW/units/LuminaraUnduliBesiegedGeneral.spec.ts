@@ -109,6 +109,57 @@ describe('Luminara Unduli, Besieged General', function() {
                 expect(context.cartelSpacer.getPower()).toBe(2);
                 expect(context.luminaraUnduli.getPower()).toBe(7);
             });
+
+            it('should not trigger when an opponent plays a unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine', 'luminara-unduli#besieged-general'],
+                        spaceArena: ['cartel-spacer'],
+                    },
+                    player2: {
+                        hand: ['lurking-tie-phantom'],
+                        groundArena: ['rebel-pathfinder'],
+                        hasInitiative: true
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.lurkingTiePhantom);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.cartelSpacer.getPower()).toBe(2);
+                expect(context.luminaraUnduli.getPower()).toBe(7);
+                expect(context.rebelPathfinder.getPower()).toBe(2);
+            });
+
+            it('should not trigger off token creation', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['stronger-together'],
+                        groundArena: ['battlefield-marine', 'luminara-unduli#besieged-general'],
+                        spaceArena: ['cartel-spacer'],
+                    },
+                    player2: {
+                        groundArena: ['rebel-pathfinder']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.strongerTogether);
+                context.player1.clickPrompt('Resolve all (2)');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.cartelSpacer.getPower()).toBe(2);
+                expect(context.luminaraUnduli.getPower()).toBe(7);
+            });
         });
     });
 });
