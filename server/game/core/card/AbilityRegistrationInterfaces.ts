@@ -30,6 +30,13 @@ export interface IInPlayCardAbilityRegistrar<T extends Card> extends IBasicAbili
      * cannot be played unless it can be paid. See {@link IPlayCostProperties}.
      */
     addAdditionalPlayCost(properties: IPlayCostProperties<T>): void;
+
+    /**
+     * Registers an alternate way to play this card, surfaced as an extra play action alongside the default
+     * (e.g. Bamboozle: "you may play this for free by discarding a Cunning card"). The printed cost is
+     * suppressed (played for free) and the given cost is paid instead. See {@link IPlayCostProperties}.
+     */
+    addAlternatePlayCost(properties: IPlayCostProperties<T>): void;
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<T>): void;
     addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<T>): void;
     addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<T>): void;
@@ -78,6 +85,7 @@ export type IBaseAbilityRegistrar = IBasicAbilityRegistrar<BaseCard> & {
 export type IEventAbilityRegistrar = IBasicAbilityRegistrar<EventCard> & {
     setEventAbility(properties: IEventAbilityProps): void;
     addAdditionalPlayCost(properties: IPlayCostProperties<EventCard>): void;
+    addAlternatePlayCost(properties: IPlayCostProperties<EventCard>): void;
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<EventCard>): void;
     addPlayRestrictionAbility(properties: IPlayRestrictionAbilityProps): void;
 };

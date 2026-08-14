@@ -13,6 +13,7 @@ import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, Wi
 
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
+import * as CostAdjusterFactory from '../../cost/CostAdjusterFactory';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
@@ -78,6 +79,12 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      * registrar's `addAdditionalPlayCost`. These are merged into every play action generated for the card.
      */
     protected additionalPlayCosts: ICost[] = [];
+
+    /**
+     * Alternate play costs registered on this card (see `addAlternatePlayCost`). Each becomes an extra
+     * play action offered alongside the default, playing the card for free by paying this cost instead.
+     */
+    protected alternatePlayCosts: IPlayCostProperties<this>[] = [];
 
     @statePrimitive()
     private accessor _exhausted: boolean | null = null;
@@ -204,6 +211,16 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
         const actions: PlayCardAction[] = [defaultPlayAction];
 
+        // Alternate play costs are offered alongside the default for the base play types only (not for
+        // keyword-alternate play types like Smuggle/Piloting), and not when the card is blanked out of play.
+        if (
+            (playType === PlayType.PlayFromHand || playType === PlayType.PlayFromOutOfPlay) &&
+            this.alternatePlayCosts.length > 0 &&
+            !this.isBlankOutOfPlay()
+        ) {
+            actions.push(...this.buildAlternatePlayActions(playType, propertyOverridesWithExploit));
+        }
+
         return actions;
     }
 
@@ -259,6 +276,31 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         }
 
         return [new GameSystemCost(properties.immediateEffect, false, properties.costName)];
+    }
+
+    /**
+     * Registers an alternate way to play this card, surfaced as an extra play action alongside the default
+     * (e.g. "you may play this for free by discarding a card"). Called by the registrar's
+     * `addAlternatePlayCost`. See {@link alternatePlayCosts}.
+     */
+    protected registerAlternatePlayCost(properties: IPlayCostProperties<this>): void {
+        this.alternatePlayCosts = [...this.alternatePlayCosts, properties];
+    }
+
+    /**
+     * Builds the extra play action(s) for this card's registered alternate play costs (see
+     * `addAlternatePlayCost`). Each plays the card for free (printed cost suppressed) by paying its cost.
+     */
+    private buildAlternatePlayActions(playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay, propertyOverrides: IPlayCardActionOverrides): PlayCardAction[] {
+        return this.alternatePlayCosts.map((alternate) =>
+            this.buildPlayCardAction(this.applyAdditionalPlayCosts({
+                ...propertyOverrides,
+                playType,
+                title: alternate.title,
+                additionalCosts: this.buildPlayCost(alternate),
+                costAdjusters: [CostAdjusterFactory.create(this.game, this, { costAdjustType: CostAdjustType.Free })],
+            }))
+        );
     }
 
     /** The additional play costs registered on this card (see `addAdditionalPlayCost`). */

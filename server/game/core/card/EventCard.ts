@@ -128,6 +128,7 @@ export class EventCard extends EventCardParent implements IEventCard {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<EventCard>,
             setEventAbility: (properties: IEventAbilityProps) => this.setEventAbility(properties),
             addAdditionalPlayCost: (properties) => this.registerAdditionalPlayCost(properties as IPlayCostProperties<this>),
+            addAlternatePlayCost: (properties) => this.registerAlternatePlayCost(properties as IPlayCostProperties<this>),
             addDecreaseCostAbility: (properties: IDecreaseCostAbilityProps<EventCard>) => this.addDecreaseCostAbility(properties),
             addPlayRestrictionAbility: (properties: IPlayRestrictionAbilityProps) => this.addPlayRestrictionAbility(properties),
         };
