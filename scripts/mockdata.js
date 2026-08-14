@@ -650,6 +650,23 @@ const mockCards = [
         internalName: 'teebo#striped-hunter'
     }),
     buildMockCard({
+        title: 'Ewok Archers',
+        cost: 3,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 257
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ewok-archers'
+    }),
+    buildMockCard({
         title: 'Chief Chirpa',
         subtitle: 'Defiant Elder',
         cost: 2,
@@ -768,6 +785,24 @@ const mockCards = [
         },
         unique: false,
         internalName: 'jundland-wastes'
+    }),
+    buildMockCard({
+        title: 'Leia Organa',
+        subtitle: 'These Are My Friends',
+        cost: 1,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 115
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'leia-organa#these-are-my-friends'
     }),
     // -------- End Mock Cards --------
 ];
