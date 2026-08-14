@@ -210,9 +210,9 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     gainAbilitySource?: Card;
 
     /**
-     * When true, effects registered by this ability are omitted from the ongoing effect summary sent
-     * to the client. Set for abilities that carry no useful board information (e.g. self cost adjusters
-     * that only change the cost to play the source card itself). See {@link OngoingEffectEngine.summarizeOngoingEffectsForState}.
+     * When true, effects registered by this ability are omitted from the ongoing effect summary sent to
+     * the client. Set on abilities whose effects don't describe the board, such as self cost adjusters
+     * that only change the cost to play the source card itself.
      */
     omitFromOngoingEffectSummary?: boolean;
 }

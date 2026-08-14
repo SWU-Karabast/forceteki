@@ -433,8 +433,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             condition,
             ongoingEffect,
 
-            // These self cost adjusters only change the cost to play this card itself (e.g. Mastery), so they
-            // carry no useful board information in any zone and are omitted from the ongoing effect summary.
+            // this adjuster only changes the cost to play the card itself, so it isn't board state worth summarizing
             omitFromOngoingEffectSummary: true
         };
 

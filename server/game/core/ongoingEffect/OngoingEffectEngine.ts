@@ -94,9 +94,9 @@ function findRegisteringConstantAbility(effect: OngoingEffect) {
 }
 
 /**
- * Effect types that never carry useful board information and are hidden from the summary per player
- * feedback: "enters play ready" only describes how a card already entered play (already resolved), and
- * the starting-hand-size / no-mulligan base modifiers are setup-only and inert for the rest of the game.
+ * Effect types that are never included in the summary: they describe setup or how a card enters play
+ * rather than the ongoing board state ("enters play ready", and the starting-hand-size / no-mulligan
+ * base modifiers, which only apply during setup).
  */
 const summaryExcludedEffectNames: ReadonlySet<EffectName> = new Set([
     EffectName.EntersPlayReady,
@@ -105,27 +105,20 @@ const summaryExcludedEffectNames: ReadonlySet<EffectName> = new Set([
 ]);
 
 /**
- * "Play-time modifier" effects change how or whether a card can be played, so they only carry useful
- * information while the card sits in a zone it can be played from. Once the card moves elsewhere (into
- * play, or a zone it can't be played from) the effect is inert noise and is suppressed. Each entry maps
- * the effect type to the zone(s) in which it stays relevant.
- *
- * e.g. R2-D2's "can be played on a Vehicle with a Pilot" only matters while he's a playable card in hand.
- * (CanPlayFromDiscard is intentionally absent: it's a temporary effect only ever created while the card
- * is in the discard pile, where it is genuinely relevant, so it needs no gating.)
+ * Effect types that only matter while their source card is in a zone it can be played from, mapped to
+ * those zones. Such an effect is included only when its source is in a listed zone, and suppressed once
+ * the card moves elsewhere (e.g. R2-D2's "can be played on a Vehicle with a Pilot" is only relevant in
+ * hand). Effects that are only ever created in the zone they matter in (e.g. CanPlayFromDiscard) don't
+ * need an entry.
  */
 const playModifierEffectRelevantZones: ReadonlyMap<EffectName, ReadonlySet<ZoneName>> = new Map([
     [EffectName.CanBePlayedWithPilotingIgnoringPilotLimit, new Set([ZoneName.Hand])],
 ]);
 
 /**
- * Whether an effect is noise that shouldn't appear in the ongoing effect summary, per player feedback:
- *   - the setup-only / "enters play ready" effect types above.
- *   - self cost adjusters (e.g. Mastery) whose ability only changes the cost to play the source card
- *     itself. Their constant ability opts out via `omitFromOngoingEffectSummary`. Temporary or
- *     other-card cost adjusters (e.g. GNK Power Droid's "next unit costs 1 less", a leader discounting
- *     friendly units) are still surfaced.
- *   - play-time modifiers whose source card has left the zone the effect is relevant in (see above).
+ * Whether an effect should be hidden from the ongoing effect summary: a globally-excluded type, a self
+ * cost adjuster (opted out via its ability's `omitFromOngoingEffectSummary` flag), or a play-time
+ * modifier whose source has left the zone it's relevant in.
  */
 function isExcludedFromSummary(effect: OngoingEffect): boolean {
     if (summaryExcludedEffectNames.has(effect.type)) {
