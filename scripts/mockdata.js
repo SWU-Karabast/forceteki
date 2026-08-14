@@ -1088,7 +1088,7 @@ const mockCards = [
         types: ['unit'],
         setId: {
             set: 'HMW',
-            number: 189
+            number: 188
         },
         unique: false,
         arena: 'ground',
