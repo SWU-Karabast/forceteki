@@ -1,7 +1,7 @@
 describe('Bossk, Join Our Merry Band', function () {
     integration(function (contextRef) {
         describe('Bossk\'s on attack ability', function () {
-            it('should deal 1 damage to a ground unit if the discarded card is Aggression', async function () {
+            it('should give a unit +1/+1 and a unit -1/-1 for this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
