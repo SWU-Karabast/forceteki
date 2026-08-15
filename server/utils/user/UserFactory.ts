@@ -72,7 +72,7 @@ export class UserFactory {
         try {
             const dbService = await this.dbServicePromise;
             if (!dbService) {
-                return this.createEphemeralDevelopmentTestUserFromToken(token);
+                return this.createLocalDevelopmentTestUserFromToken(token);
             }
 
             const basicUser = await this.authenticateWithTokenAsync(token);
@@ -161,8 +161,8 @@ export class UserFactory {
         }
     }
 
-    private createEphemeralDevelopmentTestUserFromToken(token: string): AuthenticatedUser {
-        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Ephemeral test users can only authenticate in development');
+    private createLocalDevelopmentTestUserFromToken(token: string): AnonymousUser {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Local test users can only authenticate in development');
 
         const secret = process.env.NEXTAUTH_SECRET;
         Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
@@ -176,7 +176,7 @@ export class UserFactory {
         const providerId = decoded.providerId as DevelopmentTestProviderId;
         const expectedUser = developmentTestUsers[providerId];
         Contract.assertEqual(decoded.name, expectedUser.username, 'Development test user name does not match its provider identity');
-        return this.createEphemeralDevelopmentTestUser(providerId);
+        return this.createAnonymousUser(expectedUser.id, expectedUser.username);
     }
 
     private createEphemeralDevelopmentTestUser(providerId: DevelopmentTestProviderId): AuthenticatedUser {

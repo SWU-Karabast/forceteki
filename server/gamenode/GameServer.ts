@@ -150,10 +150,9 @@ export class GameServer {
         // increase stack trace limit for better error logging
         Error.stackTraceLimit = 50;
 
-        const userFactory = new UserFactory();
         if (process.env.ENVIRONMENT === 'development') {
             console.log('SETUP: Initializing development test users.');
-            await userFactory.ensureDevelopmentTestUsersAsync();
+            await new UserFactory().ensureDevelopmentTestUsersAsync();
             console.log('SETUP: Development test users initialized.');
         }
 
@@ -163,8 +162,7 @@ export class GameServer {
             serverRoleUsersCache,
             cosmeticsService,
             modActionCache,
-            testGameBuilder,
-            userFactory
+            testGameBuilder
         );
     }
 
@@ -213,7 +211,7 @@ export class GameServer {
         intervalStartTime: 0
     };
 
-    private readonly userFactory: UserFactory;
+    private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
     public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
@@ -231,8 +229,7 @@ export class GameServer {
         serverRoleUsersCache?: ServerRoleUsersCache,
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
-        testGameBuilder?: any,
-        userFactory?: UserFactory
+        testGameBuilder?: any
     ) {
         const app = express();
         app.use(express.json());
@@ -246,7 +243,6 @@ export class GameServer {
         this.serverRoleUsersCache = serverRoleUsersCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
-        this.userFactory = userFactory ?? new UserFactory();
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -482,7 +478,7 @@ export class GameServer {
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
 
-                // Ephemeral authenticated test users can exist in development without the database-backed moderation service.
+                // The moderation service is unavailable when the server is running without DynamoDB.
                 if (user.isAuthenticatedUser() && this.modActionService) {
                     const userId = user.getId();
                     const activeActions = this.modActionService.getActiveActionsForPlayer(userId);
