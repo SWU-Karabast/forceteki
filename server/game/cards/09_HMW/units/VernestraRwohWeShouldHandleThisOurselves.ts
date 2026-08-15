@@ -1,4 +1,5 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { Card } from '../../../core/card/Card';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
@@ -32,15 +33,13 @@ export default class VernestraRwohWeShouldHandleThisOurselves extends NonLeaderU
         registrar.addPreEnterPlayAbility({
             title: 'This unit gains the "When Played" abilities of the chosen units for this phase',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) =>
-                    context.costs[chosenUnitsCostName] &&
-                    Helpers.asArray(context.costs[chosenUnitsCostName]).length > 0,
+                condition: (context) => Helpers.asArray(context.costs[chosenUnitsCostName] ?? []).length > 0,
                 onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => {
-                    const selectedCards = Helpers.asArray(context.costs[chosenUnitsCostName]);
+                    const selectedCards = Helpers.asArray(context.costs[chosenUnitsCostName] ?? []) as Card[];
                     const cardTitlesList = selectedCards.map((card) => card.title).join(' and ');
                     return {
                         title: `Gain the "When Played" abilities of ${cardTitlesList} for this phase`,
-                        effect: selectedCards.map((card) => AbilityHelper.ongoingEffects.copyStandardTriggeredAbilities(card, StandardTriggeredAbilityType.WhenPlayed)),
+                        effect: AbilityHelper.ongoingEffects.copyStandardTriggeredAbilities(selectedCards, StandardTriggeredAbilityType.WhenPlayed),
                     };
                 }),
             }),
