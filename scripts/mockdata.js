@@ -1308,6 +1308,24 @@ const mockCards = [
         unique: true,
         internalName: 'the-tarkin-doctrine#protect-and-punish',
     }),
+    buildMockCard({
+        title: 'Director Krennic',
+        subtitle: 'The Work Has Stalled',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 61
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'director-krennic#the-work-has-stalled'
+    }),
     // -------- End Mock Cards --------
 ];
 
