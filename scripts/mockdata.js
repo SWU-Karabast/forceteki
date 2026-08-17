@@ -1164,6 +1164,20 @@ const mockCards = [
         internalName: 'grand-moff-tarkin#tyrant-of-the-outer-rim'
     }),
     buildMockCard({
+        title: 'Overgrowth',
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['disaster'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 151
+        },
+        unique: false,
+        internalName: 'overgrowth'
+    }),
+    buildMockCard({
         title: 'Ryyk Blademaster',
         cost: 4,
         power: 5,
@@ -1179,6 +1193,43 @@ const mockCards = [
         unique: false,
         arena: 'ground',
         internalName: 'ryyk-blademaster'
+    }),
+    buildMockCard({
+        title: 'King Grakchawwaa',
+        subtitle: 'King of Kashyyyk',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['wookiee', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 123
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'king-grakchawwaa#king-of-kashyyyk'
+    }),
+    buildMockCard({
+        title: 'Tarfful',
+        subtitle: 'Fighting from the Shadowlands',
+        cost: 6,
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel', 'wookiee'],
+        keywords: ['sentinel'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 10
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'tarfful#fighting-from-the-shadowlands'
     }),
     // -------- End Mock Cards --------
 ];
