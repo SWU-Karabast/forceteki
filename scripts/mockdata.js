@@ -1163,6 +1163,23 @@ const mockCards = [
         arena: 'space',
         internalName: 'grand-moff-tarkin#tyrant-of-the-outer-rim'
     }),
+    buildMockCard({
+        title: 'Ryyk Blademaster',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['wookiee'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 118
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'ryyk-blademaster'
+    }),
     // -------- End Mock Cards --------
 ];
 
