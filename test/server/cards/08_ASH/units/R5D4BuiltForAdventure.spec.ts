@@ -51,17 +51,12 @@ describe('R5-D4, Built for Adventure', function() {
                     groundArena: ['r5d4#built-for-adventure'],
                 },
                 player2: {
-                    hand: ['trap-field'],
-                    base: 'kestro-city',
-                    hasInitiative: true,
+                    base: { card: 'kestro-city', upgrades: ['trap-field'] },
                     groundArena: [{ card: 'yoda#old-master', upgrades: ['fulcrum', 'shield'] }]
                 }
             });
 
             const { context } = contextRef;
-
-            context.player2.clickCard(context.trapField);
-            context.player2.clickCard(context.p2Base);
 
             context.player1.clickCard(context.r5d4BuiltForAdventure);
             context.player1.clickCard(context.p2Base);
