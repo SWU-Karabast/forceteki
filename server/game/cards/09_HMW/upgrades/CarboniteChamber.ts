@@ -19,8 +19,8 @@ export default class CarboniteChamber extends UpgradeCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => !card.hasSomeTrait(Trait.Vehicle),
-                immediateEffect: abilityHelper.immediateEffects.delayedCardEffect({
-                    title: 'This unit does not ready during this regroup phase',
+                immediateEffect: abilityHelper.immediateEffects.delayedCardEffect((context) => ({
+                    title: `${context.target.name} does not ready during this regroup phase`,
                     when: {
                         onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                     },
@@ -28,7 +28,7 @@ export default class CarboniteChamber extends UpgradeCard {
                         effect: abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup),
                         ongoingEffectDescription: 'prevent {0} from readying',
                     })
-                })
+                }))
             },
         });
     }
