@@ -44,11 +44,11 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
     public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const card = Array.isArray(properties.target) ? properties.target[0] : properties.target;
+        const targets = Array.isArray(properties.target) ? properties.target : [properties.target];
 
         if (properties.readyResource) {
             event.setContingentEventsGenerator((event) => {
-                return [new ReadySystem({ target: card }).generateEvent(context)];
+                return [...targets.map((x) => new ReadySystem({ target: x }).generateEvent(context))];
             });
         }
         super.updateEvent(event, target, context, additionalProperties);
