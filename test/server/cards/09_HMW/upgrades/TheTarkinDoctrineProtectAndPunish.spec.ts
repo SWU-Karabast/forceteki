@@ -126,7 +126,7 @@ describe('The Tarkin Doctrine, Protect and Punish', function() {
                 context.player1.clickCard(context.wampa);
 
                 // Wampa is exhausted
-                expect(context.wampa.exhausted).toBe(true);
+                expect(context.wampa.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -155,7 +155,7 @@ describe('The Tarkin Doctrine, Protect and Punish', function() {
 
                 // The granted base ability does not fire, so the enemy Wampa stays ready
                 expect(context.resilient).toBeAttachedTo(context.moistureFarmer);
-                expect(context.wampa.exhausted).toBe(false);
+                expect(context.wampa.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -185,7 +185,7 @@ describe('The Tarkin Doctrine, Protect and Punish', function() {
                 // If the guard were broken, this would have prompted player1 to exhaust player2's own Battlefield Marine
                 // (the only enemy unit from player1's perspective).
                 expect(context.carboniteChamber).toBeAttachedTo(context.p2Base);
-                expect(context.battlefieldMarine.exhausted).toBe(false);
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
                 expect(context.player1).toBeActivePlayer();
             });
 
@@ -220,7 +220,7 @@ describe('The Tarkin Doctrine, Protect and Punish', function() {
 
                 // Wampa stays ready
                 expect(context.carboniteChamber).toBeAttachedTo(context.p1Base);
-                expect(context.wampa.exhausted).toBe(false);
+                expect(context.wampa.exhausted).toBeFalse();
                 expect(context.player2).toBeActivePlayer();
             });
         });
