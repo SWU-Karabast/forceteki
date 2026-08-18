@@ -431,7 +431,10 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             sourceZoneFilter: WildcardZoneName.Any,
             targetController: WildcardRelativePlayer.Any,
             condition,
-            ongoingEffect
+            ongoingEffect,
+
+            // this adjuster only changes the cost to play the card itself, so it isn't board state worth summarizing
+            omitFromOngoingEffectSummary: true
         };
 
         return costAdjustAbilityProps;
