@@ -15,7 +15,7 @@ export default class DarthVaderAnyMethodsNecessary extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Search the top 8 cards of your deck for up to 2 units that each cost 4 or less, play them for free, and deal 2 damage to each of them',
-            immediateEffect: abilityHelper.immediateEffects.deckSearch({
+            immediateEffect: abilityHelper.immediateEffects.playMultipleCardsFromDeck({
                 searchCount: 8,
                 selectCount: 2,
                 canChooseFewer: true,
@@ -28,7 +28,14 @@ export default class DarthVaderAnyMethodsNecessary extends NonLeaderUnitCard {
                     }),
                     abilityHelper.immediateEffects.damage({ amount: 2 })
                 ])
-            })
+            }),
+            // then: (thenContext) => ({
+            //     title: 'Deal 1 damage to the played unit',
+            //     immediateEffect: abilityHelper.immediateEffects.damage({
+            //         target: thenContext.selectedPromptCards,
+            //         amount: 2,
+            //     })
+            // })
         });
     }
 }

@@ -10,7 +10,7 @@ import { SearchDeckSystem, type ISearchDeckProperties } from './SearchDeckSystem
 export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityContext = AbilityContext>
     extends Omit<ISearchDeckProperties<TContext>,
       | 'revealSelected'
-      | 'selectedCardsImmediateEffect'
+      // | 'selectedCardsImmediateEffect'
       | 'selectedCardsHandler'
       | 'remainingCardsHandler'> {
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
@@ -30,7 +30,7 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
             playAsType: properties.playAsType,
         });
 
-        const propsWithViewType = { ...properties, selectedCardsImmediateEffect: selectedCardsImmediateEffect };
+        const propsWithViewType = { selectedCardsImmediateEffect: selectedCardsImmediateEffect, ...properties };
 
         return propsWithViewType as IPlayMultipleCardsFromDeckProperties<TContext>;
     }
