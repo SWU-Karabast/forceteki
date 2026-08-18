@@ -215,42 +215,6 @@ describe('Bamboozle', function () {
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
-        // Pending: alternate play costs should ignore all additional costs, including those imposed by an
-        // opponent's ongoing effect (Saw Gerrera). See https://github.com/SWU-Karabast/forceteki/issues/2688
-        xit('Bamboozle\'s alternate play cost should circumvent additional costs (Saw Gerrera)', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['bamboozle', 'crafty-smuggler'],
-                    groundArena: ['battlefield-marine'],
-                    leader: 'lando-calrissian#with-impeccable-taste'
-                },
-                player2: {
-                    groundArena: ['saw-gerrera#extremist']
-                }
-            });
-
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.bamboozle);
-            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Bamboozle', 'Play Bamboozle by discarding a Cunning card']);
-            context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
-
-            // pay the alternate cost by discarding the Cunning card
-            context.player1.clickCard(context.craftySmuggler);
-
-            // resolve Bamboozle's effect
-            context.player1.clickCard(context.sawGerrera);
-            expect(context.sawGerrera.exhausted).toBeTrue();
-
-            // the alternate cost is free AND ignores all additional costs, so Saw Gerrera's
-            // "deal 2 damage to your base" additional cost is not paid
-            expect(context.p1Base.damage).toBe(0);
-            expect(context.player1.exhaustedResourceCount).toBe(0);
-            expect(context.craftySmuggler).toBeInZone('discard');
-            expect(context.player2).toBeActivePlayer();
-        });
-
         it('Bamboozle\'s alternate play mode should not be available when smuggled', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
