@@ -15,12 +15,15 @@ export default class ChewbaccaResourcefulWookiee extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: `This unit gains ${TextHelper.Raid(1)} for each exhausted resource you control`,
-            ongoingEffect: abilityHelper.ongoingEffects.gainKeyword((target, context) => ({ keyword: KeywordName.Raid, amount: context.player.resources.filter((x) => x.exhausted).length }))
+            ongoingEffect: abilityHelper.ongoingEffects.gainKeyword((_, context) => ({
+                keyword: KeywordName.Raid,
+                amount: context.player.exhaustedResourceCount
+            }))
         });
 
         registrar.addConstantAbility({
             title: `While each resource you control is exhausted, this unit gains ${TextHelper.Overwhelm}`,
-            condition: (context) => context.player.resources.every((x) => x.exhausted),
+            condition: (context) => context.player.readyResourceCount === 0,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm)
         });
     }

@@ -48,6 +48,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
         if (properties.readyResource) {
             event.setContingentEventsGenerator((event) => {
+                // TODO Refactor ReadySystem to be able to handle multiple targets
                 return [...targets.map((x) => new ReadySystem({ target: x }).generateEvent(context))];
             });
         }
