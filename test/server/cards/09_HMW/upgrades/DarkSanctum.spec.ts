@@ -4,19 +4,15 @@ describe('Dark Sanctum', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['dark-sanctum'],
-                    deck: ['porg', 'atst', 'wampa']
+                    deck: ['porg', 'atst', 'wampa'],
+                    base: { card: 'kestro-city', upgrades: ['dark-sanctum'] },
                 },
             });
 
             const { context } = contextRef;
 
-            // Attach Dark Sanctum to the base
-            context.player1.clickCard(context.darkSanctum);
-            context.player1.clickCard(context.p1Base);
-
-            context.player2.passAction();
             context.player1.claimInitiative();
+            context.player2.passAction();
 
             expect(context.player1.hand.length).toBe(3);
             expect(context.p1Base.damage).toBe(2);
@@ -29,19 +25,15 @@ describe('Dark Sanctum', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['dark-sanctum'],
-                    deck: []
+                    deck: [],
+                    base: { card: 'kestro-city', upgrades: ['dark-sanctum'] },
                 },
             });
 
             const { context } = contextRef;
 
-            // Attach Dark Sanctum to the base
-            context.player1.clickCard(context.darkSanctum);
-            context.player1.clickCard(context.p1Base);
-
-            context.player2.passAction();
             context.player1.claimInitiative();
+            context.player2.passAction();
 
             expect(context.player1.hand.length).toBe(0);
             expect(context.p1Base.damage).toBe(11);

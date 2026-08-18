@@ -17,6 +17,7 @@ export default class DarkSanctum extends UpgradeCard {
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
             },
+            gainCondition: (context) => context.source.parentCard?.isBase(),
             immediateEffect: abilityHelper.immediateEffects.sequential([
                 abilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
                 abilityHelper.immediateEffects.damage((context) => ({ target: context.source, amount: 2 }))

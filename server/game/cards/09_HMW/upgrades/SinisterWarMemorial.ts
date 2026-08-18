@@ -19,6 +19,7 @@ export default class SinisterWarMemorial extends UpgradeCard {
                     EnumHelpers.isUnit(event.lastKnownInformation.type) &&
                     event.lastKnownInformation.controller === context.player,
             },
+            gainCondition: (context) => context.source.parentCard?.isBase(),
             immediateEffect: abilityHelper.immediateEffects.heal((context) => ({ target: context.source, amount: 1 })),
         });
     }

@@ -17,6 +17,7 @@ export default class BeastLair extends UpgradeCard {
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Action
             },
+            gainCondition: (context) => context.source.parentCard?.isBase(),
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 target: context.player,

@@ -4,8 +4,9 @@ describe('Beast Lair', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['beast-lair', 'battlefield-marine', 'protector'],
-                    deck: ['porg', 'atst']
+                    hand: ['battlefield-marine', 'protector'],
+                    deck: ['porg', 'atst'],
+                    base: { card: 'kestro-city', upgrades: ['beast-lair'] },
                 },
                 player2: {
                     groundArena: ['wampa'],
@@ -14,12 +15,8 @@ describe('Beast Lair', function() {
 
             const { context } = contextRef;
 
-            // Attach Beast Lair to the base
-            context.player1.clickCard(context.beastLair);
-            context.player1.clickCard(context.p1Base);
-
-            context.player2.passAction();
             context.player1.claimInitiative();
+            context.player2.passAction();
 
             context.player1.clickPrompt('Skip Resourcing');
             context.player2.clickPrompt('Skip Resourcing');
@@ -40,8 +37,9 @@ describe('Beast Lair', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['beast-lair', 'battlefield-marine', 'protector'],
-                    deck: ['porg', 'atst']
+                    hand: [ 'battlefield-marine', 'protector'],
+                    deck: ['porg', 'atst'],
+                    base: { card: 'kestro-city', upgrades: ['beast-lair'] },
                 },
                 player2: {
                     groundArena: ['wampa'],
@@ -50,12 +48,8 @@ describe('Beast Lair', function() {
 
             const { context } = contextRef;
 
-            // Attach Beast Lair to the base
-            context.player1.clickCard(context.beastLair);
-            context.player1.clickCard(context.p1Base);
-
-            context.player2.passAction();
             context.player1.claimInitiative();
+            context.player2.passAction();
 
             context.player1.clickPrompt('Skip Resourcing');
             context.player2.clickPrompt('Skip Resourcing');
@@ -75,19 +69,15 @@ describe('Beast Lair', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['beast-lair'],
-                    deck: []
+                    deck: [],
+                    base: { card: 'kestro-city', upgrades: ['beast-lair'] },
                 },
             });
 
             const { context } = contextRef;
 
-            // Attach Beast Lair to the base
-            context.player1.clickCard(context.beastLair);
-            context.player1.clickCard(context.p1Base);
-
-            context.player2.passAction();
             context.player1.claimInitiative();
+            context.player2.passAction();
 
             context.player1.clickPrompt('Skip Resourcing');
             context.player2.clickPrompt('Skip Resourcing');
