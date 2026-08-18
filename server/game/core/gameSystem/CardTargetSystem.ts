@@ -196,6 +196,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`
         );
 
+        addLastKnownInformationToEvent(event, card);
+
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
                 player: context.player,

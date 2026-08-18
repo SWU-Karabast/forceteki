@@ -79,5 +79,34 @@ describe('Drengir Spawn', function() {
                 expect(context.drengirSpawn).toBeInZone('discard', player1);
             });
         });
+
+        it('should gain Experience tokens equal to the copied unit\'s cost when defeating a Clone', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['drengir-spawn'],
+                },
+                player2: {
+                    hand: ['clone'],
+                    base: 'echo-base',
+                    groundArena: ['alliance-dispatcher'],
+                    resources: 7,
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.clone);
+            context.player2.clickCard(context.allianceDispatcher);
+            expect(context.clone).toBeCloneOf(context.allianceDispatcher);
+
+            context.player1.clickCard(context.drengirSpawn);
+            context.player1.clickCard(context.clone);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.clone).toBeInZone('discard', context.player2);
+            expect(context.drengirSpawn).toHaveExactUpgradeNames(['experience']);
+        });
     });
 });
