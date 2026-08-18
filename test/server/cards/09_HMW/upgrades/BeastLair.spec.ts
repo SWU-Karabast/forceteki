@@ -37,7 +37,7 @@ describe('Beast Lair', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: [ 'battlefield-marine', 'protector'],
+                    hand: ['battlefield-marine', 'protector'],
                     deck: ['porg', 'atst'],
                     base: { card: 'kestro-city', upgrades: ['beast-lair'] },
                 },
