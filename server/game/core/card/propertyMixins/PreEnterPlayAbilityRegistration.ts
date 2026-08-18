@@ -20,7 +20,9 @@ export function WithPreEnterPlayAbilities<TBaseClass extends PlayableOrDeployabl
     @registerStateBase()
     class WithPreEnterPlayAbilities extends BaseClass {
         public getPreEnterPlayAbilities(): PreEnterPlayAbility[] {
-            return this.preEnterPlayAbilities;
+            // Pre-enter-play abilities are card abilities, so a card blanked out of play (all abilities
+            // lost) resolves none of them as it enters play.
+            return this.isBlankOutOfPlay() ? [] : this.preEnterPlayAbilities;
         }
 
         public getPrintedPreEnterPlayAbilities(): PreEnterPlayAbility[] {
