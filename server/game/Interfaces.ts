@@ -187,31 +187,27 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
     initiateAttack?: IInitiateAttackProperties | ((context: TContext) => IInitiateAttackProperties);
 }
 
-/**
- * Shared property bundle for registering a play cost, used by both `addAdditionalPlayCost` (a cost paid
- * on top of the printed cost) and `addAlternatePlayCost` (an alternate way to play the card for free by
- * paying this cost instead of the printed cost).
- *
- * Provide exactly one of:
- * - `cost`: a pre-built cost (or costs) from `AbilityHelper.costs.*`.
- * - `immediateEffect`: a self-/fixed-target game system, built as a {@link GameSystemCost}.
- * - `targetResolver`: a card-selection cost, built as a {@link MetaActionCost} wrapping a
- *   {@link SelectCardSystem}. Card-target resolvers only, since costs support card selection but not
- *   player/number/dropdown targeting.
- *
- * `title` is used as the play action's title (for alternate play costs) and as the default prompt title
- * when a `targetResolver` doesn't specify its own `activePromptTitle`. `costName` names the paid selection
- * on `context.costs[costName]` so other abilities on the card can read back what was chosen (default 'cost').
- *
- * Note that `costName` is only available with the `immediateEffect` and `targetResolver` forms — a pre-built
- * `cost` brings its own `context.costs` key, so naming it here would be a silent no-op and is disallowed.
- */
-export type IPlayCostProperties<TSource extends Card = Card> =
-  { title?: string } & (
-      | { cost: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[]; costName?: undefined; immediateEffect?: undefined; targetResolver?: undefined }
-      | { immediateEffect: GameSystem<AbilityContext<TSource>>; costName?: string; cost?: undefined; targetResolver?: undefined }
-      | { targetResolver: ICardTargetResolver<AbilityContext<TSource>>; costName?: string; cost?: undefined; immediateEffect?: undefined }
-  );
+/** Interface definition for addAdditionalPlayCost and addAlternatePlayCost abilities */
+export type IPlayCostProperties<TSource extends Card = Card> = { title?: string } & (
+  | {
+      cost: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[];
+      costName?: undefined;
+      immediateEffect?: undefined;
+      targetResolver?: undefined;
+  }
+  | {
+      immediateEffect: GameSystem<AbilityContext<TSource>>;
+      costName?: string;
+      cost?: undefined;
+      targetResolver?: undefined;
+  }
+  | {
+      targetResolver: ICardTargetResolver<AbilityContext<TSource>>;
+      costName?: string;
+      cost?: undefined;
+      immediateEffect?: undefined;
+  }
+);
 
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {

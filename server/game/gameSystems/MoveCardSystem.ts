@@ -69,8 +69,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {
-        // Reuse the effect message (for its dynamic destination text) but signal that it's being paid as a
-        // cost so the verb renders in its cost form (e.g. "moving" rather than "move").
+        // Since this is the cost message, always set isCost to true
         return this.getEffectMessage(context, { isCost: true });
     }
 

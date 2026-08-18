@@ -81,8 +81,9 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     protected additionalPlayCosts: ICost[] = [];
 
     /**
-     * Alternate play costs registered on this card (see `addAlternatePlayCost`). Each becomes an extra
-     * play action offered alongside the default, playing the card for free by paying this cost instead.
+     * Alternate play costs registered on this card (see `addAlternatePlayCost`). Each becomes an alternate
+     * play action offered alongside the default, allowing the player to pay the alternate cost instead of
+     * the resource cost.
      */
     protected alternatePlayCosts: IPlayCostProperties<this>[] = [];
 
@@ -253,14 +254,21 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     /**
      * Registers an additional cost to be paid whenever this card is played. Called by the ability
-     * registrar's `addAdditionalPlayCost`. Builds a {@link GameSystemCost} from an `immediateEffect`, or a
-     * {@link MetaActionCost}-wrapped {@link SelectCardSystem} from a `targetResolver`. See {@link additionalPlayCosts}.
+     * registrar's `addAdditionalPlayCost`. See also {@link additionalPlayCosts}.
      */
     protected registerAdditionalPlayCost(properties: IPlayCostProperties<this>): void {
         this.additionalPlayCosts = this.additionalPlayCosts.concat(this.buildPlayCost(properties));
     }
 
-    /** Builds the {@link ICost}(s) described by a {@link IPlayCostProperties} bundle. */
+    /**
+     * Registers an alternate way to play this card, surfaced as an extra play action alongside the default
+     * (e.g. "you may play this by discarding a card insted of paying costs"). Called by the registrar's
+     * `addAlternatePlayCost`. See {@link alternatePlayCosts}.
+     */
+    protected registerAlternatePlayCost(properties: IPlayCostProperties<this>): void {
+        this.alternatePlayCosts = [...this.alternatePlayCosts, properties];
+    }
+
     private buildPlayCost(properties: IPlayCostProperties<this>): ICost[] {
         if (properties.cost) {
             return Helpers.asArray(properties.cost);
@@ -279,19 +287,13 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     /**
-     * Registers an alternate way to play this card, surfaced as an extra play action alongside the default
-     * (e.g. "you may play this for free by discarding a card"). Called by the registrar's
-     * `addAlternatePlayCost`. See {@link alternatePlayCosts}.
-     */
-    protected registerAlternatePlayCost(properties: IPlayCostProperties<this>): void {
-        this.alternatePlayCosts = [...this.alternatePlayCosts, properties];
-    }
-
-    /**
      * Builds the extra play action(s) for this card's registered alternate play costs (see
      * `addAlternatePlayCost`). Each plays the card for free (printed cost suppressed) by paying its cost.
      */
-    private buildAlternatePlayActions(playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay, propertyOverrides: IPlayCardActionOverrides): PlayCardAction[] {
+    private buildAlternatePlayActions(
+        playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay,
+        propertyOverrides: IPlayCardActionOverrides
+    ): PlayCardAction[] {
         return this.alternatePlayCosts.map((alternate) =>
             this.buildPlayCardAction(this.applyAdditionalPlayCosts({
                 ...propertyOverrides,

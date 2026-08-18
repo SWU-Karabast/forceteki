@@ -96,9 +96,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
                     this.addOnSelectEffectMessage(context, properties);
                 }
-                // The chosen cards live under the resolver's name (e.g. 'cost' for cost selects), and
-                // `context.target` is only populated when that name is 'target'. Pass the resolved
-                // selection directly so handlers work for both cost and non-cost selects.
                 properties.onSelectHandler?.(context.targets[properties.name] ?? context.target);
                 properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
             }

@@ -32,11 +32,6 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
     public override queueGameStepsForAdjustmentsAndPayment(events: GameEvent[], context: TContext, result: ICostResult): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context);
 
-        // Record the card(s) chosen to pay this cost on the context so the ability can read them back
-        // (e.g. via `context.costs[costName]`). This runs when the selection resolves, before the
-        // wrapped immediate effect executes, so it captures the chosen cards before they move zones.
-        // Keyed off the resolver's name (settable via the select system's `name`, default 'cost'), which
-        // is also the key the selection is stored under in `context.targets`.
         const additionalProps = {
             activePromptTitle: this.activePromptTitle,
             zone: properties.zoneFilter || WildcardZoneName.Any,

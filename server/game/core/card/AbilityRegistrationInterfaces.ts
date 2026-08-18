@@ -22,20 +22,7 @@ export type IBasicAbilityRegistrar<T extends Card> =
   IPreEnterPlayAbilityRegistrar<T>;
 
 export interface IInPlayCardAbilityRegistrar<T extends Card> extends IBasicAbilityRegistrar<T> {
-
-    /**
-     * Registers an additional cost that must be paid whenever this card is played (e.g. "As an additional
-     * cost to play this unit, ..."). The cost is merged into every play action generated for this card
-     * (from hand, out of play, Piloting, Smuggle, etc.) and participates in `canPay` gating, so the card
-     * cannot be played unless it can be paid. See {@link IPlayCostProperties}.
-     */
     addAdditionalPlayCost(properties: IPlayCostProperties<T>): void;
-
-    /**
-     * Registers an alternate way to play this card, surfaced as an extra play action alongside the default
-     * (e.g. Bamboozle: "you may play this for free by discarding a Cunning card"). The printed cost is
-     * suppressed (played for free) and the given cost is paid instead. See {@link IPlayCostProperties}.
-     */
     addAlternatePlayCost(properties: IPlayCostProperties<T>): void;
     addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<T>): void;
     addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<T>): void;
