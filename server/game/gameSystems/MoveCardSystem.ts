@@ -76,9 +76,10 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
 
+        const targetOwners = new Set(Helpers.asArray(properties.target).map((card) => card.owner));
         let destination: FormatMessage = { format: 'their {0}', args: [properties.destination] };
         if (properties.destination === ZoneName.Hand || EnumHelpers.isDeckMoveZone(properties.destination)) {
-            if (new Set(Helpers.asArray(properties.target).map((card) => card.owner)).size === 1) {
+            if (targetOwners.size <= 1) {
                 const getDestination = (owner: string | FormatMessage): FormatMessage => {
                     if (EnumHelpers.isDeckMoveZone(properties.destination)) {
                         if (properties.shuffle) {
@@ -89,10 +90,12 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
                     return { format: '{0} {1}', args: [owner, properties.destination] };
                 };
 
-                if (Helpers.asArray(properties.target)[0].owner === context.player) {
+                // when no cards are moved, default the owner to the acting player
+                const owner = [...targetOwners][0] ?? context.player;
+                if (owner === context.player) {
                     destination = getDestination('their');
                 } else {
-                    destination = getDestination({ format: '{0}\'s', args: [Helpers.asArray(properties.target)[0].owner] });
+                    destination = getDestination({ format: '{0}\'s', args: [owner] });
                 }
             } else {
                 destination = { format: 'their owner {0}', args: [properties.destination] };
@@ -112,7 +115,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             }
             const targets = Helpers.asArray(properties.target);
             let target: MsgArg | MsgArg[] = this.getTargetMessage(targets, context);
-            if (targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
+            // summarize as a count when the cards are (or are becoming) hidden, or when none were moved (0 cards)
+            if (targets.length === 0 || targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
                 target = ChatHelpers.pluralize(targets.length, 'a card', 'cards');
             }
             return [`${ChatHelpers.verb(properties, 'move', 'moving')} {0} to {1}`, [target, destination]];

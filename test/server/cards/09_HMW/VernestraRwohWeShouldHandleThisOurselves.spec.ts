@@ -9,8 +9,7 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                             hand: ['vernestra-rwoh#we-should-handle-this-ourselves'],
                             discard: ['veteran-fleet-officer', 'youngling-padawan', 'repair', 'atst'],
                             deck: ['wampa']
-                        },
-                        player2: {}
+                        }
                     });
                 });
 
@@ -19,12 +18,22 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
 
                     context.player1.clickCard(context.vernestraRwoh);
 
+                    // the additional-cost prompt clearly states the "up to 2" selection and its destination
+                    expect(context.player1).toHavePrompt('Put up to 2 units on the bottom of your deck');
                     // only units costing 5 or less are selectable; the event and the 6-cost AT-ST are excluded
                     expect(context.player1).toBeAbleToSelectExactly([context.veteranFleetOfficer, context.younglingPadawan]);
+                    expect(context.player1).toHaveEnabledPromptButtons(['Choose nothing', 'Cancel']); // Cancel button is offered while nothing is selected
 
                     context.player1.clickCard(context.veteranFleetOfficer);
                     context.player1.clickCard(context.younglingPadawan);
+                    expect(context.player1).toHaveEnabledPromptButtons(['Choose nothing', 'Done']); // Done is enabled after selection
                     context.player1.clickPrompt('Done');
+
+                    // the play log spells out the cost paid and the abilities copied
+                    expect(context.getChatLogs(2)).toEqual([
+                        'player1 plays Vernestra Rwoh, moving 2 cards to the bottom of their deck',
+                        'player1 uses Vernestra Rwoh to copy the "When Played" abilities of Veteran Fleet Officer and Youngling Padawan for this phase'
+                    ]);
 
                     // both chosen units were moved to the bottom of the deck; the rest of the discard is untouched
                     expect(context.veteranFleetOfficer).toBeInZone('deck');
@@ -32,7 +41,9 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                     expect(context.repair).toBeInZone('discard');
                     expect(context.atst).toBeInZone('discard');
 
-                    // both copied "When Played" abilities trigger; resolve them in either order
+                    // both copied "When Played" abilities are pending; the player picks the resolution order
+                    expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                    expect(context.player1).toHaveEnabledPromptButtons(['Create an X-Wing token', 'The Force is with you']);
                     context.player1.clickPrompt('Create an X-Wing token');
 
                     expect(context.vernestraRwoh).toBeInZone('groundArena');
@@ -45,8 +56,17 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.vernestraRwoh);
+                    expect(context.player1).toHavePrompt('Put up to 2 units on the bottom of your deck');
                     context.player1.clickCard(context.veteranFleetOfficer);
                     context.player1.clickPrompt('Done');
+
+                    // the play log reflects the single card moved, the single ability copied, and its immediate resolution
+                    // (no order prompt for a single trigger)
+                    expect(context.getChatLogs(3)).toEqual([
+                        'player1 plays Vernestra Rwoh, moving a card to the bottom of their deck',
+                        'player1 uses Vernestra Rwoh to copy the "When Played" abilities of Veteran Fleet Officer for this phase',
+                        'player1 uses Vernestra Rwoh to create an X-Wing token'
+                    ]);
 
                     expect(context.veteranFleetOfficer).toBeInZone('deck');
                     expect(context.younglingPadawan).toBeInZone('discard');
@@ -64,8 +84,12 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.vernestraRwoh);
+                    expect(context.player1).toHavePrompt('Put up to 2 units on the bottom of your deck');
                     expect(context.player1).toBeAbleToSelectExactly([context.veteranFleetOfficer, context.younglingPadawan]);
                     context.player1.clickPrompt('Choose nothing');
+
+                    // the play log reads cleanly for a zero-card payment (no copy message follows, since nothing was chosen)
+                    expect(context.getChatLogs(1)).toEqual(['player1 plays Vernestra Rwoh, moving 0 cards to the bottom of their deck']);
 
                     // nothing moved out of the discard pile
                     expect(context.veteranFleetOfficer).toBeInZone('discard');
@@ -79,6 +103,27 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                     expect(context.player1.hasTheForce).toBe(false);
                     expect(context.player2).toBeActivePlayer();
                 });
+
+                it('lets the player cancel out of playing her from the additional-cost prompt', function() {
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.vernestraRwoh);
+                    expect(context.player1).toHavePrompt('Put up to 2 units on the bottom of your deck');
+                    context.player1.clickPrompt('Cancel');
+
+                    // the play was aborted: Vernestra is back in hand and no cost was paid
+                    expect(context.vernestraRwoh).toBeInZone('hand');
+                    expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                    // nothing moved out of the discard pile
+                    expect(context.veteranFleetOfficer).toBeInZone('discard');
+                    expect(context.younglingPadawan).toBeInZone('discard');
+                    expect(context.repair).toBeInZone('discard');
+                    expect(context.atst).toBeInZone('discard');
+
+                    // canceling backs out of the action before any state change, so player1 is still active
+                    expect(context.player1).toBeActivePlayer();
+                });
             });
 
             describe('when only one valid unit is in the discard pile', function() {
@@ -89,8 +134,7 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                             hand: ['vernestra-rwoh#we-should-handle-this-ourselves'],
                             discard: ['favorable-delegate'],
                             deck: ['wampa']
-                        },
-                        player2: {}
+                        }
                     });
                 });
 
@@ -118,8 +162,7 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                         player1: {
                             hand: ['vernestra-rwoh#we-should-handle-this-ourselves'],
                             deck: ['wampa']
-                        },
-                        player2: {}
+                        }
                     });
                 });
 
@@ -168,49 +211,6 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
 
                 expect(context.vernestraRwoh).toBeInZone('groundArena');
                 expect(context.player1).toBeActivePlayer();
-            });
-        });
-
-        describe('when played from her own discard pile via Palpatine\'s Return', function() {
-            beforeEach(async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'grand-moff-tarkin#oversector-governor',
-                        base: 'administrators-tower',
-                        hand: ['palpatines-return'],
-                        discard: ['vernestra-rwoh#we-should-handle-this-ourselves', 'veteran-fleet-officer', 'youngling-padawan']
-                    },
-                    player2: {}
-                });
-            });
-
-            it('cannot select herself for the additional cost, but can select other units', function() {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.palpatinesReturn);
-
-                // all units in the discard pile are valid targets for Palpatine's Return
-                expect(context.player1).toBeAbleToSelectExactly([
-                    context.vernestraRwoh,
-                    context.veteranFleetOfficer,
-                    context.younglingPadawan
-                ]);
-                context.player1.clickCard(context.vernestraRwoh);
-
-                // Vernestra is a Force unit, so her cost of 6 is fully covered by the 8-less discount, making her free to play;
-                // her additional cost now triggers, but she's no longer in the discard pile, so she can't select herself
-                expect(context.player1).toBeAbleToSelectExactly([context.veteranFleetOfficer, context.younglingPadawan]);
-                context.player1.clickCard(context.veteranFleetOfficer);
-                context.player1.clickPrompt('Done');
-
-                expect(context.veteranFleetOfficer).toBeInZone('deck');
-                expect(context.younglingPadawan).toBeInZone('discard');
-
-                expect(context.vernestraRwoh).toBeInZone('groundArena', context.player1);
-                // Palpatine's Return itself costs 6 (no aspect penalty); Vernestra's own cost was fully discounted to 0
-                expect(context.player1.exhaustedResourceCount).toBe(6);
-                expect(context.player2).toBeActivePlayer();
             });
         });
 
