@@ -4,21 +4,22 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
-export default class MarrokMysteriousWarrior extends NonLeaderUnitCard {
+export default class RyykBlademaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '3039970869',
-            internalName: 'marrok#mysterious-warrior',
+            id: 'ryyk-blademaster-id',
+            internalName: 'ryyk-blademaster'
         };
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Loses ${TextHelper.Sentinel} and gains ${TextHelper.Saboteur} while upgraded`,
-            condition: (context) => context.source.isUpgraded(),
+            title: `While you control 6 or more resources, this unit gains ${TextHelper.Ambush} and ${TextHelper.Overwhelm}`,
+            condition: (context) => context.player.resources.length >= 6,
+            matchTarget: (card, context) => card === context.source,
             ongoingEffect: [
-                AbilityHelper.ongoingEffects.loseKeyword(KeywordName.Sentinel),
-                AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur),
+                AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
+                AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm),
             ]
         });
     }

@@ -94,6 +94,51 @@ function findRegisteringConstantAbility(effect: OngoingEffect) {
 }
 
 /**
+ * Effect types that are never included in the summary: they describe setup or how a card enters play
+ * rather than the ongoing board state ("enters play ready", and the starting-hand-size / no-mulligan
+ * base modifiers, which only apply during setup).
+ */
+const summaryExcludedEffectNames: ReadonlySet<EffectName> = new Set([
+    EffectName.EntersPlayReady,
+    EffectName.ModifyStartingHandSize,
+    EffectName.NoMulligan,
+]);
+
+/**
+ * Effect types that only matter while their source card is in a zone it can be played from, mapped to
+ * those zones. Such an effect is included only when its source is in a listed zone, and suppressed once
+ * the card moves elsewhere (e.g. R2-D2's "can be played on a Vehicle with a Pilot" is only relevant in
+ * hand). Effects that are only ever created in the zone they matter in (e.g. CanPlayFromDiscard) don't
+ * need an entry.
+ */
+const playModifierEffectRelevantZones: ReadonlyMap<EffectName, ReadonlySet<ZoneName>> = new Map([
+    [EffectName.CanBePlayedWithPilotingIgnoringPilotLimit, new Set([ZoneName.Hand])],
+]);
+
+/**
+ * Whether an effect should be hidden from the ongoing effect summary: a globally-excluded type, a self
+ * cost adjuster (opted out via its ability's `omitFromOngoingEffectSummary` flag), or a play-time
+ * modifier whose source has left the zone it's relevant in.
+ */
+function isExcludedFromSummary(effect: OngoingEffect): boolean {
+    if (summaryExcludedEffectNames.has(effect.type)) {
+        return true;
+    }
+
+    if (effect.type === EffectName.CostAdjuster) {
+        return !!findRegisteringConstantAbility(effect)?.omitFromOngoingEffectSummary;
+    }
+
+    const relevantZones = playModifierEffectRelevantZones.get(effect.type);
+    if (relevantZones) {
+        const sourceZone = (effect.source as Card | undefined)?.zoneName;
+        return !sourceZone || !relevantZones.has(sourceZone);
+    }
+
+    return false;
+}
+
+/**
  * Resolves a description for an ongoing effect, in priority order:
  *   1. An explicit `title` set on the effect itself — for lasting effects via their props, for delayed
  *      effects via their value. Authors set this when the creating ability's title is just a header
@@ -242,6 +287,10 @@ export class OngoingEffectEngine extends GameObjectBase {
 
         for (const effect of this.effects) {
             if (!effect.isEffectActive() || !effect.source?.isCard?.()) {
+                continue;
+            }
+
+            if (isExcludedFromSummary(effect)) {
                 continue;
             }
 

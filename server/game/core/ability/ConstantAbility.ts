@@ -61,6 +61,10 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
         return this.properties.gainAbilitySource;
     }
 
+    public get omitFromOngoingEffectSummary(): boolean {
+        return this.properties.omitFromOngoingEffectSummary ?? false;
+    }
+
     public get ongoingEffect(): IOngoingEffectGenerator | IOngoingEffectGenerator[] {
         return this.properties.ongoingEffect;
     }

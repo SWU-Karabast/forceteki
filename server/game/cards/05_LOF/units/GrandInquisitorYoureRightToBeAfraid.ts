@@ -14,8 +14,11 @@ export default class GrandInquisitorYoureRightToBeAfraid extends NonLeaderUnitCa
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Other friendly ${TextHelper.Trait.Inquisitor} units gain hidden.`,
-            matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Inquisitor),
+            title: `Other friendly ${TextHelper.Trait.Inquisitor} units gain ${TextHelper.Hidden}`,
+            matchTarget: (card, context) =>
+                card !== context.source &&
+                card.isUnit() &&
+                card.hasSomeTrait(Trait.Inquisitor),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Hidden })
         });
     }
