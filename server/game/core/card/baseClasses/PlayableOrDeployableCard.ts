@@ -289,25 +289,33 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     /**
      * Builds the extra play action(s) for this card's registered alternate play costs (see
      * `addAlternatePlayCost`). Each plays the card for free (printed cost suppressed) by paying its cost.
+     *
+     * An alternate play cost is meant to be paid *instead* of the card's other costs, so we deliberately do
+     * not merge in this card's registered additional play costs here (unlike the default/keyword actions).
+     * Note: additional costs imposed by an opponent's ongoing effect (e.g. Saw Gerrera) are added later in
+     * {@link PlayCardAction.getCosts} and are not yet circumvented — see the linked issue.
      */
     private buildAlternatePlayActions(
         playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay,
         propertyOverrides: IPlayCardActionOverrides
     ): PlayCardAction[] {
         return this.alternatePlayCosts.map((alternate) =>
-            this.buildPlayCardAction(this.applyAdditionalPlayCosts({
+            this.buildPlayCardAction({
                 ...propertyOverrides,
                 playType,
                 title: alternate.title,
                 additionalCosts: this.buildPlayCost(alternate),
                 costAdjusters: [CostAdjusterFactory.create(this.game, this, { costAdjustType: CostAdjustType.Free })],
-            }))
+            })
         );
     }
 
-    /** The additional play costs registered on this card (see `addAdditionalPlayCost`). */
+    /**
+     * The additional play costs registered on this card (see `addAdditionalPlayCost`). These are card
+     * abilities, so a card blanked out of play (all abilities lost) has none.
+     */
     protected getAdditionalPlayCosts(): ICost[] {
-        return this.additionalPlayCosts;
+        return this.isBlankOutOfPlay() ? [] : this.additionalPlayCosts;
     }
 
     /**

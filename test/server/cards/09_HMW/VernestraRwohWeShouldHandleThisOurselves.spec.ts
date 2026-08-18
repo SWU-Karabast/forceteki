@@ -74,5 +74,42 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                 });
             });
         });
+
+        describe('when Vernestra is blanked in hand (all abilities lost)', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        resources: 20
+                    },
+                    player2: {
+                        hand: ['vernestra-rwoh#we-should-handle-this-ourselves'],
+                        discard: ['favorable-delegate'],
+                        deck: ['wampa'],
+                        resources: 20
+                    }
+                });
+            });
+
+            it('loses her additional play cost and pre-enter-play ability, playing as a vanilla unit', function() {
+                const { context } = contextRef;
+
+                // Galen Erso names Vernestra, blanking her in player2's hand (including out of play)
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Vernestra Rwoh');
+
+                // player2 plays the blanked Vernestra: no additional cost prompt, no gained "When Played" ability
+                context.player2.clickCard(context.vernestraRwoh);
+
+                // the additional cost was not charged: the discard unit stays put
+                expect(context.favorableDelegate).toBeInZone('discard');
+                // no copied "When Played: Draw a card" ability fired
+                expect(context.wampa).toBeInZone('deck');
+
+                expect(context.vernestraRwoh).toBeInZone('groundArena');
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
     });
 });

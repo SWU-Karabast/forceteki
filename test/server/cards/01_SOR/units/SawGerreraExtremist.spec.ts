@@ -50,5 +50,36 @@ describe('Saw Gerrera, Extremist', function () {
             expect(context.p2Base.damage).toBe(2);
             expect(context.sawGerrera).toBeInZone('discard');
         });
+
+        it('still applies its additional cost to a blanked opponent event (the cost is applied to the player, not the card)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['galen-erso#youll-never-win'],
+                    groundArena: ['saw-gerrera#extremist', 'wampa'],
+                    resources: 20
+                },
+                player2: {
+                    hand: ['daring-raid'],
+                    resources: 20
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Galen (player1's) names Daring Raid, blanking it in player2's hand
+            context.player1.clickCard(context.galenErso);
+            context.player1.chooseListOption('Daring Raid');
+
+            // player2 plays the blanked event: its own ability does nothing...
+            context.player2.clickCard(context.daringRaid);
+            context.player2.clickPrompt('Play anyway');
+            expect(context.daringRaid).toBeInZone('discard');
+            expect(context.wampa.damage).toBe(0);
+
+            // ...but Saw Gerrera's additional cost is applied to the player, so it survives the blank
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });
