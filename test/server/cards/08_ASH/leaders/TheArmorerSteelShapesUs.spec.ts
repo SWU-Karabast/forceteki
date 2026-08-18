@@ -281,6 +281,31 @@ describe('The Armorer, Steel Shapes Us', function () {
                 expect(context.theArmorer).toHaveExactUpgradeNames(['protector']);
                 expect(context.moistureFarmer).toBeInZone('resource', context.player1);
             });
+
+            it('cannot play a Fortify upgrade from resources (only units are valid attach targets)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'the-armorer#steel-shapes-us', deployed: true },
+                        resources: ['protector', 'alliance-shield-generator', 'underworld-thug', 'underworld-thug', 'underworld-thug'],
+                        groundArena: ['wampa'],
+                        deck: ['moisture-farmer']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theArmorer);
+                context.player1.clickCard(context.p2Base);
+
+                // The Fortify upgrade can only attach to a base, which isn't a valid target here,
+                // so it has no legal play and is not offered - only the unit upgrade is selectable
+                expect(context.player1).toBeAbleToSelectExactly([context.protector]);
+                context.player1.clickPrompt('Pass');
+            });
         });
     });
 });

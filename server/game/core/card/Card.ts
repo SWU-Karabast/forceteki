@@ -997,6 +997,8 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 this.zone.removeForceToken();
             } else if (this.isCreditToken()) {
                 this.zone.removeCreditToken(this);
+            } else if (this.isUpgrade()) {
+                this.zone.removeUpgrade(this);
             } else {
                 Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
             }
@@ -1047,8 +1049,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                     this.zone.setForceToken(this);
                 } else if (this.isCreditToken()) {
                     this.zone.addCreditToken(this);
+                } else if (this.isUpgrade()) {
+                    this.zone.addUpgrade(this);
                 } else {
-                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, or credit token`);
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, credit token, or upgrade`);
                 }
 
                 break;

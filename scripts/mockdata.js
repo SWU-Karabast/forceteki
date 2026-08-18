@@ -1231,6 +1231,83 @@ const mockCards = [
         arena: 'ground',
         internalName: 'tarfful#fighting-from-the-shadowlands'
     }),
+    buildMockCard({
+        title: 'Alliance Shield Generator',
+        cost: 2,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 81
+        },
+        unique: false,
+        internalName: 'alliance-shield-generator',
+    }),
+    buildMockCard({
+        title: 'Carbonite Chamber',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 95
+        },
+        unique: false,
+        internalName: 'carbonite-chamber',
+    }),
+    buildMockCard({
+        title: 'Trap Field',
+        cost: 2,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 171
+        },
+        unique: false,
+        internalName: 'trap-field',
+    }),
+    buildMockCard({
+        title: 'The Tarkin Doctrine',
+        subtitle: 'Protect and Punish',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['law'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 206
+        },
+        unique: true,
+        internalName: 'the-tarkin-doctrine#protect-and-punish',
+    }),
     // -------- End Mock Cards --------
 ];
 

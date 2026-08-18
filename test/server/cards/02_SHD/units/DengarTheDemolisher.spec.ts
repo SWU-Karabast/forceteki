@@ -41,5 +41,28 @@ describe('Dengar, The Demolisher', function () {
                 expect(context.dengar.damage).toBe(0);
             });
         });
+
+        describe('Dengar\'s interaction with base upgrades', function () {
+            it('does not trigger when a Fortify upgrade is played on a base', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['alliance-shield-generator'],
+                        groundArena: ['dengar#the-demolisher'],
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.allianceShieldGenerator);
+                context.player1.clickCard(context.p1Base);
+
+                // Dengar deals damage to "the upgraded unit" - a base upgrade has none, so it doesn't trigger
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+            });
+        });
     });
 });

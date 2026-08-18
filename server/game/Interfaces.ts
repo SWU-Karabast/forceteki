@@ -280,6 +280,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
   | IExploitKeywordProperties
+  | IFortifyKeywordProperties
   | IGritKeywordProperties
   | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
@@ -555,6 +556,10 @@ interface IExploitKeywordProperties extends INumericKeywordProperties {
     keyword: KeywordName.Exploit;
 }
 
+interface IFortifyKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Fortify;
+}
+
 interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
@@ -606,6 +611,7 @@ interface ISupportKeywordProperties extends IKeywordPropertiesBase {
 /** List of keywords that don't have any additional parameters */
 export type NonParameterKeywordName =
   | KeywordName.Ambush
+  | KeywordName.Fortify
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm
@@ -619,6 +625,7 @@ export type NonNumericKeywordName =
   | KeywordName.Ambush
   | KeywordName.Bounty
   | KeywordName.Coordinate
+  | KeywordName.Fortify
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm
