@@ -2,15 +2,14 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import { WildcardZoneName, RelativePlayer } from '../Constants';
 import type { ICost, ICostResult } from './ICost';
-import type { GameSystem } from '../gameSystem/GameSystem';
-import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
+import type { SelectCardSystem } from '../../gameSystems/SelectCardSystem';
 import { GameSystemCost } from './GameSystemCost';
 import type { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player';
 
 export class MetaActionCost<TContext extends AbilityContext = AbilityContext> extends GameSystemCost<TContext> implements ICost<TContext> {
     public constructor(
-        public override gameSystem: GameSystem<TContext, ISelectCardProperties>,
+        public override gameSystem: SelectCardSystem<TContext>,
         public activePromptTitle: string | ((context: TContext) => string)
     ) {
         super(gameSystem);
@@ -22,7 +21,10 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canPay(context: TContext): boolean {
-        return this.gameSystem.hasLegalTarget(context);
+        // The cost is payable if there's a legal card to select OR if choosing nothing
+        // is a valid option (e.g. "up to" target mode)
+        return this.gameSystem.hasLegalTarget(context) ||
+          this.gameSystem.selectionAllowsChoosingNoCards(context);
     }
 
     public override isMetaActionCost(): this is MetaActionCost {
