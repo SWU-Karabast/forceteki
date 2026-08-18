@@ -4,17 +4,15 @@ describe('Trap Field', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['trap-field'],
+                    base: { card: 'kestro-city', upgrades: ['trap-field'] },
                 },
                 player2: {
-                    hand: ['wampa']
+                    hand: ['wampa'],
+                    hasInitiative: true,
                 }
             });
 
             const { context } = contextRef;
-
-            context.player1.clickCard(context.trapField);
-            context.player1.clickCard(context.p1Base);
 
             context.player2.clickCard(context.wampa);
             expect(context.player1).toHavePassAbilityPrompt('Defeat this upgrade to deal 3 damage to Wampa');
@@ -29,17 +27,15 @@ describe('Trap Field', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['trap-field'],
+                    base: { card: 'kestro-city', upgrades: ['trap-field'] },
                 },
                 player2: {
-                    groundArena: ['dedra-meero#with-verifiable-data']
+                    groundArena: ['dedra-meero#with-verifiable-data'],
+                    hasInitiative: true
                 }
             });
 
             const { context } = contextRef;
-
-            context.player1.clickCard(context.trapField);
-            context.player1.clickCard(context.p1Base);
 
             context.player2.clickCard(context.dedraMeero);
             context.player2.clickCard(context.p1Base);
@@ -55,16 +51,13 @@ describe('Trap Field', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['trap-field', 'battlefield-marine'],
+                    hand: ['battlefield-marine'],
+                    base: { card: 'kestro-city', upgrades: ['trap-field'] },
                 },
             });
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.trapField);
-            context.player1.clickCard(context.p1Base);
-
-            context.player2.passAction();
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.player1).toHavePassAbilityPrompt('Defeat this upgrade to deal 3 damage to Battlefield Marine');
             context.player1.clickPrompt('Pass');
@@ -78,17 +71,15 @@ describe('Trap Field', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['trap-field'],
+                    base: { card: 'kestro-city', upgrades: ['trap-field'] },
                 },
                 player2: {
-                    hand: ['awing']
+                    hand: ['awing'],
+                    hasInitiative: true,
                 }
             });
 
             const { context } = contextRef;
-
-            context.player1.clickCard(context.trapField);
-            context.player1.clickCard(context.p1Base);
 
             context.player2.clickCard(context.awing);
 
@@ -101,17 +92,15 @@ describe('Trap Field', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['trap-field'],
+                    base: { card: 'kestro-city', upgrades: ['trap-field'] },
                 },
                 player2: {
-                    leader: 'fennec-shand#honoring-the-deal'
+                    leader: 'fennec-shand#honoring-the-deal',
+                    hasInitiative: true,
                 }
             });
 
             const { context } = contextRef;
-
-            context.player1.clickCard(context.trapField);
-            context.player1.clickCard(context.p1Base);
 
             context.player2.clickCard(context.fennecShand);
             context.player2.clickPrompt('Deploy Fennec Shand');
