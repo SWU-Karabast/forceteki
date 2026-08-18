@@ -13,7 +13,7 @@ import { registerState } from '../../core/GameObjectUtils';
 
 @registerState()
 export class SaboteurDefeatShieldsAbility extends TriggeredAbilityBase {
-    public readonly keyword: KeywordName = KeywordName.Saboteur;
+    public override readonly keyword: KeywordName = KeywordName.Saboteur;
 
     public static buildSaboteurAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {

@@ -12,11 +12,13 @@ import { registerState } from '../../core/GameObjectUtils';
 
 @registerState()
 export class PlotAbility extends TriggeredAbilityBase {
-    public readonly keyword: KeywordName = KeywordName.Plot;
+    public override readonly keyword: KeywordName = KeywordName.Plot;
 
     public static buildPlotAbilityProperties<TSource extends Card = Card>(cardTitle: string): ITriggeredAbilityProps<TSource> {
         return {
             title: `Play ${cardTitle} using ${TextHelper.Plot}`,
+            keyword: KeywordName.Plot,
+            declareGroupLabel: TextHelper.Plot,
             optional: true,
             when: {
                 onLeaderDeployed: (event, context) => event.card.owner === context.source.controller && context.source.zoneName === ZoneName.Resource // TODO See if we can remove this zone check once we update Plot registration

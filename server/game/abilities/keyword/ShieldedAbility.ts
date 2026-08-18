@@ -11,7 +11,7 @@ import { registerState } from '../../core/GameObjectUtils';
 
 @registerState()
 export class ShieldedAbility extends TriggeredAbilityBase {
-    public readonly keyword: KeywordName = KeywordName.Shielded;
+    public override readonly keyword: KeywordName = KeywordName.Shielded;
 
     public static buildShieldedAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {

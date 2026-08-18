@@ -342,6 +342,22 @@ export namespace EnumHelpers {
                 return 'space arena';
         }
     };
+
+    /** Human-readable phrase for "play a card from <zone>" prompts (e.g. the declare step in `TriggerWindowBase`). */
+    export const zoneToPlayFromText = (zone: ZoneName): string => {
+        switch (zone) {
+            case ZoneName.Hand:
+                return 'hand';
+            case ZoneName.Resource:
+                return 'resources';
+            case ZoneName.Deck:
+                return 'deck';
+            case ZoneName.Discard:
+                return 'discard pile';
+            default:
+                return zone;
+        }
+    };
 }
 
 export const isTimedModAction = (actionType: ModActionType): actionType is TimedModActionType => {

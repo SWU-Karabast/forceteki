@@ -7,6 +7,7 @@ export interface ITriggeredAbilityContextProperties extends IAbilityContextPrope
     // TODO: rename this to "triggeringEvent"
     event: any;
     overrideTitle?: string;
+    preConfirmed?: boolean;
 
     /**
      * True if this ability was manually activated by a game system (e.g., UseWhenDefeatedSystem)
@@ -21,21 +22,37 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
     public readonly retriggeredByAbility: boolean;
 
     private _overrideTitle: string = null;
+    private _preConfirmed = false;
 
     public get overrideTitle(): string | null {
         return this._overrideTitle;
+    }
+
+    /**
+     * True if the controller already committed to resolving this ability (e.g. during a Plot
+     * declare-step) before it reaches the ability resolver, so the resolver should not prompt
+     * for a redundant Trigger / Pass confirmation.
+     */
+    public get preConfirmed(): boolean {
+        return this._preConfirmed;
     }
 
     public constructor(properties: ITriggeredAbilityContextProperties) {
         super(properties);
         this.event = properties.event;
         this._overrideTitle = properties.overrideTitle;
+        this._preConfirmed = properties.preConfirmed || false;
         this.retriggeredByAbility = properties.retriggeredByAbility || false;
     }
 
     public setOverrideTitle(title: string) {
         Contract.assertIsNullLike(this._overrideTitle, () => `Override title has already been set to ${this._overrideTitle}`);
         this._overrideTitle = title;
+    }
+
+    public markPreConfirmed() {
+        Contract.assertFalse(this._preConfirmed, 'Context has already been marked as pre-confirmed');
+        this._preConfirmed = true;
     }
 
     public override isTriggered(): this is TriggeredAbilityContext<TSource> {
@@ -47,7 +64,7 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
     }
 
     public override getProps() {
-        return Object.assign(super.getProps(), { event: this.event, overrideTitle: this.overrideTitle, retriggeredByAbility: this.retriggeredByAbility });
+        return Object.assign(super.getProps(), { event: this.event, overrideTitle: this.overrideTitle, preConfirmed: this.preConfirmed, retriggeredByAbility: this.retriggeredByAbility });
     }
 
     public cancel() {

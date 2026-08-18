@@ -10,7 +10,7 @@ import { registerState } from '../../core/GameObjectUtils';
 
 @registerState()
 export class RestoreAbility extends TriggeredAbilityBase {
-    public readonly keyword: KeywordName = KeywordName.Restore;
+    public override readonly keyword: KeywordName = KeywordName.Restore;
 
     public static buildRestoreAbilityProperties<TSource extends Card = Card>(restoreAmount: number): ITriggeredAbilityProps<TSource> {
         return {

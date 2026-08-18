@@ -22,7 +22,7 @@ export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeT
  */
 @registerState()
 export class BountyAbility extends TriggeredAbilityBase {
-    public readonly keyword: KeywordName = KeywordName.Bounty;
+    public override readonly keyword: KeywordName = KeywordName.Bounty;
 
     private readonly bountyProperties: IResolvedBountyProperties;
 

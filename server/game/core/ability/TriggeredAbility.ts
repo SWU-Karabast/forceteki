@@ -2,6 +2,7 @@ import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { EventName, PlayType, StandardTriggeredAbilityType } from '../Constants';
 import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
+import type { KeywordName } from '../Constants';
 import type { IEventRegistration, ITriggeredAbilityProps, WhenType, WhenTypeOrStandard } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
@@ -51,8 +52,10 @@ export interface ITriggeredAbilityState extends IGameObjectBaseState {
 export abstract class TriggeredAbilityBase extends CardAbility {
     public readonly when?: WhenType;
     public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
+    public readonly keyword?: KeywordName;
     public readonly anyPlayer: boolean;
     public readonly collectiveTrigger: boolean;
+    public readonly declareGroupLabel?: string;
     public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
 
     protected eventRegistrations?: IEventRegistration<(event: GameEvent, window: TriggeredAbilityWindow) => void>[];
@@ -101,6 +104,11 @@ export abstract class TriggeredAbilityBase extends CardAbility {
         }
 
         this.collectiveTrigger = !!properties.collectiveTrigger;
+        this.declareGroupLabel = properties.declareGroupLabel;
+
+        if (properties.keyword) {
+            this.keyword = properties.keyword;
+        }
 
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve

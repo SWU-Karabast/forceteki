@@ -259,7 +259,22 @@ export type IAbilityPropsWithType<TSource extends Card = Card> =
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
+    /**
+     * The keyword this triggered ability implements, if any. Used so that generic engine code can
+     * identify the keyword an ability instance represents even when it's constructed via the generic
+     * `TriggeredAbility` class rather than a keyword-specific subclass.
+     */
+    keyword?: KeywordName;
     collectiveTrigger?: boolean;
+
+    /**
+     * If set, this ability opts into a pre-resolution "declare" step: whenever 2+ pending abilities
+     * share the same label (and originate from the same zone) for the same player, the player first
+     * declares (in one action) the subset they intend to resolve, before choosing resolution order as
+     * normal (see `TriggerWindowBase`'s declare step). The string is shown to the player verbatim (e.g.
+     * "Plot") and is not required to be tied to a `KeywordName` — any ability can opt in with any label.
+     */
+    declareGroupLabel?: string;
     targetResolver?: ITriggeredAbilityTargetResolver<TriggeredAbilityContext<TSource>>;
     targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;
     immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;

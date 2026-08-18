@@ -14,7 +14,7 @@ import { registerState } from '../../core/GameObjectUtils';
 
 @registerState()
 export class AmbushAbility extends TriggeredAbilityBase {
-    public readonly keyword: KeywordName = KeywordName.Ambush;
+    public override readonly keyword: KeywordName = KeywordName.Ambush;
 
     public static buildAmbushAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {
