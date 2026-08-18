@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { AbilityRestriction, Trait, WildcardCardType } from '../../../core/Constants';
+import { AbilityRestriction, PhaseName, Trait, WildcardCardType } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CarboniteChamber extends UpgradeCard {
@@ -19,9 +19,15 @@ export default class CarboniteChamber extends UpgradeCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => !card.hasSomeTrait(Trait.Vehicle),
-                immediateEffect: abilityHelper.immediateEffects.forThisRoundCardEffect({
-                    effect: abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup),
-                    ongoingEffectDescription: 'prevent {0} from readying',
+                immediateEffect: abilityHelper.immediateEffects.delayedCardEffect({
+                    title: 'This unit does not ready during this regroup phase',
+                    when: {
+                        onPhaseStarted: (context) => context.phase === PhaseName.Regroup
+                    },
+                    immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        effect: abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.DoesNotReadyDuringRegroup),
+                        ongoingEffectDescription: 'prevent {0} from readying',
+                    })
                 })
             },
         });
