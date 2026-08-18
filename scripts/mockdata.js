@@ -1308,6 +1308,63 @@ const mockCards = [
         unique: true,
         internalName: 'the-tarkin-doctrine#protect-and-punish',
     }),
+    buildMockCard({
+        title: 'Dark Sanctum',
+        cost: 3,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 70
+        },
+        unique: false,
+        internalName: 'dark-sanctum',
+    }),
+    buildMockCard({
+        title: 'Sinister War Memorial',
+        cost: 2,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 113
+        },
+        unique: false,
+        internalName: 'sinister-war-memorial',
+    }),
+    buildMockCard({
+        title: 'Beast Lair',
+        cost: 2,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 147
+        },
+        unique: false,
+        internalName: 'beast-lair',
+    }),
     // -------- End Mock Cards --------
 ];
 
