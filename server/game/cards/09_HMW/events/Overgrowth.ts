@@ -19,13 +19,13 @@ export default class Overgrowth extends EventCard {
                 abilityHelper.immediateEffects.conditional({
                     condition: (c) => c.player.base.hasSomeTrait(Trait.Kashyyyk),
                     onTrue: abilityHelper.immediateEffects.selectCard({
-                        activePromptTitle: 'Select a friendly unit who will deal damage equal to its power to an enemy unit',
+                        activePromptTitle: 'Choose a friendly unit. It deals damage equal to its power to an enemy unit',
                         controller: RelativePlayer.Self,
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: WildcardZoneName.AnyArena,
                         name: 'friendlyUnit',
                         immediateEffect: abilityHelper.immediateEffects.selectCard({
-                            activePromptTitle: (context) => `Select an enemy unit to deal ${context.targets.friendlyUnit?.getPower()} damage`,
+                            activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit?.getPower()} damage to an enemy unit`,
                             controller: RelativePlayer.Opponent,
                             cardTypeFilter: WildcardCardType.Unit,
                             zoneFilter: WildcardZoneName.AnyArena,

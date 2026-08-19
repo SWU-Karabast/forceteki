@@ -18,11 +18,11 @@ describe('Overgrowth', function() {
 
             context.player1.clickCard(context.overgrowth);
 
-            expect(context.player1).toHavePrompt('Select a friendly unit who will deal damage equal to its power to an enemy unit');
+            expect(context.player1).toHavePrompt('Choose a friendly unit. It deals damage equal to its power to an enemy unit');
             expect(context.player1).toBeAbleToSelectExactly([context.gungi, context.porg]);
             context.player1.clickCard(context.gungi);
 
-            expect(context.player1).toHavePrompt('Select an enemy unit to deal 2 damage');
+            expect(context.player1).toHavePrompt('Deal 2 damage to an enemy unit');
             expect(context.player1).toBeAbleToSelectExactly([context.atst, context.awing]);
             context.player1.clickCard(context.atst);
 
@@ -75,10 +75,10 @@ describe('Overgrowth', function() {
 
             context.player1.clickCard(context.overgrowth);
 
-            expect(context.player1).toHavePrompt('Select a friendly unit who will deal damage equal to its power to an enemy unit');
+            expect(context.player1).toHavePrompt('Choose a friendly unit. It deals damage equal to its power to an enemy unit');
             context.player1.clickCard(context._97thLegion);
 
-            expect(context.player1).toHavePrompt('Select an enemy unit to deal 5 damage');
+            expect(context.player1).toHavePrompt('Deal 5 damage to an enemy unit');
             context.player1.clickCard(context.atst);
 
             expect(context.player2).toBeActivePlayer();
