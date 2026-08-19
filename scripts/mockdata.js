@@ -691,6 +691,7 @@ const mockCards = [
         cost: 6,
         power: 5,
         hp: 5,
+        text: 'As an additional cost to play this unit, put up to 2 units that each cost 5 or less from your discard pile on the bottom of your deck. This unit gains those units\' "When Played" abilities for this phase.',
         hasNonKeywordAbility: true,
         aspects: ['command', 'cunning'],
         traits: ['force', 'jedi'],

@@ -5,7 +5,7 @@ import type { Card } from './core/card/Card';
 import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, SwuGameFormat, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
-import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
+import type { IActionTargetResolver, IActionTargetsResolver, ICardTargetResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import type { ICost } from './core/cost/ICost';
 import type { Game } from './core/Game';
@@ -186,6 +186,28 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
      */
     initiateAttack?: IInitiateAttackProperties | ((context: TContext) => IInitiateAttackProperties);
 }
+
+/** Interface definition for addAdditionalPlayCost and addAlternatePlayCost abilities */
+export type IPlayCostProperties<TSource extends Card = Card> = { title?: string } & (
+  | {
+      cost: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[];
+      costName?: undefined;
+      immediateEffect?: undefined;
+      targetResolver?: undefined;
+  }
+  | {
+      immediateEffect: GameSystem<AbilityContext<TSource>>;
+      costName?: string;
+      cost?: undefined;
+      targetResolver?: undefined;
+  }
+  | {
+      targetResolver: ICardTargetResolver<AbilityContext<TSource>>;
+      costName?: string;
+      cost?: undefined;
+      immediateEffect?: undefined;
+  }
+);
 
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
