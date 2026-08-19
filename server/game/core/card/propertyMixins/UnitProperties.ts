@@ -78,7 +78,6 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     getCaptor(): ICaptorCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
-    isUpgraded(): boolean;
     hasExperience(): boolean;
     hasWeakness(): boolean;
     hasShield(): boolean;

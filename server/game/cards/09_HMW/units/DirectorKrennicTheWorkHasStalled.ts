@@ -14,7 +14,7 @@ export default class DirectorKrennicTheWorkHasStalled extends NonLeaderUnitCard 
         registrar.addOnAttackAbility({
             title: 'Draw a card',
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.base.upgrades.length > 0,
+                condition: (context) => context.player.base.isUpgraded(),
                 onTrue: abilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
             })
         });

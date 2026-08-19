@@ -21,6 +21,7 @@ export interface ICardWithUpgrades extends Card {
     readonly upgrades: IUpgradeCard[];
     attachUpgrade(upgrade);
     unattachUpgrade(upgrade, event?);
+    isUpgraded(): boolean;
 }
 
 export interface ICardCanChangeControllers {

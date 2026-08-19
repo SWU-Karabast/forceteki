@@ -55,6 +55,10 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return [...this._upgrades];
     }
 
+    public isUpgraded(): boolean {
+        return this._upgrades.length > 0;
+    }
+
     /**
      * Add the passed upgrade to this base's upgrade list. The upgrade must already have been moved into
      * the base zone (mirrors {@link IUnitCard.attachUpgrade} for units in an arena).
