@@ -1508,6 +1508,133 @@ const mockCards = [
         arena: 'ground',
         internalName: 'qimir#everyone-has-a-weakness'
     }),
+    buildMockCard({
+        title: 'Bacta Tank',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 37
+        },
+        unique: false,
+        internalName: 'bacta-tank',
+    }),
+    buildMockCard({
+        title: 'Intelligence Agency',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 205
+        },
+        unique: false,
+        internalName: 'intelligence-agency',
+    }),
+    buildMockCard({
+        title: 'Han Solo',
+        subtitle: 'My Team\'s Ready',
+        cost: 5,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['rebel', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 170
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'han-solo#my-teams-ready'
+    }),
+    buildMockCard({
+        title: 'Carrion Spike',
+        subtitle: 'Harbinger of Tyranny',
+        cost: 5,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        keywords: ['shielded'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 66
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'carrion-spike#harbinger-of-tyranny'
+    }),
+    buildMockCard({
+        title: 'Rho Medical Shuttle',
+        cost: 3,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 63
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'rho-medical-shuttle'
+    }),
+    buildMockCard({
+        title: 'Sando Aqua Monster',
+        cost: 8,
+        power: 5,
+        hp: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['creature'],
+        keywords: ['grit'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 94
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'sando-aqua-monster'
+    }),
+    buildMockCard({
+        title: 'Champions of Endor',
+        cost: 2,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression', 'heroism'],
+        traits: ['ewok'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 163
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'champions-of-endor'
+    }),
     // -------- End Mock Cards --------
 ];
 
