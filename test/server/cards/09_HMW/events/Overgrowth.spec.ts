@@ -5,7 +5,7 @@ describe('Overgrowth', function() {
                 phase: 'action',
                 player1: {
                     hand: ['overgrowth'],
-                    groundArena: ['battlefield-marine', 'porg'],
+                    groundArena: ['gungi#finding-himself', 'porg'],
                     base: 'origin-tree'
                 },
                 player2: {
@@ -18,14 +18,16 @@ describe('Overgrowth', function() {
 
             context.player1.clickCard(context.overgrowth);
 
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.porg]);
-            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player1).toHavePrompt('Select a friendly unit who will deal damage equal to its power to an enemy unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.gungi, context.porg]);
+            context.player1.clickCard(context.gungi);
 
+            expect(context.player1).toHavePrompt('Select an enemy unit to deal 2 damage');
             expect(context.player1).toBeAbleToSelectExactly([context.atst, context.awing]);
             context.player1.clickCard(context.atst);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.atst.damage).toBe(3);
+            expect(context.atst.damage).toBe(2);
             expect(context.overgrowth).toBeInZone('resource', context.player1);
             expect(context.overgrowth.exhausted).toBeTrue();
         });
@@ -73,7 +75,10 @@ describe('Overgrowth', function() {
 
             context.player1.clickCard(context.overgrowth);
 
+            expect(context.player1).toHavePrompt('Select a friendly unit who will deal damage equal to its power to an enemy unit');
             context.player1.clickCard(context._97thLegion);
+
+            expect(context.player1).toHavePrompt('Select an enemy unit to deal 5 damage');
             context.player1.clickCard(context.atst);
 
             expect(context.player2).toBeActivePlayer();
