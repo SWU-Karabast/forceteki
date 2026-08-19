@@ -817,7 +817,7 @@ export class Game extends EventEmitter {
      * Check to see if a base (or both bases) has been destroyed
      */
     public checkWinCondition(): void {
-        const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp());
+        const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp() || player.base.defeated);
         if (losingPlayers.length === 1) {
             this.endGame(losingPlayers[0].opponent, GameEndReason.GameRules);
         } else if (losingPlayers.length === 2) { // draw game
@@ -1379,8 +1379,8 @@ export class Game extends EventEmitter {
     /**
      * Resolves a card ability
      */
-    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = []): AbilityResolver {
-        const resolver = new AbilityResolver(this, context, false, null, null, ignoredRequirements);
+    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean): AbilityResolver {
+        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements);
         this.queueStep(resolver);
         return resolver;
     }

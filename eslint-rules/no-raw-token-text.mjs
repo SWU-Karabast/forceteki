@@ -66,7 +66,7 @@ const TOKEN_CATEGORIES = [
         ],
     },
     {
-        pattern: 'Keywords?|Ambush|Grit|Overwhelm|Raid\\s+\\d+|Restore\\s+\\d+|Saboteur|Sentinel|Shielded|Bounty|Smuggle|Coordinate|Exploit\\s+\\d+|Piloting|Hidden|Plot',
+        pattern: 'Keywords?|Ambush|Grit|Overwhelm|Raid\\s+\\d+|Restore\\s+\\d+|Saboteur|Sentinel|Shielded|Bounty|Smuggle|Coordinate|Exploit\\s+\\d+|Piloting|Hidden|Plot|Support|Fortify',
         flags: 'g',
         messageId: 'rawKeyword',
         message: 'Raw keyword "{{match}}" in string literal. Use the corresponding TextHelper constant (e.g. `TextHelper.Ambush`) in a template literal instead, so it can be styled correctly on the client side.',
