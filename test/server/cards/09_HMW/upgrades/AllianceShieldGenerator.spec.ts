@@ -24,7 +24,7 @@ describe('Alliance Shield Generator', function() {
             expect(context.allianceShieldGenerator).toBeInZone('discard');
             expect(context.wampa).toBeInZone('hand');
             expect(context.getChatLogs(2)).toContain(
-                'player1 uses Alliance Shield Generator to defeat Alliance Shield Generator and draw a card and to  instead of their base taking damage'
+                'player1 uses Alliance Shield Generator to defeat Alliance Shield Generator and to draw a card instead of their base taking damage'
             );
         });
 
