@@ -1433,6 +1433,81 @@ const mockCards = [
         unique: false,
         internalName: 'growth'
     }),
+    buildMockCard({
+        title: 'Osha',
+        subtitle: 'Haunted By Her Past',
+        cost: 6,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['saboteur'],
+        traits: ['force'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 17
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'osha#haunted-by-her-past'
+    }),
+    buildMockCard({
+        title: 'Mae',
+        subtitle: 'Kill The Dream',
+        cost: 3,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'cunning', 'villainy'],
+        traits: ['force', 'sith'],
+        keywords: ['ambush', 'shielded', 'grit'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 55
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mae#kill-the-dream'
+    }),
+    buildMockCard({
+        title: 'Sol',
+        subtitle: 'Compassionate Guardian',
+        cost: 2,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['force', 'jedi'],
+        keywords: ['shielded'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 210
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sol#compassionate-guardian'
+    }),
+    buildMockCard({
+        title: 'Qimir',
+        subtitle: 'Everyone Has a Weakness',
+        cost: 1,
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['force'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 196
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'qimir#everyone-has-a-weakness'
+    }),
     // -------- End Mock Cards --------
 ];
 
