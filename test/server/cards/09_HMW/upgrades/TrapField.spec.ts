@@ -44,7 +44,8 @@ describe('Trap Field', function() {
 
             expect(context.player1).toBeActivePlayer();
             expect(context.trapField).toBeInZone('discard');
-            expect(() => context.player1.findCardByName('spy')).toThrowError('Could not find any cards matching name spy');
+            const spy = context.player2.findCardByName('spy');
+            expect(spy).toBeInZone('outsideTheGame', context.player2);
         });
 
         it('Trap Field\'s ability should trigger when a friendly non-leader ground unit enters play and allow defeating the upgrade to deal 3 damage', async function() {
