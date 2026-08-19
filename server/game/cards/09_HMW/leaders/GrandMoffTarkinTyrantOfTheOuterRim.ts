@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, KeywordName, PhaseName, RelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GrandMoffTarkinTyrantOfTheOuterRim extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -34,7 +35,7 @@ export default class GrandMoffTarkinTyrantOfTheOuterRim extends LeaderUnitCard {
 
     private buildIgnoreFortifyAspectPenaltyProperties(AbilityHelper: IAbilityHelper) {
         return {
-            title: 'Ignore the aspect penalties on upgrades with Fortify you play',
+            title: `Ignore the aspect penalties on upgrades with ${TextHelper.Fortify} you play`,
             targetController: RelativePlayer.Self,
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: CardType.BasicUpgrade,

@@ -14,6 +14,7 @@ export default class TheTarkinDoctrineProtectAndPunish extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addGainTriggeredAbilityTargetingAttached({
             title: 'Exhaust an enemy unit',
+            gainCondition: (context) => context.source.parentCard?.isBase(),
             when: {
                 onCardPlayed: (event, context) =>
                     event.player === context.player &&

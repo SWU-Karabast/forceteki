@@ -15,6 +15,8 @@ describe('Grand Moff Tarkin, Tyrant of the Outer Rim', function() {
             it('ignores the aspect penalty when playing a Fortify upgrade', function() {
                 const { context } = contextRef;
 
+                expect(context.grandMoffTarkin).toHaveOngoingEffect('Ignore the aspect penalties on upgrades with Fortify you play');
+
                 // Play Trap Field (Fortify - Aggression, Heroism) on the base
                 context.player1.clickCard(context.trapField);
                 context.player1.clickCard(context.p1Base);
@@ -87,6 +89,8 @@ describe('Grand Moff Tarkin, Tyrant of the Outer Rim', function() {
 
             it('ignores the aspect penalty when playing a Fortify upgrade', function() {
                 const { context } = contextRef;
+
+                expect(context.grandMoffTarkin).toHaveOngoingEffect('Ignore the aspect penalties on upgrades with Fortify you play');
 
                 // Play Trap Field (Fortify) on the base
                 context.player1.clickCard(context.trapField);
