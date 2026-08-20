@@ -40,7 +40,6 @@ export default class OshaHauntedByHerPast extends LeaderUnitCard {
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         playAsType: WildcardCardType.Unit,
                         canPlayFromAnyZone: true,
-                        nested: true,
                         adjustCost: {
                             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
                             ignoredAspect: Aspect.Villainy
@@ -64,7 +63,6 @@ export default class OshaHauntedByHerPast extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Unit,
                     canPlayFromAnyZone: true,
-                    nested: true,
                     adjustCost: {
                         costAdjustType: CostAdjustType.IgnoreSpecificAspects,
                         ignoredAspect: Aspect.Villainy

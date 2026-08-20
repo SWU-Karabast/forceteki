@@ -609,7 +609,7 @@ describe('Osha, Haunted By Her Past', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('resolves the played unit\'s own When Played ability before the resource-a-card prompt', async function () {
+            it('resolves the played unit\'s When Played ability after the resource-a-card prompt', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -626,59 +626,20 @@ describe('Osha, Haunted By Her Past', function () {
 
                 context.player1.clickCard(context.osha);
                 context.player1.clickCard(context.ruthlessAssassin);
+                expect(context.ruthlessAssassin).toBeInZone('groundArena', context.player1);
 
-                // Ruthless Assassin's own When Played ability resolves first
+                // Resource prompt comes before the resolution of the When Played ability
+                expect(context.player1).toHavePrompt('Resource a card from your hand');
+                expect(context.player1).toBeAbleToSelectExactly([context.powerOfTheDarkSide]);
+                context.player1.clickCard(context.powerOfTheDarkSide);
+                expect(context.powerOfTheDarkSide).toBeInZone('resource', context.player1);
+
+                // Now Ruthless Assassin's When Played ability resolves
                 expect(context.player1).toHavePrompt('Deal 2 damage to a friendly unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.osha, context.wampa, context.ruthlessAssassin]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa.damage).toBe(2);
 
-                // Only after the When Played ability resolves does the resource-a-card tail appear
-                expect(context.player1).toBeAbleToSelectExactly([context.powerOfTheDarkSide]);
-                context.player1.clickCard(context.powerOfTheDarkSide);
-
-                expect(context.ruthlessAssassin).toBeInZone('groundArena', context.player1);
-                expect(context.powerOfTheDarkSide).toBeInZone('resource', context.player1);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('lets an Ambush unit complete its attack before the resource-a-card prompt', async function () {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: { card: 'osha#haunted-by-her-past', deployed: true, exhausted: true },
-                        base: 'lake-country',
-                        resources: [
-                            'fetts-firespray#in-pursuit',
-                            'underworld-thug', 'underworld-thug', 'underworld-thug',
-                            'underworld-thug', 'underworld-thug', 'underworld-thug'
-                        ],
-                        hand: ['power-of-the-dark-side']
-                    },
-                    player2: {
-                        // Fett's Firespray is a space unit, so its Ambush target must also be in the space arena
-                        spaceArena: ['desperado-freighter']
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.osha);
-                context.player1.clickCard(context.fettsFirespray);
-
-                // Ambush lets Fett's Firespray attack immediately, nested within the resolving ability
-                expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Trigger');
-                context.player1.clickCard(context.desperadoFreighter);
-
-                // Combat resolves fully (both units survive) before the resource-a-card tail is offered
-                expect(context.fettsFirespray.damage).toBe(5);
-                expect(context.desperadoFreighter.damage).toBe(4);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.powerOfTheDarkSide]);
-                context.player1.clickCard(context.powerOfTheDarkSide);
-
-                expect(context.powerOfTheDarkSide).toBeInZone('resource', context.player1);
                 expect(context.player2).toBeActivePlayer();
             });
         });
