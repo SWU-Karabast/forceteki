@@ -18,7 +18,11 @@ export default class ViceAdmiralRampartANewEraOfSafety extends NonLeaderUnitCard
                 onCardDefeated: (event, context) =>
                     context.player.base.upgrades.includes(event.card)
             },
-            onlyIfYouDoEffect: AbilityHelper.immediateEffects.defeat()
+            replaceWith: (context) => ({
+                replacementImmediateEffect: AbilityHelper.immediateEffects.defeat({
+                    target: context.source
+                })
+            })
         });
     }
 }

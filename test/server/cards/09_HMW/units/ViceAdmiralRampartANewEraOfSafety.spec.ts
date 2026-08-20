@@ -83,6 +83,61 @@ describe('Vice Admiral Rampart, A New Era of Safety', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('should not trigger when an upgrade on the enemy base is defeated', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['confiscate'],
+                        groundArena: ['vice-admiral-rampart#a-new-era-of-safety']
+                    },
+                    player2: {
+                        base: { card: 'echo-base', upgrades: ['sinister-war-memorial'] }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 defeats the upgrade on the enemy base
+                context.player1.clickCard(context.confiscate);
+                context.player1.clickCard(context.sinisterWarMemorial);
+
+                // Rampart's ability does not trigger since the defeated upgrade is on the enemy base, not Rampart's controller's base
+                expect(context.sinisterWarMemorial).toBeInZone('discard');
+                expect(context.p2Base).toHaveExactUpgradeNames([]);
+                expect(context.viceAdmiralRampart).toBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should still resolve a base upgrade\'s "if you do" effect when Rampart replaces its self-defeat', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['vice-admiral-rampart#a-new-era-of-safety'],
+                        base: { card: 'kestro-city', upgrades: ['trap-field'] }
+                    },
+                    player2: {
+                        hand: ['wampa'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P2 plays a ground unit, triggering Trap Field's "defeat this upgrade to deal 3 damage" ability
+                context.player2.clickCard(context.wampa);
+                expect(context.player1).toHavePassAbilityPrompt('Defeat this upgrade to deal 3 damage to Wampa');
+                context.player1.clickPrompt('Trigger');
+
+                // Trap Field would be defeated, so Rampart offers to be defeated in its place
+                expect(context.player1).toHavePassAbilityPrompt(replacementPromptTitle);
+                context.player1.clickPrompt('Trigger');
+
+                // Rampart is defeated instead, Trap Field survives, and its "if you do" damage still resolves
+                expect(context.viceAdmiralRampart).toBeInZone('discard');
+                expect(context.p1Base).toHaveExactUpgradeNames(['trap-field']);
+                expect(context.wampa.damage).toBe(3);
+            });
+
             it('should only be able to save one base upgrade since Rampart is defeated the first time it is used', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
