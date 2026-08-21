@@ -1763,7 +1763,7 @@ const mockCards = [
         hp: 3,
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'cunning', 'villainy'],
-        traits: ['force', 'overwhelm', 'inquisitor'],
+        traits: ['force', 'imperial', 'inquisitor'],
         keywords: ['overwhelm'],
         types: ['unit'],
         setId: {
