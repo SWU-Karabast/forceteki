@@ -265,6 +265,9 @@ export function distributeExperienceAmong<TContext extends AbilityContext = Abil
 export function distributeAdvantageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeTokenUpgradeFactoryProperties<TContext>, TContext>) {
     return distributeTokenUpgradeAmong<TContext>(propertyFactory, TokenUpgradeName.Advantage);
 }
+export function distributeWeaknessAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeTokenUpgradeFactoryProperties<TContext>, TContext>) {
+    return distributeTokenUpgradeAmong<TContext>(propertyFactory, TokenUpgradeName.Weakness);
+}
 export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
 }

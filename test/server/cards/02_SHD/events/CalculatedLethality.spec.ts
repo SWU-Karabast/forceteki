@@ -50,7 +50,7 @@ describe('Calculated Lethality', function () {
                 expect(context.player1).not.toHaveChooseNothingButton();
 
                 // give 1 experience to fifth brother & corellian freighter
-                context.player1.setDistributeExperiencePromptState(new Map([
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.fifthBrother, 1],
                     [context.corellianFreighter, 1],
                 ]));

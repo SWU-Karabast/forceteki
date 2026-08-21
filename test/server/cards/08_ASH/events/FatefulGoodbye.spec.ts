@@ -23,10 +23,10 @@ describe('Fateful Goodbye', function() {
             context.player2.clickCard(context.rebelPathfinder);
 
             context.player1.clickCard(context.fatefulGoodbye);
-            context.player1.setDistributeAmongTargetsPromptState(new Map([
+            context.player1.setDistributeTokenUpgradePromptState(new Map([
                 [context.battlefieldMarine, 2],
                 [context.awing, 1]
-            ]), 'distributeTokenUpgrade');
+            ]));
 
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['advantage', 'advantage']);
@@ -57,10 +57,10 @@ describe('Fateful Goodbye', function() {
             context.player2.clickCard(context.rebelPathfinder);
 
             context.player1.clickCard(context.fatefulGoodbye);
-            context.player1.setDistributeAmongTargetsPromptState(new Map([
+            context.player1.setDistributeTokenUpgradePromptState(new Map([
                 [context.battlefieldMarine, 2],
                 [context.awing, 1]
-            ]), 'distributeTokenUpgrade');
+            ]));
 
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['advantage', 'advantage']);
@@ -91,9 +91,9 @@ describe('Fateful Goodbye', function() {
             context.player2.clickCard(context.cloneTrooper);
 
             context.player1.clickCard(context.fatefulGoodbye);
-            context.player1.setDistributeAmongTargetsPromptState(new Map([
+            context.player1.setDistributeTokenUpgradePromptState(new Map([
                 [context.battlefieldMarine, 3],
-            ]), 'distributeTokenUpgrade');
+            ]));
 
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage']);
@@ -123,10 +123,10 @@ describe('Fateful Goodbye', function() {
             context.player2.clickCard(context.rebelPathfinder);
 
             context.player1.clickCard(context.fatefulGoodbye);
-            context.player1.setDistributeAmongTargetsPromptState(new Map([
+            context.player1.setDistributeTokenUpgradePromptState(new Map([
                 [context.battlefieldMarine, 2],
                 [context.grandInquisitor, 1]
-            ]), 'distributeTokenUpgrade');
+            ]));
 
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['advantage', 'advantage']);
@@ -158,10 +158,10 @@ describe('Fateful Goodbye', function() {
             context.player2.passAction();
 
             context.player1.clickCard(context.fatefulGoodbye);
-            context.player1.setDistributeAmongTargetsPromptState(new Map([
+            context.player1.setDistributeTokenUpgradePromptState(new Map([
                 [context.battlefieldMarine, 2],
                 [context.awing, 1]
-            ]), 'distributeTokenUpgrade');
+            ]));
 
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['advantage', 'advantage']);
@@ -375,9 +375,9 @@ describe('Fateful Goodbye', function() {
             context.player1.clickCard(context.phoenixSquadronAwing);
 
             context.player2.clickCard(context.fatefulGoodbye);
-            context.player2.setDistributeAmongTargetsPromptState(new Map([
+            context.player2.setDistributeTokenUpgradePromptState(new Map([
                 [context.atst, 5],
-            ]), 'distributeTokenUpgrade');
+            ]));
 
             expect(context.player1).toBeActivePlayer();
             expect(context.atst).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage', 'advantage', 'advantage']);
@@ -407,9 +407,9 @@ describe('Fateful Goodbye', function() {
             context.player1.clickCard(context.wedgeAntilles);
 
             context.player2.clickCard(context.fatefulGoodbye);
-            context.player2.setDistributeAmongTargetsPromptState(new Map([
+            context.player2.setDistributeTokenUpgradePromptState(new Map([
                 [context.atst, 5],
-            ]), 'distributeTokenUpgrade');
+            ]));
 
             expect(context.player1).toBeActivePlayer();
             expect(context.atst).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage', 'advantage', 'advantage']);
