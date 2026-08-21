@@ -1635,6 +1635,74 @@ const mockCards = [
         arena: 'ground',
         internalName: 'champions-of-endor'
     }),
+    buildMockCard({
+        title: 'Therm Scissorpunch',
+        subtitle: 'Boastful Gambler',
+        cost: 2,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 223
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'therm-scissorpunch#boastful-gambler'
+    }),
+    buildMockCard({
+        title: 'General Grievous',
+        subtitle: 'Scourge of Dathomir',
+        cost: 7,
+        power: 8,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 159
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-grievous#scourge-of-dathomir'
+    }),
+    buildMockCard({
+        title: 'Dooku\'s Solar Sailer',
+        subtitle: 'Droid Army Portent',
+        cost: 3,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['separatist', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 154
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'dookus-solar-sailer'
+    }),
+    buildMockCard({
+        title: 'Ravage',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['disaster', 'tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 71
+        },
+        unique: false,
+        internalName: 'ravage'
+    }),
     // -------- End Mock Cards --------
 ];
 
