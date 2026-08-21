@@ -43,7 +43,7 @@ describe('Carrion Spike, Harbinger of Tyranny', function () {
             context.player1.clickCard(context.p2Base);
 
             expect(context.p2Base.damage).toBe(3);
-            expect(context.p1Base.damage).toBe(2); // restored 2
+            expect(context.p1Base.damage).toBe(2);
         });
     });
 });

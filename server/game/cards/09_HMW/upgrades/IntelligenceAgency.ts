@@ -1,7 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { RelativePlayer } from '../../../core/Constants';
 
 export default class IntelligenceAgency extends UpgradeCard {
     protected override getImplementationId () {
@@ -12,10 +11,9 @@ export default class IntelligenceAgency extends UpgradeCard {
     }
 
     public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
-        registrar.addConstantAbility({
+        registrar.addGainConstantAbilityTargetingAttached({
             title: 'You may look at the top card of your deck at any time',
-            condition: (context) => context.source.parentCard?.isBase(),
-            targetController: RelativePlayer.Self,
+            condition: (context) => context.source.isBase(),
             ongoingEffect: abilityHelper.ongoingEffects.canLookAtTopOfDeck()
         });
 
