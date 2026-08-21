@@ -1703,6 +1703,77 @@ const mockCards = [
         unique: false,
         internalName: 'ravage'
     }),
+    buildMockCard({
+        title: 'Raze to Ruin',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['disaster', 'plan'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 161
+        },
+        unique: false,
+        internalName: 'raze-to-ruin'
+    }),
+    buildMockCard({
+        title: 'Darth Sidious',
+        subtitle: 'There is No Mercy',
+        cost: 6,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['force', 'sith'],
+        keywords: ['hidden'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 11
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'darth-sidious#there-is-no-mercy'
+    }),
+    buildMockCard({
+        title: 'Babwa Venomor',
+        subtitle: 'Burning Kashyyyk',
+        cost: 2,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        keywords: ['overwhelm'],
+        traits: ['imperial'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 152
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'babwa-venomor#burning-kashyyyk'
+    }),
+    buildMockCard({
+        title: 'Third Sister',
+        subtitle: 'Cycle of Vengeance',
+        cost: 4,
+        power: 6,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning', 'villainy'],
+        traits: ['force', 'overwhelm', 'inquisitor'],
+        keywords: ['overwhelm'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 51
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'third-sister#cycle-of-vengeance'
+    }),
     // -------- End Mock Cards --------
 ];
 
