@@ -47,6 +47,13 @@ const refreshTokenFieldMap: Record<RefreshTokenSource, {
     [RefreshTokenSource.SWUBase]: 'swubaseRefreshToken',
 };
 
+type DevelopmentTestProviderId = 'order66' | 'this-is-the-way';
+
+const developmentTestUsers: Record<DevelopmentTestProviderId, { id: string; username: string }> = {
+    order66: { id: 'exe66', username: 'Order66' },
+    'this-is-the-way': { id: 'th3w4y', username: 'ThisIsTheWay' },
+};
+
 
 /**
  * Factory class responsible for creating the appropriate User instance
@@ -64,6 +71,10 @@ export class UserFactory {
     public async createUserFromTokenAsync(token: string): Promise<User> {
         try {
             const dbService = await this.dbServicePromise;
+            if (!dbService) {
+                return this.createLocalDevelopmentTestUserFromToken(token);
+            }
+
             const basicUser = await this.authenticateWithTokenAsync(token);
             Contract.assertNotNullLike(basicUser, 'Token authentication failed, User not found from token');
 
@@ -77,6 +88,106 @@ export class UserFactory {
             logger.error('Error creating user from token:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
+    }
+
+    /** Loads one of the two test accounts for local development test games. */
+    public async createDevelopmentTestUserAsync(providerId: DevelopmentTestProviderId): Promise<AuthenticatedUser | null> {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be loaded in development');
+
+        const dbService = await this.dbServicePromise;
+        if (!dbService) {
+            return this.createEphemeralDevelopmentTestUser(providerId);
+        }
+
+        const userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+        if (!userId) {
+            return null;
+        }
+
+        let userData = await dbService.getUserProfileAsync(userId);
+        if (!userData) {
+            return null;
+        }
+
+        userData = await this.processModerationAsync(userData);
+        return new AuthenticatedUser(userData);
+    }
+
+    /** Ensures the two persistent local-development test accounts exist without requiring an initial browser login. */
+    public async ensureDevelopmentTestUsersAsync(): Promise<void> {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be initialized in development');
+
+        const dbService = await this.dbServicePromise;
+        if (!dbService) {
+            return;
+        }
+
+        for (const providerId of Object.keys(developmentTestUsers) as DevelopmentTestProviderId[]) {
+            const testUser = developmentTestUsers[providerId];
+            let userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+
+            if (!userId) {
+                userId = testUser.id;
+                try {
+                    await dbService.saveOAuthLinkAsync('dev-user', providerId, userId);
+                } catch (error) {
+                    if (error.name !== 'ConditionalCheckFailedException') {
+                        throw error;
+                    }
+
+                    // Another initializer won the race. Use the ID it registered.
+                    userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+                    Contract.assertNotNullLike(userId, `Development test user ${testUser.username} OAuth link could not be initialized`);
+                }
+            }
+
+            const existingProfile = await dbService.getUserProfileAsync(userId);
+            if (!existingProfile) {
+                const now = new Date().toISOString();
+                await dbService.saveUserProfileAsync({
+                    id: userId,
+                    username: testUser.username,
+                    lastLogin: now,
+                    createdAt: now,
+                    usernameLastUpdatedAt: now,
+                    showWelcomeMessage: false,
+                    preferences: getDefaultPreferences(),
+                    needsUsernameChange: false,
+                });
+            }
+
+            // This write is idempotent and also repairs databases created before username links were required.
+            await dbService.saveUsernameLinkAsync(testUser.username, userId);
+        }
+    }
+
+    private createLocalDevelopmentTestUserFromToken(token: string): AnonymousUser {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Local test users can only authenticate in development');
+
+        const secret = process.env.NEXTAUTH_SECRET;
+        Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+        const decoded = jwt.verify(token, secret) as any;
+        Contract.assertEqual(decoded.provider, 'dev-user', 'Ephemeral authentication is restricted to the development user provider');
+        Contract.assertTrue(
+            decoded.providerId === 'order66' || decoded.providerId === 'this-is-the-way',
+            'Unknown development test user'
+        );
+
+        const providerId = decoded.providerId as DevelopmentTestProviderId;
+        const expectedUser = developmentTestUsers[providerId];
+        Contract.assertEqual(decoded.name, expectedUser.username, 'Development test user name does not match its provider identity');
+        return this.createAnonymousUser(expectedUser.id, expectedUser.username);
+    }
+
+    private createEphemeralDevelopmentTestUser(providerId: DevelopmentTestProviderId): AuthenticatedUser {
+        const testUser = developmentTestUsers[providerId];
+        return new AuthenticatedUser({
+            id: testUser.id,
+            username: testUser.username,
+            showWelcomeMessage: false,
+            preferences: getDefaultPreferences(),
+            needsUsernameChange: false,
+        });
     }
 
     /**
