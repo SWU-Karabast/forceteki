@@ -13,7 +13,7 @@ export default class IntelligenceAgency extends UpgradeCard {
     public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addGainConstantAbilityTargetingAttached({
             title: 'You may look at the top card of your deck at any time',
-            condition: (context) => context.source.isBase(),
+            gainCondition: (context) => context.source.isBase(),
             ongoingEffect: abilityHelper.ongoingEffects.canLookAtTopOfDeck()
         });
 
