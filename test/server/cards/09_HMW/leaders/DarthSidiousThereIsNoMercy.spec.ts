@@ -337,6 +337,70 @@ describe('Darth Sidious, There is No Mercy', function() {
                 expect(context.p1Base.damage).toBe(1);
             });
 
+            it('should trigger when a unit deals 4+ damage to a unit that has less than 4 HP ramaining', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        groundArena: ['massassi-group-marines']
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Massassi Group Marines attacks and defeats Death Star Stormtrooper
+                context.player1.clickCard(context.massassiGroupMarines);
+                context.player1.clickCard(context.deathStarStormtrooper);
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
+
+                // Darth Sidious' ability triggers even though Stormtrooper only had 1HP, it still took 4 damage
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.darthSidious, context.massassiGroupMarines]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(1);
+            });
+
+            it('should trigger twice when a unit with Overwhelm attacks a unit and deals 4+ excess damage to the base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        groundArena: ['republic-war-walker'] // 7/6 Overwhelm
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Republic War Walker attacks and defeats Battlefield Marine
+                context.player1.clickCard(context.republicWarWalker);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(4); // Overwhelm damage
+
+                // Darth Sidious' ability triggers twice: once for the damage dealt to BM, once for the 4 excess damage dealt to base
+                expect(context.player1).toHavePrompt(`Resolve "${abilityPrompt}"`);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
+
+                // First trigger is for Battlefield Marine
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.darthSidious, context.republicWarWalker]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(5);
+
+                // Second trigger is for P2's base, so it is not selectable
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.darthSidious, context.republicWarWalker]);
+                context.player1.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should trigger from direct Overwhelm damage dealt directly to the base', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
