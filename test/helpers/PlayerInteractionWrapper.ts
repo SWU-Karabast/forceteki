@@ -708,8 +708,9 @@ export class PlayerInteractionWrapper {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
     }
 
-    public setDistributeExperiencePromptState(cardDistributionMap: any) {
-        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeExperience');
+    /** Resolves a distribute prompt for any token upgrade (Experience, Advantage, Weakness) — they share the `distributeTokenUpgrade` prompt type. */
+    public setDistributeTokenUpgradePromptState(cardDistributionMap: any) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeTokenUpgrade');
     }
 
     public setDistributeAmongTargetsPromptState(cardDistributionMap: any, type: string) {

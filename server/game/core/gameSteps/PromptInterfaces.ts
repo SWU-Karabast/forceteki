@@ -1,6 +1,7 @@
 import type { ISetId } from '../../Interfaces';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
+import type { TokenUpgradeName } from '../Constants';
 import type { BaseCardSelector } from '../cardSelector/BaseCardSelector';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { OngoingEffectSourceBase } from '../ongoingEffect/OngoingEffectSource';
@@ -107,8 +108,7 @@ export enum StatefulPromptType {
     DistributeDamage = 'distributeDamage',
     DistributeIndirectDamage = 'distributeIndirectDamage',
     DistributeHealing = 'distributeHealing',
-    DistributeExperience = 'distributeExperience',
-    DistributeAdvantage = 'distributeAdvantage',
+    DistributeTokenUpgrade = 'distributeTokenUpgrade',
 }
 
 export enum SelectCardMode {
@@ -119,8 +119,7 @@ export enum SelectCardMode {
 export type DistributePromptType =
   | StatefulPromptType.DistributeDamage
   | StatefulPromptType.DistributeIndirectDamage
-  | StatefulPromptType.DistributeExperience
-  | StatefulPromptType.DistributeAdvantage
+  | StatefulPromptType.DistributeTokenUpgrade
   | StatefulPromptType.DistributeHealing;
 
 export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;
@@ -140,6 +139,9 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
     maxTargets?: number;
     legalTargets: Card[];
     resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) => void;
+
+    /** Which token upgrade is being distributed. Only set when `type` is {@link StatefulPromptType.DistributeTokenUpgrade}. */
+    tokenType?: TokenUpgradeName;
 }
 
 export interface IDistributeAmongTargetsPromptData {
@@ -149,6 +151,9 @@ export interface IDistributeAmongTargetsPromptData {
     canDistributeLess: boolean;
     canChooseNoTargets: boolean;
     maxTargets?: number;
+
+    /** Which token upgrade is being distributed. Only set when `type` is {@link StatefulPromptType.DistributeTokenUpgrade}. */
+    tokenType?: TokenUpgradeName;
 }
 
 export interface IDistributeAmongTargetsPromptResults {
