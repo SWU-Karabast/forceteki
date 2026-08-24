@@ -85,7 +85,7 @@ describe('Qimir, Everyone Has a Weakness', function() {
             expect(context.wampa).toHaveExactUpgradeNames([]);
         });
 
-        it('Qimir\'s ability should trigger even if deck is empty', async function() {
+        it('Qimir\'s ability should not trigger if deck is empty', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -103,9 +103,6 @@ describe('Qimir, Everyone Has a Weakness', function() {
 
             context.player2.clickCard(context.wampa);
             context.player2.clickCard(context.qimir);
-
-            expect(context.player1).toHavePassAbilityPrompt('Discard the top card of your deck. If it\'s not Villainy, give a Weakness token to an enemy unit.');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeActivePlayer();
             expect(context.awing).toHaveExactUpgradeNames([]);

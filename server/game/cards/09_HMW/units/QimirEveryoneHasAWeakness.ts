@@ -16,21 +16,19 @@ export default class QimirEveryoneHasAWeakness extends NonLeaderUnitCard {
         registrar.addWhenDefeatedAbility({
             title: `Discard the top card of your deck. If it's not ${TextHelper.Villainy}, give a Weakness token to an enemy unit.`,
             optional: true,
-            immediateEffect: abilityHelper.immediateEffects.sequential([
-                abilityHelper.immediateEffects.discardFromDeck((context) => ({
-                    amount: 1,
-                    target: context.player,
-                })),
-                abilityHelper.immediateEffects.conditional({
-                    // There will be one event for the discard system overall plus one per card, so we need to ensure at least two exist
-                    condition: (context) => (context.events.length < 2 ? false : !context.events[0].card?.hasSomeAspect(Aspect.Villainy) ?? false),
-                    onTrue: abilityHelper.immediateEffects.selectCard({
-                        cardTypeFilter: WildcardCardType.Unit,
-                        controller: RelativePlayer.Opponent,
-                        immediateEffect: abilityHelper.immediateEffects.giveWeakness()
-                    })
-                })
-            ])
+            immediateEffect: abilityHelper.immediateEffects.discardFromDeck((context) => ({
+                amount: 1,
+                target: context.player,
+            })),
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Give a Weakness token to an enemy unit',
+                ifYouDoCondition: () => !ifYouDoContext.events[0].card.hasSomeAspect(Aspect.Villainy),
+                targetResolver: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    controller: RelativePlayer.Opponent,
+                    immediateEffect: abilityHelper.immediateEffects.giveWeakness()
+                }
+            })
         });
     }
 }
