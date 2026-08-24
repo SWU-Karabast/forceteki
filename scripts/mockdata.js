@@ -1774,6 +1774,145 @@ const mockCards = [
         arena: 'ground',
         internalName: 'third-sister#cycle-of-vengeance'
     }),
+    buildMockCard({
+        title: 'The Warrior',
+        subtitle: 'Deft Duelist',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['tusken'],
+        keywords: ['ambush', 'raid 1'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 18
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-warrior#deft-duelist'
+    }),
+    buildMockCard({
+        title: 'The Chieftain',
+        subtitle: 'Here Since The Oceans Dried',
+        cost: 3,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['tusken'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 212
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-chieftain#here-since-the-oceans-dried'
+    }),
+    buildMockCard({
+        title: 'Teeka',
+        subtitle: 'You\'re In Luck',
+        cost: 1,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['jawa'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 221
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'teeka#youre-in-luck'
+    }),
+    buildMockCard({
+        title: 'Raiding Party',
+        cost: 5,
+        power: 0,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['tusken'],
+        keywords: ['raid 6'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 230
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'raiding-party'
+    }),
+    buildMockCard({
+        title: 'Sandcrawler Sales Team',
+        cost: 2,
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['jawa'],
+        keywords: ['saboteur'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 222
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'sandcrawler-sales-team'
+    }),
+    buildMockCard({
+        title: 'Stormchasser',
+        cost: 2,
+        power: 3,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['tusken'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 180
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'stormchasser'
+    }),
+    buildMockCard({
+        title: 'Offworld Jawa',
+        cost: 1,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: false,
+        aspects: [],
+        traits: ['jawa'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 268
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'offworld-jawa'
+    }),
+    buildMockCard({
+        title: 'Sandstorm',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['disaster'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 240
+        },
+        unique: false,
+        internalName: 'sandstorm'
+    }),
     // -------- End Mock Cards --------
 ];
 
