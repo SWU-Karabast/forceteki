@@ -15,6 +15,13 @@ export default class Breach extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: `A friendly unit deals damage equal to its power to an enemy unit in its arena. If the friendly unit has ${TextHelper.Overwhelm}, deal excess damage to an enemy base.`,
+            contextTitle: (context) => {
+                if (context.targets.friendlyUnit) {
+                    const overwhelm = context.targets.friendlyUnit.hasSomeKeyword(KeywordName.Overwhelm) ? ' Deal excess damage to an enemy base' : '';
+                    return `${context.targets.friendlyUnit.title} deals ${context.targets.friendlyUnit.getPower()} damage to an enemy unit in its arena.${overwhelm}`;
+                }
+                return `A friendly unit deals damage equal to its power to an enemy unit in its arena. If the friendly unit has ${TextHelper.Overwhelm}, deal excess damage to an enemy base`;
+            },
             targetResolvers: {
                 friendlyUnit: {
                     controller: RelativePlayer.Self,
@@ -37,6 +44,7 @@ export default class Breach extends EventCard {
             ifYouDo: (ifYouDoContext) => ({
                 // TODO TWIN SUNS
                 title: 'Deal excess damage to an enemy base',
+                contextTitle: () => `Deal ${ifYouDoContext.resolvedEvents[0]?.availableExcessDamage ?? 0} damage to an enemy base`,
                 ifYouDoCondition: () =>
                     ifYouDoContext.targets.friendlyUnit.hasSomeKeyword(KeywordName.Overwhelm) &&
                     (ifYouDoContext.resolvedEvents[0]?.availableExcessDamage ?? 0) > 0,

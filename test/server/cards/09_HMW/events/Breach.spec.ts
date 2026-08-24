@@ -1,3 +1,4 @@
+
 describe('Breach', function() {
     integration(function(contextRef) {
         describe('Breach\'s ability', function() {
@@ -18,9 +19,11 @@ describe('Breach', function() {
 
                 context.player1.clickCard(context.breach);
 
+                expect(context.player1).toHavePrompt('A friendly unit deals damage equal to its power to an enemy unit in its arena. If the friendly unit has Overwhelm, deal excess damage to an enemy base');
                 expect(context.player1).toBeAbleToSelectExactly([context.hijackedAtst]);
                 context.player1.clickCard(context.hijackedAtst);
 
+                expect(context.player1).toHavePrompt('Hijacked AT-ST deals 7 damage to an enemy unit in its arena. Deal excess damage to an enemy base');
                 expect(context.player1).toBeAbleToSelectExactly([context.porg, context.wampa]);
                 context.player1.clickCard(context.porg);
 
@@ -47,6 +50,7 @@ describe('Breach', function() {
                 context.player1.clickCard(context.breach);
                 context.player1.clickCard(context.devastator);
 
+                expect(context.player1).toHavePrompt('Devastator deals 10 damage to an enemy unit in its arena. Deal excess damage to an enemy base');
                 expect(context.player1).toBeAbleToSelectExactly([context.awing]);
                 context.player1.clickCard(context.awing);
 
@@ -71,6 +75,8 @@ describe('Breach', function() {
 
                 context.player1.clickCard(context.breach);
                 context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toHavePrompt('Battlefield Marine deals 3 damage to an enemy unit in its arena.');
                 context.player1.clickCard(context.porg);
 
                 expect(context.player2).toBeActivePlayer();
