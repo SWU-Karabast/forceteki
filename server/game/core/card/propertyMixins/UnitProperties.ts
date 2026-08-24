@@ -1027,7 +1027,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const modifierEffects: OngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
             const wrappedStatsModifiers = modifierEffects.map((modifierEffect) => StatsModifierWrapper.fromEffect(modifierEffect, this));
 
-            if (!this.isAttached()) {
+            if (!this.isAttached() && this.isInPlay()) {
                 // add stat bonuses from attached upgrades
                 this.upgrades.forEach((upgrade) => wrappedStatsModifiers.push(StatsModifierWrapper.fromPrintedValues(upgrade)));
 
