@@ -21,26 +21,32 @@ export default class ThirdSisterCycleOfVengeance extends NonLeaderUnitCard {
                 controller: WildcardRelativePlayer.Any,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
             },
-            ifYouDo: (step1Context) => ({
-                title: 'That unit\'s controller may deal 3 damage to a unit',
-                optional: true,
-                canBeTriggeredBy: EnumHelpers.asRelativePlayer(step1Context.player, step1Context.target.controller),
-                targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    controller: WildcardRelativePlayer.Any,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
-                },
-                ifYouDo: (step2Context) => ({
-                    title: 'That unit\'s controller may deal 4 damage to a unit',
+            ifYouDo: (step1Context) => {
+                const step1Controller = step1Context.events[0].lastKnownInformation?.controller ?? step1Context.target.controller;
+                return {
+                    title: 'Deal 3 damage to a unit',
                     optional: true,
-                    canBeTriggeredBy: EnumHelpers.asRelativePlayer(step2Context.player, step2Context.target.controller),
+                    canBeTriggeredBy: EnumHelpers.asRelativePlayer(step1Context.player, step1Controller),
                     targetResolver: {
                         cardTypeFilter: WildcardCardType.Unit,
                         controller: WildcardRelativePlayer.Any,
-                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 4 })
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
+                    },
+                    ifYouDo: (step2Context) => {
+                        const step2Controller = step2Context.events[0].lastKnownInformation?.controller ?? step2Context.target.controller;
+                        return {
+                            title: 'Deal 4 damage to a unit',
+                            optional: true,
+                            canBeTriggeredBy: EnumHelpers.asRelativePlayer(step2Context.player, step2Controller),
+                            targetResolver: {
+                                cardTypeFilter: WildcardCardType.Unit,
+                                controller: WildcardRelativePlayer.Any,
+                                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 4 })
+                            }
+                        };
                     }
-                })
-            })
+                };
+            }
         });
     }
 }

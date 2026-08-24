@@ -1,6 +1,8 @@
 describe('Third Sister, Cycle of Vengeance', function() {
     integration(function(contextRef) {
         describe('its When Played ability', function() {
+            const abilityPrompt = (amount: number) => `Deal ${amount} damage to a unit`;
+
             describe('on a standard board', function() {
                 beforeEach(async function() {
                     await contextRef.setupTestAsync({
@@ -20,11 +22,12 @@ describe('Third Sister, Cycle of Vengeance', function() {
 
                     // Play Third Sister and decline the initial damage
                     context.player1.clickCard(context.thirdSister);
+                    expect(context.player1).toHavePrompt(abilityPrompt(2));
                     expect(context.player1).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     expect(context.player1).toHavePassAbilityButton();
                     context.player1.clickPrompt('Pass');
 
-                    // No damage dealt anywhere
+                    // No damage dealt anywhere, it is P2's action
                     expect(context.thirdSister.damage).toBe(0);
                     expect(context.battlefieldMarine.damage).toBe(0);
                     expect(context.wampa.damage).toBe(0);
@@ -38,10 +41,12 @@ describe('Third Sister, Cycle of Vengeance', function() {
 
                     // Step 1: P1 deals 2 damage to P2's AT-ST
                     context.player1.clickCard(context.thirdSister);
+                    expect(context.player1).toHavePrompt(abilityPrompt(2));
                     context.player1.clickCard(context.atst);
                     expect(context.atst.damage).toBe(2);
 
                     // Step 2: AT-ST's controller (P2) is offered the chance to deal 3 damage, and declines
+                    expect(context.player2).toHavePrompt(abilityPrompt(3));
                     expect(context.player2).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     expect(context.player2).toHavePassAbilityButton();
                     context.player2.clickPrompt('Pass');
@@ -59,15 +64,18 @@ describe('Third Sister, Cycle of Vengeance', function() {
 
                     // Step 1: P1 deals 2 damage to P2's AT-ST
                     context.player1.clickCard(context.thirdSister);
+                    expect(context.player1).toHavePrompt(abilityPrompt(2));
                     context.player1.clickCard(context.atst);
                     expect(context.atst.damage).toBe(2);
 
                     // Step 2: AT-ST's controller (P2) chooses to deal 3 damage to another P2 unit
+                    expect(context.player2).toHavePrompt(abilityPrompt(3));
                     expect(context.player2).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     context.player2.clickCard(context.consularSecurityForce);
                     expect(context.consularSecurityForce.damage).toBe(3);
 
                     // Step 3: Consular Security Force's controller (still P2) chooses to deal 4 damage to a P1 unit
+                    expect(context.player2).toHavePrompt(abilityPrompt(4));
                     expect(context.player2).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     context.player2.clickCard(context.wampa);
                     expect(context.wampa.damage).toBe(4);
@@ -84,10 +92,12 @@ describe('Third Sister, Cycle of Vengeance', function() {
 
                     // Step 1: P1 deals 2 damage to their own Battlefield Marine
                     context.player1.clickCard(context.thirdSister);
+                    expect(context.player1).toHavePrompt(abilityPrompt(2));
                     context.player1.clickCard(context.battlefieldMarine);
                     expect(context.battlefieldMarine.damage).toBe(2);
 
                     // Step 2: Battlefield Marine's controller (still P1) is the one offered the choice, not P2
+                    expect(context.player1).toHavePrompt(abilityPrompt(3));
                     expect(context.player1).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     expect(context.player1).toHavePassAbilityButton();
                     context.player1.clickPrompt('Pass');
@@ -101,15 +111,18 @@ describe('Third Sister, Cycle of Vengeance', function() {
 
                     // Step 1: P1 deals 2 damage to P2's AT-ST
                     context.player1.clickCard(context.thirdSister);
+                    expect(context.player1).toHavePrompt(abilityPrompt(2));
                     context.player1.clickCard(context.atst);
                     expect(context.atst.damage).toBe(2);
 
                     // Step 2: AT-ST's controller (P2) chooses to deal 3 damage to P1's Wampa
+                    expect(context.player2).toHavePrompt(abilityPrompt(3));
                     expect(context.player2).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     context.player2.clickCard(context.wampa);
                     expect(context.wampa.damage).toBe(3);
 
                     // Step 3: Wampa's controller (back to P1) is the one offered the choice now
+                    expect(context.player1).toHavePrompt(abilityPrompt(4));
                     expect(context.player1).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     context.player1.clickCard(context.consularSecurityForce);
                     expect(context.consularSecurityForce.damage).toBe(4);
@@ -121,7 +134,7 @@ describe('Third Sister, Cycle of Vengeance', function() {
                 });
             });
 
-            describe('when the step 1 target has a Shield token', function() {
+            describe('when one of the targets has a Shield token', function() {
                 beforeEach(async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
@@ -140,11 +153,13 @@ describe('Third Sister, Cycle of Vengeance', function() {
 
                     // Step 1: damage to AT-ST is prevented by its Shield token
                     context.player1.clickCard(context.thirdSister);
+                    expect(context.player1).toHavePrompt(abilityPrompt(2));
                     context.player1.clickCard(context.atst);
                     expect(context.atst.damage).toBe(0);
                     expect(context.atst.isUpgraded()).toBeFalse();
 
                     // Step 2 is still offered to AT-ST's controller (P2) despite the prevented damage
+                    expect(context.player2).toHavePrompt(abilityPrompt(3));
                     expect(context.player2).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     expect(context.player2).toHavePassAbilityButton();
                     context.player2.clickPrompt('Pass');
@@ -152,34 +167,9 @@ describe('Third Sister, Cycle of Vengeance', function() {
                     expect(context.atst.damage).toBe(0);
                     expect(context.player2).toBeActivePlayer();
                 });
-
-                it('should still carry the full chain through step 3 despite the prevented step 1 damage', function() {
-                    const { context } = contextRef;
-
-                    // Step 1: damage to AT-ST is prevented by its Shield token
-                    context.player1.clickCard(context.thirdSister);
-                    context.player1.clickCard(context.atst);
-                    expect(context.atst.damage).toBe(0);
-                    expect(context.atst.isUpgraded()).toBeFalse();
-
-                    // Step 2: AT-ST's controller (P2) chooses to deal 3 damage to another P2 unit
-                    expect(context.player2).toBeAbleToSelectExactly(context.game.getArenaUnits());
-                    context.player2.clickCard(context.consularSecurityForce);
-                    expect(context.consularSecurityForce.damage).toBe(3);
-
-                    // Step 3: Consular Security Force's controller (still P2) chooses to deal 4 damage to a P1 unit
-                    expect(context.player2).toBeAbleToSelectExactly(context.game.getArenaUnits());
-                    context.player2.clickCard(context.wampa);
-                    expect(context.wampa.damage).toBe(4);
-
-                    expect(context.atst.damage).toBe(0);
-                    expect(context.consularSecurityForce.damage).toBe(3);
-                    expect(context.wampa.damage).toBe(4);
-                    expect(context.player2).toBeActivePlayer();
-                });
             });
 
-            describe('when the step 1 damage defeats its target', function() {
+            describe('when one of the damage targets is defeated', function() {
                 beforeEach(async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
@@ -188,20 +178,28 @@ describe('Third Sister, Cycle of Vengeance', function() {
                             groundArena: ['battlefield-marine', 'wampa']
                         },
                         player2: {
-                            groundArena: ['warzone-lieutenant', 'consular-security-force']
+                            groundArena: [
+                                {
+                                    card: 'warzone-lieutenant',
+                                    owner: 'player1'
+                                },
+                                'consular-security-force'
+                            ]
                         }
                     });
                 });
 
-                it('should still offer step 2 to the defeated unit\'s controller via Last Known Information', function() {
+                it('should still offer the next damage to the defeated unit\'s controller via Last Known Information', function() {
                     const { context } = contextRef;
 
                     // Step 1: 2 damage defeats Warzone Lieutenant (2 HP)
                     context.player1.clickCard(context.thirdSister);
+                    expect(context.player1).toHavePrompt(abilityPrompt(2));
                     context.player1.clickCard(context.warzoneLieutenant);
-                    expect(context.warzoneLieutenant).toBeInZone('discard');
+                    expect(context.warzoneLieutenant).toBeInZone('discard', context.player1); // Goes to P1's discard because they own it
 
-                    // Step 2 is still offered to Warzone Lieutenant's controller (P2), even though it's no longer in play
+                    // Step 2 is still offered to Warzone Lieutenant's controller (P2), even though it's no longer in play and is owned by P1
+                    expect(context.player2).toHavePrompt(abilityPrompt(3));
                     expect(context.player2).toBeAbleToSelectExactly(context.game.getArenaUnits());
                     expect(context.player2).toHavePassAbilityButton();
                     context.player2.clickPrompt('Pass');
