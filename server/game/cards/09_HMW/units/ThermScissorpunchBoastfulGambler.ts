@@ -18,8 +18,11 @@ export default class ThermScissorpunchBoastfulGambler extends NonLeaderUnitCard 
                 onPhaseStarted: (event) => event.phase === PhaseName.Action
             },
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
-                target: [context.player.getTopCardOfDeck(), context.player.opponent.getTopCardOfDeck()].filter(Boolean),
-                useDisplayPrompt: true
+                useDisplayPrompt: true,
+                target: [
+                    context.player.getTopCardOfDeck(),
+                    context.player.opponent.getTopCardOfDeck()
+                ].filter(Boolean), // Remove any null or undefined cards from the target array
             })),
             then: (thenContext) => ({
                 title: 'This unit gets -2/-2 for this phase for each revealed card that costs 3 or more',
