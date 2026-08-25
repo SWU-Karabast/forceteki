@@ -79,8 +79,6 @@ export const rotationBlocks: IRotationBlock[] = [
         sets: [
             { id: SwuSetId.LAW, releaseStage: ReleaseStage.Released, mainline: true },
             { id: SwuSetId.ASH, releaseStage: ReleaseStage.Released, mainline: true },
-            // HMW is the next set to release; IC27 previews overlap HMW's preview season but release later, so
-            // it stays Future and is excluded from HMW's NextSet meta.
             { id: SwuSetId.HMW, releaseStage: ReleaseStage.Next, mainline: true },
             { id: SwuSetId.IC27, releaseStage: ReleaseStage.Future, mainline: false }
         ]
