@@ -1687,7 +1687,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'space',
-        internalName: 'dookus-solar-sailer'
+        internalName: 'dookus-solar-sailer#droid-army-portent'
     }),
     buildMockCard({
         title: 'Ravage',
