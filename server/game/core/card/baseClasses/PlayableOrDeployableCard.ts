@@ -75,10 +75,15 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
 
     /**
-     * Additional costs that must be paid whenever this card is played, registered via the ability
-     * registrar's `addAdditionalPlayCost`. These are merged into every play action generated for the card.
+     * Additional play costs that originate from this card's *own* abilities, registered via the ability
+     * registrar's `addAdditionalPlayCost`. Because they are card abilities they are blanked while the card is
+     * out of play (see {@link getAdditionalPlayCostAbilities}), and they are merged into every play action
+     * generated for the card.
+     *
+     * This is distinct from additional play costs imposed by *other* effects (e.g. Saw Gerrera), which are
+     * ongoing effects added in {@link PlayCardAction.getCosts} rather than tracked here.
      */
-    protected additionalPlayCosts: ICost[] = [];
+    protected additionalPlayCostAbilities: ICost[] = [];
 
     /**
      * Alternate play costs registered on this card (see `addAlternatePlayCost`). Each becomes an alternate
@@ -86,6 +91,12 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      * the resource cost.
      */
     protected alternatePlayCosts: IPlayCostProperties<this>[] = [];
+
+    /**
+     * The explicit `costName`s already registered for this card's additional/alternate play costs. Used to
+     * guard against two play costs sharing a name and silently colliding on the same `context.costs` key.
+     */
+    private readonly registeredPlayCostNames = new Set<string>();
 
     @statePrimitive()
     private accessor _exhausted: boolean | null = null;
@@ -254,10 +265,11 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     /**
      * Registers an additional cost to be paid whenever this card is played. Called by the ability
-     * registrar's `addAdditionalPlayCost`. See also {@link additionalPlayCosts}.
+     * registrar's `addAdditionalPlayCost`. See also {@link additionalPlayCostAbilities}.
      */
     protected registerAdditionalPlayCost(properties: IPlayCostProperties<this>): void {
-        this.additionalPlayCosts = this.additionalPlayCosts.concat(this.buildPlayCost(properties));
+        this.assertPlayCostNameUnused(properties);
+        this.additionalPlayCostAbilities = this.additionalPlayCostAbilities.concat(this.buildPlayCost(properties));
     }
 
     /**
@@ -266,7 +278,27 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      * `addAlternatePlayCost`. See {@link alternatePlayCosts}.
      */
     protected registerAlternatePlayCost(properties: IPlayCostProperties<this>): void {
+        this.assertPlayCostNameUnused(properties);
         this.alternatePlayCosts = [...this.alternatePlayCosts, properties];
+    }
+
+    /**
+     * Guards against two additional/alternate play costs on this card sharing an explicit `costName`, which
+     * would silently collide on the same `context.costs` key and make one of the chosen cost targets
+     * unretrievable. Only names that are explicitly set are checked (unnamed costs default to their game
+     * system's name and aren't tracked here).
+     */
+    private assertPlayCostNameUnused(properties: IPlayCostProperties<this>): void {
+        const { costName } = properties;
+        if (costName == null) {
+            return;
+        }
+
+        Contract.assertFalse(
+            this.registeredPlayCostNames.has(costName),
+            `Duplicate play cost name '${costName}' registered on ${this.internalName}. Each additional/alternate play cost must use a unique costName to avoid colliding in context.costs.`
+        );
+        this.registeredPlayCostNames.add(costName);
     }
 
     private buildPlayCost(properties: IPlayCostProperties<this>): ICost[] {
@@ -314,8 +346,8 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      * The additional play costs registered on this card (see `addAdditionalPlayCost`). These are card
      * abilities, so a card blanked out of play (all abilities lost) has none.
      */
-    protected getAdditionalPlayCosts(): ICost[] {
-        return this.isBlankOutOfPlay() ? [] : this.additionalPlayCosts;
+    protected getAdditionalPlayCostAbilities(): ICost[] {
+        return this.isBlankOutOfPlay() ? [] : this.additionalPlayCostAbilities;
     }
 
     /**
@@ -324,12 +356,12 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      * captured into the action's `createdWithProperties` and therefore preserved across `clone()`.
      */
     protected applyAdditionalPlayCosts<T extends IPlayCardActionPropertiesBase>(properties: T): T {
-        const additionalPlayCosts = this.getAdditionalPlayCosts();
-        if (additionalPlayCosts.length === 0) {
+        const additionalPlayCostAbilities = this.getAdditionalPlayCostAbilities();
+        if (additionalPlayCostAbilities.length === 0) {
             return properties;
         }
 
-        return Helpers.mergeArrayProperty(properties, 'additionalCosts', additionalPlayCosts);
+        return Helpers.mergeArrayProperty(properties, 'additionalCosts', additionalPlayCostAbilities);
     }
 
     public exhaust() {
