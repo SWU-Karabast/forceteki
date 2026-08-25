@@ -29,6 +29,7 @@ describe('Sandstorm', function() {
             expect(context.yoda).toHaveExactUpgradeNames(['weakness']);
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
             expect(context.atst).toHaveExactUpgradeNames([]);
+            expect(context.awing).toHaveExactUpgradeNames([]);
         });
 
         it('Sandstorm\'s ability should not cost 1 less to play while you do not control a Tatooine base', async function() {
@@ -83,6 +84,30 @@ describe('Sandstorm', function() {
             expect(context.wampa).toHaveExactUpgradeNames(['weakness']);
             expect(context.yoda).toHaveExactUpgradeNames(['weakness']);
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
+            expect(context.atst).toHaveExactUpgradeNames([]);
+        });
+
+        it('Sandstorm\'s ability should prompt no effect if there is no exhausted enemy unit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['sandstorm'],
+                    base: 'chopper-base',
+                    groundArena: [{ card: 'battlefield-marine', exhausted: true }],
+                },
+                player2: {
+                    groundArena: ['wampa', 'atst'],
+                }
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.sandstorm);
+            expect(context.player1).toHavePrompt('Playing Sandstorm will have no effect. Are you sure you want to play it?');
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.player2).toBeActivePlayer();
+
+            expect(context.wampa).toHaveExactUpgradeNames([]);
             expect(context.atst).toHaveExactUpgradeNames([]);
         });
     });
