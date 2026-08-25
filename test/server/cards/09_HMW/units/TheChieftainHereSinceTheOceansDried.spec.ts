@@ -6,8 +6,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                     phase: 'action',
                     player1: {
                         groundArena: ['the-chieftain#here-since-the-oceans-dried']
-                    },
-                    player2: {}
+                    }
                 });
 
                 const { context } = contextRef;
@@ -24,9 +23,11 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'stormchasser']
-                    },
-                    player2: {}
+                        groundArena: [
+                            'the-chieftain#here-since-the-oceans-dried',
+                            'stormchasser'
+                        ]
+                    }
                 });
 
                 const { context } = contextRef;
@@ -43,9 +44,12 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'stormchasser', 'tusken-tracker']
-                    },
-                    player2: {}
+                        groundArena: [
+                            'the-chieftain#here-since-the-oceans-dried',
+                            'stormchasser',
+                            'tusken-tracker'
+                        ]
+                    }
                 });
 
                 const { context } = contextRef;
@@ -62,9 +66,11 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'battlefield-marine']
-                    },
-                    player2: {}
+                        groundArena: [
+                            'the-chieftain#here-since-the-oceans-dried',
+                            'battlefield-marine'
+                        ]
+                    }
                 });
 
                 const { context } = contextRef;
@@ -213,9 +219,11 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'tusken-tracker']
-                    },
-                    player2: {}
+                        groundArena: [
+                            'the-chieftain#here-since-the-oceans-dried',
+                            'tusken-tracker'
+                        ]
+                    }
                 });
 
                 const { context } = contextRef;
