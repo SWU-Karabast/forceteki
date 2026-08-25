@@ -80,12 +80,14 @@ describe('The Warrior, Deft Duelist', function () {
             });
         });
 
-        it('The Warrior\'s undeployed ability should not play unit with 3 or less power from hand and give them Ambush. It should not count any power modification from arenas', async function () {
+        it('The Warrior\'s undeployed ability must be payed before choose which cards in hand can be played', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'the-warrior#deft-duelist',
-                    hand: ['battlefield-marine', 'wampa'],
+                    hand: ['battlefield-marine', 'wampa', 'the-cyborg-mech#mysterious-threat'],
+                    resources: 8,
+                    base: 'tarkintown',
                     groundArena: ['the-son#embodiment-of-darkness'],
                     hasForceToken: true,
                 },
@@ -97,6 +99,8 @@ describe('The Warrior, Deft Duelist', function () {
 
             context.player1.clickCard(context.theWarrior);
             context.player1.clickPrompt('Play a unit with 3 or less power from your hand. Give it Ambush for this phase');
+
+            // The Cyborg Mech costs 6 (+2 from aspect penalties). It could be played but The Warrior ability costs 1 resource
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
             context.player1.clickCard(context.battlefieldMarine);
 

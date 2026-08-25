@@ -21,7 +21,7 @@ export default class TheWarriorDeftDuelist extends LeaderUnitCard {
             cost: [abilityHelper.costs.abilityActivationResourceCost(1), abilityHelper.costs.exhaustSelf()],
             cannotTargetFirst: true,
             targetResolver: {
-                cardCondition: (card) => card.isUnit() && card.getPower() <= 3,
+                cardCondition: (card) => card.isUnit() && card.getPrintedPower() <= 3,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: abilityHelper.immediateEffects.simultaneous({
