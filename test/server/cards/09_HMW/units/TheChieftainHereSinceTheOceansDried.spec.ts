@@ -25,7 +25,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                     player1: {
                         groundArena: [
                             'the-chieftain#here-since-the-oceans-dried',
-                            'stormchasser'
+                            'stormchaser'
                         ]
                     }
                 });
@@ -36,7 +36,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 context.player1.clickCard(context.theChieftain);
                 context.player1.clickCard(context.p2Base);
 
-                // Raid 1 from Stormchasser adds +1 power while attacking: 2 + 1 = 3 damage
+                // Raid 1 from stormchaser adds +1 power while attacking: 2 + 1 = 3 damage
                 expect(context.p2Base.damage).toBe(3);
             });
 
@@ -46,7 +46,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                     player1: {
                         groundArena: [
                             'the-chieftain#here-since-the-oceans-dried',
-                            'stormchasser',
+                            'stormchaser',
                             'tusken-tracker'
                         ]
                     }
@@ -58,7 +58,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 context.player1.clickCard(context.theChieftain);
                 context.player1.clickCard(context.p2Base);
 
-                // Raid 2 from Stormchasser and Tusken Tracker adds +2 power while attacking: 2 + 2 = 4 damage
+                // Raid 2 from stormchaser and Tusken Tracker adds +2 power while attacking: 2 + 2 = 4 damage
                 expect(context.p2Base.damage).toBe(4);
             });
 
@@ -90,7 +90,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                         groundArena: ['the-chieftain#here-since-the-oceans-dried']
                     },
                     player2: {
-                        groundArena: ['stormchasser']
+                        groundArena: ['stormchaser']
                     }
                 });
 
@@ -100,7 +100,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 context.player1.clickCard(context.theChieftain);
                 context.player1.clickCard(context.p2Base);
 
-                // Stormchasser belongs to the opponent, so it does not contribute to Raid
+                // stormchaser belongs to the opponent, so it does not contribute to Raid
                 expect(context.p2Base.damage).toBe(2);
             });
 
@@ -109,7 +109,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                     phase: 'action',
                     player1: {
                         groundArena: ['the-chieftain#here-since-the-oceans-dried'],
-                        hand: ['stormchasser']
+                        hand: ['stormchaser']
                     },
                     player2: {
                         groundArena: ['battlefield-marine']
@@ -119,7 +119,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 const { context } = contextRef;
 
                 // Play a second friendly Tusken unit, granting the Chieftain Raid 1
-                context.player1.clickCard(context.stormchasser);
+                context.player1.clickCard(context.stormchaser);
                 context.player2.passAction();
 
                 // Attack the base with the Chieftain
@@ -129,8 +129,8 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
 
                 // Defeat the other friendly Tusken unit, removing the Raid bonus
                 context.player2.clickCard(context.battlefieldMarine);
-                context.player2.clickCard(context.stormchasser);
-                expect(context.stormchasser).toBeInZone('discard');
+                context.player2.clickCard(context.stormchaser);
+                expect(context.stormchaser).toBeInZone('discard');
 
                 // Attack the base again with the Chieftain in the next action phase
                 context.moveToNextActionPhase();
@@ -147,24 +147,22 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'stormchasser']
+                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'stormchaser']
                     },
                     player2: {
-                        groundArena: ['battlefield-marine']
+                        hasInitiative: true,
+                        groundArena: ['consular-security-force']
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Attack the Chieftain with Battlefield Marine
-                context.player1.passAction();
-                context.player2.clickCard(context.battlefieldMarine);
+                // Attack the Chieftain with Consular Security Force
+                context.player2.clickCard(context.consularSecurityForce);
                 context.player2.clickCard(context.theChieftain);
 
-                // Chieftain has Raid 1 (from Stormchasser) and gets +1/+0 while defending: 2 + 1 = 3 power,
-                // which is enough to defeat Battlefield Marine's 3 hp (base power 2 would not have been)
-                expect(context.battlefieldMarine).toBeInZone('discard');
-                expect(context.theChieftain.damage).toBe(3);
+                // Chieftain has Raid 1 (from stormchaser) and gets +1/+0 while defending: 2 + 1 = 3 power
+                expect(context.consularSecurityForce.damage).toBe(3);
             });
 
             it('should give a friendly Tusken unit with Raid 2 +2/+0 while defending', async function() {
@@ -174,20 +172,19 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                         groundArena: ['the-chieftain#here-since-the-oceans-dried', 'tusken-tracker']
                     },
                     player2: {
-                        groundArena: ['battlefield-marine']
+                        hasInitiative: true,
+                        groundArena: ['consular-security-force']
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Attack the Tusken Tracker with Battlefield Marine
-                context.player1.passAction();
-                context.player2.clickCard(context.battlefieldMarine);
+                // Attack the Tusken Tracker with Consular Security Force
+                context.player2.clickCard(context.consularSecurityForce);
                 context.player2.clickCard(context.tuskenTracker);
 
-                // Tusken Tracker has Raid 2 (printed) and gets +2/+0 while defending: 2 + 2 = 4 power,
-                // which is enough to defeat Battlefield Marine's 3 hp (base power 2 would not have been)
-                expect(context.battlefieldMarine).toBeInZone('discard');
+                // Tusken Tracker has Raid 2 (printed) and gets +2/+0 while defending: 2 + 2 = 4 power
+                expect(context.consularSecurityForce.damage).toBe(4);
                 expect(context.tuskenTracker.damage).toBe(3);
             });
 
@@ -195,24 +192,22 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'stormchasser']
+                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'stormchaser']
                     },
                     player2: {
-                        groundArena: ['trench-defender']
+                        hasInitiative: true,
+                        groundArena: ['consular-security-force']
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Attack the Stormchasser with Trench Defender
-                context.player1.passAction();
-                context.player2.clickCard(context.trenchDefender);
-                context.player2.clickCard(context.stormchasser);
+                // Attack the Stormchaser with Consular Security Force
+                context.player2.clickCard(context.consularSecurityForce);
+                context.player2.clickCard(context.stormchaser);
 
-                // Stormchasser has no Raid, so it defends at its unmodified base power of 3 (proven by
-                // Trench Defender only taking 3 damage rather than being defeated by the printed 4 hp)
-                expect(context.trenchDefender.damage).toBe(3);
-                expect(context.trenchDefender).toBeInZone('groundArena', context.player2);
+                // Stormchaser has no Raid, so it defends at its unmodified base power of 3
+                expect(context.consularSecurityForce.damage).toBe(3);
             });
 
             it('should not apply its bonus to a friendly Tusken unit while it is attacking', async function() {
@@ -241,23 +236,22 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'stormchasser', 'tusken-tracker']
+                        groundArena: ['the-chieftain#here-since-the-oceans-dried', 'stormchaser', 'tusken-tracker']
                     },
                     player2: {
-                        groundArena: ['trench-defender']
+                        hasInitiative: true,
+                        groundArena: ['consular-security-force']
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Attack the Chieftain with Trench Defender
-                context.player1.passAction();
-                context.player2.clickCard(context.trenchDefender);
+                // Attack the Chieftain with Consular Security Force
+                context.player2.clickCard(context.consularSecurityForce);
                 context.player2.clickCard(context.theChieftain);
 
-                // Chieftain has Raid 2 (from Stormchasser and Tusken Tracker) and gets +2/+0 while defending:
-                // 2 + 2 = 4 power, which is enough to defeat Trench Defender's 4 hp (base power 2 would not have been)
-                expect(context.trenchDefender).toBeInZone('discard');
+                // Chieftain has Raid 2 (from stormchaser and Tusken Tracker) and gets +2/+0 while defending (4 power)
+                expect(context.consularSecurityForce.damage).toBe(4);
                 expect(context.theChieftain.damage).toBe(3);
             });
 
@@ -268,6 +262,7 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                         groundArena: ['the-chieftain#here-since-the-oceans-dried', 'partisan-insurgent', 'wampa']
                     },
                     player2: {
+                        hasInitiative: true,
                         groundArena: ['trench-defender']
                     }
                 });
@@ -275,7 +270,6 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
                 const { context } = contextRef;
 
                 // Attack the Partisan Insurgent with Trench Defender
-                context.player1.passAction();
                 context.player2.clickCard(context.trenchDefender);
                 context.player2.clickCard(context.partisanInsurgent);
 

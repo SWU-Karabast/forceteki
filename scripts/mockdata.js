@@ -1866,7 +1866,7 @@ const mockCards = [
         internalName: 'sandcrawler-sales-team'
     }),
     buildMockCard({
-        title: 'Stormchasser',
+        title: 'Stormchaser',
         cost: 2,
         power: 3,
         hp: 2,
@@ -1880,7 +1880,7 @@ const mockCards = [
         },
         unique: false,
         arena: 'ground',
-        internalName: 'stormchasser'
+        internalName: 'stormchaser'
     }),
     buildMockCard({
         title: 'Offworld Jawa',
