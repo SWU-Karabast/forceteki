@@ -1106,7 +1106,7 @@ const mockCards = [
         types: ['unit'],
         setId: {
             set: 'HMW',
-            number: 175
+            number: 176
         },
         unique: false,
         arena: 'ground',
@@ -1914,6 +1914,78 @@ const mockCards = [
         unique: false,
         internalName: 'sandstorm'
     }),
+    buildMockCard({
+        title: 'Easy Prey',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 237
+        },
+        unique: false,
+        internalName: 'easy-prey'
+    }),
+    buildMockCard({
+        title: 'Boba Fett',
+        subtitle: 'Family Found',
+        cost: 3,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['tusken'],
+        keywords: ['ambush'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 225
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'boba-fett#family-found'
+    }),
+    buildMockCard({
+        title: 'Luke Skywalker',
+        subtitle: 'Dreaming Farmboy',
+        cost: 1,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['force', 'fringe'],
+        keywords: ['raid 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 208
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'luke-skywalker#dreaming-boy',
+    }),
+    buildMockCard({
+        title: 'Fennec Shand',
+        subtitle: 'A Ship For a Life',
+        cost: 1,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression'],
+        traits: ['underworld'],
+        keywords: ['raid 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 175
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'fennec-shand#a-ship-for-a-life',
+    }),
+
     // -------- End Mock Cards --------
 ];
 
