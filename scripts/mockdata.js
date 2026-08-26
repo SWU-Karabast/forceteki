@@ -2094,6 +2094,75 @@ const mockCards = [
         arena: 'ground',
         internalName: 'maul#only-revenge-remains',
     }),
+    buildMockCard({
+        title: 'Sandtrooper Squad',
+        cost: 4,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'villainy'],
+        traits: ['imperial', 'trooper'],
+        keywords: ['ambush', 'raid 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 201
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'sandtrooper-squad',
+    }),
+    buildMockCard({
+        title: 'Kelnacca',
+        subtitle: 'Solitary Master',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command'],
+        traits: ['force', 'jedi', 'wookiee'],
+        keywords: ['restore 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 36
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kelnacca#solitary-master',
+    }),
+    buildMockCard({
+        title: 'Bestial Bond',
+        cost: 3,
+        power: 2,
+        hp: 2,
+        upgradePower: 2,
+        upgradeHp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command'],
+        traits: ['innate'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 38
+        },
+        unique: false,
+        internalName: 'bestial-bond',
+    }),
+    buildMockCard({
+        title: 'Dragon\'s Might',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 102
+        },
+        unique: false,
+        internalName: 'dragons-might'
+    }),
     // -------- End Mock Cards --------
 ];
 
