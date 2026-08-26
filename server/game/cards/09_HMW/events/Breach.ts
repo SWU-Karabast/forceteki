@@ -43,8 +43,7 @@ export default class Breach extends EventCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 // TODO TWIN SUNS
-                title: 'Deal excess damage to an enemy base',
-                contextTitle: () => `Deal ${ifYouDoContext.resolvedEvents[0]?.availableExcessDamage ?? 0} damage to an enemy base`,
+                title: `Deal ${ifYouDoContext.resolvedEvents[0]?.availableExcessDamage ?? 0} damage to an enemy base`,
                 ifYouDoCondition: () =>
                     ifYouDoContext.targets.friendlyUnit.hasSomeKeyword(KeywordName.Overwhelm) &&
                     (ifYouDoContext.resolvedEvents[0]?.availableExcessDamage ?? 0) > 0,
