@@ -17,13 +17,21 @@ export default class ThermScissorpunchBoastfulGambler extends NonLeaderUnitCard 
             when: {
                 onPhaseStarted: (event) => event.phase === PhaseName.Action
             },
-            immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
-                useDisplayPrompt: true,
-                target: [
-                    context.player.getTopCardOfDeck(),
-                    context.player.opponent.getTopCardOfDeck()
-                ].filter(Boolean), // Remove any null or undefined cards from the target array
-            })),
+            immediateEffect: AbilityHelper.immediateEffects.reveal((context) => {
+                const ownTopCard = context.player.getTopCardOfDeck();
+                const opponentTopCard = context.player.opponent.getTopCardOfDeck();
+                const targets = [];
+                const displayTextByCardUuid = new Map<string, string>();
+
+                this.checkAddTopCard(ownTopCard, 'Yours', targets, displayTextByCardUuid);
+                this.checkAddTopCard(opponentTopCard, 'Opponent\'s', targets, displayTextByCardUuid);
+
+                return {
+                    target: targets,
+                    useDisplayPrompt: true,
+                    displayTextByCardUuid,
+                };
+            }),
             then: (thenContext) => ({
                 title: 'This unit gets -2/-2 for this phase for each revealed card that costs 3 or more',
                 thenCondition: () => this.qualifyingRevealedCardCount(thenContext.events) > 0,
@@ -43,5 +51,12 @@ export default class ThermScissorpunchBoastfulGambler extends NonLeaderUnitCard 
             .filter((event) => event.name === EventName.OnCardRevealed)
             .flatMap((event) => event.card ?? [])
             .filter((card) => card.cost >= 3).length;
+    }
+
+    private checkAddTopCard(card, title, targetsList, displayTextByCardUuid) {
+        if (card != null) {
+            targetsList.push(card);
+            displayTextByCardUuid.set(card.uuid, title);
+        }
     }
 }

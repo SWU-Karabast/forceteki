@@ -19,7 +19,10 @@ describe('Therm Scissorpunch, Boastful Gambler', function() {
                 context.moveToNextActionPhase();
 
                 // Both revealed cards cost 3 or more, so the debuff applies twice (-2/-2 each)
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wampa, context.desperadoFreighter]);
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.wampa, displayText: 'Yours' },
+                    { card: context.desperadoFreighter, displayText: 'Opponent\'s' }
+                ]);
                 context.player1.clickDone();
 
                 expect(context.thermScissorpunch.getPower()).toBe(1);
@@ -44,7 +47,10 @@ describe('Therm Scissorpunch, Boastful Gambler', function() {
                 context.moveToNextActionPhase();
 
                 // Both revealed cards cost 2 or less, so no debuff applies
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.porg, context.battlefieldMarine]);
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.porg, displayText: 'Yours' },
+                    { card: context.battlefieldMarine, displayText: 'Opponent\'s' }
+                ]);
                 context.player1.clickDone();
 
                 expect(context.thermScissorpunch.getPower()).toBe(5);
@@ -69,7 +75,10 @@ describe('Therm Scissorpunch, Boastful Gambler', function() {
                 context.moveToNextActionPhase();
 
                 // Only one revealed card costs 3 or more, so the debuff applies once
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.porg, context.wampa]);
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.porg, displayText: 'Yours' },
+                    { card: context.wampa, displayText: 'Opponent\'s' }
+                ]);
                 context.player1.clickDone();
 
                 expect(context.thermScissorpunch.getPower()).toBe(3);
@@ -94,7 +103,9 @@ describe('Therm Scissorpunch, Boastful Gambler', function() {
                 context.moveToNextActionPhase();
 
                 // Only the opponent's card is revealed since the controller's deck is empty
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wampa]);
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.wampa, displayText: 'Opponent\'s' }
+                ]);
                 context.player1.clickDone();
 
                 expect(context.thermScissorpunch.getPower()).toBe(3);
