@@ -1985,7 +1985,97 @@ const mockCards = [
         arena: 'ground',
         internalName: 'fennec-shand#a-ship-for-a-life',
     }),
-
+    buildMockCard({
+        title: 'Ty Yorrick',
+        subtitle: 'Monster Hunter',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['force', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 185
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ty-yorrick#monster-hunter',
+    }),
+    buildMockCard({
+        title: 'Numa',
+        subtitle: 'Still Fighting',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['rebel', 'twi\'lek'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 88
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'numa#still-fighting',
+    }),
+    buildMockCard({
+        title: 'Cham Syndulla',
+        subtitle: 'Hammer of Ryloth',
+        cost: 6,
+        power: 3,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['twi\'lek'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 13
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cham-syndulla#hammer-of-ryloth'
+    }),
+    buildMockCard({
+        title: 'Twi\'lek Kalikori',
+        cost: 4,
+        power: 2,
+        hp: 2,
+        upgradePower: 2,
+        upgradeHp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['item'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 265
+        },
+        unique: false,
+        internalName: 'twilek-kalikori',
+    }),
+    buildMockCard({
+        title: 'Origin Tree Shyyyo',
+        cost: 6,
+        power: 4,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['creature'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 145
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'origin-tree-shyyyo'
+    }),
     // -------- End Mock Cards --------
 ];
 
