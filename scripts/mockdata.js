@@ -2076,6 +2076,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'origin-tree-shyyyo'
     }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'Only Revenge Remains',
+        cost: 4,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression', 'aggression'],
+        traits: ['force', 'underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 174
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#only-revenge-remains',
+    }),
     // -------- End Mock Cards --------
 ];
 
