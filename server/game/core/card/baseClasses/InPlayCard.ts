@@ -371,6 +371,8 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
         return {
             ...registrar,
+            addAdditionalPlayCost: (properties) => this.registerAdditionalPlayCost(properties),
+            addAlternatePlayCost: (properties) => this.registerAlternatePlayCost(properties),
             addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties, registrar),
             addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties, registrar),
             addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties, registrar),
