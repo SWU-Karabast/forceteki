@@ -292,6 +292,38 @@ describe('Han Solo, I Got a Really Good Feeling', function() {
                 expect(context.consularSecurityForce.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('reproduces the single-token activePromptTitle crash', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        autoSingleTarget: true,
+                        leader: { card: 'han-solo#i-got-a-really-good-feeling', deployed: true },
+                        groundArena: ['spy']
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1Spy = context.player1.findCardByName('spy');
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Trigger the effect \'Defeat any number of friendly tokens\' on target \'Spy\' or pass');
+                expect(context.player1).toHaveExactPromptButtons(['Defeat any number of friendly tokens -> Spy', 'Pass']);
+                context.player1.clickPrompt('Defeat any number of friendly tokens -> Spy');
+
+                expect(p1Spy).toBeInZone('outsideTheGame');
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                context.player1.clickCard(context.consularSecurityForce);
+
+                expect(context.consularSecurityForce.damage).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
