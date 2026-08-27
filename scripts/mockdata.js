@@ -1985,7 +1985,184 @@ const mockCards = [
         arena: 'ground',
         internalName: 'fennec-shand#a-ship-for-a-life',
     }),
-
+    buildMockCard({
+        title: 'Ty Yorrick',
+        subtitle: 'Monster Hunter',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['force', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 185
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ty-yorrick#monster-hunter',
+    }),
+    buildMockCard({
+        title: 'Numa',
+        subtitle: 'Still Fighting',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['rebel', 'twi\'lek'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 88
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'numa#still-fighting',
+    }),
+    buildMockCard({
+        title: 'Cham Syndulla',
+        subtitle: 'Hammer of Ryloth',
+        cost: 6,
+        power: 3,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['twi\'lek'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 13
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cham-syndulla#hammer-of-ryloth'
+    }),
+    buildMockCard({
+        title: 'Twi\'lek Kalikori',
+        cost: 4,
+        power: 2,
+        hp: 2,
+        upgradePower: 2,
+        upgradeHp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['item'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 265
+        },
+        unique: false,
+        internalName: 'twilek-kalikori',
+    }),
+    buildMockCard({
+        title: 'Origin Tree Shyyyo',
+        cost: 6,
+        power: 4,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['creature'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 145
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'origin-tree-shyyyo'
+    }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'Only Revenge Remains',
+        cost: 4,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression', 'aggression'],
+        traits: ['force', 'underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 174
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#only-revenge-remains',
+    }),
+    buildMockCard({
+        title: 'Sandtrooper Squad',
+        cost: 4,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'villainy'],
+        traits: ['imperial', 'trooper'],
+        keywords: ['ambush', 'raid 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 201
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'sandtrooper-squad',
+    }),
+    buildMockCard({
+        title: 'Kelnacca',
+        subtitle: 'Solitary Master',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command'],
+        traits: ['force', 'jedi', 'wookiee'],
+        keywords: ['restore 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 36
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kelnacca#solitary-master',
+    }),
+    buildMockCard({
+        title: 'Bestial Bond',
+        cost: 3,
+        power: 2,
+        hp: 2,
+        upgradePower: 2,
+        upgradeHp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command'],
+        traits: ['innate'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 38
+        },
+        unique: false,
+        internalName: 'bestial-bond',
+    }),
+    buildMockCard({
+        title: 'Dragon\'s Might',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 102
+        },
+        unique: false,
+        internalName: 'dragons-might'
+    }),
     // -------- End Mock Cards --------
 ];
 
