@@ -15,9 +15,10 @@ import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 /**
  * Simplified last known information for defeated cards
  */
-export interface IDefeatedCardLKIEntry {
+export interface IStateWatcherLKIEntry {
     traits: Set<Trait>;
     type: CardType;
+    power: number;
     // TODO: Add more fields if needed
 }
 
@@ -27,7 +28,7 @@ export interface DefeatedCardEntry {
     controlledBy: GameObjectId<Player>;
     defeatedBy?: GameObjectId<Player>;
     wasDefeatedWhileAttacking: IDefeatSource;
-    lastKnownInformation: IDefeatedCardLKIEntry;
+    lastKnownInformation: IStateWatcherLKIEntry;
 }
 
 interface InPlayUnit {
@@ -59,6 +60,7 @@ export class CardsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedCardEntr
             lastKnownInformation: {
                 traits: x.lastKnownInformation.traits,
                 type: x.lastKnownInformation.type,
+                power: x.lastKnownInformation.power,
             }
         }));
     }
@@ -141,6 +143,7 @@ export class CardsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedCardEntr
                     lastKnownInformation: {
                         traits: event.lastKnownInformation.traits,
                         type: event.lastKnownInformation.type,
+                        power: event.lastKnownInformation.power
                     }
                 })
         });
