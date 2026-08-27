@@ -16,7 +16,7 @@ export default class BestialBond extends UpgradeCard {
             title: 'Create a Beast token',
             immediateEffect: abilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.parentCard != null &&
-                  (context.source.parentCard.hasSomeTrait(Trait.Creature) || context.source.parentCard.hasSomeTrait(Trait.Force)),
+                  (context.source.parentCard.hasSomeTrait([Trait.Creature, Trait.Force])),
                 onTrue: abilityHelper.immediateEffects.createBeast()
             })
         });
