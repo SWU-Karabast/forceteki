@@ -2163,6 +2163,78 @@ const mockCards = [
         unique: false,
         internalName: 'dragons-might'
     }),
+    buildMockCard({
+        title: 'Crosshair',
+        subtitle: 'I\'ve Changed',
+        cost: 5,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['clone'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 169
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'crosshair#ive-changed',
+    }),
+    buildMockCard({
+        title: 'Wrecker',
+        subtitle: 'Wrecking the Empire',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['clone'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 263
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'wrecker#wrecking-the-empire',
+    }),
+    buildMockCard({
+        title: 'Tech',
+        subtitle: 'I Thought It Was Obvious',
+        cost: 3,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['clone'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 211
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'tech#i-thought-it-was-obvious',
+    }),
+    buildMockCard({
+        title: 'The Marauder',
+        subtitle: 'A New Home',
+        cost: 7,
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 125
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'the-marauder#a-new-home',
+    }),
     // -------- End Mock Cards --------
 ];
 
