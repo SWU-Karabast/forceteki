@@ -212,5 +212,28 @@ describe('Pre Vizsla, Power Hungry', function() {
                 expect(context.player1.credits).toBe(0);
             });
         });
+
+        describe('Pre Vizsla and base upgrades', function() {
+            it('cannot target an upgrade attached to a base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['pre-vizsla#power-hungry'],
+                        groundArena: [{ card: 'wampa', upgrades: ['academy-training'] }],
+                    },
+                    player2: {
+                        base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.preVizsla);
+
+                // "an upgrade attached to another non-Vehicle unit" - the enemy base upgrade is not on a unit
+                expect(context.player1).toBeAbleToSelectExactly([context.academyTraining]);
+                context.player1.clickPrompt('Pass');
+            });
+        });
     });
 });

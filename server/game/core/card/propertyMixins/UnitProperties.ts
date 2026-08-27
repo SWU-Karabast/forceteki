@@ -33,7 +33,7 @@ import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import { giveAbilityToAttachedUnitTitle, giveKeywordToAttachedUnitTitle } from '../../ongoingEffect/effectImpl/GainAbilityDescription';
 import type { Player } from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
-import type { IUpgradeCard } from '../CardInterfaces';
+import type { ICardWithUpgrades, IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbilityBase } from '../../ability/ActionAbility';
 import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
@@ -70,16 +70,14 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
 }
 
-export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
+export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone, ICardWithUpgrades {
     get defaultArena(): Arena;
     get lastPlayerToModifyHp(): Player;
     get isClonedUnit(): boolean;
-    readonly upgrades: IUpgradeCard[];
     isClone(): this is Clone;
     getCaptor(): ICaptorCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
-    isUpgraded(): boolean;
     hasExperience(): boolean;
     hasWeakness(): boolean;
     hasShield(): boolean;
@@ -95,9 +93,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
     refreshWhileInPlayKeywordAbilityEffects();
-    unattachUpgrade(upgrade, event);
     canAttachPilot(pilot: IUnitCard): boolean;
-    attachUpgrade(upgrade);
     getNumericKeywordTotal(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
     getMaxUnitAttackLimit(): number;
 }

@@ -233,5 +233,27 @@ describe('Pit Droid Team', function() {
             expect(context.player1.exhaustedResourceCount).toBe(7);
             expect(context.jediGuardian).toHaveExactUpgradeNames(['electrostaff']);
         });
+
+        it('does not discount a Fortify upgrade played on the base', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'chewbacca#walking-carpet',
+                    hand: ['alliance-shield-generator'],
+                    groundArena: ['pit-droid-team'],
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.allianceShieldGenerator);
+            context.player1.clickCard(context.p1Base);
+
+            // Pit Droid discounts "the first upgrade you play on another friendly unit" - a base upgrade doesn't qualify,
+            // so the full printed cost of 2 is paid (chewbacca provides both aspects, so there's no aspect penalty)
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+        });
     });
 });
