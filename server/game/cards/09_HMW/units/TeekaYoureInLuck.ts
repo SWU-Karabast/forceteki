@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { KeywordName, WildcardCardType } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TeekaYoureInLuck extends NonLeaderUnitCard {
@@ -15,8 +15,9 @@ export default class TeekaYoureInLuck extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: `Give a unit ${TextHelper.Sentinel} for this phase or a unit loses ${TextHelper.Sentinel} for this phase`,
-            targetResolver: {
-                mode: TargetMode.Select,
+            immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects(() => ({
+                amountOfChoices: 1,
+                activePromptTitle: 'Choose one',
                 choices: {
                     [`Give a unit ${TextHelper.Sentinel} for this phase`]: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
@@ -31,7 +32,7 @@ export default class TeekaYoureInLuck extends NonLeaderUnitCard {
                         })
                     }),
                 }
-            }
+            }))
         });
     }
 }

@@ -13,7 +13,7 @@ export default class NumaStillFighting extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addDamageModificationAbility({
-            title: 'The first time this unit would take damage each phase, prevent that damage',
+            title: 'If this unit would be dealt damage, prevent 1 of that damage',
             modificationType: DamageModificationType.Reduce,
             amount: 1
         });
