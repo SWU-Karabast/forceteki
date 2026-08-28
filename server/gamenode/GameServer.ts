@@ -47,6 +47,7 @@ import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
+import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
     IModerationAction } from '../services/DynamoDBInterfaces';
@@ -1645,6 +1646,10 @@ export class GameServer {
                 }
                 const { cosmetic } = req.body;
 
+                if (!this.canManageCosmeticType(req.path, req.user.getId(), cosmetic?.type)) {
+                    return res.status(403).json({ success: false, message: 'Admin privileges are required to upload this cosmetic type' });
+                }
+
                 await this.cosmeticsService.saveCosmeticAsync(cosmetic);
                 return res.status(201).json({
                     success: true,
@@ -1663,6 +1668,15 @@ export class GameServer {
                     return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
                 }
                 const { cosmeticId } = req.params;
+
+                const cosmetic = this.cosmeticsService.getCosmetics().find((entry) => entry.id === cosmeticId);
+                if (!cosmetic) {
+                    return res.status(404).json({ success: false, message: 'Cosmetic not found' });
+                }
+
+                if (!this.canManageCosmeticType(req.path, req.user.getId(), cosmetic.type)) {
+                    return res.status(403).json({ success: false, message: 'Admin privileges are required to delete this cosmetic type' });
+                }
 
                 await this.cosmeticsService.deleteCosmeticAsync(cosmeticId);
                 return res.status(200).json({
@@ -1836,7 +1850,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/mod/server-settings', this.buildAuthMiddleware('mod-server-settings', ServerRole.Moderator), async (req, res, next) => {
+        app.post('/api/mod/server-settings', this.buildAuthMiddleware('mod-server-settings', ServerRole.Admin), async (req, res, next) => {
             try {
                 const parseResult = ServerSettingsUpdateSchema.safeParse(req.body);
                 if (!parseResult.success) {
@@ -1888,6 +1902,22 @@ export class GameServer {
      */
     private sendGamesDisabledResponse(res: Response) {
         return res.status(503).json({ success: false, message: this.getMaintenanceMessage() });
+    }
+
+    /**
+     * Whether a user may add or remove a cosmetic of this type. Moderators curate cardbacks; every
+     * other type belongs to admins. Both cosmetics routes already require Moderator, so this is the
+     * second half of that check rather than the whole of it.
+     *
+     * An unrecognised or missing type falls to the admin branch, so a type added later is locked
+     * down until someone decides otherwise rather than being open by omission.
+     */
+    private canManageCosmeticType(apiPath: string, userId: string, type: RegisteredCosmeticType | undefined): boolean {
+        if (type === RegisteredCosmeticType.Cardback) {
+            return true;
+        }
+
+        return checkServerRoleUserPrivileges(apiPath, userId, ServerRole.Admin, this.serverRoleUsersCache).success;
     }
 
     /**
