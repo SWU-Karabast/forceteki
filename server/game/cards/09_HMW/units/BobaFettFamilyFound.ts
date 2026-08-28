@@ -22,6 +22,7 @@ export default class BobaFettFamilyFound extends NonLeaderUnitCard {
                     event.card.hasSomeKeyword(KeywordName.Ambush)
             },
             immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+                title: `Gains ${TextHelper.Raid(1)} and ${TextHelper.Saboteur} for the phase`,
                 target: context.event.card,
                 effect: [
                     abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 }),

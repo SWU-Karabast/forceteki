@@ -32,6 +32,37 @@ describe('Boba Fett, Family Found', function() {
             expect(context.consularSecurityForce.damage).toBe(6);
         });
 
+        it('should give Raid 1 and Saboteur to a himself when it enters play', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['boba-fett#family-found']
+                },
+                player2: {
+                    groundArena: ['consular-security-force', 'echo-base-defender']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.bobaFett);
+
+            // Boba's triggered ability resolves first
+            context.player1.clickPrompt('Give Raid 1 and Saboteur to Boba Fett for this phase');
+
+            expect(context.player1).toHavePassAbilityPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.bobaFett.hasSomeKeyword('raid')).toBeTrue();
+            expect(context.bobaFett.hasSomeKeyword('saboteur')).toBeTrue();
+
+            expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.echoBaseDefender]);
+            context.player1.clickCard(context.consularSecurityForce);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.consularSecurityForce.damage).toBe(2);
+        });
+
         it('should give Raid 1 and Saboteur to a friendly unit with Ambush when it enters play (token units)', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

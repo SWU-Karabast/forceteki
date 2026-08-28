@@ -222,6 +222,41 @@ describe('Cham Syndulla, Hammer of Ryloth', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(1);
             });
+
+            it('should deal X damage to an enemy unit or base base when enemy unit ability damage is dealt to multiple friendly units', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'cham-syndulla#hammer-of-ryloth', deployed: true },
+                        groundArena: ['wampa', 'rey#skywalker']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['ig2000#assassins-aggressor']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.ig2000);
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.rey);
+                context.player2.clickCard(context.chamSyndulla);
+                context.player2.clickDone();
+
+                expect(context.player1).toHavePrompt('Resolve "Deal 1 damage to an enemy unit or base"');
+                context.player1.clickPrompt('Resolve all (3)');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.ig2000, context.p2Base]);
+                context.player1.clickCard(context.ig2000);
+                expect(context.player1).toBeAbleToSelectExactly([context.ig2000, context.p2Base]);
+                context.player1.clickCard(context.ig2000);
+                expect(context.player1).toBeAbleToSelectExactly([context.ig2000, context.p2Base]);
+                context.player1.clickCard(context.ig2000);
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.ig2000.damage).toBe(3);
+            });
         });
     });
 });
