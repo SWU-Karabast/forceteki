@@ -1353,9 +1353,7 @@ export class GameServer {
 
         app.get('/api/ongoing-games', (_, res, next) => {
             try {
-                // gamesEnabled rides along here so the home page gets it on first load without an
-                // extra request; the client still polls /api/server-settings to stay up to date.
-                return res.json({ ...this.getOngoingGamesData(), gamesEnabled: this.areGamesEnabled() });
+                return res.json(this.getOngoingGamesData());
             } catch (err) {
                 logger.error('GameServer (ongoing-games) Server Error: ', err);
                 next(err);
