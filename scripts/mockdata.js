@@ -2235,6 +2235,75 @@ const mockCards = [
         arena: 'space',
         internalName: 'the-marauder#a-new-home',
     }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'Old Master',
+        cost: 7,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['shielded'],
+        traits: ['force', 'fringe'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 16
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#old-master'
+    }),
+    buildMockCard({
+        title: 'Nightbrother',
+        subtitle: 'Maul\'s Gauntlet',
+        cost: 7,
+        power: 6,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 204
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'nightbrother#mauls-gauntlet',
+    }),
+    buildMockCard({
+        title: 'Sun Fac',
+        subtitle: 'Poggle\'s Second',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        traits: ['separatist'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 243
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sun-fac#poggles-second',
+    }),
+    buildMockCard({
+        title: 'Exploit Confidence',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 238
+        },
+        unique: false,
+        internalName: 'exploit-confidence'
+    }),
     // -------- End Mock Cards --------
 ];
 
