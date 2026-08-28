@@ -5,7 +5,7 @@ import type { Card } from './core/card/Card';
 import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, SwuGameFormat, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
-import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
+import type { IActionTargetResolver, IActionTargetsResolver, ICardTargetResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
 import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import type { ICost } from './core/cost/ICost';
 import type { Game } from './core/Game';
@@ -187,6 +187,47 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
     initiateAttack?: IInitiateAttackProperties | ((context: TContext) => IInitiateAttackProperties);
 }
 
+/**
+ * Enforces that exactly one of two mutually-exclusive shapes is supplied, by marking the properties
+ * unique to each side as `never` on the other (a plain union would allow properties from both, since
+ * excess-property checks pass a property that exists in any union member). Nest to combine more than
+ * two shapes, e.g. `ExclusiveUnion<A, ExclusiveUnion<B, C>>`.
+ */
+type PropsNotIn<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+type ExclusiveUnion<T, U> = (T & PropsNotIn<U, T>) | (U & PropsNotIn<T, U>);
+
+/** Shared properties for the play-cost variants below. */
+interface IPlayCostPropertiesBase {
+    /** Title for the play action this cost is surfaced under. */
+    title?: string;
+}
+
+/** Provide a fully-formed cost (or costs) directly. */
+interface ICostPlayCostProperties<TSource extends Card = Card> extends IPlayCostPropertiesBase {
+    cost: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[];
+}
+
+/** Derive the cost from a game system that must be resolvable to pay the cost. */
+interface IImmediateEffectPlayCostProperties<TSource extends Card = Card> extends IPlayCostPropertiesBase {
+    immediateEffect: GameSystem<AbilityContext<TSource>>;
+    costName?: string;
+}
+
+/** Derive the cost from a card-selection target whose immediate effect must be resolvable to pay the cost. */
+interface ITargetResolverPlayCostProperties<TSource extends Card = Card> extends IPlayCostPropertiesBase {
+    targetResolver: ICardTargetResolver<AbilityContext<TSource>>;
+    costName?: string;
+}
+
+/**
+ * Interface definition for addAdditionalPlayCost and addAlternatePlayCost abilities. Exactly one of
+ * `cost`, `immediateEffect`, or `targetResolver` must be supplied.
+ */
+export type IPlayCostProperties<TSource extends Card = Card> = ExclusiveUnion<
+    ICostPlayCostProperties<TSource>,
+    ExclusiveUnion<IImmediateEffectPlayCostProperties<TSource>, ITargetResolverPlayCostProperties<TSource>>
+>;
+
 /** Interface definition for addConstantAbility */
 export interface IConstantAbilityProps<TSource extends Card = Card> {
     title: string;
@@ -280,6 +321,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
   | IExploitKeywordProperties
+  | IFortifyKeywordProperties
   | IGritKeywordProperties
   | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
@@ -555,6 +597,10 @@ interface IExploitKeywordProperties extends INumericKeywordProperties {
     keyword: KeywordName.Exploit;
 }
 
+interface IFortifyKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Fortify;
+}
+
 interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
@@ -606,6 +652,7 @@ interface ISupportKeywordProperties extends IKeywordPropertiesBase {
 /** List of keywords that don't have any additional parameters */
 export type NonParameterKeywordName =
   | KeywordName.Ambush
+  | KeywordName.Fortify
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm
@@ -619,6 +666,7 @@ export type NonNumericKeywordName =
   | KeywordName.Ambush
   | KeywordName.Bounty
   | KeywordName.Coordinate
+  | KeywordName.Fortify
   | KeywordName.Grit
   | KeywordName.Hidden
   | KeywordName.Overwhelm

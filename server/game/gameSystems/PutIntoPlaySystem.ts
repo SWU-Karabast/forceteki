@@ -92,7 +92,11 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             const card: Card = event.card;
             if (card.canRegisterPreEnterPlayAbilities()) {
                 for (const ability of card.getPreEnterPlayAbilities()) {
-                    context.game.resolveAbility(ability.createContext(context.player, event));
+                    const preEnterPlayContext = ability.createContext(context.player, event);
+
+                    preEnterPlayContext.costs = { ...context.costs };
+
+                    context.game.resolveAbility(preEnterPlayContext);
                 }
                 context.game.queueSimpleStep(() => {
                     if (!event.entersReady) {

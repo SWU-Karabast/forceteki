@@ -1,4 +1,5 @@
 import type { IBaseCard } from '../card/BaseCard';
+import type { IUpgradeCard } from '../card/CardInterfaces';
 import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../card/propertyMixins/Token';
 import { ZoneName } from '../Constants';
@@ -8,7 +9,7 @@ import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
 import { ZoneAbstract } from './ZoneAbstract';
 
-type IBaseZoneCard = ILeaderCard | IBaseCard | ITokenCard;
+type IBaseZoneCard = ILeaderCard | IBaseCard | ITokenCard | IUpgradeCard;
 
 /**
  * Base zone which holds the player's base and leader
@@ -29,13 +30,21 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
     @stateRefArray()
     private accessor _credits: readonly ITokenCard[] = [];
 
+    @stateRefArray()
+    private accessor _upgrades: readonly IUpgradeCard[] = [];
+
     public override get cards(): (IBaseZoneCard)[] {
-        return [this.base, this.forceToken, this.leader, ...this.credits]
+        return [this.base, this.forceToken, this.leader, ...this.credits, ...this._upgrades]
             .filter((card) => card !== null);
     }
 
     public override get count() {
-        return this._leader ? 2 : 1;
+        return (this._leader ? 2 : 1) + this._upgrades.length;
+    }
+
+    /** Upgrades attached to the base (via the Fortify keyword). */
+    public get upgrades(): IUpgradeCard[] {
+        return this._upgrades as IUpgradeCard[];
     }
 
     public get leader(): ILeaderCard | null {
@@ -116,6 +125,16 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         if (this.credits.length === 0) {
             this.owner.updateCreditTokenCostAdjuster();
         }
+    }
+
+    public addUpgrade(upgrade: IUpgradeCard) {
+        this._upgrades = [...this._upgrades, upgrade];
+    }
+
+    public removeUpgrade(upgrade: IUpgradeCard) {
+        Contract.assertArrayIncludes(this._upgrades, upgrade, `Attempting to remove upgrade ${upgrade} from ${this} but it is not present`);
+
+        this._upgrades = this._upgrades.filter((c) => c !== upgrade);
     }
 }
 

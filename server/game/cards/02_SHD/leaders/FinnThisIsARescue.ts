@@ -17,7 +17,10 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card, context) => card.controller === context.player,
+                cardCondition: (card, context) =>
+                    card.isUpgrade() &&
+                    card.parentCard.isUnit() &&
+                    card.controller === context.player,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             ifYouDo: (ifYouDoContext) => ({
@@ -35,7 +38,10 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card, context) => card.controller === context.player,
+                cardCondition: (card, context) =>
+                    card.isUpgrade() &&
+                    card.parentCard.isUnit() &&
+                    card.controller === context.player,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             ifYouDo: (ifYouDoContext) => ({

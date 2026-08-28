@@ -111,6 +111,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected readonly _aspects: Aspect[] = [];
     protected readonly _backSideAspects: Aspect[];
     protected readonly _backSideTitle?: string;
+    protected readonly _backSideSubtitle?: string;
     protected readonly _internalName: string;
     protected readonly _subtitle?: string;
     protected readonly _title: string;
@@ -202,6 +203,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     public get backSideTitle(): string {
         return this._backSideTitle;
+    }
+
+    public get backSideSubtitle(): string {
+        return this._backSideSubtitle;
     }
 
     @stateRef()
@@ -350,6 +355,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         this._subtitle = cardData.subtitle === '' ? null : cardData.subtitle;
         this._title = cardData.title;
         this._backSideTitle = cardData.backSideTitle;
+        this._backSideSubtitle = cardData.backSideSubtitle === '' ? null : cardData.backSideSubtitle;
         this._unique = cardData.unique;
         this._printedType = Card.buildTypeFromPrinted(cardData.types);
 
@@ -997,6 +1003,8 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 this.zone.removeForceToken();
             } else if (this.isCreditToken()) {
                 this.zone.removeCreditToken(this);
+            } else if (this.isUpgrade()) {
+                this.zone.removeUpgrade(this);
             } else {
                 Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
             }
@@ -1047,8 +1055,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                     this.zone.setForceToken(this);
                 } else if (this.isCreditToken()) {
                     this.zone.addCreditToken(this);
+                } else if (this.isUpgrade()) {
+                    this.zone.addUpgrade(this);
                 } else {
-                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, or credit token`);
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, credit token, or upgrade`);
                 }
 
                 break;
@@ -1417,7 +1427,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 ownerId: this.owner.id,
                 aspects: this.aspects,
                 zone: this.zoneName,
-                name: this.cardData.title,
+                name: this.title,
                 power: this.cardData.power,
                 hp: this.cardData.hp,
                 unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client

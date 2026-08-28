@@ -166,8 +166,8 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (card.zoneName !== ZoneName.Resource) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
+        } else {
+            addLastKnownInformationToEvent(event, card);
         }
-
-        addLastKnownInformationToEvent(event, card);
     }
 }
