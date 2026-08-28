@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
-import express from 'express';
+import express, { type Response } from 'express';
 import cors from 'cors';
 import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
@@ -37,6 +37,7 @@ import { QueueHandler } from './QueueHandler';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
+import { ServerSettingsCache } from '../utils/ServerSettingsCache';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
@@ -61,7 +62,7 @@ import { CardPool, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
-import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema } from '../services/DynamoDBInterfaceSchemas';
+import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -137,11 +138,13 @@ export class GameServer {
 
         let cosmeticsService: CosmeticsService | undefined;
         let serverRoleUsersCache: ServerRoleUsersCache | undefined;
+        let serverSettingsCache: ServerSettingsCache | undefined;
         let modActionCache: ModActionService | undefined;
         const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
         if (shouldInitializeDbCaches) {
             console.log('SETUP: Initializing caches for server roles and customizations.');
             serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
+            serverSettingsCache = await ServerSettingsCache.createAsync(60);
             cosmeticsService = await CosmeticsService.createAsync();
             modActionCache = await ModActionService.createAsync();
             console.log('SETUP: Caches for server roles and customizations initialized.');
@@ -154,6 +157,7 @@ export class GameServer {
             cardDataGetter,
             deckValidator,
             serverRoleUsersCache,
+            serverSettingsCache,
             cosmeticsService,
             modActionCache,
             testGameBuilder
@@ -215,12 +219,14 @@ export class GameServer {
     private readonly discordDispatcher = new DiscordDispatcher();
     private readonly tokenCleanupInterval: NodeJS.Timeout;
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
+    public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
 
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
+        serverSettingsCache?: ServerSettingsCache,
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
         testGameBuilder?: any
@@ -235,6 +241,7 @@ export class GameServer {
         this.swuDbDeckFetcher = new SwuDbDeckFetcher();
         this.meleeDeckFetcher = new MeleeDeckFetcher(cardDataGetter);
         this.serverRoleUsersCache = serverRoleUsersCache;
+        this.serverSettingsCache = serverSettingsCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
 
@@ -1346,7 +1353,9 @@ export class GameServer {
 
         app.get('/api/ongoing-games', (_, res, next) => {
             try {
-                return res.json(this.getOngoingGamesData());
+                // gamesEnabled rides along here so the home page gets it on first load without an
+                // extra request; the client still polls /api/server-settings to stay up to date.
+                return res.json({ ...this.getOngoingGamesData(), gamesEnabled: this.areGamesEnabled() });
             } catch (err) {
                 logger.error('GameServer (ongoing-games) Server Error: ', err);
                 next(err);
@@ -1355,6 +1364,10 @@ export class GameServer {
 
         app.post('/api/create-lobby', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
+                if (!this.areGamesEnabled()) {
+                    return this.sendGamesDisabledResponse(res);
+                }
+
                 const { deck, swudbLink, format, isPrivate, gamesToWinMode, lobbyName, cardPool } = req.body;
                 const user = req.user;
 
@@ -1453,6 +1466,10 @@ export class GameServer {
 
         app.post('/api/join-lobby', this.buildAuthMiddleware(), (req, res, next) => {
             try {
+                if (!this.areGamesEnabled()) {
+                    return this.sendGamesDisabledResponse(res);
+                }
+
                 const { lobbyId } = req.body;
                 const user = req.user;
 
@@ -1508,6 +1525,10 @@ export class GameServer {
         app.post('/api/start-test-game', async (req, res, next) => {
             const { filename } = req.body;
             try {
+                if (!this.areGamesEnabled()) {
+                    return this.sendGamesDisabledResponse(res);
+                }
+
                 await this.startTestGame(filename);
                 return res.status(200).json({ success: true });
             } catch (err) {
@@ -1518,6 +1539,10 @@ export class GameServer {
 
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
+                if (!this.areGamesEnabled()) {
+                    return this.sendGamesDisabledResponse(res);
+                }
+
                 const { format, cardPool, gamesToWinMode, deck, swudbLink } = req.body;
                 const user = req.user;
 
@@ -1801,6 +1826,92 @@ export class GameServer {
                 next(err);
             }
         });
+
+        // Public: the client polls this to decide whether to show the maintenance UI. Served from
+        // the in-memory cache, so it is cheap enough to poll on an interval from every open page.
+        app.get('/api/server-settings', (_, res, next) => {
+            try {
+                return res.json(this.getPublicServerSettings());
+            } catch (err) {
+                logger.error('GameServer (server-settings) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/server-settings', this.buildAuthMiddleware('mod-server-settings', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = ServerSettingsUpdateSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid request',
+                        errors: parseResult.error.format()
+                    });
+                }
+
+                // buildAuthMiddleware only applies the role check when a session cookie is present,
+                // so re-check explicitly here. This endpoint disables the whole site, and must never
+                // be reachable by an unauthenticated caller.
+                const roleCheck = checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Moderator, this.serverRoleUsersCache);
+                if (!roleCheck.success) {
+                    logger.warn(`GameServer (mod-server-settings): rejected request from user ${req.user.getId()}`, { userId: req.user.getId() });
+                    return res.status(403).json({ success: false, message: roleCheck.message });
+                }
+
+                if (!this.serverSettingsCache) {
+                    return res.status(503).json({
+                        success: false,
+                        message: 'Server settings are unavailable because there is no database connection'
+                    });
+                }
+
+                const updated = await this.serverSettingsCache.updateSettingsAsync(parseResult.data, req.user.getUsername());
+                logger.info('GameServer: server settings updated by moderator', {
+                    updatedBy: req.user.getUsername(),
+                    gamesEnabled: updated.gamesEnabled
+                });
+
+                return res.status(200).json({ success: true, settings: this.getPublicServerSettings() });
+            } catch (err) {
+                logger.error('GameServer (mod-server-settings) Server error:', err);
+                next(err);
+            }
+        });
+    }
+
+    /**
+     * Whether new games may currently be created, joined or requeued.
+     *
+     * Falls back to enabled when there is no settings cache, which is the case on a local dev box
+     * running without DynamoDB - otherwise every dev environment would sit in maintenance mode.
+     */
+    private areGamesEnabled(): boolean {
+        return this.serverSettingsCache?.isGamesEnabled() ?? true;
+    }
+
+    private getMaintenanceMessage(): string {
+        return this.serverSettingsCache?.getMaintenanceMessage() || 'Karabast is currently under maintenance. Be back soon!';
+    }
+
+    /**
+     * Rejects a request that would start a new game while games are disabled. 503 rather than 403,
+     * since this is a temporary server state rather than a permissions problem.
+     */
+    private sendGamesDisabledResponse(res: Response) {
+        return res.status(503).json({ success: false, message: this.getMaintenanceMessage() });
+    }
+
+    /**
+     * The subset of server settings that is safe to expose to any client.
+     */
+    private getPublicServerSettings() {
+        const settings = this.serverSettingsCache?.getSettings();
+        return {
+            gamesEnabled: this.areGamesEnabled(),
+            maintenanceMessage: settings?.maintenanceMessage,
+            updatedBy: settings?.updatedBy,
+            updatedAt: settings?.updatedAt
+        };
     }
 
 
@@ -2514,6 +2625,14 @@ export class GameServer {
      */
     public requeueUser(socket: Socket, format: IQueueFormatKey, user: User, deck: ISwuDbFormatDecklist) {
         try {
+            // Gated here rather than on the 'requeue' socket event, since this is also reached by
+            // the automatic requeue paths in Lobby (e.g. when a matched opponent disconnects).
+            if (!this.areGamesEnabled()) {
+                logger.info(`GameServer: Refusing to requeue user ${user.getId()}, games are currently disabled`);
+                socket.send('connection_error', this.getMaintenanceMessage());
+                return;
+            }
+
             if (!deck) {
                 logger.error(`GameServer: Cannot requeue user ${user.getId()} - no deck provided`);
                 socket.send('connection_error', 'Unable to requeue: deck not found');
