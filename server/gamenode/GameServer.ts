@@ -1847,15 +1847,6 @@ export class GameServer {
                     });
                 }
 
-                // buildAuthMiddleware only applies the role check when a session cookie is present,
-                // so re-check explicitly here. This endpoint disables the whole site, and must never
-                // be reachable by an unauthenticated caller.
-                const roleCheck = checkServerRoleUserPrivileges(req.path, req.user.getId(), ServerRole.Moderator, this.serverRoleUsersCache);
-                if (!roleCheck.success) {
-                    logger.warn(`GameServer (mod-server-settings): rejected request from user ${req.user.getId()}`, { userId: req.user.getId() });
-                    return res.status(403).json({ success: false, message: roleCheck.message });
-                }
-
                 if (!this.serverSettingsCache) {
                     return res.status(503).json({
                         success: false,
@@ -1945,7 +1936,7 @@ export class GameServer {
     // dev only endpoints
     private setupDevAppRoutes(app: express.Application) {
         // deletes all cosmetics from the database
-        app.delete('/api/cosmetics', this.buildAuthMiddleware(), async (req, res, next) => {
+        app.delete('/api/cosmetics', this.buildAuthMiddleware('clear-all-cosmetics', ServerRole.Admin), async (req, res, next) => {
             try {
                 if (!this.cosmeticsService) {
                     return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
@@ -1962,7 +1953,7 @@ export class GameServer {
         });
 
         // resets cosmetics to the default set from file
-        app.post('/api/cosmetics-reset', this.buildAuthMiddleware(), async (req, res, next) => {
+        app.post('/api/cosmetics-reset', this.buildAuthMiddleware('reset-cosmetics', ServerRole.Admin), async (req, res, next) => {
             try {
                 if (!this.cosmeticsService) {
                     return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
