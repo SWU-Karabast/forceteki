@@ -33,7 +33,11 @@ export default class HanSoloIGotAReallyGoodFeeling extends LeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'Defeat any number of friendly tokens',
             targetResolver: {
-                activePromptTitle: (_context, selectedCards) => `Defeat any number of friendly tokens (${selectedCards.length} selected)`,
+                activePromptTitle: (_context, selectedCards) => (
+                    selectedCards == null
+                        ? 'Defeat any number of friendly tokens'
+                        : `Defeat any number of friendly tokens (${selectedCards.length} selected)`
+                ),
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,
                 cardTypeFilter: WildcardCardType.Token,
