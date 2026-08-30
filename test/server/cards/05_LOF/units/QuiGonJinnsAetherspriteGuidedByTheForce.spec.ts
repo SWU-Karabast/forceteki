@@ -767,11 +767,12 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 context.player2.passAction();
 
-                // Play Blue Leader, moving to the ground arena and giving 2 Experience tokens
+                // Play Blue Leader, moving to the ground arena and giving 2 Experience tokens. The move
+                // ability shares the When Played window with Ambush, so it triggers inline.
                 context.player1.clickCard(context.blueLeader);
-                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 const readyResources = context.player1.readyResourceCount;
-                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHaveInlineTriggerPass('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
+                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
 
                 expect(context.player1.readyResourceCount).toBe(readyResources - 2);
                 expect(context.blueLeader).toBeInZone('groundArena');

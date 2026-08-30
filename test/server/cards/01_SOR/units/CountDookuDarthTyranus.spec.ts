@@ -20,9 +20,9 @@ describe('Count Dooku, Darth Tyranus', function () {
                 context.player1.clickCard(context.countDooku);
 
                 // choose between defeat prompt and shield prompt
+                expect(context.player1).toHaveInlineTriggerPass('Defeat a unit with 4 or less remaining HP');
                 context.player1.clickPrompt('Defeat a unit with 4 or less remaining HP');
                 expect(context.player1).toBeAbleToSelectExactly([context._21bSurgicalDroid, context.greenSquadronAwing, context.battlefieldMarine, context.countDooku, context.atst]);
-                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
 
                 // only battlefield marine defeated

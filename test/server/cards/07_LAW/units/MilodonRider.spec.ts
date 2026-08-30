@@ -22,9 +22,7 @@ describe('Milodon Rider', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.milodonRider);
-                context.player1.clickPrompt('Return another friendly non-leader unit to its owner\'s hand');
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel]);
-                context.player1.clickPrompt('Pass');
+                context.player1.clickInlineTriggerPass('Return another friendly non-leader unit to its owner\'s hand');
                 context.player1.clickPrompt('Pass');
                 expect(context.pykeSentinel).toBeInZone('groundArena', context.player1);
             });

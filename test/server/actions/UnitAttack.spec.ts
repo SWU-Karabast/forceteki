@@ -270,7 +270,6 @@ describe('Basic attack', function() {
             ]);
 
             context.player1.clickPrompt('Draw a card');
-            context.player1.clickPrompt('Trigger');
             expect(context.player1.handSize).toBe(1);
 
             // Cassian ability resolves

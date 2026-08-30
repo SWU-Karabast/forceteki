@@ -20,6 +20,7 @@ import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
 import { EventWindow, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
+import type { PreResolvedOptional } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
 import { cards } from '../cards/Index';
@@ -1384,8 +1385,8 @@ export class Game extends EventEmitter {
     /**
      * Resolves a card ability
      */
-    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean): AbilityResolver {
-        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements);
+    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean, preResolvedOptional?: PreResolvedOptional): AbilityResolver {
+        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements, preResolvedOptional);
         this.queueStep(resolver);
         return resolver;
     }

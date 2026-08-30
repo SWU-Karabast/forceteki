@@ -428,11 +428,10 @@ describe('Regroup phase', function() {
                 // Choose which ability to resolve first
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons(['Shielded', 'Ambush', 'Deal 3 damage to this unit']);
+                expect(context.player1).toHaveInlineTriggerPass('Ambush');
                 context.player1.clickPrompt('Ambush');
 
                 // Ambush Consular Security Force
-                expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.consularSecurityForce);
                 expect(context.consularSecurityForce.damage).toBe(4); // Speeder has +1/+1 from Wedge
                 expect(context.dilapidatedSkiSpeeder.damage).toBe(3);

@@ -99,8 +99,7 @@ describe('Overcharged Transport', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.blueLeader);
-                context.player1.clickPrompt('Ambush');
-                context.player1.clickPrompt('Pass');
+                context.player1.clickInlineTriggerPass('Ambush');
                 context.player1.clickPrompt('Trigger');
 
                 context.player2.clickCard(context.paigeTico);

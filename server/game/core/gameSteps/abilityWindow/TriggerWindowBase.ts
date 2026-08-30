@@ -1,7 +1,7 @@
 import type { Player } from '../../Player';
 import type { GameEvent } from '../../event/GameEvent';
 import type { EventWindow } from '../../event/EventWindow';
-import { AbilityType, SubStepCheck } from '../../Constants';
+import { AbilityType, RelativePlayer, SubStepCheck } from '../../Constants';
 import { Contract } from '../../utils/Contract';
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
@@ -12,6 +12,7 @@ import type { Game } from '../../Game';
 import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityResolutionPrompt';
 import { BatchTriggerResolutionPrompt } from '../prompts/BatchTriggerResolutionPrompt';
 import type { IResolutionChoice, ITriggerWindowSourceCard } from '../PromptInterfaces';
+import type { PreResolvedOptional } from '../AbilityResolver';
 
 /** Builds the lightweight card summary attached to trigger-style prompt buttons. */
 export function getTriggerSourceCardSummary(card: Card): ITriggerWindowSourceCard {
@@ -113,7 +114,16 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     public abstract shouldCleanUpTriggers(): boolean;
 
-    protected abstract resolveAbility(context: TriggeredAbilityContext): void;
+    protected abstract resolveAbility(context: TriggeredAbilityContext, preResolvedOptional?: PreResolvedOptional): void;
+
+    /**
+     * Whether this window can resolve an optional trigger's Trigger/Pass choice inline in the resolution-order
+     * prompt (skipping the interstitial "You may trigger this ability" prompt). Only true for windows whose
+     * `resolveAbility` honors the {@link PreResolvedOptional} mode; replacement-effect windows opt out.
+     */
+    protected supportsInlineOptionalResolution(): boolean {
+        return false;
+    }
 
     public override continue() {
         if (this.shouldCleanUpTriggers()) {
@@ -300,7 +310,34 @@ export abstract class TriggerWindowBase extends BaseStep {
             getSourceCard: () => getTriggerSourceCardSummary(context.source),
             hasLegalEffects: () => context.ability.hasAnyLegalEffects(context, SubStepCheck.All),
             handler: () => this.resolveAbility(context),
+            optional: this.canResolveOptionalInline(context)
+                ? {
+                    onTrigger: () => this.resolveAbility(context, 'trigger'),
+                    onPass: () => this.resolveAbility(context, 'pass'),
+                    passButtonText: this.getOptionalPassButtonText(context),
+                }
+                : undefined,
         };
+    }
+
+    /**
+     * An optional ("may") trigger can have its Trigger/Pass decision made inline in the resolution-order
+     * prompt only when this window honors the inline mode and the currently resolving player is the one who
+     * chooses. When the opponent is the chooser (`playerChoosingOptional`), fall back to the interstitial.
+     */
+    private canResolveOptionalInline(context: TriggeredAbilityContext): boolean {
+        if (!this.supportsInlineOptionalResolution() || !context.ability.optional) {
+            return false;
+        }
+
+        const chooser = context.ability.playerChoosingOptional ?? RelativePlayer.Self;
+        return chooser === RelativePlayer.Self;
+    }
+
+    /** Decline-button label for an inline-optional trigger, mirroring {@link AbilityResolver}'s pass-button text. */
+    private getOptionalPassButtonText(context: TriggeredAbilityContext): string {
+        return context.ability.optionalButtonTextOverride ??
+          (context.ability.isAttackAction() ? 'Pass attack' : 'Pass');
     }
 
     /**

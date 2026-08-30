@@ -35,9 +35,9 @@ describe('The Client, Dictated by Discretion', function() {
                 context.player1.clickCard(context.wampa);
 
                 // heal 5 from kestro city
+                expect(context.player1).toHaveInlineTriggerPass('Collect Bounty: Heal 5 damage from a base');
                 context.player1.clickPrompt('Collect Bounty: Heal 5 damage from a base');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
-                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(5);

@@ -27,14 +27,8 @@ describe('Rogue Squadron Skirmisher', function () {
                     'Ambush',
                     'Return a unit that costs 2 or less from your discard pile to your hand.'
                 ]);
+                expect(context.player1).toHaveInlineTriggerPass('Ambush');
                 context.player1.clickPrompt('Ambush');
-
-                // chooses to trigger the ambush
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Trigger',
-                    'Pass',
-                ]);
-                context.player1.clickPrompt('Trigger');
 
                 // solves ambush damages
                 expect(context.rogueSquadronSkirmisher.exhausted).toBeTrue();

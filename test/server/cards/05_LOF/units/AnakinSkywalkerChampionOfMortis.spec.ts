@@ -40,10 +40,10 @@ describe('Anakin Skywalker, Champion of Mortis', function () {
 
             expect(context.player1).toHaveExactPromptButtons([heroismPrompt, `(No effect) ${villainyPrompt}`]);
 
+            expect(context.player1).toHaveInlineTriggerPass(heroismPrompt);
             context.player1.clickPrompt(heroismPrompt);
 
             expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker, context.wampa]);
-            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
@@ -69,10 +69,10 @@ describe('Anakin Skywalker, Champion of Mortis', function () {
 
             expect(context.player1).toHaveExactPromptButtons([`(No effect) ${heroismPrompt}`, villainyPrompt]);
 
+            expect(context.player1).toHaveInlineTriggerPass(villainyPrompt);
             context.player1.clickPrompt(villainyPrompt);
 
             expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker, context.wampa]);
-            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
@@ -98,10 +98,10 @@ describe('Anakin Skywalker, Champion of Mortis', function () {
 
             expect(context.player1).toHaveExactPromptButtons([heroismPrompt, villainyPrompt]);
 
+            expect(context.player1).toHaveInlineTriggerPass(villainyPrompt);
             context.player1.clickPrompt(villainyPrompt);
 
             expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker, context.wampa, context.consularSecurityForce]);
-            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.wampa);
 
             expect(context.wampa.getPower()).toBe(1);

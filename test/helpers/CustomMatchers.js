@@ -543,6 +543,37 @@ var customMatchers = {
             }
         };
     },
+    toHaveInlineTriggerPass: function () {
+        return {
+            compare: function (player, abilityText) {
+                var result = {};
+
+                if (abilityText == null) {
+                    throw new TestSetupError('toHaveInlineTriggerPass requires an abilityText parameter');
+                }
+
+                // In the simultaneous-trigger prompt, an optional trigger exposes its Pass inline via `passArg`
+                // on the ability's own trigger button (matched by button text or label), rather than a separate
+                // "Trigger"/"Pass" interstitial.
+                const triggerButton = (player.currentPrompt().buttons ?? []).find(
+                    (button) => button.passArg != null &&
+                      [button.text, button.label].some(
+                          (value) => value != null && value.toString().toLowerCase() === abilityText.toLowerCase()
+                      )
+                );
+                result.pass = triggerButton != null;
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have an inline trigger Pass for '${abilityText}' but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have an inline trigger Pass for '${abilityText}' ` +
+                    `(a trigger button with a passArg) but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
     toHaveNoEffectAbilityPrompt: function () {
         return {
             compare: function (player, abilityText) {

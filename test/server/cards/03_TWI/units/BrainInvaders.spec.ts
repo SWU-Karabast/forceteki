@@ -419,9 +419,8 @@ describe('Brain Invaders', () => {
                 // Player 1 plays an underworld card, Cad Bane's ability triggers
                 context.player1.clickCard(context.craftySmuggler);
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:'); // Choose resolution order
-                context.player1.clickPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
-                context.player1.clickPrompt('Pass');
+                expect(context.player1).toHaveInlineTriggerPass('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
+                context.player1.clickInlineTriggerPass('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
 
                 // Player 2 plays an upgrade, The Mandalorian's ability triggers
                 context.player2.clickCard(context.theDarksaber);

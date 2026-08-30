@@ -229,8 +229,7 @@ describe('Ravager, Final Imperial Command', function () {
                 expect(context.blueLeader).toBeInZone('spaceArena');
 
                 // Pass the ambush and moving to ground
-                context.player1.clickPrompt('Ambush');
-                context.player1.clickPrompt('Pass');
+                context.player1.clickInlineTriggerPass('Ambush');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.blueLeader).toBeInZone('groundArena');
@@ -244,7 +243,6 @@ describe('Ravager, Final Imperial Command', function () {
                 // Play Blue Leader to the ground
                 context.player1.clickCard(context.blueLeaderScarifAirSupport);
                 context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.blueLeader).toBeInZone('groundArena');
 

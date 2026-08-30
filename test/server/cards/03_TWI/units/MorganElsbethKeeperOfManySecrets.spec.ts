@@ -21,9 +21,9 @@ describe('Morgan Elsbeth, Keeper of Many Secrets', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // choice between ability and restore 1
+                expect(context.player1).toHaveInlineTriggerPass('Defeat another friendly unit. If you do, draw a card.');
                 context.player1.clickPrompt('Defeat another friendly unit. If you do, draw a card.');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
-                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.wampa);
 
                 // wampa should be defeated, and we should had draw a card
@@ -38,11 +38,9 @@ describe('Morgan Elsbeth, Keeper of Many Secrets', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // choice between ability and restore 1
-                context.player1.clickPrompt('Defeat another friendly unit. If you do, draw a card.');
-
                 // can pass
-                expect(context.player1).toHavePassAbilityPrompt('Defeat another friendly unit. If you do, draw a card.');
-                context.player1.clickPrompt('Pass');
+                expect(context.player1).toHaveInlineTriggerPass('Defeat another friendly unit. If you do, draw a card.');
+                context.player1.clickInlineTriggerPass('Defeat another friendly unit. If you do, draw a card.');
 
                 // we pass, atst should be alive, and we should not have draw
                 expect(context.player2).toBeActivePlayer();

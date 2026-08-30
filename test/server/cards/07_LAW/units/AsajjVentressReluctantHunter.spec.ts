@@ -89,9 +89,9 @@ describe('Asajj Ventress, Reluctant Hunter', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.asajjVentress);
+            expect(context.player1).toHaveInlineTriggerPass('Ready another Bounty Hunter unit');
             context.player1.clickPrompt('Ready another Bounty Hunter unit');
             expect(context.player1).toBeAbleToSelectExactly([context.bobaFett, context.bossk, context.zuckuss, context.cadBane]);
-            expect(context.player1).toHaveEnabledPromptButton('Pass');
             context.player1.clickCard(context.cadBane);
             context.player1.clickPrompt('Pass');
 

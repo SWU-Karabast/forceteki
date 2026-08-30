@@ -245,8 +245,7 @@ describe('Advantage', function() {
                     'Defeat Advantage token',
                     'If the defender was defeated, you may deal 4 damage to a ground unit'
                 ]);
-                context.player1.clickPrompt('If the defender was defeated, you may deal 4 damage to a ground unit');
-                context.player1.clickPrompt('Pass');
+                context.player1.clickInlineTriggerPass('If the defender was defeated, you may deal 4 damage to a ground unit');
 
                 // The remaining two Advantage tokens then resolve from the modal
                 expect(context.player1).toHavePrompt('Resolve "Defeat Advantage token"');

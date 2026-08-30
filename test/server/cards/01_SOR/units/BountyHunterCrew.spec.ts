@@ -19,9 +19,9 @@ describe('Bounty Hunter Crew', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bountyHunterCrew);
+                expect(context.player1).toHaveInlineTriggerPass('Return an event from a discard pile');
                 context.player1.clickPrompt('Return an event from a discard pile');
                 expect(context.player1).toBeAbleToSelectExactly([context.keepFighting, context.disarm, context.tacticalAdvantage]);
-                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.disarm);
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.disarm.zoneName).toBe('hand');
@@ -31,9 +31,9 @@ describe('Bounty Hunter Crew', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bountyHunterCrew);
+                expect(context.player1).toHaveInlineTriggerPass('Return an event from a discard pile');
                 context.player1.clickPrompt('Return an event from a discard pile');
                 expect(context.player1).toBeAbleToSelectExactly([context.keepFighting, context.disarm, context.tacticalAdvantage]);
-                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.tacticalAdvantage);
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.tacticalAdvantage.zoneName).toBe('hand');

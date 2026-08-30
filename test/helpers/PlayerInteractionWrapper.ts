@@ -675,6 +675,32 @@ export class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
+    /**
+     * Declines an inline-optional trigger directly from the simultaneous-trigger resolution prompt (the
+     * "card as action button" prompt) via the Pass affordance carried on that ability's trigger button,
+     * instead of a follow-up interstitial. Matches by the ability's button text or label.
+     */
+    public clickInlineTriggerPass(abilityText: string) {
+        abilityText = abilityText.toString();
+        const currentPrompt = this.player.currentPrompt();
+        const promptButton = (currentPrompt.buttons ?? []).find(
+            (button: { passArg?: string; text?: { toString: () => string }; label?: { toString: () => string } }) =>
+                button.passArg != null &&
+                [button.text, button.label].some(
+                    (value) => value != null && value.toString().toLowerCase() === abilityText.toLowerCase()
+                )
+        );
+
+        if (!promptButton) {
+            throw new TestSetupError(
+                `Couldn't find an inline Pass for '${abilityText}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+            );
+        }
+
+        this.game.menuButton(this.player.id, promptButton.passArg, promptButton.uuid, promptButton.method);
+        this.game.continue();
+    }
+
     public chooseListOption(text: any) {
         const currentPrompt = this.player.currentPrompt();
         const numberValue = Number(text);

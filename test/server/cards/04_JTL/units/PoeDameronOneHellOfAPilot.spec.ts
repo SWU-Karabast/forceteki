@@ -92,7 +92,6 @@ describe('Poe Dameron, One Hell of a Pilot', function() {
                 context.player1.clickCard(context.energyConversionLab);
                 context.player1.clickCard(context.poeDameron);
                 context.player1.clickPrompt('Ambush');
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.poeDameron).toBeInZone('groundArena');
                 expect(context.player1.findCardsByName('xwing').length).toBe(0);

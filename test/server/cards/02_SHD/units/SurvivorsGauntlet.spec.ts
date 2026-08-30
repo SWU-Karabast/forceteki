@@ -122,8 +122,7 @@ describe('Survivors Gauntlet', function() {
                 // We clean player 2 board expect Finn and cartel Spacer
                 context.player1.clickCard(context.vanquish);
                 context.player1.clickCard(context.hylobonEnforcer);
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Pass');
+                context.player1.clickInlineTriggerPass('Collect Bounty: Draw a card');
 
                 context.player2.clickCard(context.electrostaff);
                 context.player2.clickCard(context.finn);

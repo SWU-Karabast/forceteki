@@ -228,7 +228,6 @@ describe('Let\'s Talk', function () {
             ]);
 
             context.player1.clickPrompt('Collect Bounty: Draw a card');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectAllOf([context.wampa, context.tauntaun, context.admiralAckbar]);
             context.player1.clickCard(context.admiralAckbar);

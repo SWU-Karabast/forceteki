@@ -68,7 +68,6 @@ describe('Mythosaur, Folklore Awakened', function() {
 
                 // Player 2 uses The Mandalorian's ability to exhaust Satine Kryze
                 context.player2.clickPrompt('Exhaust this leader to exhaust an enemy unit with 4 or less remaining HP');
-                context.player2.clickPrompt('Trigger');
                 context.player2.clickCard(context.satineKryze);
 
                 // Both Mythosaur and Satine Kryze are upgraded and should not be exhausted

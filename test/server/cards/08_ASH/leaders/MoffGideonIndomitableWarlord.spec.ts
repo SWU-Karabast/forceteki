@@ -268,7 +268,6 @@ describe('Moff Gideon, Indomitable Warlord', function () {
                 ]);
 
                 context.player1.clickPrompt('Play Cinta Kaz using Plot');
-                context.player1.clickPrompt('Trigger');
 
                 // Attack with ready unit from Cinta ability
                 expect(context.player1).toHavePrompt('Attack with a unit');

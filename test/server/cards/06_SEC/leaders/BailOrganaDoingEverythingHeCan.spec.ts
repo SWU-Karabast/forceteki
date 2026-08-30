@@ -294,7 +294,6 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 expect(context.bailOrgana.deployed).toBe(true);
                 expect(context.player1).toHaveExactPromptButtons(['Play Unveiled Might using Plot', 'Play Armor of Fortune using Plot']);
                 context.player1.clickPrompt('Play Unveiled Might using Plot');
-                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.bailOrgana);
                 expect(context.unveiledMight).toBeAttachedTo(context.bailOrgana);
                 expect(context.p1Base.damage).toBe(4);
