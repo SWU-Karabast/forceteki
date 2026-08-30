@@ -398,24 +398,13 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
      * abilities have a cost in brackets that must be paid in order to use the ability.
      */
     public getActionAbilities(): ActionAbilityBase[] {
-        const deduplicatedActionAbilities: ActionAbilityBase[] = [];
-
-        // Add any gained action abilities, deduplicating by any identical gained action abilities from
-        // the same source card (e.g., two Heroic Resolve actions)
-        const seenCardNameSources = new Set<string>();
-        for (const action of this.actionAbilities) {
-            if (action.printedAbility) {
-                deduplicatedActionAbilities.push(action);
-            } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
-                deduplicatedActionAbilities.push(action);
-                seenCardNameSources.add(action.gainAbilitySource.internalName);
-            }
+        // Duplicate gained abilities are deduplicated against legal actions in ActionWindow.getCardLegalActions,
+        // after use limits are checked, so a still-usable copy isn't hidden by one that's at its limit.
+        if (this.isBlank()) {
+            return this.actionAbilities.filter((action) => action.isEpicAction);
         }
 
-        const epicActionAbilities = deduplicatedActionAbilities
-            .filter((action) => action.isEpicAction);
-
-        return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
+        return [...this.actionAbilities];
     }
 
     public getPrintedActionAbilities(): ActionAbilityBase[] {
