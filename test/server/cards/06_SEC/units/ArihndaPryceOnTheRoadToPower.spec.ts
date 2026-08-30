@@ -55,11 +55,9 @@ describe('Arihnda Pryce, On The Road To Power', function () {
                 'Put Superlaser Technician into play as a resource and ready it'
             ]);
 
-            // choose thrawn ability
+            // choose thrawn ability (triggers inline)
+            expect(context.player1).toHaveInlineTriggerPass('Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s "When Defeated" ability again');
             context.player1.clickPrompt('Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s "When Defeated" ability again');
-            // trigger it
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s "When Defeated" ability again');
-            context.player1.clickPrompt('Trigger');
 
             // choose oom series
             context.player1.clickCard(context.oomseriesOfficer);

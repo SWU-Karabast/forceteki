@@ -19,11 +19,9 @@ describe('Blue Leader, Scarif Air Support', function() {
                 context.player1.clickCard(context.blueLeader);
 
                 expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', 'Ambush']);
-                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-
+                expect(context.player1).toHaveInlineTriggerPass('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 const readyResources = context.player1.readyResourceCount;
-                context.player1.clickPrompt('Trigger');
+                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 expect(context.player1.readyResourceCount).toBe(readyResources - 2);
 
                 expect(context.blueLeader).toBeInZone('groundArena');
@@ -37,9 +35,8 @@ describe('Blue Leader, Scarif Air Support', function() {
                 context.player1.clickCard(context.blueLeader);
                 expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', 'Ambush']);
 
+                expect(context.player1).toHaveInlineTriggerPass('Ambush');
                 context.player1.clickPrompt('Ambush');
-                expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly(context.piratedStarfighter);
                 context.player1.clickCard(context.piratedStarfighter);
 
@@ -72,11 +69,11 @@ describe('Blue Leader, Scarif Air Support', function() {
             context.player1.clickCard(context.blueLeader);
             expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
 
-            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-            expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-
+            // Two optional "When Played" triggers share this window, so the move ability is triggered inline
+            // (declinable via its inline Pass) rather than through a follow-up interstitial.
+            expect(context.player1).toHaveInlineTriggerPass('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             const readyResources = context.player1.readyResourceCount;
-            context.player1.clickPrompt('Trigger');
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             expect(context.player1.readyResourceCount).toBe(readyResources - 2);
 
             expect(context.blueLeader).toBeInZone('groundArena');
@@ -109,11 +106,11 @@ describe('Blue Leader, Scarif Air Support', function() {
             context.player1.clickCard(context.blueLeader);
             expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', 'Ambush']);
 
-            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-            expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-
+            // Two optional "When Played" triggers share this window, so the move ability is triggered inline
+            // (declinable via its inline Pass) rather than through a follow-up interstitial.
+            expect(context.player1).toHaveInlineTriggerPass('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             const readyResources = context.player1.readyResourceCount;
-            context.player1.clickPrompt('Trigger');
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             expect(context.player1.readyResourceCount).toBe(readyResources - 2);
 
             expect(context.blueLeader).toBeInZone('groundArena');
@@ -157,11 +154,11 @@ describe('Blue Leader, Scarif Air Support', function() {
 
             // move Blue Leader to the ground arena, shield should move with it
             expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
-            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-            expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-
+            // Two optional "When Played" triggers share this window, so the move ability is triggered inline
+            // (declinable via its inline Pass) rather than through a follow-up interstitial.
+            expect(context.player1).toHaveInlineTriggerPass('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             const readyResources = context.player1.readyResourceCount;
-            context.player1.clickPrompt('Trigger');
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             expect(context.player1.readyResourceCount).toBe(readyResources - 2);
 
             expect(context.blueLeader).toBeInZone('groundArena');
@@ -194,11 +191,11 @@ describe('Blue Leader, Scarif Air Support', function() {
             context.player1.clickCard(context.blueLeader);
             expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
 
-            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-            expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-
+            // Two optional "When Played" triggers share this window, so the move ability is triggered inline
+            // (declinable via its inline Pass) rather than through a follow-up interstitial.
+            expect(context.player1).toHaveInlineTriggerPass('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             const readyResources = context.player1.readyResourceCount;
-            context.player1.clickPrompt('Trigger');
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             expect(context.player1.readyResourceCount).toBe(readyResources - 2);
 
             expect(context.blueLeader).toBeInZone('groundArena');
@@ -227,9 +224,8 @@ describe('Blue Leader, Scarif Air Support', function() {
             context.player1.clickCard(context.blueLeader);
             context.player1.clickPrompt('Pay costs without Credit tokens');
 
-            // Confirm ability prompt
+            // Confirm ability prompt (triggered inline from the shared When Played window)
             context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-            context.player1.clickPrompt('Trigger');
 
             // Insufficient resources available, but we should be able to use a Credit token to supplement
             expect(context.player1.readyResourceCount).toBe(1);
@@ -273,7 +269,6 @@ describe('Blue Leader, Scarif Air Support', function() {
                 context.player1.clickCard(context.blueLeader);
                 expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it', '(No effect) Ambush']);
                 context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-                context.player1.clickPrompt('Trigger');
             });
 
             it('it should not be explicitly targetable for \'choose a space unit\' effects', function() {

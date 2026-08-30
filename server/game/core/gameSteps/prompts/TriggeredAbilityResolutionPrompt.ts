@@ -60,7 +60,12 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
             arg: num.toString(),
             sourceCard: choice.getSourceCard(),
             hasLegalEffects,
-            count: choice.count
+            count: choice.count,
+            // Optional triggers whose owner is the resolving player expose an inline Pass so the player can
+            // decline without a follow-up interstitial; clicking the card itself triggers the ability.
+            optional: choice.optional != null,
+            passArg: choice.optional != null ? `pass${num}` : undefined,
+            passText: choice.optional?.passButtonText
         };
     }
 
@@ -77,14 +82,26 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
             return true;
         }
 
-        const selectedIndex = Number(arg);
+        // Inline-optional choices decline via a `pass<index>` arg; the plain index arg triggers the choice.
+        const isPass = arg.startsWith('pass');
+        const selectedIndex = Number(isPass ? arg.slice('pass'.length) : arg);
         const choice = this.choices[selectedIndex];
 
         if (!choice) {
             return false;
         }
 
-        choice.handler();
+        if (isPass) {
+            if (!choice.optional) {
+                return false;
+            }
+            choice.optional.onPass();
+        } else if (choice.optional) {
+            choice.optional.onTrigger();
+        } else {
+            choice.handler();
+        }
+
         this.complete();
         return true;
     }

@@ -252,7 +252,6 @@ describe('Plot keyword', function() {
 
                 // Resolve Cad Banea
                 context.player1.clickPrompt('Play Cad Bane using Plot');
-                context.player1.clickPrompt('Trigger');
                 expect(context.cadBane).toBeInZone('groundArena');
                 expect(context.pykeSentinel).toBeInZone('resource');
                 expect(context.player1).toHavePrompt('Defeat a unit with 2 or less remaining HP');
@@ -291,7 +290,6 @@ describe('Plot keyword', function() {
 
                 // Resolve Cad Banea
                 context.player1.clickPrompt('Play Cad Bane using Plot');
-                context.player1.clickPrompt('Trigger');
                 expect(context.cadBane).toBeInZone('groundArena');
                 expect(context.pykeSentinel).toBeInZone('resource');
 
@@ -341,12 +339,13 @@ describe('Plot keyword', function() {
                 context.player1.clickPrompt('Deploy Iden Versio');
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot', 'Shielded']);
 
-                // Resolve Cad Banea
-                context.player1.clickPrompt('Play Cad Bane using Plot');
-                context.player1.clickPrompt('Pass');
+                // Decline Cad Bane inline (Dogmatic + Shielded still share this window)
+                context.player1.clickInlineTriggerPass('Play Cad Bane using Plot');
                 expect(context.cadBane).toBeInZone('resource');
 
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Shielded']);
+                // Shielded is non-optional so it resolves on click; Dogmatic is then the lone remaining
+                // Plot trigger, resolved through the single-trigger interstitial.
                 context.player1.clickPrompt('Shielded');
                 context.player1.clickPrompt('Trigger');
                 expect(context.dogmaticShockSquad).toBeInZone('groundArena');
@@ -483,18 +482,15 @@ describe('Plot keyword', function() {
 
             // Resolve Topple the Summit
             context.player1.clickPrompt('Play Topple the Summit using Plot');
-            context.player1.clickPrompt('Trigger');
             expect(context.player1.exhaustedResourceCount).toBe(7); // This is one less than normal because the Topple the Summit was not replaced due to the empty deck
             expect(context.battlefieldMarine).toBeInZone('discard');
 
-            // Resolve Cad Bane
-            context.player1.clickPrompt('Play Cad Bane using Plot');
-            context.player1.clickPrompt('Pass');
+            // Decline Cad Bane inline (still a multi-trigger window with Dogmatic + Trench's reveal)
+            context.player1.clickInlineTriggerPass('Play Cad Bane using Plot');
             expect(context.cadBane).toBeInZone('resource');
 
-            // Resolve Dogmatic Shock Squad
-            context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
-            context.player1.clickPrompt('Pass');
+            // Decline Dogmatic Shock Squad inline (Dogmatic + Trench's reveal still share the window)
+            context.player1.clickInlineTriggerPass('Play Dogmatic Shock Squad using Plot');
 
             expect(context.player2).toBeActivePlayer();
             context.player2.clickCard(context.rivalsFall);
@@ -509,14 +505,12 @@ describe('Plot keyword', function() {
             expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot',
                 '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
 
-            // Resolve Cad Bane
-            context.player1.clickPrompt('Play Cad Bane using Plot');
-            context.player1.clickPrompt('Pass');
+            // Decline Cad Bane inline (Dogmatic + Trench's reveal still share the window)
+            context.player1.clickInlineTriggerPass('Play Cad Bane using Plot');
             expect(context.cadBane).toBeInZone('resource');
 
-            // Resolve Dogmatic Shock Squad
+            // Play Dogmatic Shock Squad inline (still a multi-trigger window with Trench's reveal)
             context.player1.clickPrompt('Play Dogmatic Shock Squad using Plot');
-            context.player1.clickPrompt('Trigger');
             expect(context.dogmaticShockSquad).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(10); // This is one less than normal because the Dogmatic Shock Squad was not replaced due to the empty deck
 

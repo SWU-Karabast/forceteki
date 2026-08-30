@@ -128,11 +128,11 @@ describe('Grand Admiral Thrawn, Victory Is Mine', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveInlineTriggerPass('Defeat a non-leader unit the defending player controls');
                 context.player1.clickPrompt('Defeat a non-leader unit the defending player controls');
 
                 expect(context.player1).toHavePrompt('Defeat a non-leader unit the defending player controls');
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
-                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.consularSecurityForce);
                 expect(context.consularSecurityForce).toBeInZone('discard', context.player2);
@@ -160,13 +160,8 @@ describe('Grand Admiral Thrawn, Victory Is Mine', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                context.player1.clickPrompt('Defeat a non-leader unit the defending player controls');
-
-                expect(context.player1).toHavePrompt('Defeat a non-leader unit the defending player controls');
-                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
-                expect(context.player1).toHavePassAbilityButton();
-
-                context.player1.clickPrompt('Pass');
+                expect(context.player1).toHaveInlineTriggerPass('Defeat a non-leader unit the defending player controls');
+                context.player1.clickInlineTriggerPass('Defeat a non-leader unit the defending player controls');
                 expect(context.consularSecurityForce).toBeInZone('groundArena', context.player2);
 
                 expect(context.player2).toBeActivePlayer();

@@ -1028,7 +1028,6 @@ describe('Undo', function() {
                         context.player2.clickCard(context.kananJarrus);
                         context.player2.clickCard(context.p1Base);
                         context.player2.clickPrompt('Discard 1 card from the defending player\'s deck. Heal 1 damage for each aspect among the discarded cards.');
-                        context.player2.clickPrompt('Trigger');
                         expect(context.kylosTieSilencer).toBeInZone('discard', context.player1);
                         expect(context.player1.currentActionTargets).toContain(context.kylosTieSilencer);
 

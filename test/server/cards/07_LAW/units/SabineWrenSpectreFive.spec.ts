@@ -15,8 +15,8 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
+            // Sabine's When Played shares a window with her Ambush, so it triggers inline (no interstitial).
             context.player1.clickPrompt('Defeat a non-unique upgrade');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHavePrompt('Defeat a non-unique upgrade');
 
@@ -42,8 +42,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat a non-unique upgrade');
-            context.player1.clickPrompt('Pass');
+            context.player1.clickInlineTriggerPass('Defeat a non-unique upgrade');
 
             expect(context.player2).toBeActivePlayer();
         });
@@ -64,7 +63,6 @@ describe('Sabine Wren, Spectre Five', function () {
 
             context.player1.clickCard(context.sabineWren);
             context.player1.clickPrompt('Defeat an upgrade');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHavePrompt('Defeat an upgrade');
 
@@ -90,8 +88,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat an upgrade');
-            context.player1.clickPrompt('Pass');
+            context.player1.clickInlineTriggerPass('Defeat an upgrade');
 
             expect(context.player2).toBeActivePlayer();
         });
@@ -112,7 +109,6 @@ describe('Sabine Wren, Spectre Five', function () {
 
             context.player1.clickCard(context.sabineWren);
             context.player1.clickPrompt('Defeat an upgrade');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHavePrompt('Defeat an upgrade');
 
@@ -138,8 +134,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat an upgrade');
-            context.player1.clickPrompt('Pass');
+            context.player1.clickInlineTriggerPass('Defeat an upgrade');
 
             expect(context.player2).toBeActivePlayer();
         });

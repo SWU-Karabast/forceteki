@@ -35,7 +35,6 @@ describe('Kylo Ren, I Know Your Story', function() {
 
             // use the force to draw a card
             context.player1.clickPrompt('Use the Force to draw a card');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa).toBeInZone('hand', context.player1);

@@ -453,9 +453,9 @@ describe('Bossk, Hunting his Prey', function () {
                 expect(context.player1).toHaveExactPromptButtons(['Collect the Bounty again', 'Attack with a unit']);
 
                 // do the attack, trigger _another_ bounty
+                expect(context.player1).toHaveInlineTriggerPass('Attack with a unit');
                 context.player1.clickPrompt('Attack with a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
-                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.cloneDeserter);
 
