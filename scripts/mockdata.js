@@ -476,7 +476,7 @@ const mockCards = [
         types: ['base'],
         setId: {
             set: 'HMW',
-            number: 27
+            number: 29
         },
         unique: false,
         internalName: 'dendroid-wilds'
