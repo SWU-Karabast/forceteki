@@ -67,11 +67,43 @@ describe('Crosshair, I\'ve Changed', function() {
 
             const { context } = contextRef;
 
+            const handSize = context.player2.handSize;
+
             context.player2.clickCard(context.missionBriefing);
             context.player2.clickPrompt('You');
 
             expect(context.player1).toBeActivePlayer();
+            expect(context.player2.handSize).toBe(handSize + 1);
             expect(context.crosshair.damage).toBe(0);
+            expect(context.p2Base.damage).toBe(2);
+        });
+
+        it('should only deal 2 damage to opponent\'s base if opponent draws multiple cards at once during action phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['crosshair#ive-changed'],
+                    deck: ['battlefield-marine'],
+                },
+                player2: {
+                    hand: ['this-is-the-way'],
+                    deck: ['sabine-wren#explosives-artist', 'supercommando-squad'],
+                    hasInitiative: true
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.thisIsTheWay);
+            context.player2.clickCardInDisplayCardPrompt(context.sabineWren);
+            context.player2.clickCardInDisplayCardPrompt(context.supercommandoSquad);
+            context.player2.clickDone();
+
+            // P1 is prompted to see the revealed cards
+            expect(context.player1).toHaveExactViewableDisplayPromptCards([context.sabineWren, context.supercommandoSquad]);
+            context.player1.clickDone();
+
+            expect(context.player1).toBeActivePlayer();
             expect(context.p2Base.damage).toBe(2);
         });
 

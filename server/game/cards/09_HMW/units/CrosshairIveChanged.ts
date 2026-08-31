@@ -26,6 +26,7 @@ export default class CrosshairIveChanged extends NonLeaderUnitCard {
 
         registrar.addTriggeredAbility({
             title: 'Deal 2 damage to opponent\'s base',
+            collectiveTrigger: true,
             when: {
                 onCardsDrawn: (event, context) =>
                     event.player === context.player.opponent && context.game.currentPhase === PhaseName.Action,
