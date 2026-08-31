@@ -2303,6 +2303,77 @@ const mockCards = [
         unique: false,
         internalName: 'exploit-confidence'
     }),
+    buildMockCard({
+        title: 'Jar Jar Binks',
+        subtitle: 'Bombad General',
+        cost: 6,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['gungan'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 5
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jar-jar-binks#bombad-general'
+    }),
+    buildMockCard({
+        title: 'Peppi Bow',
+        subtitle: 'Shaak Herder',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['gungan'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 73
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'peppi-bow#shaak-herder',
+    }),
+    buildMockCard({
+        title: 'Captain Tarpals',
+        subtitle: 'Grand Army Captain',
+        cost: 1,
+        power: 0,
+        hp: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['heroism'],
+        traits: ['gungan', 'trooper'],
+        keywords: ['shielded', 'raid 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 254
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-tarpals#grand-army-captain',
+    }),
+    buildMockCard({
+        title: 'Torrent',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['disaster'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 100
+        },
+        unique: false,
+        internalName: 'torrent'
+    }),
     // -------- End Mock Cards --------
 ];
 
