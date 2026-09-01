@@ -2374,6 +2374,77 @@ const mockCards = [
         unique: false,
         internalName: 'torrent'
     }),
+    buildMockCard({
+        title: 'Don\'t Touch Anything',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['trick'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 217
+        },
+        unique: false,
+        internalName: 'dont-touch-anything'
+    }),
+    buildMockCard({
+        title: 'Qui-Gon Jinn',
+        subtitle: 'We\'ll Handle This',
+        cost: 5,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        keywords: ['grit'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 78
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'quigon-jinn#well-handle-this',
+    }),
+    buildMockCard({
+        title: 'Phee Genoa',
+        subtitle: 'Liberator of Ancient Wonders',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['underworld'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 214
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'phee-genoa#liberator-of-ancient-wonders',
+    }),
+    buildMockCard({
+        title: 'Queen Amidala',
+        subtitle: 'Retaking Theed',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['naboo', 'official'],
+        keywords: ['restore 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 260
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'queen-amidala#retaking-theed',
+    }),
     // -------- End Mock Cards --------
 ];
 
