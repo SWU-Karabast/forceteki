@@ -193,6 +193,37 @@ describe('Jar Jar Binks, Bombad General', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
 
+            it('heals 1 damage from a base if a token upgrade was created this phase (no unit to damage)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jar-jar-binks#bombad-general',
+                        resources: 3,
+                        groundArena: ['clone-x-assassin'],
+                        base: { card: 'capital-city', damage: 2 },
+                    },
+                    player2: {
+                        groundArena: ['ewok-warrior'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.cloneXAssassin);
+                context.player1.clickCard(context.ewokWarrior);
+                context.player1.clickCard(context.ewokWarrior);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.jarJarBinks);
+                context.player1.clickCard(context.p1Base);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p1Base.damage).toBe(1);
+                expect(context.jarJarBinks.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
             xit('deals 1 damage to a unit and heals 1 damage from a base if a token upgrade was created this phase (our opponent make us create token upgrades)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

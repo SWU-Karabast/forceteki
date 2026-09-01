@@ -46,7 +46,7 @@ export default class JarJarBinksBombadGeneral extends LeaderUnitCard {
                 this.tokensCreatedThisPhaseWatcher.someTokenCreated((entry) =>
                     entry.createdBy === context.player &&
                     entry.token.isTokenUpgrade() &&
-                    entry.token.parentCard.isUnit()
+                    (!entry.token.isInPlay() || entry.token.parentCard.isUnit())
                 ),
             onTrue: abilityHelper.immediateEffects.sequential([
                 abilityHelper.immediateEffects.selectCard({
