@@ -142,8 +142,17 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
      * for base-attached (Fortify) upgrades, which live in the base zone rather than an arena (`SWU 4.9.1`).
      */
     private isLeavingPlay(card: Card, destination: MoveZoneDestination): boolean {
-        // Deck-position destinations (top/bottom) aren't arenas, so casting to ZoneFilter is safe for the arena check.
-        return card.canBeInPlay() && card.isInPlay() && !EnumHelpers.isArena(destination as ZoneFilter);
+        // A leader is leaving play if it is in play and is being moved to a non-arena zone (because they flip when they leave the arenas)
+        if (card.isLeader()) {
+            return card.canBeInPlay() &&
+              card.isInPlay() &&
+              !EnumHelpers.isArena(destination as ZoneFilter);
+        }
+
+        // Other cards are leaving play if they are in play and are moving to an out-of-play zone
+        return card.canBeInPlay() &&
+          card.isInPlay() &&
+          !EnumHelpers.isInPlayZone(destination as ZoneFilter);
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveCardProperties>): void {
