@@ -79,11 +79,11 @@ describe('Salvage', function() {
             context.player1.clickCard(context.heroicArc170);
 
             expect(context.player1).toBeAbleToSelectExactly([context.atst]);
-            context.player1.clickCard(context.atst)
+            context.player1.clickCard(context.atst);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.heroicArc170.damage).toBe(1)
-            expect(context.atst.damage).toBe(2)
+            expect(context.heroicArc170.damage).toBe(1);
+            expect(context.atst.damage).toBe(2);
         });
     });
 });

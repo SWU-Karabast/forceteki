@@ -26,7 +26,7 @@ export class EventWindow extends BaseStepWithPipeline {
     private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
     private subwindowEvents: any[] = [];
-    private preResolveGameSystems: { gameSystem: GameSystem, context: AbilityContext }[] = [];
+    private preResolveGameSystems: { gameSystem: GameSystem; context: AbilityContext }[] = [];
     private subAbilityStepFn?: () => AbilityContext = null;
     private windowDepth?: number = null;
 

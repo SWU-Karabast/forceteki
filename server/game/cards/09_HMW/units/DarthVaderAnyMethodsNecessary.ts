@@ -30,7 +30,6 @@ export default class DarthVaderAnyMethodsNecessary extends NonLeaderUnitCard {
                             target: context.source
                         }))
                     }),
-
                 ])
             }),
         });
