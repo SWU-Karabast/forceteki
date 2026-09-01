@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { GameSystem } from '../gameSystem/GameSystem';
 import { AbilityType } from '../Constants';
 import { ReplacementEffectWindow } from '../gameSteps/abilityWindow/ReplacementEffectWindow';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
@@ -25,6 +26,7 @@ export class EventWindow extends BaseStepWithPipeline {
     private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
     private subwindowEvents: any[] = [];
+    private preResolveGameSystems: { gameSystem: GameSystem, context: AbilityContext }[] = [];
     private subAbilityStepFn?: () => AbilityContext = null;
     private windowDepth?: number = null;
 
@@ -78,6 +80,7 @@ export class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.checkUniqueRule(), 'checkUniqueRule'),
             new SimpleStep(this.game, () => this.resolveGameState(), 'resolveGameState'),
             new SimpleStep(this.game, () => this.postResolutionTriggers(), 'postResolutionTriggers'),
+            new SimpleStep(this.game, () => this.resolvePreResolveGameSystems(), 'resolvePreResolveGameSystems'),
             new SimpleStep(this.game, () => this.resolveSubwindowEvents(), 'resolveSubwindowEvents'),
             new SimpleStep(this.game, () => this.resolveSubAbilityStep(), 'resolveSubAbilityStep'),
             new SimpleStep(this.game, () => this.resolveTriggersIfNecessary(), 'resolveTriggersIfNecessary'),
@@ -115,6 +118,14 @@ export class EventWindow extends BaseStepWithPipeline {
      */
     public addSubwindowEvents(events) {
         this.subwindowEvents = this.subwindowEvents.concat(events);
+    }
+
+    /**
+     * Adds a game system that will be resolved after the main events but before this window's triggers,
+     * allowing it to pre-empt the When Played triggers of the card being played.
+     */
+    public addPreResolveGameSystems(gameSystems: GameSystem[], context: AbilityContext) {
+        this.preResolveGameSystems = this.preResolveGameSystems.concat(gameSystems.map((gameSystem) => ({ gameSystem, context })));
     }
 
     /** Set parent event window and initialize triggering window based on configured rules and parent window settings (if relevant) */
@@ -234,6 +245,12 @@ export class EventWindow extends BaseStepWithPipeline {
         // trigger again here to catch any events for cards that entered play during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
             this._triggeredAbilityWindow.emitEvents(this.resolvedEvents);
+        }
+    }
+
+    private resolvePreResolveGameSystems() {
+        for (const { gameSystem, context } of this.preResolveGameSystems) {
+            this.queueStep(new EventWindow(this.game, [gameSystem.generateEvent(context)], TriggerHandlingMode.ResolvesTriggers));
         }
     }
 

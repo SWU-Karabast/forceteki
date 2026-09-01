@@ -46,40 +46,72 @@ describe('Darth Vader Any Methods Necessary', function() {
                 expect([context.villageTender, context.rebelPathfinder, context.porg, context.protector, context.resupply, context.atst]).toAllBeInBottomOfDeck(context.player1, 6);
             });
 
-            // it('should search the top 8 cards of your deck for up to 2 units that each cost 4 or less, play them for free, and deal 2 damage to each of them', async function() {
-            //     await contextRef.setupTestAsync({
-            //         phase: 'action',
-            //         player1: {
-            //             leader: 'ig88#ruthless-bounty-hunter',
-            //             base: 'energy-conversion-lab',
-            //             hand: ['darth-vader#any-methods-necessary'],
-            //             deck: ['cavern-angels-xwing', 'village-tender', 'atst', 'droid-missile-platform', 'protector', 'rebel-pathfinder', 'resupply', 'porg', 'yoda#old-master']
-            //         },
-            //     });
-            //
-            //     const { context } = contextRef;
-            //
-            //     context.player1.clickCard(context.darthVader);
-            //
-            //     context.player1.clickCardInDisplayCardPrompt(context.cavernAngelsXwing);
-            //     context.player1.clickCardInDisplayCardPrompt(context.droidMissilePlatform);
-            //     context.player1.clickDone();
-            //
-            //     expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to a base')
-            //     context.player1.clickPrompt('Trigger')
-            //     context.player1.clickCard(context.p2Base);
-            //
-            //     expect(context.cavernAngelsXwing).toBeInZone('discard');
-            //     expect(context.p2Base.damage).toBe(2)
-            //
-            //     expect(context.player1).toHavePrompt('Deal 3 indirect damage to a player');
-            //     context.player1.clickPrompt('Deal indirect damage to opponent');
-            //     context.player2.setDistributeIndirectDamagePromptState(new Map([
-            //         [context.p2Base, 3],
-            //     ]));
-            //
-            //     expect(context.player2).toBeActivePlayer();
-            // });
+            it('should search the top 8 cards of your deck for up to 2 units that each cost 4 or less, play them for free, and deal 2 damage to each of them', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'ig88#ruthless-bounty-hunter',
+                        base: 'energy-conversion-lab',
+                        hand: ['darth-vader#any-methods-necessary'],
+                        deck: ['cavern-angels-xwing', 'village-tender', 'atst', 'droid-missile-platform', 'protector', 'rebel-pathfinder', 'resupply', 'porg', 'yoda#old-master']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthVader);
+
+                context.player1.clickCardInDisplayCardPrompt(context.cavernAngelsXwing);
+                context.player1.clickCardInDisplayCardPrompt(context.droidMissilePlatform);
+                context.player1.clickDone();
+
+                expect(context.player1).toHavePrompt('Deal 2 damage to a base');
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.cavernAngelsXwing).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 3 indirect damage to a player\'');
+                context.player1.clickPrompt('Deal indirect damage to opponent');
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.p2Base, 3],
+                ]));
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should search the top 8 cards of your deck for up to 2 units that each cost 4 or less, play them for free, and deal 2 damage to each of them (Heroic Arc-170 variant)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'ig88#ruthless-bounty-hunter',
+                        base: 'energy-conversion-lab',
+                        hand: ['darth-vader#any-methods-necessary'],
+                        deck: ['heroic-arc170', 'village-tender', 'atst', 'droid-missile-platform', 'protector', 'rebel-pathfinder', 'resupply', 'porg', 'yoda#old-master']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthVader);
+
+                context.player1.clickCardInDisplayCardPrompt(context.heroicArc170);
+                context.player1.clickDone();
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.heroicArc170.damage).toBe(2);
+                expect(context.wampa.damage).toBe(2);
+                expect(context.darthVader.damage).toBe(0);
+            });
 
             it('should search the top 8 cards of your deck for up to 2 units that each cost 4 or less, play them for free, and deal 2 damage to each of them', async function() {
                 await contextRef.setupTestAsync({
@@ -103,11 +135,11 @@ describe('Darth Vader Any Methods Necessary', function() {
                 context.player1.clickCardInDisplayCardPrompt(context.tradeFederationShuttle);
                 context.player1.clickPrompt('Play cards in selection order');
 
-                expect(context.heroicArc170.damage).toBe(2)
+                expect(context.heroicArc170.damage).toBe(2);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.tradeFederationShuttle.damage).toBe(2)
+                expect(context.tradeFederationShuttle.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
 
