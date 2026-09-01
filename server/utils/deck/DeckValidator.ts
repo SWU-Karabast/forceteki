@@ -7,8 +7,8 @@ import { DecklistLocation, DeckValidationFailureReason, IllegalInFormatReason, t
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import { Contract } from '../../game/core/utils/Contract';
 import { EnumHelpers } from '../../game/core/utils/EnumHelpers';
-import type { ISetCatalog } from './SwuSetData';
-import { defaultSetCatalog, formatRules, SwuSetId } from './SwuSetData';
+import type { ISetCatalog, ISwuSet } from './SwuSetData';
+import { defaultSetCatalog, formatRules, isReleased, ReleaseStage, SwuSetId } from './SwuSetData';
 
 const maxCopiesOfCards = new Map([
     ['2177194044', 15], // Swarming Vulture Droid
@@ -111,7 +111,7 @@ export class DeckValidator {
 
         // Determine candidate rotation blocks
         let candidateBlocks = cardPool === CardPool.Current
-            ? rotationBlocks.filter((block) => block.sets.some((s) => s.released))
+            ? rotationBlocks.filter((block) => block.sets.some((s) => isReleased(s)))
             : [...rotationBlocks];
 
         // Apply rotation window (take the last N blocks)
@@ -122,21 +122,37 @@ export class DeckValidator {
         const legalSets = new Set<SwuSetId>();
         for (const block of candidateBlocks) {
             for (const set of block.sets) {
-                if (cardPool === CardPool.Current && !set.released) {
-                    continue;
+                if (DeckValidator.isSetInCardPool(set, cardPool)) {
+                    legalSets.add(set.id);
                 }
-                legalSets.add(set.id);
             }
         }
 
         // Add non-rotating sets that are legal in this format
         for (const nrs of nonRotatingSets) {
-            if (nrs.legalFormats.has(format) && (cardPool === CardPool.NextSet || nrs.released)) {
+            if (nrs.legalFormats.has(format) && DeckValidator.isSetInCardPool(nrs, cardPool)) {
                 legalSets.add(nrs.id);
             }
         }
 
         return legalSets;
+    }
+
+    /**
+     * Whether a set belongs to the given constructed card pool (Current or NextSet):
+     * - `Released` sets are always in the pool.
+     * - The `Next` set is in the pool only under {@link CardPool.NextSet}.
+     * - `Future` sets are never in a constructed pool — they preview further out than the next release, so
+     *   including them would make a NextSet meta reflect more than the immediately-upcoming set.
+     *
+     * Not used for Open (all sets) or Limited (single-set) pools, which compute legality separately.
+     */
+    private static isSetInCardPool(set: ISwuSet, cardPool: CardPool): boolean {
+        if (isReleased(set)) {
+            return true;
+        }
+
+        return set.releaseStage === ReleaseStage.Next && cardPool === CardPool.NextSet;
     }
 
     /**
@@ -153,8 +169,8 @@ export class DeckValidator {
         }
 
         const targetSet = cardPool === CardPool.Current
-            ? [...allSets].reverse().find((s) => s.released && s.mainline)
-            : allSets.find((s) => !s.released && s.mainline);
+            ? [...allSets].reverse().find((s) => isReleased(s) && s.mainline)
+            : allSets.find((s) => s.releaseStage === ReleaseStage.Next && s.mainline);
 
         Contract.assertNotNullLike(targetSet, `No ${cardPool === CardPool.Current ? 'released' : 'unreleased'} mainline sets found for Limited format`);
 
@@ -435,8 +451,13 @@ export class DeckValidator {
             return;
         }
 
-        const rules = formatRules.get(format);
-        if (rules?.bannedCards.has(this.setCodeToId.get(setCode))) {
+        const rules = this.getSetCatalog().formatRules.get(format);
+        const banned = rules?.bannedCards.get(this.setCodeToId.get(setCode));
+
+        // A suspension with an `expiresWith` set lifts once that set is in the pool
+        const banExpired = banned?.expiresWith != null && legalSets.has(banned.expiresWith);
+
+        if (banned && !banExpired) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
                 name: cardData.titleAndSubtitle,

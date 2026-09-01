@@ -476,7 +476,7 @@ const mockCards = [
         types: ['base'],
         setId: {
             set: 'HMW',
-            number: 27
+            number: 29
         },
         unique: false,
         internalName: 'dendroid-wilds'
@@ -691,7 +691,6 @@ const mockCards = [
         cost: 6,
         power: 5,
         hp: 5,
-        text: 'As an additional cost to play this unit, put up to 2 units that each cost 5 or less from your discard pile on the bottom of your deck. This unit gains those units\' "When Played" abilities for this phase.',
         hasNonKeywordAbility: true,
         aspects: ['command', 'cunning'],
         traits: ['force', 'jedi'],
@@ -2234,6 +2233,217 @@ const mockCards = [
         unique: true,
         arena: 'space',
         internalName: 'the-marauder#a-new-home',
+    }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'Old Master',
+        cost: 7,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['shielded'],
+        traits: ['force', 'fringe'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 16
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#old-master'
+    }),
+    buildMockCard({
+        title: 'Nightbrother',
+        subtitle: 'Maul\'s Gauntlet',
+        cost: 7,
+        power: 6,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 204
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'nightbrother#mauls-gauntlet',
+    }),
+    buildMockCard({
+        title: 'Sun Fac',
+        subtitle: 'Poggle\'s Second',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        traits: ['separatist'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 243
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sun-fac#poggles-second',
+    }),
+    buildMockCard({
+        title: 'Exploit Confidence',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 238
+        },
+        unique: false,
+        internalName: 'exploit-confidence'
+    }),
+    buildMockCard({
+        title: 'Jar Jar Binks',
+        subtitle: 'Bombad General',
+        cost: 6,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['gungan'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 5
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jar-jar-binks#bombad-general'
+    }),
+    buildMockCard({
+        title: 'Peppi Bow',
+        subtitle: 'Shaak Herder',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['gungan'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 73
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'peppi-bow#shaak-herder',
+    }),
+    buildMockCard({
+        title: 'Captain Tarpals',
+        subtitle: 'Grand Army Captain',
+        cost: 1,
+        power: 0,
+        hp: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['heroism'],
+        traits: ['gungan', 'trooper'],
+        keywords: ['shielded', 'raid 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 254
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-tarpals#grand-army-captain',
+    }),
+    buildMockCard({
+        title: 'Torrent',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['disaster'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 100
+        },
+        unique: false,
+        internalName: 'torrent'
+    }),
+    buildMockCard({
+        title: 'Don\'t Touch Anything',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['trick'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 217
+        },
+        unique: false,
+        internalName: 'dont-touch-anything'
+    }),
+    buildMockCard({
+        title: 'Qui-Gon Jinn',
+        subtitle: 'We\'ll Handle This',
+        cost: 5,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        keywords: ['grit'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 78
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'quigon-jinn#well-handle-this',
+    }),
+    buildMockCard({
+        title: 'Phee Genoa',
+        subtitle: 'Liberator of Ancient Wonders',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['underworld'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 214
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'phee-genoa#liberator-of-ancient-wonders',
+    }),
+    buildMockCard({
+        title: 'Queen Amidala',
+        subtitle: 'Retaking Theed',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['naboo', 'official'],
+        keywords: ['restore 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 260
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'queen-amidala#retaking-theed',
     }),
     // -------- End Mock Cards --------
 ];

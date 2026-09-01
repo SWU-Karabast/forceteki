@@ -55,7 +55,6 @@ import { GroundArenaZone } from './zone/GroundArenaZone';
 import { SpaceArenaZone } from './zone/SpaceArenaZone';
 import { AllArenasZone } from './zone/AllArenasZone';
 import type { IAllArenasZoneCardFilterProperties, IAllArenasSpecificTypeCardFilterProperties } from './zone/AllArenasZone';
-import { EnumHelpers } from './utils/EnumHelpers';
 import { SelectCardPrompt } from './gameSteps/prompts/SelectCardPrompt';
 import { DisplayCardsWithButtonsPrompt } from './gameSteps/prompts/DisplayCardsWithButtonsPrompt';
 import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCardsForSelectionPrompt';
@@ -1539,14 +1538,14 @@ export class Game extends EventEmitter {
         const checkedCards: Card[] = [];
 
         for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
-            if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
+            if (movedCard.unique && movedCard.canBeInPlay() && movedCard.isInPlay()) {
                 const existingCard = checkedCards.find((otherCard) =>
                     otherCard.title === movedCard.title &&
                     otherCard.subtitle === movedCard.subtitle &&
                     otherCard.controller === movedCard.controller
                 );
 
-                if (!existingCard && movedCard.canBeInPlay()) {
+                if (!existingCard) {
                     checkedCards.push(movedCard);
                     movedCard.checkUnique();
                 }
