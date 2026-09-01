@@ -47,7 +47,7 @@ export abstract class PlayUnitActionBase extends PlayCardAction {
             this.addSmuggleEvent(events, context);
         }
 
-        const eventWindow = context.game.openEventWindow(events, this.triggerHandlingMode);
+        const eventWindow = context.game.openEventWindow(events);
 
         if (this.createdWithProperties.preResolveGameSystem) {
             eventWindow.addPreResolveGameSystems([this.createdWithProperties.preResolveGameSystem], context);
