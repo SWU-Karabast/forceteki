@@ -140,7 +140,8 @@ describe('Ty Yorrick, Monster Hunter', function() {
 
                 context.player1.clickCard(context.devastator);
                 context.player1.setDistributeIndirectDamagePromptState(new Map([
-                    [context.p2Base, 4],
+                    [context.p2Base, 3],
+                    [context.wampa, 1],
                 ]));
 
                 expect(context.player1).toHavePassAbilityPrompt('If a friendly ability would deal damage, you may have that ability deal that much damage plus 1 instead');
@@ -226,6 +227,37 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 context.player1.clickPrompt('Pass');
 
                 expect(context.wampa.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('may pass the damage increase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['ig2000#assassins-aggressor'],
+                        groundArena: ['ty-yorrick#monster-hunter', 'yoda#old-master']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'porg'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.ig2000);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.porg);
+                context.player1.clickCard(context.yoda);
+                context.player1.clickDone();
+
+                expect(context.player1).toHavePrompt('Resolve "If a friendly ability would deal damage, you may have that ability deal that much damage plus 1 instead"');
+                context.player1.clickPrompt('Resolve all (3)');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.wampa.damage).toBe(2);
+                expect(context.yoda.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
         });
