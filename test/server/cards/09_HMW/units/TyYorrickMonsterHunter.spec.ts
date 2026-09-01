@@ -53,7 +53,7 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not increase enemy event ability dealing damage', async function() {
+            it('should increase friendly event ability dealing damage', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -77,7 +77,7 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should optionally increase friendly event ability damage by 1 (even if targeting friendly unit)', async function() {
+            it('should not increase enemy event ability dealing damage', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -121,6 +121,7 @@ describe('Ty Yorrick, Monster Hunter', function() {
 
                 expect(context.wampa.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(4);
             });
 
             it('should optionally increase friendly ability dealing indirect damage by 1', async function() {
