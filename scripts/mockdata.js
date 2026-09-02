@@ -2445,6 +2445,74 @@ const mockCards = [
         arena: 'ground',
         internalName: 'queen-amidala#retaking-theed',
     }),
+    buildMockCard({
+        title: 'Bossk',
+        subtitle: 'Cruel Hunter',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['underworld', 'bounty hunter'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 15
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bossk#cruel-hunter'
+    }),
+    buildMockCard({
+        title: 'Maim',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 207
+        },
+        unique: false,
+        internalName: 'maim'
+    }),
+    buildMockCard({
+        title: 'Cid Scaleback',
+        subtitle: 'Can\'t be Trusted',
+        cost: 2,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 197
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cid-scaleback#cant-be-trusted',
+    }),
+    buildMockCard({
+        title: 'Victor Squadron',
+        subtitle: 'In Attack Formation',
+        cost: 6,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['imperial', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 203
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'victor-squadron#in-attack-formation',
+    }),
     // -------- End Mock Cards --------
 ];
 
