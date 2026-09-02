@@ -53,6 +53,7 @@ export default class MaulOldMaster extends LeaderUnitCard {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
             targetResolver: {
+                activePromptTitle: `Play a unit for ${TextHelper.resource(5)} less`,
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,

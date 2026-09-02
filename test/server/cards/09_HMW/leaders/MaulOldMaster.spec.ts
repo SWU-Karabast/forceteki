@@ -70,21 +70,21 @@ describe('Maul, Old Master', function() {
                     player1: {
                         leader: 'maul#old-master',
                         groundArena: ['atst'],
+                        spaceArena: ['awing'],
                         discard: ['wampa'],
                         resources: 7,
                         base: 'echo-base'
                     },
                     player2: {
-                        hand: ['rivals-fall'],
+                        hand: ['superlaser-blast'],
                         hasInitiative: true,
-                        resources: 6
+                        groundArena: ['wrecker#boom']
                     }
                 });
 
                 const { context } = contextRef;
 
-                context.player2.clickCard(context.rivalsFall);
-                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.superlaserBlast);
 
                 // Player 1 deploys Maul and triggers the when deployed ability
                 context.player1.clickCard(context.maul);
@@ -94,9 +94,9 @@ describe('Maul, Old Master', function() {
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 context.player1.clickPrompt('Shielded');
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Play a unit for 5 resources less');
 
-                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.awing]);
                 context.player1.clickCard(context.atst);
 
                 expect(context.player2).toBeActivePlayer();
@@ -104,6 +104,44 @@ describe('Maul, Old Master', function() {
                 expect(context.maul).toBeInZone('groundArena', context.player1);
                 expect(context.wampa).toBeInZone('discard', context.player1);
                 expect(context.player1.exhaustedResourceCount).toBe(1); // 6-5 = 1
+            });
+
+            it('should not play a unit defeated a previous phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        groundArena: ['battlefield-marine', 'porg'],
+                        base: 'echo-base'
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        groundArena: ['wrecker#boom']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.wrecker);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.moveToNextActionPhase();
+
+                context.player2.clickCard(context.wrecker);
+                context.player2.clickCard(context.porg);
+
+                // Player 1 deploys Maul and triggers the when deployed ability
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Deploy Maul');
+                context.player1.clickPrompt('Shielded');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.porg]);
+                context.player1.clickCard(context.porg);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.porg).toBeInZone('groundArena', context.player1);
+                expect(context.maul).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
             });
         });
     });
