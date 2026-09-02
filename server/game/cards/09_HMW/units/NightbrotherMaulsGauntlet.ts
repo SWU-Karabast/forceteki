@@ -28,9 +28,9 @@ export default class NightbrotherMaulsGauntlet extends NonLeaderUnitCard {
                 })
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: 'At the start of the next regroup phase, defeat it',
+                title: `At the start of the next regroup phase, defeat ${ifYouDoContext.events[0].card.title}`,
                 immediateEffect: abilityHelper.immediateEffects.delayedCardEffect({
-                    title: 'Defeat it',
+                    title: `Defeat ${ifYouDoContext.events[0].card.title}`,
                     target: ifYouDoContext.events[0].card,
                     when: {
                         onPhaseStarted: (context) => context.phase === PhaseName.Regroup
