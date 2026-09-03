@@ -16,9 +16,8 @@ import * as LastingEffectSystemHelpers from './helpers/LastingEffectSystemHelper
 export type IAllCardsForPlayerLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target' | 'effect'> & Pick<IPlayerTargetSystemProperties, 'target'> & {
     effect: IOngoingAllCardsForPlayerEffectGenerator | IOngoingAllCardsForPlayerEffectGenerator[];
 
-    /** If set, only cards with this title are affected. Otherwise all of the player's cards are affected. */
-    cardTitle?: string;
-    includeLeaders?: boolean;
+    /** If set, only cards matching this condition are affected. Otherwise all of the player's cards are affected. */
+    matchCondition?: (card: Card) => boolean;
     cardTargetMode?: AllCardsTargetMode;
 };
 
@@ -32,8 +31,7 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
     protected override readonly defaultProperties: IAllCardsForPlayerLastingEffectProperties = {
         duration: null,
         effect: [],
-        cardTitle: null,
-        includeLeaders: false,
+        matchCondition: null,
         cardTargetMode: AllCardsTargetMode.OnlyOwned
     };
 
@@ -62,15 +60,9 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
     private getEffectFactoriesAndProperties(target: Player[], context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps[] };
     private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps | IOngoingAllCardsForPlayerEffectProps[] };
     private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps | IOngoingAllCardsForPlayerEffectProps[] } {
-        const { effect, cardTitle, includeLeaders, cardTargetMode, target: _propsTarget, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { effect, matchCondition, cardTargetMode, target: _propsTarget, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const matchTarget = (target: Card) => {
-            if (cardTitle != null && target.title !== cardTitle) {
-                return false;
-            }
-
-            return includeLeaders || !target.isLeader();
-        };
+        const matchTarget = (target: Card) => matchCondition == null || matchCondition(target);
 
         const effectProperties: (target: Player) => IOngoingAllCardsForPlayerEffectProps = (target) => ({
             matchTarget,

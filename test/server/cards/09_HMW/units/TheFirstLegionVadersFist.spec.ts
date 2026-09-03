@@ -1,15 +1,8 @@
 import { Trait } from '../../../../../server/game/core/Constants';
-import { Helpers } from '../../../../../server/game/core/utils/Helpers';
 
 describe('The First Legion, Vader\'s Fist', function() {
     integration(function(contextRef) {
         describe('The First Legion\'s on attack ability', function() {
-            const expectedTraitOptions = Object.values(Trait)
-                .map((trait) => trait.split(' ')
-                    .map(Helpers.capitalize)
-                    .join(' '))
-                .sort();
-
             it('should name a trait and make enemy cards, including those not in play, lose that trait for this phase', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -46,7 +39,7 @@ describe('The First Legion, Vader\'s Fist', function() {
                 context.player1.clickCard(context.theFirstLegion);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactDropdownListOptions(expectedTraitOptions);
+                expect(context.player1).toHaveExactDropdownListOptions(context.getTraitNames());
                 context.player1.chooseListOption('Trooper');
 
                 expect(context.getChatLogs(5)).toContain('player1 names Trooper using The First Legion');
@@ -164,15 +157,48 @@ describe('The First Legion, Vader\'s Fist', function() {
                 expect(context.scoutBikePursuer.hasSomeTrait(Trait.Trooper)).toBeTrue();
             });
 
-            it('should be able to name a base trait, which only the enemy base loses', async function() {
+            it('should remove the trait from enemy cards in play, including a deployed leader, as counted by other abilities', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        base: 'echo-base',
                         groundArena: ['the-first-legion#vaders-fist'],
                     },
                     player2: {
-                        base: 'echo-base',
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                        groundArena: [{ card: 'snowtrooper-lieutenant', upgrades: ['squad-support'] }, 'first-legion-snowtrooper'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Squad Support gives +1/+1 for each Trooper unit its controller has: both Snowtroopers and Iden
+                expect(context.snowtrooperLieutenant.getPower()).toBe(5);
+                expect(context.snowtrooperLieutenant.getHp()).toBe(5);
+
+                context.player1.clickCard(context.theFirstLegion);
+                context.player1.clickCard(context.p2Base);
+                context.player1.chooseListOption('Trooper');
+
+                // the deployed leader loses the trait as a unit as well, so Squad Support counts no Trooper units
+                expect(context.idenVersio.hasSomeTrait(Trait.Trooper)).toBeFalse();
+                expect(context.snowtrooperLieutenant.getPower()).toBe(2);
+                expect(context.snowtrooperLieutenant.getHp()).toBe(2);
+
+                context.moveToNextActionPhase();
+                expect(context.idenVersio.hasSomeTrait(Trait.Trooper)).toBeTrue();
+                expect(context.snowtrooperLieutenant.getPower()).toBe(5);
+                expect(context.snowtrooperLieutenant.getHp()).toBe(5);
+            });
+
+            it('should remove the trait from enemy cards in hand, so they cannot be played by an ability that requires it', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['the-first-legion#vaders-fist'],
+                    },
+                    player2: {
+                        leader: { card: 'jabba-the-hutt#crime-boss', deployed: true },
+                        hand: ['nihil-marauder'],
                     }
                 });
 
@@ -180,13 +206,97 @@ describe('The First Legion, Vader\'s Fist', function() {
 
                 context.player1.clickCard(context.theFirstLegion);
                 context.player1.clickCard(context.p2Base);
-                context.player1.chooseListOption('Hoth');
+                context.player1.chooseListOption('Underworld');
 
-                expect(context.p2Base.hasSomeTrait(Trait.Hoth)).toBeFalse();
-                expect(context.p1Base.hasSomeTrait(Trait.Hoth)).toBeTrue();
+                expect(context.nihilMarauder.hasSomeTrait(Trait.Underworld)).toBeFalse();
+
+                // Jabba can no longer play the card in hand, since it is not an Underworld unit any more:
+                // attacking is his only remaining option, so clicking him goes straight to attack targeting
+                context.player2.clickCard(context.jabbaTheHutt);
+                expect(context.player2).toHavePrompt('Choose a target for attack');
+                context.player2.clickPrompt('Cancel');
+
+                context.player2.passAction();
+                context.moveToNextActionPhase();
+
+                // once the phase ends the trait is back and Jabba can play it again
+                expect(context.nihilMarauder.hasSomeTrait(Trait.Underworld)).toBeTrue();
+                context.player1.passAction();
+                context.player2.clickCard(context.jabbaTheHutt);
+                expect(context.player2).toHaveExactPromptButtons([
+                    'Play an Underworld unit unit from your hand',
+                    'Attack',
+                    'Cancel'
+                ]);
+                context.player2.clickPrompt('Cancel');
+                context.player2.passAction();
+            });
+
+            it('should remove the trait from enemy cards in the deck and discard pile, whatever their card type', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['the-first-legion#vaders-fist'],
+                    },
+                    player2: {
+                        hand: ['psychometry'],
+                        discard: ['yoda#old-master'],
+                        deck: ['qimir#everyone-has-a-weakness', 'heightened-awareness', 'force-choke', 'jedi-light-cruiser', 'wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theFirstLegion);
+                context.player1.clickCard(context.p2Base);
+                context.player1.chooseListOption('Force');
+
+                // Psychometry searches the deck for a card sharing a trait with a card in the discard pile
+                context.player2.clickCard(context.psychometry);
+                context.player2.clickCard(context.yoda);
+
+                // Yoda lost Force but kept Jedi, and the Force unit, upgrade and event in the deck no longer share a trait with him
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selectable: [context.jediLightCruiser],
+                    invalid: [context.qimir, context.heightenedAwareness, context.forceChoke, context.wampa]
+                });
+                context.player2.clickPrompt('Take nothing');
+            });
+
+            it('should be able to name a base trait, which only the enemy base loses', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'bright-tree-village',
+                        groundArena: ['the-first-legion#vaders-fist', 'village-troublemaker'],
+                    },
+                    player2: {
+                        base: 'bright-tree-village',
+                        groundArena: ['village-troublemaker'],
+                    }
+                });
+
+                const { context } = contextRef;
+                const friendlyTroublemaker = context.player1.findCardByName('village-troublemaker');
+                const enemyTroublemaker = context.player2.findCardByName('village-troublemaker');
+
+                context.player1.clickCard(context.theFirstLegion);
+                context.player1.clickCard(context.p2Base);
+                context.player1.chooseListOption('Endor');
+
+                expect(context.p2Base.hasSomeTrait(Trait.Endor)).toBeFalse();
+                expect(context.p1Base.hasSomeTrait(Trait.Endor)).toBeTrue();
+
+                // Village Troublemaker only has Hidden and Saboteur while its controller has an Endor base
+                expect(enemyTroublemaker.hasSomeKeyword('hidden')).toBeFalse();
+                expect(enemyTroublemaker.hasSomeKeyword('saboteur')).toBeFalse();
+                expect(friendlyTroublemaker.hasSomeKeyword('hidden')).toBeTrue();
+                expect(friendlyTroublemaker.hasSomeKeyword('saboteur')).toBeTrue();
 
                 context.moveToNextActionPhase();
-                expect(context.p2Base.hasSomeTrait(Trait.Hoth)).toBeTrue();
+                expect(context.p2Base.hasSomeTrait(Trait.Endor)).toBeTrue();
+                expect(enemyTroublemaker.hasSomeKeyword('hidden')).toBeTrue();
+                expect(enemyTroublemaker.hasSomeKeyword('saboteur')).toBeTrue();
             });
         });
     });
