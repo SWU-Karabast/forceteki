@@ -262,6 +262,10 @@ export class OngoingEffectEngine extends GameObjectBase {
         ]);
     }
 
+    public override cleanupOnRemove(_oldState: IOngoingEffectState): void {
+        this.events.unregisterAll();
+    }
+
     public add(effect: OngoingEffect<any>) {
         this.effects = [...this.effects, effect];
         if (effect.duration === Duration.Custom) {
@@ -574,5 +578,4 @@ export class OngoingEffectEngine extends GameObjectBase {
         this.resolveEffects(true);
     }
 }
-
 
