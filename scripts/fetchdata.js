@@ -212,6 +212,30 @@ function populateMissingData(attributes, id) {
             break;
     }
 
+    // HMW reprints
+    switch (id) {
+        case '9014930596': // Shield Generator Complex
+            attributes.reprints = {
+                data: [{
+                    attributes: {
+                        expansion: { data: { attributes: { code: 'HMW' } } },
+                        cardNumber: 22
+                    }
+                }]
+            };
+            break;
+        case '4751899478': // Mos Eisley
+            attributes.reprints = {
+                data: [{
+                    attributes: {
+                        expansion: { data: { attributes: { code: 'HMW' } } },
+                        cardNumber: 32
+                    }
+                }]
+            };
+            break;
+    }
+
     // Bases trait
     populateBaseTraits(attributes, id);
 }
