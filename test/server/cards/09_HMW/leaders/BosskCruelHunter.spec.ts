@@ -28,7 +28,7 @@ describe('Bossk, Cruel Hunter', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should be able to exhaust with no legal targets', async function () {
+            it('should be able to exhaust self with no legal targets', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -36,6 +36,9 @@ describe('Bossk, Cruel Hunter', function () {
                         groundArena: [{ card: 'wampa', damage: 2 }],
                         resources: 4
                     },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
                 });
 
                 const { context } = contextRef;
@@ -58,7 +61,36 @@ describe('Bossk, Cruel Hunter', function () {
                         resources: 6
                     },
                     player2: {
-                        groundArena: [{ card: 'trayus-acolyte', upgrades: ['weakness'] }],
+                        groundArena: [{ card: 'trayus-acolyte', upgrades: ['weakness'] }, { card: 'rebel-pathfinder', upgrades: ['snapshot-reflexes'] }],
+                        leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bossk);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Deal 2 damage to a unit with a token upgrade on it');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.trayusAcolyte, context.battlefieldMarine]);
+                context.player1.clickCard(context.trayusAcolyte);
+
+                expect(context.trayusAcolyte.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should deal 2 damage to an enemy unit with both a token upgrade and a non-token upgrade on it', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'bossk#cruel-hunter', deployed: true },
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['experience'] }],
+                        resources: 6
+                    },
+                    player2: {
+                        groundArena: [{ card: 'trayus-acolyte', upgrades: ['weakness', 'snapshot-reflexes'] }],
                         leader: { card: 'cad-bane#still-faster-than-you', deployed: true },
                     }
                 });

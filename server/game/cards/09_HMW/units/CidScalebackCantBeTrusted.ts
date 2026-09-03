@@ -15,7 +15,7 @@ export default class CidScalebackCantBeTrusted extends NonLeaderUnitCard {
         registrar.addWhenPlayedAbility({
             title: 'An opponent chooses a unit they control. Give a Weakness token to it.',
             targetResolver: {
-                activePromptTitle: 'Choose a unit to give a Weakness token to',
+                activePromptTitle: 'Choose a unit. Your opponent gives it a Weakness token.',
                 choosingPlayer: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,

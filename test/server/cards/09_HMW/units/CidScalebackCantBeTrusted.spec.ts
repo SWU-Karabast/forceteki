@@ -16,6 +16,8 @@ describe('Cid Scaleback, Can\'t Be Trusted', function() {
 
             context.player1.clickCard(context.cidScaleback);
 
+            expect(context.player1).toHavePrompt('Waiting for opponent');
+            expect(context.player2).toHavePrompt('Choose a unit. Your opponent gives it a Weakness token.');
             expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.lurkingTiePhantom]);
             context.player2.clickCard(context.battlefieldMarine);
 
