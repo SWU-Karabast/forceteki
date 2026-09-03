@@ -15,7 +15,9 @@ import * as LastingEffectSystemHelpers from './helpers/LastingEffectSystemHelper
 
 export type IAllCardsForPlayerLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target' | 'effect'> & Pick<IPlayerTargetSystemProperties, 'target'> & {
     effect: IOngoingAllCardsForPlayerEffectGenerator | IOngoingAllCardsForPlayerEffectGenerator[];
-    cardTitle: string;
+
+    /** If set, only cards with this title are affected. Otherwise all of the player's cards are affected. */
+    cardTitle?: string;
     includeLeaders?: boolean;
     cardTargetMode?: AllCardsTargetMode;
 };
@@ -63,7 +65,7 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
         const { effect, cardTitle, includeLeaders, cardTargetMode, target: _propsTarget, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
         const matchTarget = (target: Card) => {
-            if (target.title !== cardTitle) {
+            if (cardTitle != null && target.title !== cardTitle) {
                 return false;
             }
 

@@ -2513,6 +2513,24 @@ const mockCards = [
         arena: 'space',
         internalName: 'victor-squadron#in-attack-formation',
     }),
+    buildMockCard({
+        title: 'The First Legion',
+        subtitle: 'Vader\'s Fist',
+        cost: 4,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['imperial', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 108
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-first-legion#vaders-fist',
+    }),
     // -------- End Mock Cards --------
 ];
 
