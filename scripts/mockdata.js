@@ -2817,6 +2817,79 @@ const mockCards = [
         arena: 'ground',
         internalName: 'jaxxon#i-can-hear-you-breathing'
     }),
+    buildMockCard({
+        title: 'Krrsantan',
+        subtitle: 'Santo',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'aggression'],
+        traits: ['underworld', 'wookiee'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 46
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'krrsantan#santo'
+    }),
+    buildMockCard({
+        title: 'Ima-Gun Di',
+        subtitle: 'Holding Out For Resupply',
+        cost: 3,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'aggression', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 44
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'imagun-di#holding-out-for-resupply'
+    }),
+    buildMockCard({
+        title: 'L337',
+        subtitle: 'We\'re Programmed To Learn',
+        cost: 6,
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['underworld', 'droid'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 215
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'l337#were-programmed-to-learn'
+    }),
+    buildMockCard({
+        title: 'Heavy Ion Cannon',
+        cost: 3,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 172
+        },
+        unique: false,
+        internalName: 'heavy-ion-cannon',
+    }),
     // -------- End Mock Cards --------
 ];
 
