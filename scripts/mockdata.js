@@ -2854,7 +2854,7 @@ const mockCards = [
         internalName: 'imagun-di#holding-out-for-resupply'
     }),
     buildMockCard({
-        title: 'L337',
+        title: 'L3-37',
         subtitle: 'We\'re Programmed To Learn',
         cost: 6,
         power: 5,
