@@ -57,6 +57,33 @@ describe('Krrsantan, Santo', function() {
                 expect(context.giantGorax.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should not target any units when we control 3 resources', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['krrsantan#santo'],
+                        leader: 'han-solo#worth-the-risk',
+                        base: 'echo-base',
+                        resources: 3,
+                        groundArena: ['wampa'],
+                        spaceArena: ['awing']
+                    },
+                    player2: {
+                        groundArena: ['giant-gorax']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickCard(context.krrsantanSanto);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.giantGorax.damage).toBe(0);
+                expect(context.krrsantan.damage).toBe(2);
+                expect(context.wampa.damage).toBe(0);
+            });
         });
     });
 });
