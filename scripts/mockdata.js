@@ -2890,6 +2890,76 @@ const mockCards = [
         unique: false,
         internalName: 'heavy-ion-cannon',
     }),
+    buildMockCard({
+        title: 'General Grievous',
+        subtitle: 'Separatist Warlord',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        traits: ['separatist', 'official'],
+        aspects: ['command', 'villainy'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 8
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-grievous#separatist-warlord'
+    }),
+    buildMockCard({
+        title: 'Disposable B1',
+        cost: 1,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        traits: ['separatist', 'droid', 'trooper'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 103
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'disposable-b1'
+    }),
+    buildMockCard({
+        title: 'Tireless Magnaguard',
+        cost: 4,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        traits: ['separatist', 'droid'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 109
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'tireless-magnaguard'
+    }),
+    buildMockCard({
+        title: 'Nute Gunray',
+        subtitle: 'Perfectly Legal',
+        cost: 2,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        traits: ['separatist', 'official'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 105
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'nute-gunray#perfectly-legal'
+    }),
     // -------- End Mock Cards --------
 ];
 
