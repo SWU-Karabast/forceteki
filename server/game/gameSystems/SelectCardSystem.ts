@@ -99,22 +99,25 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         context.game.queueSimpleStep(() => {
             const selectedCards = Helpers.asArray(context.targets[properties.name]);
 
-            // a mandatory selection can still resolve without a card, e.g. when the resolver finds no target that the
-            // wrapped effect could do anything to and skips the prompt. there is nothing to apply the effect to in that
-            // case, unlike a selection that lets the player choose no cards (e.g. TargetMode.UpTo), where the effect
-            // still resolves against the empty selection
-            const resolvedWithoutSelection = selectedCards.length === 0 &&
-              !this.selectionAllowsChoosingNoCards(context, additionalProperties);
-
             if (targetResults.cancelled || (properties.cancelIfNoTargets && selectedCards.length === 0)) {
                 properties.cancelHandler?.();
-            } else if (!resolvedWithoutSelection) {
-                if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
-                    this.addOnSelectEffectMessage(context, properties);
-                }
-                properties.onSelectHandler?.(context.targets[properties.name] ?? context.target);
-                properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
+                return;
             }
+
+            // a mandatory selection can still resolve without a card, e.g. when the resolver finds no target that the
+            // wrapped effect could do anything to and skips the prompt entirely. there is no selection to apply the
+            // effect to in that case. a selection that lets the player choose no cards (e.g. TargetMode.UpTo) is
+            // different: choosing nothing is a real choice there, and the effect still resolves against the empty
+            // selection
+            if (selectedCards.length === 0 && !this.selectionAllowsChoosingNoCards(context, additionalProperties)) {
+                return;
+            }
+
+            if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
+                this.addOnSelectEffectMessage(context, properties);
+            }
+            properties.onSelectHandler?.(context.targets[properties.name] ?? context.target);
+            properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
         }, `Execute immediate effect for select card system "${properties.name}"`);
     }
 
