@@ -2,7 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { TextHelper } from '../../../core/utils/TextHelper';
-import { GameStateChangeRequired, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class Overgrowth extends EventCard {
     protected override getImplementationId() {
@@ -24,20 +24,20 @@ export default class Overgrowth extends EventCard {
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: WildcardZoneName.AnyArena,
                         name: 'friendlyUnit',
-
-                        // only units that can actually deal damage are selectable, so the damage step can't be fizzled
-                        // by choosing a unit with no power (and can never resolve without a chosen friendly unit)
-                        mustChangeGameState: GameStateChangeRequired.MustFullyOrPartiallyResolve,
-                        immediateEffect: abilityHelper.immediateEffects.selectCard({
-                            activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit?.getPower()} damage to an enemy unit`,
-                            controller: RelativePlayer.Opponent,
-                            cardTypeFilter: WildcardCardType.Unit,
-                            zoneFilter: WildcardZoneName.AnyArena,
-                            name: 'enemyUnit',
-                            immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
-                                amount: context.targets.friendlyUnit?.getPower(),
-                                target: context.targets.enemyUnit
-                            }))
+                        immediateEffect: abilityHelper.immediateEffects.conditional({
+                            // if no friendly unit can deal damage, the selection resolves without a unit, so there is nothing to damage with
+                            condition: (context) => context.targets.friendlyUnit != null,
+                            onTrue: abilityHelper.immediateEffects.selectCard({
+                                activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit.getPower()} damage to an enemy unit`,
+                                controller: RelativePlayer.Opponent,
+                                cardTypeFilter: WildcardCardType.Unit,
+                                zoneFilter: WildcardZoneName.AnyArena,
+                                name: 'enemyUnit',
+                                immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
+                                    amount: context.targets.friendlyUnit.getPower(),
+                                    target: context.targets.enemyUnit
+                                }))
+                            })
                         })
                     }),
                 }),

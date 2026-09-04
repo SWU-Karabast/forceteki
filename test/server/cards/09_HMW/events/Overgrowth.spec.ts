@@ -94,7 +94,7 @@ describe('Overgrowth', function() {
             expect(context.overgrowth).toBeInZone('resource', context.player1);
             expect(context.overgrowth.exhausted).toBeTrue();
         });
-        it('Overgrowth\'s ability should not offer units that cannot deal damage as a way to skip the damage', async function() {
+        it('Overgrowth\'s ability should allow selecting a unit with 0 power, dealing no damage', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -111,15 +111,13 @@ describe('Overgrowth', function() {
 
             context.player1.clickCard(context.overgrowth);
 
-            // Moisture Farmer has 0 power, so selecting it would deal no damage
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.battlefieldMarine]);
 
-            expect(context.player1).toHavePrompt('Deal 3 damage to an enemy unit');
-            context.player1.clickCard(context.atst);
+            // Moisture Farmer has 0 power, so no damage is dealt
+            context.player1.clickCard(context.moistureFarmer);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.atst.damage).toBe(3);
+            expect(context.atst.damage).toBe(0);
             expect(context.overgrowth).toBeInZone('resource', context.player1);
             expect(context.overgrowth.exhausted).toBeTrue();
         });
