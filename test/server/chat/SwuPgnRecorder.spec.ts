@@ -5,6 +5,7 @@ import { fold } from '../../../swupgn/src/index';
 import type { GameEvent, ReducedState } from '../../../swupgn/src/types';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
 import { EventName } from '../../../server/game/core/Constants';
+import { logger } from '../../../server/logger';
 
 describe('SwuPgnRecorder.buildHeader', function () {
     const ctx = {
@@ -622,5 +623,40 @@ describe('SwuPgn.formatTokenId', function () {
         expect(SwuPgn.formatTokenId('weakness', 'weakness-id')).toBe('TOKEN:weakness');
         expect(SwuPgn.formatTokenId('beast', 'beast-id')).toBe('TOKEN:beast');
         expect(SwuPgn.formatTokenId('shield', null)).toBe('TOKEN:shield');
+    });
+});
+
+describe('SwuPgnRecorder internals', function () {
+    // A recording bug must never crash gameplay, and a recording bug that fires on every
+    // event must never drown the logs either. Both guarantees live in logError.
+    it('caps logged errors and says once that it is suppressing the rest', function () {
+        const warnSpy = spyOn(logger, 'warn');
+        const rec = new SwuPgnRecorder(new FakeEmitter() as any, resolver) as any;
+
+        for (let i = 0; i < 25; i++) {
+            rec.logError('test', new Error(`boom ${i}`));
+        }
+
+        // 20 error lines + exactly one "further errors will be suppressed" line, then silence.
+        expect(warnSpy.calls.count()).toBe(21);
+        const suppression = warnSpy.calls.allArgs()
+            .filter((args) => String(args[0]).includes('further recording errors will be suppressed'));
+        expect(suppression.length).toBe(1);
+    });
+
+    it('keeps sub-event suffixes valid past the 26th sub-event', function () {
+        const rec = new SwuPgnRecorder(new FakeEmitter() as any, resolver) as any;
+
+        // Bijective base-26: a naive 'a'+n would run off the end of the alphabet into '{',
+        // which the seq pattern ([A-Za-z0-9-]) rejects.
+        expect(rec.subEventLetter(0)).toBe('a');
+        expect(rec.subEventLetter(25)).toBe('z');
+        expect(rec.subEventLetter(26)).toBe('aa');
+        expect(rec.subEventLetter(27)).toBe('ab');
+        expect(rec.subEventLetter(51)).toBe('az');
+        expect(rec.subEventLetter(52)).toBe('ba');
+        for (let n = 0; n < 200; n++) {
+            expect(rec.subEventLetter(n)).toMatch(/^[a-z]+$/);
+        }
     });
 });

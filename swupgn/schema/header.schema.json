@@ -3,12 +3,48 @@
   "$id": "https://karabast.net/swu-pgn/1.0/header.schema.json",
   "title": "SWU-PGN/1.0 Header",
   "type": "object",
-  "required": ["Game","GameId","Date","CardPool","Engine","Seed","P1Id","P2Id","P1","P2","P1Leader","P1Base","P2Leader","P2Base","Result","Reason","Rounds"],
+  "required": [
+    "Game",
+    "GameId",
+    "Date",
+    "CardPool",
+    "Engine",
+    "Seed",
+    "P1Id",
+    "P2Id",
+    "P1",
+    "P2",
+    "P1Leader",
+    "P1Base",
+    "P2Leader",
+    "P2Base",
+    "Result",
+    "Reason",
+    "Rounds"
+  ],
   "properties": {
-    "Game": { "const": "SWU-PGN/1.0" },
-    "Result": { "enum": ["P1","P2","Draw","Incomplete"] },
-    "Perspective": { "enum": ["P1","P2"] },
-    "Rounds": { "type": "integer" }
+    "Game": {
+      "type": "string",
+      "pattern": "^SWU-PGN/1\\.\\d+$",
+      "description": "Any SWU-PGN/1.x version string. Spec 22.1 requires readers to accept 1.1 (a pre-release file, parsed as 1.0) and any other same-major 1.x, ignoring what they don't know - so this must not be pinned to the exact constant \"SWU-PGN/1.0\". A different major version is rejected."
+    },
+    "Result": {
+      "enum": [
+        "P1",
+        "P2",
+        "Draw",
+        "Incomplete"
+      ]
+    },
+    "Perspective": {
+      "enum": [
+        "P1",
+        "P2"
+      ]
+    },
+    "Rounds": {
+      "type": "integer"
+    }
   },
   "additionalProperties": true
 }

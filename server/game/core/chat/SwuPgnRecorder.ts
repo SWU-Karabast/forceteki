@@ -503,12 +503,17 @@ export class SwuPgnRecorder {
     }
 
     /** Engine PhaseName → 1.1 reader vocabulary ('setup'|'action'|'regroup'). */
-    private phaseVocab(phase: string): string {
+    private phaseVocab(phase: string): ReducedState['phase'] {
         switch (phase) {
             case PhaseName.Setup: return 'setup';
             case PhaseName.Action: return 'action';
             case PhaseName.Regroup: return 'regroup';
-            default: return (phase ?? '').toLowerCase();
+            // Spec §6.4 fixes PHASE_START.phase to exactly setup/action/regroup. Lowercasing an
+            // unknown engine phase would silently emit a value outside that vocabulary, which a
+            // conforming reader is entitled to reject. Clamp instead, and say so in the log.
+            default:
+                this.logError('phaseVocab', new Error(`unknown engine phase "${phase}", recorded as "setup"`));
+                return 'setup';
         }
     }
 

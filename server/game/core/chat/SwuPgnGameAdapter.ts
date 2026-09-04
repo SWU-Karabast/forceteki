@@ -471,6 +471,16 @@ export class SwuPgnGameAdapter {
      * means "provenance unavailable", and a reader should treat a file carrying it as
      * untraceable rather than as coming from some known build.
      */
+    /**
+     * Resolve the engine version ahead of time, so the `git` subprocess below never runs on a
+     * game-end path. `execFileSync` blocks the whole event loop, and this process runs many
+     * concurrent games: without this, the first game to end after a restart stalls every other
+     * game for up to the 2s timeout. Call once at server startup; safe to call more than once.
+     */
+    public static warmEngineVersion(): void {
+        SwuPgnGameAdapter.engineVersion();
+    }
+
     private static engineVersion(): string {
         if (SwuPgnGameAdapter.cachedEngineVersion == null) {
             const version = process.env.FORCETEKI_VERSION ??

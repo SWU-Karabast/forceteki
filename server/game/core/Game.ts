@@ -344,6 +344,8 @@ export class Game extends EventEmitter {
     /** Owns 1.1 generation: recorder, stable-id/deck-order bookkeeping, and board projections. */
     private readonly _swuPgnAdapter: SwuPgnGameAdapter;
     private _cachedSwuPgnFile?: string;
+    private _swuPgnFileServed = false;
+    private _swuPgnServedThenReopened = false;
 
     // #endregion
 
@@ -558,6 +560,13 @@ export class Game extends EventEmitter {
      * pinned end-of-game file.
      */
     public getCachedSwuPgn(): string {
+        if (this._swuPgnServedThenReopened) {
+            // The served file carries both players' post-shuffle deck order and the RNG seed.
+            // Once an undo has reopened a game whose file is already in a player's hands, that
+            // file is live intel about the deck still being played from, so stop handing out
+            // more of it. See `swuPgnFileServed`.
+            throw new Error('SWU-PGN log withheld: this game was reopened after its log was served');
+        }
         if (this._cachedSwuPgnFile != null) {
             return this._cachedSwuPgnFile;
         }
@@ -2040,7 +2049,31 @@ export class Game extends EventEmitter {
         this.reportError(error, GameErrorSeverity.SevereHaltGame);
     }
 
+    /**
+     * Record that a `.swupgn` reached a player. Lobby calls this after a successful serve.
+     *
+     * The file is only served once `isEnded` is true, but `isEnded` flips back when a player
+     * undoes past game end (free and unilateral in a private lobby), so "the game is over" is
+     * not a one-way door. A player who downloads at game end and then undoes resumes play
+     * holding the opponent's remaining deck order.
+     */
+    public markSwuPgnServed(): void {
+        this._swuPgnFileServed = true;
+    }
+
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
+        if (this._swuPgnFileServed && !this.isEnded) {
+            // Rolling back into live play after the log was served. Withhold further copies and
+            // leave an auditable trail. NOTE: this does not un-leak the copy already downloaded
+            // -- the deck being played from is unchanged, so the leaked order stays valid. Fully
+            // closing that needs the undo itself blocked, or the remaining deck reshuffled here.
+            this._swuPgnServedThenReopened = true;
+            logger.warn(
+                `Game ${this.id}: rolled back into live play after its SWU-PGN log was served; ` +
+                'the served file exposes deck order and seed for the game now resuming'
+            );
+        }
+
         // Roll the SWU-PGN/1.0 recorder back to match the restored game state: it
         // checkpoints lazily per snapshot id (in SwuPgnRecorder.push), so rolling back to
         // the restored snapshot id drops exactly the events recorded after it and restores

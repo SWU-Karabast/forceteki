@@ -2525,23 +2525,28 @@ export class Lobby {
             return;
         }
 
+        // The single-file `.swupgn` (header + decks + setup + events) is the sole
+        // served game-log format.
+        let swuPgnFile: string;
         try {
-                        // setup + events) is the sole served game-log format.
-            let swuPgnFile: string | undefined;
-            try {
-                swuPgnFile = this.game.getCachedSwuPgn();
-            } catch (e) {
-                logger.error(`Error generating SWU-PGN/1.0 file: ${e}`);
-            }
-
-            if (typeof callback === 'function') {
-                callback({ swuPgnFile });
-            }
+            swuPgnFile = this.game.getCachedSwuPgn();
         } catch (e) {
-            logger.error(`Error generating game log: ${e}`);
+            // Report the failure instead of calling back with an undefined file: a
+            // `{ swuPgnFile: undefined }` reply is success-shaped, so the client cannot
+            // tell "generation failed" from "nothing to serve".
+            logger.error(`Error generating SWU-PGN/1.0 file: ${e}`);
             if (typeof callback === 'function') {
                 callback({ error: 'Failed to generate game log' });
             }
+            return;
+        }
+
+        // Mark before replying: the file is on its way out, and the game may be reopened by
+        // an undo past game end (see Game.markSwuPgnServed).
+        this.game.markSwuPgnServed();
+
+        if (typeof callback === 'function') {
+            callback({ swuPgnFile });
         }
     }
 }

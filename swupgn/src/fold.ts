@@ -12,7 +12,21 @@ function emptyState(): ReducedState {
     return { round: 0, phase: 'setup', initiative: null, players: { 1: emptyPlayer(1), 2: emptyPlayer(2) } };
 }
 
-function player(s: ReducedState, seat: Seat): PlayerState {
+/**
+ * True only for a real seat number. `Seat` is erased at runtime, so a `p` field read out of
+ * an untrusted `.swupgn` can be any JSON value -- including `"__proto__"`, which turns the
+ * bracket access below into a write against `Object.prototype` for every object in the
+ * process. Folding is a public API that runs in the browser on files a user supplies, so the
+ * check belongs here, at the one point every seat lookup routes through.
+ */
+function isSeat(seat: unknown): seat is Seat {
+    return seat === 1 || seat === 2;
+}
+
+function player(s: ReducedState, seat: Seat): PlayerState | undefined {
+    if (!isSeat(seat)) {
+        return undefined;
+    }
     if (!s.players[seat]) {
         s.players[seat] = emptyPlayer(seat);
     }
@@ -21,7 +35,7 @@ function player(s: ReducedState, seat: Seat): PlayerState {
 
 /** Resolve a target ref like "base@2" or "SOR#095:2" to the owning seat (best-effort). */
 function seatOfBaseRef(ref: string): Seat | null {
-    const m = /^base@(\d)$/.exec(ref);
+    const m = /^base@([12])$/.exec(ref);
     return m ? (Number(m[1]) as Seat) : null;
 }
 
@@ -54,7 +68,7 @@ function placeCard(s: ReducedState, seat: Seat, id: string, zone: string): void 
         existing.zone = zone;
         return;
     }
-    player(s, seat).cards.push(newCard(id, zone));
+    player(s, seat)?.cards.push(newCard(id, zone));
 }
 
 const ARENA_ZONES = new Set(['ground', 'space']);
@@ -79,6 +93,11 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         return;
     }
     const ps = player(s, e.p);
+    if (!ps) {
+        // Seat wasn't 1 or 2 -- a malformed or hostile file. Drop the record rather than
+        // attributing its counts to an invented seat.
+        return;
+    }
 
     // Hand membership count.
     if (e.to === 'hand' && e.from !== 'hand') {
@@ -140,7 +159,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'PLAY': case 'PLAY_SMUGGLE':
             placeCard(s, e.p, e.card, e.zone ?? 'ground'); break;
         case 'PLAY_EVENT':
-            player(s, e.p).discard.push(e.card); break;
+            player(s, e.p)?.discard.push(e.card); break;
         case 'PLAY_UPGRADE': {
             if (e.target) {
                 const host = findCard(s, e.target);
@@ -160,7 +179,10 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'DAMAGE': {
             const baseSeat = seatOfBaseRef(e.tgt);
             if (baseSeat) {
-                player(s, baseSeat).baseHp = e.hp;
+                const bp = player(s, baseSeat);
+                if (bp) {
+                    bp.baseHp = e.hp;
+                }
             } else {
                 const c = findCard(s, e.tgt);
                 if (c) {
@@ -172,14 +194,20 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'OVERWHELM': {
             const baseSeat = seatOfBaseRef(e.tgt);
             if (baseSeat) {
-                player(s, baseSeat).baseHp = e.hp;
+                const bp = player(s, baseSeat);
+                if (bp) {
+                    bp.baseHp = e.hp;
+                }
             }
             break;
         }
         case 'HEAL': {
             const baseSeat = seatOfBaseRef(e.tgt);
             if (baseSeat) {
-                player(s, baseSeat).baseHp = e.hp;
+                const bp = player(s, baseSeat);
+                if (bp) {
+                    bp.baseHp = e.hp;
+                }
             } else {
                 const c = findCard(s, e.tgt);
                 if (c) {
@@ -208,8 +236,8 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         // membership (see applyMoveCounts). DRAW/DISCARD/RESOURCE no longer mutate those
         // counts — they coincide with the underlying MOVEs and would double-count.
         case 'MOVE': applyMoveCounts(s, e); break;
-        case 'DRAW': { player(s, e.p).hand.push(...e.cards); break; }
-        case 'DISCARD': { player(s, e.p).discard.push(...e.cards); break; }
+        case 'DRAW': { player(s, e.p)?.hand.push(...e.cards); break; }
+        case 'DISCARD': { player(s, e.p)?.discard.push(...e.cards); break; }
         case 'RESOURCE': break;
         case 'SHIELD_GAIN': { const c = findCard(s, e.card); if (c) { c.shields += e.count ?? 1; } break; }
         case 'SHIELD_USE': { const c = findCard(s, e.card); if (c) { c.shields = Math.max(0, c.shields - (e.count ?? 1)); } break; }

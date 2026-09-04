@@ -153,9 +153,18 @@ export class SelectCardPrompt extends UiPrompt {
     }
 
     protected override highlightSelectableCards() {
-        this.choosingPlayer.setSelectableCards(this.selector.findPossibleCards(this.context).filter((card) => this.checkCardCondition(card)));
+        const selectable = this.selector.findPossibleCards(this.context).filter((card) => this.checkCardCondition(card));
+        // Remember what was actually put in front of the player. The SWU-PGN CHOICE record needs
+        // the offered set, and it is emitted after onSelect has already run its side effects --
+        // re-deriving it there would scan the zones a second time AND could return a different
+        // list than the one the player chose from.
+        this.lastOfferedCards = selectable;
+        this.choosingPlayer.setSelectableCards(selectable);
         this.choosingPlayer.opponent.setSelectableCards([]);
     }
+
+    /** Candidates most recently shown to the choosing player; pure logging state (SWU-PGN §4.2). */
+    private lastOfferedCards: Card[] = [];
 
     public override activeCondition(player) {
         return player === this.choosingPlayer;
@@ -285,7 +294,7 @@ export class SelectCardPrompt extends UiPrompt {
             }
             this.game.emit(EventName.OnCardSelection, {
                 player: this.choosingPlayer,
-                offered: this.selector.findPossibleCards(this.context),
+                offered: this.lastOfferedCards,
                 chosen: this.selectedCards[0],
                 prompt: this.promptTitle,
             });

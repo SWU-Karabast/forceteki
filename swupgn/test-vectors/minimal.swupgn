@@ -39,7 +39,7 @@
 {"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]}}}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
 {"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
-{"seq":"R1.A.2","t":"ATTACK","p":1,"atk":"SOR#108","def":"base","defenderType":"base"}
+{"seq":"R1.A.2","t":"ATTACK","p":1,"atk":"SOR#108","def":"base@2","defenderType":"base"}
 {"seq":"R1.A.2a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":2,"damageType":"combat","hp":28}
 {"seq":"R1.A.2b","t":"EXHAUST","card":"SOR#108"}
 

@@ -57,3 +57,65 @@ describe('SwuPgnGameAdapter end-state mapping', function () {
         expect(result(['Player2'])).toBe('P2');
     });
 });
+
+describe('SwuPgnGameAdapter.engineVersion', function () {
+    // The result is memoized in a process-wide static, so every case has to clear it or it
+    // silently asserts against whatever the first caller in the whole jasmine run computed.
+    const Adapter = SwuPgnGameAdapter as any;
+    let savedForceteki: string | undefined;
+    let savedNpm: string | undefined;
+
+    beforeEach(function () {
+        savedForceteki = process.env.FORCETEKI_VERSION;
+        savedNpm = process.env.npm_package_version;
+        Adapter.cachedEngineVersion = undefined;
+    });
+
+    afterEach(function () {
+        savedForceteki === undefined ? delete process.env.FORCETEKI_VERSION : process.env.FORCETEKI_VERSION = savedForceteki;
+        savedNpm === undefined ? delete process.env.npm_package_version : process.env.npm_package_version = savedNpm;
+        Adapter.cachedEngineVersion = undefined;
+    });
+
+    it('prefers the deploy-time override', function () {
+        process.env.FORCETEKI_VERSION = '9.9.9';
+        process.env.npm_package_version = '0.0.1';
+
+        expect(Adapter.engineVersion()).toBe('forceteki@9.9.9');
+    });
+
+    it('falls back to the package version', function () {
+        delete process.env.FORCETEKI_VERSION;
+        process.env.npm_package_version = '0.0.1';
+
+        expect(Adapter.engineVersion()).toBe('forceteki@0.0.1');
+    });
+
+    it('falls back to the git sha when no version is set', function () {
+        delete process.env.FORCETEKI_VERSION;
+        delete process.env.npm_package_version;
+        spyOn(Adapter, 'gitSha').and.returnValue('abc1234');
+
+        expect(Adapter.engineVersion()).toBe('forceteki@abc1234');
+    });
+
+    it('records provenance as unknown rather than inventing a build', function () {
+        delete process.env.FORCETEKI_VERSION;
+        delete process.env.npm_package_version;
+        spyOn(Adapter, 'gitSha').and.returnValue(undefined);
+
+        expect(Adapter.engineVersion()).toBe('forceteki@unknown');
+    });
+
+    it('memoizes, so the git subprocess never runs twice', function () {
+        delete process.env.FORCETEKI_VERSION;
+        delete process.env.npm_package_version;
+        const shaSpy = spyOn(Adapter, 'gitSha').and.returnValue('abc1234');
+
+        Adapter.engineVersion();
+        Adapter.engineVersion();
+        SwuPgnGameAdapter.warmEngineVersion();
+
+        expect(shaSpy.calls.count()).toBe(1);
+    });
+});

@@ -1,6 +1,8 @@
 import { SwuPgnWriter } from '../../../server/game/core/chat/SwuPgnWriter';
 import type { Header, DeckRecord, GameEvent, Annotation, SetupInitRecord } from '../../../swupgn/src/types';
 import { parse, validate } from '../../../swupgn/src/index';
+import * as integrity from '../../../swupgn/src/integrity';
+import { logger } from '../../../server/logger';
 
 describe('SwuPgnWriter', function () {
     const header: Header = {
@@ -51,5 +53,45 @@ describe('SwuPgnWriter', function () {
         const text = new SwuPgnWriter().write({ header: dirtyHeader, decks, setup, events, annotations });
         const doc = parse(text);
         expect(doc.header.reason).toBe('he said "go" then left');
+    });
+    describe('keyframe integrity gate', function () {
+        // The gate reports and never blocks: keyframes stay authoritative, so a reader still
+        // gets every round boundary, and withholding the file would cost a player the whole
+        // replay over a partial-fidelity problem.
+        function keyframeEvents(handSize: number): GameEvent[] {
+            const seat = (p: 1 | 2) => ({
+                seat: p, baseHp: 30, baseMaxHp: 30, handSize, hand: [], resourcesReady: 0,
+                resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [],
+            });
+            return [{
+                seq: 'R1.start', t: 'ROUND_START', round: 1,
+                keyframe: { round: 1, phase: 'setup', initiative: null, players: { 1: seat(1), 2: seat(2) } },
+            } as unknown as GameEvent];
+        }
+
+        it('logs the mismatches but still emits the file', function () {
+            const errorSpy = spyOn(logger, 'error');
+
+            // A keyframe claiming 9 cards in hand that no MOVE stream accounts for.
+            const text = new SwuPgnWriter().write({
+                header, decks, setup, events: keyframeEvents(9), annotations,
+            });
+
+            expect(text).toEqual(jasmine.any(String));
+            expect(text.length).toBeGreaterThan(0);
+            expect(errorSpy).toHaveBeenCalled();
+            expect(errorSpy.calls.mostRecent().args[0]).toContain('keyframe integrity check failed');
+        });
+
+        it('warns but still emits when the gate itself throws', function () {
+            const warnSpy = spyOn(logger, 'warn');
+            spyOn(integrity, 'checkKeyframes').and.throwError('gate exploded');
+
+            const text = new SwuPgnWriter().write({ header, decks, setup, events, annotations });
+
+            expect(text).toEqual(jasmine.any(String));
+            expect(warnSpy).toHaveBeenCalled();
+            expect(warnSpy.calls.mostRecent().args[0]).toContain('could not run');
+        });
     });
 });

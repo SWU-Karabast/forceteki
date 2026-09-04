@@ -152,4 +152,21 @@ describe('checkKeyframes — organic multi-round count reconstruction (no double
         expect(r.mismatches).toEqual([]);
         expect(r.ok).toBe(true);
     });
+    it('reports a card the fold tracks in play but the keyframe omits', function () {
+        // The symmetric direction of the missing-card check: a DEFEAT/MOVE-out that fails to
+        // remove a card leaves the fold holding one the engine no longer reports.
+        const events: GameEvent[] = [
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'P1#unit', zone: 'ground', cost: 2 },
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: keyframe(2,
+                playerState(1, { cards: [] }),
+                playerState(2, {})) },
+        ];
+
+        const r = checkKeyframes(events);
+
+        expect(r.ok).toBe(false);
+        expect(r.mismatches).toContain(jasmine.objectContaining({
+            path: 'players.1.cards[P1#unit]', expected: 'absent', got: 'present',
+        }));
+    });
 });

@@ -251,4 +251,58 @@ describe('fold arena membership', function () {
         ];
         expect(fold(events).players[1]!.cards).toEqual([]);
     });
+
+    describe('untrusted input', function () {
+        // `Seat` is erased at runtime, so `p` out of a hand-edited file can be any JSON value.
+        // A `p` of "__proto__" used to resolve `s.players[p]` to Object.prototype, and every
+        // subsequent count write landed on it -- poisoning every object in the process.
+        it('does not write to Object.prototype when a seat is "__proto__"', function () {
+            const events = [
+                { seq: 'R1.A.1', t: 'MOVE', p: '__proto__', card: 'X#1', from: 'deck', to: 'hand' },
+            ] as unknown as GameEvent[];
+
+            fold(events);
+
+            expect((Object.prototype as any).handSize).toBeUndefined();
+            expect(({} as any).handSize).toBeUndefined();
+        });
+
+        it('ignores counts for a seat that is not 1 or 2', function () {
+            const events = [
+                { seq: 'R1.A.1', t: 'MOVE', p: 7, card: 'X#1', from: 'deck', to: 'hand' },
+            ] as unknown as GameEvent[];
+
+            const state = fold(events);
+
+            expect(Object.keys(state.players).sort()).toEqual(['1', '2']);
+            expect(state.players[1]!.handSize).toBe(0);
+            expect(state.players[2]!.handSize).toBe(0);
+        });
+    });
+    describe('MOVE without a seat', function () {
+        it('updates zone on an already-tracked card without touching counts', function () {
+            const events = [
+                { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground', cost: 2 },
+                { seq: 'R1.A.2', t: 'MOVE', card: 'SOR#108', from: 'ground', to: 'discard' },
+            ] as unknown as GameEvent[];
+
+            const p1 = fold(events).players[1]!;
+
+            expect(p1.cards.find((c) => c.id === 'SOR#108')!.zone).toBe('discard');
+            expect(p1.handSize).toBe(0);
+            expect(p1.resourcesReady).toBe(0);
+        });
+
+        it('ignores a seatless MOVE for a card it is not tracking', function () {
+            const events = [
+                { seq: 'R1.A.1', t: 'MOVE', card: 'NOT#TRACKED', from: 'deck', to: 'hand' },
+            ] as unknown as GameEvent[];
+
+            const s = fold(events);
+
+            expect(s.players[1]!.cards).toEqual([]);
+            expect(s.players[1]!.handSize).toBe(0);
+            expect(s.players[2]!.handSize).toBe(0);
+        });
+    });
 });
