@@ -22,14 +22,13 @@ describe('General Grievous, Separatist Warlord', function () {
                 // Deploying Grievous costs 5, which isn't affordable, so clicking him triggers this ability directly
                 context.player1.clickCard(context.generalGrievous);
 
-                // The player is prompted to choose the first unit to play from hand
-                expect(context.player1).toHavePrompt('Choose a unit');
-
                 // All three units are in-aspect (Command/Villainy), so none incur an aspect penalty; all are affordable with 4 resources
+                expect(context.player1).toHavePrompt('Choose a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.imperialDarkTrooper, context.confederateCourier, context.generalsGuardian]);
                 context.player1.clickCard(context.imperialDarkTrooper);
 
                 // Only 2 resources remain, so General's Guardian (cost 4) is no longer affordable
+                expect(context.player1).toHavePrompt('Choose a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.confederateCourier]);
                 context.player1.clickCard(context.confederateCourier);
 
