@@ -97,9 +97,18 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         targetResolver.resolve(context, targetResults);
 
         context.game.queueSimpleStep(() => {
-            if (targetResults.cancelled || (properties.cancelIfNoTargets && Helpers.asArray(context.target).length === 0)) {
+            const selectedCards = Helpers.asArray(context.targets[properties.name]);
+
+            // a mandatory selection can still resolve without a card, e.g. when the resolver finds no target that the
+            // wrapped effect could do anything to and skips the prompt. there is nothing to apply the effect to in that
+            // case, unlike a selection that lets the player choose no cards (e.g. TargetMode.UpTo), where the effect
+            // still resolves against the empty selection
+            const resolvedWithoutSelection = selectedCards.length === 0 &&
+              !this.selectionAllowsChoosingNoCards(context, additionalProperties);
+
+            if (targetResults.cancelled || (properties.cancelIfNoTargets && selectedCards.length === 0)) {
                 properties.cancelHandler?.();
-            } else {
+            } else if (!resolvedWithoutSelection) {
                 if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
                     this.addOnSelectEffectMessage(context, properties);
                 }

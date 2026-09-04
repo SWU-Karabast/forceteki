@@ -24,20 +24,16 @@ export default class Overgrowth extends EventCard {
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: WildcardZoneName.AnyArena,
                         name: 'friendlyUnit',
-                        immediateEffect: abilityHelper.immediateEffects.conditional({
-                            // if no friendly unit can deal damage, the selection resolves without a unit, so there is nothing to damage with
-                            condition: (context) => context.targets.friendlyUnit != null,
-                            onTrue: abilityHelper.immediateEffects.selectCard({
-                                activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit.getPower()} damage to an enemy unit`,
-                                controller: RelativePlayer.Opponent,
-                                cardTypeFilter: WildcardCardType.Unit,
-                                zoneFilter: WildcardZoneName.AnyArena,
-                                name: 'enemyUnit',
-                                immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
-                                    amount: context.targets.friendlyUnit.getPower(),
-                                    target: context.targets.enemyUnit
-                                }))
-                            })
+                        immediateEffect: abilityHelper.immediateEffects.selectCard({
+                            activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit.getPower()} damage to an enemy unit`,
+                            controller: RelativePlayer.Opponent,
+                            cardTypeFilter: WildcardCardType.Unit,
+                            zoneFilter: WildcardZoneName.AnyArena,
+                            name: 'enemyUnit',
+                            immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
+                                amount: context.targets.friendlyUnit.getPower(),
+                                target: context.targets.enemyUnit
+                            }))
                         })
                     }),
                 }),
