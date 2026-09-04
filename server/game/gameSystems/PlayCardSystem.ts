@@ -1,4 +1,5 @@
 import type { Card } from '../core/card/Card';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -35,6 +36,9 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
      * as part of a card ability. If not specified, the default behavior is to allow any valid attach target.
      */
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
+
+    /** A game system to resolve (e.g. defeat) after the card enters play but before When Played triggers resolve. */
+    preResolveGameSystem?: GameSystem;
 }
 
 // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilities with another function(s)
@@ -202,7 +206,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             entersReady: properties.entersReady,
             canPlayFromAnyZone: properties.canPlayFromAnyZone,
             exploitValue: properties.exploitValue,
-            attachTargetCondition: properties.attachTargetCondition
+            attachTargetCondition: properties.attachTargetCondition,
+            preResolveGameSystem: properties.preResolveGameSystem
         };
     }
 }
