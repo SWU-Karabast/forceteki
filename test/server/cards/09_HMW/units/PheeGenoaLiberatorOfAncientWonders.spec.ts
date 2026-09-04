@@ -89,7 +89,9 @@ describe('Phee Genoa, Liberator of Ancient Wonders', function() {
                         spaceArena: ['cartel-spacer'],
                     }
                 });
+            });
 
+            it('should still prompt, and choosing to exhaust has no effect since the leader is an upgrade', function() {
                 const { context } = contextRef;
 
                 context.player1.passAction();
@@ -97,10 +99,6 @@ describe('Phee Genoa, Liberator of Ancient Wonders', function() {
                 context.player2.clickCard(context.wedgeAntilles);
                 context.player2.clickPrompt('Deploy Wedge Antilles as a Pilot');
                 context.player2.clickCard(context.cartelSpacer);
-            });
-
-            it('should still prompt, and choosing to exhaust has no effect since the leader is an upgrade', function() {
-                const { context } = contextRef;
 
                 expect(context.player2).toHavePrompt('[Exhaust] Wedge Antilles or [Pay] 2 resources');
                 expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
@@ -113,6 +111,12 @@ describe('Phee Genoa, Liberator of Ancient Wonders', function() {
 
             it('should still allow its controller to pay 2 resources instead', function() {
                 const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.wedgeAntilles);
+                context.player2.clickPrompt('Deploy Wedge Antilles as a Pilot');
+                context.player2.clickCard(context.cartelSpacer);
 
                 expect(context.player2).toHaveEnabledPromptButtons(['Pay', 'Exhaust']);
                 context.player2.clickPrompt('Pay');
