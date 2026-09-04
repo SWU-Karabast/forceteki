@@ -54,7 +54,7 @@ describe('The Client, Please Lower Your Blaster', function() {
                 expect(context.wampa.exhausted).toBeTrue();
             });
 
-            xit('exhausts an enemy unit if opponent ability make you create token upgrade ', async function() {
+            it('exhausts an enemy unit if opponent ability make you create token upgrade ', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
