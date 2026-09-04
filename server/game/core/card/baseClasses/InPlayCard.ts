@@ -106,6 +106,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
      * This is used to determine e.g. if a card in the discard pile was defeated this phase.
      */
     public get mostRecentInPlayId() {
+        // TODO PR COMMENT
         this.assertPropertyEnabledForZoneBoolean(
             !this.isInPlay() && this.zone.hiddenForPlayers == null,
             'mostRecentInPlayId'
