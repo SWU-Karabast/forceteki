@@ -25,13 +25,13 @@ export default class Overgrowth extends EventCard {
                         zoneFilter: WildcardZoneName.AnyArena,
                         name: 'friendlyUnit',
                         immediateEffect: abilityHelper.immediateEffects.selectCard({
-                            activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit?.getPower()} damage to an enemy unit`,
+                            activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit.getPower()} damage to an enemy unit`,
                             controller: RelativePlayer.Opponent,
                             cardTypeFilter: WildcardCardType.Unit,
                             zoneFilter: WildcardZoneName.AnyArena,
                             name: 'enemyUnit',
                             immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
-                                amount: context.targets.friendlyUnit?.getPower(),
+                                amount: context.targets.friendlyUnit.getPower(),
                                 target: context.targets.enemyUnit
                             }))
                         })
