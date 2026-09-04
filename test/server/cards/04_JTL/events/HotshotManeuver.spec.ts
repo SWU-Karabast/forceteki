@@ -155,7 +155,7 @@ describe('Hotshot Maneuver', function() {
                 context.player1.clickCard(context.p2Base);
 
                 // Trigger On Attack ability
-                context.player1.clickPrompt('Deal 1 indirect damage to a player. If you control Boba Fett, deal 2 indirect damage instead');
+                context.player1.clickPrompt('Deal 1 indirect damage to a player');
                 context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.p2Base, 1],
@@ -195,7 +195,7 @@ describe('Hotshot Maneuver', function() {
                 context.player1.clickCard(context.p2Base);
 
                 // Trigger On Attack ability
-                context.player1.clickPrompt('Deal 1 indirect damage to a player. If you control Boba Fett, deal 2 indirect damage instead');
+                context.player1.clickPrompt('Deal 1 indirect damage to a player');
                 context.player1.clickPrompt('Deal indirect damage to opponent');
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.p2Base, 1],

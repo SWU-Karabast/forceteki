@@ -33,6 +33,7 @@ export default class BobaFettsRancorEmotionallyComplexCreature extends NonLeader
         });
         registrar.addOnAttackAbility({
             title: 'Deal 1 damage to a base for every 5 damage on your base',
+            contextTitle: (context) => `Deal ${Math.floor(context.player.base.damage / 5)} damage to a base`,
             optional: true,
             targetResolver: {
                 activePromptTitle: (context) => `Deal ${Math.floor(context.player.base.damage / 5)} damage to a base`,

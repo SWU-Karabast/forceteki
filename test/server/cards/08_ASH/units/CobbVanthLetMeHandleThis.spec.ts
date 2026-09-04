@@ -1,6 +1,7 @@
 describe('Cobb Vanth, Let Me Handle This', function() {
     integration(function(contextRef) {
         describe('Triggered ability when a basic unit is played', function() {
+            const abilityTitle = (title: string) => `Deal 2 damage to Cobb Vanth to give a Shield token to ${title}`;
             it('should deal 2 damage to self and give a shield to the played unit when undamaged', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -14,7 +15,7 @@ describe('Cobb Vanth, Let Me Handle This', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit. If you do, give a Shield token to that unit');
+                expect(context.player1).toHavePassAbilityPrompt(abilityTitle('Battlefield Marine'));
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
@@ -58,7 +59,7 @@ describe('Cobb Vanth, Let Me Handle This', function() {
                 context.player1.clickCard(context.chewbacca);
                 context.player1.clickPrompt('Play Chewbacca');
 
-                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit. If you do, give a Shield token to that unit');
+                expect(context.player1).toHavePassAbilityPrompt(abilityTitle('Chewbacca'));
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
@@ -79,7 +80,7 @@ describe('Cobb Vanth, Let Me Handle This', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit. If you do, give a Shield token to that unit');
+                expect(context.player1).toHavePassAbilityPrompt(abilityTitle('Battlefield Marine'));
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
@@ -101,7 +102,7 @@ describe('Cobb Vanth, Let Me Handle This', function() {
 
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit. If you do, give a Shield token to that unit');
+                expect(context.player1).toHavePassAbilityPrompt(abilityTitle('Battlefield Marine'));
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();

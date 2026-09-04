@@ -15,9 +15,9 @@ export default class PalpatinesReturn extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `Play a unit from your discard pile. It costs ${TextHelper.resource(6)} less. If it's a Force unit, it costs ${TextHelper.resource(8)} less instead.`,
+            title: `Play a unit from your discard pile. It costs ${TextHelper.resource(6)} less. If it's a ${TextHelper.Trait.Force} unit, it costs ${TextHelper.resource(8)} less instead.`,
             targetResolver: {
-                activePromptTitle: `Play a unit for ${TextHelper.resource(6)} less. If it's a Force unit, it costs ${TextHelper.resource(8)} less instead.`,
+                activePromptTitle: `Play a unit for ${TextHelper.resource(6)} less. If it's a ${TextHelper.Trait.Force} unit, it costs ${TextHelper.resource(8)} less instead.`,
                 mode: TargetMode.Single,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,

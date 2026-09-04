@@ -77,6 +77,7 @@ interface SwuTestContext {
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
     getAllNonLeaderCardTitles(): string[];
     getPlayableCardTitles();
+    getTraitNames(): string[];
     getChatLog(numbBack = 0);
     getChatLogs(numbBack = 1, inOrder = false);
     getPromptedPlayer(title: string);
@@ -92,6 +93,9 @@ interface SwuTestContext {
     startGameAsync(): Promise;
 
     setupCallCount: number;
+    isUndoTest?: boolean;
+    hasSetupGame?: boolean;
+    undoReplayInProgress?: boolean;
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;
@@ -102,8 +106,16 @@ interface PlayerInfo {
     username: string;
 }
 
-interface SwuSetupTestOptions extends ISerializedGameState {
+type SwuSetupPlayerOptions = import('../../server/game/Interfaces').IPlayerSerializedState & {
+    // Per-player override of the game-level autoSingleTarget setting.
     autoSingleTarget?: boolean;
+};
+
+interface SwuSetupTestOptions extends Omit<ISerializedGameState, 'player1' | 'player2'> {
+    // Game-level default applied to both players (per-player values override it).
+    autoSingleTarget?: boolean;
+    player1?: SwuSetupPlayerOptions;
+    player2?: SwuSetupPlayerOptions;
     phaseTransitionHandler?: (phase: PhaseName) => void;
     testUndo?: boolean;
     enableConfirmationToUndo?: boolean;
@@ -149,8 +161,15 @@ declare namespace jasmine {
         toBeCapturedBy(card: any): boolean;
         toBeAttachedTo(card: any): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
+        toHaveExactOngoingEffects(expectedEffects: (string | { description: string; targets?: Card[] })[]): boolean;
+        toHaveOngoingEffect(expectedEffect: string | { description: string; targets?: Card[] }): boolean;
+        toHaveNoOngoingEffects(): boolean;
+        toHaveExactOngoingEffectsForPlayer(player: PlayerInteractionWrapper, expectedEffects: (string | { description: string; targets?: Card[] })[]): boolean;
+        toHaveOngoingEffectForPlayer(player: PlayerInteractionWrapper, expectedEffect: string | { description: string; targets?: Card[] }): boolean;
+        toHaveNoOngoingEffectsForPlayer(player: PlayerInteractionWrapper): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
+        toHaveNumericPromptRange<T extends PlayerInteractionWrapper>(this: Matchers<T>, min: number, max: number): boolean;
         toHaveExactDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedPromptState: ICardDisplaySelectionState): boolean;
         toHaveExactSelectableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: (Card | { card: Card; displayText: string })[]): boolean;
         toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: (Card | { card: Card; displayText: string })[]): boolean;

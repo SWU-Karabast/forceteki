@@ -159,7 +159,7 @@ describe('The Great Mothers, With Strange Magicks', function() {
 
             expect(context.player1).toHaveExactPromptButtons([
                 'Defeat Lambda Shuttle',
-                'If this unit survived, you may defeat a unit with less power than this unit'
+                'Defeat a unit with less than 4 power'
             ]);
             context.player1.clickPrompt('Defeat Lambda Shuttle');
 

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { MoveZoneDestination } from '../core/Constants';
+import type { MoveZoneDestination, ZoneFilter } from '../core/Constants';
 import { AbilityRestriction, EffectName, RelativePlayer } from '../core/Constants';
 import {
     CardType,
@@ -56,7 +56,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
 
         // Check if the card is leaving play
-        if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
+        if (this.isLeavingPlay(card, event.destination)) {
             this.leavesPlayEventHandler(card, event.destination, event.context, () => card.moveTo(event.destination));
         } else {
             card.moveTo(event.destination);
@@ -69,15 +69,17 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {
-        return this.getEffectMessage(context);
+        // Since this is the cost message, always set isCost to true
+        return this.getEffectMessage(context, { isCost: true });
     }
 
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
 
+        const targetOwners = new Set(Helpers.asArray(properties.target).map((card) => card.owner));
         let destination: FormatMessage = { format: 'their {0}', args: [properties.destination] };
         if (properties.destination === ZoneName.Hand || EnumHelpers.isDeckMoveZone(properties.destination)) {
-            if (new Set(Helpers.asArray(properties.target).map((card) => card.owner)).size === 1) {
+            if (targetOwners.size <= 1) {
                 const getDestination = (owner: string | FormatMessage): FormatMessage => {
                     if (EnumHelpers.isDeckMoveZone(properties.destination)) {
                         if (properties.shuffle) {
@@ -88,10 +90,12 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
                     return { format: '{0} {1}', args: [owner, properties.destination] };
                 };
 
-                if (Helpers.asArray(properties.target)[0].owner === context.player) {
+                // when no cards are moved, default the owner to the acting player
+                const owner = [...targetOwners][0] ?? context.player;
+                if (owner === context.player) {
                     destination = getDestination('their');
                 } else {
-                    destination = getDestination({ format: '{0}\'s', args: [Helpers.asArray(properties.target)[0].owner] });
+                    destination = getDestination({ format: '{0}\'s', args: [owner] });
                 }
             } else {
                 destination = { format: 'their owner {0}', args: [properties.destination] };
@@ -111,7 +115,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             }
             const targets = Helpers.asArray(properties.target);
             let target: MsgArg | MsgArg[] = this.getTargetMessage(targets, context);
-            if (targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
+            // summarize as a count when the cards are (or are becoming) hidden, or when none were moved (0 cards)
+            if (targets.length === 0 || targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
                 target = ChatHelpers.pluralize(targets.length, 'a card', 'cards');
             }
             return [`${ChatHelpers.verb(properties, 'move', 'moving')} {0} to {1}`, [target, destination]];
@@ -127,9 +132,27 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const { attachedUpgradeOverrideHandler } = this.generatePropertiesFromContext(context, additionalProperties);
 
         // Check if the card is leaving play
-        if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
+        if (this.isLeavingPlay(card, event.destination)) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties, attachedUpgradeOverrideHandler);
         }
+    }
+
+    /**
+     * A card is leaving play when it is currently in play and is being moved to a non-arena zone. `isInPlay()` accounts
+     * for base-attached (Fortify) upgrades, which live in the base zone rather than an arena (`SWU 4.9.1`).
+     */
+    private isLeavingPlay(card: Card, destination: MoveZoneDestination): boolean {
+        // A leader is leaving play if it is in play and is being moved to a non-arena zone (because they flip when they leave the arenas)
+        if (card.isLeader()) {
+            return card.canBeInPlay() &&
+              card.isInPlay() &&
+              !EnumHelpers.isArena(destination as ZoneFilter);
+        }
+
+        // Other cards are leaving play if they are in play and are moving to an out-of-play zone
+        return card.canBeInPlay() &&
+          card.isInPlay() &&
+          !EnumHelpers.isInPlayZone(destination as ZoneFilter);
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveCardProperties>): void {
@@ -160,10 +183,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             }
         }
 
-        // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
+        // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource.
+        // Note that `isInPlay()` covers base-attached (Fortify) upgrades, which live in the base zone rather than an arena.
         if (destination === ZoneName.Hand) {
             if (
-                !([ZoneName.Discard, ZoneName.Resource].includes(card.zoneName)) && !EnumHelpers.isArena(card.zoneName)
+                !([ZoneName.Discard, ZoneName.Resource].includes(card.zoneName)) && !(card.canBeInPlay() && card.isInPlay())
             ) {
                 return false;
             }

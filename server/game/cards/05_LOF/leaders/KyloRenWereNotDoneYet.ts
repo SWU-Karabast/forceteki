@@ -1,9 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
-import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 
 export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -34,41 +32,14 @@ export default class KyloRenWereNotDoneYet extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Play any number of Upgrades from your discard pile on this unit',
-            optional: true,
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
-            targetResolver: {
+            immediateEffect: AbilityHelper.immediateEffects.playMultipleCardsFromDiscard({
                 cardTypeFilter: CardType.BasicUpgrade,
-                zoneFilter: ZoneName.Discard,
-                controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({
-                    playAsType: WildcardCardType.Upgrade,
-                    canPlayFromAnyZone: true,
-                    attachTargetCondition: (attachTarget) => attachTarget === context.source,
-                    nested: true
-                }))
-            },
-            ifYouDo: () => this.thenPlayAnotherUpgrade(AbilityHelper)
+                playAsType: WildcardCardType.Upgrade,
+                attachTargetCondition: (attachTarget, context) => attachTarget === context.source,
+            })
         });
-    }
-
-    private thenPlayAnotherUpgrade(AbilityHelper: IAbilityHelper): IThenAbilityPropsWithSystems<TriggeredAbilityContext<this>> {
-        return {
-            title: 'Play another Upgrade from your discard pile on this unit',
-            optional: true,
-            targetResolver: {
-                cardTypeFilter: CardType.BasicUpgrade,
-                zoneFilter: ZoneName.Discard,
-                controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({
-                    playAsType: WildcardCardType.Upgrade,
-                    canPlayFromAnyZone: true,
-                    attachTargetCondition: (attachTarget) => attachTarget === context.source,
-                    nested: true
-                }))
-            },
-            ifYouDo: () => this.thenPlayAnotherUpgrade(AbilityHelper)
-        };
     }
 }

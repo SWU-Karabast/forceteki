@@ -14,7 +14,7 @@ export default class FaithInTheEmpire extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addDecreaseCostAbility({
-            title: `This upgrade costs ${TextHelper.resource(1)} less to play on an Imperial unit`,
+            title: `This upgrade costs ${TextHelper.resource(1)} less to play on an ${TextHelper.Trait.Imperial} unit`,
             amount: 1,
             attachTargetCondition: (card) => card.hasSomeTrait(Trait.Imperial)
         });

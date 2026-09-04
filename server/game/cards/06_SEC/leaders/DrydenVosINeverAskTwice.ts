@@ -5,6 +5,7 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class DrydenVosINeverAskTwice extends LeaderUnitCard {
@@ -17,7 +18,7 @@ export default class DrydenVosINeverAskTwice extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a unit that costs 5 or less from your hand. It gains Ambush for this phase.',
+            title: `Play a unit that costs 5 or less from your hand. It gains ${TextHelper.Ambush} for this phase.`,
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.discardCardFromOwnHand({
                 cardCondition: (card) => card.hasCost() && card.cost >= 6
             })],
@@ -41,7 +42,7 @@ export default class DrydenVosINeverAskTwice extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a unit from your hand. It gains Ambush for this phase.',
+            title: `Play a unit from your hand. It gains ${TextHelper.Ambush} for this phase.`,
             cost: [AbilityHelper.costs.discardCardFromOwnHand()],
             cannotTargetFirst: true,
             targetResolver: {

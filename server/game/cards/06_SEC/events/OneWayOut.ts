@@ -2,6 +2,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class OneWayOut extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class OneWayOut extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a unit. It gets +1/+0 and gains Overwhelm for this attack. If it is attacking a unit, the defender loses all abilities for this attack',
+            title: `Attack with a unit. It gets +1/+0 and gains ${TextHelper.Overwhelm} for this attack. If it is attacking a unit, the defender loses all abilities for this attack`,
             initiateAttack: {
                 attackerLastingEffects: [
                     { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm) },

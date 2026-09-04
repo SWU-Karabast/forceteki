@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,11 +14,11 @@ export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play an Imperial unit from your hand. It enters play ready',
+            title: `Play an ${TextHelper.Trait.Imperial} unit from your hand. It enters play ready`,
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.selectCard({
-                    activePromptTitle: 'Play an Imperial unit from your hand. It enters play ready',
+                    activePromptTitle: `Play an ${TextHelper.Trait.Imperial} unit from your hand. It enters play ready`,
                     // TODO: figure out how to make this assume that the played card must be from hand, unless specified otherwise
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,

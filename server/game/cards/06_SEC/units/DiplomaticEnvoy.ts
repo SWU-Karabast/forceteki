@@ -16,17 +16,17 @@ export default class DiplomaticEnvoy extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         const aspects = [Aspect.Command];
         registrar.addWhenPlayedAbility({
-            title: `Disclose ${TextHelper.aspectList(aspects)} to give Ambush for this phase for the next unit you play this phase`,
+            title: `Disclose ${TextHelper.aspectList(aspects)} to give ${TextHelper.Ambush} for this phase for the next unit you play this phase`,
             immediateEffect: abilityHelper.immediateEffects.disclose({ aspects }),
             ifYouDo: {
-                title: 'The next unit you play this phase gains Ambush for this phase',
+                title: `The next unit you play this phase gains ${TextHelper.Ambush} for this phase`,
                 immediateEffect: abilityHelper.immediateEffects.delayedPlayerEffect({
-                    title: 'The next unit you play this phase gains Ambush',
+                    title: `The next unit you play this phase gains ${TextHelper.Ambush}`,
                     when: {
                         onCardPlayed: (event, context) => this.isUnitPlayedEvent(event, context)
                     },
                     duration: Duration.UntilEndOfPhase,
-                    effectDescription: 'give Ambush to the next unit they play this phase',
+                    effectDescription: `give ${TextHelper.Ambush} to the next unit they play this phase`,
                     immediateEffect: abilityHelper.immediateEffects.cardLastingEffect((context) => ({
                         target: context.events.find((event) => this.isUnitPlayedEvent(event, context)).card,
                         effect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),

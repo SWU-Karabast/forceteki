@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class JediTrials extends UpgradeCard {
     protected override getImplementationId() {
@@ -20,7 +21,7 @@ export default class JediTrials extends UpgradeCard {
         });
 
         registrar.addConstantAbilityTargetingAttached({
-            title: 'While attached unit has 4 or more upgrades on it, it gains the Jedi trait',
+            title: `While attached unit has 4 or more upgrades on it, it gains the ${TextHelper.Trait.Jedi} trait`,
             condition: (context) => context.source.parentCard.upgrades.length >= 4,
             ongoingEffect: AbilityHelper.ongoingEffects.gainTrait(Trait.Jedi)
         });

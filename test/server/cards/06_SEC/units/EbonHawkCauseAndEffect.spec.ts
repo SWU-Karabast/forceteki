@@ -212,7 +212,7 @@ describe('Ebon Hawk, Cause and Effect', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('is automatically skipped if the player has no Heroism or Villainy cards in hand', async function () {
+            it('shows a skippable pause instead of resolving if the player has no Heroism or Villainy cards in hand', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -237,7 +237,12 @@ describe('Ebon Hawk, Cause and Effect', function() {
                 context.player1.clickCard(context.ebonHawk);
                 context.player1.clickCard(context.gracefulPurrgil);
 
-                // Attack resolves immediately
+                // Player 1 can't disclose Heroism or Villainy, so a skippable masking pause is shown
+                expect(context.player1).toHavePrompt('Pausing for Disclose');
+                expect(context.player1).toHaveEnabledPromptButton('Skip');
+                context.player1.clickPrompt('Skip');
+
+                // Attack resolves
                 expect(context.ebonHawk.damage).toBe(2);
                 expect(context.gracefulPurrgil.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();

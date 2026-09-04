@@ -15,6 +15,9 @@ export default class SurvivorsGauntlet extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Attach an upgrade on a unit to another eligible unit controlled by the same player',
+            contextTitle: (context) => (context.targets.chooseUpgrade
+                ? `Attach ${context.targets.chooseUpgrade.title} to another eligible unit controlled by the same player`
+                : 'Attach an upgrade on a unit to another eligible unit controlled by the same player'),
             optional: true,
             when: {
                 whenPlayed: true,

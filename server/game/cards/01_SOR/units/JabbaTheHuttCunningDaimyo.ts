@@ -14,7 +14,7 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Each Trick event you play costs ${TextHelper.resource(1)} less`,
+            title: `Each ${TextHelper.Trait.Trick} event you play costs ${TextHelper.resource(1)} less`,
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,
                 cardTypeFilter: CardType.Event,
@@ -23,7 +23,7 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
         });
 
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 8 cards of your deck for a Trick event, reveal it, and draw it',
+            title: `Search the top 8 cards of your deck for a ${TextHelper.Trait.Trick} event, reveal it, and draw it`,
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 cardCondition: (card) => card.isEvent() && card.hasSomeTrait(Trait.Trick),

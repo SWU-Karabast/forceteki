@@ -16,6 +16,7 @@ export default class TacticalHeavyBomber extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Deal indirect damage equal to this unit\'s power to the defending player. If a base is damaged this way, draw a card',
+            contextTitle: (context) => `Deal ${context.source.getPower()} indirect damage to the defending player. If a base is damaged this way, draw a card`,
             immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer((context) => ({
                 amount: context.source.getPower(),
                 target: context.player.opponent,

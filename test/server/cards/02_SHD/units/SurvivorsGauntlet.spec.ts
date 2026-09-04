@@ -28,6 +28,7 @@ describe('Survivors Gauntlet', function() {
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.frozenInCarbonite);
+                expect(context.player1).toHavePrompt('Attach Frozen in Carbonite to another eligible unit controlled by the same player');
                 expect(context.player1).toBeAbleToSelectExactly([context.fugitiveWookiee, context.battlefieldMarine, context.avenger, context.survivorsGauntlet]);
 
                 context.player1.clickCard(context.fugitiveWookiee);
@@ -203,6 +204,27 @@ describe('Survivors Gauntlet', function() {
             context.player2.clickCard(context.p1Base);
             expect(context.player2).toBeAbleToSelectExactly([context.legalAuthority, context.traitorous]);
             context.player2.clickPrompt('Pass');
+        });
+
+        it('cannot choose a Fortify upgrade attached to a base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['survivors-gauntlet'],
+                    base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                    groundArena: [{ card: 'wampa', upgrades: ['experience'] }, 'battlefield-marine'],
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.survivorsGauntlet);
+
+            // Only upgrades on units in the arenas are eligible - the base upgrade is excluded
+            expect(context.player1).toBeAbleToSelectExactly([context.experience]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickPrompt('Pass');
         });
     });
 });

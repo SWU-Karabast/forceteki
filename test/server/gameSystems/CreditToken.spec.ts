@@ -338,7 +338,7 @@ describe('Credit token', function () {
                 context.player1.clickPrompt('Select amount');
 
                 // Should be able to choose from 2 to 4 credits, despite having 6 available
-                expect(context.player1).toHaveExactDropdownListOptions(['2', '3', '4']);
+                expect(context.player1).toHaveNumericPromptRange(2, 4);
                 context.player1.chooseListOption('3');
 
                 // 3 credit tokens were defeated, 1 resource was spent

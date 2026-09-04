@@ -168,5 +168,34 @@ describe('Hondo Ohnaka, Superfluous Swindler', function() {
             expect(context.experience.owner).toBe(context.player1.player);
             expect(context.experience.controller).toBe(context.player1.player);
         });
+
+        it('cannot take control of an upgrade attached to a base (a Fortify base upgrade)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                    groundArena: [
+                        'hondo-ohnaka#superfluous-swindler',
+                        { card: 'wampa', upgrades: ['academy-training'] }
+                    ]
+                },
+                player2: {
+                    groundArena: ['battlefield-marine']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Hondo targets "an upgrade on a unit" - the base upgrade is not a legal target
+            context.player1.clickCard(context.hondoOhnaka);
+            context.player1.clickCard(context.p2Base);
+            expect(context.player1).toBeAbleToSelectExactly([context.academyTraining]);
+
+            context.player1.clickCard(context.academyTraining);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['academy-training']);
+            expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+        });
     });
 });

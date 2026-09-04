@@ -15,7 +15,7 @@ export default class SalvagedMaterials extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `Play an Item upgrade from your discard pile. It costs ${TextHelper.resource(3)} less. At the start of the next regroup phase, defeat it.`,
+            title: `Play an ${TextHelper.Trait.Item} upgrade from your discard pile. It costs ${TextHelper.resource(3)} less. At the start of the next regroup phase, defeat it.`,
             targetResolver: {
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,

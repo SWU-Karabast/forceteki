@@ -14,7 +14,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs ${TextHelper.resource(1)} less."`,
+            title: `Choose a unit. For this phase, it gains: "${TextHelper.Bounty} — The next unit you play this phase costs ${TextHelper.resource(1)} less."`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -59,7 +59,7 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         });
 
         registrar.addActionAbility({
-            title: `Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs ${TextHelper.resource(2)} less."`,
+            title: `Choose a unit. For this phase, it gains: "${TextHelper.Bounty} — The next unit you play this phase costs ${TextHelper.resource(2)} less."`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

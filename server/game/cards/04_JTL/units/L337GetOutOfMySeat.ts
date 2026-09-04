@@ -3,6 +3,7 @@ import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbi
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class L337GetOutOfMySeat extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,9 +15,9 @@ export default class L337GetOutOfMySeat extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'If this unit would be defeated, you may instead attach her as an upgrade to a friendly Vehicle unit without a Pilot on it.',
+            title: `If this unit would be defeated, you may instead attach her as an upgrade to a friendly ${TextHelper.Trait.Vehicle} unit without a ${TextHelper.Trait.Pilot} on it.`,
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
-                title: 'Attach to a friendly Vehicle unit without a pilot on it',
+                title: `Attach to a friendly ${TextHelper.Trait.Vehicle} unit without a pilot on it`,
                 type: AbilityType.ReplacementEffect,
                 when: {
                     onCardDefeated: (event, context) => event.card === context.source,

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, TargetMode, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TheInvisibleHandImposingFlagship extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -18,7 +19,7 @@ export default class TheInvisibleHandImposingFlagship extends NonLeaderUnitCard 
         });
 
         registrar.addOnAttackAbility({
-            title: 'Exhaust any number of friendly Separatist units',
+            title: `Exhaust any number of friendly ${TextHelper.Trait.Separatist} units`,
             optional: true,
             targetResolver: {
                 mode: TargetMode.Unlimited,

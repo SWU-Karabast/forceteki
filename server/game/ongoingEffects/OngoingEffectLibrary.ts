@@ -124,7 +124,7 @@ export = {
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
     cloneUnit: (target: Card) => OngoingEffectBuilder.card.static(EffectName.CloneUnit, (game) => new CloneUnitEffect(game, target)),
     gainNonKeywordAbilitiesFromUnit: (sourceUnit: Card) => OngoingEffectBuilder.card.static(EffectName.GainNonKeywordAbilitiesFromUnit, (game) => new GainNonKeywordAbilitiesFromUnitEffect(game, sourceUnit)),
-    copyStandardTriggeredAbilities: (target: Card, abilityType: StandardTriggeredAbilityType) => OngoingEffectBuilder.card.static(EffectName.CopyStandardTriggeredAbilities, (game) => new CopyStandardTriggeredAbilitiesEffect(game, target, abilityType)),
+    copyStandardTriggeredAbilities: (targets: Card | Card[], abilityType: StandardTriggeredAbilityType) => OngoingEffectBuilder.card.static(EffectName.CopyStandardTriggeredAbilities, (game) => new CopyStandardTriggeredAbilitiesEffect(game, targets, abilityType)),
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
@@ -175,6 +175,7 @@ export = {
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
     gainTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.GainTrait, trait),
     loseTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
+    allCardsForPlayerLoseTrait: (trait: Trait) => OngoingEffectBuilder.allCardsForPlayer.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>

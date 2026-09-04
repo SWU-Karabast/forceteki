@@ -5,6 +5,7 @@ import { KeywordName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CaptainPellaeonPlottingFromTheShadows extends NonLeaderUnitCard {
     private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
@@ -22,7 +23,7 @@ export default class CaptainPellaeonPlottingFromTheShadows extends NonLeaderUnit
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While a leader unit has been defeated this phase, this unit gains Raid 3',
+            title: `While a leader unit has been defeated this phase, this unit gains ${TextHelper.Raid(3)}`,
             condition: (context) => this.cardsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((e) => EnumHelpers.isLeaderUnit(e.lastKnownInformation.type)),
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 3 })
         });

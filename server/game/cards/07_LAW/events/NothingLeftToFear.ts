@@ -25,6 +25,7 @@ export default class NothingLeftToFear extends EventCard {
                 thenCondition: () => thenContext.target,
                 title: 'Defeat a non-leader unit with power equal to or less than the chosen unit',
                 optional: true,
+                contextTitle: () => `Defeat a non-leader unit with ${thenContext.target.getPower()} power or less`,
                 targetResolver: {
                     activePromptTitle: () => `Defeat a non-leader unit with ${thenContext.target.getPower()} power or less`,
                     cardCondition: (card) => card.isNonLeaderUnit() && thenContext.target.isUnit() && card.getPower() <= thenContext.target.getPower(),

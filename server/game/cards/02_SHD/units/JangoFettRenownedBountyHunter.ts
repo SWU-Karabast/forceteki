@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export default class JangoFettRenownedBountyHunter extends NonLeaderUnitCard {
@@ -14,7 +15,7 @@ export default class JangoFettRenownedBountyHunter extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While attacking a unit with Bounty, this unit gets +3/+0 and gains Overwhelm.',
+            title: `While attacking a unit with ${TextHelper.Bounty}, this unit gets +3/+0 and gains ${TextHelper.Overwhelm}.`,
             condition: (context) => context.source.isAttacking() && context.source.activeAttack?.targetIsUnit((card) => card.hasSomeKeyword(KeywordName.Bounty)),
             ongoingEffect: [AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm), AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 })],
         });

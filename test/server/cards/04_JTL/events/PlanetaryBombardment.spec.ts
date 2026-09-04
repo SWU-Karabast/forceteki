@@ -1,6 +1,6 @@
 describe('Planetary Bombardment', function() {
     integration(function(contextRef) {
-        it('Planetary Bombardment\'s ability should deal 8 indirect damage to a player, or 12 if you control a Capital Ship', async function() {
+        it('Planetary Bombardment\'s ability should deal 12 indirect damage to a player if you control a Capital Ship', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -17,13 +17,8 @@ describe('Planetary Bombardment', function() {
 
             const { context } = contextRef;
 
-            const reset = () => {
-                context.player1.moveCard(context.planetaryBombardment, 'hand');
-            };
-
-            // Player 1 plays Planetary Bombardment and deals 12 indirect damage
             context.player1.clickCard(context.planetaryBombardment);
-            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 8 indirect damage to a player. If you control a Capital Ship unit, deal 12 indirect damage instead\'');
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 12 indirect damage to a player\'');
             expect(context.player1).toHaveExactPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent', 'Cancel']);
 
             context.player1.clickPrompt('Deal indirect damage to opponent');
@@ -39,7 +34,7 @@ describe('Planetary Bombardment', function() {
                 [context.chirrutImwe, 1],
             ]));
 
-            // TODO these prompts are ambiguous, find a way to remove them
+            // TODO these prompts are ambiguous, find a way to remove them (indirect cannot be prevented)
             context.player2.clickPrompt('If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage');
             context.player2.clickPrompt('Prevent all damage that would be dealt to it by enemy card abilities');
 
@@ -53,16 +48,23 @@ describe('Planetary Bombardment', function() {
             expect(context.bobaFett.damage).toBe(2);
             expect(context.chirrutImwe.damage).toBe(5);
             expect(context.lurkingTiePhantom).toBeInZone('discard', context.player2);
+        });
 
-            // Player 2 plays Vanquish and defeats Avenger
-            context.player2.clickCard(context.vanquish);
-            context.player2.clickCard(context.avenger);
+        it('Planetary Bombardment\'s ability should deal 8 indirect damage to a player if you do not control a Capital Ship', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['planetary-bombardment'],
+                },
+                player2: {
+                    spaceArena: ['avenger#hunting-star-destroyer'],
+                }
+            });
 
-            reset();
+            const { context } = contextRef;
 
-            // Player 1 plays Planetary Bombardment and deals 8 indirect damage
             context.player1.clickCard(context.planetaryBombardment);
-            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 8 indirect damage to a player. If you control a Capital Ship unit, deal 12 indirect damage instead\'');
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 8 indirect damage to a player\'');
             expect(context.player1).toHaveExactPromptButtons(['Deal indirect damage to yourself', 'Deal indirect damage to opponent', 'Cancel']);
             expect(context.p1Base.damage).toBe(0);
 

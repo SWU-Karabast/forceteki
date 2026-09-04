@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AbandonedTheOrder extends UpgradeCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class AbandonedTheOrder extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addGainKeywordTargetingAttached({ keyword: KeywordName.Restore, amount: 1 });
         registrar.addConstantAbilityTargetingAttached({
-            title: 'Attached unit loses the Jedi trait',
+            title: `Attached unit loses the ${TextHelper.Trait.Jedi} trait`,
             ongoingEffect: AbilityHelper.ongoingEffects.loseTrait(Trait.Jedi)
         });
 

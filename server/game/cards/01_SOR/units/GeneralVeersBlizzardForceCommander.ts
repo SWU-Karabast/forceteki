@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GeneralVeersBlizzardForceCommander extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class GeneralVeersBlizzardForceCommander extends NonLeaderUnitCar
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Other friendly Imperial units get +1/+1',
+            title: `Other friendly ${TextHelper.Trait.Imperial} units get +1/+1`,
             targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Imperial),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 })

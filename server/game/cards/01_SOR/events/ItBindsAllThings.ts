@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ItBindsAllThings extends EventCard {
     protected override getImplementationId () {
@@ -22,7 +23,7 @@ export default class ItBindsAllThings extends EventCard {
                 maxTargets: 1,
             }),
             then: (thenContext) => ({
-                title: 'If you control a Force unit, you may deal that much damage to another unit.',
+                title: `If you control a ${TextHelper.Trait.Force} unit, you may deal that much damage to another unit.`,
                 optional: true,
                 thenCondition: () => thenContext.player.isTraitInPlay(Trait.Force) &&
                   thenContext.events[0].totalDistributed > 0,

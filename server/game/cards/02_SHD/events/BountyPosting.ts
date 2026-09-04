@@ -14,6 +14,7 @@ export default class BountyPosting extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Bounty" here is the Bounty trait, not the Bounty keyword
             title: 'Search your deck for a Bounty upgrade, reveal it, and draw it (shuffle your deck)',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchWholeDeck: true,

@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers.js';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class DarthSidiousUnderACloakOfDarkness extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class DarthSidiousUnderACloakOfDarkness extends NonLeaderUnitCard
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Each friendly Separatist unit gets +1/+0.',
+            title: `Each friendly ${TextHelper.Trait.Separatist} unit gets +1/+0.`,
             targetController: RelativePlayer.Self,
             matchTarget: (card, context) => card !== context.source && card.hasSomeTrait(Trait.Separatist),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })

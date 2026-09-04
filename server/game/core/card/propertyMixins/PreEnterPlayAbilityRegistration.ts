@@ -20,7 +20,7 @@ export function WithPreEnterPlayAbilities<TBaseClass extends PlayableOrDeployabl
     @registerStateBase()
     class WithPreEnterPlayAbilities extends BaseClass {
         public getPreEnterPlayAbilities(): PreEnterPlayAbility[] {
-            return this.preEnterPlayAbilities;
+            return this.isBlankOutOfPlay() ? [] : this.preEnterPlayAbilities;
         }
 
         public getPrintedPreEnterPlayAbilities(): PreEnterPlayAbility[] {

@@ -3,6 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TheTwinsWeDontWantWar extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -24,7 +25,7 @@ export default class TheTwinsWeDontWantWar extends NonLeaderUnitCard {
         });
 
         registrar.addTriggeredAbility({
-            title: 'Give another friendly unit Sentinel for this phase',
+            title: `Give another friendly unit ${TextHelper.Sentinel} for this phase`,
             optional: true,
             when: {
                 whenPlayed: true,

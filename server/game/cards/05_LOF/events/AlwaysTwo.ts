@@ -3,6 +3,7 @@ import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AlwaysTwo extends EventCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class AlwaysTwo extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Choose 2 friendly unique Sith units. Give 2 Shield tokens and 2 Experience tokens to each chosen unit.',
+            title: `Choose 2 friendly unique ${TextHelper.Trait.Sith} units. Give 2 Shield tokens and 2 Experience tokens to each chosen unit.`,
             customConfirmation: (context) => this.checkWarnHasSufficientTargets(context),
             targetResolver: {
                 mode: TargetMode.Exactly,
@@ -46,7 +47,7 @@ export default class AlwaysTwo extends EventCard {
 
         const legalTargets = playerUnits.filter((card) => card.unique && card.hasSomeTrait(Trait.Sith));
         return legalTargets.length < 2
-            ? 'You do not have enough *unique* Sith units to target. All units you control will be defeated. Proceed?'
+            ? `You do not have enough *unique* ${TextHelper.Trait.Sith} units to target. All units you control will be defeated. Proceed?`
             : null;
     }
 }

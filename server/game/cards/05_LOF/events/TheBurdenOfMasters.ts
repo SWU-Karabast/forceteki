@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TheBurdenOfMasters extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class TheBurdenOfMasters extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Put a Force unit from your discard on the bottom of your deck. If you do, play a unit from your hand and give 2 Experience tokens to it',
+            title: `Put a ${TextHelper.Trait.Force} unit from your discard on the bottom of your deck. If you do, play a unit from your hand and give 2 Experience tokens to it`,
             targetResolver: {
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,

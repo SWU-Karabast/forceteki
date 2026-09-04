@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 
@@ -42,7 +43,7 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
         });
 
         registrar.addConstantAbility({
-            title: 'Each other friendly Trooper unit gets +0/+1.',
+            title: `Each other friendly ${TextHelper.Trait.Trooper} unit gets +0/+1.`,
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Trooper),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 1 })
         });

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { EventCard } from '../../../core/card/EventCard';
 import { KeywordName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CommenceTheFestivities extends EventCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class CommenceTheFestivities extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a unit. It gains Saboteur for this attack. If you control fewer resources than an opponent, it gets +2/+0 for this attack.',
+            title: `Attack with a unit. It gains ${TextHelper.Saboteur} for this attack. If you control fewer resources than an opponent, it gets +2/+0 for this attack.`,
             initiateAttack: {
                 attackerLastingEffects: [
                     { effect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur) },

@@ -18,16 +18,16 @@ export default class BB8HappyBeeps extends NonLeaderUnitCard {
             when: {
                 whenPlayed: true,
             },
-            title: `Pay ${TextHelper.resource(2)} to ready a Resistance unit`,
+            title: `Pay ${TextHelper.resource(2)} to ready a ${TextHelper.Trait.Resistance} unit`,
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResources((context) => ({
                 amount: 2,
                 target: context.player
             })),
             ifYouDo: {
-                title: 'Ready a Resistance unit',
+                title: `Ready a ${TextHelper.Trait.Resistance} unit`,
                 targetResolver: {
-                    activePromptTitle: 'Choose a Resistance unit to ready',
+                    activePromptTitle: `Choose a ${TextHelper.Trait.Resistance} unit to ready`,
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Resistance),
                     immediateEffect: AbilityHelper.immediateEffects.ready()

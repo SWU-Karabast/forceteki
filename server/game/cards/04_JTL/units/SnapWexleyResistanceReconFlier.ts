@@ -14,7 +14,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: `The next Resistance card you play this phase costs ${TextHelper.resource(1)} less`,
+            title: `The next ${TextHelper.Trait.Resistance} card you play this phase costs ${TextHelper.resource(1)} less`,
             when: {
                 whenPlayed: true,
                 onAttack: true,
@@ -30,7 +30,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
         });
 
         registrar.addPilotingAbility({
-            title: 'Search the top 5 cards of your deck for a Resistance card, reveal it, and draw it',
+            title: `Search the top 5 cards of your deck for a ${TextHelper.Trait.Resistance} card, reveal it, and draw it`,
             type: AbilityType.Triggered,
             when: {
                 whenPlayed: true,

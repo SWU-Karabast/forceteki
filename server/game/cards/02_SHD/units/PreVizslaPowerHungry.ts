@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class PreVizslaPowerHungry extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class PreVizslaPowerHungry extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Pay the cost of an upgrade attached to another non-Vehicle unit',
+            title: `Pay the cost of an upgrade attached to another non-${TextHelper.Trait.Vehicle} unit`,
             when: {
                 whenPlayed: true,
                 onAttack: true,
@@ -23,7 +24,11 @@ export default class PreVizslaPowerHungry extends NonLeaderUnitCard {
                 activePromptTitle: 'Choose an upgrade to pay the cost of',
                 controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card, context) => card.isUpgrade() && card.parentCard !== context.source && !card.parentCard.hasSomeTrait(Trait.Vehicle),
+                cardCondition: (card, context) =>
+                    card.isUpgrade() &&
+                    card.parentCard.isUnit() &&
+                    card.parentCard !== context.source &&
+                    !card.parentCard.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: AbilityHelper.immediateEffects.payCardPrintedCost((context) => ({
                     player: context.player,
                 }))

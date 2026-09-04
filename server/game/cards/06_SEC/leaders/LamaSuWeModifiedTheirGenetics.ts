@@ -18,7 +18,7 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Play an upgrade from your hand on a friendly non-Vehicle unit. It costs ${TextHelper.resource(1)} less. If you do, deal 1 damage to that unit.`,
+            title: `Play an upgrade from your hand on a friendly non-${TextHelper.Trait.Vehicle} unit. It costs ${TextHelper.resource(1)} less. If you do, deal 1 damage to that unit.`,
             cost: [abilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 // TODO remove cardTypeFilter but fix Choose nothing button before
@@ -28,7 +28,10 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
                 immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
                     playAsType: WildcardCardType.Upgrade,
-                    attachTargetCondition: (target, context) => target.controller === context.player && !target.hasSomeTrait(Trait.Vehicle),
+                    attachTargetCondition: (target, context) =>
+                        target.isUnit() &&
+                        target.controller === context.player &&
+                        !target.hasSomeTrait(Trait.Vehicle),
                 }),
             },
             ifYouDo: (ifYouDoContext) => {
@@ -45,7 +48,7 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenAttackEndsAbility({
-            title: `Play an upgrade from your discard pile on a friendly non-Vehicle unit. It costs ${TextHelper.resource(1)} less.`,
+            title: `Play an upgrade from your discard pile on a friendly non-${TextHelper.Trait.Vehicle} unit. It costs ${TextHelper.resource(1)} less.`,
             optional: true,
             attackerMustSurvive: true,
             targetResolver: {
@@ -55,7 +58,10 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
                     playAsType: WildcardCardType.Upgrade,
                     canPlayFromAnyZone: true,
-                    attachTargetCondition: (target, context) => target.controller === context.player && !target.hasSomeTrait(Trait.Vehicle),
+                    attachTargetCondition: (target, context) =>
+                        target.isUnit() &&
+                        target.controller === context.player &&
+                        !target.hasSomeTrait(Trait.Vehicle),
                 }),
             },
         });

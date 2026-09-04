@@ -3,10 +3,14 @@ export enum RegisteredCosmeticType {
     Background = 'background',
 }
 
-export interface IRegisteredCosmeticOption {
+export interface ICosmeticEntity {
     id: string;
     title: string;
     type: RegisteredCosmeticType;
     path: string;
-    darkened?: boolean;
+}
+
+export interface IActiveCosmetics {
+    cardback: ICosmeticEntity;
+    background: ICosmeticEntity;
 }

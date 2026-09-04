@@ -4,6 +4,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 import { WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MaulCollectiveAmbition extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -15,10 +16,10 @@ export default class MaulCollectiveAmbition extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addActionAbility({
-            title: 'Give an Experience token and deal 1 damage to a unit with more Keywords than Experience tokens',
+            title: `Give an Experience token and deal 1 damage to a unit with more ${TextHelper.Keywords} than Experience tokens`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                activePromptTitle: 'Choose a unit. If it has more Keywords than Experience tokens, give it an Experience token and deal 1 damage to it',
+                activePromptTitle: `Choose a unit. If it has more ${TextHelper.Keywords} than Experience tokens, give it an Experience token and deal 1 damage to it`,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.targetHasMoreKeywordsThanExperienceTokens(context),
@@ -34,13 +35,13 @@ export default class MaulCollectiveAmbition extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addTriggeredAbility({
-            title: 'Give an Experience token and deal 1 damage to a unit with more Keywords than Experience tokens',
+            title: `Give an Experience token and deal 1 damage to a unit with more ${TextHelper.Keywords} than Experience tokens`,
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source,
                 onAttack: true
             },
             targetResolver: {
-                activePromptTitle: 'Choose a unit. If it has more Keywords than Experience tokens, give it an Experience token and deal 1 damage to it',
+                activePromptTitle: `Choose a unit. If it has more ${TextHelper.Keywords} than Experience tokens, give it an Experience token and deal 1 damage to it`,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.targetHasMoreKeywordsThanExperienceTokens(context),

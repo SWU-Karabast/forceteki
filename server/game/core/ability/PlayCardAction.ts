@@ -10,6 +10,7 @@ import { TriggerHandlingMode } from '../event/EventWindow.js';
 import { CostAdjustType, type CostAdjuster } from '../cost/CostAdjuster';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
+import { TextHelper } from '../utils/TextHelper';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
 import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
@@ -128,13 +129,13 @@ export abstract class PlayCardAction extends PlayerAction {
 
         switch (playType) {
             case PlayType.Piloting:
-                updatedTitle += appendToTitle ? ' with Piloting' : '';
+                updatedTitle += appendToTitle ? ` with ${TextHelper.Piloting}` : '';
                 break;
             case PlayType.Plot:
-                updatedTitle += appendToTitle ? ' with Plot' : '';
+                updatedTitle += appendToTitle ? ` with ${TextHelper.Plot}` : '';
                 break;
             case PlayType.Smuggle:
-                updatedTitle += appendToTitle ? ' with Smuggle' : '';
+                updatedTitle += appendToTitle ? ` with ${TextHelper.Smuggle}` : '';
                 break;
             case PlayType.PlayFromHand:
             case PlayType.PlayFromOutOfPlay:

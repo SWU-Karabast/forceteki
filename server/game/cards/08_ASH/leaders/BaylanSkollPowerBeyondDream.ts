@@ -5,6 +5,7 @@ import type {
 } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BaylanSkollPowerBeyondDream extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -36,7 +37,7 @@ export default class BaylanSkollPowerBeyondDream extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'Give a friendly unit +2/+2 and Sentinel for this phase',
+            title: `Give a friendly unit +2/+2 and ${TextHelper.Sentinel} for this phase`,
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,

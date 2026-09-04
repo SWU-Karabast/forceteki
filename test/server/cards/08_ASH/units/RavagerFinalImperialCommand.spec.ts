@@ -208,7 +208,7 @@ describe('Ravager, Final Imperial Command', function () {
 
                 // Play Blue Leader
                 context.player1.clickCard(context.blueLeaderScarifAirSupport);
-                context.player1.clickPrompt('Deal damage equal to its power to a unit in the same arena');
+                context.player1.clickPrompt('Deal 3 damage to a unit in the space arena');
 
                 // Only space units selectable
                 expect(context.player1).toBeAbleToSelectExactly([
@@ -248,7 +248,7 @@ describe('Ravager, Final Imperial Command', function () {
 
                 expect(context.blueLeader).toBeInZone('groundArena');
 
-                context.player1.clickPrompt('Deal damage equal to its power to a unit in the same arena');
+                context.player1.clickPrompt('Deal 5 damage to a unit in the ground arena');
 
                 // Only ground units selectable
                 expect(context.player1).toBeAbleToSelectExactly([

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SenseThroughTheForce extends EventCard {
     protected override getImplementationId () {
@@ -33,7 +34,7 @@ export default class SenseThroughTheForce extends EventCard {
                             condition: (context) => context.selectedPromptCards[0].hasCost() && context.selectedPromptCards[0].cost === parseInt(thenContext.select),
                             onTrue: AbilityHelper.immediateEffects.selectCard({
                                 optional: true,
-                                activePromptTitle: 'Give 3 Advantage tokens to a Force unit',
+                                activePromptTitle: `Give 3 Advantage tokens to a ${TextHelper.Trait.Force} unit`,
                                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Force),
                                 immediateEffect: AbilityHelper.immediateEffects.giveAdvantage({ amount: 3 })
                             })

@@ -1,4 +1,4 @@
-describe('Shin Hati, going Somewhere', function () {
+describe('Shin Hati, Going Somewhere?', function () {
     integration(function (contextRef) {
         it('Shin Hati\'s ability should not give her sentinel if she is not the only friendly non-leader ground unit', async function () {
             await contextRef.setupTestAsync({
@@ -57,6 +57,37 @@ describe('Shin Hati, going Somewhere', function () {
             context.player2.clickCard(context.shinHati);
 
             expect(context.player1).toBeActivePlayer();
+        });
+
+        it('Shin Hati loses sentinel when she is given The Darksaber (Icon of Leadership)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-darksaber#icon-of-leadership', 'secretive-sage'],
+                    groundArena: ['shin-hati#going-somewhere']
+                },
+                player2: {
+                    groundArena: ['battlefield-marine']
+                }
+            });
+
+            const { context } = contextRef;
+
+            expect(context.shinHati.hasSomeKeyword('sentinel')).toBeTrue();
+
+            // Play the Darksaber on Shin Hati
+            context.player1.clickCard(context.theDarksaber);
+            context.player1.clickCard(context.shinHati);
+
+            // She loses sentinel because she is no longer a non-leader unit
+            expect(context.shinHati.hasSomeKeyword('sentinel')).toBeFalse();
+            context.player2.clickCard(context.battlefieldMarine);
+            expect(context.player2).toBeAbleToSelectExactly([context.shinHati, context.p1Base]);
+            context.player2.clickCard(context.p1Base);
+
+            // She does not regain sentinel when P1 plays another non-leader ground unit
+            context.player1.clickCard(context.secretiveSage);
+            expect(context.shinHati.hasSomeKeyword('sentinel')).toBeFalse();
         });
     });
 });

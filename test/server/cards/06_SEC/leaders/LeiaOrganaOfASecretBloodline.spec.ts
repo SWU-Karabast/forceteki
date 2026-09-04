@@ -272,7 +272,7 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('When no cards are in hand, the ability is automatically skipped', async function () {
+            it('shows a skippable pause instead of resolving when no cards are in hand', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -291,13 +291,18 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickCard(context.p2Base);
 
-                // Ability is skipped
+                // Player 1 can't satisfy the disclose requirement, so a skippable masking pause is shown
+                expect(context.player1).toHavePrompt('Pausing for Disclose');
+                expect(context.player1).toHaveEnabledPromptButton('Skip');
+                context.player1.clickPrompt('Skip');
+
+                // Attack resolves
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(4);
                 expect(context.leiaOrgana.exhausted).toBeTrue();
             });
 
-            it('When cards in hand do not have the required aspects, the ability is automatically skipped', async function () {
+            it('shows a skippable pause instead of resolving when cards in hand do not have the required aspects', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -319,7 +324,12 @@ describe('Leia Organa, Of a Secret Bloodline', () => {
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickCard(context.p2Base);
 
-                // Ability is skipped
+                // Player 1 can't satisfy the disclose requirement, so a skippable masking pause is shown
+                expect(context.player1).toHavePrompt('Pausing for Disclose');
+                expect(context.player1).toHaveEnabledPromptButton('Skip');
+                context.player1.clickPrompt('Skip');
+
+                // Attack resolves
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(4);
                 expect(context.leiaOrgana.exhausted).toBeTrue();

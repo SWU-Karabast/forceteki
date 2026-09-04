@@ -433,7 +433,7 @@ describe('Galen Erso - You\'ll Never Win', function() {
 
                 context.player1.clickCard(context.c3po);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('5');
                 context.player1.clickDone();
             });

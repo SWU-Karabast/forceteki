@@ -14,6 +14,7 @@ export default class MigsMayfeldHowAboutAToast extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
             title: 'Deal 1 damage to the defending unit. If this unit is upgraded, deal 2 damage to the defending unit instead',
+            contextTitle: (context) => `Deal ${context.source.isUpgraded() ? 2 : 1} damage to the defending unit`,
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 condition: () => this.checkMigsCondition(context.source.activeAttack?.getSingleTarget()),
                 onTrue: AbilityHelper.immediateEffects.conditional({

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class ObiwanKenobiProtectivePadawan extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class ObiwanKenobiProtectivePadawan extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'This unit gains Sentinel for this phase',
+            title: `This unit gains ${TextHelper.Sentinel} for this phase`,
             when: {
                 onCardPlayed: (event, context) => event.cardTypeWhenInPlay === CardType.BasicUnit &&
                   event.card.hasSomeTrait(Trait.Force) &&

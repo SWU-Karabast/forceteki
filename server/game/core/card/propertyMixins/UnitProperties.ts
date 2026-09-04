@@ -1,4 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
+import type { Attack } from '../../attack/Attack';
 import type { Arena, MoveZoneDestination } from '../../Constants';
 import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StandardTriggeredAbilityType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
@@ -29,9 +30,10 @@ import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatC
 import type { ICaptorCard, ICardWithCaptureZone } from '../../zone/CaptureZone';
 import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
+import { giveAbilityToAttachedUnitTitle, giveKeywordToAttachedUnitTitle } from '../../ongoingEffect/effectImpl/GainAbilityDescription';
 import type { Player } from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
-import type { IUpgradeCard } from '../CardInterfaces';
+import type { ICardWithUpgrades, IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbilityBase } from '../../ability/ActionAbility';
 import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
@@ -43,6 +45,7 @@ import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/Lea
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
+import { TextHelper } from '../../utils/TextHelper';
 import type { IInPlayCardAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { ITriggeredAbilityRegistrar } from './TriggeredAbilityRegistration';
 import type Clone from '../../../cards/03_TWI/units/Clone';
@@ -67,17 +70,16 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
 }
 
-export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
+export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone, ICardWithUpgrades {
     get defaultArena(): Arena;
     get lastPlayerToModifyHp(): Player;
     get isClonedUnit(): boolean;
-    readonly upgrades: IUpgradeCard[];
     isClone(): this is Clone;
     getCaptor(): ICaptorCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
-    isUpgraded(): boolean;
     hasExperience(): boolean;
+    hasWeakness(): boolean;
     hasShield(): boolean;
     effectsPreventAttack(target: Card, context?: AbilityContext): boolean;
     moveToCaptureZone(targetZone: CaptureZone);
@@ -91,9 +93,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
     refreshWhileInPlayKeywordAbilityEffects();
-    unattachUpgrade(upgrade, event);
     canAttachPilot(pilot: IUnitCard): boolean;
-    attachUpgrade(upgrade);
     getNumericKeywordTotal(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
     getMaxUnitAttackLimit(): number;
 }
@@ -142,6 +142,23 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const card = event.card as Card;
                 Contract.assertTrue(card.isNonLeaderUnit());
                 card.checkRegisterWhenCapturedKeywordAbilities(event);
+            });
+
+            // register listeners for "when attack/defense ends" abilities on upgrades of the involved units (e.g. the
+            // Advantage token), see comment in EventWindow.ts for explanation of 'postResolve'
+            game.on(EventName.OnAttackEnd + ':postResolve', (event) => {
+                const attack = event.attack as Attack;
+                const involvedUnits = [attack.attacker, ...attack.getAllTargets()].filter((card) => card.isUnit());
+
+                for (const unit of involvedUnits) {
+                    if (!unit.isInPlay()) {
+                        continue;
+                    }
+
+                    for (const upgrade of unit.upgrades) {
+                        upgrade.checkRegisterWhenAttackOrDefenseEndsAbilities(event);
+                    }
+                }
             });
         }
 
@@ -250,6 +267,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public hasExperience(): boolean {
             return this.upgrades.some((card) => card.isExperience());
+        }
+
+        public hasWeakness(): boolean {
+            return this.upgrades.some((card) => card.isWeakness());
         }
 
         public hasShield(): boolean {
@@ -548,7 +569,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const { gainCondition, ...gainedKeywordProperties } = properties;
 
             this.addPilotingConstantAbilityTargetingAttached({
-                title: 'Give keyword to the attached card',
+                title: giveKeywordToAttachedUnitTitle(gainedKeywordProperties),
                 condition: this.addZoneCheckToGainCondition(gainCondition),
                 ongoingEffect: OngoingEffectLibrary.gainKeyword(gainedKeywordProperties)
             });
@@ -558,7 +579,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const { gainCondition, ...gainedAbilityProperties } = properties;
 
             this.addPilotingConstantAbilityTargetingAttached({
-                title: 'Give ability to the attached card',
+                title: giveAbilityToAttachedUnitTitle(gainedAbilityProperties),
                 condition: this.addZoneCheckToGainCondition(gainCondition),
                 ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProperties)
             });
@@ -683,7 +704,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const gainedAbilityProps = keywordInstance.abilityProps;
 
                 const coordinateKeywordAbilityProps: IConstantAbilityProps = {
-                    title: `Coordinate: ${gainedAbilityProps.title}`,
+                    title: `${TextHelper.Coordinate}: ${gainedAbilityProps.title}`,
                     condition: (context) => context.player.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
                     ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
                 };
@@ -696,7 +717,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             if (this.hasSomeKeyword(KeywordName.Hidden)) {
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
-                    title: 'Hidden',
+                    title: `${TextHelper.Hidden}`,
                     condition: (context) =>
                         context.source.isInPlay() &&
                         this.wasPlayedDeployedOrCreatedThisPhase(context.source),
@@ -1012,6 +1033,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
                 if (this.hasSomeKeyword(KeywordName.Grit)) {
                     const gritModifier = { power: this.damage, hp: 0 };
+                    // eslint-disable-next-line forceteki/no-raw-token-text -- internal stat-modifier provenance label, not player-facing ability text (cf. the sibling 'Raid' label below)
                     wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
                 }
 

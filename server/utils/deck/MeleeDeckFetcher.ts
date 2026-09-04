@@ -148,7 +148,7 @@ export class MeleeDeckFetcher {
 
     private normalizeMeleeCardName(value: string): string {
         return value.trim()
-            .replace(/"/g, '\'')
+            .replace(/["“”]/g, '\'')
             .replace(/\s+/g, ' ')
             .replace(/\bOrellios\b/g, 'Orrelios')
             .replace(/\bC-3P0\b/g, 'C-3PO');

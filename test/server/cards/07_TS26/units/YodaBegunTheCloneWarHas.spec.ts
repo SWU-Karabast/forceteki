@@ -194,5 +194,37 @@ describe('Yoda, Begun, The Clone War Has', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Yoda, Begun The Clone War Has with Moff Jerjerrod', function () {
+            it('should give Sentinel to both of the doubled Clone Trooper tokens', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['yoda#begun-the-clone-war-has'],
+                        groundArena: ['moff-jerjerrod#we-shall-redouble-our-efforts'],
+                        leader: 'chewbacca#walking-carpet',
+                        base: 'echo-base'
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.yoda);
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Clone Trooper tokens instead');
+                context.player1.clickPrompt('Trigger');
+
+                const clones = context.player1.findCardsByName('clone-trooper', 'groundArena');
+                expect(context.moffJerjerrod).toBeInZone('discard');
+                expect(clones.length).toBe(2);
+                expect(clones.every((clone) => clone.keywords.some((keyword) => keyword.name === 'sentinel'))).toBe(true);
+
+                // Opponent must attack a Sentinel this phase
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toBeAbleToSelectExactly(clones);
+                context.player2.clickCard(clones[0]);
+            });
+        });
     });
 });

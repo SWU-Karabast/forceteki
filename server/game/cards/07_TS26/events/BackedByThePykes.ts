@@ -22,6 +22,10 @@ export default class BackedByThePykes extends EventCard {
             then: {
                 title: 'Deal damage to a unit equal to the number of Experience tokens on friendly units',
                 optional: true,
+                contextTitle: (context) => `Deal ${context.player.getArenaUnits()
+                    .flatMap((x) => x.upgrades)
+                    .filter((x) => x.isExperience())
+                    .length} damage to a unit`,
                 targetResolver: {
                     activePromptTitle: (context) => `Deal ${context.player.getArenaUnits()
                         .flatMap((x) => x.upgrades)

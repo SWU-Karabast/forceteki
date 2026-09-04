@@ -22,7 +22,7 @@ export default class TheyHateThatShip extends EventCard {
                 target: context.player.opponent
             })),
             then: {
-                title: `Play a Vehicle unit from your hand. It costs ${TextHelper.resource(3)} less`,
+                title: `Play a ${TextHelper.Trait.Vehicle} unit from your hand. It costs ${TextHelper.resource(3)} less`,
                 targetResolver: {
                     zoneFilter: ZoneName.Hand,
                     controller: RelativePlayer.Self,

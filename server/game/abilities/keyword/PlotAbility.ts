@@ -3,6 +3,7 @@ import type { Card } from '../../core/card/Card';
 import { KeywordName, PlayType, WildcardCardType, ZoneName } from '../../core/Constants';
 import type { Game } from '../../core/Game';
 import { Contract } from '../../core/utils/Contract';
+import { TextHelper } from '../../core/utils/TextHelper';
 import { PlayCardSystem } from '../../gameSystems/PlayCardSystem';
 import { ResourceCardSystem } from '../../gameSystems/ResourceCardSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
@@ -15,7 +16,7 @@ export class PlotAbility extends TriggeredAbilityBase {
 
     public static buildPlotAbilityProperties<TSource extends Card = Card>(cardTitle: string): ITriggeredAbilityProps<TSource> {
         return {
-            title: `Play ${cardTitle} using Plot`,
+            title: `Play ${cardTitle} using ${TextHelper.Plot}`,
             optional: true,
             when: {
                 onLeaderDeployed: (event, context) => event.card.owner === context.source.controller && context.source.zoneName === ZoneName.Resource // TODO See if we can remove this zone check once we update Plot registration

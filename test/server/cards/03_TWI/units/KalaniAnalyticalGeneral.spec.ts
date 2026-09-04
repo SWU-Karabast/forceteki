@@ -19,6 +19,7 @@ describe('Kalani Analytical General ability\'s', function() {
             // We have initiative, so we can select 2 units to give +2/+2
             context.player1.clickCard(context.kalani);
             context.player1.clickCard(context.p2Base);
+            expect(context.player1).toHavePrompt('Give +2/+2 for this phase to up to 2 other units');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.battlefieldMarine,
                 context.specforceSoldier,
@@ -62,6 +63,7 @@ describe('Kalani Analytical General ability\'s', function() {
             // 2nd kalani's attack without initiative, should be able to select only 1 unit
             context.player1.clickCard(context.kalani);
             context.player1.clickCard(context.p2Base);
+            expect(context.player1).toHavePrompt('Give +2/+2 for this phase to up to 1 other unit');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.specforceSoldier,
                 context.ploKoon,

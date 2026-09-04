@@ -14,6 +14,10 @@ export default class SundariPalace extends BaseCard {
     public override setupCardAbilities(registrar: IBaseAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEpicActionAbility({
             title: 'For each friendly leader unit, resource card from your hand. If you do, defeat that many friendly resources at the start of the regroup phase',
+            contextTitle: (context) => {
+                const count = context.player.getArenaUnits({ condition: (c) => c.isLeaderUnit() }).length;
+                return `Resource up to ${count} ${count === 1 ? 'card' : 'cards'} from your hand (one for each friendly leader unit). If you do, defeat that many friendly resources at the start of the regroup phase`;
+            },
             targetResolver: {
                 mode: TargetMode.UpToVariable,
                 zoneFilter: ZoneName.Hand,

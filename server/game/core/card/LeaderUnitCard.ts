@@ -1,10 +1,12 @@
 import type { Player } from '../Player';
 import type { ZoneFilter } from '../Constants';
-import { CardType, DeployType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
+import { CardType, DeployType, EffectName, RelativePlayer, Trait, WildcardCardType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';
+import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { IUnitAbilityRegistrar, IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { EnumHelpers } from '../utils/EnumHelpers';
+import { TextHelper } from '../utils/TextHelper';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
@@ -52,6 +54,47 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
 
     public get deployed() {
         return this._deployed;
+    }
+
+    /**
+     * Most deployable leaders share printed identity between their leader side and deployed unit side.
+     * For the rare leader whose deployed side has a distinct name/subtitle/traits (provided via the
+     * back-side card data), swap to those values while deployed. When no back-side data is present the
+     * front-side values are used, so existing single-identity leaders are unaffected.
+     */
+    public override get title(): string {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('title', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
+        return this.deployed && this._backSideTitle != null ? this._backSideTitle : this._title;
+    }
+
+    public override get subtitle(): string {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('subtitle', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return override;
+            }
+        }
+
+        return this.deployed && this._backSideSubtitle != null ? this._backSideSubtitle : this._subtitle;
+    }
+
+    protected override getPrintedTraits(): Set<Trait> {
+        if (this.hasOngoingEffect(EffectName.PrintedAttributesOverride)) {
+            const override = getPrintedAttributesOverride('printedTraits', this.getOngoingEffectValues(EffectName.PrintedAttributesOverride));
+            if (override != null) {
+                return new Set(override);
+            }
+        }
+
+        return this.deployed && this.backsidePrintedTraits.size > 0
+            ? new Set(this.backsidePrintedTraits)
+            : new Set(this.printedTraits);
     }
 
     public override getType(): CardType {
@@ -185,7 +228,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
         }
 
         this.deployEpicActions.push(registrar.addActionAbility({
-            title: `Deploy ${this.title} as a Pilot`,
+            title: `Deploy ${this.title} as a ${TextHelper.Trait.Pilot}`,
             requiresConfirmation: true,
             limit: this.deployEpicActionLimit,
             condition: (context) => context.player.resources.length >= context.source.cost,

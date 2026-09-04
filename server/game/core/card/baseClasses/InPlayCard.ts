@@ -4,8 +4,9 @@ import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { IAttachCardContext, IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
+import type { GameEvent } from '../../event/GameEvent';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
-import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
+import { CardType, EffectName, KeywordName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { Player } from '../../Player';
@@ -22,10 +23,11 @@ import { WithCost } from '../propertyMixins/Cost';
 import type { ICardWithPreEnterPlayAbilities } from '../propertyMixins/PreEnterPlayAbilityRegistration';
 import type { ICardWithTriggeredAbilities, ITriggeredAbilityRegistrar } from '../propertyMixins/TriggeredAbilityRegistration';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
+import type { ICardWithUpgrades } from '../CardInterfaces';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
-import { registerStateBase, stateRef, statePrimitive } from '../../GameObjectUtils';
+import { registerStateBase, stateRef, stateRefArray, statePrimitive } from '../../GameObjectUtils';
 
 const InPlayCardParent = WithAllAbilityTypes(WithCost(PlayableOrDeployableCard));
 
@@ -38,17 +40,19 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
-    get parentCard(): IUnitCard;
+    get parentCard(): ICardWithUpgrades;
+    get parentUnit(): IUnitCard;
     get pendingDefeat(): boolean;
     getUpgradeHp(): number;
     getUpgradePower(): number;
     isInPlay(): boolean;
     registerPendingUniqueDefeat();
     checkUnique();
-    attachTo(newParentCard: IUnitCard, newController?: Player);
+    attachTo(newParentCard: ICardWithUpgrades, newController?: Player);
     isAttached(): boolean;
     unattach(event?: any);
     canAttach(targetCard: Card, context: AbilityContext, controller?: Player): boolean;
+    checkRegisterWhenAttackOrDefenseEndsAbilities(event: GameEvent): void;
 }
 
 /**
@@ -66,6 +70,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private readonly _printedUpgradePower: number;
 
     protected attachCondition: (context: IAttachCardContext<this>) => boolean;
+
+    @stateRefArray()
+    private accessor _whenAttackOrDefenseEndsAbilities: readonly TriggeredAbilityBase[] | null = null;
 
     @statePrimitive()
     private accessor _disableOngoingEffectsForDefeat: boolean = null;
@@ -90,7 +97,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
      * If the card is no longer in play, this property is not available and {@link mostRecentInPlayId} should be used instead.
      */
     public get inPlayId() {
-        this.assertPropertyEnabledForZoneBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
+        this.assertPropertyEnabledForZoneBoolean(this.isInPlay(), 'inPlayId');
         return this._mostRecentInPlayId;
     }
 
@@ -100,15 +107,18 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
      */
     public get mostRecentInPlayId() {
         this.assertPropertyEnabledForZoneBoolean(
-            !EnumHelpers.isArena(this.zoneName) && this.zone.hiddenForPlayers == null,
+            !this.isInPlay() && this.zone.hiddenForPlayers == null,
             'mostRecentInPlayId'
         );
 
         return this._mostRecentInPlayId;
     }
 
-    /** The card that this card is underneath */
-    public get parentCard(): IUnitCard {
+    /**
+     * The card this upgrade is underneath: a unit for most upgrades, or a base for Fortify upgrades.
+     * For upgrades that can only ever attach to units, prefer {@link parentUnit} to read it typed as a unit.
+     */
+    public get parentCard(): ICardWithUpgrades {
         Contract.assertNotNullLike(this._parentCard);
         // TODO: move IsInPlay to be usable here
         Contract.assertTrue(this.isInPlay());
@@ -116,8 +126,18 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return this._parentCard;
     }
 
-    protected set parentCard(value: IUnitCard | null) {
+    protected set parentCard(value: ICardWithUpgrades | null) {
         this._parentCard = value;
+    }
+
+    /**
+     * The unit this upgrade is attached to. Only valid for upgrades that can exclusively attach to units;
+     * asserts the parent is a unit (it never is for a Fortify base upgrade).
+     */
+    public get parentUnit(): IUnitCard {
+        const parent = this.parentCard;
+        Contract.assertTrue(parent.isUnit(), `Expected the parent of ${this.internalName} to be a unit but it is ${parent.internalName}`);
+        return parent;
     }
 
     // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts
@@ -126,7 +146,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
     // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts
     @stateRef()
-    protected accessor _parentCard: IUnitCard | null = null;
+    protected accessor _parentCard: ICardWithUpgrades | null = null;
 
     /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
@@ -162,7 +182,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     public isInPlay(): boolean {
-        return EnumHelpers.isArena(this.zoneName);
+        // The arenas are the usual in-play zones for in-play cards. The base zone is also an in-play zone
+        // (`SWU 4.9.1`); an upgrade attached to a base (via Fortify) lives there and is considered in play.
+        return EnumHelpers.isArena(this.zoneName) || (this.zoneName === ZoneName.Base && this.isUpgrade());
     }
 
     public override canBeInPlay(): this is IInPlayCard {
@@ -217,23 +239,29 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return this.printedUpgradeHp != null && this.printedUpgradePower != null;
     }
 
-    public attachTo(newParentCard: IUnitCard, newController?: Player) {
+    public attachTo(newParentCard: ICardWithUpgrades, newController?: Player) {
         this.checkIsAttachable();
-        Contract.assertTrue(newParentCard.isUnit());
+        Contract.assertTrue(newParentCard.isUnit() || newParentCard.isBase());
 
         // this assert needed for type narrowing or else the moveTo fails
-        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
+        Contract.assertTrue(
+            newParentCard.zoneName === ZoneName.SpaceArena ||
+            newParentCard.zoneName === ZoneName.GroundArena ||
+            newParentCard.zoneName === ZoneName.Base
+        );
 
         if (this._parentCard) {
             this.unattach();
         }
 
-        if (newController && newController !== this.controller) {
+        // Base upgrades attach only to their controller's own base, so control never transfers for them;
+        // the takeControl path (and its arena-only zone parameter) applies to unit hosts only.
+        if (newController && newController !== this.controller && newParentCard.zoneName !== ZoneName.Base) {
             this.takeControl(newController, newParentCard.zoneName);
         } else {
             this.moveTo(
                 newParentCard.zoneName,
-                EnumHelpers.isArena(this.zoneName) ? InitializeCardStateOption.DoNotInitialize : InitializeCardStateOption.Initialize
+                this.isInPlay() ? InitializeCardStateOption.DoNotInitialize : InitializeCardStateOption.Initialize
             );
         }
 
@@ -285,11 +313,26 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             attachTarget: targetCard
         };
 
-        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(attachContext))) {
+        if (this.attachCondition && !this.attachCondition(attachContext)) {
             return false;
         }
 
-        return true;
+        return this.canAttachToTargetType(targetCard, controller);
+    }
+
+    /**
+     * Checks whether the target is a legal _type_ of card for this upgrade to attach to, independent of any
+     * per-card {@link attachCondition} refinement. Defaults to the standard "attach to a unit" restriction;
+     * attach-restriction keywords such as Fortify override this.
+     */
+    protected canAttachToTargetType(targetCard: Card, controller: Player): boolean {
+        // The Fortify keyword replaces the default "attach to a unit" restriction: the upgrade
+        // attaches to its controller's own base instead, and can't attach to a unit.
+        if (this.hasSomeKeyword(KeywordName.Fortify)) {
+            return targetCard.isBase() && targetCard.controller === controller;
+        }
+
+        return targetCard.isUnit();
     }
 
     /**
@@ -307,12 +350,29 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             parentCardId: this._parentCard ? this._parentCard.uuid : null };
     }
 
+    /**
+     * Some abilities (such as the Advantage token's "When Attack/Defense Ends") are registered just-in-time
+     * rather than staying registered for the card's entire time in play. This avoids carrying a persistent
+     * listener for every such card on the board. A single game-level listener (see
+     * {@link UnitPropertiesCard.registerRulesListeners}) routes attack-end events to the involved cards.
+     */
+    public override getTriggeredAbilities(): TriggeredAbilityBase[] {
+        const abilities = super.getTriggeredAbilities();
+
+        // gate the just-in-time abilities behind the same blanking check that super applies to printed abilities
+        return this._whenAttackOrDefenseEndsAbilities != null && !this.isFullyBlanked()
+            ? [...abilities, ...this._whenAttackOrDefenseEndsAbilities]
+            : abilities;
+    }
+
     // ********************************************* ABILITY SETUP *********************************************
     protected override getAbilityRegistrar(): IInPlayCardAbilityRegistrar<this> {
         const registrar = super.getAbilityRegistrar() as IBasicAbilityRegistrar<this>;
 
         return {
             ...registrar,
+            addAdditionalPlayCost: (properties) => this.registerAdditionalPlayCost(properties),
+            addAlternatePlayCost: (properties) => this.registerAlternatePlayCost(properties),
             addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties, registrar),
             addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties, registrar),
             addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties, registrar),
@@ -356,11 +416,14 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     protected override initializeForCurrentZone(prevZone?: ZoneName) {
         super.initializeForCurrentZone(prevZone);
 
-        if (EnumHelpers.isArena(this.zoneName)) {
+        // The base zone counts as in play for an attached upgrade (Fortify), so treat it like the arenas here.
+        const wasInPlay = EnumHelpers.isArena(prevZone) || (prevZone === ZoneName.Base && this.isUpgrade());
+
+        if (this.isInPlay()) {
             this.setPendingDefeatEnabled(true);
 
             // increment to a new in-play id if we're entering play, indicating that we are now a new "copy" of this card (SWU 8.6.4)
-            if (!EnumHelpers.isArena(prevZone)) {
+            if (!wasInPlay) {
                 this._mostRecentInPlayId += 1;
             }
         } else {
@@ -402,6 +465,46 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             !abilities.some((ability) => ability.isWhenPlayedUsingSmuggle),
             `Card ${this.internalName} has one or more 'When Played using Smuggle' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedUsingSmuggleCheck' to true on card implementation`
         );
+    }
+
+    // **************** MANUAL ABILITY REGISTRATION ****************
+
+    public checkRegisterWhenAttackOrDefenseEndsAbilities(event: GameEvent): void {
+        const abilities = this.buildWhenAttackOrDefenseEndsAbilities();
+        if (abilities.length === 0) {
+            return;
+        }
+
+        Contract.assertIsNullLike(
+            this._whenAttackOrDefenseEndsAbilities,
+            () => `Failed to unregister "When Attack/Defense Ends" abilities from previous attack: ${this._whenAttackOrDefenseEndsAbilities?.map((ability) => ability.getTitle()).join(', ')}`
+        );
+
+        this._whenAttackOrDefenseEndsAbilities = abilities;
+
+        for (const ability of abilities) {
+            ability.registerEvents();
+        }
+
+        event.addCleanupHandler(() => this.unregisterWhenAttackOrDefenseEndsAbilities());
+    }
+
+    public unregisterWhenAttackOrDefenseEndsAbilities(): void {
+        Contract.assertTrue(Array.isArray(this._whenAttackOrDefenseEndsAbilities), '"When Attack/Defense Ends" ability registration was skipped');
+
+        for (const ability of this._whenAttackOrDefenseEndsAbilities) {
+            ability.unregisterEvents();
+        }
+
+        this._whenAttackOrDefenseEndsAbilities = null;
+    }
+
+    /**
+     * Builds this card's "When Attack/Defense Ends" abilities, or returns an empty array if it has none. Overridden by
+     * cards (e.g. the Advantage token) that rely on the just-in-time registration described above.
+     */
+    protected buildWhenAttackOrDefenseEndsAbilities(): TriggeredAbilityBase[] {
+        return [];
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************

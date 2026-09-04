@@ -3,6 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -19,14 +20,14 @@ export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'This unit gets +1/+0 for each other friendly Pilot unit and upgrade.',
+            title: `This unit gets +1/+0 for each other friendly ${TextHelper.Trait.Pilot} unit and upgrade.`,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((_target, context) => ({
                 power: this.getOtherFriendlyPilotUnitsAndUpgradesCount(context), hp: 0
             }))
         });
 
         registrar.addPilotingConstantAbilityTargetingAttached({
-            title: 'Attached unit gets +1/+0 for each other friendly Pilot unit and upgrade.',
+            title: `Attached unit gets +1/+0 for each other friendly ${TextHelper.Trait.Pilot} unit and upgrade.`,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((_target, context) => ({
                 power: this.getOtherFriendlyPilotUnitsAndUpgradesCount(context), hp: 0
             }))

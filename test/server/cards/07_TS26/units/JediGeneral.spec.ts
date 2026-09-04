@@ -120,5 +120,32 @@ describe('Jedi General', function() {
             expect(troopers[0]).toHaveExactUpgradeNames(['experience']);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should give an Experience token to both Clone Troopers when doubled by Moff Jerjerrod', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['jedi-general'],
+                    groundArena: ['moff-jerjerrod#we-shall-redouble-our-efforts'],
+                    leader: { card: 'captain-rex#fighting-for-his-brothers', deployed: true }
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jediGeneral);
+            context.player1.clickPrompt('(No effect) Ambush');
+            expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Clone Trooper tokens instead');
+            context.player1.clickPrompt('Trigger');
+
+            const troopers = context.player1.findCardsByName('clone-trooper', 'groundArena');
+            expect(context.moffJerjerrod).toBeInZone('discard');
+            expect(troopers.length).toBe(2);
+            expect(troopers.every((trooper) => trooper.exhausted)).toBeTrue();
+            troopers.forEach((trooper) => {
+                expect(trooper).toHaveExactUpgradeNames(['experience']);
+            });
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

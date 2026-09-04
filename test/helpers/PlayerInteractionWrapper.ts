@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-import { ZoneName, DeckZoneDestination, DeployType } from '../../server/game/core/Constants.js';
+import { ZoneName, DeckZoneDestination, DeployType, KeywordName } from '../../server/game/core/Constants.js';
 import { Card } from '../../server/game/core/card/Card.js';
 import TestSetupError from './TestSetupError.js';
 import Util from './Util.js';
@@ -165,7 +165,7 @@ export class PlayerInteractionWrapper {
         Util.refreshGameState(this.game);
     }
 
-    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits?: any }) {
+    public setBaseStatus(baseOptions: { card: any; damage: number; capturedUnits?: any; upgrades?: any }) {
         if (!baseOptions) {
             return;
         }
@@ -186,6 +186,10 @@ export class PlayerInteractionWrapper {
 
         if (baseOptions.capturedUnits) {
             this.setCapturedUnits(baseCard, baseOptions.capturedUnits);
+        }
+
+        if (baseOptions.upgrades) {
+            this.setCardUpgrades(baseCard, baseOptions.upgrades);
         }
 
         Util.refreshGameState(this.game);
@@ -324,6 +328,16 @@ export class PlayerInteractionWrapper {
                 upgradeCard = this.findCardByName(upgradeName, prevZones);
             }
 
+            // Fortify upgrades attach to bases; all other upgrades attach to units. Guard test setups
+            // against the two illegal combinations so mistakes surface immediately rather than silently.
+            const hasFortify = upgradeCard.hasSomeKeyword(KeywordName.Fortify);
+            if (card.isBase() && !hasFortify) {
+                throw new TestSetupError(`Attempting to attach upgrade '${upgradeName}' to a base, but it does not have the Fortify keyword`);
+            }
+            if (!card.isBase() && hasFortify) {
+                throw new TestSetupError(`Attempting to attach Fortify upgrade '${upgradeName}' to non-base card '${card.internalName}'`);
+            }
+
             upgradeCard.attachTo(card);
         }
     }
@@ -357,6 +371,9 @@ export class PlayerInteractionWrapper {
             case 'mandalorian':
                 tokenClassName = 'mandalorian';
                 break;
+            case 'beast':
+                tokenClassName = 'beast';
+                break;
             case 'tie-fighter':
                 tokenClassName = 'tieFighter';
                 break;
@@ -366,6 +383,7 @@ export class PlayerInteractionWrapper {
             case 'experience':
             case 'shield':
             case 'advantage':
+            case 'weakness':
                 tokenClassName = tokenName;
                 break;
             default:
@@ -690,8 +708,9 @@ export class PlayerInteractionWrapper {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
     }
 
-    public setDistributeExperiencePromptState(cardDistributionMap: any) {
-        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeExperience');
+    /** Resolves a distribute prompt for any token upgrade (Experience, Advantage, Weakness) — they share the `distributeTokenUpgrade` prompt type. */
+    public setDistributeTokenUpgradePromptState(cardDistributionMap: any) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeTokenUpgrade');
     }
 
     public setDistributeAmongTargetsPromptState(cardDistributionMap: any, type: string) {

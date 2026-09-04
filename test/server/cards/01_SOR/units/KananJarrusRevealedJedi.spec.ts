@@ -24,7 +24,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
                 expect(context.player2.deck.length).toBe(5);
 
                 context.player1.clickCard(context.kananJarrus);
-                expect(context.player1).toHavePassAbilityPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
+                expect(context.player1).toHavePassAbilityPrompt('Discard 1 card from the defending player\'s deck. Heal 1 damage for each aspect among the discarded cards.');
                 context.player1.clickPrompt('Trigger');
                 expect(context.player2.base.damage).toBe(4);
 
@@ -58,7 +58,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
                 expect(context.player2.deck.length).toBe(5);
 
                 context.player1.clickCard(context.kananJarrus);
-                expect(context.player1).toHavePassAbilityPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
+                expect(context.player1).toHavePassAbilityPrompt('Discard 3 cards from the defending player\'s deck. Heal 1 damage for each aspect among the discarded cards.');
                 context.player1.clickPrompt('Trigger');
                 expect(context.player2.base.damage).toBe(4);
 
@@ -97,7 +97,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
                 expect(context.player2.deck.length).toBe(2);
 
                 context.player1.clickCard(context.kananJarrus);
-                expect(context.player1).toHavePassAbilityPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
+                expect(context.player1).toHavePassAbilityPrompt('Discard 3 cards from the defending player\'s deck. Heal 1 damage for each aspect among the discarded cards.');
                 context.player1.clickPrompt('Trigger');
 
                 // Check mill and heal

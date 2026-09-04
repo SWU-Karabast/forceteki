@@ -16,6 +16,7 @@ export default class DiplomaticImmunity extends UpgradeCard {
         const aspects = [Aspect.Vigilance, Aspect.Vigilance, Aspect.Heroism, Aspect.Heroism];
         registrar.addGainTriggeredAbilityTargetingAttached({
             title: `Disclose ${TextHelper.aspectList(aspects)}. If you do, the attacker gets -2/-0 for this attack`,
+            contextTitle: (context) => `Disclose ${TextHelper.aspectList(aspects)}. If you do, ${context.event.attack.attacker.title} gets -2/-0 for this attack`,
             when: {
                 onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
             },

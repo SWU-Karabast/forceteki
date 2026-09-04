@@ -15,7 +15,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat a non-unique upgrade. If you control a Vigilance or Command unit, you may defeat an upgrade instead.');
+            context.player1.clickPrompt('Defeat a non-unique upgrade');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHavePrompt('Defeat a non-unique upgrade');
@@ -42,7 +42,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat a non-unique upgrade. If you control a Vigilance or Command unit, you may defeat an upgrade instead.');
+            context.player1.clickPrompt('Defeat a non-unique upgrade');
             context.player1.clickPrompt('Pass');
 
             expect(context.player2).toBeActivePlayer();
@@ -63,7 +63,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat a non-unique upgrade. If you control a Vigilance or Command unit, you may defeat an upgrade instead.');
+            context.player1.clickPrompt('Defeat an upgrade');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHavePrompt('Defeat an upgrade');
@@ -90,7 +90,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat a non-unique upgrade. If you control a Vigilance or Command unit, you may defeat an upgrade instead.');
+            context.player1.clickPrompt('Defeat an upgrade');
             context.player1.clickPrompt('Pass');
 
             expect(context.player2).toBeActivePlayer();
@@ -111,7 +111,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat a non-unique upgrade. If you control a Vigilance or Command unit, you may defeat an upgrade instead.');
+            context.player1.clickPrompt('Defeat an upgrade');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHavePrompt('Defeat an upgrade');
@@ -138,7 +138,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickPrompt('Defeat a non-unique upgrade. If you control a Vigilance or Command unit, you may defeat an upgrade instead.');
+            context.player1.clickPrompt('Defeat an upgrade');
             context.player1.clickPrompt('Pass');
 
             expect(context.player2).toBeActivePlayer();

@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class BabuFrikHeyyy extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class BabuFrikHeyyy extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Attack with a friendly Droid unit. For this attack, it deals damage equal to its remaining HP instead of its power.',
+            title: `Attack with a friendly ${TextHelper.Trait.Droid} unit. For this attack, it deals damage equal to its remaining HP instead of its power.`,
             cost: AbilityHelper.costs.exhaustSelf(),
             optional: true,
             initiateAttack: {

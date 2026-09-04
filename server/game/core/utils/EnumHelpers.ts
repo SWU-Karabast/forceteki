@@ -22,6 +22,19 @@ function getEnumLookupMap<T extends object>(enumObj: T): Map<string, T[keyof T]>
 }
 
 export namespace EnumHelpers {
+    // convert a set of strings to an enum type, silently dropping values not present in the enum
+    export function tryConvertToEnum<T extends object>(values: string | string[], enumObj: T): T[keyof T][] {
+        const lookupMap = getEnumLookupMap(enumObj);
+        const result: T[keyof T][] = [];
+        for (const value of Helpers.asArray(values)) {
+            const matchingValue = lookupMap.get(value.toLowerCase());
+            if (matchingValue !== undefined) {
+                result.push(matchingValue);
+            }
+        }
+        return result;
+    }
+
     // convert a set of strings to map to an enum type, throw if any of them is not a legal value
     export function checkConvertToEnum<T extends object>(values: string | string[], enumObj: T): T[keyof T][] {
         const result: T[keyof T][] = [];
@@ -49,6 +62,32 @@ export namespace EnumHelpers {
             case ZoneName.GroundArena:
             case ZoneName.SpaceArena:
             case WildcardZoneName.AnyArena:
+                return true;
+            default:
+                return false;
+        }
+    };
+
+    /**
+     * Any zone where cards are considered to be "in play" (CR 4.9.1). Face-down cards in these zones are still considered out
+     * of play, including the backside of leader cards.
+     *
+     * Resource zone excluded because all cards in that zone are facedown and considered out of play.
+     *
+     * @param zone The zone to check.
+     * @returns True if the zone is an in-play zone (GroundArena, SpaceArena, Base, or AnyArena wildcard), false otherwise.
+     */
+    export const isInPlayZone = (zone: ZoneFilter): zone is ZoneName.GroundArena |
+      ZoneName.SpaceArena |
+      ZoneName.Base |
+      WildcardZoneName.AnyArena |
+      WildcardZoneName.AnyAttackable => {
+        switch (zone) {
+            case ZoneName.GroundArena:
+            case ZoneName.SpaceArena:
+            case ZoneName.Base:
+            case WildcardZoneName.AnyArena:
+            case WildcardZoneName.AnyAttackable:
                 return true;
             default:
                 return false;
@@ -310,10 +349,13 @@ export namespace EnumHelpers {
         [TokenUnitName.XWing]: 'X-Wing',
         [TokenUnitName.TIEFighter]: 'TIE Fighter',
         [TokenUnitName.Spy]: 'Spy',
+        // eslint-disable-next-line forceteki/no-raw-token-text -- token display name, not a trait reference
         [TokenUnitName.Mandalorian]: 'Mandalorian',
+        [TokenUnitName.Beast]: 'Beast',
         [TokenUpgradeName.Shield]: 'Shield',
         [TokenUpgradeName.Experience]: 'Experience',
         [TokenUpgradeName.Advantage]: 'Advantage',
+        [TokenUpgradeName.Weakness]: 'Weakness',
         [TokenCardName.Credit]: 'Credit',
         [TokenCardName.Force]: 'The Force'
     };

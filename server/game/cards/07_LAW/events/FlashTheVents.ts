@@ -4,6 +4,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { DamageType, KeywordName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FlashTheVents extends EventCard {
     private damageDealtThisPhaseWatcher: DamageDealtThisPhaseWatcher;
@@ -21,7 +22,7 @@ export default class FlashTheVents extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a unit. It gets +2/+0 and gains Overwhelm for this attack. After completing this attack, if that unit damaged a base, defeat that unit.',
+            title: `Attack with a unit. It gets +2/+0 and gains ${TextHelper.Overwhelm} for this attack. After completing this attack, if that unit damaged a base, defeat that unit.`,
             initiateAttack: {
                 attackerLastingEffects: {
                     effect: [
@@ -30,15 +31,18 @@ export default class FlashTheVents extends EventCard {
                     ]
                 },
             },
+            // Use ifYouDo so this only resolves once the attack has actually happened (the attacker
+            // target is resolved at that point). A `then` would also be evaluated during the
+            // playability pre-check, before an attacker is selected, with an undefined target.
             // TODO: Use after instead of then when it's implemented
-            then: (thenContext) => ({
-                title: `Defeat ${thenContext.target?.title}`,
-                thenCondition: () => this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
-                    thenContext.target,
-                    (entry) => entry.activeAttackId === thenContext.activeAttackId &&
+            ifYouDo: (ifYouDoContext) => ({
+                title: `Defeat ${ifYouDoContext.target?.title}`,
+                ifYouDoCondition: () => this.damageDealtThisPhaseWatcher.unitHasDealtDamage(
+                    ifYouDoContext.target,
+                    (entry) => entry.activeAttackId === ifYouDoContext.activeAttackId &&
                       (entry.targets.some((target) => target.isBase()) || entry.damageType === DamageType.Overwhelm)
                 ),
-                immediateEffect: AbilityHelper.immediateEffects.defeat({ target: thenContext.target })
+                immediateEffect: AbilityHelper.immediateEffects.defeat({ target: ifYouDoContext.target })
             })
         });
     }

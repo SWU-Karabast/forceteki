@@ -2,6 +2,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { RelativePlayer, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CorvusInfernoSquadronRaider extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,8 +14,8 @@ export default class CorvusInfernoSquadronRaider extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Attach a friendly Pilot unit or upgrade to this unit',
-            contextTitle: (context) => `Attach a friendly Pilot unit or upgrade to ${context.source.title}`,
+            title: `Attach a friendly ${TextHelper.Trait.Pilot} unit or upgrade to this unit`,
+            contextTitle: (context) => `Attach a friendly ${TextHelper.Trait.Pilot} unit or upgrade to ${context.source.title}`,
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,

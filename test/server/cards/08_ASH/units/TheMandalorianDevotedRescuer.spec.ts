@@ -309,23 +309,27 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 context.player2.clickPrompt('Ground');
                 context.player2.clickCard(context.concordDawnInterceptors);
 
-                // Three triggers fire simultaneously: Shield token for Mando's own damage,
-                // Mando's ability for BFM, and Mando's ability for Wampa.
+                // Two distinct triggers fire: the Shield token's own damage-prevention for Mando,
+                // and Mando's ability (one instance each for BFM and Wampa). Mando's two instances
+                // share a static title and source, so they collapse into a single grouped entry.
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Defeat Shield to prevent The Mandalorian from taking damage',
-                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine',
-                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit',
                 ]);
 
-                // Player resolves Mando's ability for BFM — shield auto-defeated, no card selection prompt.
-                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine');
+                // Resolve a single instance of Mando's grouped ability. With only one shield,
+                // resolving one instance consumes it, so only one unit can be protected.
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit');
+                expect(context.player1).toHavePrompt('Resolve "Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit"');
+                context.player1.clickPrompt('Resolve next');
                 context.player1.clickPrompt('Trigger');
 
-                // Shield is auto-selected and defeated — no card selection prompt shown.
-                // With no shield remaining, all other triggers are automatically cleared.
-                expect(context.battlefieldMarine.damage).toBe(0);
-                expect(context.wampa.damage).toBe(1);
+                // With only one shield, resolving one instance consumes it protecting one unit; the
+                // remaining instance can no longer prevent damage. Grouping means the protected unit is
+                // engine-ordered rather than player-selected, so assert the invariant: exactly one of the
+                // two damaged units is protected (0 damage) and the other takes its 1 damage.
+                expect([context.battlefieldMarine.damage, context.wampa.damage].sort()).toEqual([0, 1]);
                 expect(context.player1).toBeActivePlayer();
             });
 
@@ -352,26 +356,206 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 context.player2.clickPrompt('Ground');
                 context.player2.clickCard(context.concordDawnInterceptors);
 
-                // Three triggers: consolidated Shield for Mando's damage, Mando for BFM, Mando for Wampa.
+                // Two distinct triggers: the Shield token's own damage-prevention for Mando, and
+                // Mando's ability (one instance each for BFM and Wampa) collapsed into a single
+                // grouped entry.
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Defeat Shield to prevent The Mandalorian from taking damage',
-                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine',
-                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit',
                 ]);
 
-                // Resolve Mando's ability for BFM — auto-defeats first shield.
-                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine');
+                // Resolve all instances of Mando's grouped ability. With two shields, both BFM and
+                // Wampa are protected (one shield consumed for each per-instance trigger).
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit');
+                expect(context.player1).toHavePrompt('Resolve "Defeat a Shield attached to The Mandalorian to prevent all damage to a friendly unit"');
+                context.player1.clickPrompt('Resolve all (2)');
                 context.player1.clickPrompt('Trigger');
-
-                // One shield remains — Mando's ability for Wampa is still valid.
-                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Wampa');
                 context.player1.clickPrompt('Trigger');
 
                 // Both shields consumed — Mando takes 1 damage, BFM and Wampa protected
                 expect(context.battlefieldMarine.damage).toBe(0);
                 expect(context.wampa.damage).toBe(0);
                 expect(context.theMandalorian.damage).toBe(1);
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should protect both The Mandalorian and the allied unit from distributed damage when resolving the Shield trigger first', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire'],
+                        groundArena: [
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield', 'shield'] },
+                            'battlefield-marine'
+                        ],
+                    },
+                    player2: {
+                        hand: ['ninth-sister#hulking-inquisitor'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.ninthSister);
+                context.player1.clickCard(context.openFire);
+
+                context.player2.clickPrompt('Trigger');
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.theMandalorian, 2],
+                    [context.battlefieldMarine, 1],
+                ]));
+
+
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat Shield to prevent The Mandalorian from taking damage',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine'
+                ]);
+
+                // Resolve the Shield token's prevention first — it defeats one shield to protect Mando. Mando's ability
+                // must then auto-select the *other* shield (helper excludes shields already queued for defeat).
+                context.player1.clickPrompt('Defeat Shield to prevent The Mandalorian from taking damage');
+                context.player1.clickPrompt('Trigger');
+
+                // Both shields consumed — Mando and BFM both protected
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.theMandalorian.damage).toBe(0);
+                expect(context.theMandalorian.isUpgraded()).toBeFalse(); // both shields consumed
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should protect both The Mandalorian and the allied unit from distributed damage when resolving Mando\'s ability first', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire'],
+                        groundArena: [
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield', 'shield'] },
+                            'battlefield-marine'
+                        ],
+                    },
+                    player2: {
+                        hand: ['ninth-sister#hulking-inquisitor'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.ninthSister);
+                context.player1.clickCard(context.openFire);
+
+                context.player2.clickPrompt('Trigger');
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.theMandalorian, 2],
+                    [context.battlefieldMarine, 1],
+                ]));
+
+
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat Shield to prevent The Mandalorian from taking damage',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine'
+                ]);
+
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
+
+                // Identical end state to the shield-first order: both shields consumed, both units protected
+                expect(context.battlefieldMarine.damage).toBe(0);
+                expect(context.theMandalorian.damage).toBe(0);
+                expect(context.theMandalorian.isUpgraded()).toBeFalse(); // both shields consumed
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should protect The Mandalorian (BFM takes damage) when resolving the Shield trigger first with a single shield', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire'],
+                        groundArena: [
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield'] },
+                            'battlefield-marine'
+                        ],
+                    },
+                    player2: {
+                        hand: ['ninth-sister#hulking-inquisitor'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.ninthSister);
+                context.player1.clickCard(context.openFire);
+
+                context.player2.clickPrompt('Trigger');
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.theMandalorian, 2],
+                    [context.battlefieldMarine, 1],
+                ]));
+
+
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat Shield to prevent The Mandalorian from taking damage',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine'
+                ]);
+
+                // Resolve the Shield token first — it defeats the only shield to protect Mando. Mando's ability now has
+                // no shield to defeat, so it is cleared and BFM takes its damage.
+                context.player1.clickPrompt('Defeat Shield to prevent The Mandalorian from taking damage');
+
+                expect(context.theMandalorian.damage).toBe(0); // Mando protected by the shield
+                expect(context.battlefieldMarine.damage).toBe(1); // no shield left for Mando's ability
+                expect(context.theMandalorian.isUpgraded()).toBeFalse(); // the single shield was consumed
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should protect Battlefield Marine (Mando takes damage) when resolving Mando\'s ability first with a single shield', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['open-fire'],
+                        groundArena: [
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield'] },
+                            'battlefield-marine'
+                        ],
+                    },
+                    player2: {
+                        hand: ['ninth-sister#hulking-inquisitor'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.ninthSister);
+                context.player1.clickCard(context.openFire);
+
+                context.player2.clickPrompt('Trigger');
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.theMandalorian, 2],
+                    [context.battlefieldMarine, 1],
+                ]));
+
+
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat Shield to prevent The Mandalorian from taking damage',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine'
+                ]);
+
+                // Resolve Mando's ability first — it defeats the only shield to protect BFM. The Shield token trigger now
+                // has no shield to defeat, so it is cleared and Mando takes its damage.
+                context.player1.clickPrompt('Defeat a Shield attached to The Mandalorian to prevent all damage to Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.battlefieldMarine.damage).toBe(0); // BFM protected by Mando's ability
+                expect(context.theMandalorian.damage).toBe(2); // no shield left to protect Mando
+                expect(context.theMandalorian.isUpgraded()).toBeFalse(); // the single shield was consumed
                 expect(context.player1).toBeActivePlayer();
             });
 

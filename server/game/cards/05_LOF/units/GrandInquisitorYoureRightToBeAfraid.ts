@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GrandInquisitorYoureRightToBeAfraid extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,8 +14,11 @@ export default class GrandInquisitorYoureRightToBeAfraid extends NonLeaderUnitCa
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Other friendly Inquisitor units gain hidden.',
-            matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Inquisitor),
+            title: `Other friendly ${TextHelper.Trait.Inquisitor} units gain ${TextHelper.Hidden}`,
+            matchTarget: (card, context) =>
+                card !== context.source &&
+                card.isUnit() &&
+                card.hasSomeTrait(Trait.Inquisitor),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Hidden })
         });
     }

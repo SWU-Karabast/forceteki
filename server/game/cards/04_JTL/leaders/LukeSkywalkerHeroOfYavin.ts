@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { AbilityType, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
@@ -24,7 +25,7 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
         registrar.addPilotDeploy();
 
         registrar.addActionAbility({
-            title: 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit',
+            title: `If you attacked with a ${TextHelper.Trait.Fighter} unit this phase, deal 1 damage to a unit`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -21,7 +21,7 @@ describe('Cad Bane, Now it\'s My Turn', function() {
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 5 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 4);
                 context.player1.chooseListOption('4');
 
                 expect(context.p2Base.damage).toBe(10);
@@ -37,7 +37,7 @@ describe('Cad Bane, Now it\'s My Turn', function() {
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 5 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 4);
                 context.player1.chooseListOption('2');
 
                 expect(context.p2Base.damage).toBe(8);
@@ -53,7 +53,7 @@ describe('Cad Bane, Now it\'s My Turn', function() {
                 context.player1.clickCard(context.cadBane);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 5 }, (x, i) => `${i}`));
+                expect(context.player1).toHaveNumericPromptRange(0, 4);
                 context.player1.chooseListOption('0');
 
                 expect(context.p2Base.damage).toBe(6);

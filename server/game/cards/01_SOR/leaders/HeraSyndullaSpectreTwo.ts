@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
 
     private buildHeraAbilityProperties(AbilityHelper: IAbilityHelper) {
         return {
-            title: 'Ignore the aspect penalty on Spectre cards you play',
+            title: `Ignore the aspect penalty on ${TextHelper.Trait.Spectre} cards you play`,
             targetController: RelativePlayer.Self,
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
                 cardTypeFilter: WildcardCardType.Playable,

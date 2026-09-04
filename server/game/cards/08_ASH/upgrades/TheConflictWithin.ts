@@ -16,6 +16,7 @@ export default class TheConflictWithin extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addGainTriggeredAbilityTargetingAttached({
             title: `Exhaust it unless its controller pays ${TextHelper.resource(3)}`,
+            contextTitle: (context) => `Exhaust ${context.source.title} unless its controller pays ${TextHelper.resource(3)}`,
             when: {
                 onCardReadied: (event, context) => context.source === event.card
             },

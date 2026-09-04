@@ -13,7 +13,7 @@ describe('The Clone Wars ability\'s', function() {
 
             context.player1.clickCard(context.theCloneWars);
             expect(context.player1.readyResourceCount).toBe(4);
-            expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 4 + 1 }, (x, i) => `${i}`));
+            expect(context.player1).toHaveNumericPromptRange(0, 4);
             context.player1.chooseListOption('2');
             expect(context.getChatLogs(3)).toContain('player1 names 2 using The Clone Wars');
             expect(context.player1.readyResourceCount).toBe(2);
@@ -38,7 +38,7 @@ describe('The Clone Wars ability\'s', function() {
 
             context.player1.clickCard(context.theCloneWars);
             expect(context.player1.readyResourceCount).toBe(6);
-            expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 6 + 1 }, (x, i) => `${i}`));
+            expect(context.player1).toHaveNumericPromptRange(0, 6);
             context.player1.chooseListOption('0');
             expect(context.player1.readyResourceCount).toBe(6);
             const cloneTroopers = context.player1.findCardsByName('clone-trooper');

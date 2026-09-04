@@ -14,6 +14,7 @@ export default class DevastatorInescapable extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'You may deal damage to a unit equal to the number of resources you control',
+            contextTitle: (context) => `Deal ${context.player.resources.length} damage to a unit`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

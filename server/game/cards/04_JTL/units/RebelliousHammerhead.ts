@@ -14,6 +14,7 @@ export default class RebelliousHammerhead extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Deal damage to a unit equal to the number of cards in your hand',
+            contextTitle: (context) => `Deal ${context.player.hand.length} damage to a unit`,
             optional: true,
             targetResolver: {
                 controller: WildcardRelativePlayer.Any,

@@ -53,6 +53,9 @@ export interface IViewAndSelectCardsProperties<TContext extends AbilityContext =
     cardCondition?: (card: Card, context: TContext) => boolean;
 
     maxCards?: number;
+
+    /** Overrides the text of the button shown when no cards are selected (default 'Take nothing'). */
+    noSelectedCardsButtonText?: string;
 }
 
 export interface IViewCardWithPerCardButtonsProperties extends IViewCardPropertiesBase {
@@ -164,6 +167,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
                 displayCards: cards,
                 maxCards: properties.maxCards ?? 1,
                 canChooseFewer: properties.canChooseFewer ?? true,
+                noSelectedCardsButtonText: properties.noSelectedCardsButtonText,
                 selectedCardsHandler,
                 displayTextByCardUuid: properties.displayTextByCardUuid,
                 validCardCondition: (card: Card) =>

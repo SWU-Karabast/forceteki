@@ -5,6 +5,7 @@ import { EventName, KeywordName, RelativePlayer, WildcardCardType } from '../../
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class CaptainRexIntoTheFirefight extends NonLeaderUnitCard {
     private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
@@ -22,7 +23,7 @@ export default class CaptainRexIntoTheFirefight extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
-            title: 'Give this unit and an enemy unit Sentinel for this phase',
+            title: `Give this unit and an enemy unit ${TextHelper.Sentinel} for this phase`,
             when: {
                 whenPlayed: true,
                 onAttackEnd: (event, context) => event.attack.attacker === context.source,

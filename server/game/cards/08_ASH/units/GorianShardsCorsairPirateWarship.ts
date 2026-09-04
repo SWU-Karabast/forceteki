@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class GorianShardsCorsairPirateWarship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class GorianShardsCorsairPirateWarship extends NonLeaderUnitCard 
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'Damage dealt by friendly Underworld cards is unpreventable',
+            title: `Damage dealt by friendly ${TextHelper.Trait.Underworld} cards is unpreventable`,
             targetZoneFilter: WildcardZoneName.Any,
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Any,

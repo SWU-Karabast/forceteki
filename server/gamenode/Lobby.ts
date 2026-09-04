@@ -14,10 +14,11 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
-import { DeckSource, ScoreType } from '../utils/deck/DeckInterfaces';
+import { DeckSource, DeckValidationFailureReason, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
+import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
 import {
     AlertType,
@@ -392,7 +393,7 @@ export class Lobby {
             importDeckErrors: user.importDeckValidationErrors,
             unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(user.deck?.getDecklist()),
             minDeckSize: user.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(user.deck?.base.id, this.format) : 50,
-            maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format, this.cardPool),
+            maxSideBoard: DeckValidator.getMaxSideboardSize(this.format, this.cardPool),
         } : {
             deck: user.deck?.getLeaderBase(),
         };
@@ -969,9 +970,13 @@ export class Lobby {
         const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
         activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(deck, validationProperties);
 
-        // if the deck doesn't have any errors that block import, set it as active
-        const filteredErrors = DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
-        if (Object.keys(filteredErrors).length === 0) {
+        // Determine which failures block accepting this deck as the active (playable) deck.
+        // Quick lobbies auto-start with no editing step, so the deck must be immediately legal;
+        // editable lobbies allow an in-progress deck since game start re-validates size.
+        const blockingErrors = this.matchmakingType === MatchmakingType.Quick
+            ? activeUser.importDeckValidationErrors
+            : DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
+        if (Object.keys(blockingErrors).length === 0) {
             activeUser.deck = new Deck(deck, this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
@@ -1082,6 +1087,7 @@ export class Lobby {
             return {
                 id: this.id,
                 isPrivate: this.isPrivate,
+                allowSpectators: this.spectationAllowed,
                 player1Leader: player1.deck.leader,
                 player1Base: player1.deck.base,
                 player2Leader: player2.deck.leader,
@@ -1237,6 +1243,15 @@ export class Lobby {
     }
 
     private async startGameAsync() {
+        // Authoritative deck-size gate. Various flows allow an undersized/oversized deck to be held
+        // while editing (size errors are filtered at import time), so we re-validate here - the single
+        // entry point for starting a game - to guarantee no game begins with an illegal deck.
+        const usersWithInvalidDeckSize = this.getUsersWithInvalidDeckSize();
+        if (usersWithInvalidDeckSize.length > 0) {
+            this.handleInvalidDeckSizeAtStart(usersWithInvalidDeckSize);
+            return;
+        }
+
         try {
             this.bo3LobbyReadyTimer?.stop();
             this.rematchRequest = null;
@@ -1292,6 +1307,74 @@ export class Lobby {
                 });
             }
         }
+    }
+
+    /**
+     * Deck-validation failures that indicate an illegal deck to actually play with (as opposed
+     * to in-progress editing state). These are the failures that in-lobby flows filter out at
+     * import time, so they must be re-checked before a game can start.
+     */
+    private static readonly startBlockingDeckSizeFailures: readonly DeckValidationFailureReason[] = [
+        DeckValidationFailureReason.MinMainboardSizeNotMet,
+        DeckValidationFailureReason.MinDecklistSizeNotMet,
+        DeckValidationFailureReason.MaxSideboardSizeExceeded,
+    ];
+
+    /**
+     * Returns the lobby users whose active deck cannot legally start a game because of its size
+     * (missing deck, undersized mainboard/decklist, or oversized sideboard). Also refreshes each
+     * user's `deckValidationErrors` so the current state is surfaced to clients.
+     */
+    private getUsersWithInvalidDeckSize(): LobbyUserWrapper[] {
+        const validationProperties: IDeckValidationProperties = { format: this.gameFormat, cardPool: this.cardPool };
+        const invalidUsers: LobbyUserWrapper[] = [];
+
+        for (const user of this.users) {
+            if (!user.deck) {
+                invalidUsers.push(user);
+                continue;
+            }
+
+            const errors = this.deckValidator.validateInternalDeck(user.deck.getDecklist(), validationProperties);
+            user.deckValidationErrors = errors;
+
+            if (Lobby.startBlockingDeckSizeFailures.some((reason) => reason in errors)) {
+                invalidUsers.push(user);
+            }
+        }
+
+        return invalidUsers;
+    }
+
+    /**
+     * Handles the case where one or more players cannot legally start due to deck size. Quick
+     * lobbies have no in-lobby editing step, so they are torn down and both players are requeued
+     * (requeue re-validates decks without filtering size errors, rejecting any tampered deck).
+     * Editable lobbies are kept open with ready state cleared and the errors surfaced so the
+     * affected player(s) can fix their deck and ready up again.
+     */
+    private handleInvalidDeckSizeAtStart(usersWithInvalidDeckSize: LobbyUserWrapper[]): void {
+        const names = usersWithInvalidDeckSize.map((u) => u.username).join(', ');
+        logger.warn(
+            `Lobby: refusing to start game, invalid deck size for user(s): ${names}`,
+            { lobbyId: this.id, userIds: usersWithInvalidDeckSize.map((u) => u.id) }
+        );
+
+        this.bo3LobbyReadyTimer?.stop();
+
+        if (this.matchmakingType === MatchmakingType.Quick) {
+            this.matchmakingFailed(new Error('Cannot start game: one or more players have an invalid deck'));
+            return;
+        }
+
+        this.users.forEach((user) => {
+            user.ready = false;
+        });
+        this.gameChat.addAlert(
+            AlertType.Danger,
+            `Cannot start game: ${names} ${usersWithInvalidDeckSize.length > 1 ? 'have' : 'has'} an invalid deck (check deck size). Please fix your deck and ready up again.`
+        );
+        this.sendLobbyState();
     }
 
     private matchmakingFailed(error?: Error) {
@@ -1355,18 +1438,27 @@ export class Lobby {
     }
 
     private buildGameSettings(): GameConfiguration {
-        const players: IUser[] = this.users.map((user) =>
-            getUserWithDefaultsSet({
+        const players: IUser[] = this.users.map((user) => {
+            const preferences = user.socket.user.getPreferences();
+            const cosmeticsSelection = preferences?.cosmetics;
+            const resolvedCosmetics = this.server.cosmeticsService
+                ? this.server.cosmeticsService.resolveActiveCosmetics(cosmeticsSelection)
+                : CosmeticsService.resolveDefaultCosmetics(cosmeticsSelection);
+
+            return getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
                 settings: {
                     optionSettings: {
-                        autoSingleTarget: false,
+                        // Persisted prefs nest prompt-reduction settings under gameOptions.autoResolve;
+                        // the engine keeps optionSettings flat. Anonymous users have no persisted
+                        // preferences; default to off to preserve prior behavior.
+                        autoSingleTarget: preferences?.gameOptions?.autoResolve?.singleTarget ?? false,
                     }
                 },
-                cosmetics: user.socket.user.getPreferences()?.cosmetics,
-            })
-        );
+                cosmetics: resolvedCosmetics,
+            });
+        });
 
         return {
             id: uuidv4(),
@@ -2335,11 +2427,15 @@ export class Lobby {
                 : { phase: 'action', player1: {}, player2: {} };
 
             let gameMessages: ISerializedMessage[];
+            let chatMessages: ISerializedMessage[] | undefined;
             let opponent: { id: string; username: string };
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
                 opponent = { id: opponentObject.id, username: opponentObject.user.username };
                 gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+                if (reportType === ReportType.PlayerReport) {
+                    chatMessages = this.game.gameChat.getPlayerChatMessages();
+                }
             } else {
                 // this is for lobby player reports
                 const opponentObject = this.users.find((u) => u.id !== socket.user.getId());
@@ -2349,6 +2445,7 @@ export class Lobby {
                     throw new Error(`${reportLabel} failed since opponent wasn't found`);
                 }
                 gameMessages = this.gameChat.messages;
+                chatMessages = this.gameChat.getPlayerChatMessages();
             }
 
             const report = this.discordDispatcher.formatReport(
@@ -2364,7 +2461,8 @@ export class Lobby {
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
-                viewport
+                viewport,
+                chatMessages
             );
 
             const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);

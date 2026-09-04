@@ -9,7 +9,19 @@ import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import type { Game } from '../../Game';
-import { PromptType } from '../PromptInterfaces';
+import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityResolutionPrompt';
+import { BatchTriggerResolutionPrompt } from '../prompts/BatchTriggerResolutionPrompt';
+import type { IResolutionChoice, ITriggerWindowSourceCard } from '../PromptInterfaces';
+
+/** Builds the lightweight card summary attached to trigger-style prompt buttons. */
+export function getTriggerSourceCardSummary(card: Card): ITriggerWindowSourceCard {
+    Contract.assertNotNullLike(card, 'Cannot build trigger source card summary for null card');
+
+    return {
+        ...card.getShortSummary(),
+        type: card.type
+    };
+}
 
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -29,6 +41,17 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     protected choosePlayerResolutionOrderComplete = false;
 
+    /**
+     * Set while a player is resolving all remaining instances of a grouped trigger "all at once". Each
+     * matching instance is then resolved without re-prompting, so nested triggers from one instance still
+     * resolve before the next (SWU 7.6.11), and cleared once the group is exhausted.
+     */
+    private pendingBatchResolve?: { player: Player; groupKey: string } = null;
+
+    protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect;
+
+    protected readonly eventWindow?: EventWindow;
+
     public get currentlyResolvingPlayer(): Player | null {
         return this.resolvePlayerOrder?.[0] ?? null;
     }
@@ -39,10 +62,13 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     public constructor(
         game: Game,
-        protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
-        private readonly eventWindow?: EventWindow
+        triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
+        eventWindow?: EventWindow
     ) {
         super(game);
+
+        this.triggerAbilityType = triggerAbilityType;
+        this.eventWindow = eventWindow;
 
         if (eventWindow) {
             this.triggeringEvents = [...this.eventWindow.events];
@@ -139,7 +165,7 @@ export abstract class TriggerWindowBase extends BaseStep {
         Contract.assertFalse(this.choosePlayerResolutionOrderComplete, `Attempting to add new triggered ${triggerTypeName} from source '${source.internalName}' to a window that has already started resolution`);
     }
 
-    private promptUnresolvedAbilities() {
+    protected promptUnresolvedAbilities() {
         Contract.assertNotNullLike(this.currentlyResolvingPlayer);
 
         this.choosePlayerResolutionOrderComplete = true;
@@ -197,14 +223,125 @@ export abstract class TriggerWindowBase extends BaseStep {
             }
         }
 
-        // if there's more than one ability still unresolved, prompt for next selection
-        if (abilitiesToResolve.length > 1) {
-            this.promptForNextAbilityToResolve();
+        // if the player chose to resolve a grouped trigger "all at once", keep resolving the next matching
+        // instance without re-prompting until the group is exhausted (nested triggers still interleave)
+        if (this.pendingBatchResolve?.player === this.currentlyResolvingPlayer) {
+            const nextInBatch = abilitiesToResolve.find((context) => this.getGroupKey(context) === this.pendingBatchResolve.groupKey);
+            if (nextInBatch) {
+                this.resolveAbility(nextInBatch);
+                return false;
+            }
+
+            // group exhausted; fall through to normal prompting for any remaining triggers
+            this.pendingBatchResolve = null;
+        }
+
+        const resolutionChoices = this.buildResolutionChoices(abilitiesToResolve);
+
+        // if there's more than one choice still unresolved, prompt for next selection
+        if (resolutionChoices.length > 1) {
+            this.promptForNextAbilityToResolve(resolutionChoices);
             return false;
         }
 
-        this.resolveAbility(abilitiesToResolve[0]);
+        resolutionChoices[0].handler();
         return false;
+    }
+
+    /**
+     * Builds the list of selectable resolution choices for the currently resolving player. Similar triggers
+     * (same base title and source card) are grouped into a single choice so the player isn't asked to order
+     * several identical triggers one at a time; selecting a group lets them resolve the next instance or all
+     * remaining instances at once. Each grouped instance still resolves as its own trigger.
+     */
+    protected buildResolutionChoices(abilitiesToResolve: TriggeredAbilityContext[]): IResolutionChoice[] {
+        const groupsByKey = new Map<string, TriggeredAbilityContext[]>();
+        const orderedKeys: string[] = [];
+
+        for (const context of abilitiesToResolve) {
+            const key = this.getGroupKey(context);
+            if (!groupsByKey.has(key)) {
+                groupsByKey.set(key, []);
+                orderedKeys.push(key);
+            }
+            groupsByKey.get(key).push(context);
+        }
+
+        return orderedKeys.map((key) => {
+            const members = groupsByKey.get(key);
+            return members.length === 1 ? this.buildContextChoice(members[0]) : this.buildGroupChoice(members);
+        });
+    }
+
+    /** Builds the resolution choice for a single triggered ability context. */
+    protected buildContextChoice(context: TriggeredAbilityContext): IResolutionChoice {
+        return {
+            getTitle: () => context.ability.getTitle(context),
+            getSourceCard: () => getTriggerSourceCardSummary(context.source),
+            hasLegalEffects: () => context.ability.hasAnyLegalEffects(context, SubStepCheck.All),
+            handler: () => this.resolveAbility(context),
+        };
+    }
+
+    /**
+     * Builds a single choice representing several similar triggers. Selecting it opens a modal to resolve
+     * the next instance or all remaining instances. The displayed title uses the ability's grouping title
+     * (see `getGroupingTitle`), so the per-instance override/context suffixes that distinguish individual
+     * triggers are intentionally ignored when they are collapsed into a group.
+     */
+    protected buildGroupChoice(members: TriggeredAbilityContext[]): IResolutionChoice {
+        const first = members[0];
+        return {
+            getTitle: () => this.getGroupingTitle(first),
+            getSourceCard: () => getTriggerSourceCardSummary(first.source),
+            hasLegalEffects: () => members.some((context) => context.ability.hasAnyLegalEffects(context, SubStepCheck.All)),
+            count: members.length,
+            handler: () => this.promptBatchResolution(members),
+        };
+    }
+
+    /**
+     * Groups similar triggers together. Keyed by the ability's grouping title and the source card's internal
+     * name, which incorporates subtitles so that distinct unique cards sharing a title aren't grouped, while
+     * identical token copies (e.g. Advantage) are.
+     */
+    protected getGroupKey(context: TriggeredAbilityContext): string {
+        const source = context.source;
+        const sourceKey = source?.isCard?.() ? source.internalName : 'no-source-card';
+        return `${this.getGroupingTitle(context)}::${sourceKey}`;
+    }
+
+    /**
+     * The title used to compare and display grouped triggers. It resolves the ability's title with no
+     * context, which yields the statically-authored title and skips both the per-instance override suffix
+     * (e.g. ": <card name>") and any dynamic `contextTitle`. Ignoring those keeps grouping side-effect-free
+     * and safe even when the source has left play (a `contextTitle` may read now-invalid in-play state), and
+     * matches the intent that per-instance differentiation shouldn't split otherwise-identical triggers.
+     */
+    protected getGroupingTitle(context: TriggeredAbilityContext): string {
+        return context.ability.getTitle();
+    }
+
+    private promptBatchResolution(members: TriggeredAbilityContext[]) {
+        const first = members[0];
+        const groupKey = this.getGroupKey(first);
+        const player = this.currentlyResolvingPlayer;
+
+        this.game.queueStep(new BatchTriggerResolutionPrompt(this.game, player, {
+            sourceCard: getTriggerSourceCardSummary(first.source),
+            title: this.getGroupingTitle(first),
+            remainingCount: members.length,
+            onResolveNext: () => {
+                const next = this.unresolved.get(player)?.find((context) => this.getGroupKey(context) === groupKey);
+                if (next) {
+                    this.resolveAbility(next);
+                }
+            },
+            onResolveAll: () => {
+                this.pendingBatchResolve = { player, groupKey };
+                this.promptUnresolvedAbilities();
+            },
+        }));
     }
 
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */
@@ -213,15 +350,6 @@ export abstract class TriggerWindowBase extends BaseStep {
         Contract.assertMapHasKey(this.unresolved, this.currentlyResolvingPlayer);
 
         return this.unresolved.get(this.currentlyResolvingPlayer);
-    }
-
-    private getChoiceTitle(context: TriggeredAbilityContext) {
-        let title = context.ability.getTitle(context);
-        if (!context.ability.hasAnyLegalEffects(context, SubStepCheck.All)) {
-            title = `(No effect) ${title}`;
-        }
-
-        return title;
     }
 
     private getOverrideTitle(context: TriggeredAbilityContext) {
@@ -260,33 +388,12 @@ export abstract class TriggerWindowBase extends BaseStep {
         return repeatedAbilities;
     }
 
-    private promptForNextAbilityToResolve() {
-        const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
-
-        let choices: string[] = [];
-        let handlers: (() => void)[] = [];
-
-        // If its a multi-select, append the card name at the end of the ability name to differentiate them
-        choices = abilitiesToResolve.map((context) => this.getChoiceTitle(context));
-        handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
-
-        this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
-            activePromptTitle: 'You have multiple triggers to resolve. Choose which to resolve first:',
-            source: 'Choose Triggered Ability Resolution Order',
-            choices,
-            handlers,
-            promptType: PromptType.TriggerWindow
-        });
-
-        // TODO: a variation of this was being used in the L5R code to choose which card to activate triggered abilities on.
-        // not used now b/c we're doing a shortcut where we just present each ability text name, which doesn't work well in all cases sadly.
-
-        // this.game.promptForSelect(this.currentlyResolvingPlayer, Object.assign(this.getPromptForSelectProperties(), {
-        //     onSelect: (player, card) => {
-        //         this.resolveAbility(abilitiesToResolve.find((context) => context.source === card));
-        //         return true;
-        //     }
-        // }));
+    private promptForNextAbilityToResolve(resolutionChoices: IResolutionChoice[]) {
+        this.game.queueStep(new TriggeredAbilityResolutionPrompt(
+            this.game,
+            this.currentlyResolvingPlayer,
+            resolutionChoices
+        ));
     }
 
     // this is here to allow for overriding in subclasses

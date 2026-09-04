@@ -16,7 +16,7 @@ describe('Commission', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.commission);
-                    expect(context.player1).toHavePrompt('Select a card');
+                    expect(context.player1).toHavePrompt('Select a Bounty Hunter, Item, or Transport card to reveal and draw');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         invalid: [context.viperProbeDroid, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.cellBlockGuard, context.tieAdvanced],
                         selectable: [context.frontlineShuttle, context.electrostaff, context.greedo, context.mandalorianArmor]
@@ -124,7 +124,7 @@ describe('Commission', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.commission);
-                    expect(context.player1).toHavePrompt('Select a card');
+                    expect(context.player1).toHavePrompt('Select a Bounty Hunter, Item, or Transport card to reveal and draw');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         invalid: [
                             context.disarm,

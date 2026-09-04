@@ -15,6 +15,7 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Deal damage equal to its power to a unit in the same arena',
+            contextTitle: (context) => `Deal ${context.event.card.getPower()} damage to a unit in the ${EnumHelpers.arenaName(context.event.card.zoneName)}`,
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>

@@ -174,7 +174,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
+    // `card` is typed as a scalar-or-array because some batched systems (e.g. ViewCardSystem) pass an array of targets here
+    protected override addPropertiesToEvent(event, card: Card | Card[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }
@@ -194,6 +195,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             card.isForceToken() || card.isCreditToken() || (card.canBeInPlay() && card.isInPlay()),
             `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`
         );
+
+        addLastKnownInformationToEvent(event, card);
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {

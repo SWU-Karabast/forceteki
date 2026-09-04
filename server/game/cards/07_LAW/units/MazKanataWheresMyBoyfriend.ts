@@ -15,7 +15,7 @@ export default class MazKanataWheresMyBoyfriend extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenAttackEndsAbility({
-            title: `If this unit survived, search the top 5 cards of your deck for an Underworld unit and play it. It costs ${TextHelper.resource(4)} less and enters play ready. At the start of the regroup phase, put that unit on the bottom of your deck`,
+            title: `If this unit survived, search the top 5 cards of your deck for an ${TextHelper.Trait.Underworld} unit and play it. It costs ${TextHelper.resource(4)} less and enters play ready. At the start of the regroup phase, put that unit on the bottom of your deck`,
             attackerMustSurvive: true,
             immediateEffect: abilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

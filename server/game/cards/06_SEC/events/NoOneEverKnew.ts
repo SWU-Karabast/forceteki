@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class NoOneEverKnew extends EventCard {
     protected override getImplementationId() {
@@ -13,7 +14,7 @@ export default class NoOneEverKnew extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'For each friendly Official unit, exhaust an enemy unit',
+            title: `For each friendly ${TextHelper.Trait.Official} unit, exhaust an enemy unit`,
             targetResolver: {
                 mode: TargetMode.ExactlyVariable,
                 cardTypeFilter: WildcardCardType.Unit,

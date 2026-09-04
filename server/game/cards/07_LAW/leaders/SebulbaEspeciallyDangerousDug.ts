@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SebulbaEspeciallyDangerousDug extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -13,13 +14,13 @@ export default class SebulbaEspeciallyDangerousDug extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper): void {
         registrar.addActionAbility({
-            title: 'A friendly unit gains Raid 1 for this phase',
+            title: `A friendly unit gains ${TextHelper.Raid(1)} for this phase`,
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.discardFromOwnDeck()
             ],
             targetResolver: {
-                activePromptTitle: 'Select a friendly unit to gain Raid 1 for this phase',
+                activePromptTitle: `Select a friendly unit to gain ${TextHelper.Raid(1)} for this phase`,
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({

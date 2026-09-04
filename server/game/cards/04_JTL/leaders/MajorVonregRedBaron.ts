@@ -9,6 +9,7 @@ import {
     WildcardZoneName,
     ZoneName
 } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class MajorVonregRedBaron extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -22,7 +23,7 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
         registrar.addPilotDeploy();
 
         registrar.addActionAbility({
-            title: 'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.',
+            title: `Play a ${TextHelper.Trait.Vehicle} unit from your hand. If you do, give another unit +1/+0 for this phase.`,
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),

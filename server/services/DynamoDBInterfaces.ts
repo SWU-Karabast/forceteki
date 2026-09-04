@@ -83,6 +83,13 @@ export interface IUserPreferences {
         muteChat?: boolean;
         cardLanguage?: CardImageLocale;
         timerVisibility?: TimerVisibility;
+
+        // Prompt-reduction settings: auto-resolve prompts that have only one sensible outcome.
+        // Grouped so future automations (e.g. auto-select opponent for indirect damage,
+        // auto-select the enemy/own base for damage/heal) can live alongside singleTarget.
+        autoResolve?: {
+            singleTarget?: boolean;
+        };
     };
 }
 
@@ -142,6 +149,19 @@ export interface IServerRoleUsersListsEntity {
     contributors: IServerRoleUserEntity[];
 }
 
+/**
+ * Global, runtime-toggleable server settings. Stored as a single item so that moderators can
+ * change them without a redeploy of either the client or the server.
+ */
+export interface IServerSettingsEntity {
+
+    /** When false, no new games may be created, joined or requeued. In-progress games are unaffected. */
+    gamesEnabled: boolean;
+    maintenanceMessage?: string;
+    updatedBy?: string;
+    updatedAt?: string;
+}
+
 export enum ModActionType {
     Mute = 'Mute',
     Warning = 'Warning',
@@ -173,4 +193,21 @@ export interface IActiveModActionCacheEntry {
     startedAt?: string;
     expiresAt?: string;
     modActionId: string;
+}
+
+export enum UsernameChangeSource {
+    AccountCreation = 'AccountCreation', // new account creation (previousUsername = null)
+    Migration = 'Migration', // backfill seed for pre-existing accounts (previousUsername = null)
+    UserInitiated = 'UserInitiated',
+    ForcedRename = 'ForcedRename', // result of a Rename mod action
+}
+
+export interface IUsernameChangeEntity {
+    id: string;
+    playerId: string;
+    previousUsername: string | null; // null only for Initial
+    newUsername: string;
+    source: UsernameChangeSource;
+    relatedModActionId?: string; // set only when source === ForcedRename
+    createdAt: string;
 }
