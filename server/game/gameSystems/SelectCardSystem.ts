@@ -104,11 +104,8 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 return;
             }
 
-            // a mandatory selection can still resolve without a card, e.g. when the resolver finds no target that the
-            // wrapped effect could do anything to and skips the prompt entirely. there is no selection to apply the
-            // effect to in that case. a selection that lets the player choose no cards (e.g. TargetMode.UpTo) is
-            // different: choosing nothing is a real choice there, and the effect still resolves against the empty
-            // selection
+            // a mandatory selection resolves without a card when the resolver finds no effective target and skips the
+            // prompt, leaving nothing to apply the effect to. choosing nothing in an "up to" selection is a real choice
             if (selectedCards.length === 0 && !this.selectionAllowsChoosingNoCards(context, additionalProperties)) {
                 return;
             }
