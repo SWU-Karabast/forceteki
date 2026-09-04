@@ -12,7 +12,7 @@ import { parse } from '../../../swupgn/src/index';
  * spectator) before generating the archive, then asserts none of those sentinels
  * survive into the text. A substring match against a sentinel is a real leak.
  */
-describe('SWU-PGN/1.1 generated archive PII scan', function () {
+describe('SWU-PGN/1.0 generated archive PII scan', function () {
     integration(function (contextRef) {
         beforeEach(function () {
             return contextRef.setupTestAsync({

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://karabast.net/swu-pgn/1.1/deck.schema.json",
+  "$id": "https://karabast.net/swu-pgn/1.0/deck.schema.json",
   "type": "object",
   "required": ["p","leader","base","deck"],
   "properties": {

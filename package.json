@@ -1,4 +1,6 @@
 {
+  "name": "forceteki",
+  "version": "0.1.0",
   "type": "commonjs",
   "scripts": {
     "dev": "cross-env NODE_ENV=development node scripts/run-server.js",

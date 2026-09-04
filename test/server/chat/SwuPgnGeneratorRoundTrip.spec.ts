@@ -1,6 +1,6 @@
 import { parse, validate, fold, render } from '../../../swupgn/src/index';
 
-describe('SWU-PGN/1.1 generator round-trip', function () {
+describe('SWU-PGN/1.0 generator round-trip', function () {
     integration(function (contextRef) {
         beforeEach(function () {
             return contextRef.setupTestAsync({
@@ -38,7 +38,7 @@ describe('SWU-PGN/1.1 generator round-trip', function () {
             expect(report.valid).toBe(true);
 
             const doc = parse(text);
-            expect(doc.header.game).toBe('SWU-PGN/1.1');
+            expect(doc.header.game).toBe('SWU-PGN/1.0');
             expect(doc.header.seed).toBeDefined();
             expect(doc.events.length).toBeGreaterThan(0);
 

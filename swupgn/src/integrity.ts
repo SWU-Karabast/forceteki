@@ -16,6 +16,7 @@ function emptyState(): ReducedState {
  * GATED (reconstructable from the current event model, single source of truth = the
  * event stream): `baseHp`, `handSize`, `resourcesReady`, and per in-play card matched
  * by id: `zone`, `damage`, `exhausted`, `shields`, `experience`, `statusTokens`.
+ * `baseHp` is exempt at the first keyframe only — see checkKeyframes for why.
  *
  * NOT GATED (and why): nothing in the per-seat invariant set above is currently deferred.
  * The keyframe's `cards` array only contains ground/space arena cards (see
@@ -58,9 +59,9 @@ function diffCard(seq: string, seat: 1 | 2, e: CardInstanceState, g: CardInstanc
     return out;
 }
 
-function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState): KeyframeMismatch[] {
+function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, checkBaseHp: boolean): KeyframeMismatch[] {
     const out: KeyframeMismatch[] = [];
-    if (e.baseHp !== g.baseHp) {
+    if (checkBaseHp && e.baseHp !== g.baseHp) {
         out.push({ seq, path: `players.${seat}.baseHp`, expected: e.baseHp, got: g.baseHp });
     }
     if (e.handSize !== g.handSize) {
@@ -90,25 +91,37 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState): Key
 }
 
 /** Compares the gated set of fold-tracked invariants against each keyframe (see above). */
-function diff(seq: string, expected: ReducedState, got: ReducedState): KeyframeMismatch[] {
+function diff(seq: string, expected: ReducedState, got: ReducedState, checkBaseHp: boolean): KeyframeMismatch[] {
     const out: KeyframeMismatch[] = [];
     for (const seat of [1, 2] as const) {
         const e = expected.players[seat];
         const g = got.players[seat];
         if (e && g) {
-            out.push(...diffSeat(seq, seat, e, g));
+            out.push(...diffSeat(seq, seat, e, g, checkBaseHp));
         }
     }
     return out;
 }
 
-/** Folds forward; at each keyframe, asserts the running fold equals the keyframe, then snaps to it. */
+/**
+ * Folds forward; at each keyframe, asserts the running fold equals the keyframe, then snaps to it.
+ *
+ * `baseHp` is exempt at the FIRST keyframe only. Nothing in the event stream carries a
+ * base's starting HP — `emptyState()` seeds a placeholder 30, but real bases vary (33, 28,
+ * ...), so before the first keyframe the fold has no way to know the true value and a
+ * comparison there tests the placeholder, not the file. The first keyframe is what supplies
+ * the real HP; the fold snaps to it, and every keyframe after that IS compared, since from
+ * then on `baseHp` is fully driven by DAMAGE/HEAL/OVERWHELM (which carry absolute `hp`).
+ * Every other gated field is compared at every keyframe, first one included.
+ */
 export function checkKeyframes(events: GameEvent[]): IntegrityResult {
     let s = emptyState();
     const mismatches: KeyframeMismatch[] = [];
+    let seenKeyframe = false;
     for (const e of events) {
         if ((e.t === 'ROUND_START' || e.t === 'ROUND_END') && e.keyframe) {
-            mismatches.push(...diff(e.seq, e.keyframe, s));
+            mismatches.push(...diff(e.seq, e.keyframe, s, seenKeyframe));
+            seenKeyframe = true;
             s = JSON.parse(JSON.stringify(e.keyframe));
             continue;
         }

@@ -1,7 +1,7 @@
 import { parse } from '../../../swupgn/src/parse';
 
 const SAMPLE = [
-    '[Game "SWU-PGN/1.1"]',
+    '[Game "SWU-PGN/1.0"]',
     '[GameId "g1"]',
     '[Date "2026-06-16T00:00:00Z"]',
     '[CardPool "LOF"] [Engine "forceteki@2.3.1"]',
@@ -26,7 +26,7 @@ const SAMPLE = [
 describe('parse', function () {
     it('parses header tags including multiple tags per line', function () {
         const doc = parse(SAMPLE);
-        expect(doc.header.game).toBe('SWU-PGN/1.1');
+        expect(doc.header.game).toBe('SWU-PGN/1.0');
         expect(doc.header.rounds).toBe(4);
         expect(doc.header.perspective).toBe('P1');
         expect(doc.header.result).toBe('P1');
@@ -50,7 +50,7 @@ describe('parse', function () {
 
 describe('parse error paths', function () {
     const HEAD = [
-        '[Game "SWU-PGN/1.1"]','[GameId "g1"]','[Date "2026-06-16T00:00:00Z"]',
+        '[Game "SWU-PGN/1.0"]','[GameId "g1"]','[Date "2026-06-16T00:00:00Z"]',
         '[CardPool "LOF"] [Engine "e"] [Seed "s"]',
         '[P1Id "a"] [P2Id "b"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
@@ -75,5 +75,26 @@ describe('parse error paths', function () {
     it('throws a distinct error for a record under an unrecognized section', function () {
         const bad = HEAD + '\n%%% BOGUS\n{"x":1}';
         expect(() => parse(bad)).toThrowError(/unrecognized section/);
+    });
+});
+
+describe('parse header numbers', function () {
+    const header = (rounds: string) => [
+        '[Game "SWU-PGN/1.0"] [GameId "g"] [Date "d"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
+        '[P1Id "sha256:a"] [P2Id "sha256:b"] [P1 "Player 1"] [P2 "Player 2"]',
+        '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
+        `[Result "P1"] [Reason "r"] [Rounds "${rounds}"]`,
+        '', '%%% EVENTS',
+    ].join('\n');
+
+    it('parses a numeric Rounds tag', function () {
+        expect(parse(header('7')).header.rounds).toBe(7);
+    });
+
+    // NaN is not an error anywhere, so it propagates silently into anything that reads it.
+    it('never yields NaN for a non-numeric Rounds tag', function () {
+        const rounds = parse(header('seven')).header.rounds;
+        expect(Number.isFinite(rounds)).toBe(true);
+        expect(rounds).toBe(0);
     });
 });

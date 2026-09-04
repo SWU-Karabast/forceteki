@@ -4,7 +4,7 @@ import { parse } from '../../../swupgn/src/index';
 // stops mid-game, so the GAME_END event and the Result/Reason header fields were never validated
 // against an actually-finished game. Here P1 destroys P2's base and we assert the emitted .swupgn
 // records the win, the result, the reason, and a trailing GAME_END.
-describe('SWU-PGN/1.1 generator — game end (real finished game)', function () {
+describe('SWU-PGN/1.0 generator — game end (real finished game)', function () {
     integration(function (contextRef) {
         beforeEach(function () {
             return contextRef.setupTestAsync({

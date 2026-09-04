@@ -1,8 +1,11 @@
 
-═══ ROUND 1 ═══
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 2
+ P2  base 30/30   hand 1   resources 2
+══════════════════════════════════════════════════════════════════════════════
 
-─── action ───
-1. Player 1 plays SOR#108 to ground (cost 2)
-2. Player 1 attacks Player 2's base with SOR#108
-SOR#108 deals 2 damage to Player 2's base (28 remaining HP)
-SOR#108 is exhausted
+ ── action ──
+  1. Player 1 plays Wampa to ground (2 resources)
+  2. Player 1 attacks Player 2's base with Wampa
+       ↳ 2 damage to Player 2's base — 28 HP left

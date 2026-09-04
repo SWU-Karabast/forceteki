@@ -1,6 +1,18 @@
 import { checkKeyframes } from '../../../swupgn/src/integrity';
 import type { CardInstanceState, GameEvent, PlayerState, ReducedState } from '../../../swupgn/src/types';
 
+/** A seat at rest; pass only the fields a test actually cares about. */
+function restingSeat(s: 1 | 2, over: Partial<PlayerState> = {}): PlayerState {
+    return { seat: s, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0,
+        resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [], ...over };
+}
+
+/** A ROUND_START carrying a complete two-seat keyframe. */
+function roundStart(round: number, p1: PlayerState, p2: PlayerState): GameEvent {
+    return { seq: `R${round}.start`, t: 'ROUND_START', round,
+        keyframe: { round, phase: 'setup', initiative: null, players: { 1: p1, 2: p2 } } };
+}
+
 describe('checkKeyframes', function () {
     it('passes when the fold matches each keyframe', function () {
         const events: GameEvent[] = [
@@ -15,14 +27,35 @@ describe('checkKeyframes', function () {
 
     it('fails when an event delta is missing before a keyframe', function () {
         const events: GameEvent[] = [
-            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: {
-                round: 2, phase: 'setup', initiative: null,
-                players: { 1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
-                           2: { seat: 2, baseHp: 28, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] } } } },
+            // R1 supplies the real starting base HP. baseHp is exempt on the FIRST keyframe
+            // only: the stream carries no starting HP, so there is nothing to compare it
+            // against until a keyframe provides it.
+            roundStart(1, restingSeat(1), restingSeat(2)),
+            // R2 claims player 2 took 2 damage, but no DAMAGE event says so.
+            roundStart(2, restingSeat(1), restingSeat(2, { baseHp: 28 })),
         ];
         const r = checkKeyframes(events);
         expect(r.ok).toBe(false);
         expect(r.mismatches[0].seq).toBe('R2.start');
+        expect(r.mismatches[0].path).toBe('players.2.baseHp');
+    });
+
+    it('does not compare baseHp at the first keyframe (starting HP is not in the stream)', function () {
+        // Real bases are not the 30 that emptyState() seeds. The first keyframe is what tells
+        // the reader the truth, so comparing against the placeholder proves nothing.
+        const events: GameEvent[] = [
+            roundStart(1, restingSeat(1, { baseHp: 33, baseMaxHp: 33 }), restingSeat(2, { baseHp: 28, baseMaxHp: 28 })),
+        ];
+        expect(checkKeyframes(events).ok).toBe(true);
+    });
+
+    it('still compares every non-baseHp field at the first keyframe', function () {
+        const events: GameEvent[] = [
+            roundStart(1, restingSeat(1, { baseHp: 33, handSize: 2 }), restingSeat(2, { baseHp: 28 })),
+        ];
+        const r = checkKeyframes(events);
+        expect(r.ok).toBe(false);
+        expect(r.mismatches.map((m) => m.path)).toEqual(['players.1.handSize']);
     });
 
     it('fails on a per-card field mismatch (keyframe claims damage but the fold has none)', function () {

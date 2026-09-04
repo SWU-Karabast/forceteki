@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { randomUUID } from 'crypto';
 
 import { GameChat } from './chat/GameChat';
 import type { MsgArg } from './chat/GameChat';
@@ -339,7 +340,7 @@ export class Game extends EventEmitter {
     public gameEndReason?: GameEndReason;
     private _actionsSinceLastUndo?: number;
 
-    // ── SWU-PGN/1.1 (single-file, event-sourced path) ──
+    // ── SWU-PGN/1.0 (single-file, event-sourced path) ──
     /** Owns 1.1 generation: recorder, stable-id/deck-order bookkeeping, and board projections. */
     private readonly _swuPgnAdapter: SwuPgnGameAdapter;
     private _cachedSwuPgnFile?: string;
@@ -355,7 +356,12 @@ export class Game extends EventEmitter {
         validateGameOptions(options);
 
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
-        this._randomGenerator = new Randomness();
+        // Always seed explicitly. An unseeded Randomness() self-seeds from entropy and leaves
+        // `seed` undefined, so the seed a real game actually ran on was unrecoverable and every
+        // production replay recorded `Seed "unseeded"` — which defeats the point of a notation
+        // format that claims deterministic replay. Generating the seed here makes it a recorded
+        // value without changing how random a game is.
+        this._randomGenerator = new Randomness(randomUUID());
         this._router = options.router;
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
@@ -894,7 +900,7 @@ export class Game extends EventEmitter {
         }
         this.finishedAt = new Date();
 
-        // Record game end in the SWU-PGN/1.1 event stream.
+        // Record game end in the SWU-PGN/1.0 event stream.
         const winnerSeat: Seat | 'Draw' = winners.length === 1
             ? (winners[0] === this.getPlayers()[0] ? 1 : 2)
             : 'Draw';
@@ -2035,7 +2041,7 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
-        // Roll the SWU-PGN/1.1 recorder back to match the restored game state: it
+        // Roll the SWU-PGN/1.0 recorder back to match the restored game state: it
         // checkpoints lazily per snapshot id (in SwuPgnRecorder.push), so rolling back to
         // the restored snapshot id drops exactly the events recorded after it and restores
         // counters + shieldParents. currentSnapshotId already reflects the restored snapshot.

@@ -1,4 +1,5 @@
 import { buildHeader, SwuPgnRecorder } from '../../../server/game/core/chat/SwuPgnRecorder';
+import { SwuPgn } from '../../../server/game/core/chat/SwuPgn';
 import { saltedPlayerId } from '../../../server/game/core/chat/swuPgnIdentity';
 import { fold } from '../../../swupgn/src/index';
 import type { GameEvent, ReducedState } from '../../../swupgn/src/types';
@@ -23,7 +24,7 @@ describe('SwuPgnRecorder.buildHeader', function () {
 
     it('emits a 1.1 header with provenance and salted ids', function () {
         const h = buildHeader(ctx);
-        expect(h.game).toBe('SWU-PGN/1.1');
+        expect(h.game).toBe('SWU-PGN/1.0');
         expect(h.cardPool).toBe('SOR');
         expect(h.engine).toBe('forceteki@test');
         expect(h.seed).toBe('seed-1');
@@ -266,6 +267,44 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         expect(card!.statusTokens['advantage']).toBe(1);
     });
 
+    // The reported bug: a gained Advantage was emitted as STATUS_TOKEN +1 on attach, but its
+    // removal was only ever recorded as the token pseudo-card leaving play (MOVE + DEFEAT) with
+    // no decrement — so a reader folding the stream kept the token on its host for the rest of
+    // the replay, while the engine's own keyframe reported statusTokens {}.
+    it('removes advantage/experience/shield tokens when the token is defeated', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#300', zoneName: 'groundArena', owner: p1, printedType: 'unit', remainingHp: 5 });
+        const advTok = fakeCard({ uuid: 'ADVTOK1', owner: p1, isAdvantage: true, printedType: 'token' });
+        const expTok = fakeCard({ uuid: 'EXPTOK1', owner: p1, isExperience: true, printedType: 'token' });
+        const shieldTok = fakeCard({ uuid: 'SHIELDTOK1', owner: p1, isShield: true, printedType: 'token' });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play' });
+        for (const token of [advTok, expTok, shieldTok]) {
+            game.emit(EventName.OnUpgradeAttached, { parentCard: unit, upgradeCard: token, originalZone: 'outsideTheGame' });
+        }
+
+        // Each token is removed by being defeated. DefeatCardSystem unattaches it first, so the
+        // token's parentCard is already gone — the host comes from the attach-time record.
+        for (const token of [advTok, expTok, shieldTok]) {
+            game.emit(EventName.OnCardDefeated, { card: token, defeatSource: { type: 'ability' } });
+        }
+
+        const events = rec.getEvents() as GameEvent[];
+        const removals = events.filter((e: any) => e.count === -1 || e.t === 'SHIELD_USE');
+        expect(removals.map((e: any) => e.t).sort()).toEqual(['EXPERIENCE_GAIN', 'SHIELD_USE', 'STATUS_TOKEN']);
+
+        const card = fold(events).players[1]!.cards.find((c) => c.id === 'SOR#300');
+        expect(card!.experience).toBe(0);
+        expect(card!.shields).toBe(0);
+        // A token that reaches zero is DELETED, not left as {advantage: 0} — the engine
+        // keyframe reports a host with no tokens as {}, and the gate compares by JSON equality.
+        expect(card!.statusTokens).toEqual({});
+    });
+
     it('records MULLIGAN/KEEP_HAND and a MODAL_CHOICE with offered/chose', function () {
         const game = new FakeEmitter();
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
@@ -455,10 +494,43 @@ describe('SwuPgnRecorder keyframes + INIT', function () {
         // a keyframe with no preceding deltas must pass checkKeyframes (fold == keyframe)
         expect(checkKeyframes(events).ok).toBe(true);
     });
+
+    // A keyframe REPLACES the reader's whole state, so one missing a seat erases that
+    // player's board. Dropping the keyframe is strictly safer: the fold just carries on.
+    it('omits the keyframe rather than emitting one that is missing a seat', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, {
+            cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2),
+            reducedState: (round: number): ReducedState => ({
+                round, phase: 'setup', initiative: null,
+                players: { 2: { seat: 2, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] } },
+            }),
+        });
+        game.emit(EventName.OnPhaseStarted, { phase: 'setup' });
+
+        const rs: any = rec.getEvents().find((e: any) => e.t === 'ROUND_START');
+        expect(rs).toBeDefined();
+        expect(rs.keyframe).toBeUndefined();
+    });
+
+    it('omits the keyframe when the projection throws', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, {
+            cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2),
+            reducedState: () => {
+                throw new Error('board projection blew up');
+            },
+        });
+        game.emit(EventName.OnPhaseStarted, { phase: 'setup' });
+
+        const rs: any = rec.getEvents().find((e: any) => e.t === 'ROUND_START');
+        expect(rs).toBeDefined();          // the round boundary is still recorded
+        expect(rs.keyframe).toBeUndefined();
+    });
 });
 
 describe('SwuPgnRecorder rollback', function () {
-    it('truncates events + setup and restores counters/shieldParents to a checkpoint boundary', function () {
+    it('truncates events + setup and restores counters/tokenParents to a checkpoint boundary', function () {
         const game = new FakeEmitter();
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
 
@@ -478,7 +550,7 @@ describe('SwuPgnRecorder rollback', function () {
 
         rec.checkpoint(1);
 
-        // Emit MORE events after the checkpoint, including a SHIELD_GAIN (populates shieldParents)
+        // Emit MORE events after the checkpoint, including a SHIELD_GAIN (populates tokenParents)
         // and additional sub-events that bump the counters.
         const shieldTok = fakeCard({ uuid: 'SHIELDTOK_POST', owner: p1, isShield: true, printedType: 'token' });
         game.emit(EventName.OnCardPlayed, { card: unitB, player: p1, playType: 'play' });             // action 2
@@ -487,8 +559,8 @@ describe('SwuPgnRecorder rollback', function () {
 
         const before = rec.getEvents().length;
         expect(before).toBeGreaterThan(boundaryEventsLen);
-        // shieldParents now has the post-checkpoint shield.
-        expect((rec as any).shieldParents.has('SHIELDTOK_POST')).toBe(true);
+        // tokenParents now has the post-checkpoint shield.
+        expect((rec as any).tokenParents.has('SHIELDTOK_POST')).toBe(true);
         // counters advanced past the boundary.
         expect((rec as any).actionCounter).toBeGreaterThan(boundaryAction);
 
@@ -504,9 +576,9 @@ describe('SwuPgnRecorder rollback', function () {
         expect((rec as any).actionCounter).toBe(boundaryAction);
         expect((rec as any).subEventCounter).toBe(boundarySub);
 
-        // shieldParents restored to checkpoint state: the post-checkpoint shield is gone, so a
+        // tokenParents restored to checkpoint state: the post-checkpoint shield is gone, so a
         // SHIELD_USE for it now finds no parent and is skipped (no SHIELD_USE record emitted).
-        expect((rec as any).shieldParents.has('SHIELDTOK_POST')).toBe(false);
+        expect((rec as any).tokenParents.has('SHIELDTOK_POST')).toBe(false);
         game.emit(EventName.OnCardDefeated, { card: shieldTok, defeatSource: { type: 'ability' } });
         expect(rec.getEvents().some((e: any) => e.t === 'SHIELD_USE')).toBe(false);
 
@@ -536,5 +608,19 @@ describe('SwuPgnRecorder rollback', function () {
         // rolling back to null is also a safe no-op.
         expect(() => rec.rollbackTo(null)).not.toThrow();
         expect(rec.getEvents().length).toBe(len);
+    });
+});
+
+describe('SwuPgn.formatTokenId', function () {
+    it('embeds a real numeric card id', function () {
+        expect(SwuPgn.formatTokenId('advantage', '5844562972')).toBe('TOKEN:advantage#5844562972');
+    });
+
+    // Weakness and Beast carry placeholder ids ('weakness-id', 'beast-id') in their card data.
+    // Emitting them would produce TOKEN:weakness#weakness-id, which looks resolvable and isn't.
+    it('omits a non-numeric placeholder id rather than emitting a fake identifier', function () {
+        expect(SwuPgn.formatTokenId('weakness', 'weakness-id')).toBe('TOKEN:weakness');
+        expect(SwuPgn.formatTokenId('beast', 'beast-id')).toBe('TOKEN:beast');
+        expect(SwuPgn.formatTokenId('shield', null)).toBe('TOKEN:shield');
     });
 });

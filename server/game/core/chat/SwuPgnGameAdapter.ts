@@ -1,3 +1,5 @@
+import { execFileSync } from 'child_process';
+
 import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, GameEndReason, PhaseName, ZoneName } from '../Constants';
@@ -5,10 +7,37 @@ import { SwuPgn } from './SwuPgn';
 import { buildHeader, SwuPgnRecorder } from './SwuPgnRecorder';
 import type { HeaderContext, SwuPgnResolver } from './SwuPgnRecorder';
 import { SwuPgnWriter } from './SwuPgnWriter';
-import type { CardInstanceState, DeckRecord, PlayerState, ReducedState, Seat } from '../../../../swupgn/src/types';
+import { render } from '../../../../swupgn/src/render';
+import type { CardIndexRecord, CardInstanceState, DeckRecord, PlayerState, ReducedState, Seat, SwuPgnDocument } from '../../../../swupgn/src/types';
 
 /**
- * Owns the SWU-PGN/1.1 (single-file, event-sourced) generation for a Game: it holds the
+ * Read one engine value, falling back if the accessor throws.
+ *
+ * Engine card accessors are not plain properties: `damage`, `exhausted` and `remainingHp`
+ * run `assertPropertyEnabledForZone` and throw when the card is in a zone where the
+ * property doesn't apply. Optional chaining does not help — it guards a null card, not a
+ * throwing getter. A keyframe is worth more slightly degraded than absent, so every engine
+ * read in the projection goes through here.
+ */
+function read<T>(get: () => T, fallback: T): T {
+    try {
+        const value = get();
+        return value === undefined ? fallback : value;
+    } catch {
+        return fallback;
+    }
+}
+
+/** A seat with nothing on the board — used only when a seat can't be resolved at all. */
+function emptyPlayerState(seat: Seat): PlayerState {
+    return {
+        seat, baseHp: 0, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0,
+        resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [],
+    };
+}
+
+/**
+ * Owns the SWU-PGN/1.0 (single-file, event-sourced) generation for a Game: it holds the
  * event recorder, the stable card-id/deck-order bookkeeping, and the omniscient board →
  * 1.1 projections, and assembles the one self-contained `.swupgn` (header + decks + setup +
  * events) the 1.1 reader parses/validates/folds/renders.
@@ -22,13 +51,16 @@ export class SwuPgnGameAdapter {
     private readonly recorder: SwuPgnRecorder;
 
     /** Stable SET#NUM[:copy] id per engine card instance uuid (1.1 path). */
-    private readonly cardIdByUuid: Map<string, string> = new Map();
+    private readonly cardIdByUuid = new Map<string, string>();
+
     /** Count of distinct instances seen per base id, for assigning :N copy suffixes (1.1 path). */
-    private readonly copyCountByBase: Map<string, number> = new Map();
+    private readonly copyCountByBase = new Map<string, number>();
+
     /** Initial post-shuffle / pre-draw deck order for both seats, captured once at setup. */
     private initialDeckOrder?: { p1: string[]; p2: string[] };
+
     /** Tracks which seats have had their initial deck order captured (first OnDeckShuffled). */
-    private readonly deckOrderCaptured: Set<string> = new Set();
+    private readonly deckOrderCaptured = new Set<string>();
 
     public constructor(game: Game) {
         this.game = game;
@@ -48,15 +80,56 @@ export class SwuPgnGameAdapter {
         this.recorder.addGameEndRecord(winnerSeat, this.gameEndReasonString(reasonCode));
     }
 
-    /** Assemble and serialize the single 1.1 `.swupgn` file. */
+    /** Assemble and serialize the single 1.0 `.swupgn` file. */
     public generateFile(): string {
-        return new SwuPgnWriter().write({
+        const doc: SwuPgnDocument = {
             header: buildHeader(this.swuPgnHeaderContext()),
+            story: [],
             decks: this.buildSwuPgnDecks(),
+            cards: this.buildSwuPgnCardIndex(),
             setup: this.recorder.getSetup(),
             events: this.recorder.getEvents(),
             annotations: [],
-        });
+        };
+        // The story is derived from the finished document, so it is generated last and read
+        // back by the same renderer a consumer would use — there is one narrative, not two.
+        doc.story = render(doc).split('\n');
+        return new SwuPgnWriter().write(doc);
+    }
+
+    /**
+     * Build the `%%% CARDS` index: every card id the file mentions, with its display name.
+     *
+     * This is what makes the artifact self-describing. Every id is collected from the records
+     * actually written (not from the decks, which miss tokens and the opponent's revealed
+     * cards), so the index covers exactly what a reader will encounter.
+     */
+    private buildSwuPgnCardIndex(): CardIndexRecord[] {
+        const entries = new Map<string, CardIndexRecord>();
+        for (const [uuid, id] of this.cardIdByUuid) {
+            const base = id.replace(/:\d+$/, '');
+            if (entries.has(base)) {
+                continue;
+            }
+            const card = read<any>(() => this.game.getFromUuidUnsafe(uuid as any), null);
+            const title = read<string>(() => card?.title, '');
+            const subtitle = read<string | null>(() => card?.subtitle, null);
+            if (!title) {
+                continue;
+            }
+            // `kind` lets a client classify a card from its id alone — in particular which
+            // `TOKEN:` ids are upgrades (never in an arena) and which are units.
+            const kind = read<'unit' | 'upgrade' | undefined>(
+                () => (card?.isUpgrade?.() ? 'upgrade' : card?.isUnit?.() ? 'unit' : undefined),
+                undefined
+            );
+            entries.set(base, {
+                id: base,
+                name: subtitle ? `${title}, ${subtitle}` : title,
+                ...(kind ? { kind } : {}),
+            });
+        }
+        return [...entries.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     }
 
     /** Roll the recorded stream back in lockstep with the game on undo. */
@@ -165,7 +238,12 @@ export class SwuPgnGameAdapter {
         let base: string;
         try {
             if (typeof card.isToken === 'function' && card.isToken()) {
-                base = `TOKEN:${card.title ?? card.name ?? 'unknown'}`;
+                // Tokens have a real numeric card id (the key the card map and the token image
+                // pipeline use) but a setId with no number, so they need their own format.
+                base = SwuPgn.formatTokenId(
+                    card.internalName ?? card.title ?? card.name ?? 'unknown',
+                    card.cardData?.id ?? null
+                );
             } else if (card.setId) {
                 base = SwuPgn.formatSetId(card.setId.set, card.setId.number);
             } else {
@@ -244,27 +322,44 @@ export class SwuPgnGameAdapter {
             state.initiative = null;
         }
 
-        for (const player of players) {
-            try {
-                const seat = this.swuPgnSeat(player.id);
-                state.players[seat] = this.buildSwuPgnPlayerState(player, seat);
-            } catch {
-                // Skip a player we can't project rather than emit a corrupt keyframe.
-            }
+        // A keyframe REPLACES the reader's whole running state (spec §13), so a keyframe
+        // missing a seat silently ERASES that player's board. Both seats are therefore
+        // emitted unconditionally, keyed by seat rather than by iterating getPlayers(), and
+        // every field inside is read defensively (see `read`) so that one unreadable card
+        // degrades a single field instead of deleting a whole player.
+        for (const seat of [1, 2] as Seat[]) {
+            const player = players.find((p) => this.swuPgnSeat(p.id) === seat);
+            state.players[seat] = player
+                ? this.buildSwuPgnPlayerState(player, seat)
+                : emptyPlayerState(seat);
         }
 
         return state;
     }
 
-    /** Project a single player's omniscient state into a fresh 1.1 PlayerState. */
+    /**
+     * Project a single player's omniscient state into a fresh 1.1 PlayerState.
+     *
+     * EVERY read here goes through `read()`. That is not defensive noise: engine card
+     * accessors such as `damage`, `exhausted` and `remainingHp` call
+     * `assertPropertyEnabledForZone` and THROW when the card is in a zone where the property
+     * does not apply (Card.ts `buildPropertyDisabledForZoneStr`). A single such card used to
+     * throw straight out of this method and cost the caller the entire seat, which is how
+     * keyframes ended up carrying one player or none. A field that can't be read degrades to
+     * its resting value; the seat is always produced.
+     */
     private buildSwuPgnPlayerState(player: any, seat: Seat): PlayerState {
-        const base = player.base;
-        const handCards: any[] = player.hand ?? [];
-        const discardCards: any[] = player.getCardsInZone?.(ZoneName.Discard) ?? [];
+        const cardIds = (cards: any[]): string[] => cards
+            .map((c: any) => read(() => (c?.uuid != null ? this.swuPgnCardId(c.uuid) : 'unknown'), 'unknown'))
+            .filter((id: string) => id !== 'unknown');
+
+        const base = read(() => player.base, null);
+        const handCards = read<any[]>(() => player.hand ?? [], []);
+        const discardCards = read<any[]>(() => player.getCardsInZone?.(ZoneName.Discard) ?? [], []);
 
         const cards: CardInstanceState[] = [];
         for (const zone of [ZoneName.GroundArena, ZoneName.SpaceArena]) {
-            const inZone: any[] = (player.getCardsInZone?.(zone) ?? []) as any[];
+            const inZone = read<any[]>(() => (player.getCardsInZone?.(zone) ?? []) as any[], []);
             for (const card of inZone) {
                 cards.push(this.buildSwuPgnCardInstance(card, zone === ZoneName.GroundArena ? 'ground' : 'space'));
             }
@@ -272,26 +367,22 @@ export class SwuPgnGameAdapter {
 
         return {
             seat,
-            baseHp: base?.remainingHp ?? 0,
-            baseMaxHp: base?.getPrintedHp?.() ?? 30,
+            baseHp: read(() => base?.remainingHp ?? 0, 0),
+            baseMaxHp: read(() => base?.getPrintedHp?.() ?? 30, 30),
             handSize: handCards.length,
-            hand: handCards
-                .map((c: any) => (c?.uuid != null ? this.swuPgnCardId(c.uuid) : 'unknown'))
-                .filter((id: string) => id !== 'unknown'),
-            resourcesReady: player.readyResourceCount ?? 0,
-            resourcesExhausted: player.exhaustedResourceCount ?? 0,
-            credits: player.creditTokenCount ?? 0,
-            hasForce: player.hasTheForce ?? false,
-            discard: discardCards
-                .map((c: any) => (c?.uuid != null ? this.swuPgnCardId(c.uuid) : 'unknown'))
-                .filter((id: string) => id !== 'unknown'),
+            hand: cardIds(handCards),
+            resourcesReady: read(() => player.readyResourceCount ?? 0, 0),
+            resourcesExhausted: read(() => player.exhaustedResourceCount ?? 0, 0),
+            credits: read(() => player.creditTokenCount ?? 0, 0),
+            hasForce: read(() => player.hasTheForce ?? false, false),
+            discard: cardIds(discardCards),
             cards,
         };
     }
 
     /** Project a single in-play card into a fresh 1.1 CardInstanceState. */
     private buildSwuPgnCardInstance(card: any, zone: string): CardInstanceState {
-        const upgrades: any[] = (card.upgrades ?? []) as any[];
+        const upgrades = read<any[]>(() => (card.upgrades ?? []) as any[], []);
         let shields = 0;
         let experience = 0;
         const statusTokens: Record<string, number> = {};
@@ -314,10 +405,12 @@ export class SwuPgnGameAdapter {
         }
 
         return {
-            id: card?.uuid != null ? this.swuPgnCardId(card.uuid) : 'unknown',
+            // `damage` and `exhausted` throw for a card in a zone where they don't apply,
+            // so both are read defensively — see buildSwuPgnPlayerState.
+            id: read(() => (card?.uuid != null ? this.swuPgnCardId(card.uuid) : 'unknown'), 'unknown'),
             zone,
-            damage: card?.damage ?? 0,
-            exhausted: card?.exhausted ?? false,
+            damage: read(() => card?.damage ?? 0, 0),
+            exhausted: read(() => card?.exhausted ?? false, false),
             upgrades: plainUpgrades,
             shields,
             experience,
@@ -354,7 +447,8 @@ export class SwuPgnGameAdapter {
                     }
                 }
                 if (sets.size > 0) {
-                    return Array.from(sets).sort().join(',');
+                    return Array.from(sets).sort()
+                        .join(',');
                 }
             }
         } catch {
@@ -363,14 +457,40 @@ export class SwuPgnGameAdapter {
         return 'unknown';
     }
 
+    /** Resolved once per process: engine version resolution shells out to git at most one time. */
+    private static cachedEngineVersion?: string;
+
     /**
-     * Engine provenance string for the SWU-PGN header. The repo carries no package version,
-     * so this is deployment-configurable (set FORCETEKI_VERSION, or run under npm which sets
-     * npm_package_version once a version field exists) and falls back to a stable sentinel.
+     * Engine provenance string for the SWU-PGN header, e.g. `forceteki@0.1.0` or
+     * `forceteki@a1b2c3d`.
+     *
+     * This has to name the BUILD, not a placeholder: without it you cannot tell which build
+     * produced a bad replay, which is the position a real bug hunt lands in. Resolution order:
+     * an explicit deploy-time override, the package version (npm sets this when run via a
+     * script), then the git SHA of the working tree. `forceteki@unknown` is a last resort that
+     * means "provenance unavailable", and a reader should treat a file carrying it as
+     * untraceable rather than as coming from some known build.
      */
     private static engineVersion(): string {
-        const version = process.env.FORCETEKI_VERSION ?? process.env.npm_package_version;
-        return version ? `forceteki@${version}` : 'forceteki@unknown';
+        if (SwuPgnGameAdapter.cachedEngineVersion == null) {
+            const version = process.env.FORCETEKI_VERSION ??
+              process.env.npm_package_version ??
+              SwuPgnGameAdapter.gitSha();
+            SwuPgnGameAdapter.cachedEngineVersion = version ? `forceteki@${version}` : 'forceteki@unknown';
+        }
+        return SwuPgnGameAdapter.cachedEngineVersion;
+    }
+
+    /** Short git SHA of the working tree, or undefined when git or the repo isn't available. */
+    private static gitSha(): string | undefined {
+        try {
+            const sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+                cwd: __dirname, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 2000,
+            }).trim();
+            return sha || undefined;
+        } catch {
+            return undefined;   // deployed without .git, or no git binary
+        }
     }
 
     /** Maps a GameEndReason to a human-readable string for PGN output. */
@@ -404,8 +524,9 @@ export class SwuPgnGameAdapter {
             format: this.game.gameMode,
             cardPool: this.swuPgnCardPool(),
             engineVersion: SwuPgnGameAdapter.engineVersion(),
-            // Tests run with an unseeded RNG; Seed is a required header tag and the
-            // reader rejects an empty one, so fall back to a non-empty sentinel.
+            // Every Game now seeds its RNG explicitly (see Game's constructor), so this is the
+            // real seed the game ran on. The sentinel remains only for a Game constructed by a
+            // harness that replaces the generator: Seed is a required tag and must be non-empty.
             seed: this.game.randomSeed ?? 'unseeded',
             perspective: null,
             rounds: this.game.roundNumber,

@@ -2526,13 +2526,12 @@ export class Lobby {
         }
 
         try {
-            // The self-contained SWU-PGN/1.1 single-file artifact (header + decks +
-            // setup + events) is the sole served game-log format.
+                        // setup + events) is the sole served game-log format.
             let swuPgnFile: string | undefined;
             try {
                 swuPgnFile = this.game.getCachedSwuPgn();
             } catch (e) {
-                logger.error(`Error generating SWU-PGN/1.1 file: ${e}`);
+                logger.error(`Error generating SWU-PGN/1.0 file: ${e}`);
             }
 
             if (typeof callback === 'function') {

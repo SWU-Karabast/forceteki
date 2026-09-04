@@ -1,4 +1,4 @@
-# SWU-PGN/1.1 — Definitive Game Format: Design
+# SWU-PGN/1.0 — Definitive Game Format: Design
 
 **Status:** Approved design (precursor to the normative spec + implementation plan)
 **Date:** 2026-06-16
@@ -47,7 +47,7 @@ These are designed-for (the format and schema accommodate them) but not implemen
 | D6 | **Decision context** | Capture choices **as presented** (`offered[]` + `chose`); defer full legal-action enumeration. | The engine already computes prompt options, so capture is near-free; turns every decision into a labeled coaching example without measurable load. |
 
 **Resolved open items:** file extension stays `.swupgn` (single file, brand continuity); version label is
-`SWU-PGN/1.1` (noting the breaking supersede of the unreleased 1.0).
+`SWU-PGN/1.0` (noting the breaking supersede of the unreleased 1.0).
 
 ### Cross-domain influences
 - **Chess PGN:** tag-pair header; NAG annotation glyphs (`!`, `?`, `!!`, `?!`); parenthesized variation sub-lines.
@@ -86,7 +86,7 @@ Media type (to be registered in the spec): `application/vnd.swu-pgn`.
 
 ### 3.1 Header / provenance
 ```
-[Game "SWU-PGN/1.1"] [GameId "01J…"] [Date "2026-06-16T14:22:01Z"]
+[Game "SWU-PGN/1.0"] [GameId "01J…"] [Date "2026-06-16T14:22:01Z"]
 [Format "Premier"] [CardPool "LOF"] [Engine "forceteki@2.3.1"]
 [Seed "a3f9c1…"] [Perspective "P1"]
 [P1Id "sha256:9f3a…"] [P2Id "sha256:1c77…"] [P1 "Player 1"] [P2 "Player 2"]
@@ -275,7 +275,7 @@ Evolve the existing `PgnReplayRecorder` + `Game` wiring to emit the single `.swu
 
 ## 15. Deliverables for this plan
 
-1. The normative **SWU-PGN/1.1 specification** document (W3C/RFC-grade, §9 structure) + JSON Schemas + ABNF +
+1. The normative **SWU-PGN/1.0 specification** document (W3C/RFC-grade, §9 structure) + JSON Schemas + ABNF +
    test vectors.
 2. The reworked **generator** producing the single `.swupgn` file (§12).
 3. The **reference reader library** (§11).

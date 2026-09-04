@@ -3,7 +3,7 @@ import type { SwuPgnDocument, GameEvent, ReducedState, Header } from '../../../s
 describe('swupgn types', function () {
     it('models a minimal document', function () {
         const header: Header = {
-            game: 'SWU-PGN/1.1', gameId: 'g1', date: '2026-06-16T00:00:00Z',
+            game: 'SWU-PGN/1.0', gameId: 'g1', date: '2026-06-16T00:00:00Z',
             cardPool: 'LOF', engine: 'forceteki@2.3.1', seed: 'abc',
             perspective: 'P1', p1Id: 'sha256:a', p2Id: 'sha256:b',
             p1: 'Player 1', p2: 'Player 2',

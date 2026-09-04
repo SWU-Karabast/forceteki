@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://karabast.net/swu-pgn/1.1/event.schema.json",
-  "title": "SWU-PGN/1.1 Event",
+  "$id": "https://karabast.net/swu-pgn/1.0/event.schema.json",
+  "title": "SWU-PGN/1.0 Event",
   "type": "object",
   "required": ["seq","t"],
   "properties": {

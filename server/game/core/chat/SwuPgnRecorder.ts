@@ -22,7 +22,7 @@ export interface HeaderContext {
 
 export function buildHeader(ctx: HeaderContext): Header {
     return {
-        game: 'SWU-PGN/1.1',
+        game: 'SWU-PGN/1.0',
         gameId: ctx.gameId,
         date: ctx.date,
         format: ctx.format,
@@ -41,7 +41,7 @@ export function buildHeader(ctx: HeaderContext): Header {
 }
 
 /**
- * Maps engine identities to the stable, anonymized identifiers used by SWU-PGN/1.1.
+ * Maps engine identities to the stable, anonymized identifiers used by SWU-PGN/1.0.
  * The Game-side implementation (Task 10) owns copy-suffix logic and the omniscient
  * keyframe/deck-order projections; the recorder only needs uuid->id and playerId->seat.
  *
@@ -58,7 +58,48 @@ export interface SwuPgnResolver {
 }
 
 /**
- * Emits SWU-PGN/1.1 `GameEvent`s by subscribing to engine events. Every handler is
+ * What a card is, for the fold's arena-membership decision.
+ *
+ * Read from the card TYPE rather than from isShield/isExperience/isAdvantage predicates, so
+ * it is right for every token — including Weakness (a token upgrade matching none of those
+ * predicates) and any upgrade token printed in future.
+ */
+function cardKind(card: any): 'unit' | 'upgrade' | undefined {
+    try {
+        if (card?.isUpgrade?.()) {
+            return 'upgrade';
+        }
+        if (card?.isUnit?.()) {
+            return 'unit';
+        }
+    } catch {
+        // fall through: an unclassifiable card simply omits `kind`
+    }
+    return undefined;
+}
+
+/** The three token-upgrade kinds the fold models, each with its own gain/removal record. */
+type TokenUpgradeKind = 'shield' | 'experience' | 'advantage';
+
+/**
+ * Classify a token-upgrade card. Returns null for a normally-played (non-token) upgrade,
+ * which is covered by PLAY_UPGRADE and must not produce a token record.
+ */
+function tokenUpgradeKind(upgrade: any): TokenUpgradeKind | null {
+    if (upgrade?.isShield?.()) {
+        return 'shield';
+    }
+    if (upgrade?.isExperience?.()) {
+        return 'experience';
+    }
+    if (upgrade?.isAdvantage?.()) {
+        return 'advantage';
+    }
+    return null;
+}
+
+/**
+ * Emits SWU-PGN/1.0 `GameEvent`s by subscribing to engine events. Every handler is
  * wrapped in try/catch with rate-limited error logging so a recording bug can never
  * crash gameplay.
  */
@@ -90,19 +131,26 @@ export class SwuPgnRecorder {
     private loggedErrorCount = 0;
 
     /**
-     * Remembers which unit each Shield token is attached to (shield uuid → parent unit object).
-     * Needed for SHIELD_USE: a shield is "used" by being defeated, but DefeatCardSystem unattaches
-     * the upgrade in its eventHandler before our OnCardDefeated `.on()` listener runs, so the
-     * shield's parentCard is already null by then. We capture the parent at attach time instead.
+     * Remembers which unit each token-upgrade is attached to, and what kind it is
+     * (token uuid → { parent unit object, kind }).
+     *
+     * Needed for every token REMOVAL record. A token-upgrade is removed by being defeated, but
+     * DefeatCardSystem unattaches the upgrade in its eventHandler before our OnCardDefeated
+     * `.on()` listener runs, so the token's parentCard is already null by then. We capture the
+     * parent at attach time instead.
+     *
+     * This used to hold shields only, which is why SHIELD_USE was emitted but experience and
+     * advantage were never decremented: a reader folding the stream kept every Advantage token
+     * on its host for the rest of the replay. All three token kinds now round-trip.
      */
-    private readonly shieldParents = new Map<string, any>();
+    private readonly tokenParents = new Map<string, { parent: any; kind: TokenUpgradeKind }>();
 
     /**
-     * Rollback checkpoints (array lengths + counters + shieldParents snapshot) keyed by
+     * Rollback checkpoints (array lengths + counters + tokenParents snapshot) keyed by
      * snapshot id, so the recorder rewinds in lockstep with the game on undo.
-     * shieldParents is captured here because a
-     * rollback that rewinds past a SHIELD_GAIN without restoring the map would make a
-     * later SHIELD_USE miss its parent.
+     * tokenParents is captured here because a
+     * rollback that rewinds past a token attach without restoring the map would make a
+     * later removal record miss its parent.
      */
     private readonly checkpoints: {
         snapshotId: number;
@@ -114,7 +162,7 @@ export class SwuPgnRecorder {
         phaseEventCounter: number;
         subEventCounter: number;
         loggedErrorCount: number;
-        shieldParents: [string, any][];
+        tokenParents: [string, { parent: any; kind: TokenUpgradeKind }][];
     }[] = [];
 
     public constructor(game: Game, resolver: SwuPgnResolver) {
@@ -173,7 +221,7 @@ export class SwuPgnRecorder {
      * `restoredSnapshotId` is the snapshot the game was restored to
      * (snapshotManager.currentSnapshotId after the rollback). Truncates events/setup back to
      * the boundary captured when that snapshot was taken — dropping exactly the undone events —
-     * restores all counters and the shieldParents map, and discards that checkpoint and any
+     * restores all counters and the tokenParents map, and discards that checkpoint and any
      * later ones so re-recording the redo starts clean.
      * Safe no-op when the snapshot id is unknown (nothing was recorded after it).
      */
@@ -201,11 +249,11 @@ export class SwuPgnRecorder {
             this.phaseEventCounter = boundary.phaseEventCounter;
             this.subEventCounter = boundary.subEventCounter;
             this.loggedErrorCount = boundary.loggedErrorCount;
-            // Rebuild shieldParents from the snapshot taken at the boundary so a SHIELD_USE for a
-            // shield gained after the boundary no longer finds a parent (and is skipped).
-            this.shieldParents.clear();
-            for (const [uuid, parent] of boundary.shieldParents) {
-                this.shieldParents.set(uuid, parent);
+            // Rebuild tokenParents from the snapshot taken at the boundary so a removal record for
+            // a token gained after the boundary no longer finds a parent (and is skipped).
+            this.tokenParents.clear();
+            for (const [uuid, entry] of boundary.tokenParents) {
+                this.tokenParents.set(uuid, entry);
             }
             // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
             this.checkpoints.length = idx;
@@ -216,7 +264,7 @@ export class SwuPgnRecorder {
 
     /**
      * Capture a rollback checkpoint for `snapshotId`, recording the current array lengths,
-     * counters, and a snapshot of the shieldParents map. Mirrors v1.0's checkpoint semantics:
+     * counters, and a snapshot of the tokenParents map. Mirrors v1.0's checkpoint semantics:
      * if the most recent checkpoint already belongs to this snapshot id it is a no-op (one
      * checkpoint per snapshot boundary). Exposed publicly so tests (and any explicit Game-side
      * hook) can checkpoint deterministically; gameplay drives it lazily via push().
@@ -240,7 +288,7 @@ export class SwuPgnRecorder {
                 phaseEventCounter: this.phaseEventCounter,
                 subEventCounter: this.subEventCounter,
                 loggedErrorCount: this.loggedErrorCount,
-                shieldParents: [...this.shieldParents.entries()],
+                tokenParents: [...this.tokenParents.entries()],
             });
         } catch (error) {
             this.logError('checkpoint', error);
@@ -257,7 +305,7 @@ export class SwuPgnRecorder {
     /**
      * Capture a rollback checkpoint the first time an event is pushed under a new snapshot id.
      * The game takes a state snapshot before the effects it precedes, so the first push afterward
-     * captures the lengths + counters + shieldParents as they were *at that snapshot* (before its
+     * captures the lengths + counters + tokenParents as they were *at that snapshot* (before its
      * events). Keyed off snapshotManager.currentSnapshotId, which is restored to the rolled-back
      * value on undo. No-op when there is no snapshot manager (unit-test stubs). Mirrors v1.0.
      */
@@ -326,7 +374,7 @@ export class SwuPgnRecorder {
     }
 
     /**
-     * Map engine zone names to the short SWU-PGN/1.1 vocabulary. Only the two arena
+     * Map engine zone names to the short SWU-PGN/1.0 vocabulary. Only the two arena
      * zones differ (`groundArena`→`ground`, `spaceArena`→`space`); all other engine
      * zone strings (`deck`, `discard`, `hand`, `resource`, `base`, …) already match the
      * spec vocabulary and pass through unchanged.
@@ -337,6 +385,55 @@ export class SwuPgnRecorder {
             case ZoneName.SpaceArena: return 'space';
             default: return zoneName ?? '';
         }
+    }
+
+    /**
+     * The record for a token-upgrade gain (`delta` 1) or removal (`delta` -1), against `hostId`.
+     *
+     * Gain and removal go through this one place so a kind can never be recorded on the way on
+     * but forgotten on the way off — which is exactly how advantage and experience ended up
+     * permanently stuck on their hosts.
+     */
+    private tokenRecord(seq: string, kind: TokenUpgradeKind, hostId: string, delta: 1 | -1): GameEvent {
+        switch (kind) {
+            case 'shield':
+                return delta === 1
+                    ? { seq, t: 'SHIELD_GAIN', card: hostId }
+                    : { seq, t: 'SHIELD_USE', card: hostId };
+            case 'experience':
+                return { seq, t: 'EXPERIENCE_GAIN', card: hostId, count: delta };
+            case 'advantage':
+                return { seq, t: 'STATUS_TOKEN', card: hostId, token: 'advantage', count: delta };
+        }
+    }
+
+    /**
+     * Name `hostId` on the token's entry MOVE, which was emitted a moment ago while the token
+     * was still unattached.
+     *
+     * Only the immediately preceding event is considered: the engine emits the token's MOVE and
+     * its attach back to back, so anything further back belongs to a different action and must
+     * not be rewritten.
+     */
+    private backfillAttachedTo(tokenId: string, hostId: string): void {
+        const last = this.events[this.events.length - 1];
+        if (last?.t === 'MOVE' && last.card === tokenId && last.attachedTo == null) {
+            last.attachedTo = hostId;
+        }
+    }
+
+    /**
+     * The unit a token-upgrade is bound to, or null if the card isn't one.
+     *
+     * Checks the remembered attach-time host first, because by the time a token is moved out of
+     * play it has already been unattached and its live parent is gone.
+     */
+    private tokenHostOf(card: any): any | null {
+        if (!tokenUpgradeKind(card)) {
+            return null;
+        }
+        const remembered = card?.uuid != null ? this.tokenParents.get(card.uuid) : undefined;
+        return remembered?.parent ?? this.parentOf(card) ?? null;
     }
 
     private logError(where: string, error: unknown): void {
@@ -439,10 +536,45 @@ export class SwuPgnRecorder {
             t: 'ROUND_START',
             round: this.currentRound,
         };
-        if (this.resolver.reducedState) {
-            event.keyframe = this.resolver.reducedState(this.currentRound);
+        const keyframe = this.projectKeyframe();
+        if (keyframe) {
+            event.keyframe = keyframe;
         }
         this.push(event);
+    }
+
+    /**
+     * Project a round keyframe, or `undefined` if a complete one can't be produced.
+     *
+     * A keyframe is authoritative: the reader REPLACES its whole running state with it
+     * (spec §13). So a keyframe that is missing a seat does not merely lose detail, it
+     * ERASES that player's board — hand size, resources and in-play cards all reset, and
+     * every later fold is wrong. An absent keyframe is harmless by comparison: the reader
+     * just keeps folding deltas. Therefore a keyframe is attached only when it is complete
+     * for both seats; anything else is dropped and logged.
+     */
+    private projectKeyframe(): ReducedState | undefined {
+        if (!this.resolver.reducedState) {
+            return undefined;
+        }
+        try {
+            const keyframe = this.resolver.reducedState(this.currentRound);
+            const seatedPlayerCount = this.game.getPlayers?.()?.length ?? 2;
+            const missing = ([1, 2] as Seat[]).filter((seat) => keyframe.players[seat] == null);
+            // Before both seats exist there is nothing to be incomplete about; once the game
+            // is seated, a missing seat means a failed projection.
+            if (seatedPlayerCount >= 2 && missing.length > 0) {
+                this.logError(
+                    'projectKeyframe',
+                    new Error(`incomplete keyframe at R${this.currentRound}.start: no state for seat(s) ${missing.join(', ')}`)
+                );
+                return undefined;
+            }
+            return keyframe;
+        } catch (error) {
+            this.logError('projectKeyframe', error);
+            return undefined;
+        }
     }
 
     // ── Listener registration ──────────────────────────────────────────────────
@@ -460,7 +592,16 @@ export class SwuPgnRecorder {
 
         this.game.on(EventName.OnRoundEnded, () => {
             try {
-                this.push({ seq: `R${this.currentRound}.end`, t: 'ROUND_END', round: this.currentRound });
+                // ROUND_END carries a keyframe too. Now that keyframes are complete and
+                // trustworthy, an end-of-round snapshot is the cheapest place to catch a round's
+                // worth of fold drift: it halves the window between checkpoints at the cost of
+                // one snapshot per round.
+                const event: GameEvent = { seq: `R${this.currentRound}.end`, t: 'ROUND_END', round: this.currentRound };
+                const keyframe = this.projectKeyframe();
+                if (keyframe) {
+                    event.keyframe = keyframe;
+                }
+                this.push(event);
             } catch (error) {
                 this.logError('OnRoundEnded', error);
             }
@@ -664,22 +805,28 @@ export class SwuPgnRecorder {
             try {
                 const card = event?.card;
 
-                // SHIELD_USE: there is no dedicated shield-removal event. A Shield is a token-upgrade
-                // card (Shield extends TokenUpgradeCard) whose damage-modification replaces incoming
-                // damage with defeat() — so "using" a shield surfaces as the Shield token being defeated
-                // (OnCardDefeated where the defeated card isShield()). We record SHIELD_USE against the
-                // unit the shield was attached to, which the 1.1 reducer decrements by `count` (default 1).
-                if (card?.isShield?.()) {
-                    // Prefer the parent we remembered at attach time (the upgrade is already
-                    // unattached by now); fall back to a live lookup if it wasn't recorded.
-                    const parent = (card?.uuid != null ? this.shieldParents.get(card.uuid) : undefined) ?? this.parentOf(card);
+                // Token-upgrade REMOVAL. There is no dedicated removal event for any of the three
+                // token kinds: shields, experience and advantage are all token-upgrade cards, and
+                // each is removed by being defeated (a shield's damage-modification replaces the
+                // damage with defeat(); an Advantage defeats itself when the attack ends). So the
+                // removal surfaces here, as OnCardDefeated on the token itself.
+                //
+                // Only shields used to be handled, which meant a gained Advantage or Experience was
+                // never taken back off its host: a reader folding the stream kept the token for the
+                // rest of the replay while the engine's own keyframe showed statusTokens {}. Every
+                // kind now emits its decrement, so gains and removals balance.
+                const removed = card?.uuid != null ? this.tokenParents.get(card.uuid) : undefined;
+                const removedKind = removed?.kind ?? tokenUpgradeKind(card);
+                if (removedKind) {
+                    // Prefer the parent remembered at attach time (the upgrade is already unattached
+                    // by now); fall back to a live lookup if it wasn't recorded.
+                    const parent = removed?.parent ?? this.parentOf(card);
                     if (parent) {
-                        const seq = this.nextSeq(false);
-                        this.push({ seq, t: 'SHIELD_USE', card: this.idOf(parent) });
+                        this.push(this.tokenRecord(this.nextSeq(false), removedKind, this.idOf(parent), -1));
                     }
-                    if (card?.uuid != null) {
-                        this.shieldParents.delete(card.uuid);
-                    }
+                    // The entry is deliberately NOT deleted here: the token's exit MOVE is emitted
+                    // after this handler, and it still needs the host to fill in `attachedTo`. A
+                    // re-attach overwrites the entry, so a stale host can't be read back.
                     return;
                 }
 
@@ -708,19 +855,61 @@ export class SwuPgnRecorder {
         this.game.on(EventName.OnCardMoved, (event: any) => {
             try {
                 const card = event?.card;
+
+                // OnCardMoved is emitted TWICE for an ability-driven move: once by
+                // MoveCardSystem (whose props are destination/context — no zones) and once by
+                // Card.postMoveSteps, which carries the authoritative originalZone/newZone. Only
+                // the second describes a move, so the first is dropped. Recording it produced
+                // `"from": ""` records, which are not a zone at all and forced every reader to
+                // special-case the required field.
+                if (event?.originalZone == null) {
+                    return;
+                }
+
+                const from = this.normalizeZone(event.originalZone);
+                const to = this.normalizeZone(event?.newZone ?? card?.zoneName);
+
+                // A move that doesn't change zone carries no information. Searching a deck moves
+                // each examined card deck->deck on the way back, which is how two SEARCHes came to
+                // produce 20% of a real game's MOVE records. Examining a card is reported by
+                // SEARCH (and REVEAL); only a card that actually leaves its zone gets a MOVE.
+                if (from === to || from === '' || to === '') {
+                    return;
+                }
+
                 const seq = this.nextSeq(false);
                 // Seat lets the 1.1 fold attribute zone-membership counts (handSize,
                 // resourcesReady) and arena-card placement to a player: the engine performs
                 // these via card moves, not via DRAW/RESOURCE/PLAY summary events, so MOVE is
                 // the fold's source of truth for those counts.
+                // For a token-upgrade, also name the unit it is bound to. Without it a reader can
+                // only infer the binding from the accident that the token's gain/removal record
+                // happens to be the adjacent event; `attachedTo` states it outright.
+                const host = this.tokenHostOf(card);
+                const seat = this.seatOf(card?.controller ?? card?.owner);
+                const kind = cardKind(card);
                 this.push({
                     seq,
                     t: 'MOVE',
                     card: this.idOf(card),
-                    from: this.normalizeZone(event?.originalZone),
-                    to: this.normalizeZone(event?.newZone ?? card?.zoneName),
-                    p: this.seatOf(card?.controller ?? card?.owner),
+                    from,
+                    to,
+                    p: seat,
+                    ...(host ? { attachedTo: this.idOf(host) } : {}),
+                    ...(kind ? { kind } : {}),
                 });
+
+                // RESOURCE is the human-readable summary of "a card became a resource", the way
+                // DRAW summarises the deck->hand MOVEs beside it. It is derived from the move
+                // rather than from OnCardResourced because that engine event only fires for
+                // ability-driven resourcing: the setup and regroup resource steps call
+                // Player.resourceCard() directly (ResourcePrompt.resourceSelectedCards), so
+                // listening for it produced ZERO records across a full game's 15 resourcings.
+                // Every resourcing — routine or ability-driven, including takeControl into the
+                // resource zone — ends in this move, so this sees all of them exactly once.
+                if (to === 'resource') {
+                    this.push({ seq: this.nextSeq(false), t: 'RESOURCE', p: seat, card: this.idOf(card) });
+                }
             } catch (error) {
                 this.logError('OnCardMoved', error);
             }
@@ -748,31 +937,24 @@ export class SwuPgnRecorder {
         this.game.on(EventName.OnUpgradeAttached, (event: any) => {
             try {
                 const upgrade = event?.upgradeCard;
-                if (upgrade?.isShield?.()) {
-                    const parent = event?.parentCard ?? this.parentOf(upgrade);
-                    if (!parent) {
-                        return;
-                    }
-                    if (upgrade?.uuid != null) {
-                        this.shieldParents.set(upgrade.uuid, parent);
-                    }
-                    const seq = this.nextSeq(false);
-                    this.push({ seq, t: 'SHIELD_GAIN', card: this.idOf(parent) });
-                } else if (upgrade?.isExperience?.()) {
-                    const parent = event?.parentCard ?? this.parentOf(upgrade);
-                    if (!parent) {
-                        return;
-                    }
-                    const seq = this.nextSeq(false);
-                    this.push({ seq, t: 'EXPERIENCE_GAIN', card: this.idOf(parent), count: 1 });
-                } else if (upgrade?.isAdvantage?.()) {
-                    const parent = event?.parentCard ?? this.parentOf(upgrade);
-                    if (!parent) {
-                        return;
-                    }
-                    const seq = this.nextSeq(false);
-                    this.push({ seq, t: 'STATUS_TOKEN', card: this.idOf(parent), token: 'advantage', count: 1 });
+                const kind = tokenUpgradeKind(upgrade);
+                if (!kind) {
+                    return;
                 }
+                const parent = event?.parentCard ?? this.parentOf(upgrade);
+                if (!parent) {
+                    return;
+                }
+                // Remember the host for the matching removal record: by the time the token is
+                // defeated it has already been unattached, so its parent is unreachable then.
+                if (upgrade?.uuid != null) {
+                    this.tokenParents.set(upgrade.uuid, { parent, kind });
+                }
+                // The engine moves the token into play BEFORE attaching it, so its entry MOVE was
+                // emitted while the host was still unknown. Name the host on it now, so a reader
+                // never has to infer the binding from event adjacency.
+                this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
+                this.push(this.tokenRecord(this.nextSeq(false), kind, this.idOf(parent), 1));
             } catch (error) {
                 this.logError('OnUpgradeAttached', error);
             }
@@ -821,18 +1003,6 @@ export class SwuPgnRecorder {
             }
         });
 
-        this.game.on(EventName.OnCardResourced, (event: any) => {
-            try {
-                const card = event?.card;
-                const player = event?.resourceControllingPlayer ?? card?.owner;
-                const cardName = card?.title ? (card.subtitle ? `${card.title}, ${card.subtitle}` : card.title) : undefined;
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'RESOURCE', p: this.seatOf(player), card: this.idOf(card), cardName });
-            } catch (error) {
-                this.logError('OnCardResourced', error);
-            }
-        });
-
         this.game.on(EventName.OnDeckShuffled, (event: any) => {
             try {
                 const player = event?.player ?? event?.card?.owner;
@@ -868,6 +1038,9 @@ export class SwuPgnRecorder {
                         zone: this.normalizeZone(token?.zoneName),
                         power: typeof token?.getPower === 'function' ? token.getPower() : undefined,
                         hp: typeof token?.getHp === 'function' ? token.getHp() : undefined,
+                        // Always 'unit' here (the guard above skips non-units), but stated
+                        // explicitly so a reader never has to infer it from the event type.
+                        kind: cardKind(token),
                     });
                 }
             } catch (error) {

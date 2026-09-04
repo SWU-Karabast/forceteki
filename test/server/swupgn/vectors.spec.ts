@@ -17,11 +17,19 @@ describe('canonical vectors', function () {
             const got = fold(parse(text).events);
             expect(JSON.parse(JSON.stringify(got))).toEqual(expected);
         });
+        // Rendered with NO injected resolver: the file's own %%% CARDS index supplies the
+        // names, which is the point of the index — a .swupgn is self-describing.
         it(`${name}: renders to the expected story`, function () {
             const text = fs.readFileSync(path.join(dir, `${name}.swupgn`), 'utf8');
             const expected = fs.readFileSync(path.join(dir, `${name}.render.txt`), 'utf8').trim();
-            const got = render(parse(text), { nameOf: (id) => id }).trim();
-            expect(got).toBe(expected);
+            expect(render(parse(text)).trim()).toBe(expected);
+        });
+
+        // The embedded %%% STORY must be exactly what the renderer produces, so the prose a
+        // human reads can never drift from the events a machine folds.
+        it(`${name}: embedded STORY matches the renderer`, function () {
+            const doc = parse(fs.readFileSync(path.join(dir, `${name}.swupgn`), 'utf8'));
+            expect((doc.story ?? []).join('\n').trim()).toBe(render(doc).trim());
         });
     }
 });

@@ -1,5 +1,10 @@
 # Client-Side Replay Viewer & Zip Download — Implementation Prompt
 
+> **SUPERSEDED.** This describes the old two-file (`.swupgn` + `.swureplay`) design,
+> which never shipped. The current format is the single-file **SWU-PGN/1.0** — see
+> [client-swupgn-replay-prompt.md](client-swupgn-replay-prompt.md) for the client
+> prompt and [SWU-PGN-1.0-SPEC.md](SWU-PGN-1.0-SPEC.md) for the format.
+
 ## Background
 
 We've split the server-side game notation into two files:

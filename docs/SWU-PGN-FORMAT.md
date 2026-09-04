@@ -1,5 +1,10 @@
 # SWU-PGN: Portable Game Notation for Star Wars Unlimited
 
+> **SUPERSEDED.** This describes the old **v1.0** two-file (`.swupgn` + `.swureplay`)
+> format. The current format is **SWU-PGN/1.0**, a single file — see
+> [SWU-PGN-1.0-SPEC.md](SWU-PGN-1.0-SPEC.md). Kept for historical reference only;
+> do not implement from this document.
+
 **Format version: `SWU-PGN v1.0`** (the value carried verbatim in each file's `[Game]` header tag).
 A machine-readable JSON Schema for the `.swureplay` records is published at
 [docs/swu-pgn-replay.schema.json](swu-pgn-replay.schema.json).

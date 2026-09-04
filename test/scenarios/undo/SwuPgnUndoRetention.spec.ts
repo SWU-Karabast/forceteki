@@ -1,4 +1,4 @@
-describe('SWU-PGN/1.1 recorder undo handling', function() {
+describe('SWU-PGN/1.0 recorder undo handling', function() {
     undoIntegration(function(contextRef) {
         beforeEach(function () {
             return contextRef.setupTestAsync({

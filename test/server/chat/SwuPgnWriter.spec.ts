@@ -4,7 +4,7 @@ import { parse, validate } from '../../../swupgn/src/index';
 
 describe('SwuPgnWriter', function () {
     const header: Header = {
-        game: 'SWU-PGN/1.1', gameId: 'g1', date: '2026-06-16T00:00:00Z',
+        game: 'SWU-PGN/1.0', gameId: 'g1', date: '2026-06-16T00:00:00Z',
         format: 'Premier', cardPool: 'SOR', engine: 'forceteki@test',
         seed: 'seed-1', perspective: null,
         p1Id: 'sha256:aaaa', p2Id: 'sha256:bbbb', p1: 'Player 1', p2: 'Player 2',
@@ -25,7 +25,7 @@ describe('SwuPgnWriter', function () {
         const report = validate(text);
         expect(report.valid).toBe(true);
         const doc = parse(text);
-        expect(doc.header.game).toBe('SWU-PGN/1.1');
+        expect(doc.header.game).toBe('SWU-PGN/1.0');
         expect(doc.decks.length).toBe(2);
         expect(doc.events.length).toBe(2);
         expect(doc.setup.length).toBe(1);
@@ -33,7 +33,7 @@ describe('SwuPgnWriter', function () {
 
     it('emits header tags, %%% banners, and one NDJSON record per line', function () {
         const text = new SwuPgnWriter().write({ header, decks, setup, events, annotations });
-        expect(text).toContain('[Game "SWU-PGN/1.1"]');
+        expect(text).toContain('[Game "SWU-PGN/1.0"]');
         expect(text).toContain('%%% DECKS');
         expect(text).toContain('%%% SETUP');
         expect(text).toContain('%%% EVENTS');

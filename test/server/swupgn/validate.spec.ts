@@ -9,7 +9,7 @@ describe('validate', function () {
     it('accepts a conformant minimal file', function () {
         const report = validate(good);
         expect(report.valid).toBe(true);
-        expect(report.formatVersion).toBe('SWU-PGN/1.1');
+        expect(report.formatVersion).toBe('SWU-PGN/1.0');
         expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
     });
 

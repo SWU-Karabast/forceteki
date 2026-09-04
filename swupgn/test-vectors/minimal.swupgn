@@ -1,4 +1,4 @@
-[Game "SWU-PGN/1.1"]
+[Game "SWU-PGN/1.0"]
 [GameId "vector-minimal"]
 [Date "2026-06-16T00:00:00Z"]
 [Format "Premier"] [CardPool "SOR"] [Engine "forceteki@reference"]
@@ -7,15 +7,36 @@
 [P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]
 [Result "Incomplete"] [Reason "Sample"] [Rounds "1"]
 
+%%% STORY
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 2
+ P2  base 30/30   hand 1   resources 2
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Wampa to ground (2 resources)
+  2. Player 1 attacks Player 2's base with Wampa
+       ↳ 2 damage to Player 2's base — 28 HP left
+
 %%% DECKS
 {"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]]}
 {"p":2,"leader":"SOR#005","base":"SOR#020","deck":[["SOR#045",3]]}
+
+%%% CARDS
+{"id":"SOR#005","name":"Darth Vader, Dark Lord of the Sith"}
+{"id":"SOR#010","name":"Luke Skywalker, Faithful Friend"}
+{"id":"SOR#020","name":"Command Center"}
+{"id":"SOR#028","name":"Echo Base"}
+{"id":"SOR#045","name":"Cell Block Guard"}
+{"id":"SOR#108","name":"Wampa"}
 
 %%% SETUP
 {"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108"],"p2DeckOrder":["SOR#045"]}
 
 %%% EVENTS
-{"seq":"R1.start","t":"ROUND_START","round":1}
+{"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]}}}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
 {"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
 {"seq":"R1.A.2","t":"ATTACK","p":1,"atk":"SOR#108","def":"base","defenderType":"base"}

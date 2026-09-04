@@ -39,6 +39,24 @@ function newCard(id: string, zone: string): CardInstanceState {
     return { id, zone, damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {} };
 }
 
+/**
+ * Put a card in an arena, ONCE.
+ *
+ * Placement is idempotent by id because a real stream reports the same arrival twice: the
+ * engine emits the zone transition as a MOVE (the fold's source of truth) and a PLAY /
+ * PLAY_SMUGGLE / DEPLOY_LEADER summary beside it. Pushing on both duplicated every unit in
+ * play — invisible while keyframes kept snapping the state back, but wrong for `stateAt()`
+ * anywhere between two keyframes, which is exactly what a replay scrubber asks for.
+ */
+function placeCard(s: ReducedState, seat: Seat, id: string, zone: string): void {
+    const existing = findCard(s, id);
+    if (existing) {
+        existing.zone = zone;
+        return;
+    }
+    player(s, seat).cards.push(newCard(id, zone));
+}
+
 const ARENA_ZONES = new Set(['ground', 'space']);
 
 /**
@@ -52,7 +70,7 @@ const ARENA_ZONES = new Set(['ground', 'space']);
  * a paired MOVE keep working; MOVE placement is idempotent by id so PLAY+MOVE in real
  * streams does not double-add.
  */
-function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: string; p?: Seat }): void {
+function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: string; p?: Seat; kind?: 'unit' | 'upgrade' }): void {
     if (e.p == null) {
         // Without a seat we can only update zone on an already-tracked card; counts are
         // unattributable. Real engine streams always carry the seat.
@@ -77,8 +95,20 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         ps.resourcesReady = Math.max(0, ps.resourcesReady - 1);
     }
 
-    // In-play (arena) membership. Place on entry (idempotent by id so a PLAY that already
-    // added the card is not duplicated); remove on exit from the arena.
+    // In-play (arena) membership. An UPGRADE never has any: it attaches to a unit, and its
+    // effect on the board is carried by the host's own records (SHIELD_GAIN, EXPERIENCE_GAIN,
+    // STATUS_TOKEN, or PLAY_UPGRADE.target). Without `kind` a reader cannot tell a token
+    // upgrade from a token unit — both are `TOKEN:<name>#<id>` — and folding the upgrade in
+    // put a phantom card in the arena. The hand/resource counts above still apply: an upgrade
+    // really does leave the hand.
+    if (e.kind === 'upgrade') {
+        const upgrade = findCard(s, e.card);
+        if (upgrade) {
+            upgrade.zone = e.to;
+        }
+        return;
+    }
+
     const existing = findCard(s, e.card);
     if (ARENA_ZONES.has(e.to)) {
         if (existing) {
@@ -108,22 +138,25 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         // zone transitions); see applyMoveCounts. PLAY only places the card in its zone —
         // the matching hand->zone MOVE accounts for the hand decrement.
         case 'PLAY': case 'PLAY_SMUGGLE':
-            player(s, e.p).cards.push(newCard(e.card, e.zone ?? 'ground')); break;
+            placeCard(s, e.p, e.card, e.zone ?? 'ground'); break;
         case 'PLAY_EVENT':
             player(s, e.p).discard.push(e.card); break;
         case 'PLAY_UPGRADE': {
             if (e.target) {
                 const host = findCard(s, e.target);
-                if (host) { host.upgrades.push(e.card); break; }
+                if (host) { host.upgrades.push(e.card); }
             }
-            // Fallback when the host is unknown: track the upgrade as its own instance.
-            player(s, e.p).cards.push(newCard(e.card, e.zone ?? 'ground'));
+            // An upgrade is NEVER an arena card, so there is no fallback placement: if the
+            // host isn't tracked the attachment is simply not modelled. Placing it instead
+            // (as this used to) put a phantom "unit" in the arena that no keyframe agrees
+            // with — a real upgrade, SEC#038, showed up that way in a recorded game.
             break;
         }
         case 'DEPLOY_LEADER':
-            player(s, e.p).cards.push(newCard(e.card, e.zone ?? 'ground')); break;
+            placeCard(s, e.p, e.card, e.zone ?? 'ground'); break;
         case 'CREATE_TOKEN':
-            player(s, e.p).cards.push(newCard(e.token, e.zone)); break;
+            if (e.kind !== 'upgrade') { placeCard(s, e.p, e.token, e.zone); }
+            break;
         case 'DAMAGE': {
             const baseSeat = seatOfBaseRef(e.tgt);
             if (baseSeat) {
@@ -180,8 +213,22 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'RESOURCE': break;
         case 'SHIELD_GAIN': { const c = findCard(s, e.card); if (c) { c.shields += e.count ?? 1; } break; }
         case 'SHIELD_USE': { const c = findCard(s, e.card); if (c) { c.shields = Math.max(0, c.shields - (e.count ?? 1)); } break; }
-        case 'EXPERIENCE_GAIN': { const c = findCard(s, e.card); if (c) { c.experience += e.count; } break; }
-        case 'STATUS_TOKEN': { const c = findCard(s, e.card); if (c) { c.statusTokens[e.token] = (c.statusTokens[e.token] ?? 0) + e.count; } break; }
+        // `count` may be negative: a token leaving its host is recorded as the same event with a
+        // negative delta (see SwuPgnRecorder.tokenRecord). Counts clamp at 0, and a status token
+        // that reaches 0 is DELETED rather than left as `{advantage: 0}` — an engine keyframe
+        // reports a host with no tokens as `statusTokens: {}`, and the integrity gate compares
+        // the two by JSON equality.
+        case 'EXPERIENCE_GAIN': { const c = findCard(s, e.card); if (c) { c.experience = Math.max(0, c.experience + e.count); } break; }
+        case 'STATUS_TOKEN': {
+            const c = findCard(s, e.card);
+            if (c) {
+                const next = Math.max(0, (c.statusTokens[e.token] ?? 0) + e.count);
+                c.statusTokens = Object.fromEntries(
+                    Object.entries({ ...c.statusTokens, [e.token]: next }).filter(([, n]) => n > 0)
+                );
+            }
+            break;
+        }
         // Pure-log events with no state delta:
         case 'ATTACK': case 'PASS': case 'CHOICE': case 'MULLIGAN':
         case 'KEEP_HAND': case 'MODAL_CHOICE': case 'ABILITY_ACTIVATE': case 'SHUFFLE':

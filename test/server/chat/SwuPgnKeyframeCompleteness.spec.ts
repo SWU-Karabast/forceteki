@@ -27,7 +27,7 @@ import { checkKeyframes } from '../../../swupgn/src/integrity';
 //     has exactly one setup). The always-reconstructable fields (baseHp + every per-card
 //     field) ARE asserted at every keyframe. PLAN-3: validate handSize/resourcesReady on a
 //     fully organic game (no GameStateBuilder mid-game override) and then drop this caveat.
-describe('SWU-PGN/1.1 keyframe completeness (real game)', function () {
+describe('SWU-PGN/1.0 keyframe completeness (real game)', function () {
     integration(function (contextRef) {
         beforeEach(function () {
             return contextRef.setupTestAsync({

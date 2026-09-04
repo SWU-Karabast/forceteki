@@ -210,3 +210,45 @@ describe('fold event coverage — regression gaps', function () {
         expect(JSON.stringify(after)).toBe(before);
     });
 });
+
+// A card arrives twice in a real stream: as the MOVE (the fold's source of truth) and as the
+// PLAY summary beside it. Placement must be idempotent, or every unit in play is duplicated —
+// which is invisible while keyframes keep snapping state back, but wrong for stateAt() between
+// two keyframes, i.e. exactly what a replay scrubber asks for.
+describe('fold arena membership', function () {
+    it('does not duplicate a card that both MOVE and PLAY report', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+        ];
+        expect(fold(events).players[1]!.cards.map((c) => c.id)).toEqual(['SOR#095']);
+    });
+
+    // Shield/Experience/Advantage/Weakness are token UPGRADES; Battle Droid/X-Wing/Beast are
+    // token UNITS. Both are TOKEN:<name>#<id>, so only `kind` can tell them apart.
+    it('keeps an upgrade out of the arena but still counts it leaving hand', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.0b', t: 'MOVE', card: 'X', from: 'deck', to: 'hand', p: 1 },
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'SOR#071', from: 'hand', to: 'ground', p: 1, kind: 'upgrade' },
+            { seq: 'R1.A.1b', t: 'MOVE', card: 'TOKEN:advantage#5844562972', from: 'outsideTheGame', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'SOR#095' },
+        ];
+        const p = fold(events).players[1]!;
+        expect(p.cards.map((c) => c.id)).toEqual(['SOR#095']);   // neither upgrade is in play
+        expect(p.handSize).toBe(0);                              // 1 drawn, 1 played out of hand
+    });
+
+    it('places a token UNIT in the arena', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'TOKEN:battle-droid#3463348370', from: 'outsideTheGame', to: 'ground', p: 2, kind: 'unit' },
+        ];
+        expect(fold(events).players[2]!.cards.map((c) => c.id)).toEqual(['TOKEN:battle-droid#3463348370']);
+    });
+
+    it('never puts an upgrade in the arena via PLAY_UPGRADE with an untracked host', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.1', t: 'PLAY_UPGRADE', p: 1, card: 'SOR#071', target: 'NOT#TRACKED', zone: 'ground', cost: 3 },
+        ];
+        expect(fold(events).players[1]!.cards).toEqual([]);
+    });
+});
