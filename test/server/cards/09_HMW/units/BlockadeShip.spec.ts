@@ -7,13 +7,13 @@ describe('Blockade Ship', function () {
                     spaceArena: ['blockade-ship']
                 },
                 player2: {
-                    groundArena: ['wampa']
+                    groundArena: ['wampa'],
+                    hasInitiative: true
                 }
             });
 
             const { context } = contextRef;
 
-            context.player1.passAction();
             context.player2.clickCard(context.wampa);
             context.player2.clickCard(context.p1Base);
 
@@ -47,13 +47,13 @@ describe('Blockade Ship', function () {
                     spaceArena: ['blockade-ship']
                 },
                 player2: {
-                    spaceArena: ['alliance-xwing']
+                    spaceArena: ['alliance-xwing'],
+                    hasInitiative: true
                 }
             });
 
             const { context } = contextRef;
 
-            context.player1.passAction();
             context.player2.clickCard(context.allianceXwing);
             context.player2.clickCard(context.blockadeShip);
 
@@ -82,6 +82,33 @@ describe('Blockade Ship', function () {
             expect(context.battlefieldMarine).toBeInZone('discard');
             expect(context.atteVanguard.damage).toBe(3);
             expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should reduce the damage-dependent heal from Hera Syndulla, Renegade General when she attacks into it', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['blockade-ship'],
+                    base: { card: 'capital-city', damage: 0 }
+                },
+                player2: {
+                    groundArena: ['hera-syndulla#renegade-general'],
+                    base: { card: 'capital-city', damage: 10 },
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.heraSyndulla);
+            context.player2.clickCard(context.p1Base);
+
+            // Blockade Ship reduces Hera's power from 3 to 2 while attacking
+            expect(context.p1Base.damage).toBe(2);
+
+            // Hera heals her own base equal to the (reduced) damage dealt, so 2 instead of her printed power of 3
+            expect(context.p2Base.damage).toBe(8);
+            expect(context.player1).toBeActivePlayer();
         });
     });
 });

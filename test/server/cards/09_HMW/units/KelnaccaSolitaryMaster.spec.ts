@@ -77,6 +77,34 @@ describe('Kelnacca, Solitary Master', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('should deal only one damage instance (rounding down, not up) when paying 4 or 5 resources', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'the-armorer#steel-shapes-us',
+                    hand: ['kelnacca#solitary-master'],
+                    resources: 11
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.kelnacca);
+            expect(context.player1).toHaveNumericPromptRange(0, 7);
+            context.player1.chooseListOption('5');
+
+            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit');
+            context.player1.clickCard(context.wampa);
+
+            // floor(5 / 3) === 1, so exactly one 4-damage instance is dealt, never 4.5 or 8
+            expect(context.wampa.damage).toBe(4);
+            expect(context.player1.exhaustedResourceCount).toBe(9);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('should deal two separate damage instances when paying 6 resources, letting a different unit be chosen each time', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -114,7 +142,7 @@ describe('Kelnacca, Solitary Master', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should allow choosing the same unit for each damage instance, applied as separate hits rather than a multiplied lump sum', async function () {
+        it('should allow choosing the same unit for each damage instance, with a single Shield preventing all instances since they are dealt simultaneously', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -133,16 +161,48 @@ describe('Kelnacca, Solitary Master', function () {
             expect(context.player1).toHaveNumericPromptRange(0, 7);
             context.player1.chooseListOption('6');
 
-            // first 4-damage instance is fully prevented by the Shield token (a single 8-damage lump would also be fully prevented)
+            // both damage instances are dealt simultaneously, so a single Shield token prevents all of it,
+            // just as a single lump-sum hit would be
             context.player1.clickCardNonChecking(context.atteVanguard);
+            context.player1.clickCardNonChecking(context.atteVanguard);
+
             expect(context.atteVanguard).toHaveExactUpgradeNames([]);
             expect(context.atteVanguard.damage).toBe(0);
-
-            // second instance is a separate hit, so it deals its own 4 damage even though the Shield already absorbed the first
-            context.player1.clickCardNonChecking(context.atteVanguard);
-
-            expect(context.atteVanguard.damage).toBe(4);
             expect(context.player1.exhaustedResourceCount).toBe(10);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should only remove the Shield and deal no damage at all, even across more than two simultaneous instances', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'the-armorer#steel-shapes-us',
+                    hand: ['kelnacca#solitary-master'],
+                    resources: 14
+                },
+                player2: {
+                    // 3 HP is less than a single 4-damage instance, so if even one instance leaked through
+                    // the unit would be defeated
+                    groundArena: [{ card: 'cantina-braggart', upgrades: ['shield'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.kelnacca);
+            expect(context.player1).toHaveNumericPromptRange(0, 10);
+            context.player1.chooseListOption('9');
+
+            // 3 damage instances (floor(9 / 3)), all targeting the same shielded unit
+            context.player1.clickCardNonChecking(context.cantinaBraggart);
+            context.player1.clickCardNonChecking(context.cantinaBraggart);
+            context.player1.clickCardNonChecking(context.cantinaBraggart);
+
+            // only the Shield is removed; no damage gets through to the unit itself, and it survives
+            expect(context.cantinaBraggart).toBeInZone('groundArena', context.player2);
+            expect(context.cantinaBraggart).toHaveExactUpgradeNames([]);
+            expect(context.cantinaBraggart.damage).toBe(0);
+            expect(context.player1.exhaustedResourceCount).toBe(13);
             expect(context.player2).toBeActivePlayer();
         });
 
