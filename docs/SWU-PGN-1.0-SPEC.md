@@ -847,8 +847,9 @@ paid (the `amount` is what was actually paid, after aspect penalties, discounts 
 `cost` on the play record stays the printed cost), an ability exhausting resources, a single
 resource card exhausted by name, and a card an ability puts into the row exhausted (its `MOVE`
 into `resource` counted it ready, so it is one more exhaustion). It emits `READY_RESOURCES` the
-same way: the regroup step readies every resource one record at a time, ready ones included
-(those find nothing to move), and an ability that readies several says how many.
+same way: the regroup step readies the exhausted resources one record at a time (a reader
+MUST tolerate a record for a resource that was already ready — it finds nothing to move), and
+an ability that readies several says how many.
 
 A card that **leaves** the row is counted by its `MOVE`, in the bucket the move's `exhausted`
 flag names ([`MOVE`](#101-events-that-carry-board-detail)).
