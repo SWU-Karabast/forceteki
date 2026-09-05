@@ -1,3 +1,12 @@
+ ── setup ──
+       ↳ Player 1 draws 3: Wampa, Wampa #2, Wampa #3
+       ↳ Player 2 draws 3: Cell Block Guard, Cell Block Guard #2, Cell Block Guard #3
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Wampa #2
+       ↳ Player 1 resources Wampa #3
+       ↳ Player 2 resources Cell Block Guard #2
+       ↳ Player 2 resources Cell Block Guard #3
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 1                                                 initiative: Player 1 
@@ -8,4 +17,4 @@
  ── action ──
   1. Player 1 plays Wampa to ground (cost 2)
   2. Player 1 attacks Player 2's base with Wampa
-       ↳ 2 damage to Player 2's base — 28 HP left
+       ↳ 4 damage to Player 2's base — 26 HP left

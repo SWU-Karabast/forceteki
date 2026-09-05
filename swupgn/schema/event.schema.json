@@ -38,7 +38,19 @@
     },
     {
       "if": { "properties": { "t": { "const": "MOVE" } }, "required": ["t"] },
-      "then": { "properties": { "card": { "type": "string" }, "from": { "type": "string" }, "to": { "type": "string" }, "kind": { "enum": ["unit","upgrade"] } }, "required": ["card","from","to"] }
+      "then": { "properties": { "card": { "type": "string" }, "from": { "type": "string" }, "to": { "type": "string" }, "kind": { "enum": ["unit","upgrade"] }, "attachedTo": { "type": "string" }, "exhausted": { "type": "boolean" } }, "required": ["card","from","to"] }
+    },
+    {
+      "if": { "properties": { "t": { "enum": ["EXHAUST_RESOURCES","READY_RESOURCES"] } }, "required": ["t"] },
+      "then": { "properties": { "amount": { "type": "integer", "minimum": 0 } }, "required": ["p","amount"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "CAPTURE" } }, "required": ["t"] },
+      "then": { "properties": { "by": { "type": "string" } } }
+    },
+    {
+      "if": { "properties": { "t": { "const": "TAKE_CONTROL" } }, "required": ["t"] },
+      "then": { "properties": { "zone": { "type": "string" }, "from": { "enum": [1,2] }, "exhausted": { "type": "boolean" } } }
     },
     {
       "if": { "properties": { "t": { "const": "CREATE_TOKEN" } }, "required": ["t"] },
@@ -72,12 +84,27 @@
       "type": "object",
       "required": ["cards","hand","discard"],
       "properties": {
-        "cards": { "type": "array", "items": { "type": "object" } },
+        "cards": { "type": "array", "items": { "$ref": "#/$defs/cardState" } },
         "hand": { "type": "array", "items": { "type": "string" } },
         "discard": { "type": "array", "items": { "type": "string" } },
         "baseHp": { "type": "integer" },
         "handSize": { "type": "integer" },
-        "resourcesReady": { "type": "integer" }
+        "resourcesReady": { "type": "integer" },
+        "resourcesExhausted": { "type": "integer" },
+        "credits": { "type": "integer" },
+        "hasForce": { "type": "boolean" }
+      }
+    },
+    "cardState": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "zone": { "type": "string" },
+        "upgrades": { "type": "array", "items": { "type": "string" } },
+        "captured": { "type": "array", "items": { "type": "string" } },
+        "statusTokens": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "power": { "type": "integer" },
+        "hp": { "type": "integer" }
       }
     }
   }

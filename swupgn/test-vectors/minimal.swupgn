@@ -8,6 +8,15 @@
 [Result "Incomplete"] [Reason "Sample"] [Rounds "1"]
 
 %%% STORY
+ ── setup ──
+       ↳ Player 1 draws 3: Wampa, Wampa #2, Wampa #3
+       ↳ Player 2 draws 3: Cell Block Guard, Cell Block Guard #2, Cell Block Guard #3
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Wampa #2
+       ↳ Player 1 resources Wampa #3
+       ↳ Player 2 resources Cell Block Guard #2
+       ↳ Player 2 resources Cell Block Guard #3
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 1                                                 initiative: Player 1 
@@ -18,7 +27,7 @@
  ── action ──
   1. Player 1 plays Wampa to ground (cost 2)
   2. Player 1 attacks Player 2's base with Wampa
-       ↳ 2 damage to Player 2's base — 28 HP left
+       ↳ 4 damage to Player 2's base — 26 HP left
 
 %%% DECKS
 {"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]]}
@@ -29,19 +38,44 @@
 {"id":"SOR#010","name":"Luke Skywalker, Faithful Friend"}
 {"id":"SOR#020","name":"Command Center"}
 {"id":"SOR#028","name":"Echo Base"}
-{"id":"SOR#045","name":"Cell Block Guard"}
-{"id":"SOR#108","name":"Wampa"}
+{"id":"SOR#045","name":"Cell Block Guard","kind":"unit"}
+{"id":"SOR#108","name":"Wampa","kind":"unit"}
 
 %%% SETUP
-{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108"],"p2DeckOrder":["SOR#045"]}
+{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3"]}
 
 %%% EVENTS
+{"seq":"R0.S.start","t":"PHASE_START","phase":"setup"}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
+{"seq":"R0.S.2","t":"SHUFFLE","p":1}
+{"seq":"R0.S.3","t":"MOVE","card":"SOR#108","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.4","t":"MOVE","card":"SOR#108:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.5","t":"MOVE","card":"SOR#108:3","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.6","t":"DRAW","p":1,"count":3,"cards":["SOR#108","SOR#108:2","SOR#108:3"]}
+{"seq":"R0.S.7","t":"SHUFFLE","p":2}
+{"seq":"R0.S.8","t":"MOVE","card":"SOR#045","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.9","t":"MOVE","card":"SOR#045:2","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.10","t":"MOVE","card":"SOR#045:3","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.11","t":"DRAW","p":2,"count":3,"cards":["SOR#045","SOR#045:2","SOR#045:3"]}
+{"seq":"R0.S.12","t":"KEEP_HAND","p":1}
+{"seq":"R0.S.13","t":"KEEP_HAND","p":2}
+{"seq":"R0.S.14","t":"MOVE","card":"SOR#108:2","from":"hand","to":"resource","p":1,"kind":"unit"}
+{"seq":"R0.S.15","t":"RESOURCE","p":1,"card":"SOR#108:2"}
+{"seq":"R0.S.16","t":"MOVE","card":"SOR#108:3","from":"hand","to":"resource","p":1,"kind":"unit"}
+{"seq":"R0.S.17","t":"RESOURCE","p":1,"card":"SOR#108:3"}
+{"seq":"R0.S.18","t":"MOVE","card":"SOR#045:2","from":"hand","to":"resource","p":2,"kind":"unit"}
+{"seq":"R0.S.19","t":"RESOURCE","p":2,"card":"SOR#045:2"}
+{"seq":"R0.S.20","t":"MOVE","card":"SOR#045:3","from":"hand","to":"resource","p":2,"kind":"unit"}
+{"seq":"R0.S.21","t":"RESOURCE","p":2,"card":"SOR#045:3"}
+{"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
 {"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]}}}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
+{"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2}
+{"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit"}
 {"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
+{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}
 {"seq":"R1.A.2","t":"ATTACK","p":1,"atk":"SOR#108","def":"base@2","defenderType":"base"}
-{"seq":"R1.A.2a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":2,"damageType":"combat","hp":28}
-{"seq":"R1.A.2b","t":"EXHAUST","card":"SOR#108"}
+{"seq":"R1.A.2a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":4,"damageType":"combat","hp":26}
 
 %%% ANNOTATIONS
 {"ref":"R1.A.2","nag":"?!","text":"attacking the base too early"}

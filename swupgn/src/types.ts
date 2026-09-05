@@ -58,8 +58,16 @@ export interface SetupInitRecord {
  *   deploy attaches it to `target` as an upgrade instead of placing a body in the arena.
  * - `TAKE_CONTROL`: `p` took control of `card`. A control change is not a zone change, so no
  *   MOVE accompanies it and the fold re-seats the card itself. `zone` is where the card is
- *   now; `from` is the seat it left, present only when this record (and not a MOVE beside it)
- *   has to carry the counts.
+ *   now — `ground`/`space` (re-seat a unit), `resource` (shift one resource; `exhausted` says
+ *   which bucket) or `base` (a Credit or Force token changed hands); `from` is the seat it
+ *   left, present only when this record (and not a MOVE beside it) has to carry the counts.
+ * - `EXHAUST_RESOURCES` / `READY_RESOURCES`: resources are counted, never named. `amount` ready
+ *   resources of `p` became exhausted (a cost paid, an ability, a resource that entered the row
+ *   exhausted), or `amount` exhausted ones became ready (the regroup step readies each one; some
+ *   abilities ready several). A reader clamps to what it has.
+ * - `CAPTURE`: `p` captured `card` with `by` (a unit id, or `base@N` for a base captor). `p` is
+ *   the captor's controller — the seat that holds the card from now on. `RESCUE`: `card`
+ *   returned to play under `p`, its owner; the paired `MOVE` out of `capture` places it.
  */
 export type GameEvent =
   | { seq: string; t: 'PLAY' | 'PLAY_EVENT' | 'PLAY_UPGRADE' | 'PLAY_SMUGGLE'; p: Seat; card: string; zone?: string; cost?: number; target?: string }
@@ -74,13 +82,37 @@ export type GameEvent =
   | { seq: string; t: 'HEAL'; tgt: string; amt: number; hp: number }
   | { seq: string; t: 'DEFEAT'; card: string; reason: string; defeatedBy?: string }
   | { seq: string; t: 'EXHAUST' | 'READY'; card: string }
+  | { seq: string; t: 'EXHAUST_RESOURCES' | 'READY_RESOURCES'; p: Seat; amount: number }
   | { seq: string; t: 'DRAW'; p: Seat; count: number; cards: string[] }
   | { seq: string; t: 'DISCARD'; p: Seat; cards: string[] }
   | { seq: string; t: 'RESOURCE'; p: Seat; card: string }
   | { seq: string; t: 'SHUFFLE'; p: Seat }
   | { seq: string; t: 'CREATE_TOKEN'; p: Seat; token: string; zone: string; power?: number; hp?: number; kind?: CardKind }
+  | { seq: string; t: 'CAPTURE'; p: Seat; card: string; by?: string }
+  | { seq: string; t: 'RESCUE'; p: Seat; card: string }
+  | { seq: string; t: 'TAKE_CONTROL'; p: Seat; card: string; zone?: string; from?: Seat; exhausted?: boolean }
+  | { seq: string; t: 'SHIELD_GAIN' | 'SHIELD_USE'; card: string; count?: number }
+  | { seq: string; t: 'EXPERIENCE_GAIN'; card: string; count: number }
+  | { seq: string; t: 'STATUS_TOKEN'; card: string; token: string; count: number }
+  | { seq: string; t: 'OVERWHELM'; p: Seat; tgt: string; amt: number; hp: number }
+  | { seq: string; t: 'SEARCH'; p: Seat; found?: string[]; zone?: string }
+  | { seq: string; t: 'REVEAL'; p: Seat; zone: string; cards: string[] }
+  | { seq: string; t: 'TRIGGER'; p?: Seat; card: string }
+  | { seq: string; t: 'PHASE_START' | 'PHASE_END'; phase: string }
+  | { seq: string; t: 'ROUND_START' | 'ROUND_END'; round: number; keyframe?: ReducedState }
+  | { seq: string; t: 'GAME_END'; winner: Seat | 'Draw'; reason: string }
   | {
-      seq: string; t: 'MOVE'; card: string; from: string; to: string; p?: Seat; attachedTo?: string;
+      seq: string; t: 'MOVE'; card: string; from: string; to: string; p?: Seat;
+
+      /** The host this move attaches the card to. Present only on the move INTO an arena that
+       *  attaches; a move out of an arena never names a host — a reader detaches on the zone
+       *  transition (spec §10.1). */
+      attachedTo?: string;
+
+      /** On a move out of `resource` only: the card left the row exhausted, so the fold takes it
+       *  from `resourcesExhausted` rather than `resourcesReady`. Absent means it left ready. */
+      exhausted?: boolean;
+
       /**
        * The ROLE this move enacts, not what the card is: a pilot flown onto a vehicle is an
        * `'upgrade'` move of a unit card. Emitted whenever determinable, because a reader cannot
@@ -91,18 +123,7 @@ export type GameEvent =
        * token upgrade is printed. Absent: the fold treats the move as a unit move.
        */
       kind?: CardKind;
-    }
-  | { seq: string; t: 'CAPTURE' | 'RESCUE' | 'TAKE_CONTROL'; p: Seat; card: string; zone?: string; from?: Seat }
-  | { seq: string; t: 'SHIELD_GAIN' | 'SHIELD_USE'; card: string; count?: number }
-  | { seq: string; t: 'EXPERIENCE_GAIN'; card: string; count: number }
-  | { seq: string; t: 'STATUS_TOKEN'; card: string; token: string; count: number }
-  | { seq: string; t: 'OVERWHELM'; p: Seat; tgt: string; amt: number; hp: number }
-  | { seq: string; t: 'SEARCH'; p: Seat; found?: string[]; zone?: string }
-  | { seq: string; t: 'REVEAL'; p: Seat; zone: string; cards: string[] }
-  | { seq: string; t: 'TRIGGER'; p?: Seat; card: string }
-  | { seq: string; t: 'PHASE_START' | 'PHASE_END'; phase: string }
-  | { seq: string; t: 'ROUND_START' | 'ROUND_END'; round: number; keyframe?: ReducedState }
-  | { seq: string; t: 'GAME_END'; winner: Seat | 'Draw'; reason: string };
+    };
 
 export interface Annotation {
     ref: string;                    // seq this annotates
@@ -160,10 +181,26 @@ export interface CardInstanceState {
     zone: string;
     damage: number;
     exhausted: boolean;
+
+    /** Printed cards attached to this one: upgrades and pilots. Token upgrades are never
+     *  listed here — they are the three counters below. */
     upgrades: string[];
     shields: number;
     experience: number;
+
+    /** Every other token upgrade, by token name: `{ advantage: 2, weakness: 1 }`. */
     statusTokens: Record<string, number>;
+
+    /** Enemy units this one holds captured, by id. Absent in files written before it existed;
+     *  a reader treats absent as `[]`. */
+    captured: string[];
+
+    /** Current power/HP as the engine computed them, INCLUDING ability effects. Snapshot-only:
+     *  present in keyframes, never maintained by the fold (which has no rules engine), and
+     *  not compared by `checkKeyframes`. A reader may use them to correct its own arithmetic
+     *  at every round boundary. */
+    power?: number;
+    hp?: number;
 }
 
 export interface PlayerState {

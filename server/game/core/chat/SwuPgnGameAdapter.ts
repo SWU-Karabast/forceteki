@@ -4,7 +4,7 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, GameEndReason, PhaseName, ZoneName } from '../Constants';
 import { SwuPgn } from './SwuPgn';
-import { attachedHost, buildHeader, cardKind, printedCardKind, SwuPgnRecorder } from './SwuPgnRecorder';
+import { attachedHost, buildHeader, cardKind, printedCardKind, SwuPgnRecorder, tokenUpgradeKind } from './SwuPgnRecorder';
 import type { HeaderContext, SwuPgnResolver } from './SwuPgnRecorder';
 import { SwuPgnWriter } from './SwuPgnWriter';
 import { render } from '../../../../swupgn/src/render';
@@ -422,7 +422,13 @@ export class SwuPgnGameAdapter {
         };
     }
 
-    /** Project a single in-play card into a fresh 1.1 CardInstanceState. */
+    /**
+     * Project a single in-play card into a fresh 1.1 CardInstanceState.
+     *
+     * Token upgrades become the three counters, classified by the SAME function the recorder
+     * uses for its gain/removal records (`tokenUpgradeKind`), so a snapshot and the deltas that
+     * lead to it can never disagree about a host. `upgrades[]` holds only printed cards.
+     */
     private buildSwuPgnCardInstance(card: any, zone: string): CardInstanceState {
         const upgrades = read<any[]>(() => (card.upgrades ?? []) as any[], []);
         let shields = 0;
@@ -431,20 +437,27 @@ export class SwuPgnGameAdapter {
         const plainUpgrades: string[] = [];
 
         for (const upgrade of upgrades) {
-            try {
-                if (typeof upgrade.isShield === 'function' && upgrade.isShield()) {
-                    shields++;
-                } else if (typeof upgrade.isExperience === 'function' && upgrade.isExperience()) {
-                    experience++;
-                } else if (typeof upgrade.isAdvantage === 'function' && upgrade.isAdvantage()) {
-                    statusTokens['advantage'] = (statusTokens['advantage'] ?? 0) + 1;
-                } else if (upgrade?.uuid != null) {
-                    plainUpgrades.push(this.swuPgnCardId(upgrade.uuid));
-                }
-            } catch {
-                // Skip an upgrade we can't classify.
+            const kind = read(() => tokenUpgradeKind(upgrade), null);
+            if (kind === 'shield') {
+                shields++;
+            } else if (kind === 'experience') {
+                experience++;
+            } else if (kind) {
+                statusTokens[kind.status] = (statusTokens[kind.status] ?? 0) + 1;
+            } else if (upgrade?.uuid != null) {
+                plainUpgrades.push(read(() => this.swuPgnCardId(upgrade.uuid), 'unknown'));
             }
         }
+
+        // `capturedUnits` asserts its zone like `damage` does; a unit that holds nothing reads [].
+        const captured = read<any[]>(() => (card.capturedUnits ?? []) as any[], [])
+            .map((c: any) => read(() => (c?.uuid != null ? this.swuPgnCardId(c.uuid) : 'unknown'), 'unknown'))
+            .filter((id: string) => id !== 'unknown');
+
+        // Live stats INCLUDING ability effects, which no reader can derive from the events
+        // (spec §11). Optional: absent when the engine can't compute them for this card.
+        const power = read<number | undefined>(() => (typeof card?.getPower === 'function' ? card.getPower() : undefined), undefined);
+        const hp = read<number | undefined>(() => (typeof card?.getHp === 'function' ? card.getHp() : undefined), undefined);
 
         return {
             // `damage` and `exhausted` throw for a card in a zone where they don't apply,
@@ -453,10 +466,13 @@ export class SwuPgnGameAdapter {
             zone,
             damage: read(() => card?.damage ?? 0, 0),
             exhausted: read(() => card?.exhausted ?? false, false),
-            upgrades: plainUpgrades,
+            upgrades: plainUpgrades.filter((id) => id !== 'unknown'),
             shields,
             experience,
             statusTokens,
+            captured,
+            ...(typeof power === 'number' ? { power } : {}),
+            ...(typeof hp === 'number' ? { hp } : {}),
         };
     }
 
@@ -503,15 +519,18 @@ export class SwuPgnGameAdapter {
     private static cachedEngineVersion?: string;
 
     /**
-     * Engine provenance string for the SWU-PGN header, e.g. `forceteki@0.1.0` or
-     * `forceteki@a1b2c3d`.
+     * Engine provenance string for the SWU-PGN header, e.g. `forceteki@a1b2c3d` or
+     * `forceteki@2.3.1`.
      *
      * This has to name the BUILD, not a placeholder: without it you cannot tell which build
      * produced a bad replay, which is the position a real bug hunt lands in. Resolution order:
-     * an explicit deploy-time override, the package version (npm sets this when run via a
-     * script), then the git SHA of the working tree. `forceteki@unknown` is a last resort that
+     * an explicit deploy-time override (`FORCETEKI_VERSION`, which CI should set from the
+     * commit it built -- a deployed image has no `.git`), then the git SHA of the working tree,
+     * then the package version. The package version comes LAST because package.json has said
+     * `0.1.0` for the project's whole life: every production file ever written carried
+     * `forceteki@0.1.0`, which identifies nothing. `forceteki@unknown` is a last resort that
      * means "provenance unavailable", and a reader should treat a file carrying it as
-     * untraceable rather than as coming from some known build.
+     * untraceable rather than as coming from some known build (spec §5.3).
      */
     /**
      * Resolve the engine version ahead of time, so the `git` subprocess below never runs on a
@@ -526,8 +545,8 @@ export class SwuPgnGameAdapter {
     private static engineVersion(): string {
         if (SwuPgnGameAdapter.cachedEngineVersion == null) {
             const version = process.env.FORCETEKI_VERSION ??
-              process.env.npm_package_version ??
-              SwuPgnGameAdapter.gitSha();
+              SwuPgnGameAdapter.gitSha() ??
+              process.env.npm_package_version;
             SwuPgnGameAdapter.cachedEngineVersion = version ? `forceteki@${version}` : 'forceteki@unknown';
         }
         return SwuPgnGameAdapter.cachedEngineVersion;

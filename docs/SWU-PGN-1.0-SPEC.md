@@ -101,6 +101,15 @@ There are four jobs. You might do one, or all of them.
   ([§10.1](#101-events-that-carry-board-detail)).
 - MUST write `RecorderErrors` in the header if any of its handlers failed
   ([§5.2](#52-you-may-have-these)); a silently under-recorded file must not look complete.
+- MUST record the resource row as counts: an `EXHAUST_RESOURCES` for every resource that
+  becomes exhausted (a cost paid, an ability, a card resourced exhausted), a `READY_RESOURCES`
+  for every one that readies, and `exhausted: true` on a `MOVE` out of `resource` when the
+  card left exhausted ([§10.1](#101-events-that-carry-board-detail)).
+- MUST name the host with `attachedTo` on the `MOVE` that attaches a card, and MUST NOT name
+  one on any `MOVE` out of an arena — exits are host-less
+  ([§10.1](#binding-an-attachment-to-its-host)).
+- MUST record a capture as a `CAPTURE` whose `p` is the seat that now holds the card and whose
+  `by` is the captor ([§10.1](#101-events-that-carry-board-detail)).
 
 ### The Folder (rebuilds the board)
 
@@ -232,7 +241,7 @@ banner.
 | `GameId` | A unique id for this one game. Any opaque string. |
 | `Date` | When the game started, ISO-8601 UTC, e.g. `"2026-09-04T15:58:16.695Z"`. |
 | `CardPool` | Which sets were legal. **This is a comma-separated list**, e.g. `"ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"`. A single set id like `"SOR"` is also valid. |
-| `Engine` | Which build wrote the file, e.g. `"forceteki@0.1.0"` or `"forceteki@a1b2c3d"`. See §5.3. |
+| `Engine` | Which build wrote the file, e.g. `"forceteki@a1b2c3d"` or `"forceteki@2.3.1"`. See §5.3. |
 | `Seed` | The random seed this game actually ran on, e.g. a UUID. See §5.3. |
 | `P1Id` / `P2Id` | A fake-but-stable id per player. MUST look like `sha256:<hex>`. See [§17](#17-privacy). |
 | `P1` / `P2` | The name shown to humans. MUST be generic — use `"Player 1"` and `"Player 2"`. |
@@ -257,9 +266,14 @@ Unknown tags MUST be accepted and ignored.
 These two tags are what make a file traceable and replayable. **Production output MUST
 carry real values in both.**
 
-- **`Engine`** MUST name the build that produced the file — a package version, a git SHA,
-  anything that identifies one build. Without it you cannot tell which build produced a bad
-  replay, which is exactly the position a bug report leaves you in.
+- **`Engine`** MUST name the build that produced the file — a git SHA, a release version,
+  anything that identifies **one** build. Without it you cannot tell which build produced a
+  bad replay, which is exactly the position a bug report leaves you in. The reference writer
+  resolves, in order: the `FORCETEKI_VERSION` environment variable, the git SHA of its working
+  tree, then its package version. The package version comes last because it never changes
+  between deploys (`package.json` has said `0.1.0` for the project's whole life, so every
+  production file once read `forceteki@0.1.0` and identified nothing). A deployed image has
+  no `.git`, so **production MUST set `FORCETEKI_VERSION` from the commit CI built**.
 - **`Seed`** MUST be the seed the game's RNG actually ran on. A writer whose RNG self-seeds
   from entropy MUST generate and record a seed instead, otherwise the seed is unrecoverable
   and [§8.1](#81-determinism)'s deterministic replay is impossible.
@@ -342,6 +356,15 @@ const cardId = baseId(id).split('#')[1];   // baseId(x) = x.replace(/:\d+$/, '')
 The same order applies to `SET#NUM:N`: strip `:N`, then read `SET` and `NUM`. Always
 `baseId()` first, for both id shapes and for both art lookup and name lookup.
 
+#### Two reserved token names
+
+Two tokens are neither units nor upgrades, and the format has a field for each: a **Credit
+token** (`TOKEN:credit#…`) feeds `credits`, and **the Force token** (`TOKEN:the-force#…`) feeds
+`hasForce`. Both live in the `base` zone, arrive from and return to `outsideTheGame`, and are
+recognised by these two names in the `TOKEN:<name>#` grammar — the format defines the two
+fields, so it has to define what drives them ([§12.1](#121-the-move-rule-the-big-one)). No
+other token name is reserved; every other token is classified by `kind`.
+
 ### 6.2 Zone names
 
 These are the strings that appear in `from`, `to`, and `zone`:
@@ -382,7 +405,7 @@ the base *card*; a `base@N` ref names the *thing being hit*.)
 | `defenderType` | `unit`, `base` |
 | `DEFEAT.reason` | `attack`, `ability`, `nonCombatDamage`, `frameworkEffect`, `uniqueRule` |
 | `CHOICE.prompt` | The prompt's title as the engine built it. For an attack-target choice this is the attacking card's name. |
-| `STATUS_TOKEN.token` | `advantage` |
+| `STATUS_TOKEN.token` | `advantage`, `weakness` — the internal name of any token upgrade that is not a Shield or an Experience, so a token upgrade printed tomorrow needs no format change |
 | `PHASE_START.phase` | `setup`, `action`, `regroup` |
 | `ABILITY_ACTIVATE.ability` | `card-slug#subtitle_triggered_N`, `card-slug_action_N`, `name_anonymous` |
 
@@ -416,7 +439,7 @@ it exactly when the card is neither. That covers more than tokens:
 | Wampa, Battle Droid token | `"unit"` | Enters an arena. |
 | Ascension Cable, Shield, Experience, Advantage | `"upgrade"` | Attaches to a unit; never enters an arena. |
 | Vanquish and every other Event | *absent* | Resolves and goes to the discard pile. |
-| A Credit token | *absent* | Moves `outsideTheGame` ↔ `base`; neither attaches nor takes an arena slot. |
+| A Credit token, the Force token | *absent* | Move `outsideTheGame` ↔ `base`; neither attaches nor takes an arena slot. They drive `credits` / `hasForce` instead ([§6.1](#two-reserved-token-names)). |
 | A base, an undeployed leader | *absent* | Neither, by printed type. |
 
 The same rule holds wherever `kind` appears — `%%% CARDS`, `MOVE`, `CREATE_TOKEN`: an Event's
@@ -607,13 +630,15 @@ doesn't move the needle. They are documented here rather than with the pure note
 | `from` | string | yes | Zone it left. |
 | `to` | string | yes | Zone it arrived in. |
 | `p` | 1 or 2 | no | Whose card. Real engine files always include this. |
-| `attachedTo` | string | no | The card id of the unit the moving card is bound to. REQUIRED whenever the move attaches a card — a token-upgrade, a printed upgrade, or a pilot; absent otherwise. |
+| `attachedTo` | string | no | The card id of the unit this move attaches the card to. REQUIRED on the move **into an arena** that attaches a card — a token-upgrade, a printed upgrade, or a pilot — and ABSENT on every other move, a move **out of** an arena included: exits are host-less, and a reader detaches on the zone transition ([the binding rule](#binding-an-attachment-to-its-host)). |
+| `exhausted` | boolean | no | On a move **out of `resource`** only: `true` when the card left the row exhausted, so the fold takes it from `resourcesExhausted` rather than `resourcesReady`. Absent means it left ready. A card played from the resource row pays for itself first, and a resource a friendly effect returns is swapped exhausted on the way out, so this is common. |
 | `kind` | `"unit"` or `"upgrade"` | no | The **role this move enacts**, not what the card is. REQUIRED whenever determinable — see below. |
 
 **`MOVE` is the most important event in the format.** It is the *single source of truth*
-for hand size, ready resources, and which cards are in play. Every other "a card went
-somewhere" event (`DRAW`, `PLAY`, `DISCARD`, `RESOURCE`) is a **summary** that sits next
-to the MOVEs, and MUST NOT be counted a second time.
+for hand size, the resource row, credits, the Force, which cards are in play and which cards
+are attached to which. Every other "a card went somewhere" event (`DRAW`, `PLAY`, `DISCARD`,
+`RESOURCE`) is a **summary** that sits next to the MOVEs, and MUST NOT be counted a second
+time.
 
 #### `kind` on an event is a ROLE. `kind` in `%%% CARDS` is an IDENTITY.
 
@@ -649,7 +674,10 @@ carry `target`.** Without a host there is nothing to attach to: `kind: "upgrade"
 keeps the card out of the arena, so a reader that is told the role but not the host loses the
 card entirely and the replay shows the play doing nothing. Note the writer learns the host
 only when the attachment happens, which is *after* the move is emitted — so both fields are
-resolved at attach time, not at move time.
+resolved at attach time, not at move time. The move **out** again — the pilot's vehicle is
+destroyed, the upgrade is defeated — names no host and reports the card's type at that moment
+(a pilot leaves as `kind: "unit"`, its role having reverted); a reader detaches on the zone
+transition and never needs one ([the binding rule](#binding-an-attachment-to-its-host)).
 
 **Rules for `from` and `to`:**
 
@@ -658,7 +686,10 @@ resolved at attach time, not at move time.
 - Both MUST come from the zone vocabulary in [§6.2](#62-zone-names): `deck`, `hand`,
   `resource`, `ground`, `space`, `discard`, `base`, `outsideTheGame`, `capture`.
 - `from` MUST NOT equal `to`. A move that doesn't change zone carries no information, and
-  a reader gains nothing from it. Writers MUST drop these rather than emit them.
+  a reader gains nothing from it. Writers MUST drop these rather than emit them — with one
+  exception that is not a `MOVE` at all: a Credit token that goes `base` → `base` has changed
+  **bases**, because each seat has its own. That is how a Credit token changes hands, and the
+  writer records it as the `TAKE_CONTROL` it is (`zone: "base"`, [below](#take_control)).
 - **Building the decks is not a move.** Before the first shuffle every card enters its deck
   from `outsideTheGame`. That is the deck list, which `DECKS` already states and `INIT`
   already orders, so the reference writer does not emit those `outsideTheGame` → `deck`
@@ -726,8 +757,10 @@ Event cards go straight to the discard pile — never into play.
 | `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. |
 
 If `target` is given and that unit is on the board, the upgrade id is pushed onto that
-unit's `upgrades` list. Otherwise the event changes **nothing**: an upgrade is never an
-arena card, so there is no fallback placement ([§12.2](#122-every-other-rule-in-one-table)).
+unit's `upgrades` list — **idempotently**, because the attaching `MOVE` beside this record
+already did the same through `attachedTo` ([§12.1](#121-the-move-rule-the-big-one)). Otherwise
+the event changes **nothing**: an upgrade is never an arena card, so there is no fallback
+placement ([§12.2](#122-every-other-rule-in-one-table)).
 
 ---
 
@@ -741,28 +774,84 @@ exactly as `PLAY_UPGRADE` does. It is never an arena card of its own.
 
 ---
 
+<a id="take_control"></a>
 **`TAKE_CONTROL` — `p` took control of `card`.**
 
 | Field | Type | Required | Means |
 |---|---|---|---|
 | `p` | 1 or 2 | yes | The new controller. |
 | `card` | string | yes | The card id. |
-| `zone` | string | no | Where the card is now (`ground`, `space`, `resource`). |
+| `zone` | string | no | Where the card is now (`ground`, `space`, `resource`, `base`). |
 | `from` | 1 or 2 | no | The seat it left. Present only when this record has to carry the counts (see below). |
+| `exhausted` | boolean | no | `resource` only: the stolen resource is exhausted, so the exhausted count moves rather than the ready one. |
 
 **A control change is not a zone change**, so no `MOVE` accompanies it: a stolen unit stays in
-the same arena, a stolen resource stays a resource. This record therefore re-seats the card
-itself:
+the same arena, a stolen resource stays a resource, a stolen Credit token stays in a base. This
+record therefore re-seats the card itself:
 
-- `zone` is an arena → take the card entry, with its damage, exhaustion and tokens, out of
-  whichever seat's `cards` holds it and push it onto `players[p].cards`.
-- `zone` is `resource` and `from` is present → `players[from].resourcesReady - 1` (never
-  below 0), `players[p].resourcesReady + 1`.
+- `zone` is an arena → take the card entry, with its damage, exhaustion, tokens, upgrades and
+  captives, out of whichever seat's `cards` holds it and push it onto `players[p].cards`.
+- `zone` is `resource` and `from` is present → one resource moves from `from` to `p`, in the
+  bucket `exhausted` names: `resourcesExhausted` when `true`, `resourcesReady` otherwise
+  (never below 0 on the losing side).
+- `zone` is `base` and `from` is present → a Credit token: `players[from].credits - 1`,
+  `players[p].credits + 1`; the Force token: `players[from].hasForce = false`,
+  `players[p].hasForce = true` ([§6.1](#two-reserved-token-names)).
 - otherwise → nothing.
 
 `from` is omitted when the steal **did** change zone (a unit taken straight into the resource
 row): a `MOVE` was written beside it and already carried the counts, and shifting them twice
-would be wrong. Recording it for credit tokens is skipped; credits are not folded.
+would be wrong. A Credit token steal is written as one of these per token, from the token's
+own `base` → `base` move ([the `from`/`to` rules](#101-events-that-carry-board-detail)).
+
+---
+
+**`CAPTURE` — `p` captured `card` with `by`.**
+
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `p` | 1 or 2 | yes | The **captor's controller** — the seat that holds the card from now on. |
+| `card` | string | yes | The captured card. |
+| `by` | string | no | The captor: a unit id, or `base@N` for the rare base captor. |
+
+The captured card's own `MOVE` (arena → `capture`) was written just before this and already
+took it off the board. This record files it under its captor: push `card` onto `by`'s
+`captured` list, idempotently, when `by` names a card you track. A base captor holds it
+nowhere in the fold — the card is out of play either way, and nothing today captures with a
+base.
+
+**`RESCUE` — `card` returned to play under `p`, its owner.**
+
+Fields: `p`, `card`. Take `card` off every card's `captured` list. The `MOVE` out of `capture`
+beside it places the card again, and the fold does not depend on which of the two arrives
+first. A captor leaving play rescues everything it held: each captive gets its own `RESCUE`
+and `MOVE`, and the captor's entry disappears with its list.
+
+---
+
+**`EXHAUST_RESOURCES` / `READY_RESOURCES` — `amount` of `p`'s resources changed ready state.**
+
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `p` | 1 or 2 | yes | Whose row. |
+| `amount` | integer | yes | How many. |
+
+Resources are **counted, never named**: a reader never knows which card in the row is which,
+so the row is two numbers, `resourcesReady` and `resourcesExhausted`, and these two records
+move them. `EXHAUST_RESOURCES` moves `min(amount, resourcesReady)` from ready to exhausted;
+`READY_RESOURCES` moves `min(amount, resourcesExhausted)` back. The clamp is the engine's own
+behaviour, not leniency: it exhausts as many as it can find.
+
+A writer emits `EXHAUST_RESOURCES` for **every** way a resource becomes exhausted — a cost
+paid (the `amount` is what was actually paid, after aspect penalties, discounts and Exploit;
+`cost` on the play record stays the printed cost), an ability exhausting resources, a single
+resource card exhausted by name, and a card an ability puts into the row exhausted (its `MOVE`
+into `resource` counted it ready, so it is one more exhaustion). It emits `READY_RESOURCES` the
+same way: the regroup step readies every resource one record at a time, ready ones included
+(those find nothing to move), and an ability that readies several says how many.
+
+A card that **leaves** the row is counted by its `MOVE`, in the bucket the move's `exhausted`
+flag names ([`MOVE`](#101-events-that-carry-board-detail)).
 
 ---
 
@@ -819,11 +908,15 @@ Base: set `baseHp` to `hp`. Card: subtract `amt` from `damage` (never below 0).
 | `reason` | string | yes |
 | `defeatedBy` | string | no |
 
-Take the card out of play and push its id onto that player's discard pile.
+Take the card out of play and push its id onto that player's discard pile — and take it off
+every card's `upgrades` and `captured` lists, because a defeated card is nobody's attachment
+and nobody's captive. An upgrade was never an arena card, so for one only the detach applies.
 
 ---
 
-**`EXHAUST` / `READY`** — field `card`. Sets `exhausted` to `true` / `false`.
+**`EXHAUST` / `READY`** — field `card`. Sets `exhausted` to `true` / `false`. Never written
+for a card in the resource row: the row is counted, and those are `EXHAUST_RESOURCES` /
+`READY_RESOURCES` ([above](#101-events-that-carry-board-detail)).
 
 ---
 
@@ -877,9 +970,12 @@ Adds / removes shields (never below 0).
 
 #### The token gain/removal contract
 
-Shields, experience and advantage are all **token-upgrade cards**: a unit gains one when a
-token is attached, and loses it when that token is defeated. Both directions MUST be
-recorded.
+Shields, experience, advantage and weakness are all **token-upgrade cards**: a unit gains one
+when a token is attached, and loses it when that token is defeated. Both directions MUST be
+recorded. Shield and Experience have their own counters; **every other token upgrade is a
+status token counted under its own name** — a writer classifies by the card's type, not by a
+list, so a token upgrade printed later records itself. Token upgrades never appear in a host's
+`upgrades[]`; that list is for printed cards ([§11](#11-the-board-you-build-reducedstate)).
 
 **Gain** — the token attaches to a host:
 
@@ -887,7 +983,7 @@ recorded.
 |---|---|
 | shield | `{"t":"SHIELD_GAIN","card":"<host>"}` |
 | experience | `{"t":"EXPERIENCE_GAIN","card":"<host>","count":1}` |
-| advantage (and any other status token) | `{"t":"STATUS_TOKEN","card":"<host>","token":"advantage","count":1}` |
+| advantage, weakness, any other token upgrade | `{"t":"STATUS_TOKEN","card":"<host>","token":"advantage","count":1}` — `token` is the token's name |
 
 **Removal** — the token leaves. This is the **same record with a negative count**:
 
@@ -917,20 +1013,33 @@ Four rules make this work:
 By the end of a game every gain has a matching removal, unless the token was still on its
 host when the game ended.
 
-#### Binding a token to its host
+#### Binding an attachment to its host
 
-A token-upgrade's own `MOVE` records carry **`attachedTo`**, the card id of the unit it is
-bound to — on the move into play **and** the move out:
+Every card that attaches — a token upgrade, a printed upgrade, a pilot — is bound to its host
+by **`attachedTo`** on the `MOVE` that carries it **into the arena**:
 
 ```json
 {"seq":"R1.A.1f","t":"MOVE","card":"TOKEN:advantage#5844562972",
- "from":"outsideTheGame","to":"ground","p":1,"attachedTo":"SOR#095"}
+ "from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"SOR#095"}
 {"seq":"R1.A.1g","t":"STATUS_TOKEN","card":"SOR#095","token":"advantage","count":1}
+
+{"seq":"R2.A.0b","t":"MOVE","card":"LOF#215","from":"hand","to":"ground","p":1,
+ "kind":"upgrade","attachedTo":"SOR#095"}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215","zone":"ground","target":"SOR#095","cost":2}
 ```
 
 **A reader MUST use `attachedTo` and MUST NOT infer the host from event adjacency.** The
 fact that the `STATUS_TOKEN` happens to be the next record is an accident of how the writer
-emits them, not a guarantee. `attachedTo` is the normative binding.
+emits them, not a guarantee. `attachedTo` is the normative binding, and the fold applies it
+([§12.1](#121-the-move-rule-the-big-one) step 3): a printed card goes onto the host's
+`upgrades`; a token upgrade goes into the host's counters through its own gain record.
+
+**Exits are host-less.** The move back out — the token defeated, the upgrade destroyed, the
+pilot's vehicle Vanquished — carries no `attachedTo`, and its `kind` is whatever the card is at
+that moment (a pilot leaves as `kind: "unit"`). A reader MUST NOT wait for a host to be named
+on the way out: **a card leaving an arena, or being defeated, comes off every host** — keyed
+on the zone transition, not on `kind` ([§12.1](#121-the-move-rule-the-big-one) step 0). One
+shape for every exit, and nothing for a writer to remember.
 
 ---
 
@@ -955,7 +1064,6 @@ These never change the board. A folder MUST read them and do nothing.
 | `KEEP_HAND` | `p` | A player kept their hand. |
 | `ABILITY_ACTIVATE` | `p`, `card`, `ability` (optional) | An ability was used. |
 | `SHUFFLE` | `p` | A deck was shuffled. |
-| `CAPTURE` / `RESCUE` | `p`, `card` | Captured / rescued. (`TAKE_CONTROL` re-seats a card and lives in [§10.1](#101-events-that-carry-board-detail).) |
 | `SEARCH` | `p`, `found` (optional), `zone` (optional) | A player searched. See the rule below. |
 | `REVEAL` | `p`, `zone`, `cards` | Cards were shown. |
 | `TRIGGER` | `card`, `p` (optional) | A triggered ability fired. |
@@ -1015,12 +1123,24 @@ interface CardInstanceState {
     zone: string;          // "ground" or "space"
     damage: number;
     exhausted: boolean;
-    upgrades: string[];    // card ids attached to this card
-    shields: number;
-    experience: number;
-    statusTokens: Record<string, number>;
+    upgrades: string[];    // PRINTED cards attached to this one: upgrades and pilots
+    shields: number;       // Shield tokens
+    experience: number;    // Experience tokens
+    statusTokens: Record<string, number>;   // every other token upgrade, by name: { advantage: 2 }
+    captured: string[];    // enemy units this one holds captured
+    power?: number;        // snapshot only: the engine's live power, ability effects included
+    hp?: number;           // snapshot only: the engine's live HP
 }
 ```
+
+Token upgrades are never in `upgrades[]`: they are the three counters. `captured` is absent in
+files written before it existed; a reader treats absent as `[]`.
+
+`power` and `hp` are **snapshot fields**: a keyframe carries them, the fold never maintains
+them (it has no rules engine to evaluate "+2/+0 while you control a leader unit"), and the
+integrity check never compares them. A reader that computes stats itself from card data can
+correct its arithmetic against them at every round boundary; one that doesn't can show them
+between boundaries as "as of the last keyframe".
 
 ### The starting board
 
@@ -1059,29 +1179,54 @@ fold(events):
 
 ### 12.1 The `MOVE` rule (the big one)
 
+**0. Detach.** Before anything else: if `from` is an arena and `to` is not, or `from` is
+`capture`, take `card` off every card's `upgrades` and `captured` lists (`detach`). A card
+that leaves an arena is nobody's attachment any more, whatever its `kind` says and whether or
+not anyone names a host — exits are host-less
+([§10.1](#binding-an-attachment-to-its-host)). This step needs no `p`.
+
 If `p` is missing: you can't attribute the counts to anyone. Just update the card's zone
 if you already track it, and stop.
 
-If `p` is there, do all three of these:
+If `p` is there, do all of these:
 
 **1. Hand count**
 
 - moving *into* `hand` from somewhere else → `handSize + 1`
 - moving *out of* `hand` to somewhere else → `handSize - 1` (never below 0)
 
-**2. Ready-resource count**
+**2. Resource row** — two counts, `resourcesReady` and `resourcesExhausted`
 
-- moving *into* `resource` from somewhere else → `resourcesReady + 1`
-- moving *out of* `resource` to somewhere else → `resourcesReady - 1` (never below 0)
+- moving *into* `resource` from somewhere else → `resourcesReady + 1`. A card enters the
+  row ready; if an ability put it there exhausted, an `EXHAUST_RESOURCES` beside the move
+  says so ([§10.1](#101-events-that-carry-board-detail)).
+- moving *out of* `resource` to somewhere else → `resourcesExhausted - 1` if the move
+  carries `exhausted: true`, else `resourcesReady - 1` (never below 0).
+
+**2b. Credits and the Force** — the two reserved token names
+([§6.1](#two-reserved-token-names))
+
+- a `TOKEN:credit#…` moving *into* `base` → `credits + 1`; *out of* `base` → `credits - 1`
+  (never below 0)
+- a `TOKEN:the-force#…` moving *into* `base` → `hasForce = true`; *out of* `base` →
+  `hasForce = false`
+
+Nothing else that enters or leaves `base` changes anything: a leader deploying or being
+defeated is an arena move handled in step 3.
 
 **3. In-play list** (in play = `ground` or `space`)
 
-If `kind` is `"upgrade"`, **skip this step entirely** — update the card's zone if you already
-track it, and stop. Steps 1 and 2 still ran: an upgrade really does leave the hand.
+If `kind` is `"upgrade"`: this card never joins an arena. If the move is **into** an arena
+and carries `attachedTo`, `attach(state, attachedTo, card)` — a printed card (an upgrade, a
+pilot) goes onto that host's `upgrades`, idempotently, because the `PLAY_UPGRADE` /
+`DEPLOY_LEADER` beside it names the same host; a token upgrade (`TOKEN:…`) does not, it is
+counted by its own gain record. Then update the card's zone if you already track it, and
+stop. Steps 1 and 2 still ran: an upgrade really does leave the hand.
 
 - moving **into** an arena: if you already track this card id, just set its zone.
   Otherwise create a fresh card and add it to `players[p].cards`.
-- moving **out of** an arena: remove it from whichever player's `cards` holds it.
+- moving **out of** an arena: remove it from whichever player's `cards` holds it (step 0
+  already took it off every host).
 - moving between two non-arena zones: just update its zone if you track it.
 
 Adding is *idempotent by id*, so a `PLAY` followed by its `MOVE` never adds the card
@@ -1096,15 +1241,19 @@ twice.
 | `CLAIM_INITIATIVE` | `initiative = event.p` |
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
 | `PLAY_EVENT` | push `card` onto `players[p].discard` |
-| `PLAY_UPGRADE` | if `target` is set and that card is on the board → push `card` onto its `upgrades`; otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
-| `DEPLOY_LEADER` | if `kind` is `"upgrade"` → push `card` onto `target`'s `upgrades` (nothing if the host isn't tracked); else place `card` in `zone ?? "ground"`, idempotent by id |
-| `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one `resourcesReady` from `from` to `p`; otherwise nothing ([§10.1](#101-events-that-carry-board-detail)) |
+| `PLAY_UPGRADE` | if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
+| `DEPLOY_LEADER` | if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
+| `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
+| `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); if `by` names a tracked card, push `card` onto its `captured`, idempotently |
+| `RESCUE` | `detach(state, card)` — the `MOVE` out of `capture` beside it places the card |
+| `EXHAUST_RESOURCES` | `n = min(amount, resourcesReady)`; `resourcesReady -= n`; `resourcesExhausted += n` |
+| `READY_RESOURCES` | `n = min(amount, resourcesExhausted)`; `resourcesExhausted -= n`; `resourcesReady += n` |
 | `CREATE_TOKEN` | place `token` in `zone`, idempotent by id — unless `kind` is `"upgrade"`, then nothing |
 | `MOVE` | see [§12.1](#121-the-move-rule-the-big-one) |
 | `DAMAGE` | `base@N` → `players[N].baseHp = hp`; else `card.damage = max(0, damage + amt)` |
 | `OVERWHELM` | `base@N` → `players[N].baseHp = hp`; anything else → nothing |
 | `HEAL` | `base@N` → `players[N].baseHp = hp`; else `card.damage = max(0, damage - amt)` |
-| `DEFEAT` | find the card, remove it from `cards`, push its id onto that player's `discard` |
+| `DEFEAT` | `detach(state, card)`; then, if the card is in someone's `cards`, remove it and push its id onto that player's `discard` |
 | `EXHAUST` | `card.exhausted = true` |
 | `READY` | `card.exhausted = false` |
 | `DRAW` | push each id in `cards` onto `players[p].hand`. **Nothing else.** |
@@ -1119,7 +1268,10 @@ twice.
 
 Three small helpers:
 
-- `newCard(id, zone)` → `{ id, zone, damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {} }`
+- `newCard(id, zone)` → `{ id, zone, damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [] }`
+- `attach(state, hostId, id)` → if `id` is a `TOKEN:` id, nothing (tokens are counters); else
+  if `hostId` is tracked and `id` is not already in its `upgrades`, push it
+- `detach(state, id)` → remove `id` from every card's `upgrades` and `captured`
 - `findCard(state, id)` → look through player 1's `cards`, then player 2's. **If it isn't
   there, silently do nothing.** Never crash.
 - `seatOfBaseRef(ref)` → the N out of `base@N`, or `null` if it isn't a base.
@@ -1209,25 +1361,23 @@ problem. A writer that has no such cost SHOULD treat `ok: false` as fatal.
   placeholder 30 ([§11](#11-the-board-you-build-reducedstate)). The first keyframe is what
   *supplies* the real number; every keyframe after it is compared normally.
 - `handSize`
-- `resourcesReady`
+- `resourcesReady` and `resourcesExhausted`
+- `credits` and `hasForce`
 - for each in-play card matched by `id`: `zone`, `damage`, `exhausted`, `shields`,
-  `experience`, `statusTokens`
+  `experience`, `statusTokens`, and `upgrades` and `captured` **as sets** (attachment order
+  is not part of the model; a missing list counts as empty)
 - a card being in one side but not the other (reported both ways)
 
 Everything except `baseHp` is compared at **every** keyframe, the first one included.
 
-**Not checked yet, and why:**
+**Not checked, and why:**
 
 | Field | Why not |
 |---|---|
-| `credits` | No event carries credit changes yet. |
-| `hasForce` | No event carries the Force yet. |
-| `resourcesExhausted` | Nothing tracks resource exhaustion yet. |
-| `hand` / `discard` **contents** | Only the counts are reconstructable today. |
-| `upgrades` | Modelled by `PLAY_UPGRADE.target` ([§12.2](#122-every-other-rule-in-one-table)), but not yet compared by `checkKeyframes`. |
+| `hand` / `discard` **contents** | Only the counts are reconstructable: `DRAW` appends to `hand`, nothing removes from it. |
+| a card's `power` / `hp` | Snapshot fields ([§11](#11-the-board-you-build-reducedstate)): the engine's live stats include ability effects the fold has no rules engine to evaluate. A reader may correct its own arithmetic against them; the gate cannot. |
 
-Closing these is future work. Until then, do not assume a passing check proves those
-fields.
+Do not assume a passing check proves those two.
 
 A mismatch looks like:
 
@@ -1353,7 +1503,7 @@ width. Then, from that round's keyframe, one block per seat:
 - Then a line per non-empty arena, cards joined by `  ·  `.
 - A card's non-default state goes in `[...]`, comma-separated, in this order: damage
   (`3 dmg`), `exhausted`, shields (`2 shield`), experience (`1 xp`), each status token
-  (`1 advantage`), then each attached upgrade by name.
+  (`1 advantage`), each attached upgrade by name, then each captive as `holds {name}`.
 - A seat with no keyframe entry prints ` P{n}  (not recorded)` — see
   [§13](#13-keyframes); this should never happen in a conformant file.
 - No keyframe on the `ROUND_START`, or a damaged one ([§13](#13-keyframes)) → no summary,
@@ -1366,9 +1516,10 @@ read.
 
 | `t` | Line |
 |---|---|
-| `PLAY`, `PLAY_UPGRADE`, `PLAY_SMUGGLE` | `{who(p)} plays {nm(card)}` + ` to {zone}` if `zone` + ` (cost {cost})` if `cost` |
+| `PLAY`, `PLAY_SMUGGLE` | `{who(p)} plays {nm(card)}` + ` to {zone}` if `zone` + ` (cost {cost})` if `cost` |
+| `PLAY_UPGRADE` | `{who(p)} plays {nm(card)}` + ` on {nm(target)}` if `target`, else ` to {zone}` if `zone`; + ` (cost {cost})` if `cost` |
 | `PLAY_EVENT` | `{who(p)} plays {nm(card)}` + ` (cost {cost})` if `cost` — no zone |
-| `DEPLOY_LEADER` | `{who(p)} deploys {nm(card)}` |
+| `DEPLOY_LEADER` | `{who(p)} deploys {nm(card)}` + ` as a pilot on {nm(target)}` if `target` |
 | `ATTACK` | base: `{who(p)} attacks {who(other)}'s base with {nm(atk)}` · unit: `{who(p)} attacks {nm(def)} with {nm(atk)}` |
 | `PASS` | `{who(p)} passes` |
 | `CLAIM_INITIATIVE` | `{who(p)} claims initiative` |
@@ -1388,18 +1539,20 @@ read.
 | `REVEAL` | `{who(p)} reveals {names}` |
 | `SEARCH` | with `found`: `{who(p)} searches, finds {names}` · without: `{who(p)} searches their deck` |
 | `CREATE_TOKEN` | `{who(p)} creates {nm(token)} in {zone}` |
-| `CAPTURE` / `RESCUE` / `TAKE_CONTROL` | `{who(p)} captures\|rescues\|takes control of {nm(card)}` |
+| `CAPTURE` | `{who(p)} captures {nm(card)}` + ` with {nm(by)}` if `by` |
+| `RESCUE` / `TAKE_CONTROL` | `{who(p)} rescues\|takes control of {nm(card)}` |
 | `MULLIGAN` | `{who(p)} mulligans` |
 | `KEEP_HAND` | `{who(p)} keeps their hand` |
 | `GAME_END` | `*** {who(winner)} wins — {reason} ***` · draw: `*** Game ends in a draw — {reason} ***` |
 
-**These print nothing**: `MOVE`, `EXHAUST`, `READY`, `CHOICE`, `MODAL_CHOICE`, `SHUFFLE`,
-`PHASE_END`, `ROUND_END`.
+**These print nothing**: `MOVE`, `EXHAUST`, `READY`, `EXHAUST_RESOURCES`, `READY_RESOURCES`,
+`CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`.
 
 They are mechanism, not story. `MOVE` is the fold's source of truth and appears beside every
 play, draw and discard — printing it would roughly triple the narrative for no reader
-benefit. `EXHAUST`/`READY` fire on every attack and every regroup; the board summary already
-shows what is exhausted at each round boundary, which is where a reader actually wants it.
+benefit. `EXHAUST`/`READY` fire on every attack and every regroup, and the resource counters
+on every play; the board summary already shows what is exhausted at each round boundary,
+which is where a reader actually wants it.
 
 One detail that is easy to get wrong: "the other player" is `p === 1 ? 2 : 1`.
 
@@ -1514,10 +1667,22 @@ To be conformant:
 2. `validate()` returns no **errors** (warnings are fine).
 3. Your fold matches `.fold.json`.
 4. Your render matches `.render.txt` (if you render).
+5. Your `checkKeyframes()` reports **no** mismatch. Every vector is internally consistent —
+   each keyframe is exactly what folding the deltas before it produces — so a reader that
+   reports one has a fold rule wrong, not a bad file.
 
 | Vector | Covers |
 |---|---|
-| `minimal` | One round: `PLAY`, `ATTACK`, `DAMAGE`, `EXHAUST`. |
+| `minimal` | Hand-written. A setup phase (draws, resourcing, the `R1.start` keyframe it leads to), then one round: `EXHAUST_RESOURCES`, `PLAY`, `EXHAUST`, `ATTACK`, `DAMAGE`. Appendix A walks through it. |
+| `organic` | A real game the reference writer produced: natural setup with a mulligan, four rounds of plays, attacks and regroups, a concession. Keyframes at every round boundary. |
+| `upgrades` | Real game: a printed upgrade (`PLAY_UPGRADE` + `attachedTo`), Advantage and Experience tokens, Shield tokens, and the host defeated with all of it attached — every removal record, and the detach on exit. |
+| `pilot` | Real game: a pilot flown onto a vehicle (`kind: "upgrade"` on a unit card, `%%% CARDS` saying `unit`), a second one, and a piloted vehicle Vanquished. |
+| `capture` | Real game: a unit taken captive (`CAPTURE` with `by`, the `MOVE` into `capture`) and rescued when its captor is defeated. |
+
+The four real-game vectors are regenerated from the writer by
+`test/server/chat/SwuPgnVectors.spec.ts` and `SwuPgnOrganicGame.spec.ts` with
+`SWUPGN_WRITE_VECTORS=1`; those specs also pin the fold and story byte for byte, so the
+writer cannot drift from its own vectors unnoticed.
 
 ---
 
@@ -1535,21 +1700,33 @@ the events forward reproduces every keyframe, every status-token gain has a matc
 by game end, no `MOVE` has an empty or identical `from`/`to` (and every zone named is in the
 vocabulary), and `Engine`/`Seed` are not placeholders.
 
-It is gated again on an **organic** game by `test/server/chat/SwuPgnOrganicGame.spec.ts`:
-a natural setup phase (initiative, mulligan, resourcing) through four rounds of plays,
-attacks and regroup resourcing to a concession in round 5, folded with **no** field excluded.
-Every keyframe's `handSize` and `resourcesReady` reproduce exactly, `validate()` returns no
-issue at all, `%%% CARDS` covers every leader, base and deck id, and `GAME_END` takes the
-`.game-end` step of the phase it happened in. Two further real-game gates cover the cases
-that first broke the fold: a Change of Heart steal and return (`TAKE_CONTROL` re-seating),
-and Kazuda Xiono deploying as a pilot (`DEPLOY_LEADER` with `target`). (The other real-game specs bootstrap at the action
-phase, which discards the natural hand without a `MOVE`, so they cannot assert those two
-counts past `R1.start`.)
+It is gated again on **organic** games — a natural setup phase (initiative, mulligan,
+resourcing) through several rounds of plays, attacks and regroup resourcing to a concession —
+folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the three
+scenario games of `SwuPgnVectors.spec.ts` that are also the `upgrades`, `pilot` and `capture`
+vectors ([§20](#20-test-vectors)). In every one, every keyframe field reproduces exactly:
+`handSize`, `resourcesReady` **and `resourcesExhausted`**, `credits`, `hasForce`, and per card
+`upgrades` and `captured` alongside the counters; `validate()` returns no issue at all;
+`%%% CARDS` covers every leader, base and deck id; and `GAME_END` takes the `.game-end` step of
+the phase it happened in. Two further real-game gates cover the cases that first broke the
+fold: a Change of Heart steal and return (`TAKE_CONTROL` re-seating), and Kazuda Xiono
+deploying as a pilot (`DEPLOY_LEADER` with `target`). (The other real-game specs bootstrap at
+the action phase, which discards the natural hand without a `MOVE`, so they cannot assert the
+hand and resource counts past `R1.start`.) The credit rule was additionally checked against a
+real 10-round export in which one Credit token was created, held across two rounds and spent:
+0 mismatches under the widened gate.
 
-What remains genuinely unverified is the un-gated field list in
-[§14](#14-checking-a-file-is-honest): `credits`, `hasForce`, `resourcesExhausted`, the
-**contents** of `hand` and `discard`, and `upgrades`. A passing integrity check says nothing
-about those.
+What remains genuinely unverified is the un-gated pair in [§14](#14-checking-a-file-is-honest):
+the **contents** of `hand` and `discard`, and a card's `power`/`hp`. A passing integrity check
+says nothing about those.
+
+Three engine paths the resource rule covers by construction have no dedicated real-game gate
+yet, and a reader should treat their split (not their total, which every regroup re-syncs) as
+best-effort until one exists: a card Smuggled or played from the resource row (its exit `MOVE`
+carries `exhausted: true`), a resource a friendly effect returns to hand (swapped exhausted on
+the way out, same flag), and a resource stolen while exhausted (`TAKE_CONTROL` with
+`exhausted`). Each is exercised by unit tests of the recorder against the engine's documented
+behaviour, not by a played game.
 
 `baseHp`/`baseMaxHp` are still absent from the SETUP `INIT` record. A reader that ships card
 data can derive a base's starting HP itself, and the first keyframe supplies it either way,
@@ -1557,14 +1734,16 @@ so this is low priority — but emitting it would give the keyframe gate an inde
 to check the first keyframe against, which is the one place it currently can't
 ([§14](#14-checking-a-file-is-honest)).
 
-Closing those needs new events (there is no event for credits or the Force today); `upgrades`
-only needs the comparison added to `checkKeyframes`.
+A `CAPTURE` whose captor is a base (`by: "base@N"`) is recorded but not held anywhere in the
+fold: no card today captures with a base, and the card is out of play either way.
 
-Some defined event types still never appear in a real file, simply because nothing in a
-given game triggers them (`CAPTURE`, `RESCUE`, `OVERWHELM`, `MULLIGAN` and
-friends). That is absence of the situation, not a gap — unlike `RESOURCE`, which was
-specified, folded and rendered but had no code path that emitted it at all; it is now
-emitted for every resourcing ([§10.1](#101-events-that-carry-board-detail)).
+Some defined event types still never appear in a given real file, simply because nothing in
+that game triggers them (`OVERWHELM`, `SEARCH` and friends). That is absence of the situation,
+not a gap — unlike `RESOURCE`, which was specified, folded and rendered but had no code path
+that emitted it at all; it is now emitted for every resourcing
+([§10.1](#101-events-that-carry-board-detail)). `CAPTURE` and `RESCUE` were in that position
+for a board reader — recorded, but with nothing a reader could file the card under — until the
+`capture` vector.
 
 ---
 
@@ -1607,6 +1786,16 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | No way to tell a complete file from one whose writer dropped events | header carries `RecorderErrors` when a handler failed ([§5.2](#52-you-may-have-these)) | the tag's presence |
 | A malformed keyframe, or a non-array `cards`/`hand`/`discard`, crashed the reference reader | ignored and reported ([§13](#13-keyframes), [§14](#14-checking-a-file-is-honest)); `validate()` rejects the shapes the fold dereferences | `validate()` errors, or a `keyframe` mismatch |
 | `Date` was when the file was written | when the game started ([§5.1](#51-you-must-have-these)) | not detectable; treat an early file's `Date` as "at or after game end" |
+| Nothing recorded resources being spent: the row read "all ready" for a whole action phase | `EXHAUST_RESOURCES` / `READY_RESOURCES` counters, and `exhausted` on a `MOVE` out of the row ([§10.1](#101-events-that-carry-board-detail)); `resourcesExhausted` gated | any `EXHAUST_RESOURCES` record |
+| A resource card readied at regroup was a per-card `READY` a reader had no card to apply to | the counter record ([§10.1](#101-events-that-carry-board-detail)) | a `READY` naming a card that was resourced shows the early writer |
+| A token upgrade's exit `MOVE` named its host (`attachedTo`); a printed upgrade's and a pilot's did not | no exit names a host; readers detach on the zone transition ([§10.1](#binding-an-attachment-to-its-host)) | a `MOVE` out of an arena carrying `attachedTo` |
+| The fold ignored `attachedTo` and never detached, so `upgrades[]` only grew | `attachedTo` attaches, exits and `DEFEAT` detach ([§12.1](#121-the-move-rule-the-big-one)); `upgrades` gated | not a file change; a reader's fold |
+| Credit tokens and the Force moved on `MOVE`s the fold ignored; a Credit token changing hands was dropped as a `base` → `base` no-op | `credits` / `hasForce` folded from those moves ([§12.1](#121-the-move-rule-the-big-one)); the steal is a `TAKE_CONTROL` with `zone: "base"` | a `TAKE_CONTROL` whose `zone` is `base` |
+| `CAPTURE.p` was the captured card's owner, and no field named the captor | `p` is the seat that now holds the card, `by` is the captor; `CardInstanceState.captured` ([§10.1](#101-events-that-carry-board-detail)) | a `CAPTURE` carrying `by` |
+| A Weakness token (any token upgrade other than Shield/Experience/Advantage) was recorded as a printed upgrade | a `STATUS_TOKEN` under its own name, by type ([the token contract](#the-token-gainremoval-contract)) | a `STATUS_TOKEN` whose `token` is not `advantage` |
+| Keyframe cards carried no stats and no captives | `power`, `hp` and `captured` ([§11](#11-the-board-you-build-reducedstate)) | the fields' presence |
+| `Engine` preferred the package version, so every production file said `forceteki@0.1.0` | git SHA before package version ([§5.3](#53-provenance-engine-and-seed)) | an `Engine` that is a SHA |
+| The `minimal` vector began at the `R1.start` keyframe and failed its own gate | a setup prologue; four real-game vectors added ([§20](#20-test-vectors)) | not a file change |
 
 ### 22.1 Files that say `SWU-PGN/1.1`
 
@@ -1671,6 +1860,15 @@ A.3 exactly.
 [Result "Incomplete"] [Reason "Sample"] [Rounds "1"]
 
 %%% STORY
+ ── setup ──
+       ↳ Player 1 draws 3: Wampa, Wampa #2, Wampa #3
+       ↳ Player 2 draws 3: Cell Block Guard, Cell Block Guard #2, Cell Block Guard #3
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Wampa #2
+       ↳ Player 1 resources Wampa #3
+       ↳ Player 2 resources Cell Block Guard #2
+       ↳ Player 2 resources Cell Block Guard #3
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 1                                                 initiative: Player 1 
@@ -1681,7 +1879,7 @@ A.3 exactly.
  ── action ──
   1. Player 1 plays Wampa to ground (cost 2)
   2. Player 1 attacks Player 2's base with Wampa
-       ↳ 2 damage to Player 2's base — 28 HP left
+       ↳ 4 damage to Player 2's base — 26 HP left
 
 %%% DECKS
 {"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]]}
@@ -1692,19 +1890,44 @@ A.3 exactly.
 {"id":"SOR#010","name":"Luke Skywalker, Faithful Friend"}
 {"id":"SOR#020","name":"Command Center"}
 {"id":"SOR#028","name":"Echo Base"}
-{"id":"SOR#045","name":"Cell Block Guard"}
-{"id":"SOR#108","name":"Wampa"}
+{"id":"SOR#045","name":"Cell Block Guard","kind":"unit"}
+{"id":"SOR#108","name":"Wampa","kind":"unit"}
 
 %%% SETUP
-{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108"],"p2DeckOrder":["SOR#045"]}
+{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3"]}
 
 %%% EVENTS
+{"seq":"R0.S.start","t":"PHASE_START","phase":"setup"}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
+{"seq":"R0.S.2","t":"SHUFFLE","p":1}
+{"seq":"R0.S.3","t":"MOVE","card":"SOR#108","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.4","t":"MOVE","card":"SOR#108:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.5","t":"MOVE","card":"SOR#108:3","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.6","t":"DRAW","p":1,"count":3,"cards":["SOR#108","SOR#108:2","SOR#108:3"]}
+{"seq":"R0.S.7","t":"SHUFFLE","p":2}
+{"seq":"R0.S.8","t":"MOVE","card":"SOR#045","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.9","t":"MOVE","card":"SOR#045:2","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.10","t":"MOVE","card":"SOR#045:3","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.11","t":"DRAW","p":2,"count":3,"cards":["SOR#045","SOR#045:2","SOR#045:3"]}
+{"seq":"R0.S.12","t":"KEEP_HAND","p":1}
+{"seq":"R0.S.13","t":"KEEP_HAND","p":2}
+{"seq":"R0.S.14","t":"MOVE","card":"SOR#108:2","from":"hand","to":"resource","p":1,"kind":"unit"}
+{"seq":"R0.S.15","t":"RESOURCE","p":1,"card":"SOR#108:2"}
+{"seq":"R0.S.16","t":"MOVE","card":"SOR#108:3","from":"hand","to":"resource","p":1,"kind":"unit"}
+{"seq":"R0.S.17","t":"RESOURCE","p":1,"card":"SOR#108:3"}
+{"seq":"R0.S.18","t":"MOVE","card":"SOR#045:2","from":"hand","to":"resource","p":2,"kind":"unit"}
+{"seq":"R0.S.19","t":"RESOURCE","p":2,"card":"SOR#045:2"}
+{"seq":"R0.S.20","t":"MOVE","card":"SOR#045:3","from":"hand","to":"resource","p":2,"kind":"unit"}
+{"seq":"R0.S.21","t":"RESOURCE","p":2,"card":"SOR#045:3"}
+{"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
 {"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]}}}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
+{"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2}
+{"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit"}
 {"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
+{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}
 {"seq":"R1.A.2","t":"ATTACK","p":1,"atk":"SOR#108","def":"base@2","defenderType":"base"}
-{"seq":"R1.A.2a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":2,"damageType":"combat","hp":28}
-{"seq":"R1.A.2b","t":"EXHAUST","card":"SOR#108"}
+{"seq":"R1.A.2a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":4,"damageType":"combat","hp":26}
 
 %%% ANNOTATIONS
 {"ref":"R1.A.2","nag":"?!","text":"attacking the base too early"}
@@ -1722,12 +1945,12 @@ A.3 exactly.
       "seat": 1,
       "baseHp": 30,
       "baseMaxHp": 30,
-      "handSize": 1,
+      "handSize": 0,
       "hand": [
         "SOR#108"
       ],
-      "resourcesReady": 2,
-      "resourcesExhausted": 0,
+      "resourcesReady": 0,
+      "resourcesExhausted": 2,
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -1740,13 +1963,14 @@ A.3 exactly.
           "upgrades": [],
           "shields": 0,
           "experience": 0,
-          "statusTokens": {}
+          "statusTokens": {},
+          "captured": []
         }
       ]
     },
     "2": {
       "seat": 2,
-      "baseHp": 28,
+      "baseHp": 26,
       "baseMaxHp": 30,
       "handSize": 1,
       "hand": [
@@ -1766,6 +1990,15 @@ A.3 exactly.
 ### A.3 The story it renders to
 
 ```
+ ── setup ──
+       ↳ Player 1 draws 3: Wampa, Wampa #2, Wampa #3
+       ↳ Player 2 draws 3: Cell Block Guard, Cell Block Guard #2, Cell Block Guard #3
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Wampa #2
+       ↳ Player 1 resources Wampa #3
+       ↳ Player 2 resources Cell Block Guard #2
+       ↳ Player 2 resources Cell Block Guard #3
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 1                                                 initiative: Player 1 
@@ -1776,7 +2009,7 @@ A.3 exactly.
  ── action ──
   1. Player 1 plays Wampa to ground (cost 2)
   2. Player 1 attacks Player 2's base with Wampa
-       ↳ 2 damage to Player 2's base — 28 HP left
+       ↳ 4 damage to Player 2's base — 26 HP left
 ```
 
 ### A.4 Step by step
@@ -1789,20 +2022,35 @@ reader can check it rather than trust it.
 **DECKS** — two lines, one per player. Player 1 runs 3 copies of `SOR#108`.
 
 **CARDS** — six entries. This is why the story says `Wampa` and not `SOR#108`, with no card
-database involved.
+database involved. The two units carry `kind: "unit"`; the leaders and bases carry none.
 
-**SETUP** — `INIT` says `SOR#108` is on top of Player 1's deck.
+**SETUP** — `INIT` says Player 1's deck is three Wampas, `SOR#108` on top.
 
-**EVENTS, folding:**
+**EVENTS, folding** — the setup phase is round 0, and the keyframe comes only when round 1
+begins, so the setup deltas are what it has to add up to:
 
 | Event | What happens to the board |
 |---|---|
-| `ROUND_START {round:1, keyframe}` | the keyframe is authoritative: the whole state is **replaced** by it, and the normal `round = 1` rule is skipped |
+| `PHASE_START {phase:"setup"}` | `phase = "setup"` |
+| `MODAL_CHOICE` | nothing (a note: Player 1 chose to go first) |
+| `SHUFFLE` | nothing |
+| three `MOVE deck → hand` for Player 1 | `handSize` 0 → 3; the cards are not in play, so `cards` stays empty |
+| `DRAW {count:3, cards:[…]}` | the three ids go onto `hand`; **`handSize` is untouched** — the MOVEs did that |
+| the same for Player 2 | `handSize` 3, `hand` filled |
+| `KEEP_HAND` ×2 | nothing |
+| `MOVE hand → resource` (`SOR#108:2`) | `handSize` 3 → 2, `resourcesReady` 0 → 1 |
+| `RESOURCE` | nothing — the MOVE carried the change |
+| `MOVE` + `RESOURCE` (`SOR#108:3`) | `handSize` 1, `resourcesReady` 2 |
+| the same two for Player 2 | `handSize` 1, `resourcesReady` 2 |
+| `PHASE_END` | nothing |
+| `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — and is authoritative: the state is **replaced** by it and the normal `round = 1` rule is skipped. `checkKeyframes()` compares first and finds nothing to report. |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |
-| `PLAY {p:1, card:"SOR#108", zone:"ground"}` | a fresh `SOR#108` is added to player 1's `cards` |
+| `EXHAUST_RESOURCES {p:1, amount:2}` | Player 1 pays for the Wampa: `resourcesReady` 2 → 0, `resourcesExhausted` 0 → 2. It lands under action `0` because the engine pays before it announces the play ([§9.1](#91-how-seq-is-built)). |
+| `MOVE hand → ground` (`SOR#108`) | `handSize` 1 → 0; a fresh `SOR#108` is added to player 1's `cards` |
+| `PLAY {p:1, card:"SOR#108", zone:"ground"}` | already tracked: nothing but its zone, which is unchanged. **Not** added twice. |
+| `EXHAUST {card:"SOR#108"}` | that card's `exhausted = true` (the engine exhausts the attacker before it announces the attack) |
 | `ATTACK` | nothing (it's just a note) |
-| `DAMAGE {tgt:"base@2", hp:28}` | `players[2].baseHp = 28` |
-| `EXHAUST {card:"SOR#108"}` | that card's `exhausted = true` |
+| `DAMAGE {tgt:"base@2", amt:4, hp:26}` | `players[2].baseHp = 26` — a Wampa hits for 4 |
 
 **ANNOTATIONS** — one note on `R1.A.2`, glyph `?!` ("dubious"), with a comment.
 
@@ -1810,9 +2058,15 @@ database involved.
 
 | Event | What gets printed |
 |---|---|
+| `PHASE_START {setup}` | ` ── setup ──` · counter → 0 |
+| `MODAL_CHOICE`, `SHUFFLE`, every `MOVE` | nothing — mechanism |
+| `DRAW` | indented: `       ↳ Player 1 draws 3: Wampa, Wampa #2, Wampa #3` — the `:N` copy suffix becomes ` #N` |
+| `KEEP_HAND` | indented: `       ↳ Player 1 keeps their hand` |
+| `RESOURCE` | indented: `       ↳ Player 1 resources Wampa #2` — this is what `RESOURCE` is for; its `MOVE` printed nothing |
 | `ROUND_START` | blank, rule, ` ROUND 1` + initiative, the board from its keyframe, rule, blank · counter → 0 |
-| `PHASE_START` | ` ── action ──` · counter → 0 |
-| `PLAY` | numbered: `  1. Player 1 plays Wampa to ground (cost 2)` |
+| `PHASE_START {action}` | ` ── action ──` · counter → 0 |
+| `EXHAUST_RESOURCES` | nothing — mechanism |
+| `PLAY` | numbered: `  1. Player 1 plays Wampa to ground (cost 2)` — the printed cost; what was paid is in the events |
+| `EXHAUST` | nothing — the board summary shows what is exhausted |
 | `ATTACK` | numbered: `  2. Player 1 attacks Player 2's base with Wampa` |
-| `DAMAGE` | indented under action 2: `       ↳ 2 damage to Player 2's base — 28 HP left` |
-| `EXHAUST` | nothing — mechanism, not story; the board summary shows what is exhausted |
+| `DAMAGE` | indented under action 2: `       ↳ 4 damage to Player 2's base — 26 HP left` |

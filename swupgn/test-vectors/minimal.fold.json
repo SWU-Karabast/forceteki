@@ -7,12 +7,12 @@
       "seat": 1,
       "baseHp": 30,
       "baseMaxHp": 30,
-      "handSize": 1,
+      "handSize": 0,
       "hand": [
         "SOR#108"
       ],
-      "resourcesReady": 2,
-      "resourcesExhausted": 0,
+      "resourcesReady": 0,
+      "resourcesExhausted": 2,
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -25,13 +25,14 @@
           "upgrades": [],
           "shields": 0,
           "experience": 0,
-          "statusTokens": {}
+          "statusTokens": {},
+          "captured": []
         }
       ]
     },
     "2": {
       "seat": 2,
-      "baseHp": 28,
+      "baseHp": 26,
       "baseMaxHp": 30,
       "handSize": 1,
       "hand": [

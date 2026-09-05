@@ -84,19 +84,22 @@ describe('SwuPgnGameAdapter.engineVersion', function () {
         expect(Adapter.engineVersion()).toBe('forceteki@9.9.9');
     });
 
-    it('falls back to the package version', function () {
+    // package.json has said 0.1.0 for the project's whole life, so the package version names
+    // no build: the git SHA must win over it (spec §5.3), and it is only the last resort.
+    it('prefers the git sha over the package version', function () {
         delete process.env.FORCETEKI_VERSION;
         process.env.npm_package_version = '0.0.1';
-
-        expect(Adapter.engineVersion()).toBe('forceteki@0.0.1');
-    });
-
-    it('falls back to the git sha when no version is set', function () {
-        delete process.env.FORCETEKI_VERSION;
-        delete process.env.npm_package_version;
         spyOn(Adapter, 'gitSha').and.returnValue('abc1234');
 
         expect(Adapter.engineVersion()).toBe('forceteki@abc1234');
+    });
+
+    it('falls back to the package version only when there is no git sha', function () {
+        delete process.env.FORCETEKI_VERSION;
+        process.env.npm_package_version = '0.0.1';
+        spyOn(Adapter, 'gitSha').and.returnValue(undefined);
+
+        expect(Adapter.engineVersion()).toBe('forceteki@0.0.1');
     });
 
     it('records provenance as unknown rather than inventing a build', function () {

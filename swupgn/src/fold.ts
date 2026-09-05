@@ -83,6 +83,22 @@ function seatOfBaseRef(ref: string): Seat | null {
     return m ? (Number(m[1]) as Seat) : null;
 }
 
+/**
+ * The two reserved token names (spec §6.1). A Credit token and the Force token are neither
+ * units nor upgrades; they live in the `base` zone and are the only things that drive
+ * `credits` and `hasForce`. They are recognised by the `TOKEN:<name>#` grammar, not by a card
+ * database, because the format defines the two fields and so must define what feeds them.
+ */
+function isCreditToken(id: string): boolean {
+    return typeof id === 'string' && id.startsWith('TOKEN:credit#');
+}
+function isForceToken(id: string): boolean {
+    return typeof id === 'string' && id.startsWith('TOKEN:the-force#');
+}
+function isTokenId(id: string): boolean {
+    return typeof id === 'string' && id.startsWith('TOKEN:');
+}
+
 function findCard(s: ReducedState, id: string): CardInstanceState | undefined {
     for (const seat of [1, 2] as Seat[]) {
         const c = s.players[seat]?.cards.find((x) => x.id === id);
@@ -94,7 +110,7 @@ function findCard(s: ReducedState, id: string): CardInstanceState | undefined {
 }
 
 function newCard(id: string, zone: string): CardInstanceState {
-    return { id, zone, damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {} };
+    return { id, zone, damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [] };
 }
 
 /**
@@ -115,12 +131,95 @@ function placeCard(s: ReducedState, seat: Seat, id: string, zone: string): void 
     player(s, seat)?.cards.push(newCard(id, zone));
 }
 
+/** Remove `id` from every seat's arena list, wherever it is. */
+function removeFromArenas(s: ReducedState, id: string): void {
+    for (const seat of [1, 2] as Seat[]) {
+        const owner = s.players[seat];
+        if (!owner) {
+            continue;
+        }
+        const idx = owner.cards.findIndex((c) => c.id === id);
+        if (idx >= 0) {
+            owner.cards.splice(idx, 1);
+            return;
+        }
+    }
+}
+
+/**
+ * Attach `id` to `hostId`'s `upgrades`, once. Both the attaching MOVE (`attachedTo`) and the
+ * PLAY_UPGRADE / DEPLOY_LEADER beside it (`target`) name the host, so this must be idempotent.
+ * Token upgrades never go here: they are the shields/experience/statusTokens counters.
+ */
+function attachTo(s: ReducedState, hostId: string, id: string): void {
+    if (isTokenId(id)) {
+        return;
+    }
+    const host = findCard(s, hostId);
+    if (host && !host.upgrades.includes(id)) {
+        host.upgrades.push(id);
+    }
+}
+
+/**
+ * Take `id` off every card's `upgrades` and `captured` lists. Keyed on the zone transition
+ * (a card left an arena, or the capture zone), not on `kind`: a pilot's exit says `kind:
+ * "unit"`, and no exit record names a host (spec §10.1).
+ */
+function detach(s: ReducedState, id: string): void {
+    for (const seat of [1, 2] as Seat[]) {
+        for (const c of s.players[seat]?.cards ?? []) {
+            const u = c.upgrades.indexOf(id);
+            if (u >= 0) {
+                c.upgrades.splice(u, 1);
+            }
+            const captured = arr<string>(c.captured);
+            const k = captured.indexOf(id);
+            if (k >= 0) {
+                captured.splice(k, 1);
+                c.captured = captured;
+            }
+        }
+    }
+}
+
+/** Move `n` of `ps`'s resources from ready to exhausted (`n` > 0) or back (`n` < 0), clamped. */
+function shiftResources(ps: PlayerState, n: number): void {
+    if (n > 0) {
+        const moved = Math.min(n, ps.resourcesReady);
+        ps.resourcesReady -= moved;
+        ps.resourcesExhausted += moved;
+    } else if (n < 0) {
+        const moved = Math.min(-n, ps.resourcesExhausted);
+        ps.resourcesExhausted -= moved;
+        ps.resourcesReady += moved;
+    }
+}
+
+/** One resource entered (`+1`) or left (`-1`) the row, in the `exhausted` or ready bucket. */
+function countResource(ps: PlayerState, delta: 1 | -1, exhausted: boolean): void {
+    if (exhausted) {
+        ps.resourcesExhausted = Math.max(0, ps.resourcesExhausted + delta);
+    } else {
+        ps.resourcesReady = Math.max(0, ps.resourcesReady + delta);
+    }
+}
+
+/** A Credit or Force token arrived at (`+1`) or left (`-1`) `ps`'s base. */
+function countBaseToken(ps: PlayerState, id: string, delta: 1 | -1): void {
+    if (isCreditToken(id)) {
+        ps.credits = Math.max(0, ps.credits + delta);
+    } else if (isForceToken(id)) {
+        ps.hasForce = delta > 0;
+    }
+}
+
 const ARENA_ZONES = new Set(['ground', 'space']);
 
 /**
- * Engine truth: every zone transition is an OnCardMoved → MOVE event. handSize,
- * resourcesReady and the in-play `cards[]` set are therefore reconstructed from MOVE
- * (the single source of truth), NOT from DRAW/RESOURCE/PLAY, which are higher-level
+ * Engine truth: every zone transition is an OnCardMoved → MOVE event. handSize, the resource
+ * counts, credits, the Force and the in-play `cards[]` set are therefore reconstructed from
+ * MOVE (the single source of truth), NOT from DRAW/RESOURCE/PLAY, which are higher-level
  * summary records that always coincide with the underlying MOVEs (a DRAW carries the
  * cumulative count of the deck→hand MOVEs just emitted; double-counting them would
  * diverge from the keyframe). DRAW still records the omniscient `hand[]` contents and
@@ -128,12 +227,20 @@ const ARENA_ZONES = new Set(['ground', 'space']);
  * a paired MOVE keep working; MOVE placement is idempotent by id so PLAY+MOVE in real
  * streams does not double-add.
  */
-function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: string; p?: Seat; kind?: 'unit' | 'upgrade' }): void {
+function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: string; p?: Seat; kind?: 'unit' | 'upgrade'; attachedTo?: string; exhausted?: boolean }): void {
+    // Leaving an arena, or the capture zone, ends every attachment and every captivity of
+    // this card, whatever `kind` says: a pilot's exit says `unit`, and exits name no host.
+    if ((ARENA_ZONES.has(e.from) && !ARENA_ZONES.has(e.to)) || e.from === 'capture') {
+        detach(s, e.card);
+    }
+
     if (e.p == null) {
         // Without a seat we can only update zone on an already-tracked card; counts are
         // unattributable. Real engine streams always carry the seat.
         const c = findCard(s, e.card);
-        if (c) { c.zone = e.to; }
+        if (c) {
+            c.zone = e.to;
+        }
         return;
     }
     const ps = player(s, e.p);
@@ -150,21 +257,31 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         ps.handSize = Math.max(0, ps.handSize - 1);
     }
 
-    // Ready-resource membership count. (Resources enter ready; exhaustion is tracked
-    // separately and is out of the gated set.)
+    // Resource row. A card enters ready (an EXHAUST_RESOURCES beside the move says otherwise);
+    // it leaves from whichever bucket `exhausted` names.
     if (e.to === 'resource' && e.from !== 'resource') {
-        ps.resourcesReady += 1;
+        countResource(ps, 1, false);
     } else if (e.from === 'resource' && e.to !== 'resource') {
-        ps.resourcesReady = Math.max(0, ps.resourcesReady - 1);
+        countResource(ps, -1, e.exhausted === true);
+    }
+
+    // Credits and the Force: the only two things that live in `base` and are counted.
+    if (e.to === 'base' && e.from !== 'base') {
+        countBaseToken(ps, e.card, 1);
+    } else if (e.from === 'base' && e.to !== 'base') {
+        countBaseToken(ps, e.card, -1);
     }
 
     // In-play (arena) membership. An UPGRADE never has any: it attaches to a unit, and its
     // effect on the board is carried by the host's own records (SHIELD_GAIN, EXPERIENCE_GAIN,
-    // STATUS_TOKEN, or PLAY_UPGRADE.target). Without `kind` a reader cannot tell a token
+    // STATUS_TOKEN) or by `attachedTo` here. Without `kind` a reader cannot tell a token
     // upgrade from a token unit — both are `TOKEN:<name>#<id>` — and folding the upgrade in
     // put a phantom card in the arena. The hand/resource counts above still apply: an upgrade
     // really does leave the hand.
     if (e.kind === 'upgrade') {
+        if (ARENA_ZONES.has(e.to) && e.attachedTo) {
+            attachTo(s, e.attachedTo, e.card);
+        }
         const upgrade = findCard(s, e.card);
         if (upgrade) {
             upgrade.zone = e.to;
@@ -180,12 +297,7 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
             ps.cards.push(newCard(e.card, e.to));
         }
     } else if (existing && ARENA_ZONES.has(existing.zone)) {
-        for (const seat of [1, 2] as Seat[]) {
-            const owner = s.players[seat];
-            if (!owner) { continue; }
-            const idx = owner.cards.findIndex((c) => c.id === e.card);
-            if (idx >= 0) { owner.cards.splice(idx, 1); break; }
-        }
+        removeFromArenas(s, e.card);
     } else if (existing) {
         existing.zone = e.to;
     }
@@ -205,22 +317,20 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'PLAY_EVENT':
             player(s, e.p)?.discard.push(e.card); break;
         case 'PLAY_UPGRADE': {
-            if (e.target) {
-                const host = findCard(s, e.target);
-                if (host) { host.upgrades.push(e.card); }
-            }
             // An upgrade is NEVER an arena card, so there is no fallback placement: if the
             // host isn't tracked the attachment is simply not modelled. Placing it instead
             // (as this used to) put a phantom "unit" in the arena that no keyframe agrees
             // with — a real upgrade, SEC#038, showed up that way in a recorded game.
+            if (e.target) {
+                attachTo(s, e.target, e.card);
+            }
             break;
         }
         case 'DEPLOY_LEADER': {
             // Deployed as a pilot: an attachment, never a body. Same rule as PLAY_UPGRADE.
             if (e.kind === 'upgrade') {
-                const host = e.target ? findCard(s, e.target) : undefined;
-                if (host) {
-                    host.upgrades.push(e.card);
+                if (e.target) {
+                    attachTo(s, e.target, e.card);
                 }
                 break;
             }
@@ -230,18 +340,26 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'TAKE_CONTROL': {
             // A control change moves nothing between zones, so no MOVE carries it: re-seat
             // the card here. An arena card moves between the seats' `cards` lists with its
-            // state intact; a resource shifts one ready resource from `from` to `p`.
+            // state intact; a resource shifts one resource from `from` to `p`; a Credit or
+            // Force token in `base` shifts one credit, or the Force, from `from` to `p`.
             const ps = player(s, e.p);
             if (!ps) {
                 break;
             }
-            if (e.zone === 'resource') {
-                if (isSeat(e.from)) {
-                    const fromPs = player(s, e.from);
-                    if (fromPs) {
-                        fromPs.resourcesReady = Math.max(0, fromPs.resourcesReady - 1);
-                    }
-                    ps.resourcesReady += 1;
+            if (e.zone === 'resource' || e.zone === 'base') {
+                if (!isSeat(e.from)) {
+                    break;
+                }
+                const fromPs = player(s, e.from);
+                if (!fromPs) {
+                    break;
+                }
+                if (e.zone === 'resource') {
+                    countResource(fromPs, -1, e.exhausted === true);
+                    countResource(ps, 1, e.exhausted === true);
+                } else {
+                    countBaseToken(fromPs, e.card, -1);
+                    countBaseToken(ps, e.card, 1);
                 }
                 break;
             }
@@ -261,9 +379,37 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             }
             break;
         }
+        case 'CAPTURE': {
+            // The MOVE out of the arena already removed the card (idempotent here); the
+            // captor now holds it. A base captor (`base@N`) is not modelled: nothing today
+            // captures with a base, and the card is out of play either way.
+            removeFromArenas(s, e.card);
+            const captor = e.by ? findCard(s, e.by) : undefined;
+            if (captor) {
+                const captured = arr<string>(captor.captured);
+                if (!captured.includes(e.card)) {
+                    captured.push(e.card);
+                }
+                captor.captured = captured;
+            }
+            break;
+        }
+        case 'RESCUE':
+            // Back to play: the paired MOVE out of `capture` places it and already detached
+            // it from its captor. Detach again here so a RESCUE that arrives first is right too.
+            detach(s, e.card);
+            break;
         case 'CREATE_TOKEN':
             if (e.kind !== 'upgrade') { placeCard(s, e.p, e.token, e.zone); }
             break;
+        case 'EXHAUST_RESOURCES': case 'READY_RESOURCES': {
+            // `amount | 0` turns a hostile non-number into 0 rather than NaN.
+            const ps = player(s, e.p);
+            if (ps) {
+                shiftResources(ps, (e.t === 'EXHAUST_RESOURCES' ? 1 : -1) * Math.max(0, e.amount | 0));
+            }
+            break;
+        }
         case 'DAMAGE': {
             const baseSeat = seatOfBaseRef(e.tgt);
             if (baseSeat) {
@@ -305,6 +451,9 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             break;
         }
         case 'DEFEAT': {
+            // A defeated card stops being anyone's upgrade or captive, whether or not it was
+            // ever an arena card of its own (an upgrade never is).
+            detach(s, e.card);
             for (const seat of [1, 2] as Seat[]) {
                 const ps = s.players[seat];
                 if (!ps) {
@@ -348,7 +497,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         // Pure-log events with no state delta:
         case 'ATTACK': case 'PASS': case 'CHOICE': case 'MULLIGAN':
         case 'KEEP_HAND': case 'MODAL_CHOICE': case 'ABILITY_ACTIVATE': case 'SHUFFLE':
-        case 'CAPTURE': case 'RESCUE': case 'SEARCH': case 'REVEAL':
+        case 'SEARCH': case 'REVEAL':
         case 'TRIGGER': case 'PHASE_END': case 'ROUND_END': case 'GAME_END':
             break;
         default: { const _exhaustive: never = e; void _exhaustive; break; }

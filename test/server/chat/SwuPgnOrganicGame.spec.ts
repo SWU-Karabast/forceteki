@@ -1,5 +1,6 @@
-import { parse, validate } from '../../../swupgn/src/index';
+import { validate } from '../../../swupgn/src/index';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
+import { vectorGate } from './swuPgnVectorGate';
 
 /**
  * The writer contract on an ORGANIC game: a natural setup phase (initiative, mulligan,
@@ -91,7 +92,9 @@ describe('SWU-PGN/1.0 writer contract (organic game)', function () {
             context.ignoreUnresolvedActionPhasePrompts = true;
 
             const text: string = game.getCachedSwuPgn();
-            const doc = parse(text);
+            // This game is also the `organic` normative vector (spec §20): its fold and story are
+            // pinned, so a writer change that moves either has to be a deliberate regeneration.
+            const doc = vectorGate('organic', text);
 
             // 1. Folding forward reproduces EVERY keyframe field, handSize/resourcesReady included.
             expect(checkKeyframes(doc.events).mismatches).toEqual([]);

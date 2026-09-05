@@ -135,22 +135,38 @@ export function attachedHost(upgrade: any): any {
     }
 }
 
-/** The three token-upgrade kinds the fold models, each with its own gain/removal record. */
-type TokenUpgradeKind = 'shield' | 'experience' | 'advantage';
+/**
+ * How the fold models a token-upgrade: the two named counters (`shields`, `experience`), or a
+ * status token counted under its own name in `statusTokens` (advantage, weakness, and any
+ * token upgrade printed later).
+ */
+export type TokenUpgradeKind = 'shield' | 'experience' | { status: string };
 
 /**
  * Classify a token-upgrade card. Returns null for a normally-played (non-token) upgrade,
  * which is covered by PLAY_UPGRADE and must not produce a token record.
+ *
+ * Derived from the card's TYPE (`isTokenUpgrade`), not from a list of names, so a new token
+ * upgrade classifies itself the day it is printed: Weakness used to fall through here and was
+ * recorded as if it were a printed upgrade. Shared with the adapter's keyframe projection so
+ * the writer's two views of a host — the deltas and the snapshot — can never disagree about
+ * which tokens are counters and which are `upgrades[]` entries (none: token upgrades are
+ * never listed there, spec §11).
  */
-function tokenUpgradeKind(upgrade: any): TokenUpgradeKind | null {
-    if (upgrade?.isShield?.()) {
-        return 'shield';
-    }
-    if (upgrade?.isExperience?.()) {
-        return 'experience';
-    }
-    if (upgrade?.isAdvantage?.()) {
-        return 'advantage';
+export function tokenUpgradeKind(upgrade: any): TokenUpgradeKind | null {
+    try {
+        if (upgrade?.isShield?.()) {
+            return 'shield';
+        }
+        if (upgrade?.isExperience?.()) {
+            return 'experience';
+        }
+        if (upgrade?.isTokenUpgrade?.()) {
+            const name = upgrade.internalName ?? upgrade.title;
+            return typeof name === 'string' && name.length > 0 ? { status: name } : null;
+        }
+    } catch {
+        // fall through: an unclassifiable card is treated as a printed upgrade
     }
     return null;
 }
@@ -475,16 +491,15 @@ export class SwuPgnRecorder {
      * permanently stuck on their hosts.
      */
     private tokenRecord(seq: string, kind: TokenUpgradeKind, hostId: string, delta: 1 | -1): GameEvent {
-        switch (kind) {
-            case 'shield':
-                return delta === 1
-                    ? { seq, t: 'SHIELD_GAIN', card: hostId }
-                    : { seq, t: 'SHIELD_USE', card: hostId };
-            case 'experience':
-                return { seq, t: 'EXPERIENCE_GAIN', card: hostId, count: delta };
-            case 'advantage':
-                return { seq, t: 'STATUS_TOKEN', card: hostId, token: 'advantage', count: delta };
+        if (kind === 'shield') {
+            return delta === 1
+                ? { seq, t: 'SHIELD_GAIN', card: hostId }
+                : { seq, t: 'SHIELD_USE', card: hostId };
         }
+        if (kind === 'experience') {
+            return { seq, t: 'EXPERIENCE_GAIN', card: hostId, count: delta };
+        }
+        return { seq, t: 'STATUS_TOKEN', card: hostId, token: kind.status, count: delta };
     }
 
     /**
@@ -549,17 +564,23 @@ export class SwuPgnRecorder {
     }
 
     /**
-     * The unit a token-upgrade is bound to, or null if the card isn't one.
-     *
-     * Checks the remembered attach-time host first, because by the time a token is moved out of
-     * play it has already been unattached and its live parent is gone.
+     * A card in the resource row changed ready state, or `amount` resources did at once.
+     * Resources are counted, never named (spec §10.1): a reader has no list of resource ids to
+     * apply a per-card EXHAUST/READY to, so the row's records are these two counters.
      */
-    private tokenHostOf(card: any): any | null {
-        if (!tokenUpgradeKind(card)) {
-            return null;
+    private resourceRecord(t: 'EXHAUST_RESOURCES' | 'READY_RESOURCES', player: any, amount: number): void {
+        if (!(amount > 0)) {
+            return;
         }
-        const remembered = card?.uuid != null ? this.tokenParents.get(card.uuid) : undefined;
-        return remembered?.parent ?? this.parentOf(card) ?? null;
+        this.push({ seq: this.nextSeq(false), t, p: this.seatOf(player), amount });
+    }
+
+    private isInResourceRow(card: any): boolean {
+        try {
+            return card?.zoneName === ZoneName.Resource;
+        } catch {
+            return false;
+        }
     }
 
     private logError(where: string, error: unknown): void {
@@ -954,9 +975,11 @@ export class SwuPgnRecorder {
                 if (parent) {
                     this.push(this.tokenRecord(this.nextSeq(false), removedKind, this.idOf(parent), -1));
                 }
-                // The entry is deliberately NOT deleted here: the token's exit MOVE is emitted
-                // after this handler, and it still needs the host to fill in `attachedTo`. A
-                // re-attach overwrites the entry, so a stale host can't be read back.
+                // The token's exit MOVE, emitted after this, names no host (exits never do,
+                // spec §10.1), so the remembered binding has served its purpose.
+                if (card?.uuid != null) {
+                    this.tokenParents.delete(card.uuid);
+                }
                 return;
             }
 
@@ -999,7 +1022,26 @@ export class SwuPgnRecorder {
             // each examined card deck->deck on the way back, which is how two SEARCHes came to
             // produce 20% of a real game's MOVE records. Examining a card is reported by
             // SEARCH (and REVEAL); only a card that actually leaves its zone gets a MOVE.
-            if (from === to || from === '' || to === '') {
+            //
+            // One exception: a token that goes base -> base has changed BASES, because each
+            // seat has its own. That is how a Credit token changes hands (CreditToken.takeControl
+            // re-homes it with moveTo(Base) and no OnTakeControl names the card), and it is the
+            // only way `credits` moves between seats, so it is written as the TAKE_CONTROL it is.
+            if (from === to) {
+                if (from === 'base' && card?.isToken?.() && card?.uuid != null) {
+                    const seat = this.seatOf(card.controller ?? card.owner);
+                    this.push({
+                        seq: this.nextSeq(false),
+                        t: 'TAKE_CONTROL',
+                        p: seat,
+                        card: this.idOf(card),
+                        zone: 'base',
+                        from: (seat === 1 ? 2 : 1) as Seat,
+                    });
+                }
+                return;
+            }
+            if (from === '' || to === '') {
                 return;
             }
 
@@ -1016,12 +1058,16 @@ export class SwuPgnRecorder {
             // resourcesReady) and arena-card placement to a player: the engine performs
             // these via card moves, not via DRAW/RESOURCE/PLAY summary events, so MOVE is
             // the fold's source of truth for those counts.
-            // For a token-upgrade, also name the unit it is bound to. Without it a reader can
-            // only infer the binding from the accident that the token's gain/removal record
-            // happens to be the adjacent event; `attachedTo` states it outright.
-            const host = this.tokenHostOf(card);
+            // `attachedTo` is NOT set here: an attaching move's host is only known once the
+            // attach happens, after this record (see backfillAttachedTo), and a move OUT of an
+            // arena never names one -- a reader detaches on the zone transition (spec §10.1).
+            // A resource that leaves the row exhausted says so, because the fold keeps ready
+            // and exhausted resources as two counts and has to know which one to decrement.
+            // The engine has already reset `exhausted` for the new zone by the time this
+            // fires, hence `exhaustedBeforeMove`.
             const seat = this.seatOf(card?.controller ?? card?.owner);
             const kind = cardKind(card);
+            const leftExhausted = from === 'resource' && card?.exhaustedBeforeMove === true;
             this.push({
                 seq,
                 t: 'MOVE',
@@ -1029,8 +1075,8 @@ export class SwuPgnRecorder {
                 from,
                 to,
                 p: seat,
-                ...(host ? { attachedTo: this.idOf(host) } : {}),
                 ...(kind ? { kind } : {}),
+                ...(leftExhausted ? { exhausted: true } : {}),
             });
 
             // RESOURCE is the human-readable summary of "a card became a resource", the way
@@ -1056,15 +1102,14 @@ export class SwuPgnRecorder {
         // shields, experience and advantage are token-upgrade cards (Experience/Advantage extend
         // TokenUpgradeCard); they are "gained" by generating the token-upgrade (GiveExperienceSystem /
         // GiveAdvantageSystem → OnTokensCreated) and attaching it (contingent OnUpgradeAttached, one
-        // event per token). We disambiguate by upgrade predicate so each token type maps to exactly one
-        // record and we never double-count:
-        //   isShield()      → SHIELD_GAIN      (dedicated event, shields counter)
-        //   isExperience()  → EXPERIENCE_GAIN  (experience counter, +1 per attach)
-        //   isAdvantage()   → STATUS_TOKEN     (generic statusTokens['advantage'], +1 per attach)
-        // Normally-played, non-token upgrades are already covered by OnCardPlayed→PLAY_UPGRADE and the
-        // fold does not model upgrade nesting, so we deliberately emit nothing for them here (emitting a
-        // second PLAY_UPGRADE would corrupt the fold). New token-upgrade types should get an explicit
-        // branch rather than silently falling through.
+        // event per token). Each token type maps to exactly one record, so nothing double-counts:
+        //   isShield()          → SHIELD_GAIN      (dedicated event, shields counter)
+        //   isExperience()      → EXPERIENCE_GAIN  (experience counter, +1 per attach)
+        //   any other isTokenUpgrade() → STATUS_TOKEN, keyed by the token's name (advantage,
+        //                          weakness, and whatever is printed next), +1 per attach
+        // Normally-played, non-token upgrades are already covered by OnCardPlayed→PLAY_UPGRADE, so we
+        // deliberately emit no token record for them here (a second PLAY_UPGRADE would corrupt the
+        // fold); they only get their host named.
         this.on(EventName.OnUpgradeAttached, (event: any) => {
             const upgrade = event?.upgradeCard;
             const parent = event?.parentCard ?? this.parentOf(upgrade);
@@ -1093,14 +1138,54 @@ export class SwuPgnRecorder {
             this.push(this.tokenRecord(this.nextSeq(false), kind, this.idOf(parent), 1));
         });
 
+        // A card in the resource row is one of the counted resources, not a named card: its
+        // ready/exhaust is written as the counter record (the regroup step readies every
+        // resource this way, one event each). Anything else -- units, the leader in the base --
+        // is named.
         this.on(EventName.OnCardExhausted, (event: any) => {
+            const card = event?.card;
+            if (this.isInResourceRow(card)) {
+                this.resourceRecord('EXHAUST_RESOURCES', card.controller ?? card.owner, 1);
+                return;
+            }
             const seq = this.nextSeq(false);
-            this.push({ seq, t: 'EXHAUST', card: this.idOf(event?.card) });
+            this.push({ seq, t: 'EXHAUST', card: this.idOf(card) });
         });
 
         this.on(EventName.OnCardReadied, (event: any) => {
+            const card = event?.card;
+            if (this.isInResourceRow(card)) {
+                this.resourceRecord('READY_RESOURCES', card.controller ?? card.owner, 1);
+                return;
+            }
             const seq = this.nextSeq(false);
-            this.push({ seq, t: 'READY', card: this.idOf(event?.card) });
+            this.push({ seq, t: 'READY', card: this.idOf(card) });
+        });
+
+        // Paying a cost, or an ability exhausting resources, goes through Player.exhaustResources
+        // with no per-card event, so the amount is the only thing to record. The cost event's
+        // `amount` is the figure after every adjuster (ResourceCost sets it in its handler); the
+        // engine exhausts `min(amount, ready)`, and the fold does the same.
+        this.on(EventName.OnExhaustResources, (event: any) => {
+            const player = event?.player ?? event?.context?.player;
+            this.resourceRecord('EXHAUST_RESOURCES', player, Number(event?.amount) || 0);
+        });
+
+        this.on(EventName.OnReadyResources, (event: any) => {
+            const player = event?.player ?? event?.context?.player;
+            this.resourceRecord('READY_RESOURCES', player, Number(event?.amount) || 0);
+        });
+
+        // A card that an ability puts into the resource row enters EXHAUSTED unless the ability
+        // says otherwise (Resupply, the card Smuggle draws from the top of the deck, ...). The
+        // MOVE into `resource` counted it as ready -- that is what the row does by default and
+        // the setup/regroup prompt never fires this event -- so the exhausted entry is the same
+        // one-resource exhaustion any other would be. Read after the handler: the flag is final.
+        this.on(EventName.OnCardResourced, (event: any) => {
+            const card = event?.card;
+            if (this.isInResourceRow(card) && card.exhausted === true) {
+                this.resourceRecord('EXHAUST_RESOURCES', card.controller ?? card.owner, 1);
+            }
         });
 
         this.on(EventName.OnCardsDrawn, (event: any) => {
@@ -1157,10 +1242,22 @@ export class SwuPgnRecorder {
             }
         });
 
+        // `p` is the seat that HOLDS the card after the event: the captor's controller on a
+        // capture, the owner on a rescue. `by` is the captor (CaptureSystem puts it on the
+        // event), so a reader can file the card under the unit that took it. The card's own
+        // arena -> capture MOVE was already written by the capture handler.
         this.on(EventName.OnCardCaptured, (event: any) => {
             const card = event?.card;
+            const captor = event?.captor ?? null;
+            const holder = captor?.controller ?? captor?.owner ?? card?.owner;
             const seq = this.nextSeq(false);
-            this.push({ seq, t: 'CAPTURE', p: this.seatOf(card?.owner), card: this.idOf(card) });
+            this.push({
+                seq,
+                t: 'CAPTURE',
+                p: this.seatOf(holder),
+                card: this.idOf(card),
+                ...(captor ? { by: this.targetRef(captor) } : {}),
+            });
         });
 
         this.on(EventName.OnRescue, (event: any) => {
@@ -1172,8 +1269,10 @@ export class SwuPgnRecorder {
         this.on(EventName.OnTakeControl, (event: any) => {
             const card = event?.card;
             if (card?.uuid == null) {
-                // Credit tokens change hands through the same event with no `card`;
-                // credits are not folded, and a record naming 'unknown' helps nobody.
+                // Credit tokens change hands through the same event with no `card`. Their
+                // control change is recorded from the token's own base -> base move instead
+                // (see OnCardMoved), one TAKE_CONTROL per token; a record naming 'unknown'
+                // here would help nobody.
                 return;
             }
             const player = event?.newController ?? card?.controller;
@@ -1188,14 +1287,19 @@ export class SwuPgnRecorder {
             // is omitted and the fold shifts nothing twice.
             const last = this.events[this.events.length - 1];
             const movedByThisSteal = last?.t === 'MOVE' && last.card === this.idOf(card);
+            const zone = this.normalizeZone(card?.zoneName);
+            // A stolen resource keeps its ready state, and the fold keeps two counts, so say
+            // which one moves. Readable here: the card sits in the new controller's row.
+            const exhausted = zone === 'resource' && this.isInResourceRow(card) && card.exhausted === true;
             const seq = this.nextSeq(false);
             this.push({
                 seq,
                 t: 'TAKE_CONTROL',
                 p: seat,
                 card: this.idOf(card),
-                zone: this.normalizeZone(card?.zoneName),
+                zone,
                 ...(movedByThisSteal ? {} : { from: (seat === 1 ? 2 : 1) as Seat }),
+                ...(exhausted ? { exhausted: true } : {}),
             });
         });
 

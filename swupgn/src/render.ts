@@ -40,10 +40,13 @@ function line(e: GameEvent, n: NameResolver): string | null {
     switch (e.t) {
         // `cost` is the PRINTED cost (spec §10.1), so it is worded as such: "(2 resources)"
         // read as resources paid, which is wrong whenever an aspect penalty or discount applied.
-        case 'PLAY': case 'PLAY_UPGRADE': case 'PLAY_SMUGGLE':
+        case 'PLAY': case 'PLAY_SMUGGLE':
             return `${who(e.p)} plays ${nm(e.card)}${e.zone ? ` to ${e.zone}` : ''}${e.cost != null ? ` (cost ${e.cost})` : ''}`;
+        // An attachment names its host rather than its arena: "plays Ascension Cable on Wampa".
+        case 'PLAY_UPGRADE':
+            return `${who(e.p)} plays ${nm(e.card)}${e.target ? ` on ${nm(e.target)}` : e.zone ? ` to ${e.zone}` : ''}${e.cost != null ? ` (cost ${e.cost})` : ''}`;
         case 'PLAY_EVENT': return `${who(e.p)} plays ${nm(e.card)}${e.cost != null ? ` (cost ${e.cost})` : ''}`;
-        case 'DEPLOY_LEADER': return `${who(e.p)} deploys ${nm(e.card)}`;
+        case 'DEPLOY_LEADER': return `${who(e.p)} deploys ${nm(e.card)}${e.target ? ` as a pilot on ${nm(e.target)}` : ''}`;
         case 'ATTACK': return `${who(e.p)} attacks ${e.defenderType === 'base' ? `${who(e.p === 1 ? 2 : 1)}'s base` : nm(e.def)} with ${nm(e.atk)}`;
         case 'PASS': return `${who(e.p)} passes`;
         case 'CLAIM_INITIATIVE': return `${who(e.p)} claims initiative`;
@@ -63,7 +66,7 @@ function line(e: GameEvent, n: NameResolver): string | null {
         case 'REVEAL': return `${who(e.p)} reveals ${list(e.cards)}`;
         case 'SEARCH': return e.found ? `${who(e.p)} searches, finds ${list(e.found)}` : `${who(e.p)} searches their deck`;
         case 'CREATE_TOKEN': return `${who(e.p)} creates ${nm(e.token)} in ${e.zone}`;
-        case 'CAPTURE': return `${who(e.p)} captures ${nm(e.card)}`;
+        case 'CAPTURE': return `${who(e.p)} captures ${nm(e.card)}${e.by ? ` with ${nm(e.by)}` : ''}`;
         case 'RESCUE': return `${who(e.p)} rescues ${nm(e.card)}`;
         case 'TAKE_CONTROL': return `${who(e.p)} takes control of ${nm(e.card)}`;
         case 'MULLIGAN': return `${who(e.p)} mulligans`;
@@ -71,9 +74,11 @@ function line(e: GameEvent, n: NameResolver): string | null {
         case 'GAME_END': return `*** ${e.winner === 'Draw' ? 'Game ends in a draw' : `${who(e.winner)} wins`} — ${e.reason} ***`;
         // Mechanism, not story: these are how the board changes, and each is already implied
         // by the action it sits under. MOVE in particular is the fold's source of truth and
-        // would triple the length of the narrative for no reader benefit.
+        // would triple the length of the narrative for no reader benefit; the resource
+        // counters fire on every play and every regroup.
         case 'CHOICE': case 'PHASE_END': case 'ROUND_END': case 'SHUFFLE':
         case 'MODAL_CHOICE': case 'MOVE': case 'EXHAUST': case 'READY':
+        case 'EXHAUST_RESOURCES': case 'READY_RESOURCES':
             return null;
         case 'PHASE_START': return null;       // handled as a banner below
         case 'ROUND_START': return null;       // handled as a banner below
@@ -126,6 +131,9 @@ function boardSummary(k: ReducedState, n: NameResolver): string[] {
                 }
                 for (const up of c.upgrades ?? []) {
                     bits.push(nm(up));
+                }
+                for (const held of c.captured ?? []) {
+                    bits.push(`holds ${nm(held)}`);
                 }
                 return nm(c.id) + (bits.length ? ` [${bits.join(', ')}]` : '');
             });

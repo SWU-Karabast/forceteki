@@ -256,18 +256,26 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             );
             expect(Array.from(tokenIds)).toEqual(['TOKEN:advantage#5844562972']);
 
-            // Every token MOVE names its host outright, rather than leaving a reader to infer
-            // the binding from the accident that the STATUS_TOKEN is the adjacent event.
+            // Every token MOVE INTO an arena names its host outright, rather than leaving a
+            // reader to infer the binding from the accident that the STATUS_TOKEN is the
+            // adjacent event. The move OUT names none: no exit does (spec §10.1), a reader
+            // detaches on the zone transition, and one shape for every exit beats three.
             const tokenMoves = doc.events.filter(
                 (e: any) => e.t === 'MOVE' && typeof e.card === 'string' && e.card.startsWith('TOKEN:')
-            );
-            expect(tokenMoves.length).toBeGreaterThan(0);
+            ) as any[];
+            const tokenEntries = tokenMoves.filter((e) => e.to === 'ground' || e.to === 'space');
+            const tokenExits = tokenMoves.filter((e) => e.from === 'ground' || e.from === 'space');
+            expect(tokenEntries.length).toBe(2);
+            expect(tokenExits.length).toBe(2);
             // The host is the unit the STATUS_TOKEN records name, and it must be a real card id
             // rather than the 'unknown' placeholder.
             const host = (statusTokens[0] as any).card;
             expect(host).not.toBe('unknown');
-            for (const move of tokenMoves) {
-                expect((move as any).attachedTo).toBe(host);
+            for (const move of tokenEntries) {
+                expect(move.attachedTo).toBe(host);
+            }
+            for (const move of tokenExits) {
+                expect(move.attachedTo).toBeUndefined();
             }
 
             // Two gains, two removals, net zero — and the fold agrees the host ends up clean.

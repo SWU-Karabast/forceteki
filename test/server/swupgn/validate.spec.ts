@@ -40,7 +40,7 @@ describe('validate edge cases', function () {
 
     it('flags a malformed seq in the SETUP section', function () {
         const badSetup = good.replace(
-            '{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108"],"p2DeckOrder":["SOR#045"]}',
+            '{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3"]}',
             '{"seq":"NOT-A-SEQ","t":"INIT","p1DeckOrder":[],"p2DeckOrder":[]}');
         const report = validate(badSetup);
         expect(report.valid).toBe(false);
@@ -63,8 +63,9 @@ describe('validate edge cases', function () {
         expect(validate(badKeyframe).valid).toBe(false);
 
         const badDraw = good.replace(
-            '{"seq":"R1.A.2b","t":"EXHAUST","card":"SOR#108"}',
-            '{"seq":"R1.A.2b","t":"EXHAUST","card":"SOR#108"}\n{"seq":"R1.A.2c","t":"DRAW","p":1,"count":1,"cards":5}');
+            '{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}',
+            '{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}\n{"seq":"R1.A.2c","t":"DRAW","p":1,"count":1,"cards":5}');
+        expect(badDraw).not.toBe(good);
         const report = validate(badDraw);
         expect(report.valid).toBe(false);
         expect(report.issues.some((i) => (/R1\.A\.2c/).test(i.message))).toBe(true);

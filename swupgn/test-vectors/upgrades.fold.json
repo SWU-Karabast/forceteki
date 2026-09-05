@@ -1,0 +1,127 @@
+{
+  "round": 5,
+  "phase": "action",
+  "initiative": 1,
+  "players": {
+    "1": {
+      "seat": 1,
+      "baseHp": 30,
+      "baseMaxHp": 30,
+      "handSize": 4,
+      "hand": [
+        "SHD#040:2",
+        "LOF#215:3",
+        "ASH#251:3",
+        "LAW#253:3"
+      ],
+      "resourcesReady": 6,
+      "resourcesExhausted": 0,
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "LOF#215:2",
+        "ASH#251:2"
+      ],
+      "cards": [
+        {
+          "id": "SHD#040",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 2
+        },
+        {
+          "id": "JTL#067",
+          "zone": "space",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 2,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 2
+        }
+      ]
+    },
+    "2": {
+      "seat": 2,
+      "baseHp": 23,
+      "baseMaxHp": 25,
+      "handSize": 2,
+      "hand": [
+        "TWI#077",
+        "TWI#174:3"
+      ],
+      "resourcesReady": 6,
+      "resourcesExhausted": 0,
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "TWI#174",
+        "TWI#174:2"
+      ],
+      "cards": [
+        {
+          "id": "SOR#128:3",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 1
+        },
+        {
+          "id": "SOR#128:4",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 1
+        },
+        {
+          "id": "SOR#128:6",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 1
+        },
+        {
+          "id": "SOR#128:8",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 1
+        }
+      ]
+    }
+  }
+}

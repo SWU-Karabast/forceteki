@@ -1,0 +1,133 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Wampa, Wampa #2, Death Star Stormtrooper, Death Star Stormtrooper #2, Battlefield Marine, Battlefield Marine #2
+       ↳ Player 2 draws 6: Death Star Stormtrooper #5, Alliance X-Wing #5, Alliance X-Wing #6, Battlefield Marine #7, AT-ST #3, Death Star Stormtrooper #6
+       ↳ Player 1 mulligans
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 draws 6: Battlefield Marine #6, Wampa #3, Death Star Stormtrooper #3, Battlefield Marine #4, Battlefield Marine #3, Wampa #4
+       ↳ Player 1 resources Battlefield Marine #6
+       ↳ Player 1 resources Wampa #3
+       ↳ Player 2 resources Death Star Stormtrooper #5
+       ↳ Player 2 resources Alliance X-Wing #5
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2
+ P2  base 30/30   hand 4   resources 2
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Death Star Stormtrooper #3 to ground (cost 1)
+  2. Player 1 passes
+  3. Player 2 plays Alliance X-Wing #6 to space (cost 2)
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Battlefield Marine, Battlefield Marine #2
+       ↳ Player 2 draws 2: Alliance X-Wing #7, Wampa #5
+       ↳ Player 1 resources Battlefield Marine #4
+       ↳ Player 2 resources Battlefield Marine #7
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3
+      ground: Death Star Stormtrooper #3
+ P2  base 30/30   hand 4   resources 3
+      space: Alliance X-Wing #6
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Player 2's base with Death Star Stormtrooper #3
+       ↳ 3 damage to Player 2's base — 27 HP left
+  2. Player 1 passes
+  3. Player 2 plays Alliance X-Wing #7 to space (cost 2)
+  4. Player 2 passes
+  5. Player 1 passes
+  6. Player 2 attacks Player 1's base with Alliance X-Wing #6
+       ↳ 2 damage to Player 1's base — 28 HP left
+  7. Player 2 passes
+  8. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: AT-ST #2, Battlefield Marine #5
+       ↳ Player 2 draws 2: Battlefield Marine #8, AT-ST #4
+       ↳ Player 1 resources Battlefield Marine #3
+       ↳ Player 2 resources AT-ST #3
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 28/30   hand 5   resources 4
+      ground: Death Star Stormtrooper #3
+ P2  base 27/30   hand 4   resources 4
+      space: Alliance X-Wing #6  ·  Alliance X-Wing #7
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Wampa #4 to ground (cost 4)
+  2. Player 1 passes
+  3. Player 2 plays Battlefield Marine #8 to ground (cost 2)
+  4. Player 2 passes
+  5. Player 1 attacks Player 2's base with Death Star Stormtrooper #3
+       ↳ 3 damage to Player 2's base — 24 HP left
+  6. Player 1 passes
+  7. Player 2 attacks Player 1's base with Alliance X-Wing #6
+       ↳ 2 damage to Player 1's base — 26 HP left
+  8. Player 2 passes
+  9. Player 1 passes
+ 10. Player 2 attacks Player 1's base with Alliance X-Wing #7
+       ↳ 2 damage to Player 1's base — 24 HP left
+ 11. Player 2 passes
+ 12. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Death Star Stormtrooper #4, Death Star Stormtrooper #2
+       ↳ Player 2 draws 2: Battlefield Marine #9, Wampa #6
+       ↳ Player 1 resources Battlefield Marine
+       ↳ Player 2 resources Death Star Stormtrooper #6
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 24/30   hand 5   resources 5
+      ground: Death Star Stormtrooper #3  ·  Wampa #4
+ P2  base 24/30   hand 4   resources 5
+      ground: Battlefield Marine #8
+      space: Alliance X-Wing #6  ·  Alliance X-Wing #7
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Death Star Stormtrooper #4 to ground (cost 1)
+  2. Player 1 passes
+  3. Player 2 plays Battlefield Marine #9 to ground (cost 2)
+  4. Player 2 passes
+  5. Player 1 plays Death Star Stormtrooper #2 to ground (cost 1)
+  6. Player 1 passes
+  7. Player 2 attacks Player 1's base with Battlefield Marine #8
+       ↳ 3 damage to Player 1's base — 21 HP left
+  8. Player 2 passes
+  9. Player 1 attacks Player 2's base with Death Star Stormtrooper #3
+       ↳ 3 damage to Player 2's base — 21 HP left
+ 10. Player 1 passes
+ 11. Player 2 attacks Player 1's base with Alliance X-Wing #6
+       ↳ 2 damage to Player 1's base — 19 HP left
+ 12. Player 2 passes
+ 13. Player 1 attacks Player 2's base with Wampa #4
+       ↳ 4 damage to Player 2's base — 17 HP left
+ 14. Player 1 passes
+ 15. Player 2 attacks Player 1's base with Alliance X-Wing #7
+       ↳ 2 damage to Player 1's base — 17 HP left
+ 16. Player 2 passes
+ 17. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing, AT-ST
+       ↳ Player 2 draws 2: Death Star Stormtrooper #7, Battlefield Marine #10
+       ↳ Player 1 resources Battlefield Marine #2
+       ↳ Player 2 resources Wampa #5
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 5                                                 initiative: Player 1 
+ P1  base 17/30   hand 4   resources 6
+      ground: Death Star Stormtrooper #3  ·  Wampa #4  ·  Death Star Stormtrooper #4  ·  Death Star Stormtrooper #2
+ P2  base 17/30   hand 4   resources 6
+      ground: Battlefield Marine #8  ·  Battlefield Marine #9
+      space: Alliance X-Wing #6  ·  Alliance X-Wing #7
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***

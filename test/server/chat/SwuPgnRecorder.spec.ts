@@ -62,7 +62,8 @@ class FakeEmitter {
 }
 
 // Minimal fake engine card. `cardId` resolver maps uuid -> stable id; here uuid === id.
-function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number; owner?: any; controller?: any; printedType?: string; isBase?: boolean; isShield?: boolean; isExperience?: boolean; isAdvantage?: boolean; title?: string; cost?: number }) {
+function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number; owner?: any; controller?: any; printedType?: string; isBase?: boolean; isShield?: boolean; isExperience?: boolean; isAdvantage?: boolean; isWeakness?: boolean; isToken?: boolean; internalName?: string; title?: string; cost?: number; exhausted?: boolean; exhaustedBeforeMove?: boolean }) {
+    const tokenUpgrade = opts.isShield === true || opts.isExperience === true || opts.isAdvantage === true || opts.isWeakness === true;
     return {
         uuid: opts.uuid,
         zoneName: opts.zoneName ?? '',
@@ -71,11 +72,18 @@ function fakeCard(opts: { uuid: string; zoneName?: string; remainingHp?: number;
         controller: opts.controller ?? opts.owner,
         printedType: opts.printedType ?? 'unit',
         title: opts.title ?? opts.uuid,
+        // Real token upgrades classify by TYPE plus their internal name (spec §10.1); the
+        // predicates below are what the engine exposes for the two named counters.
+        internalName: opts.internalName ?? (opts.isAdvantage ? 'advantage' : opts.isWeakness ? 'weakness' : opts.isShield ? 'shield' : opts.isExperience ? 'experience' : undefined),
         cost: opts.cost,
+        exhausted: opts.exhausted,
+        exhaustedBeforeMove: opts.exhaustedBeforeMove ?? null,
         isBase: () => opts.isBase === true,
         isShield: () => opts.isShield === true,
         isExperience: () => opts.isExperience === true,
         isAdvantage: () => opts.isAdvantage === true,
+        isTokenUpgrade: () => tokenUpgrade,
+        isToken: () => opts.isToken === true || tokenUpgrade,
     };
 }
 
@@ -113,8 +121,8 @@ describe('SwuPgnRecorder events fold to expected state', function () {
 
         const events = rec.getEvents() as GameEvent[];
         const s = fold(events);
-        expect(s.players[2]!.baseHp).toBe(28);
-        const card = s.players[1]!.cards.find((c) => c.id === 'SOR#108');
+        expect(s.players[2]?.baseHp).toBe(28);
+        const card = s.players[1]?.cards.find((c) => c.id === 'SOR#108');
         expect(card!.zone).toBe('ground');
         expect(card!.exhausted).toBe(true);
     });
@@ -194,10 +202,10 @@ describe('SwuPgnRecorder gap events: board mutations', function () {
 
         const events = rec.getEvents() as GameEvent[];
         const s = fold(events);
-        const card = s.players[1]!.cards.find((c) => c.id === 'SOR#200');
+        const card = s.players[1]?.cards.find((c) => c.id === 'SOR#200');
         expect(card!.zone).toBe('space');        // MOVE normalized to 'space'
         expect(card!.shields).toBe(0);           // +1 then -1
-        expect(s.players[2]!.baseHp).toBe(27);   // OVERWHELM (or overwhelm-damage) snapped base
+        expect(s.players[2]?.baseHp).toBe(27);   // OVERWHELM (or overwhelm-damage) snapped base
     });
 });
 
@@ -263,7 +271,7 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
 
         const events = rec.getEvents() as GameEvent[];
         const s = fold(events);
-        const card = s.players[1]!.cards.find((c) => c.id === 'SOR#300');
+        const card = s.players[1]?.cards.find((c) => c.id === 'SOR#300');
         expect(card!.experience).toBe(2);
         expect(card!.statusTokens['advantage']).toBe(1);
     });
@@ -298,7 +306,7 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         const removals = events.filter((e: any) => e.count === -1 || e.t === 'SHIELD_USE');
         expect(removals.map((e: any) => e.t).sort()).toEqual(['EXPERIENCE_GAIN', 'SHIELD_USE', 'STATUS_TOKEN']);
 
-        const card = fold(events).players[1]!.cards.find((c) => c.id === 'SOR#300');
+        const card = fold(events).players[1]?.cards.find((c) => c.id === 'SOR#300');
         expect(card!.experience).toBe(0);
         expect(card!.shields).toBe(0);
         // A token that reaches zero is DELETED, not left as {advantage: 0} — the engine
@@ -784,5 +792,142 @@ describe('SwuPgnRecorder: review regressions', function () {
             recorderErrors: rec.getErrorCount(),
         });
         expect(h.recorderErrors).toBe(25);
+    });
+});
+
+// The replay client's findings of 2026-09-05: resources counted rather than named, credits and
+// the Force folded, host-less exits, captures that name their captor, and token upgrades
+// classified by type so Weakness (and whatever is printed next) is a counter, not an upgrade.
+describe('SwuPgnRecorder: resources, base tokens, captures, exits', function () {
+    const mk = () => {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, resolver);
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        return { game, rec };
+    };
+    const p1 = { id: 'p1' };
+    const p2 = { id: 'p2' };
+    const ofType = (rec: SwuPgnRecorder, t: string): any[] => rec.getEvents().filter((e: any) => e.t === t);
+
+    it('writes a resource-row ready/exhaust as the counter record, and a unit\'s by name', function () {
+        const { game, rec } = mk();
+        const res = fakeCard({ uuid: 'SOR#050', zoneName: 'resource', owner: p1 });
+        const unit = fakeCard({ uuid: 'SOR#108', zoneName: 'groundArena', owner: p1 });
+        game.emit(EventName.OnCardReadied, { card: res });
+        game.emit(EventName.OnCardExhausted, { card: res });
+        game.emit(EventName.OnCardReadied, { card: unit });
+        game.emit(EventName.OnCardExhausted, { card: unit });
+
+        expect(ofType(rec, 'READY_RESOURCES')).toEqual([{ seq: 'R1.A.0a', t: 'READY_RESOURCES', p: 1, amount: 1 }]);
+        expect(ofType(rec, 'EXHAUST_RESOURCES')).toEqual([{ seq: 'R1.A.0b', t: 'EXHAUST_RESOURCES', p: 1, amount: 1 }]);
+        expect(ofType(rec, 'READY').map((e) => e.card)).toEqual(['SOR#108']);
+        expect(ofType(rec, 'EXHAUST').map((e) => e.card)).toEqual(['SOR#108']);
+    });
+
+    it('records the amount a cost or ability exhausts, and skips a free play', function () {
+        const { game, rec } = mk();
+        // ResourceCost's event: `player` and the post-adjuster `amount` are on the event.
+        game.emit(EventName.OnExhaustResources, { player: p1, amount: 4, context: { player: p2 } });
+        game.emit(EventName.OnExhaustResources, { player: p2, amount: 0 });
+        // ExhaustResourcesSystem targeting the opponent, and ReadyResourcesSystem.
+        game.emit(EventName.OnExhaustResources, { player: p2, amount: 1 });
+        game.emit(EventName.OnReadyResources, { player: p1, amount: 2 });
+
+        expect(ofType(rec, 'EXHAUST_RESOURCES').map((e) => [e.p, e.amount])).toEqual([[1, 4], [2, 1]]);
+        expect(ofType(rec, 'READY_RESOURCES').map((e) => [e.p, e.amount])).toEqual([[1, 2]]);
+    });
+
+    it('a card an ability resources exhausted is one more exhausted resource; a ready one is not', function () {
+        const { game, rec } = mk();
+        const tired = fakeCard({ uuid: 'TWI#127', zoneName: 'resource', owner: p1, exhausted: true });
+        const fresh = fakeCard({ uuid: 'SOR#050', zoneName: 'resource', owner: p1, exhausted: false });
+        game.emit(EventName.OnCardMoved, { card: tired, originalZone: 'hand', newZone: 'resource' });
+        game.emit(EventName.OnCardResourced, { card: tired });
+        game.emit(EventName.OnCardMoved, { card: fresh, originalZone: 'deck', newZone: 'resource' });
+        game.emit(EventName.OnCardResourced, { card: fresh });
+
+        expect(ofType(rec, 'EXHAUST_RESOURCES')).toEqual([{ seq: 'R1.A.0c', t: 'EXHAUST_RESOURCES', p: 1, amount: 1 }]);
+        const s = fold(rec.getEvents());
+        expect([s.players[1]?.resourcesReady, s.players[1]?.resourcesExhausted]).toEqual([1, 1]);
+    });
+
+    it('a resource leaving the row says whether it left exhausted', function () {
+        const { game, rec } = mk();
+        const spent = fakeCard({ uuid: 'SHD#001', zoneName: 'groundArena', owner: p1, exhaustedBeforeMove: true });
+        const ready = fakeCard({ uuid: 'SHD#002', zoneName: 'hand', owner: p1, exhaustedBeforeMove: false });
+        game.emit(EventName.OnCardMoved, { card: spent, originalZone: 'resource', newZone: 'groundArena' });
+        game.emit(EventName.OnCardMoved, { card: ready, originalZone: 'resource', newZone: 'hand' });
+        // Leaving any other zone never carries the flag, whatever the card says.
+        const other = fakeCard({ uuid: 'SHD#003', zoneName: 'discard', owner: p1, exhaustedBeforeMove: true });
+        game.emit(EventName.OnCardMoved, { card: other, originalZone: 'groundArena', newZone: 'discard' });
+
+        const moves = ofType(rec, 'MOVE');
+        expect(moves.map((m) => [m.card, m.exhausted])).toEqual([['SHD#001', true], ['SHD#002', undefined], ['SHD#003', undefined]]);
+    });
+
+    it('a Credit token going base -> base is the TAKE_CONTROL it is; other no-op moves are dropped', function () {
+        const { game, rec } = mk();
+        const credit: any = fakeCard({ uuid: 'TOKEN:credit#8015500527', zoneName: 'base', owner: p2, isToken: true });
+        game.emit(EventName.OnCardMoved, { card: credit, originalZone: 'outsideTheGame', newZone: 'base' });
+        // CreditToken.takeControl: controller changes, then moveTo(Base) into the new controller's base.
+        credit.controller = p1;
+        credit.owner = p1;
+        game.emit(EventName.OnCardMoved, { card: credit, originalZone: 'base', newZone: 'base' });
+        // A deck -> deck (search) or a non-token base -> base is still noise.
+        const leader = fakeCard({ uuid: 'SOR#010', zoneName: 'base', owner: p1, printedType: 'leader' });
+        game.emit(EventName.OnCardMoved, { card: leader, originalZone: 'base', newZone: 'base' });
+        game.emit(EventName.OnCardMoved, { card: fakeCard({ uuid: 'X', zoneName: 'deck', owner: p1 }), originalZone: 'deck', newZone: 'deck' });
+
+        expect(ofType(rec, 'TAKE_CONTROL')).toEqual([{ seq: 'R1.A.0b', t: 'TAKE_CONTROL', p: 1, card: 'TOKEN:credit#8015500527', zone: 'base', from: 2 }]);
+        expect(ofType(rec, 'MOVE').length).toBe(1);
+        const s = fold(rec.getEvents());
+        expect([s.players[1]?.credits, s.players[2]?.credits]).toEqual([1, 0]);
+    });
+
+    it('CAPTURE names the captor and the seat that now holds the card; RESCUE the owner', function () {
+        const { game, rec } = mk();
+        const captor = fakeCard({ uuid: 'LOF#164', zoneName: 'groundArena', owner: p1 });
+        const victim: any = fakeCard({ uuid: 'SOR#095', zoneName: 'groundArena', owner: p2 });
+        const base1 = fakeCard({ uuid: 'SOR#028', isBase: true, owner: p1 });
+        game.emit(EventName.OnCardPlayed, { card: captor, player: p1, playType: 'play' });
+        game.emit(EventName.OnCardPlayed, { card: victim, player: p2, playType: 'play' });
+        victim.zoneName = 'capture';
+        game.emit(EventName.OnCardMoved, { card: victim, originalZone: 'groundArena', newZone: 'capture' });
+        game.emit(EventName.OnCardCaptured, { card: victim, captor });
+        game.emit(EventName.OnRescue, { card: victim });
+        game.emit(EventName.OnCardMoved, { card: victim, originalZone: 'capture', newZone: 'groundArena' });
+        game.emit(EventName.OnCardCaptured, { card: victim, captor: base1 });
+
+        expect(ofType(rec, 'CAPTURE').map((e) => [e.p, e.card, e.by])).toEqual([[1, 'SOR#095', 'LOF#164'], [1, 'SOR#095', 'base@1']]);
+        expect(ofType(rec, 'RESCUE').map((e) => [e.p, e.card])).toEqual([[2, 'SOR#095']]);
+        const afterFirst = fold(rec.getEvents().slice(0, 6));
+        expect(afterFirst.players[1]?.cards[0].captured).toEqual(['SOR#095']);
+        expect(afterFirst.players[2]?.cards).toEqual([]);
+    });
+
+    it('classifies a Weakness token as a status token by type, and names no host on any exit', function () {
+        const { game, rec } = mk();
+        const unit = fakeCard({ uuid: 'SOR#300', zoneName: 'groundArena', owner: p1 });
+        const weak: any = fakeCard({ uuid: 'TOKEN:weakness#weakness-id', owner: p1, isWeakness: true, printedType: 'tokenUpgrade' });
+        weak.isUpgrade = () => true;
+        game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play' });
+        game.emit(EventName.OnCardMoved, { card: weak, originalZone: 'outsideTheGame', newZone: 'groundArena' });
+        game.emit(EventName.OnUpgradeAttached, { parentCard: unit, upgradeCard: weak });
+        game.emit(EventName.OnCardDefeated, { card: weak, defeatSource: { type: 'ability' } });
+        game.emit(EventName.OnCardMoved, { card: weak, originalZone: 'groundArena', newZone: 'outsideTheGame' });
+
+        expect(ofType(rec, 'STATUS_TOKEN').map((e) => [e.token, e.count])).toEqual([['weakness', 1], ['weakness', -1]]);
+        const [entry, exit] = ofType(rec, 'MOVE').filter((m) => m.card === weak.uuid);
+        expect(entry.attachedTo).toBe('SOR#300');
+        expect(exit.attachedTo).toBeUndefined();
+        expect(fold(rec.getEvents()).players[1]?.cards[0]).toEqual(jasmine.objectContaining({ upgrades: [], statusTokens: {} }));
+    });
+
+    it('a stolen exhausted resource says so', function () {
+        const { game, rec } = mk();
+        const res: any = fakeCard({ uuid: 'SOR#050', zoneName: 'resource', owner: p1, exhausted: true });
+        res.controller = p2;
+        game.emit(EventName.OnTakeControl, { card: res, newController: p2 });
+        expect(ofType(rec, 'TAKE_CONTROL')[0]).toEqual(jasmine.objectContaining({ p: 2, zone: 'resource', from: 1, exhausted: true }));
     });
 });

@@ -1,0 +1,119 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Battlefield Marine, Academy Graduate, Alliance X-Wing, Alliance X-Wing #2, Battlefield Marine #2, Clan Wren Rescuer
+       ↳ Player 2 draws 6: Cell Block Guard, Death Star Stormtrooper, Death Star Stormtrooper #2, Death Star Stormtrooper #3, Cell Block Guard #2, Vanquish
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Battlefield Marine
+       ↳ Player 1 resources Battlefield Marine #2
+       ↳ Player 2 resources Cell Block Guard
+       ↳ Player 2 resources Death Star Stormtrooper
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2
+ P2  base 25/25   hand 4   resources 2
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Alliance X-Wing to space (cost 2)
+  2. Player 1 passes
+  3. Player 2 plays Death Star Stormtrooper #2 to ground (cost 1)
+  4. Player 2 passes
+  5. Player 1 passes
+  6. Player 2 plays Death Star Stormtrooper #3 to ground (cost 1)
+  7. Player 2 passes
+  8. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing #3, Academy Graduate #2
+       ↳ Player 2 draws 2: Cell Block Guard #3, Death Star Stormtrooper #4
+       ↳ Player 1 resources Clan Wren Rescuer
+       ↳ Player 2 resources Cell Block Guard #2
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3
+      space: Alliance X-Wing
+ P2  base 25/25   hand 3   resources 3
+      ground: Death Star Stormtrooper #2  ·  Death Star Stormtrooper #3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Academy Graduate on Alliance X-Wing (cost 2)
+  2. Player 1 passes
+  3. Player 2 plays Cell Block Guard #3 to ground (cost 3)
+  4. Player 2 passes
+  5. Player 1 attacks Player 2's base with Alliance X-Wing
+       ↳ 3 damage to Player 2's base — 22 HP left
+  6. Player 1 passes
+  7. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Battlefield Marine #3, Alliance X-Wing #4
+       ↳ Player 2 draws 2: Death Star Stormtrooper #5, Vanquish #2
+       ↳ Player 1 resources Battlefield Marine #3
+       ↳ Player 2 resources Death Star Stormtrooper #4
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 4
+      space: Alliance X-Wing [Academy Graduate]
+ P2  base 22/25   hand 3   resources 4
+      ground: Death Star Stormtrooper #2  ·  Death Star Stormtrooper #3  ·  Cell Block Guard #3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Alliance X-Wing #2 to space (cost 2)
+  2. Player 1 passes
+  3. Player 2 plays Death Star Stormtrooper #5 to ground (cost 1)
+  4. Player 2 passes
+  5. Player 1 plays Academy Graduate #2 on Alliance X-Wing #2 (cost 2)
+  6. Player 1 passes
+  7. Player 2 passes
+  8. Player 1 attacks Player 2's base with Alliance X-Wing
+       ↳ 3 damage to Player 2's base — 19 HP left
+  9. Player 1 passes
+ 10. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Academy Graduate #3, Clan Wren Rescuer #2
+       ↳ Player 2 draws 2: Death Star Stormtrooper #6, Death Star Stormtrooper #7
+       ↳ Player 1 resources Clan Wren Rescuer #2
+       ↳ Player 2 resources Death Star Stormtrooper #6
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 30/30   hand 3   resources 5
+      space: Alliance X-Wing [Academy Graduate]  ·  Alliance X-Wing #2 [Academy Graduate #2]
+ P2  base 19/25   hand 3   resources 5
+      ground: Death Star Stormtrooper #2  ·  Death Star Stormtrooper #3  ·  Cell Block Guard #3  ·  Death Star Stormtrooper #5
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Alliance X-Wing #3 to space (cost 2)
+  2. Player 1 passes
+  3. Player 2 plays Vanquish (cost 5)
+       ↳ Vanquish uses an ability
+       ↳ Academy Graduate is defeated
+       ↳ Alliance X-Wing is defeated by Vanquish
+  4. Player 2 passes
+  5. Player 1 plays Academy Graduate #3 on Alliance X-Wing #3 (cost 2)
+  6. Player 1 passes
+  7. Player 2 passes
+  8. Player 1 attacks Player 2's base with Alliance X-Wing #2
+       ↳ 3 damage to Player 2's base — 16 HP left
+  9. Player 1 passes
+ 10. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing #5, Battlefield Marine #4
+       ↳ Player 2 draws 2: Cell Block Guard #4, Vanquish #3
+       ↳ Player 1 resources Battlefield Marine #4
+       ↳ Player 2 resources Death Star Stormtrooper #7
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 5                                                 initiative: Player 1 
+ P1  base 30/30   hand 2   resources 6
+      space: Alliance X-Wing #2 [Academy Graduate #2]  ·  Alliance X-Wing #3 [Academy Graduate #3]
+ P2  base 16/25   hand 3   resources 6
+      ground: Death Star Stormtrooper #2  ·  Death Star Stormtrooper #3  ·  Cell Block Guard #3  ·  Death Star Stormtrooper #5
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***

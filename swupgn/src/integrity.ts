@@ -4,30 +4,35 @@ import { emptyState, isCompleteKeyframe, reduce } from './fold';
 export interface KeyframeMismatch { seq: string; path: string; expected: unknown; got: unknown; }
 export interface IntegrityResult { ok: boolean; mismatches: KeyframeMismatch[]; }
 
+/** Order-free comparison of two id lists; a missing list is an empty one (older files). */
+function sameSet(a: unknown, b: unknown): boolean {
+    const norm = (x: unknown) => (Array.isArray(x) ? [...x].map(String).sort() : []);
+    return JSON.stringify(norm(a)) === JSON.stringify(norm(b));
+}
+
 /**
  * Fields that the keyframe gate verifies, per seat.
  *
- * GATED (reconstructable from the current event model, single source of truth = the
- * event stream): `baseHp`, `handSize`, `resourcesReady`, and per in-play card matched
- * by id: `zone`, `damage`, `exhausted`, `shields`, `experience`, `statusTokens`.
- * `baseHp` is exempt at the first keyframe only — see checkKeyframes for why.
+ * GATED (reconstructable from the event model, single source of truth = the event stream):
+ * `baseHp`, `handSize`, `resourcesReady`, `resourcesExhausted`, `credits`, `hasForce`, and
+ * per in-play card matched by id: `zone`, `damage`, `exhausted`, `shields`, `experience`,
+ * `statusTokens`, `upgrades` and `captured` (both compared as sets — attachment order is not
+ * part of the model). `baseHp` is exempt at the first keyframe only — see checkKeyframes.
  *
- * NOT GATED (and why): nothing in the per-seat invariant set above is currently deferred.
- * The keyframe's `cards` array only contains ground/space arena cards (see
- * SwuPgnGameAdapter.buildSwuPgnPlayerState), so card-level checks are scoped to arena cards by
- * construction; hand/resource/discard piles are compared via the count fields, not
- * per-card. `credits`, `hasForce`, `resourcesExhausted`, `hand`/`discard` contents and
- * `upgrades` are intentionally OUT of scope for this gate — they are not yet driven by
- * dedicated fold deltas (credits/force have no events; upgrade nesting is not modelled).
- * Closing those is a Plan-3 completeness item; see SwuPgnKeyframeCompleteness.spec.ts.
+ * NOT GATED (and why): `hand`/`discard` CONTENTS (only the counts are reconstructed: DRAW
+ * appends to `hand[]` but nothing removes from it), and a card's `power`/`hp` (the engine's
+ * live stats, which depend on ability effects the fold has no rules engine to evaluate —
+ * they are snapshot fields a reader may correct itself against, spec §11). The keyframe's
+ * `cards` array only contains ground/space arena cards (see
+ * SwuPgnGameAdapter.buildSwuPgnPlayerState), so card-level checks are scoped to arena cards
+ * by construction.
  *
- * NOTE on handSize/resourcesReady: the fold reconstructs these from MOVE events (the
- * engine's source of truth for zone transitions; see fold.applyMoveCounts), so they ARE
- * gated here. They are only unreconstructable when a producer removes a card from a zone
- * WITHOUT emitting a corresponding MOVE — which in practice happens only under the
- * integration test harness's double-setup (GameStateBuilder), not in a production game.
- * The real-game completeness spec documents and isolates that test-harness artifact rather
- * than relaxing this diff; see SwuPgnKeyframeCompleteness.spec.ts (Plan-3 note).
+ * NOTE on handSize/resources: the fold reconstructs these from MOVE events (the engine's
+ * source of truth for zone transitions; see fold.applyMoveCounts) plus EXHAUST_RESOURCES /
+ * READY_RESOURCES for the ready/exhausted split, so they ARE gated here. They are only
+ * unreconstructable when a producer removes a card from a zone WITHOUT emitting a MOVE —
+ * which in practice happens only under the integration test harness's double-setup
+ * (GameStateBuilder), not in a production game. See SwuPgnKeyframeCompleteness.spec.ts.
  */
 function diffCard(seq: string, seat: 1 | 2, e: CardInstanceState, g: CardInstanceState): KeyframeMismatch[] {
     const out: KeyframeMismatch[] = [];
@@ -50,6 +55,12 @@ function diffCard(seq: string, seat: 1 | 2, e: CardInstanceState, g: CardInstanc
     if (JSON.stringify(e.statusTokens ?? {}) !== JSON.stringify(g.statusTokens ?? {})) {
         out.push({ seq, path: `${base}.statusTokens`, expected: e.statusTokens, got: g.statusTokens });
     }
+    if (!sameSet(e.upgrades, g.upgrades)) {
+        out.push({ seq, path: `${base}.upgrades`, expected: e.upgrades, got: g.upgrades });
+    }
+    if (!sameSet(e.captured, g.captured)) {
+        out.push({ seq, path: `${base}.captured`, expected: e.captured, got: g.captured });
+    }
     return out;
 }
 
@@ -58,11 +69,10 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
     if (checkBaseHp && e.baseHp !== g.baseHp) {
         out.push({ seq, path: `players.${seat}.baseHp`, expected: e.baseHp, got: g.baseHp });
     }
-    if (e.handSize !== g.handSize) {
-        out.push({ seq, path: `players.${seat}.handSize`, expected: e.handSize, got: g.handSize });
-    }
-    if (e.resourcesReady !== g.resourcesReady) {
-        out.push({ seq, path: `players.${seat}.resourcesReady`, expected: e.resourcesReady, got: g.resourcesReady });
+    for (const field of ['handSize', 'resourcesReady', 'resourcesExhausted', 'credits', 'hasForce'] as const) {
+        if (e[field] !== g[field]) {
+            out.push({ seq, path: `players.${seat}.${field}`, expected: e[field], got: g[field] });
+        }
     }
 
     // Match in-play cards by id. Report cards present in one side but not the other.

@@ -17,10 +17,9 @@ describe('checkKeyframes', function () {
     it('passes when the fold matches each keyframe', function () {
         const events: GameEvent[] = [
             { seq: 'R1.A.1a', t: 'DAMAGE', src: 'X', tgt: 'base@2', amt: 2, damageType: 'combat', hp: 28 },
-            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: {
-                round: 2, phase: 'setup', initiative: null,
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'setup', initiative: null,
                 players: { 1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
-                           2: { seat: 2, baseHp: 28, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] } } } },
+                    2: { seat: 2, baseHp: 28, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] } } } },
         ];
         expect(checkKeyframes(events).ok).toBe(true);
     });
@@ -61,7 +60,7 @@ describe('checkKeyframes', function () {
     it('fails on a per-card field mismatch (keyframe claims damage but the fold has none)', function () {
         const card = (over: Partial<{ damage: number }>) => ({
             id: 'SOR#232', zone: 'ground', damage: 0, exhausted: false, upgrades: [] as string[],
-            shields: 0, experience: 0, statusTokens: {} as Record<string, number>, ...over,
+            shields: 0, experience: 0, statusTokens: {} as Record<string, number>, captured: [] as string[], ...over,
         });
         const seat = (cards: any[]) => ({ seat: 1 as const, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [],
             resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards });
@@ -71,8 +70,7 @@ describe('checkKeyframes', function () {
             // Fold produces the card with damage 0 (no DAMAGE event)...
             { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#232', zone: 'ground' },
             // ...but the keyframe claims damage 2.
-            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: {
-                round: 2, phase: 'setup', initiative: null,
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'setup', initiative: null,
                 players: { 1: seat([card({ damage: 2 })]), 2: seat2 } } },
         ];
         const r = checkKeyframes(events);
@@ -95,7 +93,7 @@ describe('checkKeyframes', function () {
 // asserting checkKeyframes passes on the FULL gated set (counts included) at R2.start and R3.start.
 describe('checkKeyframes — organic multi-round count reconstruction (no double-setup)', function () {
     const cardState = (id: string, over: Partial<CardInstanceState> = {}): CardInstanceState => ({
-        id, zone: 'ground', damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, ...over,
+        id, zone: 'ground', damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [], ...over,
     });
     const playerState = (s: 1 | 2, over: Partial<PlayerState> = {}): PlayerState => ({
         seat: s, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0,
@@ -152,6 +150,7 @@ describe('checkKeyframes — organic multi-round count reconstruction (no double
         expect(r.mismatches).toEqual([]);
         expect(r.ok).toBe(true);
     });
+
     it('reports a card the fold tracks in play but the keyframe omits', function () {
         // The symmetric direction of the missing-card check: a DEFEAT/MOVE-out that fails to
         // remove a card leaves the fold holding one the engine no longer reports.
@@ -168,5 +167,75 @@ describe('checkKeyframes — organic multi-round count reconstruction (no double
         expect(r.mismatches).toContain(jasmine.objectContaining({
             path: 'players.1.cards[P1#unit]', expected: 'absent', got: 'present',
         }));
+    });
+});
+
+// The gate grew: resources' ready/exhausted split, credits, the Force, and per-card `upgrades`
+// and `captured` are now reconstructable from the stream, so a keyframe that disagrees is a
+// writer defect and is reported.
+describe('checkKeyframes — the resource, credit, Force and attachment fields', function () {
+    const seat = (s: 1 | 2, over: Partial<PlayerState> = {}): PlayerState => ({
+        seat: s, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0,
+        credits: 0, hasForce: false, discard: [], cards: [], ...over,
+    });
+    const card = (id: string, over: Partial<CardInstanceState> = {}): CardInstanceState => ({
+        id, zone: 'ground', damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [], ...over,
+    });
+    const kf = (seq: string, p1: PlayerState, p2: PlayerState): GameEvent => ({
+        seq, t: 'ROUND_END', round: 1, keyframe: { round: 1, phase: 'regroup', initiative: null, players: { 1: p1, 2: p2 } },
+    });
+
+    it('passes when EXHAUST_RESOURCES, a Credit token and an attachment are all accounted for', function () {
+        const events: GameEvent[] = [
+            { seq: 'R0.S.1', t: 'MOVE', card: 'A', from: 'hand', to: 'resource', p: 1 },
+            { seq: 'R0.S.2', t: 'MOVE', card: 'B', from: 'hand', to: 'resource', p: 1 },
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.0b', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 },
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'LOF#215', from: 'hand', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'SOR#095' },
+            { seq: 'R1.A.2', t: 'PLAY_UPGRADE', p: 1, card: 'LOF#215', target: 'SOR#095' },
+            { seq: 'R1.A.3a', t: 'MOVE', card: 'TOKEN:credit#8015500527', from: 'outsideTheGame', to: 'base', p: 2 },
+            kf('R1.end',
+                seat(1, { resourcesReady: 0, resourcesExhausted: 2, cards: [card('SOR#095', { upgrades: ['LOF#215'] })] }),
+                seat(2, { credits: 1 })),
+        ];
+        expect(checkKeyframes(events).mismatches).toEqual([]);
+    });
+
+    it('reports each of the new fields when the stream under-records it', function () {
+        const events: GameEvent[] = [
+            kf('R1.start', seat(1), seat(2)),
+            { seq: 'R2.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R2.A.0b', t: 'MOVE', card: 'SOR#095:2', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            kf('R2.end',
+                seat(1, { resourcesExhausted: 1, hasForce: true, cards: [card('SOR#095', { upgrades: ['LOF#215'], captured: ['SOR#095:2'] })] }),
+                seat(2, { credits: 1, cards: [card('SOR#095:2')] })),
+        ];
+        expect(checkKeyframes(events).mismatches.map((m) => m.path).sort()).toEqual([
+            'players.1.cards[SOR#095].captured',
+            'players.1.cards[SOR#095].upgrades',
+            'players.1.hasForce',
+            'players.1.resourcesExhausted',
+            'players.2.credits',
+        ]);
+    });
+
+    it('compares upgrades and captured as sets, and treats a missing list as empty', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.1', t: 'PLAY_UPGRADE', p: 1, card: 'B', target: 'SOR#095' },
+            { seq: 'R1.A.2', t: 'PLAY_UPGRADE', p: 1, card: 'A', target: 'SOR#095' },
+            // Attachment order differs, and an older writer's card carries no `captured` at all.
+            kf('R1.end', seat(1, { cards: [{ ...card('SOR#095', { upgrades: ['A', 'B'] }), captured: undefined as unknown as string[] }] }), seat(2)),
+        ];
+        expect(checkKeyframes(events).mismatches).toEqual([]);
+    });
+
+    it('does not compare power/hp: they are snapshot fields, not folded ones', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            kf('R1.end', seat(1, { cards: [card('SOR#095', { power: 5, hp: 3 })] }), seat(2)),
+        ];
+        expect(checkKeyframes(events).mismatches).toEqual([]);
     });
 });

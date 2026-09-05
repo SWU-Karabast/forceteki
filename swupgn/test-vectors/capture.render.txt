@@ -1,0 +1,105 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Take Captive, Battlefield Marine, Take Captive #2, Alliance X-Wing, Alliance X-Wing #2, Battlefield Marine #2
+       ↳ Player 2 draws 6: Open Fire, Death Star Stormtrooper, Cell Block Guard, Cell Block Guard #2, Death Star Stormtrooper #2, Death Star Stormtrooper #3
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Alliance X-Wing
+       ↳ Player 1 resources Alliance X-Wing #2
+       ↳ Player 2 resources Cell Block Guard
+       ↳ Player 2 resources Cell Block Guard #2
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2
+ P2  base 30/30   hand 4   resources 2
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Battlefield Marine to ground (cost 2)
+  2. Player 1 passes
+  3. Player 2 plays Death Star Stormtrooper to ground (cost 1)
+  4. Player 2 passes
+  5. Player 1 passes
+  6. Player 2 plays Death Star Stormtrooper #2 to ground (cost 1)
+  7. Player 2 passes
+  8. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Battlefield Marine #3, Alliance X-Wing #3
+       ↳ Player 2 draws 2: Open Fire #2, Death Star Stormtrooper #4
+       ↳ Player 1 resources Alliance X-Wing #3
+       ↳ Player 2 resources Open Fire
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3
+      ground: Battlefield Marine
+ P2  base 30/30   hand 3   resources 3
+      ground: Death Star Stormtrooper  ·  Death Star Stormtrooper #2
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Take Captive (cost 3)
+       ↳ Take Captive uses an ability
+       ↳ Player 1 captures Death Star Stormtrooper with Battlefield Marine
+  2. Player 1 passes
+  3. Player 2 plays Open Fire #2 (cost 3)
+       ↳ Open Fire #2 uses an ability
+       ↳ 3 damage to Battlefield Marine — 0 HP left
+       ↳ Battlefield Marine is defeated by Open Fire #2
+       ↳ Player 2 rescues Death Star Stormtrooper
+  4. Player 2 passes
+  5. Player 1 passes
+  6. Player 2 attacks Player 1's base with Death Star Stormtrooper #2
+       ↳ 3 damage to Player 1's base — 27 HP left
+  7. Player 2 passes
+  8. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing #4, Take Captive #3
+       ↳ Player 2 draws 2: Death Star Stormtrooper #5, Death Star Stormtrooper #6
+       ↳ Player 1 resources Alliance X-Wing #4
+       ↳ Player 2 resources Death Star Stormtrooper #3
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 27/30   hand 4   resources 4
+ P2  base 30/30   hand 3   resources 4
+      ground: Death Star Stormtrooper #2  ·  Death Star Stormtrooper
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Battlefield Marine #2 to ground (cost 2)
+  2. Player 1 passes
+  3. Player 2 plays Death Star Stormtrooper #4 to ground (cost 1)
+  4. Player 2 passes
+  5. Player 1 plays Battlefield Marine #3 to ground (cost 2)
+  6. Player 1 passes
+  7. Player 2 plays Death Star Stormtrooper #5 to ground (cost 1)
+  8. Player 2 passes
+  9. Player 1 passes
+ 10. Player 2 plays Death Star Stormtrooper #6 to ground (cost 1)
+ 11. Player 2 passes
+ 12. Player 1 passes
+ 13. Player 2 attacks Player 1's base with Death Star Stormtrooper #2
+       ↳ 3 damage to Player 1's base — 24 HP left
+ 14. Player 2 passes
+ 15. Player 1 passes
+ 16. Player 2 attacks Player 1's base with Death Star Stormtrooper
+       ↳ 3 damage to Player 1's base — 21 HP left
+ 17. Player 2 passes
+ 18. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing #5, Alliance X-Wing #6
+       ↳ Player 2 draws 2: Cell Block Guard #3, Death Star Stormtrooper #7
+       ↳ Player 1 resources Alliance X-Wing #5
+       ↳ Player 2 resources Cell Block Guard #3
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 21/30   hand 3   resources 5
+      ground: Battlefield Marine #2  ·  Battlefield Marine #3
+ P2  base 30/30   hand 1   resources 5
+      ground: Death Star Stormtrooper #2  ·  Death Star Stormtrooper  ·  Death Star Stormtrooper #4  ·  Death Star Stormtrooper #5  ·  Death Star Stormtrooper #6
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***

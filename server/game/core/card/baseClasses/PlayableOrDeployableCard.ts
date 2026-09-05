@@ -21,6 +21,7 @@ import { Contract } from '../../utils/Contract';
 import { EnumHelpers } from '../../utils/EnumHelpers';
 import { Helpers } from '../../utils/Helpers';
 import { Card } from '../Card';
+import type { InitializeCardStateOption } from '../Card';
 import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import type { ICost } from '../../cost/ICost';
@@ -109,6 +110,25 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     public set exhausted(val: boolean) {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = val;
+    }
+
+    /**
+     * `exhausted` as it stood the instant before this card's most recent zone change, or
+     * `null` if the property was disabled there. Not game state: it exists for observers of
+     * OnCardMoved, which fire after `initializeForCurrentZone` has already reset the flag for
+     * the new zone. The SWU-PGN recorder needs it to say whether a resource left the row
+     * exhausted (a card played from resources pays for itself first; a resource returned by a
+     * friendly effect is swapped exhausted on the way out).
+     */
+    private _exhaustedBeforeMove: boolean | null = null;
+
+    public get exhaustedBeforeMove(): boolean | null {
+        return this._exhaustedBeforeMove;
+    }
+
+    protected override postMoveSteps(movedFromZone: ZoneName, initializeCardState?: InitializeCardStateOption) {
+        this._exhaustedBeforeMove = this._exhausted;
+        super.postMoveSteps(movedFromZone, initializeCardState);
     }
 
     // see Card constructor for list of expected args
