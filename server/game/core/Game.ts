@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { randomUUID } from 'crypto';
 
 import { GameChat } from './chat/GameChat';
 import type { MsgArg } from './chat/GameChat';
@@ -108,6 +109,8 @@ import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import { SwuPgnGameAdapter } from './chat/SwuPgnGameAdapter';
+import type { Seat } from '../../../swupgn/src/types';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -162,6 +165,11 @@ export class Game extends EventEmitter {
 
     public get actionNumber() {
         return this.state.actionNumber;
+    }
+
+    /** The RNG seed this game was run with (undefined for an unseeded/test RNG). Read by SwuPgnGameAdapter. */
+    public get randomSeed(): string | undefined {
+        return this._randomGenerator.seed;
     }
 
     public set actionNumber(value: number) {
@@ -332,6 +340,13 @@ export class Game extends EventEmitter {
     public gameEndReason?: GameEndReason;
     private _actionsSinceLastUndo?: number;
 
+    // ── SWU-PGN/1.0 (single-file, event-sourced path) ──
+    /** Owns 1.1 generation: recorder, stable-id/deck-order bookkeeping, and board projections. */
+    private readonly _swuPgnAdapter: SwuPgnGameAdapter;
+    private _cachedSwuPgnFile?: string;
+    private _swuPgnFileServed = false;
+    private _swuPgnServedThenReopened = false;
+
     // #endregion
 
     public constructor(details: GameConfiguration, options: GameOptions) {
@@ -343,7 +358,12 @@ export class Game extends EventEmitter {
         validateGameOptions(options);
 
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
-        this._randomGenerator = new Randomness();
+        // Always seed explicitly. An unseeded Randomness() self-seeds from entropy and leaves
+        // `seed` undefined, so the seed a real game actually ran on was unrecoverable and every
+        // production replay recorded `Seed "unseeded"` — which defeats the point of a notation
+        // format that claims deterministic replay. Generating the seed here makes it a recorded
+        // value without changing how random a game is.
+        this._randomGenerator = new Randomness(randomUUID());
         this._router = options.router;
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
@@ -352,6 +372,7 @@ export class Game extends EventEmitter {
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
+        this._swuPgnAdapter = new SwuPgnGameAdapter(this);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
@@ -528,6 +549,32 @@ export class Game extends EventEmitter {
         }
 
         return filteredMessages;
+    }
+
+    /**
+     * Single-file `.swupgn` accessor. The cache is only PINNED once the game has ended (endGame
+     * also sets it); before that, each call generates fresh from the current event stream. This
+     * guards against an early mid-game read pinning a stale, incomplete file that subsequent
+     * gameplay would invalidate — the cache is otherwise only cleared on rollback, not on every
+     * new event. Production serving (Lobby.getGameLog) is gated on isEnded, so it always reads the
+     * pinned end-of-game file.
+     */
+    public getCachedSwuPgn(): string {
+        if (this._swuPgnServedThenReopened) {
+            // The served file carries both players' post-shuffle deck order and the RNG seed.
+            // Once an undo has reopened a game whose file is already in a player's hands, that
+            // file is live intel about the deck still being played from, so stop handing out
+            // more of it. See `swuPgnFileServed`.
+            throw new Error('SWU-PGN log withheld: this game was reopened after its log was served');
+        }
+        if (this._cachedSwuPgnFile != null) {
+            return this._cachedSwuPgnFile;
+        }
+        const file = this._swuPgnAdapter.generateFile();
+        if (this.isEnded) {
+            this._cachedSwuPgnFile = file;
+        }
+        return file;
     }
 
     /**
@@ -861,6 +908,27 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
+
+        // Record game end in the SWU-PGN/1.0 event stream.
+        const winnerSeat: Seat | 'Draw' = winners.length === 1
+            ? (winners[0] === this.getPlayers()[0] ? 1 : 2)
+            : 'Draw';
+        this._swuPgnAdapter.recordGameEnd(winnerSeat, reasonCode);
+
+        try {
+            // Single-file 1.1 artifact, cached at game end.
+            this._cachedSwuPgnFile = this._swuPgnAdapter.generateFile();
+            // NOTE: do NOT clear the recorder's raw arrays here. A player can undo
+            // past game-end (handleUndoGameEnd): that rolls back winnerNames so the
+            // game re-opens, nulls this cache (postRollbackOperations), and lets
+            // the game re-end later. If the events were cleared, the regenerated
+            // file would contain only the post-undo tail and the rest of the game
+            // would be lost. The arrays are bounded by game length and are freed
+            // when the lobby tears down the Game object.
+        } catch (e) {
+            logger.error(`Error caching game log at end of game: ${e}`);
+        }
+
         this._router.handleGameEnd();
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
@@ -1832,6 +1900,17 @@ export class Game extends EventEmitter {
 
         const player = this.getPlayerById(playerId);
 
+        // Once the SWU-PGN log has been served, the game is closed to undo. The file carries
+        // both players' remaining deck order, hands and the RNG seed; in a free-undo lobby a
+        // player could concede, download it, undo past game end and resume play holding all
+        // of that. Whether a given rollback would cross game end is only known after it runs
+        // (SnapshotManager.rolledPastGameEnd), so every rollback of an ended, served game is
+        // refused rather than just the ones that reopen it.
+        if (this.isEnded && this._swuPgnFileServed) {
+            this.addAlert(AlertType.Warning, '{0} cannot undo: the game log has already been downloaded', player);
+            return false;
+        }
+
         const rollbackInformation = this.snapshotManager.getRollbackInformation(settings);
 
         let message: string;
@@ -1981,7 +2060,50 @@ export class Game extends EventEmitter {
         this.reportError(error, GameErrorSeverity.SevereHaltGame);
     }
 
+    /**
+     * Record that a `.swupgn` reached a player. Lobby calls this after a successful serve.
+     *
+     * The file is only served once `isEnded` is true, but `isEnded` flips back when a player
+     * undoes past game end (free and unilateral in a private lobby), so "the game is over" is
+     * not a one-way door. A player who downloads at game end and then undoes resumes play
+     * holding the opponent's remaining deck order.
+     */
+    public markSwuPgnServed(): void {
+        // Public Game methods are reachable as socket game commands (Lobby.onGameMessage
+        // dispatches by name). Only a served file can have been served, so a mid-game call
+        // must be a no-op: otherwise a client could set the flag, undo, and have the
+        // opponent's replay withheld for the rest of the game.
+        if (!this.isEnded) {
+            return;
+        }
+        this._swuPgnFileServed = true;
+    }
+
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
+        if (this._swuPgnFileServed && !this.isEnded) {
+            // Rolling back into live play after the log was served. Withhold further copies and
+            // leave an auditable trail. NOTE: this does not un-leak the copy already downloaded
+            // -- the deck being played from is unchanged, so the leaked order stays valid. Fully
+            // closing that needs the undo itself blocked, or the remaining deck reshuffled here.
+            this._swuPgnServedThenReopened = true;
+            logger.warn(
+                `Game ${this.id}: rolled back into live play after its SWU-PGN log was served; ` +
+                'the served file exposes deck order and seed for the game now resuming'
+            );
+        }
+
+        // Roll the SWU-PGN/1.0 recorder back to match the restored game state: it
+        // checkpoints lazily per snapshot id (in SwuPgnRecorder.push), so rolling back to
+        // the restored snapshot id drops exactly the events recorded after it and restores
+        // counters + shieldParents. currentSnapshotId already reflects the restored snapshot.
+        this._swuPgnAdapter.rollbackTo(this._snapshotManager.currentSnapshotId);
+        // Only an undo that reopens the game invalidates the pinned end-of-game file. Players
+        // may keep playing after game end; an undo within that post-game play must not
+        // regenerate (and re-serve) a file that now differs from the one already downloaded.
+        if (!this.isEnded) {
+            this._cachedSwuPgnFile = undefined;
+        }
+
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {

@@ -1,0 +1,1597 @@
+import type { Game } from '../Game';
+import { CardType, DeployType, EventName, PhaseName, PlayType, ZoneName } from '../Constants';
+import { DefeatSourceType } from '../../IDamageOrDefeatSource';
+import { logger } from '../../../logger';
+import type { Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
+import { saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
+
+export interface HeaderContext {
+    gameId: string;
+    date: string;            // ISO-8601 UTC
+    format?: string;
+    cardPool: string;
+    engineVersion: string;   // "forceteki@<version>"
+    seed: string;
+    perspective: 'P1' | 'P2' | null;
+    rounds: number;
+    result: 'P1' | 'P2' | 'Draw' | 'Incomplete';
+    reason: string;
+    p1: { username: string; leader: string; base: string };
+    p2: { username: string; leader: string; base: string };
+
+    /** Handler failures during recording; omitted from the header when zero. */
+    recorderErrors?: number;
+}
+
+export function buildHeader(ctx: HeaderContext): Header {
+    return {
+        game: 'SWU-PGN/1.0',
+        gameId: ctx.gameId,
+        date: ctx.date,
+        format: ctx.format,
+        cardPool: ctx.cardPool,
+        engine: ctx.engineVersion,
+        seed: ctx.seed,
+        perspective: ctx.perspective,
+        p1Id: saltedPlayerId(ctx.p1.username, ctx.gameId),
+        p2Id: saltedPlayerId(ctx.p2.username, ctx.gameId),
+        p1: anonymizePlayerLabel(1),
+        p2: anonymizePlayerLabel(2),
+        p1Leader: ctx.p1.leader, p1Base: ctx.p1.base,
+        p2Leader: ctx.p2.leader, p2Base: ctx.p2.base,
+        result: ctx.result, reason: ctx.reason, rounds: ctx.rounds,
+        ...(ctx.recorderErrors ? { recorderErrors: ctx.recorderErrors } : {}),
+    };
+}
+
+/**
+ * Maps engine identities to the stable, anonymized identifiers used by SWU-PGN/1.0.
+ * The Game-side implementation (Task 10) owns copy-suffix logic and the omniscient
+ * keyframe/deck-order projections; the recorder only needs uuid->id and playerId->seat.
+ *
+ * `reducedState`/`deckOrder` are the omniscient projections required to emit round
+ * keyframes and the SETUP INIT record. They are optional so the recorder stays usable
+ * with just `{ cardId, seat }` (unit tests, partial setups); when absent the recorder
+ * emits a valid ROUND_START with no keyframe and recordInit() is a safe no-op.
+ */
+export interface SwuPgnResolver {
+    cardId(uuid: string): string;
+    seat(playerId: string): Seat;
+    reducedState?(round: number): ReducedState;                 // engine board → 1.1 reduced state
+    deckOrder?(): { p1: string[]; p2: string[] };               // initial deck order after shuffle
+}
+
+/**
+ * What a card IS, from its printed type — stable for the whole game. Read from the TYPE rather
+ * than from isShield/isExperience/isAdvantage predicates, so it is right for every token,
+ * including Weakness (a token upgrade matching none of those predicates) and any upgrade token
+ * printed in future.
+ *
+ * Distinct from `cardKind`, which reports the role a card is currently PLAYING. The two
+ * disagree for pilots: a Pilot is printed as a unit (`printedType: 'basicUnit'`) but, once
+ * flown onto a vehicle, its live `type` becomes `nonLeaderUnitUpgrade` and `isUpgrade()`
+ * starts returning true. `%%% CARDS` is an identity index keyed by base id, so it must use
+ * this one: keying it off the live role would make a pilot's entry say `unit` or `upgrade`
+ * depending on whether it happened to be attached when the file was written.
+ */
+export function printedCardKind(card: any): 'unit' | 'upgrade' | undefined {
+    try {
+        switch (card?.printedType) {
+            case CardType.BasicUnit:
+            case CardType.NonTokenLeaderUnit:
+            case CardType.TokenLeaderUnit:
+            case CardType.TokenUnit:
+                return 'unit';
+            case CardType.BasicUpgrade:
+            case CardType.LeaderUpgrade:
+            case CardType.TokenUpgrade:
+            case CardType.NonLeaderUnitUpgrade:
+                return 'upgrade';
+            default:
+                // Base, Event, Leader, TokenCard: neither. See spec §6.5 on absent `kind`.
+                return undefined;
+        }
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * The role a card is currently playing (`isUpgrade()`/`isUnit()` follow the live `type`).
+ * This is what an EVENT's `kind` needs: an event states what it did, not what the card is.
+ */
+export function cardKind(card: any): 'unit' | 'upgrade' | undefined {
+    try {
+        if (card?.isUpgrade?.()) {
+            return 'upgrade';
+        }
+        if (card?.isUnit?.()) {
+            return 'unit';
+        }
+    } catch {
+        // fall through: an unclassifiable card simply omits `kind`
+    }
+    return undefined;
+}
+
+/** Spec §6.2 arena zones -- the destinations a reader turns into arena membership. */
+const ARENA_ZONE_NAMES = new Set(['ground', 'space']);
+
+/** What a `STATS` record and a keyframe card both state about an in-play unit. */
+export interface LiveStats {
+    power: number; hp: number; keywords: string[];
+}
+
+/**
+ * A unit's live power, HP and keywords AS THE ENGINE COMPUTES THEM -- printed values, upgrades,
+ * tokens, lasting effects, Raid while attacking, Grit, everything. Read here and nowhere else,
+ * so the STATS deltas and the keyframe snapshot can never disagree. A numeric keyword is
+ * `"raid 2"`; keywords the engine has blanked are left out; the list is sorted. Returns null
+ * when the card cannot answer (not a unit, or not in a zone where stats apply).
+ */
+export function liveStats(card: any): LiveStats | null {
+    try {
+        if (typeof card?.getPower !== 'function' || typeof card?.getHp !== 'function') {
+            return null;
+        }
+        const keywords: string[] = [];
+        for (const k of card.keywords ?? []) {
+            if (k?.isBlank) {
+                continue;
+            }
+            const name = String(k?.name ?? '');
+            if (!name) {
+                continue;
+            }
+            keywords.push(typeof k.hasNumericValue === 'function' && k.hasNumericValue() ? `${name} ${k.value}` : name);
+        }
+        keywords.sort();
+        return { power: card.getPower(), hp: card.getHp(), keywords };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * The unit an upgrade is attached to, or null. The public `parentCard` getter throws once an
+ * upgrade has been unattached (which happens during shield defeat), so the internal
+ * `_parentCard` is read first and the guarded getter is only a fallback. Shared with the
+ * adapter's keyframe projection so both sides answer "is this card attached?" the same way.
+ */
+export function attachedHost(upgrade: any): any {
+    try {
+        const internal = upgrade?._parentCard;
+        if (internal != null) {
+            return internal;
+        }
+        return upgrade?.parentCard ?? null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * How the fold models a token-upgrade: the two named counters (`shields`, `experience`), or a
+ * status token counted under its own name in `statusTokens` (advantage, weakness, and any
+ * token upgrade printed later).
+ */
+export type TokenUpgradeKind = 'shield' | 'experience' | { status: string };
+
+/**
+ * Classify a token-upgrade card. Returns null for a normally-played (non-token) upgrade,
+ * which is covered by PLAY_UPGRADE and must not produce a token record.
+ *
+ * Derived from the card's TYPE (`isTokenUpgrade`), not from a list of names, so a new token
+ * upgrade classifies itself the day it is printed: Weakness used to fall through here and was
+ * recorded as if it were a printed upgrade. Shared with the adapter's keyframe projection so
+ * the writer's two views of a host — the deltas and the snapshot — can never disagree about
+ * which tokens are counters and which are `upgrades[]` entries (none: token upgrades are
+ * never listed there, spec §11).
+ */
+export function tokenUpgradeKind(upgrade: any): TokenUpgradeKind | null {
+    try {
+        if (upgrade?.isShield?.()) {
+            return 'shield';
+        }
+        if (upgrade?.isExperience?.()) {
+            return 'experience';
+        }
+        if (upgrade?.isTokenUpgrade?.()) {
+            const name = upgrade.internalName ?? upgrade.title;
+            return typeof name === 'string' && name.length > 0 ? { status: name } : null;
+        }
+    } catch {
+        // fall through: an unclassifiable card is treated as a printed upgrade
+    }
+    return null;
+}
+
+/**
+ * Emits SWU-PGN/1.0 `GameEvent`s by subscribing to engine events. Every handler is
+ * wrapped in try/catch with rate-limited error logging so a recording bug can never
+ * crash gameplay.
+ */
+export class SwuPgnRecorder {
+    private readonly game: Game;
+    private readonly resolver: SwuPgnResolver;
+    private readonly events: GameEvent[] = [];
+
+    /** %%% SETUP section records (currently the INIT deck-order record). */
+    private readonly setup: (SetupInitRecord | GameEvent)[] = [];
+
+    /** Current round number. */
+    private currentRound = 0;
+
+    /** Current phase abbreviation: 'S', 'A', or 'G' (port of v1.0 scheme). */
+    private currentPhase = 'S';
+
+    /** Incremented for top-level player actions during the Action Phase. */
+    private actionCounter = 0;
+
+    /** Incremented for events in Setup/Regroup phases. */
+    private phaseEventCounter = 0;
+
+    /** Incremented for sub-events within an action; reset when actionCounter increments. */
+    private subEventCounter = 0;
+
+    /** Caps repeated recorder-error logging so a broken handler can't flood the logs. */
+    private static readonly maxLoggedErrors = 20;
+    private loggedErrorCount = 0;
+
+    /**
+     * Every handler failure, capped or not. Surfaced in the header as `RecorderErrors` so a
+     * file that silently dropped events past the logging cap does not pass for a clean one.
+     */
+    private errorCount = 0;
+
+    /**
+     * Remembers which unit each token-upgrade is attached to, and what kind it is
+     * (token uuid → { parent unit object, kind }).
+     *
+     * Needed for every token REMOVAL record. A token-upgrade is removed by being defeated, but
+     * DefeatCardSystem unattaches the upgrade in its eventHandler before our OnCardDefeated
+     * `.on()` listener runs, so the token's parentCard is already null by then. We capture the
+     * parent at attach time instead.
+     *
+     * This used to hold shields only, which is why SHIELD_USE was emitted but experience and
+     * advantage were never decremented: a reader folding the stream kept every Advantage token
+     * on its host for the rest of the replay. All three token kinds now round-trip.
+     */
+    private readonly tokenParents = new Map<string, { parent: any; kind: TokenUpgradeKind }>();
+
+    /**
+     * The last `STATS` written per in-play unit (uuid -> JSON of the record's fields), so the
+     * sync after each engine event writes a record only when something changed. Checkpointed
+     * with the rest of the recorder state: after an undo the engine's stats revert, and a stale
+     * map would suppress the record that says so.
+     */
+    private readonly lastStats = new Map<string, string>();
+
+    /**
+     * Rollback checkpoints (array lengths + counters + tokenParents snapshot) keyed by
+     * snapshot id, so the recorder rewinds in lockstep with the game on undo.
+     * tokenParents is captured here because a
+     * rollback that rewinds past a token attach without restoring the map would make a
+     * later removal record miss its parent.
+     */
+    private readonly checkpoints: {
+        snapshotId: number;
+        eventsLen: number;
+        setupLen: number;
+        currentRound: number;
+        currentPhase: string;
+        actionCounter: number;
+        phaseEventCounter: number;
+        subEventCounter: number;
+        loggedErrorCount: number;
+        errorCount: number;
+        tokenParents: [string, { parent: any; kind: TokenUpgradeKind }][];
+        lastStats: [string, string][];
+    }[] = [];
+
+    public constructor(game: Game, resolver: SwuPgnResolver) {
+        this.game = game;
+        this.resolver = resolver;
+        this.registerListeners();
+    }
+
+    // ── Public interface ──────────────────────────────────────────────────────
+
+    public getEvents(): GameEvent[] {
+        return this.events;
+    }
+
+    public getSetup(): (SetupInitRecord | GameEvent)[] {
+        return this.setup;
+    }
+
+    /** How many handler failures (recording skipped) this game has had. */
+    public getErrorCount(): number {
+        return this.errorCount;
+    }
+
+    /**
+     * Record the `%%% SETUP` INIT entry: the post-shuffle initial deck order for both players.
+     * Sourced from the omniscient `resolver.deckOrder()` projection (Task 10). No-op when the
+     * resolver does not provide deckOrder (e.g. unit fakes built with just `{ cardId, seat }`).
+     */
+    public recordInit(): void {
+        try {
+            if (!this.resolver.deckOrder) {
+                return;
+            }
+            const { p1, p2 } = this.resolver.deckOrder();
+            this.setup.push({
+                seq: 'R1.S.0',
+                t: 'INIT',
+                p1DeckOrder: p1,
+                p2DeckOrder: p2,
+            });
+        } catch (error) {
+            this.logError('recordInit', error);
+        }
+    }
+
+    public addGameEndRecord(winner: Seat | 'Draw', reason: string): void {
+        try {
+            // Spec §9.1: GAME_END takes the `.game-end` step of the phase it happened in. A
+            // concession or disconnect can land in setup or regroup, not only the action phase,
+            // and the step is its own so it never shares a seq with that phase's PHASE_END
+            // (play can continue after game end, so both get written).
+            this.push({
+                seq: `R${this.currentRound}.${this.currentPhase}.game-end`,
+                t: 'GAME_END',
+                winner,
+                reason,
+            });
+        } catch (error) {
+            this.logError('addGameEndRecord', error);
+        }
+    }
+
+    /**
+     * Roll the recorded SWU-PGN data back to a prior game state after an undo.
+     * `restoredSnapshotId` is the snapshot the game was restored to
+     * (snapshotManager.currentSnapshotId after the rollback). Truncates events/setup back to
+     * the boundary captured when that snapshot was taken — dropping exactly the undone events —
+     * restores all counters and the tokenParents map, and discards that checkpoint and any
+     * later ones so re-recording the redo starts clean.
+     * Safe no-op when the snapshot id is unknown (nothing was recorded after it).
+     */
+    public rollbackTo(restoredSnapshotId: number | null): void {
+        try {
+            if (restoredSnapshotId == null) {
+                return;
+            }
+            // Checkpoints are taken lazily, on the first push under a snapshot id, so the
+            // restored id may have none of its own while later ids do (a snapshot during
+            // which nothing was recorded). Ids are monotonic, so the boundary is the first
+            // checkpoint at or after the restored id: its lengths are what existed when that
+            // snapshot was taken, which is the state being restored. An exact-match search
+            // returned early here and left the undone events in the file.
+            const idx = this.checkpoints.findIndex((c) => c.snapshotId >= restoredSnapshotId);
+            if (idx === -1) {
+                return; // nothing was recorded after the restored snapshot
+            }
+            const boundary = this.checkpoints[idx];
+            this.events.length = boundary.eventsLen;
+            this.setup.length = boundary.setupLen;
+            this.currentRound = boundary.currentRound;
+            this.currentPhase = boundary.currentPhase;
+            this.actionCounter = boundary.actionCounter;
+            this.phaseEventCounter = boundary.phaseEventCounter;
+            this.subEventCounter = boundary.subEventCounter;
+            this.loggedErrorCount = boundary.loggedErrorCount;
+            this.errorCount = boundary.errorCount;
+            // Rebuild tokenParents from the snapshot taken at the boundary so a removal record for
+            // a token gained after the boundary no longer finds a parent (and is skipped).
+            this.tokenParents.clear();
+            for (const [uuid, entry] of boundary.tokenParents) {
+                this.tokenParents.set(uuid, entry);
+            }
+            this.lastStats.clear();
+            for (const [uuid, key] of boundary.lastStats) {
+                this.lastStats.set(uuid, key);
+            }
+            // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
+            this.checkpoints.length = idx;
+        } catch (error) {
+            this.logError('rollbackTo', error);
+        }
+    }
+
+    /**
+     * Capture a rollback checkpoint for `snapshotId`, recording the current array lengths,
+     * counters, and a snapshot of the tokenParents map. Mirrors v1.0's checkpoint semantics:
+     * if the most recent checkpoint already belongs to this snapshot id it is a no-op (one
+     * checkpoint per snapshot boundary). Exposed publicly so tests (and any explicit Game-side
+     * hook) can checkpoint deterministically; gameplay drives it lazily via push().
+     */
+    public checkpoint(snapshotId: number): void {
+        try {
+            if (snapshotId < 0) {
+                return;
+            }
+            const last = this.checkpoints[this.checkpoints.length - 1];
+            if (last && last.snapshotId === snapshotId) {
+                return;
+            }
+            this.checkpoints.push({
+                snapshotId,
+                eventsLen: this.events.length,
+                setupLen: this.setup.length,
+                currentRound: this.currentRound,
+                currentPhase: this.currentPhase,
+                actionCounter: this.actionCounter,
+                phaseEventCounter: this.phaseEventCounter,
+                subEventCounter: this.subEventCounter,
+                loggedErrorCount: this.loggedErrorCount,
+                errorCount: this.errorCount,
+                tokenParents: [...this.tokenParents.entries()],
+                lastStats: [...this.lastStats.entries()],
+            });
+            // The engine retains only a handful of snapshots (SnapshotManager keeps 3 action + 2
+            // phase), so a checkpoint older than that can never be rolled back to. Without a
+            // cap every game holds one entry, with a copy of tokenParents, per snapshot ever
+            // taken, for the life of the game.
+            if (this.checkpoints.length > SwuPgnRecorder.maxCheckpoints) {
+                this.checkpoints.splice(0, this.checkpoints.length - SwuPgnRecorder.maxCheckpoints);
+            }
+        } catch (error) {
+            this.logError('checkpoint', error);
+        }
+    }
+
+    /** Comfortably above the engine's own snapshot retention; see `checkpoint`. */
+    private static readonly maxCheckpoints = 32;
+
+    // ── Internals ─────────────────────────────────────────────────────────────
+
+    private push(e: GameEvent): void {
+        this.maybeCheckpoint();
+        this.events.push(e);
+    }
+
+    /**
+     * Capture a rollback checkpoint the first time the recorder does anything under a new
+     * snapshot id. The game takes a state snapshot before the effects it precedes, so the first
+     * recorder activity afterward captures the lengths + counters + tokenParents as they were
+     * *at that snapshot* (before its events). Keyed off snapshotManager.currentSnapshotId, which
+     * is restored to the rolled-back value on undo. No-op when there is no snapshot manager
+     * (unit-test stubs).
+     *
+     * Called from push() AND from every place that mutates a counter before pushing (nextSeq,
+     * syncRound, the phase handlers). Checkpointing only on push captured counters that had
+     * already advanced: an undo to the start of the action phase restored `currentRound` to
+     * the new round, so the re-run start of phase saw nothing to sync and the round's
+     * ROUND_START (and its keyframe) was gone for good; a redo after any undo skipped seq
+     * numbers the same way.
+     */
+    private maybeCheckpoint(): void {
+        let snapshotId: number;
+        try {
+            snapshotId = this.game.snapshotManager?.currentSnapshotId ?? -1;
+        } catch {
+            return;
+        }
+        this.checkpoint(snapshotId);
+    }
+
+    /**
+     * Resolve a player to its seat. Accepts an engine Player-like object (with `id`)
+     * or returns seat 1 as a defensive fallback when the player is missing.
+     */
+    private seatOf(player: any): Seat {
+        if (player?.id == null) {
+            return 1;
+        }
+        return this.resolver.seat(player.id);
+    }
+
+    /** Resolve a card-like engine object to its stable SET#NUM[:copy] id. */
+    private idOf(card: any): string {
+        if (card?.uuid == null) {
+            return 'unknown';
+        }
+        return this.resolver.cardId(card.uuid);
+    }
+
+    /**
+     * Map an engine damage/heal target to either a base ref `base@<seat>` or a card id.
+     * Mirrors how the v1.0 `OnDamageDealt` handler resolves the target card, but adds
+     * the 1.1 base-vs-card distinction the fold relies on (`base@<seat>` snaps baseHp).
+     */
+    private targetRef(target: any): string {
+        try {
+            if (target?.isBase?.()) {
+                const owner = target.controller ?? target.owner;
+                return `base@${this.seatOf(owner)}`;
+            }
+        } catch {
+            // fall through to card id
+        }
+        return this.idOf(target);
+    }
+
+    /** See `attachedHost`. Null when the parent can't be resolved, so callers skip the record. */
+    private parentOf(upgrade: any): any {
+        return attachedHost(upgrade);
+    }
+
+    /**
+     * Map engine zone names to the short SWU-PGN/1.0 vocabulary. Only the two arena
+     * zones differ (`groundArena`→`ground`, `spaceArena`→`space`); all other engine
+     * zone strings (`deck`, `discard`, `hand`, `resource`, `base`, …) already match the
+     * spec vocabulary and pass through unchanged.
+     */
+    private normalizeZone(zoneName: string | undefined): string {
+        switch (zoneName) {
+            case ZoneName.GroundArena: return 'ground';
+            case ZoneName.SpaceArena: return 'space';
+            default: return zoneName ?? '';
+        }
+    }
+
+    /**
+     * The record for a token-upgrade gain (`delta` 1) or removal (`delta` -1), against `hostId`.
+     *
+     * Gain and removal go through this one place so a kind can never be recorded on the way on
+     * but forgotten on the way off — which is exactly how advantage and experience ended up
+     * permanently stuck on their hosts.
+     */
+    private tokenRecord(seq: string, kind: TokenUpgradeKind, hostId: string, delta: 1 | -1): GameEvent {
+        if (kind === 'shield') {
+            return delta === 1
+                ? { seq, t: 'SHIELD_GAIN', card: hostId }
+                : { seq, t: 'SHIELD_USE', card: hostId };
+        }
+        if (kind === 'experience') {
+            return { seq, t: 'EXPERIENCE_GAIN', card: hostId, count: delta };
+        }
+        return { seq, t: 'STATUS_TOKEN', card: hostId, token: kind.status, count: delta };
+    }
+
+    /**
+     * True when `seq` belongs to the action currently being recorded.
+     *
+     * Sub-events share their action's seq and add a letter (`R1.A.7` -> `R1.A.7a`), so a prefix
+     * match is right as long as the next character isn't a digit -- otherwise `R1.A.7` would also
+     * claim `R1.A.70`.
+     */
+    private inCurrentAction(seq: string): boolean {
+        const prefix = this.buildSeq(true);
+        if (seq === prefix) {
+            return true;
+        }
+        return seq.startsWith(prefix) && !(/^[0-9]/).test(seq.slice(prefix.length));
+    }
+
+    /**
+     * Name `hostId` on the upgrade's entry MOVE and, for a played upgrade, on its PLAY_UPGRADE,
+     * and correct the MOVE's `kind` to the role the event actually enacts.
+     *
+     * The `kind` correction is the point of this for pilots. A pilot (Han Solo, Has His
+     * Moments; Academy Graduate) is a unit card played onto a vehicle AS an upgrade, and
+     * `isUpgrade()` only becomes true once it is attached -- which happens after its MOVE was
+     * emitted. So the MOVE went out saying `kind: 'unit'`, and a reader that trusts it (as
+     * `applyMoveCounts` does) put a standalone body in the arena that no keyframe agrees with.
+     * An event's `kind` states the role THAT EVENT enacts, which is only knowable here.
+     * Only arena-bound MOVEs are corrected: those are the ones a reader turns into arena
+     * membership, and the card really was an ordinary card in hand before this.
+     *
+     * The engine moves an upgrade into play BEFORE attaching it, so these records were all
+     * emitted while the host was still unknown. The scan is bounded to the action being
+     * recorded: an earlier action's MOVE of the same card belongs to a different attachment and
+     * must not be rewritten. (A played upgrade emits MOVE, then the attach, then PLAY_UPGRADE,
+     * so looking only at the immediately preceding event -- all the token path needed -- misses
+     * it; PLAY_UPGRADE additionally reads its host directly at emission time.)
+     */
+    private backfillAttachedTo(upgradeId: string, hostId: string): void {
+        for (let i = this.events.length - 1; i >= 0; i--) {
+            const e = this.events[i];
+            if (!this.inCurrentAction(e.seq)) {
+                return;
+            }
+            if (e.t === 'MOVE' && e.card === upgradeId) {
+                // Only the arena-bound MOVE enacts the attachment. Spec §10.1 makes `attachedTo`
+                // REQUIRED on that record and absent otherwise; a same-action draw of the pilot
+                // into hand used to be stamped with a host it was not attached to yet.
+                if (ARENA_ZONE_NAMES.has(e.to)) {
+                    if (e.attachedTo == null) {
+                        e.attachedTo = hostId;
+                    }
+                    e.kind = 'upgrade';
+                }
+            } else if (e.t === 'PLAY_UPGRADE' && e.card === upgradeId && e.target == null) {
+                e.target = hostId;
+            } else if (e.t === 'DEPLOY_LEADER' && e.card === upgradeId && e.target == null) {
+                // A leader deployed as a pilot: the deploy is an attachment, not a body.
+                e.target = hostId;
+                e.kind = 'upgrade';
+            }
+        }
+    }
+
+    /**
+     * A card in the resource row changed ready state, or `amount` resources did at once.
+     * Resources are counted, never named (spec §10.1): a reader has no list of resource ids to
+     * apply a per-card EXHAUST/READY to, so the row's records are these two counters.
+     */
+    private resourceRecord(t: 'EXHAUST_RESOURCES' | 'READY_RESOURCES', player: any, amount: number): void {
+        if (!(amount > 0)) {
+            return;
+        }
+        this.push({ seq: this.nextSeq(false), t, p: this.seatOf(player), amount });
+    }
+
+    private isInResourceRow(card: any): boolean {
+        try {
+            return card?.zoneName === ZoneName.Resource;
+        } catch {
+            return false;
+        }
+    }
+
+    private logError(where: string, error: unknown): void {
+        this.errorCount++;
+        if (this.loggedErrorCount >= SwuPgnRecorder.maxLoggedErrors) {
+            return;
+        }
+        this.loggedErrorCount++;
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(`SwuPgnRecorder: error in ${where} (recording skipped): ${message}`);
+        if (this.loggedErrorCount === SwuPgnRecorder.maxLoggedErrors) {
+            logger.warn('SwuPgnRecorder: further recording errors will be suppressed for this game');
+        }
+    }
+
+    // ── Sequence helpers (port of v1.0 scheme) ─────────────────────────────────
+
+    private subEventLetter(n: number): string {
+        // Bijective base-26 (a, b, ..., z, aa, ab, ...) so an action with more
+        // than 26 sub-events still produces unique, schema-valid suffixes
+        // (the seq pattern allows only [A-Za-z0-9-]). A naive 'a'+n overflows
+        // past 'z' into '{', '|', ... which fail validation.
+        let s = '';
+        let i = n + 1;
+        while (i > 0) {
+            i -= 1;
+            s = String.fromCharCode('a'.charCodeAt(0) + (i % 26)) + s;
+            i = Math.floor(i / 26);
+        }
+        return s;
+    }
+
+    private buildSeq(isTopLevel: boolean): string {
+        const r = `R${this.currentRound}`;
+        const p = this.currentPhase;
+        if (p === 'A') {
+            if (isTopLevel) {
+                return `${r}.${p}.${this.actionCounter}`;
+            }
+            return `${r}.${p}.${this.actionCounter}${this.subEventLetter(this.subEventCounter)}`;
+        }
+        return `${r}.${p}.${this.phaseEventCounter}`;
+    }
+
+    private nextSeq(isTopLevelAction: boolean): string {
+        this.maybeCheckpoint();
+        if (this.currentPhase === 'A') {
+            if (isTopLevelAction) {
+                this.actionCounter++;
+                this.subEventCounter = 0;
+                return this.buildSeq(true);
+            }
+            const seq = this.buildSeq(false);
+            this.subEventCounter++;
+            return seq;
+        }
+        this.phaseEventCounter++;
+        return this.buildSeq(false);
+    }
+
+    /** Engine PhaseName → v1.0 abbreviation (S/A/G) for seq strings. */
+    private phaseAbbr(phase: string): string {
+        switch (phase) {
+            case PhaseName.Setup: return 'S';
+            case PhaseName.Action: return 'A';
+            case PhaseName.Regroup: return 'G';
+            default: return phase?.charAt(0).toUpperCase() ?? '?';
+        }
+    }
+
+    /** Engine PhaseName → 1.1 reader vocabulary ('setup'|'action'|'regroup'). */
+    private phaseVocab(phase: string): ReducedState['phase'] {
+        switch (phase) {
+            case PhaseName.Setup: return 'setup';
+            case PhaseName.Action: return 'action';
+            case PhaseName.Regroup: return 'regroup';
+            // Spec §6.4 fixes PHASE_START.phase to exactly setup/action/regroup. Lowercasing an
+            // unknown engine phase would silently emit a value outside that vocabulary, which a
+            // conforming reader is entitled to reject. Clamp instead, and say so in the log.
+            default:
+                this.logError('phaseVocab', new Error(`unknown engine phase "${phase}", recorded as "setup"`));
+                return 'setup';
+        }
+    }
+
+    /**
+     * Advance round tracking when a new round begins, emitting ROUND_START exactly once
+     * per round. Driven by `game.roundNumber` rather than OnBeginRound: that event never
+     * reaches `.on()` listeners (known engine quirk), but OnPhaseStarted does fire, so we
+     * re-sync the round there. Idempotent.
+     */
+    private syncRound(): void {
+        const round = this.game.roundNumber ?? this.currentRound;
+        if (round <= this.currentRound) {
+            return;
+        }
+        this.maybeCheckpoint();
+        this.currentRound = round;
+        this.phaseEventCounter = 0;
+        this.actionCounter = 0;
+        this.subEventCounter = 0;
+        // Emit a full ReducedState keyframe when the resolver can project one (Task 10). The
+        // 1.1 reader uses it both as a fast-forward anchor and as an integrity checkpoint
+        // (checkKeyframes folds forward and asserts the running fold equals each keyframe).
+        // Absent a resolver projection, ROUND_START stays valid without a keyframe.
+        this.syncStats();
+        const event: GameEvent = {
+            seq: `R${this.currentRound}.start`,
+            t: 'ROUND_START',
+            round: this.currentRound,
+        };
+        const keyframe = this.projectKeyframe();
+        if (keyframe) {
+            event.keyframe = keyframe;
+        }
+        this.push(event);
+    }
+
+    /**
+     * Project a round keyframe, or `undefined` if a complete one can't be produced.
+     *
+     * A keyframe is authoritative: the reader REPLACES its whole running state with it
+     * (spec §13). So a keyframe that is missing a seat does not merely lose detail, it
+     * ERASES that player's board — hand size, resources and in-play cards all reset, and
+     * every later fold is wrong. An absent keyframe is harmless by comparison: the reader
+     * just keeps folding deltas. Therefore a keyframe is attached only when it is complete
+     * for both seats; anything else is dropped and logged.
+     */
+    private projectKeyframe(): ReducedState | undefined {
+        if (!this.resolver.reducedState) {
+            return undefined;
+        }
+        try {
+            const keyframe = this.resolver.reducedState(this.currentRound);
+            const seatedPlayerCount = this.game.getPlayers?.()?.length ?? 2;
+            const missing = ([1, 2] as Seat[]).filter((seat) => keyframe.players[seat] == null);
+            // Before both seats exist there is nothing to be incomplete about; once the game
+            // is seated, a missing seat means a failed projection.
+            if (seatedPlayerCount >= 2 && missing.length > 0) {
+                this.logError(
+                    'projectKeyframe',
+                    new Error(`incomplete keyframe at R${this.currentRound}.start: no state for seat(s) ${missing.join(', ')}`)
+                );
+                return undefined;
+            }
+            return keyframe;
+        } catch (error) {
+            this.logError('projectKeyframe', error);
+            return undefined;
+        }
+    }
+
+    /**
+     * Write a `STATS` record for every in-play unit whose live power, HP or keywords differ from
+     * the last one written for it, and forget units that left play (so a return writes fresh).
+     *
+     * Runs after every engine event, because that is the only honest granularity: a lasting
+     * effect ("+3/+0 for this attack"), Raid, Grit, an upgrade landing or leaving -- all of it
+     * changes a unit's numbers without any event naming the change. A reader with no rules
+     * engine cannot derive them; this tells it. Also run just before a keyframe is projected,
+     * so the snapshot never gets ahead of the deltas within one engine event.
+     */
+    private syncStats(): void {
+        let players: any[];
+        try {
+            players = this.game.getPlayers?.() ?? [];
+        } catch {
+            return;
+        }
+        const seen = new Set<string>();
+        for (const player of players) {
+            let units: any[];
+            try {
+                units = player?.getArenaUnits?.() ?? [];
+            } catch {
+                continue;
+            }
+            for (const unit of units) {
+                if (unit?.uuid == null) {
+                    continue;
+                }
+                const stats = liveStats(unit);
+                if (!stats) {
+                    continue;
+                }
+                seen.add(unit.uuid);
+                const key = JSON.stringify(stats);
+                if (this.lastStats.get(unit.uuid) === key) {
+                    continue;
+                }
+                this.lastStats.set(unit.uuid, key);
+                this.push({ seq: this.nextSeq(false), t: 'STATS', card: this.idOf(unit), power: stats.power, hp: stats.hp, keywords: stats.keywords });
+            }
+        }
+        for (const uuid of [...this.lastStats.keys()]) {
+            if (!seen.has(uuid)) {
+                this.lastStats.delete(uuid);
+            }
+        }
+    }
+
+    /**
+     * Subscribe with the recorder's one error policy: a handler that throws is logged
+     * (rate-limited) and its record skipped, and gameplay never sees the exception. Every
+     * event, handled or not, is followed by a stats sync (see syncStats).
+     */
+    private on(name: EventName, fn: (event: any) => void): void {
+        this.game.on(name, (event: any) => {
+            try {
+                fn(event);
+            } catch (error) {
+                this.logError(name, error);
+            }
+            try {
+                this.syncStats();
+            } catch (error) {
+                this.logError('syncStats', error);
+            }
+        });
+    }
+
+    // ── Listener registration ──────────────────────────────────────────────────
+
+    private registerListeners(): void {
+        // Structural events. OnBeginRound does not reach .on() listeners; round tracking
+        // is driven by syncRound() from OnPhaseStarted. Kept for correctness if fixed.
+        this.on(EventName.OnBeginRound, () => {
+            this.syncRound();
+        });
+
+        this.on(EventName.OnRoundEnded, () => {
+            // ROUND_END carries a keyframe too. Now that keyframes are complete and
+            // trustworthy, an end-of-round snapshot is the cheapest place to catch a round's
+            // worth of fold drift: it halves the window between checkpoints at the cost of
+            // one snapshot per round.
+            this.syncStats();
+            const event: GameEvent = { seq: `R${this.currentRound}.end`, t: 'ROUND_END', round: this.currentRound };
+            const keyframe = this.projectKeyframe();
+            if (keyframe) {
+                event.keyframe = keyframe;
+            }
+            this.push(event);
+        });
+
+        this.on(EventName.OnPhaseStarted, (event: any) => {
+            this.maybeCheckpoint();
+            this.syncRound();
+            const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
+            this.currentPhase = this.phaseAbbr(phaseName);
+            this.phaseEventCounter = 0;
+            this.actionCounter = 0;
+            this.subEventCounter = 0;
+            this.push({
+                seq: `R${this.currentRound}.${this.currentPhase}.start`,
+                t: 'PHASE_START',
+                phase: this.phaseVocab(phaseName),
+            });
+        });
+
+        this.on(EventName.OnPhaseEnded, (event: any) => {
+            const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
+            this.push({
+                seq: `R${this.currentRound}.${this.phaseAbbr(phaseName)}.end`,
+                t: 'PHASE_END',
+                phase: this.phaseVocab(phaseName),
+            });
+        });
+
+        // ── Top-level player actions ─────────────────────────────────────────
+
+        this.on(EventName.OnCardPlayed, (event: any) => {
+            const card = event?.card;
+            const player = event?.player ?? card?.owner;
+            const playType: string = event?.playType ?? '';
+            const printedType: string = card?.printedType ?? '';
+            let t: GameEvent['t'] = 'PLAY';
+            if (printedType === CardType.Event) {
+                t = 'PLAY_EVENT';
+            } else if (
+                playType === PlayType.Piloting ||
+                printedType === CardType.BasicUpgrade ||
+                printedType === CardType.LeaderUpgrade ||
+                printedType === CardType.TokenUpgrade ||
+                printedType === CardType.NonLeaderUnitUpgrade
+            ) {
+                t = 'PLAY_UPGRADE';
+            } else if (playType === PlayType.Smuggle) {
+                t = 'PLAY_SMUGGLE';
+            }
+            // Name the host on the way out. The engine attaches an upgrade BEFORE it emits
+            // OnCardPlayed, so the parent is already reachable here -- and it has to be
+            // recorded, because `kind: 'upgrade'` keeps the card out of the arena and
+            // `PLAY_UPGRADE.target` is the only thing left that tells a reader where it went.
+            // Without it the fold has nowhere to put the card and the upgrade disappears from
+            // the replay entirely. (backfillAttachedTo covers the reverse order, where the
+            // attach lands after the play.)
+            const host = t === 'PLAY_UPGRADE' ? this.parentOf(card) : null;
+            const seq = this.nextSeq(true);
+            this.push({
+                seq,
+                t,
+                p: this.seatOf(player),
+                card: this.idOf(card),
+                zone: this.normalizeZone(card?.zoneName),
+                target: host ? this.idOf(host) : undefined,
+                // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
+                // penalties, discounts and Exploit -- are resolved inside the engine's cost
+                // payment and never reach this event; `costs` here is targeted-adjuster
+                // bookkeeping, not an amount.
+                cost: typeof card?.cost === 'number' ? card.cost : undefined,
+            } as GameEvent);
+        });
+
+        this.on(EventName.OnLeaderDeployed, (event: any) => {
+            const card = event?.card;
+            const player = card?.owner ?? event?.player;
+            // A leader can deploy AS A PILOT (DeployAndAttachPilotLeaderSystem): the same
+            // event, but the leader becomes an upgrade on `leaderAttachTarget` rather than a
+            // body in the arena. Without `kind`/`target` the fold placed it as its own unit
+            // that no keyframe agreed with.
+            const host = event?.type === DeployType.LeaderUpgrade
+                ? (event?.leaderAttachTarget ?? this.parentOf(card))
+                : null;
+            if (host) {
+                // The leader's base->arena MOVE was emitted a moment ago, under the previous
+                // action's number, saying `kind: 'unit'`. The contingent OnUpgradeAttached only
+                // fires after this record has taken the next number, so its backfill would no
+                // longer reach that MOVE; correct it now, while it is still "the current action".
+                this.backfillAttachedTo(this.idOf(card), this.idOf(host));
+            }
+            const seq = this.nextSeq(true);
+            // Which ability deployed it matters to the rules: an Epic Action is spent for the game
+            // (CR 1.16 lists that as game state), an Action ability is not.
+            const epic = event?.context?.ability?.isEpicAction === true;
+            this.push({
+                seq,
+                t: 'DEPLOY_LEADER',
+                p: this.seatOf(player),
+                card: this.idOf(card),
+                zone: this.normalizeZone(card?.zoneName),
+                ...(host ? { kind: 'upgrade' as const, target: this.idOf(host) } : {}),
+                ...(epic ? { epic: true } : {}),
+                // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
+                // penalties, discounts and Exploit -- are resolved inside the engine's cost
+                // payment and never reach this event; `costs` here is targeted-adjuster
+                // bookkeeping, not an amount.
+                cost: typeof card?.cost === 'number' ? card.cost : undefined,
+            });
+        });
+
+        this.on(EventName.OnAttackDeclared, (event: any) => {
+            const attack = event?.attack;
+            const attacker = attack?.attacker;
+            const attackingPlayer = attack?.attackingPlayer;
+            const targets = attack?.getAllTargets?.() ?? [];
+            const defender = targets[0] ?? null;
+            const defenderType: 'unit' | 'base' = defender?.isBase?.() ? 'base' : 'unit';
+            const seq = this.nextSeq(true);
+            this.push({
+                seq,
+                t: 'ATTACK',
+                p: this.seatOf(attackingPlayer),
+                atk: this.idOf(attacker),
+                def: defender?.isBase?.() ? `base@${this.seatOf(defender.controller ?? defender.owner)}` : this.idOf(defender),
+                defenderType,
+            });
+        });
+
+        this.on(EventName.OnPassActionPhasePriority, (event: any) => {
+            const seq = this.nextSeq(true);
+            this.push({ seq, t: 'PASS', p: this.seatOf(event?.player) });
+        });
+
+        this.on(EventName.OnClaimInitiative, (event: any) => {
+            const seq = this.nextSeq(true);
+            this.push({ seq, t: 'CLAIM_INITIATIVE', p: this.seatOf(event?.player) });
+        });
+
+        // ── Sub-events ────────────────────────────────────────────────────────
+
+        this.on(EventName.OnDamageDealt, (event: any) => {
+            const card = event?.card;
+            let source: any = null;
+            if (event?.damageSource?.attack?.attacker) {
+                source = event.damageSource.attack.attacker;
+            } else if (event?.context?.source) {
+                source = event.context.source;
+            }
+            const amt = event?.damageDealt ?? event?.amount ?? 0;
+            const damageType: string = event?.type ?? '';
+            const seq = this.nextSeq(false);
+
+            // OVERWHELM is not a distinct engine event: in SWU it is excess combat damage that
+            // rolls onto the defending base, emitted by AttackFlow as an OnDamageDealt with
+            // DamageType.Overwhelm ('overwhelm') targeting that base (see attack/AttackFlow.ts).
+            // We surface it as a dedicated OVERWHELM record (instead of DAMAGE) when the engine
+            // tags the damage as overwhelm-type onto a base; the 1.1 OVERWHELM reducer snaps base
+            // hp exactly like a DAMAGE-to-base record.
+            if (damageType === 'overwhelm' && card?.isBase?.()) {
+                this.push({
+                    seq,
+                    t: 'OVERWHELM',
+                    p: this.seatOf(source?.controller ?? source?.owner),
+                    tgt: this.targetRef(card),
+                    amt,
+                    hp: card?.remainingHp ?? 0,
+                });
+                return;
+            }
+
+            this.push({
+                seq,
+                t: 'DAMAGE',
+                src: this.idOf(source),
+                tgt: this.targetRef(card),
+                amt,
+                damageType,
+                hp: card?.remainingHp ?? 0,
+            });
+        });
+
+        this.on(EventName.OnDamageHealed, (event: any) => {
+            const card = event?.card;
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'HEAL',
+                tgt: this.targetRef(card),
+                amt: event?.damageHealed ?? event?.amount ?? 0,
+                hp: card?.remainingHp ?? 0,
+            });
+        });
+
+        this.on(EventName.OnCardDefeated, (event: any) => {
+            const card = event?.card;
+
+            // Token-upgrade REMOVAL. There is no dedicated removal event for any of the three
+            // token kinds: shields, experience and advantage are all token-upgrade cards, and
+            // each is removed by being defeated (a shield's damage-modification replaces the
+            // damage with defeat(); an Advantage defeats itself when the attack ends). So the
+            // removal surfaces here, as OnCardDefeated on the token itself.
+            //
+            // Only shields used to be handled, which meant a gained Advantage or Experience was
+            // never taken back off its host: a reader folding the stream kept the token for the
+            // rest of the replay while the engine's own keyframe showed statusTokens {}. Every
+            // kind now emits its decrement, so gains and removals balance.
+            const removed = card?.uuid != null ? this.tokenParents.get(card.uuid) : undefined;
+            const removedKind = removed?.kind ?? tokenUpgradeKind(card);
+            if (removedKind) {
+                // Prefer the parent remembered at attach time (the upgrade is already unattached
+                // by now); fall back to a live lookup if it wasn't recorded.
+                const parent = removed?.parent ?? this.parentOf(card);
+                if (parent) {
+                    this.push(this.tokenRecord(this.nextSeq(false), removedKind, this.idOf(parent), -1));
+                }
+                // The token's exit MOVE, emitted after this, names no host (exits never do,
+                // spec §10.1), so the remembered binding has served its purpose.
+                if (card?.uuid != null) {
+                    this.tokenParents.delete(card.uuid);
+                }
+                return;
+            }
+
+            const defeatSource = event?.defeatSource;
+            const reason: string = defeatSource?.type ?? '';
+            let defeatedBy: any = null;
+            if (defeatSource?.type === DefeatSourceType.Attack) {
+                defeatedBy = defeatSource?.attack?.attacker;
+            } else {
+                defeatedBy = defeatSource?.card;
+            }
+            const defeatedById = this.idOf(defeatedBy);
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'DEFEAT',
+                card: this.idOf(card),
+                reason,
+                defeatedBy: defeatedById === 'unknown' ? undefined : defeatedById,
+            });
+        });
+
+        this.on(EventName.OnCardMoved, (event: any) => {
+            const card = event?.card;
+
+            // OnCardMoved is emitted TWICE for an ability-driven move: once by
+            // MoveCardSystem (whose props are destination/context — no zones) and once by
+            // Card.postMoveSteps, which carries the authoritative originalZone/newZone. Only
+            // the second describes a move, so the first is dropped. Recording it produced
+            // `"from": ""` records, which are not a zone at all and forced every reader to
+            // special-case the required field.
+            if (event?.originalZone == null) {
+                return;
+            }
+
+            const from = this.normalizeZone(event.originalZone);
+            const to = this.normalizeZone(event?.newZone ?? card?.zoneName);
+
+            // A move that doesn't change zone carries no information. Searching a deck moves
+            // each examined card deck->deck on the way back, which is how two SEARCHes came to
+            // produce 20% of a real game's MOVE records. Examining a card is reported by
+            // SEARCH (and REVEAL); only a card that actually leaves its zone gets a MOVE.
+            //
+            // One exception: a token that goes base -> base has changed BASES, because each
+            // seat has its own. That is how a Credit token changes hands (CreditToken.takeControl
+            // re-homes it with moveTo(Base) and no OnTakeControl names the card), and it is the
+            // only way `credits` moves between seats, so it is written as the TAKE_CONTROL it is.
+            if (from === to) {
+                if (from === 'base' && card?.isToken?.() && card?.uuid != null) {
+                    const seat = this.seatOf(card.controller ?? card.owner);
+                    this.push({
+                        seq: this.nextSeq(false),
+                        t: 'TAKE_CONTROL',
+                        p: seat,
+                        card: this.idOf(card),
+                        zone: 'base',
+                        from: (seat === 1 ? 2 : 1) as Seat,
+                    });
+                }
+                return;
+            }
+            if (from === '' || to === '') {
+                return;
+            }
+
+            // Building the decks is not a game event. Before the first shuffle every card
+            // enters its deck from outsideTheGame; that is the deck list, which %%% DECKS
+            // already states and the INIT record already orders. Recording it was 40 of one
+            // organic game's 237 events. A token entering PLAY from outsideTheGame is kept.
+            if (from === 'outsideTheGame' && to === 'deck') {
+                return;
+            }
+
+            const seq = this.nextSeq(false);
+            // Seat lets the 1.1 fold attribute zone-membership counts (handSize,
+            // resourcesReady) and arena-card placement to a player: the engine performs
+            // these via card moves, not via DRAW/RESOURCE/PLAY summary events, so MOVE is
+            // the fold's source of truth for those counts.
+            // `attachedTo` is NOT set here: an attaching move's host is only known once the
+            // attach happens, after this record (see backfillAttachedTo), and a move OUT of an
+            // arena never names one -- a reader detaches on the zone transition (spec §10.1).
+            // A resource that leaves the row exhausted says so, because the fold keeps ready
+            // and exhausted resources as two counts and has to know which one to decrement.
+            // The engine has already reset `exhausted` for the new zone by the time this
+            // fires, hence `exhaustedBeforeMove`.
+            const seat = this.seatOf(card?.controller ?? card?.owner);
+            const kind = cardKind(card);
+            const leftExhausted = from === 'resource' && card?.exhaustedBeforeMove === true;
+            this.push({
+                seq,
+                t: 'MOVE',
+                card: this.idOf(card),
+                from,
+                to,
+                p: seat,
+                ...(kind ? { kind } : {}),
+                ...(leftExhausted ? { exhausted: true } : {}),
+            });
+
+            // A Leader Unit that was defeated comes home to the base zone EXHAUSTED (CR 3.4.5),
+            // by direct assignment in the engine, so the move is the only place to say so.
+            if (to === 'base' && ARENA_ZONE_NAMES.has(from) && card?.isLeader?.()) {
+                let exhausted = false;
+                try {
+                    exhausted = card.exhausted === true;
+                } catch {
+                    exhausted = false;
+                }
+                if (exhausted) {
+                    this.push({ seq: this.nextSeq(false), t: 'EXHAUST', card: this.idOf(card) });
+                }
+            }
+
+            // RESOURCE is the human-readable summary of "a card became a resource", the way
+            // DRAW summarises the deck->hand MOVEs beside it. It is derived from the move
+            // rather than from OnCardResourced because that engine event only fires for
+            // ability-driven resourcing: the setup and regroup resource steps call
+            // Player.resourceCard() directly (ResourcePrompt.resourceSelectedCards), so
+            // listening for it produced ZERO records across a full game's 15 resourcings.
+            // Every resourcing — routine or ability-driven, including takeControl into the
+            // resource zone — ends in this move, so this sees all of them exactly once.
+            if (to === 'resource') {
+                this.push({ seq: this.nextSeq(false), t: 'RESOURCE', p: seat, card: this.idOf(card) });
+            }
+        });
+
+        // SHIELD_GAIN: no dedicated event. A Shield is given by generating a Shield token-upgrade
+        // (GiveShieldSystem → OnTokensCreated) and then attaching it (contingent OnUpgradeAttached).
+        // We emit SHIELD_GAIN only when the attached upgrade isShield(); other upgrade attachments
+        // are not board-mutation gap events handled in this task. Recorded against the parent unit;
+        // the 1.1 reducer increments shields by `count` (default 1).
+        //
+        // EXPERIENCE_GAIN and STATUS_TOKEN ride the same OnUpgradeAttached event because, like
+        // shields, experience and advantage are token-upgrade cards (Experience/Advantage extend
+        // TokenUpgradeCard); they are "gained" by generating the token-upgrade (GiveExperienceSystem /
+        // GiveAdvantageSystem → OnTokensCreated) and attaching it (contingent OnUpgradeAttached, one
+        // event per token). Each token type maps to exactly one record, so nothing double-counts:
+        //   isShield()          → SHIELD_GAIN      (dedicated event, shields counter)
+        //   isExperience()      → EXPERIENCE_GAIN  (experience counter, +1 per attach)
+        //   any other isTokenUpgrade() → STATUS_TOKEN, keyed by the token's name (advantage,
+        //                          weakness, and whatever is printed next), +1 per attach
+        // Normally-played, non-token upgrades are already covered by OnCardPlayed→PLAY_UPGRADE, so we
+        // deliberately emit no token record for them here (a second PLAY_UPGRADE would corrupt the
+        // fold); they only get their host named.
+        this.on(EventName.OnUpgradeAttached, (event: any) => {
+            const upgrade = event?.upgradeCard;
+            const parent = event?.parentCard ?? this.parentOf(upgrade);
+            if (!parent) {
+                return;
+            }
+            const kind = tokenUpgradeKind(upgrade);
+            if (!kind) {
+                // An ordinary printed upgrade. It gets no token record -- a second
+                // PLAY_UPGRADE would corrupt the fold -- but it still needs its host named.
+                // `kind: 'upgrade'` correctly keeps it out of the arena, so without a host
+                // there is nothing to attach it to and it folds to nowhere at all: the player
+                // plays an upgrade and the replay shows nothing happening.
+                this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
+                return;
+            }
+            // Remember the host for the matching removal record: by the time the token is
+            // defeated it has already been unattached, so its parent is unreachable then.
+            if (upgrade?.uuid != null) {
+                this.tokenParents.set(upgrade.uuid, { parent, kind });
+            }
+            // The engine moves the token into play BEFORE attaching it, so its entry MOVE was
+            // emitted while the host was still unknown. Name the host on it now, so a reader
+            // never has to infer the binding from event adjacency.
+            this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
+            this.push(this.tokenRecord(this.nextSeq(false), kind, this.idOf(parent), 1));
+        });
+
+        // A unit's ready/exhausted flag on ENTERING play is set by the engine directly
+        // (PutIntoPlaySystem calls ready()/exhaust() on the card, RescueSystem and the leader
+        // deploy likewise), so no OnCardExhausted ever reports it -- and every replay showed a
+        // just-played unit ready. This fires once the put-into-play has resolved and the flag is
+        // final: a unit that entered exhausted (the rule, CR 5.4.5.a) gets its EXHAUST; one that
+        // entered ready (Ambush does not: it attacks exhausted; "enters ready" effects do) gets
+        // nothing. Deploys as a pilot upgrade have no flag and write nothing.
+        this.on(EventName.OnUnitEntersPlay, (event: any) => {
+            const card = event?.card;
+            let exhausted = false;
+            try {
+                exhausted = card?.exhausted === true;
+            } catch {
+                return; // an upgrade, or a zone where the property is disabled
+            }
+            if (exhausted && !this.isInResourceRow(card)) {
+                this.push({ seq: this.nextSeq(false), t: 'EXHAUST', card: this.idOf(card) });
+            }
+        });
+
+        // A card in the resource row is one of the counted resources, not a named card: its
+        // ready/exhaust is written as the counter record (the regroup step readies every
+        // resource this way, one event each). Anything else -- units, the leader in the base --
+        // is named.
+        this.on(EventName.OnCardExhausted, (event: any) => {
+            const card = event?.card;
+            if (this.isInResourceRow(card)) {
+                this.resourceRecord('EXHAUST_RESOURCES', card.controller ?? card.owner, 1);
+                return;
+            }
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'EXHAUST', card: this.idOf(card) });
+        });
+
+        this.on(EventName.OnCardReadied, (event: any) => {
+            const card = event?.card;
+            if (this.isInResourceRow(card)) {
+                this.resourceRecord('READY_RESOURCES', card.controller ?? card.owner, 1);
+                return;
+            }
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'READY', card: this.idOf(card) });
+        });
+
+        // Paying a cost, or an ability exhausting resources, goes through Player.exhaustResources
+        // with no per-card event, so the amount is the only thing to record. The cost event's
+        // `amount` is the figure after every adjuster (ResourceCost sets it in its handler); the
+        // engine exhausts `min(amount, ready)`, and the fold does the same.
+        this.on(EventName.OnExhaustResources, (event: any) => {
+            const player = event?.player ?? event?.context?.player;
+            this.resourceRecord('EXHAUST_RESOURCES', player, Number(event?.amount) || 0);
+        });
+
+        this.on(EventName.OnReadyResources, (event: any) => {
+            const player = event?.player ?? event?.context?.player;
+            this.resourceRecord('READY_RESOURCES', player, Number(event?.amount) || 0);
+        });
+
+        // A card that an ability puts into the resource row enters EXHAUSTED unless the ability
+        // says otherwise (Resupply, the card Smuggle draws from the top of the deck, ...). The
+        // MOVE into `resource` counted it as ready -- that is what the row does by default and
+        // the setup/regroup prompt never fires this event -- so the exhausted entry is the same
+        // one-resource exhaustion any other would be. Read after the handler: the flag is final.
+        this.on(EventName.OnCardResourced, (event: any) => {
+            const card = event?.card;
+            if (this.isInResourceRow(card) && card.exhausted === true) {
+                this.resourceRecord('EXHAUST_RESOURCES', card.controller ?? card.owner, 1);
+            }
+        });
+
+        this.on(EventName.OnCardsDrawn, (event: any) => {
+            const player = event?.player;
+            const cards: any[] = event?.cards ?? [];
+            const count: number = event?.amount ?? cards.length ?? 0;
+            const cardIds = cards.map((c: any) => this.idOf(c)).filter((id: string) => id !== 'unknown');
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'DRAW', p: this.seatOf(player), count, cards: cardIds });
+        });
+
+        this.on(EventName.OnCardDiscarded, (event: any) => {
+            const card = event?.card;
+            const player = card?.owner;
+            const id = this.idOf(card);
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'DISCARD', p: this.seatOf(player), cards: id === 'unknown' ? [] : [id] });
+        });
+
+        this.on(EventName.OnDeckShuffled, (event: any) => {
+            const player = event?.player ?? event?.card?.owner;
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'SHUFFLE', p: this.seatOf(player) });
+        });
+
+        this.on(EventName.OnTokensCreated, (event: any) => {
+            const tokens: any[] = event?.generatedTokens ?? [];
+            for (const token of tokens) {
+                // Only UNIT tokens are arena cards in the fold. OnTokensCreated also fires for
+                // token-upgrades (shield/experience/advantage — recorded via OnUpgradeAttached as
+                // SHIELD_GAIN/EXPERIENCE_GAIN/STATUS_TOKEN) and for credit/force tokens, none of
+                // which are arena units; emitting CREATE_TOKEN for them would push a phantom card
+                // into the folded board.
+                if (typeof token?.isUnit !== 'function' || !token.isUnit()) {
+                    continue;
+                }
+                const seq = this.nextSeq(false);
+                this.push({
+                    seq,
+                    t: 'CREATE_TOKEN',
+                    p: this.seatOf(token?.owner),
+                    // Stable SET#NUM[:copy]/TOKEN:<name> id, consistent with the later MOVE/DAMAGE/
+                    // EXHAUST events that reference this token (those use idOf too). Emitting the
+                    // display title here instead would alias same-name tokens and orphan every
+                    // subsequent token event from this card in the fold.
+                    token: this.idOf(token),
+                    zone: this.normalizeZone(token?.zoneName),
+                    power: typeof token?.getPower === 'function' ? token.getPower() : undefined,
+                    hp: typeof token?.getHp === 'function' ? token.getHp() : undefined,
+                    // Always 'unit' here (the guard above skips non-units), but stated
+                    // explicitly so a reader never has to infer it from the event type.
+                    kind: cardKind(token),
+                });
+            }
+        });
+
+        // `p` is the seat that HOLDS the card after the event: the captor's controller on a
+        // capture, the owner on a rescue. `by` is the captor (CaptureSystem puts it on the
+        // event), so a reader can file the card under the unit that took it. The card's own
+        // arena -> capture MOVE was already written by the capture handler.
+        this.on(EventName.OnCardCaptured, (event: any) => {
+            const card = event?.card;
+            const captor = event?.captor ?? null;
+            const holder = captor?.controller ?? captor?.owner ?? card?.owner;
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'CAPTURE',
+                p: this.seatOf(holder),
+                card: this.idOf(card),
+                ...(captor ? { by: this.targetRef(captor) } : {}),
+            });
+        });
+
+        this.on(EventName.OnRescue, (event: any) => {
+            const card = event?.card;
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'RESCUE', p: this.seatOf(card?.owner), card: this.idOf(card) });
+        });
+
+        this.on(EventName.OnTakeControl, (event: any) => {
+            const card = event?.card;
+            if (card?.uuid == null) {
+                // Credit tokens change hands through the same event with no `card`. Their
+                // control change is recorded from the token's own base -> base move instead
+                // (see OnCardMoved), one TAKE_CONTROL per token; a record naming 'unknown'
+                // here would help nobody.
+                return;
+            }
+            const player = event?.newController ?? card?.controller;
+            const seat = this.seatOf(player);
+            // A control change is NOT a zone change: a stolen unit stays in the same arena
+            // (PlayableOrDeployableCard.takeControl registers the move without moveTo), and
+            // a stolen resource stays a resource. No MOVE is emitted, so this record has to
+            // carry what the fold needs to re-seat the card (spec §10.1): the zone it is in
+            // now, and the seat it left. In a two-player game control can only have come
+            // from the other seat. When the steal DID change zone (a unit taken into the
+            // resource row), the MOVE just recorded already carried the counts, so `from`
+            // is omitted and the fold shifts nothing twice.
+            const last = this.events[this.events.length - 1];
+            const movedByThisSteal = last?.t === 'MOVE' && last.card === this.idOf(card);
+            const zone = this.normalizeZone(card?.zoneName);
+            // A stolen resource keeps its ready state, and the fold keeps two counts, so say
+            // which one moves. Readable here: the card sits in the new controller's row.
+            const exhausted = zone === 'resource' && this.isInResourceRow(card) && card.exhausted === true;
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'TAKE_CONTROL',
+                p: seat,
+                card: this.idOf(card),
+                zone,
+                ...(movedByThisSteal ? {} : { from: (seat === 1 ? 2 : 1) as Seat }),
+                ...(exhausted ? { exhausted: true } : {}),
+            });
+        });
+
+        // TRIGGER / ABILITY_ACTIVATE dedup: AbilityResolver pushes BOTH OnCardAbilityTriggered
+        // (only for activated abilities) and OnCardAbilityInitiated (for every card ability) into
+        // the same event window for one activation, so an activated ability would otherwise record
+        // two adjacent pure-log lines for the same card. OnCardAbilityInitiated → ABILITY_ACTIVATE
+        // is the richer record (it carries the ability identifier) and is a superset of the
+        // TRIGGER cases, so we collapse the pair into the single ABILITY_ACTIVATE. The collapse is
+        // adjacency-based and bidirectional so it holds whichever event the window emits first; a
+        // standalone TRIGGER (no adjacent ABILITY_ACTIVATE for the same card) is still recorded.
+        this.on(EventName.OnCardAbilityTriggered, (event: any) => {
+            const card = event?.card ?? event?.context?.source;
+            const cardId = this.idOf(card);
+            const last = this.events[this.events.length - 1];
+            if (last && last.t === 'ABILITY_ACTIVATE' && (last as any).card === cardId) {
+                return; // ABILITY_ACTIVATE for this card already recorded the activation
+            }
+            const player = card?.controller ?? card?.owner;
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'TRIGGER', p: player ? this.seatOf(player) : undefined, card: cardId });
+        });
+
+        this.on(EventName.OnCardAbilityInitiated, (event: any) => {
+            const card = event?.card ?? event?.context?.source;
+            const cardId = this.idOf(card);
+            const player = card?.controller ?? card?.owner;
+            const ability = event?.ability?.abilityIdentifier;
+            // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes
+            // it. Reuse the popped TRIGGER's seq for this record (rather than allocating a fresh
+            // one) so the collapse leaves no skipped seq number behind it.
+            const last = this.events[this.events.length - 1];
+            let seq: string;
+            if (last && last.t === 'TRIGGER' && (last as any).card === cardId) {
+                seq = last.seq;
+                this.events.pop();
+            } else {
+                seq = this.nextSeq(false);
+            }
+            this.push({
+                seq,
+                t: 'ABILITY_ACTIVATE',
+                p: this.seatOf(player),
+                card: cardId,
+                ability: typeof ability === 'string' ? ability : undefined,
+                ...(event?.ability?.isEpicAction === true ? { epic: true } : {}),
+            });
+        });
+
+        this.on(EventName.OnCardRevealed, (event: any) => {
+            const cards: any[] = event?.cards ?? [];
+            if (cards.length === 0) {
+                return;
+            }
+            const owner = cards[0]?.controller ?? cards[0]?.owner;
+            const cardIds = cards.map((c: any) => this.idOf(c)).filter((id: string) => id !== 'unknown');
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'REVEAL',
+                p: this.seatOf(owner),
+                zone: this.normalizeZone(event?.revealedFromZone ?? cards[0]?.zoneName),
+                cards: cardIds,
+            });
+        });
+
+        this.on(EventName.OnDeckSearch, (event: any) => {
+            const player = event?.player;
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'SEARCH',
+                p: this.seatOf(player),
+                zone: event?.searchWholeDeck ? 'deck' : undefined,
+            });
+        });
+
+        // ── Decision context (pure-log; no fold delta) ────────────────────────
+        //
+        // There is no pre-existing engine event carrying a player's prompt selection: prompt
+        // results are known only inside the prompt's menuCommand handler (UiPrompt subclasses).
+        // Per design §4.2, CHOICE/MODAL_CHOICE are "sourced from the prompt the engine already
+        // built", so we added two minimal engine-side emits at the prompt-completion sites that
+        // already know both the option menu and the chosen option (see MulliganPrompt and
+        // HandlerMenuPrompt). The recorder only listens; gameplay logic is untouched.
+
+        // MULLIGAN / KEEP_HAND: emitted by MulliganPrompt.menuCommand when a player resolves their
+        // mulligan decision (mulligan === true → MULLIGAN, otherwise → KEEP_HAND). Pure log.
+        this.on(EventName.OnMulliganDecision, (event: any) => {
+            this.push({
+                seq: this.nextSeq(false),
+                t: event?.mulligan ? 'MULLIGAN' : 'KEEP_HAND',
+                p: this.seatOf(event?.player),
+            });
+        });
+
+        // MODAL_CHOICE: emitted by HandlerMenuPrompt.menuCommand — the engine's general menu/button
+        // prompt with a fixed list of options. We classify menu/button prompts as MODAL_CHOICE
+        // (fixed option list) and reserve CHOICE for free card-selection prompts; HandlerMenuPrompt
+        // is the menu/button case, so it maps to MODAL_CHOICE. `offered` is the human-readable
+        // button label list the prompt built; `chose` is the index of the selected option. Pure log.
+        this.on(EventName.OnModalChoice, (event: any) => {
+            const offered: string[] = Array.isArray(event?.offered) ? event.offered : [];
+            // `chose` is the selected option index; without a valid number the record would be
+            // malformed. Mirror the other handlers (e.g. OnCardRevealed) and skip the push
+            // rather than emit a sentinel.
+            if (typeof event?.chose !== 'number') {
+                return;
+            }
+            const chose: number = event.chose;
+            this.push({
+                seq: this.nextSeq(false),
+                t: 'MODAL_CHOICE',
+                p: this.seatOf(event?.player),
+                offered,
+                chose,
+            });
+        });
+
+        // CHOICE: a free card-selection prompt (SelectCardPrompt.emitCardSelection) — distinct from
+        // MODAL_CHOICE's fixed menu/button list. `offered` is the candidate-card pool the prompt
+        // presented; `chosen` is the single selected card; we record the stable card-id list and the
+        // chosen card's index within it. The engine only emits this for single-card selections, and
+        // we additionally skip the record if the chosen card isn't resolvable or isn't in the offered
+        // pool (a malformed pairing) rather than emit a sentinel. Pure log — no fold delta.
+        this.on(EventName.OnCardSelection, (event: any) => {
+            // targetRef, not idOf: an attack-target prompt offers the opponent's base, and a
+            // base is written `base@N` everywhere else in the file (spec §6.3).
+            const offeredCards: any[] = Array.isArray(event?.offered) ? event.offered : [];
+            const offered = offeredCards
+                .map((c: any) => this.targetRef(c))
+                .filter((id: string) => id !== 'unknown');
+            const chosen = event?.chosen;
+            if (chosen?.uuid == null) {
+                return;
+            }
+            const chose = offered.indexOf(this.targetRef(chosen));
+            if (chose < 0) {
+                return;
+            }
+            this.push({
+                seq: this.nextSeq(false),
+                t: 'CHOICE',
+                p: this.seatOf(event?.player),
+                prompt: typeof event?.prompt === 'string' ? event.prompt : undefined,
+                offered,
+                chose,
+            });
+        });
+    }
+}
