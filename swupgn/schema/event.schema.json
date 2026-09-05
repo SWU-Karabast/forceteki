@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://karabast.net/swu-pgn/1.0/event.schema.json",
   "title": "SWU-PGN/1.0 Event",
+  "description": "One %%% EVENTS (or %%% SETUP) record. Open by design (additionalProperties: true, spec §18) so a reader tolerates fields added later; the per-type constraints below pin the SHAPE of the fields the fold dereferences, so a malformed file is rejected here rather than surfacing as a TypeError in a browser. Nothing here rejects a pre-release 1.1 file (spec §22.1): a keyframe missing a seat still validates and is ignored by the fold.",
   "type": "object",
   "required": ["seq","t"],
   "properties": {
@@ -9,5 +10,75 @@
     "t": { "type": "string" },
     "p": { "enum": [1,2] }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": { "properties": { "t": { "enum": ["ROUND_START","ROUND_END"] } }, "required": ["t"] },
+      "then": { "properties": { "round": { "type": "integer" }, "keyframe": { "$ref": "#/$defs/keyframe" } } }
+    },
+    {
+      "if": { "properties": { "t": { "enum": ["DRAW","DISCARD","REVEAL"] } }, "required": ["t"] },
+      "then": { "properties": { "cards": { "type": "array", "items": { "type": "string" } } }, "required": ["cards"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "SEARCH" } }, "required": ["t"] },
+      "then": { "properties": { "found": { "type": "array", "items": { "type": "string" } } } }
+    },
+    {
+      "if": { "properties": { "t": { "enum": ["DAMAGE","HEAL","OVERWHELM"] } }, "required": ["t"] },
+      "then": { "properties": { "tgt": { "type": "string" }, "amt": { "type": "integer" }, "hp": { "type": "integer" } }, "required": ["tgt","amt","hp"] }
+    },
+    {
+      "if": { "properties": { "t": { "enum": ["STATUS_TOKEN","EXPERIENCE_GAIN"] } }, "required": ["t"] },
+      "then": { "properties": { "card": { "type": "string" }, "count": { "type": "integer" } }, "required": ["card","count"] }
+    },
+    {
+      "if": { "properties": { "t": { "enum": ["SHIELD_GAIN","SHIELD_USE"] } }, "required": ["t"] },
+      "then": { "properties": { "card": { "type": "string" }, "count": { "type": "integer" } }, "required": ["card"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "MOVE" } }, "required": ["t"] },
+      "then": { "properties": { "card": { "type": "string" }, "from": { "type": "string" }, "to": { "type": "string" }, "kind": { "enum": ["unit","upgrade"] } }, "required": ["card","from","to"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "CREATE_TOKEN" } }, "required": ["t"] },
+      "then": { "properties": { "token": { "type": "string" }, "zone": { "type": "string" }, "kind": { "enum": ["unit","upgrade"] } }, "required": ["token","zone"] }
+    },
+    {
+      "if": { "properties": { "t": { "enum": ["PLAY","PLAY_EVENT","PLAY_UPGRADE","PLAY_SMUGGLE","DEPLOY_LEADER","EXHAUST","READY","DEFEAT","RESOURCE","TRIGGER","ABILITY_ACTIVATE","CAPTURE","RESCUE","TAKE_CONTROL"] } }, "required": ["t"] },
+      "then": { "properties": { "card": { "type": "string" } }, "required": ["card"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "ATTACK" } }, "required": ["t"] },
+      "then": { "properties": { "atk": { "type": "string" }, "def": { "type": "string" } }, "required": ["atk","def"] }
+    }
+  ],
+  "$defs": {
+    "keyframe": {
+      "type": "object",
+      "required": ["players"],
+      "properties": {
+        "round": { "type": "integer" },
+        "players": {
+          "type": "object",
+          "properties": {
+            "1": { "$ref": "#/$defs/playerState" },
+            "2": { "$ref": "#/$defs/playerState" }
+          }
+        }
+      }
+    },
+    "playerState": {
+      "type": "object",
+      "required": ["cards","hand","discard"],
+      "properties": {
+        "cards": { "type": "array", "items": { "type": "object" } },
+        "hand": { "type": "array", "items": { "type": "string" } },
+        "discard": { "type": "array", "items": { "type": "string" } },
+        "baseHp": { "type": "integer" },
+        "handSize": { "type": "integer" },
+        "resourcesReady": { "type": "integer" }
+      }
+    }
+  }
 }

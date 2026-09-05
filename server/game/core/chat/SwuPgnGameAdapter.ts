@@ -4,7 +4,7 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, GameEndReason, PhaseName, ZoneName } from '../Constants';
 import { SwuPgn } from './SwuPgn';
-import { buildHeader, cardKind, printedCardKind, SwuPgnRecorder } from './SwuPgnRecorder';
+import { attachedHost, buildHeader, cardKind, printedCardKind, SwuPgnRecorder } from './SwuPgnRecorder';
 import type { HeaderContext, SwuPgnResolver } from './SwuPgnRecorder';
 import { SwuPgnWriter } from './SwuPgnWriter';
 import { render } from '../../../../swupgn/src/render';
@@ -141,7 +141,11 @@ export class SwuPgnGameAdapter {
         // Assigning them an instance id here would make copy numbering depend on when the
         // file was generated. Tokens are skipped: they only exist once an event names them.
         for (const player of this.game.getPlayers()) {
-            for (const card of [player.deckLeader, player.base, ...player.allCards] as any[]) {
+            // `allCards` resolves the decklist through the game registry and can throw for a
+            // seat whose deck never loaded; degrade to the event-derived entries, never lose
+            // the file.
+            const printed = read<any[]>(() => [player.deckLeader, player.base, ...player.allCards], []);
+            for (const card of printed) {
                 const printedId = read<string | null>(
                     () => (card?.isToken?.() || !card?.setId ? null : SwuPgn.formatSetId(card.setId.set, card.setId.number)),
                     null
@@ -395,7 +399,7 @@ export class SwuPgnGameAdapter {
                 // card played onto a vehicle as an upgrade, so `isUpgrade()` is true only while
                 // it is attached; asking the type alone would list it as its own body in the
                 // arena the moment that ever stops holding.
-                const attached = read(() => card?._parentCard ?? card?.parentCard ?? null, null);
+                const attached = read(() => attachedHost(card), null);
                 if (attached != null || read(() => cardKind(card), undefined) === 'upgrade') {
                     continue;
                 }
@@ -584,6 +588,8 @@ export class SwuPgnGameAdapter {
             reason: this.gameEndReasonString(this.game.gameEndReason),
             p1: { username: player1.user.username, leader: leaderId(player1), base: baseId(player1) },
             p2: { username: player2.user.username, leader: leaderId(player2), base: baseId(player2) },
+            // Handler failures drop events silently past the logging cap; say so in the file.
+            recorderErrors: this.recorder.getErrorCount() || undefined,
         };
     }
 
@@ -601,8 +607,11 @@ export class SwuPgnGameAdapter {
                 entries
                     .filter((e) => e.count > 0)
                     .map((e) => {
+                        // Deck ids come from the user's decklist. A non-numeric suffix would
+                        // otherwise be written as `SET#NaN`; keep the raw id instead.
                         const parts = e.id.split('_');
-                        const id = parts.length === 2 ? SwuPgn.formatSetId(parts[0], Number(parts[1])) : e.id;
+                        const num = Number(parts[1]);
+                        const id = parts.length === 2 && Number.isFinite(num) ? SwuPgn.formatSetId(parts[0], num) : e.id;
                         return [id, e.count] as [string, number];
                     });
 

@@ -50,5 +50,34 @@ describe('SWU-PGN/1.0 recorder undo handling', function() {
             expect(typeof fileAfterUndo).toBe('string');
             expect(fileAfterUndo).not.toBe(fileAfterAction);
         });
+
+        // Rolling back to the START of a phase restores the recorder to before that phase's
+        // first record. Checkpoints used to be captured only on push, AFTER syncRound had
+        // already advanced currentRound: the restored counter then said the round had begun,
+        // the re-run start of phase saw nothing to sync, and the round's ROUND_START (with its
+        // keyframe) was gone for good. The redo also skipped seq numbers for the same reason.
+        undoIt('re-records ROUND_START, with its keyframe, when a round is undone to the start of its action phase', function () {
+            const { context } = contextRef;
+            const game: any = context.game;
+            const recorder: any = game._swuPgnAdapter.getRecorder();
+            const roundStarts = () => recorder.getEvents().filter((e: any) => e.t === 'ROUND_START' && e.round === 2) as any[];
+
+            context.moveToNextActionPhase();
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+            expect(roundStarts().length).toBe(1);
+
+            expect(contextRef.snapshot.rollbackToSnapshot({ type: 'phase', phaseName: 'action' }, context.player1.id)).toBe(true);
+
+            const after = roundStarts();
+            expect(after.length).toBe(1);
+            expect(after[0].keyframe).toBeDefined();
+
+            // The redo numbers from the start of the phase again, with no gap.
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+            const attacks = recorder.getEvents().filter((e: any) => e.t === 'ATTACK') as any[];
+            expect(attacks[attacks.length - 1].seq).toBe('R2.A.1');
+        });
     });
 });

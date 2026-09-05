@@ -1,14 +1,8 @@
 import type { CardInstanceState, GameEvent, PlayerState, ReducedState } from './types';
-import { reduce } from './fold';
+import { emptyState, isCompleteKeyframe, reduce } from './fold';
 
 export interface KeyframeMismatch { seq: string; path: string; expected: unknown; got: unknown; }
 export interface IntegrityResult { ok: boolean; mismatches: KeyframeMismatch[]; }
-
-function emptyState(): ReducedState {
-    const p = (seat: 1 | 2) => ({ seat, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [] as string[],
-        resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [] as string[], cards: [] });
-    return { round: 0, phase: 'setup', initiative: null, players: { 1: p(1), 2: p(2) } };
-}
 
 /**
  * Fields that the keyframe gate verifies, per seat.
@@ -20,7 +14,7 @@ function emptyState(): ReducedState {
  *
  * NOT GATED (and why): nothing in the per-seat invariant set above is currently deferred.
  * The keyframe's `cards` array only contains ground/space arena cards (see
- * Game.buildSwuPgnPlayerState), so card-level checks are scoped to arena cards by
+ * SwuPgnGameAdapter.buildSwuPgnPlayerState), so card-level checks are scoped to arena cards by
  * construction; hand/resource/discard piles are compared via the count fields, not
  * per-card. `credits`, `hasForce`, `resourcesExhausted`, `hand`/`discard` contents and
  * `upgrades` are intentionally OUT of scope for this gate — they are not yet driven by
@@ -120,6 +114,13 @@ export function checkKeyframes(events: GameEvent[]): IntegrityResult {
     let seenKeyframe = false;
     for (const e of events) {
         if ((e.t === 'ROUND_START' || e.t === 'ROUND_END') && e.keyframe) {
+            // A keyframe missing a seat, or malformed, is a damaged checkpoint (spec §13): it
+            // is reported, never snapped to, and folding carries on from the running state.
+            if (!isCompleteKeyframe(e.keyframe)) {
+                mismatches.push({ seq: e.seq, path: 'keyframe', expected: 'both seats, with array cards/hand/discard', got: 'damaged keyframe (ignored)' });
+                s = reduce(s, e);
+                continue;
+            }
             mismatches.push(...diff(e.seq, e.keyframe, s, seenKeyframe));
             seenKeyframe = true;
             s = JSON.parse(JSON.stringify(e.keyframe));

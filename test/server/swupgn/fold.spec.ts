@@ -305,4 +305,35 @@ describe('fold arena membership', function () {
             expect(s.players[2]!.handSize).toBe(0);
         });
     });
+
+    describe('damaged keyframes and hostile fields (spec §13, trust boundary)', function () {
+        it('ignores a keyframe missing a seat or with non-array fields, and keeps folding', function () {
+            const hostile: GameEvent[] = [
+                ev({ seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground' }),
+                { seq: 'R1.end', t: 'ROUND_END', round: 1, keyframe: { players: {} } } as any,
+                { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: 1 } as any,
+                { seq: 'R2.A.1', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'action', initiative: 1, players: { 1: { cards: 'x', hand: [], discard: [] }, 2: {} } } } as any,
+                ev({ seq: 'R2.A.1a', t: 'DRAW', p: 1, count: 1, cards: 5 as any }),
+                ev({ seq: 'R2.A.1b', t: 'DISCARD', p: 1, cards: null as any }),
+            ];
+            expect(() => fold(hostile)).not.toThrow();
+            const s = fold(hostile);
+            expect(s.round).toBe(2);
+            expect(s.players[1]?.cards.map((c) => c.id)).toEqual(['SOR#108']);
+        });
+
+        it('stateAt folds from the nearest usable keyframe and equals a fold from the start', function () {
+            const seat = (n: 1 | 2) => ({ seat: n, baseHp: 30, baseMaxHp: 30, handSize: 2, hand: [], resourcesReady: 3, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] });
+            const withKeyframes: GameEvent[] = [
+                ev({ seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#001', zone: 'ground' }),
+                { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'action', initiative: 2, players: { 1: seat(1), 2: seat(2) } } } as any,
+                ev({ seq: 'R2.A.1', t: 'PLAY', p: 2, card: 'SOR#002', zone: 'space' }),
+                ev({ seq: 'R2.A.2', t: 'PLAY', p: 1, card: 'SOR#003', zone: 'ground' }),
+            ];
+            const at = stateAt(withKeyframes, 'R2.A.1');
+            expect(at).toEqual(fold(withKeyframes.slice(0, 3)));
+            expect(at.players[2]?.cards.map((c) => c.id)).toEqual(['SOR#002']);
+            expect(at.players[1]?.cards).toEqual([]); // the keyframe replaced R1's board
+        });
+    });
 });

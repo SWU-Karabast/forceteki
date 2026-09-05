@@ -1,7 +1,13 @@
 import type { SwuPgnDocument, GameEvent, ReducedState, Seat } from './types';
 import { baseId, NameResolver, indexResolver } from './cardNames';
+import { isCompleteKeyframe } from './fold';
 
 const RULE_WIDTH = 78;
+
+/** `x` if it is an array, else `[]`: a file is untrusted input and `cards: 5` must not throw. */
+function arr(x: unknown): string[] {
+    return Array.isArray(x) ? (x as string[]) : [];
+}
 
 function who(p: Seat | undefined): string {
     return p === 1 ? 'Player 1' : p === 2 ? 'Player 2' : '';
@@ -29,6 +35,8 @@ function line(e: GameEvent, n: NameResolver): string | null {
         }
         return n.nameOf(baseId(id)) + copySuffix(id);
     };
+    const list = (ids: unknown): string => arr(ids).map(nm)
+        .join(', ');
     switch (e.t) {
         // `cost` is the PRINTED cost (spec §10.1), so it is worded as such: "(2 resources)"
         // read as resources paid, which is wrong whenever an aspect penalty or discount applied.
@@ -49,11 +57,11 @@ function line(e: GameEvent, n: NameResolver): string | null {
         case 'SHIELD_GAIN': return `${nm(e.card)} gains ${e.count ?? 1} shield`;
         case 'SHIELD_USE': return `${nm(e.card)} loses ${e.count ?? 1} shield`;
         case 'EXPERIENCE_GAIN': return `${nm(e.card)} ${e.count < 0 ? 'loses' : 'gains'} ${Math.abs(e.count)} experience`;
-        case 'DRAW': return `${who(e.p)} draws ${e.count}${e.cards.length ? `: ${e.cards.map(nm).join(', ')}` : ''}`;
-        case 'DISCARD': return `${who(e.p)} discards ${e.cards.map(nm).join(', ')}`;
+        case 'DRAW': return `${who(e.p)} draws ${e.count}${arr(e.cards).length ? `: ${list(e.cards)}` : ''}`;
+        case 'DISCARD': return `${who(e.p)} discards ${list(e.cards)}`;
         case 'RESOURCE': return `${who(e.p)} resources ${nm(e.card)}`;
-        case 'REVEAL': return `${who(e.p)} reveals ${e.cards.map(nm).join(', ')}`;
-        case 'SEARCH': return e.found ? `${who(e.p)} searches, finds ${e.found.map(nm).join(', ')}` : `${who(e.p)} searches their deck`;
+        case 'REVEAL': return `${who(e.p)} reveals ${list(e.cards)}`;
+        case 'SEARCH': return e.found ? `${who(e.p)} searches, finds ${list(e.found)}` : `${who(e.p)} searches their deck`;
         case 'CREATE_TOKEN': return `${who(e.p)} creates ${nm(e.token)} in ${e.zone}`;
         case 'CAPTURE': return `${who(e.p)} captures ${nm(e.card)}`;
         case 'RESCUE': return `${who(e.p)} rescues ${nm(e.card)}`;
@@ -141,10 +149,12 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
         if (e.t === 'ROUND_START') {
             out.push('', '═'.repeat(RULE_WIDTH));
             const left = ` ROUND ${e.round}`;
-            const right = e.keyframe?.initiative ? `initiative: ${who(e.keyframe.initiative)} ` : '';
+            // Only a complete keyframe is laid out; a damaged one is not a board (spec §13).
+            const keyframe = isCompleteKeyframe(e.keyframe) ? e.keyframe : undefined;
+            const right = keyframe?.initiative ? `initiative: ${who(keyframe.initiative)} ` : '';
             out.push(right ? left.padEnd(RULE_WIDTH - right.length) + right : left);
-            if (e.keyframe) {
-                out.push(...boardSummary(e.keyframe, n));
+            if (keyframe) {
+                out.push(...boardSummary(keyframe, n));
             }
             out.push('═'.repeat(RULE_WIDTH), '');
             actionNum = 0;

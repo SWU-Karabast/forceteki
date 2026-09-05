@@ -1,8 +1,12 @@
 export type Seat = 1 | 2;
 
 /**
- * What a card is, for readers deciding whether it occupies an arena.
- * An `'upgrade'` attaches to a unit and is NEVER a member of `ground`/`space`.
+ * Unit or upgrade, for readers deciding whether something occupies an arena. An `'upgrade'`
+ * attaches to a unit and is NEVER a member of `ground`/`space`.
+ *
+ * The same field name means two things (spec §10.1): on an EVENT (`MOVE`, `CREATE_TOKEN`) it
+ * is the ROLE that event enacts; in `%%% CARDS` it is the card's printed IDENTITY. A pilot is
+ * a `'unit'` card whose move onto a vehicle is an `'upgrade'` move.
  */
 export type CardKind = 'unit' | 'upgrade';
 
@@ -23,6 +27,11 @@ export interface Header {
     result: 'P1' | 'P2' | 'Draw' | 'Incomplete';
     reason: string;
     rounds: number;
+
+    /** How many recorder handlers failed while writing this game. Absent means none: the
+     *  file is complete. Present means events were dropped and the keyframes are the only
+     *  fully trustworthy boundaries. */
+    recorderErrors?: number;
 }
 
 export interface DeckRecord {
@@ -40,10 +49,21 @@ export interface SetupInitRecord {
     p2DeckOrder: string[];
 }
 
-/** Discriminated union of all event record types. `t` is the discriminant. */
+/**
+ * Discriminated union of all event record types. `t` is the discriminant.
+ *
+ * Two members carry fields that are easy to misread:
+ *
+ * - `DEPLOY_LEADER.kind` + `target` are set together when the leader deployed AS A PILOT: the
+ *   deploy attaches it to `target` as an upgrade instead of placing a body in the arena.
+ * - `TAKE_CONTROL`: `p` took control of `card`. A control change is not a zone change, so no
+ *   MOVE accompanies it and the fold re-seats the card itself. `zone` is where the card is
+ *   now; `from` is the seat it left, present only when this record (and not a MOVE beside it)
+ *   has to carry the counts.
+ */
 export type GameEvent =
   | { seq: string; t: 'PLAY' | 'PLAY_EVENT' | 'PLAY_UPGRADE' | 'PLAY_SMUGGLE'; p: Seat; card: string; zone?: string; cost?: number; target?: string }
-  | { seq: string; t: 'DEPLOY_LEADER'; p: Seat; card: string; zone?: string; cost?: number }
+  | { seq: string; t: 'DEPLOY_LEADER'; p: Seat; card: string; zone?: string; cost?: number; kind?: CardKind; target?: string }
   | { seq: string; t: 'ATTACK'; p: Seat; atk: string; def: string; defenderType: 'unit' | 'base' }
   | { seq: string; t: 'PASS' | 'CLAIM_INITIATIVE'; p: Seat }
   | { seq: string; t: 'CHOICE'; p: Seat; prompt?: string; offered: string[]; chose: number }
@@ -62,16 +82,17 @@ export type GameEvent =
   | {
       seq: string; t: 'MOVE'; card: string; from: string; to: string; p?: Seat; attachedTo?: string;
       /**
-       * What the moving card IS. Emitted whenever it is determinable, because a reader cannot
+       * The ROLE this move enacts, not what the card is: a pilot flown onto a vehicle is an
+       * `'upgrade'` move of a unit card. Emitted whenever determinable, because a reader cannot
        * tell otherwise: Shield, Experience, Advantage and Weakness are token-UPGRADES and must
-       * never enter an arena, while Battle Droid, X-Wing, TIE Fighter, Clone Trooper,
-       * Mandalorian, Spy and Beast are token-UNITS and must. Both arrive as `TOKEN:<name>#<id>`,
-       * so without this a reader is guessing — and a hardcoded list of upgrade names breaks the
-       * day a new token upgrade is printed.
+       * never enter an arena, while Battle Droid, X-Wing, TIE Fighter, Clone Trooper, Mandalorian,
+       * Spy and Beast are token-UNITS and must. Both arrive as `TOKEN:<name>#<id>`, so without
+       * this a reader is guessing, and a hardcoded list of upgrade names breaks the day a new
+       * token upgrade is printed. Absent: the fold treats the move as a unit move.
        */
       kind?: CardKind;
     }
-  | { seq: string; t: 'CAPTURE' | 'RESCUE' | 'TAKE_CONTROL'; p: Seat; card: string }
+  | { seq: string; t: 'CAPTURE' | 'RESCUE' | 'TAKE_CONTROL'; p: Seat; card: string; zone?: string; from?: Seat }
   | { seq: string; t: 'SHIELD_GAIN' | 'SHIELD_USE'; card: string; count?: number }
   | { seq: string; t: 'EXPERIENCE_GAIN'; card: string; count: number }
   | { seq: string; t: 'STATUS_TOKEN'; card: string; token: string; count: number }
@@ -104,8 +125,9 @@ export interface Annotation {
 export interface CardIndexRecord {
     id: string;                     // SET#NUM, or TOKEN:<name>#<id>
     name: string;                   // display name, e.g. "Greef Karga, Gracious Magistrate"
-    /** What this card is, when determinable. Lets a reader classify by id alone — in
-     *  particular, which `TOKEN:` ids are upgrades and which are units. */
+    /** What this card IS, by printed type (an IDENTITY, unlike the per-event role). Lets a
+     *  reader classify by id alone — in particular, which `TOKEN:` ids are upgrades and which
+     *  are units. Absent means neither: an Event, a base, an undeployed leader. */
     kind?: CardKind;
 }
 

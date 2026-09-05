@@ -1,5 +1,5 @@
 import type { Game } from '../Game';
-import { CardType, EventName, PhaseName, PlayType, ZoneName } from '../Constants';
+import { CardType, DeployType, EventName, PhaseName, PlayType, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
 import type { Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
@@ -18,6 +18,9 @@ export interface HeaderContext {
     reason: string;
     p1: { username: string; leader: string; base: string };
     p2: { username: string; leader: string; base: string };
+
+    /** Handler failures during recording; omitted from the header when zero. */
+    recorderErrors?: number;
 }
 
 export function buildHeader(ctx: HeaderContext): Header {
@@ -37,6 +40,7 @@ export function buildHeader(ctx: HeaderContext): Header {
         p1Leader: ctx.p1.leader, p1Base: ctx.p1.base,
         p2Leader: ctx.p2.leader, p2Base: ctx.p2.base,
         result: ctx.result, reason: ctx.reason, rounds: ctx.rounds,
+        ...(ctx.recorderErrors ? { recorderErrors: ctx.recorderErrors } : {}),
     };
 }
 
@@ -58,14 +62,10 @@ export interface SwuPgnResolver {
 }
 
 /**
- * What a card is, for the fold's arena-membership decision.
- *
- * Read from the card TYPE rather than from isShield/isExperience/isAdvantage predicates, so
- * it is right for every token — including Weakness (a token upgrade matching none of those
- * predicates) and any upgrade token printed in future.
- */
-/**
- * What a card IS, from its printed type — stable for the whole game.
+ * What a card IS, from its printed type — stable for the whole game. Read from the TYPE rather
+ * than from isShield/isExperience/isAdvantage predicates, so it is right for every token,
+ * including Weakness (a token upgrade matching none of those predicates) and any upgrade token
+ * printed in future.
  *
  * Distinct from `cardKind`, which reports the role a card is currently PLAYING. The two
  * disagree for pilots: a Pilot is printed as a unit (`printedType: 'basicUnit'`) but, once
@@ -88,7 +88,7 @@ export function printedCardKind(card: any): 'unit' | 'upgrade' | undefined {
             case CardType.NonLeaderUnitUpgrade:
                 return 'upgrade';
             default:
-                // Base, Event, Leader, TokenCard: neither. See spec §7.2 on absent `kind`.
+                // Base, Event, Leader, TokenCard: neither. See spec §6.5 on absent `kind`.
                 return undefined;
         }
     } catch {
@@ -116,6 +116,24 @@ export function cardKind(card: any): 'unit' | 'upgrade' | undefined {
 
 /** Spec §6.2 arena zones -- the destinations a reader turns into arena membership. */
 const ARENA_ZONE_NAMES = new Set(['ground', 'space']);
+
+/**
+ * The unit an upgrade is attached to, or null. The public `parentCard` getter throws once an
+ * upgrade has been unattached (which happens during shield defeat), so the internal
+ * `_parentCard` is read first and the guarded getter is only a fallback. Shared with the
+ * adapter's keyframe projection so both sides answer "is this card attached?" the same way.
+ */
+export function attachedHost(upgrade: any): any {
+    try {
+        const internal = upgrade?._parentCard;
+        if (internal != null) {
+            return internal;
+        }
+        return upgrade?.parentCard ?? null;
+    } catch {
+        return null;
+    }
+}
 
 /** The three token-upgrade kinds the fold models, each with its own gain/removal record. */
 type TokenUpgradeKind = 'shield' | 'experience' | 'advantage';
@@ -170,6 +188,12 @@ export class SwuPgnRecorder {
     private loggedErrorCount = 0;
 
     /**
+     * Every handler failure, capped or not. Surfaced in the header as `RecorderErrors` so a
+     * file that silently dropped events past the logging cap does not pass for a clean one.
+     */
+    private errorCount = 0;
+
+    /**
      * Remembers which unit each token-upgrade is attached to, and what kind it is
      * (token uuid → { parent unit object, kind }).
      *
@@ -201,6 +225,7 @@ export class SwuPgnRecorder {
         phaseEventCounter: number;
         subEventCounter: number;
         loggedErrorCount: number;
+        errorCount: number;
         tokenParents: [string, { parent: any; kind: TokenUpgradeKind }][];
     }[] = [];
 
@@ -218,6 +243,11 @@ export class SwuPgnRecorder {
 
     public getSetup(): (SetupInitRecord | GameEvent)[] {
         return this.setup;
+    }
+
+    /** How many handler failures (recording skipped) this game has had. */
+    public getErrorCount(): number {
+        return this.errorCount;
     }
 
     /**
@@ -244,10 +274,12 @@ export class SwuPgnRecorder {
 
     public addGameEndRecord(winner: Seat | 'Draw', reason: string): void {
         try {
-            // Spec §9.1: GAME_END takes the `.end` step of the phase it happened in. A
-            // concession or disconnect can land in setup or regroup, not only the action phase.
+            // Spec §9.1: GAME_END takes the `.game-end` step of the phase it happened in. A
+            // concession or disconnect can land in setup or regroup, not only the action phase,
+            // and the step is its own so it never shares a seq with that phase's PHASE_END
+            // (play can continue after game end, so both get written).
             this.push({
-                seq: `R${this.currentRound}.${this.currentPhase}.end`,
+                seq: `R${this.currentRound}.${this.currentPhase}.game-end`,
                 t: 'GAME_END',
                 winner,
                 reason,
@@ -271,13 +303,13 @@ export class SwuPgnRecorder {
             if (restoredSnapshotId == null) {
                 return;
             }
-            let idx = -1;
-            for (let i = this.checkpoints.length - 1; i >= 0; i--) {
-                if (this.checkpoints[i].snapshotId === restoredSnapshotId) {
-                    idx = i;
-                    break;
-                }
-            }
+            // Checkpoints are taken lazily, on the first push under a snapshot id, so the
+            // restored id may have none of its own while later ids do (a snapshot during
+            // which nothing was recorded). Ids are monotonic, so the boundary is the first
+            // checkpoint at or after the restored id: its lengths are what existed when that
+            // snapshot was taken, which is the state being restored. An exact-match search
+            // returned early here and left the undone events in the file.
+            const idx = this.checkpoints.findIndex((c) => c.snapshotId >= restoredSnapshotId);
             if (idx === -1) {
                 return; // nothing was recorded after the restored snapshot
             }
@@ -290,6 +322,7 @@ export class SwuPgnRecorder {
             this.phaseEventCounter = boundary.phaseEventCounter;
             this.subEventCounter = boundary.subEventCounter;
             this.loggedErrorCount = boundary.loggedErrorCount;
+            this.errorCount = boundary.errorCount;
             // Rebuild tokenParents from the snapshot taken at the boundary so a removal record for
             // a token gained after the boundary no longer finds a parent (and is skipped).
             this.tokenParents.clear();
@@ -329,12 +362,23 @@ export class SwuPgnRecorder {
                 phaseEventCounter: this.phaseEventCounter,
                 subEventCounter: this.subEventCounter,
                 loggedErrorCount: this.loggedErrorCount,
+                errorCount: this.errorCount,
                 tokenParents: [...this.tokenParents.entries()],
             });
+            // The engine retains only a handful of snapshots (SnapshotManager keeps 3 action + 2
+            // phase), so a checkpoint older than that can never be rolled back to. Without a
+            // cap every game holds one entry, with a copy of tokenParents, per snapshot ever
+            // taken, for the life of the game.
+            if (this.checkpoints.length > SwuPgnRecorder.maxCheckpoints) {
+                this.checkpoints.splice(0, this.checkpoints.length - SwuPgnRecorder.maxCheckpoints);
+            }
         } catch (error) {
             this.logError('checkpoint', error);
         }
     }
+
+    /** Comfortably above the engine's own snapshot retention; see `checkpoint`. */
+    private static readonly maxCheckpoints = 32;
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
@@ -344,11 +388,19 @@ export class SwuPgnRecorder {
     }
 
     /**
-     * Capture a rollback checkpoint the first time an event is pushed under a new snapshot id.
-     * The game takes a state snapshot before the effects it precedes, so the first push afterward
-     * captures the lengths + counters + tokenParents as they were *at that snapshot* (before its
-     * events). Keyed off snapshotManager.currentSnapshotId, which is restored to the rolled-back
-     * value on undo. No-op when there is no snapshot manager (unit-test stubs). Mirrors v1.0.
+     * Capture a rollback checkpoint the first time the recorder does anything under a new
+     * snapshot id. The game takes a state snapshot before the effects it precedes, so the first
+     * recorder activity afterward captures the lengths + counters + tokenParents as they were
+     * *at that snapshot* (before its events). Keyed off snapshotManager.currentSnapshotId, which
+     * is restored to the rolled-back value on undo. No-op when there is no snapshot manager
+     * (unit-test stubs).
+     *
+     * Called from push() AND from every place that mutates a counter before pushing (nextSeq,
+     * syncRound, the phase handlers). Checkpointing only on push captured counters that had
+     * already advanced: an undo to the start of the action phase restored `currentRound` to
+     * the new round, so the re-run start of phase saw nothing to sync and the round's
+     * ROUND_START (and its keyframe) was gone for good; a redo after any undo skipped seq
+     * numbers the same way.
      */
     private maybeCheckpoint(): void {
         let snapshotId: number;
@@ -396,22 +448,9 @@ export class SwuPgnRecorder {
         return this.idOf(target);
     }
 
-    /**
-     * Resolve the unit a (token-)upgrade is attached to. The public `parentCard` getter throws
-     * once an upgrade has been unattached (which happens during shield defeat), so we read the
-     * internal `_parentCard` first and only fall back to the guarded getter. Returns null when the
-     * parent can't be resolved, so callers can skip rather than emit a bogus record.
-     */
+    /** See `attachedHost`. Null when the parent can't be resolved, so callers skip the record. */
     private parentOf(upgrade: any): any {
-        try {
-            const internal = upgrade?._parentCard;
-            if (internal != null) {
-                return internal;
-            }
-            return upgrade?.parentCard ?? null;
-        } catch {
-            return null;
-        }
+        return attachedHost(upgrade);
     }
 
     /**
@@ -501,6 +540,10 @@ export class SwuPgnRecorder {
                 }
             } else if (e.t === 'PLAY_UPGRADE' && e.card === upgradeId && e.target == null) {
                 e.target = hostId;
+            } else if (e.t === 'DEPLOY_LEADER' && e.card === upgradeId && e.target == null) {
+                // A leader deployed as a pilot: the deploy is an attachment, not a body.
+                e.target = hostId;
+                e.kind = 'upgrade';
             }
         }
     }
@@ -520,6 +563,7 @@ export class SwuPgnRecorder {
     }
 
     private logError(where: string, error: unknown): void {
+        this.errorCount++;
         if (this.loggedErrorCount >= SwuPgnRecorder.maxLoggedErrors) {
             return;
         }
@@ -561,6 +605,7 @@ export class SwuPgnRecorder {
     }
 
     private nextSeq(isTopLevelAction: boolean): string {
+        this.maybeCheckpoint();
         if (this.currentPhase === 'A') {
             if (isTopLevelAction) {
                 this.actionCounter++;
@@ -611,6 +656,7 @@ export class SwuPgnRecorder {
         if (round <= this.currentRound) {
             return;
         }
+        this.maybeCheckpoint();
         this.currentRound = round;
         this.phaseEventCounter = 0;
         this.actionCounter = 0;
@@ -665,360 +711,338 @@ export class SwuPgnRecorder {
         }
     }
 
+    /**
+     * Subscribe with the recorder's one error policy: a handler that throws is logged
+     * (rate-limited) and its record skipped, and gameplay never sees the exception.
+     */
+    private on(name: EventName, fn: (event: any) => void): void {
+        this.game.on(name, (event: any) => {
+            try {
+                fn(event);
+            } catch (error) {
+                this.logError(name, error);
+            }
+        });
+    }
+
     // ── Listener registration ──────────────────────────────────────────────────
 
     private registerListeners(): void {
         // Structural events. OnBeginRound does not reach .on() listeners; round tracking
         // is driven by syncRound() from OnPhaseStarted. Kept for correctness if fixed.
-        this.game.on(EventName.OnBeginRound, () => {
-            try {
-                this.syncRound();
-            } catch (error) {
-                this.logError('OnBeginRound', error);
-            }
+        this.on(EventName.OnBeginRound, () => {
+            this.syncRound();
         });
 
-        this.game.on(EventName.OnRoundEnded, () => {
-            try {
-                // ROUND_END carries a keyframe too. Now that keyframes are complete and
-                // trustworthy, an end-of-round snapshot is the cheapest place to catch a round's
-                // worth of fold drift: it halves the window between checkpoints at the cost of
-                // one snapshot per round.
-                const event: GameEvent = { seq: `R${this.currentRound}.end`, t: 'ROUND_END', round: this.currentRound };
-                const keyframe = this.projectKeyframe();
-                if (keyframe) {
-                    event.keyframe = keyframe;
-                }
-                this.push(event);
-            } catch (error) {
-                this.logError('OnRoundEnded', error);
+        this.on(EventName.OnRoundEnded, () => {
+            // ROUND_END carries a keyframe too. Now that keyframes are complete and
+            // trustworthy, an end-of-round snapshot is the cheapest place to catch a round's
+            // worth of fold drift: it halves the window between checkpoints at the cost of
+            // one snapshot per round.
+            const event: GameEvent = { seq: `R${this.currentRound}.end`, t: 'ROUND_END', round: this.currentRound };
+            const keyframe = this.projectKeyframe();
+            if (keyframe) {
+                event.keyframe = keyframe;
             }
+            this.push(event);
         });
 
-        this.game.on(EventName.OnPhaseStarted, (event: any) => {
-            try {
-                this.syncRound();
-                const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
-                this.currentPhase = this.phaseAbbr(phaseName);
-                this.phaseEventCounter = 0;
-                this.actionCounter = 0;
-                this.subEventCounter = 0;
-                this.push({
-                    seq: `R${this.currentRound}.${this.currentPhase}.start`,
-                    t: 'PHASE_START',
-                    phase: this.phaseVocab(phaseName),
-                });
-            } catch (error) {
-                this.logError('OnPhaseStarted', error);
-            }
+        this.on(EventName.OnPhaseStarted, (event: any) => {
+            this.maybeCheckpoint();
+            this.syncRound();
+            const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
+            this.currentPhase = this.phaseAbbr(phaseName);
+            this.phaseEventCounter = 0;
+            this.actionCounter = 0;
+            this.subEventCounter = 0;
+            this.push({
+                seq: `R${this.currentRound}.${this.currentPhase}.start`,
+                t: 'PHASE_START',
+                phase: this.phaseVocab(phaseName),
+            });
         });
 
-        this.game.on(EventName.OnPhaseEnded, (event: any) => {
-            try {
-                const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
-                this.push({
-                    seq: `R${this.currentRound}.${this.phaseAbbr(phaseName)}.end`,
-                    t: 'PHASE_END',
-                    phase: this.phaseVocab(phaseName),
-                });
-            } catch (error) {
-                this.logError('OnPhaseEnded', error);
-            }
+        this.on(EventName.OnPhaseEnded, (event: any) => {
+            const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
+            this.push({
+                seq: `R${this.currentRound}.${this.phaseAbbr(phaseName)}.end`,
+                t: 'PHASE_END',
+                phase: this.phaseVocab(phaseName),
+            });
         });
 
         // ── Top-level player actions ─────────────────────────────────────────
 
-        this.game.on(EventName.OnCardPlayed, (event: any) => {
-            try {
-                const card = event?.card;
-                const player = event?.player ?? card?.owner;
-                const playType: string = event?.playType ?? '';
-                const printedType: string = card?.printedType ?? '';
-                let t: GameEvent['t'] = 'PLAY';
-                if (printedType === CardType.Event) {
-                    t = 'PLAY_EVENT';
-                } else if (
-                    playType === PlayType.Piloting ||
-                    printedType === CardType.BasicUpgrade ||
-                    printedType === CardType.LeaderUpgrade ||
-                    printedType === CardType.TokenUpgrade ||
-                    printedType === CardType.NonLeaderUnitUpgrade
-                ) {
-                    t = 'PLAY_UPGRADE';
-                } else if (playType === PlayType.Smuggle) {
-                    t = 'PLAY_SMUGGLE';
-                }
-                // Name the host on the way out. The engine attaches an upgrade BEFORE it emits
-                // OnCardPlayed, so the parent is already reachable here -- and it has to be
-                // recorded, because `kind: 'upgrade'` keeps the card out of the arena and
-                // `PLAY_UPGRADE.target` is the only thing left that tells a reader where it went.
-                // Without it the fold has nowhere to put the card and the upgrade disappears from
-                // the replay entirely. (backfillAttachedTo covers the reverse order, where the
-                // attach lands after the play.)
-                const host = t === 'PLAY_UPGRADE' ? this.parentOf(card) : null;
-                const seq = this.nextSeq(true);
-                this.push({
-                    seq,
-                    t,
-                    p: this.seatOf(player),
-                    card: this.idOf(card),
-                    zone: this.normalizeZone(card?.zoneName),
-                    target: host ? this.idOf(host) : undefined,
-                    // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
-                    // penalties, discounts and Exploit -- are resolved inside the engine's cost
-                    // payment and never reach this event; `costs` here is targeted-adjuster
-                    // bookkeeping, not an amount.
-                    cost: typeof card?.cost === 'number' ? card.cost : undefined,
-                } as GameEvent);
-            } catch (error) {
-                this.logError('OnCardPlayed', error);
+        this.on(EventName.OnCardPlayed, (event: any) => {
+            const card = event?.card;
+            const player = event?.player ?? card?.owner;
+            const playType: string = event?.playType ?? '';
+            const printedType: string = card?.printedType ?? '';
+            let t: GameEvent['t'] = 'PLAY';
+            if (printedType === CardType.Event) {
+                t = 'PLAY_EVENT';
+            } else if (
+                playType === PlayType.Piloting ||
+                printedType === CardType.BasicUpgrade ||
+                printedType === CardType.LeaderUpgrade ||
+                printedType === CardType.TokenUpgrade ||
+                printedType === CardType.NonLeaderUnitUpgrade
+            ) {
+                t = 'PLAY_UPGRADE';
+            } else if (playType === PlayType.Smuggle) {
+                t = 'PLAY_SMUGGLE';
             }
+            // Name the host on the way out. The engine attaches an upgrade BEFORE it emits
+            // OnCardPlayed, so the parent is already reachable here -- and it has to be
+            // recorded, because `kind: 'upgrade'` keeps the card out of the arena and
+            // `PLAY_UPGRADE.target` is the only thing left that tells a reader where it went.
+            // Without it the fold has nowhere to put the card and the upgrade disappears from
+            // the replay entirely. (backfillAttachedTo covers the reverse order, where the
+            // attach lands after the play.)
+            const host = t === 'PLAY_UPGRADE' ? this.parentOf(card) : null;
+            const seq = this.nextSeq(true);
+            this.push({
+                seq,
+                t,
+                p: this.seatOf(player),
+                card: this.idOf(card),
+                zone: this.normalizeZone(card?.zoneName),
+                target: host ? this.idOf(host) : undefined,
+                // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
+                // penalties, discounts and Exploit -- are resolved inside the engine's cost
+                // payment and never reach this event; `costs` here is targeted-adjuster
+                // bookkeeping, not an amount.
+                cost: typeof card?.cost === 'number' ? card.cost : undefined,
+            } as GameEvent);
         });
 
-        this.game.on(EventName.OnLeaderDeployed, (event: any) => {
-            try {
-                const card = event?.card;
-                const player = card?.owner ?? event?.player;
-                const seq = this.nextSeq(true);
-                this.push({
-                    seq,
-                    t: 'DEPLOY_LEADER',
-                    p: this.seatOf(player),
-                    card: this.idOf(card),
-                    zone: this.normalizeZone(card?.zoneName),
-                    // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
-                    // penalties, discounts and Exploit -- are resolved inside the engine's cost
-                    // payment and never reach this event; `costs` here is targeted-adjuster
-                    // bookkeeping, not an amount.
-                    cost: typeof card?.cost === 'number' ? card.cost : undefined,
-                });
-            } catch (error) {
-                this.logError('OnLeaderDeployed', error);
+        this.on(EventName.OnLeaderDeployed, (event: any) => {
+            const card = event?.card;
+            const player = card?.owner ?? event?.player;
+            // A leader can deploy AS A PILOT (DeployAndAttachPilotLeaderSystem): the same
+            // event, but the leader becomes an upgrade on `leaderAttachTarget` rather than a
+            // body in the arena. Without `kind`/`target` the fold placed it as its own unit
+            // that no keyframe agreed with.
+            const host = event?.type === DeployType.LeaderUpgrade
+                ? (event?.leaderAttachTarget ?? this.parentOf(card))
+                : null;
+            if (host) {
+                // The leader's base->arena MOVE was emitted a moment ago, under the previous
+                // action's number, saying `kind: 'unit'`. The contingent OnUpgradeAttached only
+                // fires after this record has taken the next number, so its backfill would no
+                // longer reach that MOVE; correct it now, while it is still "the current action".
+                this.backfillAttachedTo(this.idOf(card), this.idOf(host));
             }
+            const seq = this.nextSeq(true);
+            this.push({
+                seq,
+                t: 'DEPLOY_LEADER',
+                p: this.seatOf(player),
+                card: this.idOf(card),
+                zone: this.normalizeZone(card?.zoneName),
+                ...(host ? { kind: 'upgrade' as const, target: this.idOf(host) } : {}),
+                // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
+                // penalties, discounts and Exploit -- are resolved inside the engine's cost
+                // payment and never reach this event; `costs` here is targeted-adjuster
+                // bookkeeping, not an amount.
+                cost: typeof card?.cost === 'number' ? card.cost : undefined,
+            });
         });
 
-        this.game.on(EventName.OnAttackDeclared, (event: any) => {
-            try {
-                const attack = event?.attack;
-                const attacker = attack?.attacker;
-                const attackingPlayer = attack?.attackingPlayer;
-                const targets = attack?.getAllTargets?.() ?? [];
-                const defender = targets[0] ?? null;
-                const defenderType: 'unit' | 'base' = defender?.isBase?.() ? 'base' : 'unit';
-                const seq = this.nextSeq(true);
-                this.push({
-                    seq,
-                    t: 'ATTACK',
-                    p: this.seatOf(attackingPlayer),
-                    atk: this.idOf(attacker),
-                    def: defender?.isBase?.() ? `base@${this.seatOf(defender.controller ?? defender.owner)}` : this.idOf(defender),
-                    defenderType,
-                });
-            } catch (error) {
-                this.logError('OnAttackDeclared', error);
-            }
+        this.on(EventName.OnAttackDeclared, (event: any) => {
+            const attack = event?.attack;
+            const attacker = attack?.attacker;
+            const attackingPlayer = attack?.attackingPlayer;
+            const targets = attack?.getAllTargets?.() ?? [];
+            const defender = targets[0] ?? null;
+            const defenderType: 'unit' | 'base' = defender?.isBase?.() ? 'base' : 'unit';
+            const seq = this.nextSeq(true);
+            this.push({
+                seq,
+                t: 'ATTACK',
+                p: this.seatOf(attackingPlayer),
+                atk: this.idOf(attacker),
+                def: defender?.isBase?.() ? `base@${this.seatOf(defender.controller ?? defender.owner)}` : this.idOf(defender),
+                defenderType,
+            });
         });
 
-        this.game.on(EventName.OnPassActionPhasePriority, (event: any) => {
-            try {
-                const seq = this.nextSeq(true);
-                this.push({ seq, t: 'PASS', p: this.seatOf(event?.player) });
-            } catch (error) {
-                this.logError('OnPassActionPhasePriority', error);
-            }
+        this.on(EventName.OnPassActionPhasePriority, (event: any) => {
+            const seq = this.nextSeq(true);
+            this.push({ seq, t: 'PASS', p: this.seatOf(event?.player) });
         });
 
-        this.game.on(EventName.OnClaimInitiative, (event: any) => {
-            try {
-                const seq = this.nextSeq(true);
-                this.push({ seq, t: 'CLAIM_INITIATIVE', p: this.seatOf(event?.player) });
-            } catch (error) {
-                this.logError('OnClaimInitiative', error);
-            }
+        this.on(EventName.OnClaimInitiative, (event: any) => {
+            const seq = this.nextSeq(true);
+            this.push({ seq, t: 'CLAIM_INITIATIVE', p: this.seatOf(event?.player) });
         });
 
         // ── Sub-events ────────────────────────────────────────────────────────
 
-        this.game.on(EventName.OnDamageDealt, (event: any) => {
-            try {
-                const card = event?.card;
-                let source: any = null;
-                if (event?.damageSource?.attack?.attacker) {
-                    source = event.damageSource.attack.attacker;
-                } else if (event?.context?.source) {
-                    source = event.context.source;
-                }
-                const amt = event?.damageDealt ?? event?.amount ?? 0;
-                const damageType: string = event?.type ?? '';
-                const seq = this.nextSeq(false);
+        this.on(EventName.OnDamageDealt, (event: any) => {
+            const card = event?.card;
+            let source: any = null;
+            if (event?.damageSource?.attack?.attacker) {
+                source = event.damageSource.attack.attacker;
+            } else if (event?.context?.source) {
+                source = event.context.source;
+            }
+            const amt = event?.damageDealt ?? event?.amount ?? 0;
+            const damageType: string = event?.type ?? '';
+            const seq = this.nextSeq(false);
 
-                // OVERWHELM is not a distinct engine event: in SWU it is excess combat damage that
-                // rolls onto the defending base, emitted by AttackFlow as an OnDamageDealt with
-                // DamageType.Overwhelm ('overwhelm') targeting that base (see attack/AttackFlow.ts).
-                // We surface it as a dedicated OVERWHELM record (instead of DAMAGE) when the engine
-                // tags the damage as overwhelm-type onto a base; the 1.1 OVERWHELM reducer snaps base
-                // hp exactly like a DAMAGE-to-base record.
-                if (damageType === 'overwhelm' && card?.isBase?.()) {
-                    this.push({
-                        seq,
-                        t: 'OVERWHELM',
-                        p: this.seatOf(source?.controller ?? source?.owner),
-                        tgt: this.targetRef(card),
-                        amt,
-                        hp: card?.remainingHp ?? 0,
-                    });
-                    return;
-                }
-
+            // OVERWHELM is not a distinct engine event: in SWU it is excess combat damage that
+            // rolls onto the defending base, emitted by AttackFlow as an OnDamageDealt with
+            // DamageType.Overwhelm ('overwhelm') targeting that base (see attack/AttackFlow.ts).
+            // We surface it as a dedicated OVERWHELM record (instead of DAMAGE) when the engine
+            // tags the damage as overwhelm-type onto a base; the 1.1 OVERWHELM reducer snaps base
+            // hp exactly like a DAMAGE-to-base record.
+            if (damageType === 'overwhelm' && card?.isBase?.()) {
                 this.push({
                     seq,
-                    t: 'DAMAGE',
-                    src: this.idOf(source),
+                    t: 'OVERWHELM',
+                    p: this.seatOf(source?.controller ?? source?.owner),
                     tgt: this.targetRef(card),
                     amt,
-                    damageType,
                     hp: card?.remainingHp ?? 0,
                 });
-            } catch (error) {
-                this.logError('OnDamageDealt', error);
+                return;
             }
+
+            this.push({
+                seq,
+                t: 'DAMAGE',
+                src: this.idOf(source),
+                tgt: this.targetRef(card),
+                amt,
+                damageType,
+                hp: card?.remainingHp ?? 0,
+            });
         });
 
-        this.game.on(EventName.OnDamageHealed, (event: any) => {
-            try {
-                const card = event?.card;
-                const seq = this.nextSeq(false);
-                this.push({
-                    seq,
-                    t: 'HEAL',
-                    tgt: this.targetRef(card),
-                    amt: event?.damageHealed ?? event?.amount ?? 0,
-                    hp: card?.remainingHp ?? 0,
-                });
-            } catch (error) {
-                this.logError('OnDamageHealed', error);
-            }
+        this.on(EventName.OnDamageHealed, (event: any) => {
+            const card = event?.card;
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'HEAL',
+                tgt: this.targetRef(card),
+                amt: event?.damageHealed ?? event?.amount ?? 0,
+                hp: card?.remainingHp ?? 0,
+            });
         });
 
-        this.game.on(EventName.OnCardDefeated, (event: any) => {
-            try {
-                const card = event?.card;
+        this.on(EventName.OnCardDefeated, (event: any) => {
+            const card = event?.card;
 
-                // Token-upgrade REMOVAL. There is no dedicated removal event for any of the three
-                // token kinds: shields, experience and advantage are all token-upgrade cards, and
-                // each is removed by being defeated (a shield's damage-modification replaces the
-                // damage with defeat(); an Advantage defeats itself when the attack ends). So the
-                // removal surfaces here, as OnCardDefeated on the token itself.
-                //
-                // Only shields used to be handled, which meant a gained Advantage or Experience was
-                // never taken back off its host: a reader folding the stream kept the token for the
-                // rest of the replay while the engine's own keyframe showed statusTokens {}. Every
-                // kind now emits its decrement, so gains and removals balance.
-                const removed = card?.uuid != null ? this.tokenParents.get(card.uuid) : undefined;
-                const removedKind = removed?.kind ?? tokenUpgradeKind(card);
-                if (removedKind) {
-                    // Prefer the parent remembered at attach time (the upgrade is already unattached
-                    // by now); fall back to a live lookup if it wasn't recorded.
-                    const parent = removed?.parent ?? this.parentOf(card);
-                    if (parent) {
-                        this.push(this.tokenRecord(this.nextSeq(false), removedKind, this.idOf(parent), -1));
-                    }
-                    // The entry is deliberately NOT deleted here: the token's exit MOVE is emitted
-                    // after this handler, and it still needs the host to fill in `attachedTo`. A
-                    // re-attach overwrites the entry, so a stale host can't be read back.
-                    return;
+            // Token-upgrade REMOVAL. There is no dedicated removal event for any of the three
+            // token kinds: shields, experience and advantage are all token-upgrade cards, and
+            // each is removed by being defeated (a shield's damage-modification replaces the
+            // damage with defeat(); an Advantage defeats itself when the attack ends). So the
+            // removal surfaces here, as OnCardDefeated on the token itself.
+            //
+            // Only shields used to be handled, which meant a gained Advantage or Experience was
+            // never taken back off its host: a reader folding the stream kept the token for the
+            // rest of the replay while the engine's own keyframe showed statusTokens {}. Every
+            // kind now emits its decrement, so gains and removals balance.
+            const removed = card?.uuid != null ? this.tokenParents.get(card.uuid) : undefined;
+            const removedKind = removed?.kind ?? tokenUpgradeKind(card);
+            if (removedKind) {
+                // Prefer the parent remembered at attach time (the upgrade is already unattached
+                // by now); fall back to a live lookup if it wasn't recorded.
+                const parent = removed?.parent ?? this.parentOf(card);
+                if (parent) {
+                    this.push(this.tokenRecord(this.nextSeq(false), removedKind, this.idOf(parent), -1));
                 }
-
-                const defeatSource = event?.defeatSource;
-                const reason: string = defeatSource?.type ?? '';
-                let defeatedBy: any = null;
-                if (defeatSource?.type === DefeatSourceType.Attack) {
-                    defeatedBy = defeatSource?.attack?.attacker;
-                } else {
-                    defeatedBy = defeatSource?.card;
-                }
-                const defeatedById = this.idOf(defeatedBy);
-                const seq = this.nextSeq(false);
-                this.push({
-                    seq,
-                    t: 'DEFEAT',
-                    card: this.idOf(card),
-                    reason,
-                    defeatedBy: defeatedById === 'unknown' ? undefined : defeatedById,
-                });
-            } catch (error) {
-                this.logError('OnCardDefeated', error);
+                // The entry is deliberately NOT deleted here: the token's exit MOVE is emitted
+                // after this handler, and it still needs the host to fill in `attachedTo`. A
+                // re-attach overwrites the entry, so a stale host can't be read back.
+                return;
             }
+
+            const defeatSource = event?.defeatSource;
+            const reason: string = defeatSource?.type ?? '';
+            let defeatedBy: any = null;
+            if (defeatSource?.type === DefeatSourceType.Attack) {
+                defeatedBy = defeatSource?.attack?.attacker;
+            } else {
+                defeatedBy = defeatSource?.card;
+            }
+            const defeatedById = this.idOf(defeatedBy);
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'DEFEAT',
+                card: this.idOf(card),
+                reason,
+                defeatedBy: defeatedById === 'unknown' ? undefined : defeatedById,
+            });
         });
 
-        this.game.on(EventName.OnCardMoved, (event: any) => {
-            try {
-                const card = event?.card;
+        this.on(EventName.OnCardMoved, (event: any) => {
+            const card = event?.card;
 
-                // OnCardMoved is emitted TWICE for an ability-driven move: once by
-                // MoveCardSystem (whose props are destination/context — no zones) and once by
-                // Card.postMoveSteps, which carries the authoritative originalZone/newZone. Only
-                // the second describes a move, so the first is dropped. Recording it produced
-                // `"from": ""` records, which are not a zone at all and forced every reader to
-                // special-case the required field.
-                if (event?.originalZone == null) {
-                    return;
-                }
+            // OnCardMoved is emitted TWICE for an ability-driven move: once by
+            // MoveCardSystem (whose props are destination/context — no zones) and once by
+            // Card.postMoveSteps, which carries the authoritative originalZone/newZone. Only
+            // the second describes a move, so the first is dropped. Recording it produced
+            // `"from": ""` records, which are not a zone at all and forced every reader to
+            // special-case the required field.
+            if (event?.originalZone == null) {
+                return;
+            }
 
-                const from = this.normalizeZone(event.originalZone);
-                const to = this.normalizeZone(event?.newZone ?? card?.zoneName);
+            const from = this.normalizeZone(event.originalZone);
+            const to = this.normalizeZone(event?.newZone ?? card?.zoneName);
 
-                // A move that doesn't change zone carries no information. Searching a deck moves
-                // each examined card deck->deck on the way back, which is how two SEARCHes came to
-                // produce 20% of a real game's MOVE records. Examining a card is reported by
-                // SEARCH (and REVEAL); only a card that actually leaves its zone gets a MOVE.
-                if (from === to || from === '' || to === '') {
-                    return;
-                }
+            // A move that doesn't change zone carries no information. Searching a deck moves
+            // each examined card deck->deck on the way back, which is how two SEARCHes came to
+            // produce 20% of a real game's MOVE records. Examining a card is reported by
+            // SEARCH (and REVEAL); only a card that actually leaves its zone gets a MOVE.
+            if (from === to || from === '' || to === '') {
+                return;
+            }
 
-                // Building the decks is not a game event. Before the first shuffle every card
-                // enters its deck from outsideTheGame; that is the deck list, which %%% DECKS
-                // already states and the INIT record already orders. Recording it was 40 of one
-                // organic game's 237 events. A token entering PLAY from outsideTheGame is kept.
-                if (from === 'outsideTheGame' && to === 'deck') {
-                    return;
-                }
+            // Building the decks is not a game event. Before the first shuffle every card
+            // enters its deck from outsideTheGame; that is the deck list, which %%% DECKS
+            // already states and the INIT record already orders. Recording it was 40 of one
+            // organic game's 237 events. A token entering PLAY from outsideTheGame is kept.
+            if (from === 'outsideTheGame' && to === 'deck') {
+                return;
+            }
 
-                const seq = this.nextSeq(false);
-                // Seat lets the 1.1 fold attribute zone-membership counts (handSize,
-                // resourcesReady) and arena-card placement to a player: the engine performs
-                // these via card moves, not via DRAW/RESOURCE/PLAY summary events, so MOVE is
-                // the fold's source of truth for those counts.
-                // For a token-upgrade, also name the unit it is bound to. Without it a reader can
-                // only infer the binding from the accident that the token's gain/removal record
-                // happens to be the adjacent event; `attachedTo` states it outright.
-                const host = this.tokenHostOf(card);
-                const seat = this.seatOf(card?.controller ?? card?.owner);
-                const kind = cardKind(card);
-                this.push({
-                    seq,
-                    t: 'MOVE',
-                    card: this.idOf(card),
-                    from,
-                    to,
-                    p: seat,
-                    ...(host ? { attachedTo: this.idOf(host) } : {}),
-                    ...(kind ? { kind } : {}),
-                });
+            const seq = this.nextSeq(false);
+            // Seat lets the 1.1 fold attribute zone-membership counts (handSize,
+            // resourcesReady) and arena-card placement to a player: the engine performs
+            // these via card moves, not via DRAW/RESOURCE/PLAY summary events, so MOVE is
+            // the fold's source of truth for those counts.
+            // For a token-upgrade, also name the unit it is bound to. Without it a reader can
+            // only infer the binding from the accident that the token's gain/removal record
+            // happens to be the adjacent event; `attachedTo` states it outright.
+            const host = this.tokenHostOf(card);
+            const seat = this.seatOf(card?.controller ?? card?.owner);
+            const kind = cardKind(card);
+            this.push({
+                seq,
+                t: 'MOVE',
+                card: this.idOf(card),
+                from,
+                to,
+                p: seat,
+                ...(host ? { attachedTo: this.idOf(host) } : {}),
+                ...(kind ? { kind } : {}),
+            });
 
-                // RESOURCE is the human-readable summary of "a card became a resource", the way
-                // DRAW summarises the deck->hand MOVEs beside it. It is derived from the move
-                // rather than from OnCardResourced because that engine event only fires for
-                // ability-driven resourcing: the setup and regroup resource steps call
-                // Player.resourceCard() directly (ResourcePrompt.resourceSelectedCards), so
-                // listening for it produced ZERO records across a full game's 15 resourcings.
-                // Every resourcing — routine or ability-driven, including takeControl into the
-                // resource zone — ends in this move, so this sees all of them exactly once.
-                if (to === 'resource') {
-                    this.push({ seq: this.nextSeq(false), t: 'RESOURCE', p: seat, card: this.idOf(card) });
-                }
-            } catch (error) {
-                this.logError('OnCardMoved', error);
+            // RESOURCE is the human-readable summary of "a card became a resource", the way
+            // DRAW summarises the deck->hand MOVEs beside it. It is derived from the move
+            // rather than from OnCardResourced because that engine event only fires for
+            // ability-driven resourcing: the setup and regroup resource steps call
+            // Player.resourceCard() directly (ResourcePrompt.resourceSelectedCards), so
+            // listening for it produced ZERO records across a full game's 15 resourcings.
+            // Every resourcing — routine or ability-driven, including takeControl into the
+            // resource zone — ends in this move, so this sees all of them exactly once.
+            if (to === 'resource') {
+                this.push({ seq: this.nextSeq(false), t: 'RESOURCE', p: seat, card: this.idOf(card) });
             }
         });
 
@@ -1041,155 +1065,138 @@ export class SwuPgnRecorder {
         // fold does not model upgrade nesting, so we deliberately emit nothing for them here (emitting a
         // second PLAY_UPGRADE would corrupt the fold). New token-upgrade types should get an explicit
         // branch rather than silently falling through.
-        this.game.on(EventName.OnUpgradeAttached, (event: any) => {
-            try {
-                const upgrade = event?.upgradeCard;
-                const parent = event?.parentCard ?? this.parentOf(upgrade);
-                if (!parent) {
-                    return;
-                }
-                const kind = tokenUpgradeKind(upgrade);
-                if (!kind) {
-                    // An ordinary printed upgrade. It gets no token record -- a second
-                    // PLAY_UPGRADE would corrupt the fold -- but it still needs its host named.
-                    // `kind: 'upgrade'` correctly keeps it out of the arena, so without a host
-                    // there is nothing to attach it to and it folds to nowhere at all: the player
-                    // plays an upgrade and the replay shows nothing happening.
-                    this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
-                    return;
-                }
-                // Remember the host for the matching removal record: by the time the token is
-                // defeated it has already been unattached, so its parent is unreachable then.
-                if (upgrade?.uuid != null) {
-                    this.tokenParents.set(upgrade.uuid, { parent, kind });
-                }
-                // The engine moves the token into play BEFORE attaching it, so its entry MOVE was
-                // emitted while the host was still unknown. Name the host on it now, so a reader
-                // never has to infer the binding from event adjacency.
+        this.on(EventName.OnUpgradeAttached, (event: any) => {
+            const upgrade = event?.upgradeCard;
+            const parent = event?.parentCard ?? this.parentOf(upgrade);
+            if (!parent) {
+                return;
+            }
+            const kind = tokenUpgradeKind(upgrade);
+            if (!kind) {
+                // An ordinary printed upgrade. It gets no token record -- a second
+                // PLAY_UPGRADE would corrupt the fold -- but it still needs its host named.
+                // `kind: 'upgrade'` correctly keeps it out of the arena, so without a host
+                // there is nothing to attach it to and it folds to nowhere at all: the player
+                // plays an upgrade and the replay shows nothing happening.
                 this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
-                this.push(this.tokenRecord(this.nextSeq(false), kind, this.idOf(parent), 1));
-            } catch (error) {
-                this.logError('OnUpgradeAttached', error);
+                return;
             }
+            // Remember the host for the matching removal record: by the time the token is
+            // defeated it has already been unattached, so its parent is unreachable then.
+            if (upgrade?.uuid != null) {
+                this.tokenParents.set(upgrade.uuid, { parent, kind });
+            }
+            // The engine moves the token into play BEFORE attaching it, so its entry MOVE was
+            // emitted while the host was still unknown. Name the host on it now, so a reader
+            // never has to infer the binding from event adjacency.
+            this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
+            this.push(this.tokenRecord(this.nextSeq(false), kind, this.idOf(parent), 1));
         });
 
-        this.game.on(EventName.OnCardExhausted, (event: any) => {
-            try {
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'EXHAUST', card: this.idOf(event?.card) });
-            } catch (error) {
-                this.logError('OnCardExhausted', error);
-            }
+        this.on(EventName.OnCardExhausted, (event: any) => {
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'EXHAUST', card: this.idOf(event?.card) });
         });
 
-        this.game.on(EventName.OnCardReadied, (event: any) => {
-            try {
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'READY', card: this.idOf(event?.card) });
-            } catch (error) {
-                this.logError('OnCardReadied', error);
-            }
+        this.on(EventName.OnCardReadied, (event: any) => {
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'READY', card: this.idOf(event?.card) });
         });
 
-        this.game.on(EventName.OnCardsDrawn, (event: any) => {
-            try {
-                const player = event?.player;
-                const cards: any[] = event?.cards ?? [];
-                const count: number = event?.amount ?? cards.length ?? 0;
-                const cardIds = cards.map((c: any) => this.idOf(c)).filter((id: string) => id !== 'unknown');
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'DRAW', p: this.seatOf(player), count, cards: cardIds });
-            } catch (error) {
-                this.logError('OnCardsDrawn', error);
-            }
+        this.on(EventName.OnCardsDrawn, (event: any) => {
+            const player = event?.player;
+            const cards: any[] = event?.cards ?? [];
+            const count: number = event?.amount ?? cards.length ?? 0;
+            const cardIds = cards.map((c: any) => this.idOf(c)).filter((id: string) => id !== 'unknown');
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'DRAW', p: this.seatOf(player), count, cards: cardIds });
         });
 
-        this.game.on(EventName.OnCardDiscarded, (event: any) => {
-            try {
-                const card = event?.card;
-                const player = card?.owner;
-                const id = this.idOf(card);
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'DISCARD', p: this.seatOf(player), cards: id === 'unknown' ? [] : [id] });
-            } catch (error) {
-                this.logError('OnCardDiscarded', error);
-            }
+        this.on(EventName.OnCardDiscarded, (event: any) => {
+            const card = event?.card;
+            const player = card?.owner;
+            const id = this.idOf(card);
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'DISCARD', p: this.seatOf(player), cards: id === 'unknown' ? [] : [id] });
         });
 
-        this.game.on(EventName.OnDeckShuffled, (event: any) => {
-            try {
-                const player = event?.player ?? event?.card?.owner;
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'SHUFFLE', p: this.seatOf(player) });
-            } catch (error) {
-                this.logError('OnDeckShuffled', error);
-            }
+        this.on(EventName.OnDeckShuffled, (event: any) => {
+            const player = event?.player ?? event?.card?.owner;
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'SHUFFLE', p: this.seatOf(player) });
         });
 
-        this.game.on(EventName.OnTokensCreated, (event: any) => {
-            try {
-                const tokens: any[] = event?.generatedTokens ?? [];
-                for (const token of tokens) {
-                    // Only UNIT tokens are arena cards in the fold. OnTokensCreated also fires for
-                    // token-upgrades (shield/experience/advantage — recorded via OnUpgradeAttached as
-                    // SHIELD_GAIN/EXPERIENCE_GAIN/STATUS_TOKEN) and for credit/force tokens, none of
-                    // which are arena units; emitting CREATE_TOKEN for them would push a phantom card
-                    // into the folded board.
-                    if (typeof token?.isUnit !== 'function' || !token.isUnit()) {
-                        continue;
-                    }
-                    const seq = this.nextSeq(false);
-                    this.push({
-                        seq,
-                        t: 'CREATE_TOKEN',
-                        p: this.seatOf(token?.owner),
-                        // Stable SET#NUM[:copy]/TOKEN:<name> id, consistent with the later MOVE/DAMAGE/
-                        // EXHAUST events that reference this token (those use idOf too). Emitting the
-                        // display title here instead would alias same-name tokens and orphan every
-                        // subsequent token event from this card in the fold.
-                        token: this.idOf(token),
-                        zone: this.normalizeZone(token?.zoneName),
-                        power: typeof token?.getPower === 'function' ? token.getPower() : undefined,
-                        hp: typeof token?.getHp === 'function' ? token.getHp() : undefined,
-                        // Always 'unit' here (the guard above skips non-units), but stated
-                        // explicitly so a reader never has to infer it from the event type.
-                        kind: cardKind(token),
-                    });
+        this.on(EventName.OnTokensCreated, (event: any) => {
+            const tokens: any[] = event?.generatedTokens ?? [];
+            for (const token of tokens) {
+                // Only UNIT tokens are arena cards in the fold. OnTokensCreated also fires for
+                // token-upgrades (shield/experience/advantage — recorded via OnUpgradeAttached as
+                // SHIELD_GAIN/EXPERIENCE_GAIN/STATUS_TOKEN) and for credit/force tokens, none of
+                // which are arena units; emitting CREATE_TOKEN for them would push a phantom card
+                // into the folded board.
+                if (typeof token?.isUnit !== 'function' || !token.isUnit()) {
+                    continue;
                 }
-            } catch (error) {
-                this.logError('OnTokensCreated', error);
+                const seq = this.nextSeq(false);
+                this.push({
+                    seq,
+                    t: 'CREATE_TOKEN',
+                    p: this.seatOf(token?.owner),
+                    // Stable SET#NUM[:copy]/TOKEN:<name> id, consistent with the later MOVE/DAMAGE/
+                    // EXHAUST events that reference this token (those use idOf too). Emitting the
+                    // display title here instead would alias same-name tokens and orphan every
+                    // subsequent token event from this card in the fold.
+                    token: this.idOf(token),
+                    zone: this.normalizeZone(token?.zoneName),
+                    power: typeof token?.getPower === 'function' ? token.getPower() : undefined,
+                    hp: typeof token?.getHp === 'function' ? token.getHp() : undefined,
+                    // Always 'unit' here (the guard above skips non-units), but stated
+                    // explicitly so a reader never has to infer it from the event type.
+                    kind: cardKind(token),
+                });
             }
         });
 
-        this.game.on(EventName.OnCardCaptured, (event: any) => {
-            try {
-                const card = event?.card;
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'CAPTURE', p: this.seatOf(card?.owner), card: this.idOf(card) });
-            } catch (error) {
-                this.logError('OnCardCaptured', error);
-            }
+        this.on(EventName.OnCardCaptured, (event: any) => {
+            const card = event?.card;
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'CAPTURE', p: this.seatOf(card?.owner), card: this.idOf(card) });
         });
 
-        this.game.on(EventName.OnRescue, (event: any) => {
-            try {
-                const card = event?.card;
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'RESCUE', p: this.seatOf(card?.owner), card: this.idOf(card) });
-            } catch (error) {
-                this.logError('OnRescue', error);
-            }
+        this.on(EventName.OnRescue, (event: any) => {
+            const card = event?.card;
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'RESCUE', p: this.seatOf(card?.owner), card: this.idOf(card) });
         });
 
-        this.game.on(EventName.OnTakeControl, (event: any) => {
-            try {
-                const card = event?.card;
-                const player = event?.newController ?? card?.controller;
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'TAKE_CONTROL', p: this.seatOf(player), card: this.idOf(card) });
-            } catch (error) {
-                this.logError('OnTakeControl', error);
+        this.on(EventName.OnTakeControl, (event: any) => {
+            const card = event?.card;
+            if (card?.uuid == null) {
+                // Credit tokens change hands through the same event with no `card`;
+                // credits are not folded, and a record naming 'unknown' helps nobody.
+                return;
             }
+            const player = event?.newController ?? card?.controller;
+            const seat = this.seatOf(player);
+            // A control change is NOT a zone change: a stolen unit stays in the same arena
+            // (PlayableOrDeployableCard.takeControl registers the move without moveTo), and
+            // a stolen resource stays a resource. No MOVE is emitted, so this record has to
+            // carry what the fold needs to re-seat the card (spec §10.1): the zone it is in
+            // now, and the seat it left. In a two-player game control can only have come
+            // from the other seat. When the steal DID change zone (a unit taken into the
+            // resource row), the MOVE just recorded already carried the counts, so `from`
+            // is omitted and the fold shifts nothing twice.
+            const last = this.events[this.events.length - 1];
+            const movedByThisSteal = last?.t === 'MOVE' && last.card === this.idOf(card);
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'TAKE_CONTROL',
+                p: seat,
+                card: this.idOf(card),
+                zone: this.normalizeZone(card?.zoneName),
+                ...(movedByThisSteal ? {} : { from: (seat === 1 ? 2 : 1) as Seat }),
+            });
         });
 
         // TRIGGER / ABILITY_ACTIVATE dedup: AbilityResolver pushes BOTH OnCardAbilityTriggered
@@ -1200,85 +1207,69 @@ export class SwuPgnRecorder {
         // TRIGGER cases, so we collapse the pair into the single ABILITY_ACTIVATE. The collapse is
         // adjacency-based and bidirectional so it holds whichever event the window emits first; a
         // standalone TRIGGER (no adjacent ABILITY_ACTIVATE for the same card) is still recorded.
-        this.game.on(EventName.OnCardAbilityTriggered, (event: any) => {
-            try {
-                const card = event?.card ?? event?.context?.source;
-                const cardId = this.idOf(card);
-                const last = this.events[this.events.length - 1];
-                if (last && last.t === 'ABILITY_ACTIVATE' && (last as any).card === cardId) {
-                    return; // ABILITY_ACTIVATE for this card already recorded the activation
-                }
-                const player = card?.controller ?? card?.owner;
-                const seq = this.nextSeq(false);
-                this.push({ seq, t: 'TRIGGER', p: player ? this.seatOf(player) : undefined, card: cardId });
-            } catch (error) {
-                this.logError('OnCardAbilityTriggered', error);
+        this.on(EventName.OnCardAbilityTriggered, (event: any) => {
+            const card = event?.card ?? event?.context?.source;
+            const cardId = this.idOf(card);
+            const last = this.events[this.events.length - 1];
+            if (last && last.t === 'ABILITY_ACTIVATE' && (last as any).card === cardId) {
+                return; // ABILITY_ACTIVATE for this card already recorded the activation
             }
+            const player = card?.controller ?? card?.owner;
+            const seq = this.nextSeq(false);
+            this.push({ seq, t: 'TRIGGER', p: player ? this.seatOf(player) : undefined, card: cardId });
         });
 
-        this.game.on(EventName.OnCardAbilityInitiated, (event: any) => {
-            try {
-                const card = event?.card ?? event?.context?.source;
-                const cardId = this.idOf(card);
-                const player = card?.controller ?? card?.owner;
-                const ability = event?.ability?.abilityIdentifier;
-                // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes
-                // it. Reuse the popped TRIGGER's seq for this record (rather than allocating a fresh
-                // one) so the collapse leaves no skipped seq number behind it.
-                const last = this.events[this.events.length - 1];
-                let seq: string;
-                if (last && last.t === 'TRIGGER' && (last as any).card === cardId) {
-                    seq = last.seq;
-                    this.events.pop();
-                } else {
-                    seq = this.nextSeq(false);
-                }
-                this.push({
-                    seq,
-                    t: 'ABILITY_ACTIVATE',
-                    p: this.seatOf(player),
-                    card: cardId,
-                    ability: typeof ability === 'string' ? ability : undefined,
-                });
-            } catch (error) {
-                this.logError('OnCardAbilityInitiated', error);
+        this.on(EventName.OnCardAbilityInitiated, (event: any) => {
+            const card = event?.card ?? event?.context?.source;
+            const cardId = this.idOf(card);
+            const player = card?.controller ?? card?.owner;
+            const ability = event?.ability?.abilityIdentifier;
+            // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes
+            // it. Reuse the popped TRIGGER's seq for this record (rather than allocating a fresh
+            // one) so the collapse leaves no skipped seq number behind it.
+            const last = this.events[this.events.length - 1];
+            let seq: string;
+            if (last && last.t === 'TRIGGER' && (last as any).card === cardId) {
+                seq = last.seq;
+                this.events.pop();
+            } else {
+                seq = this.nextSeq(false);
             }
+            this.push({
+                seq,
+                t: 'ABILITY_ACTIVATE',
+                p: this.seatOf(player),
+                card: cardId,
+                ability: typeof ability === 'string' ? ability : undefined,
+            });
         });
 
-        this.game.on(EventName.OnCardRevealed, (event: any) => {
-            try {
-                const cards: any[] = event?.cards ?? [];
-                if (cards.length === 0) {
-                    return;
-                }
-                const owner = cards[0]?.controller ?? cards[0]?.owner;
-                const cardIds = cards.map((c: any) => this.idOf(c)).filter((id: string) => id !== 'unknown');
-                const seq = this.nextSeq(false);
-                this.push({
-                    seq,
-                    t: 'REVEAL',
-                    p: this.seatOf(owner),
-                    zone: this.normalizeZone(event?.revealedFromZone ?? cards[0]?.zoneName),
-                    cards: cardIds,
-                });
-            } catch (error) {
-                this.logError('OnCardRevealed', error);
+        this.on(EventName.OnCardRevealed, (event: any) => {
+            const cards: any[] = event?.cards ?? [];
+            if (cards.length === 0) {
+                return;
             }
+            const owner = cards[0]?.controller ?? cards[0]?.owner;
+            const cardIds = cards.map((c: any) => this.idOf(c)).filter((id: string) => id !== 'unknown');
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'REVEAL',
+                p: this.seatOf(owner),
+                zone: this.normalizeZone(event?.revealedFromZone ?? cards[0]?.zoneName),
+                cards: cardIds,
+            });
         });
 
-        this.game.on(EventName.OnDeckSearch, (event: any) => {
-            try {
-                const player = event?.player;
-                const seq = this.nextSeq(false);
-                this.push({
-                    seq,
-                    t: 'SEARCH',
-                    p: this.seatOf(player),
-                    zone: event?.searchWholeDeck ? 'deck' : undefined,
-                });
-            } catch (error) {
-                this.logError('OnDeckSearch', error);
-            }
+        this.on(EventName.OnDeckSearch, (event: any) => {
+            const player = event?.player;
+            const seq = this.nextSeq(false);
+            this.push({
+                seq,
+                t: 'SEARCH',
+                p: this.seatOf(player),
+                zone: event?.searchWholeDeck ? 'deck' : undefined,
+            });
         });
 
         // ── Decision context (pure-log; no fold delta) ────────────────────────
@@ -1292,16 +1283,12 @@ export class SwuPgnRecorder {
 
         // MULLIGAN / KEEP_HAND: emitted by MulliganPrompt.menuCommand when a player resolves their
         // mulligan decision (mulligan === true → MULLIGAN, otherwise → KEEP_HAND). Pure log.
-        this.game.on(EventName.OnMulliganDecision, (event: any) => {
-            try {
-                this.push({
-                    seq: this.nextSeq(false),
-                    t: event?.mulligan ? 'MULLIGAN' : 'KEEP_HAND',
-                    p: this.seatOf(event?.player),
-                });
-            } catch (error) {
-                this.logError('OnMulliganDecision', error);
-            }
+        this.on(EventName.OnMulliganDecision, (event: any) => {
+            this.push({
+                seq: this.nextSeq(false),
+                t: event?.mulligan ? 'MULLIGAN' : 'KEEP_HAND',
+                p: this.seatOf(event?.player),
+            });
         });
 
         // MODAL_CHOICE: emitted by HandlerMenuPrompt.menuCommand — the engine's general menu/button
@@ -1309,26 +1296,22 @@ export class SwuPgnRecorder {
         // (fixed option list) and reserve CHOICE for free card-selection prompts; HandlerMenuPrompt
         // is the menu/button case, so it maps to MODAL_CHOICE. `offered` is the human-readable
         // button label list the prompt built; `chose` is the index of the selected option. Pure log.
-        this.game.on(EventName.OnModalChoice, (event: any) => {
-            try {
-                const offered: string[] = Array.isArray(event?.offered) ? event.offered : [];
-                // `chose` is the selected option index; without a valid number the record would be
-                // malformed. Mirror the other handlers (e.g. OnCardRevealed) and skip the push
-                // rather than emit a sentinel.
-                if (typeof event?.chose !== 'number') {
-                    return;
-                }
-                const chose: number = event.chose;
-                this.push({
-                    seq: this.nextSeq(false),
-                    t: 'MODAL_CHOICE',
-                    p: this.seatOf(event?.player),
-                    offered,
-                    chose,
-                });
-            } catch (error) {
-                this.logError('OnModalChoice', error);
+        this.on(EventName.OnModalChoice, (event: any) => {
+            const offered: string[] = Array.isArray(event?.offered) ? event.offered : [];
+            // `chose` is the selected option index; without a valid number the record would be
+            // malformed. Mirror the other handlers (e.g. OnCardRevealed) and skip the push
+            // rather than emit a sentinel.
+            if (typeof event?.chose !== 'number') {
+                return;
             }
+            const chose: number = event.chose;
+            this.push({
+                seq: this.nextSeq(false),
+                t: 'MODAL_CHOICE',
+                p: this.seatOf(event?.player),
+                offered,
+                chose,
+            });
         });
 
         // CHOICE: a free card-selection prompt (SelectCardPrompt.emitCardSelection) — distinct from
@@ -1337,33 +1320,29 @@ export class SwuPgnRecorder {
         // chosen card's index within it. The engine only emits this for single-card selections, and
         // we additionally skip the record if the chosen card isn't resolvable or isn't in the offered
         // pool (a malformed pairing) rather than emit a sentinel. Pure log — no fold delta.
-        this.game.on(EventName.OnCardSelection, (event: any) => {
-            try {
-                // targetRef, not idOf: an attack-target prompt offers the opponent's base, and a
-                // base is written `base@N` everywhere else in the file (spec §6.3).
-                const offeredCards: any[] = Array.isArray(event?.offered) ? event.offered : [];
-                const offered = offeredCards
-                    .map((c: any) => this.targetRef(c))
-                    .filter((id: string) => id !== 'unknown');
-                const chosen = event?.chosen;
-                if (chosen?.uuid == null) {
-                    return;
-                }
-                const chose = offered.indexOf(this.targetRef(chosen));
-                if (chose < 0) {
-                    return;
-                }
-                this.push({
-                    seq: this.nextSeq(false),
-                    t: 'CHOICE',
-                    p: this.seatOf(event?.player),
-                    prompt: typeof event?.prompt === 'string' ? event.prompt : undefined,
-                    offered,
-                    chose,
-                });
-            } catch (error) {
-                this.logError('OnCardSelection', error);
+        this.on(EventName.OnCardSelection, (event: any) => {
+            // targetRef, not idOf: an attack-target prompt offers the opponent's base, and a
+            // base is written `base@N` everywhere else in the file (spec §6.3).
+            const offeredCards: any[] = Array.isArray(event?.offered) ? event.offered : [];
+            const offered = offeredCards
+                .map((c: any) => this.targetRef(c))
+                .filter((id: string) => id !== 'unknown');
+            const chosen = event?.chosen;
+            if (chosen?.uuid == null) {
+                return;
             }
+            const chose = offered.indexOf(this.targetRef(chosen));
+            if (chose < 0) {
+                return;
+            }
+            this.push({
+                seq: this.nextSeq(false),
+                t: 'CHOICE',
+                p: this.seatOf(event?.player),
+                prompt: typeof event?.prompt === 'string' ? event.prompt : undefined,
+                offered,
+                chose,
+            });
         });
     }
 }

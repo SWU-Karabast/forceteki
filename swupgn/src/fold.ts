@@ -8,8 +8,52 @@ function emptyPlayer(seat: Seat): PlayerState {
     };
 }
 
-function emptyState(): ReducedState {
+export function emptyState(): ReducedState {
     return { round: 0, phase: 'setup', initiative: null, players: { 1: emptyPlayer(1), 2: emptyPlayer(2) } };
+}
+
+/** `x` if it is an array, else `[]`. A file is untrusted input; `cards: 5` must not throw. */
+function arr<T>(x: unknown): T[] {
+    return Array.isArray(x) ? (x as T[]) : [];
+}
+
+/**
+ * A keyframe REPLACES the reader's whole state, so one that is malformed or missing a seat
+ * must not be snapped to: spec §13 says ignore it and keep folding. This is also the trust
+ * boundary for a hostile file. Without it `keyframe: {}` or `cards: "x"` surfaces as an
+ * uncaught TypeError in the browser rather than as a damaged checkpoint.
+ */
+export function isCompleteKeyframe(k: unknown): k is ReducedState {
+    if (typeof k !== 'object' || k === null) {
+        return false;
+    }
+    const players = (k as { players?: unknown }).players;
+    if (typeof players !== 'object' || players === null) {
+        return false;
+    }
+    for (const seat of [1, 2] as Seat[]) {
+        const p = (players as Record<number, unknown>)[seat];
+        if (typeof p !== 'object' || p === null) {
+            return false;
+        }
+        const ps = p as Partial<PlayerState>;
+        if (!Array.isArray(ps.cards) || !Array.isArray(ps.hand) || !Array.isArray(ps.discard)) {
+            return false;
+        }
+        if (!ps.cards.every((c) => typeof c === 'object' && c !== null)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/** True for a ROUND_START/ROUND_END that carries a keyframe a reader may snap to. */
+export function hasSnapKeyframe(e: GameEvent): e is GameEvent & { keyframe: ReducedState } {
+    return (e.t === 'ROUND_START' || e.t === 'ROUND_END') && isCompleteKeyframe(e.keyframe);
+}
+
+function snapTo(k: ReducedState): ReducedState {
+    return JSON.parse(JSON.stringify(k)) as ReducedState;
 }
 
 /**
@@ -171,8 +215,52 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             // with — a real upgrade, SEC#038, showed up that way in a recorded game.
             break;
         }
-        case 'DEPLOY_LEADER':
-            placeCard(s, e.p, e.card, e.zone ?? 'ground'); break;
+        case 'DEPLOY_LEADER': {
+            // Deployed as a pilot: an attachment, never a body. Same rule as PLAY_UPGRADE.
+            if (e.kind === 'upgrade') {
+                const host = e.target ? findCard(s, e.target) : undefined;
+                if (host) {
+                    host.upgrades.push(e.card);
+                }
+                break;
+            }
+            placeCard(s, e.p, e.card, e.zone ?? 'ground');
+            break;
+        }
+        case 'TAKE_CONTROL': {
+            // A control change moves nothing between zones, so no MOVE carries it: re-seat
+            // the card here. An arena card moves between the seats' `cards` lists with its
+            // state intact; a resource shifts one ready resource from `from` to `p`.
+            const ps = player(s, e.p);
+            if (!ps) {
+                break;
+            }
+            if (e.zone === 'resource') {
+                if (isSeat(e.from)) {
+                    const fromPs = player(s, e.from);
+                    if (fromPs) {
+                        fromPs.resourcesReady = Math.max(0, fromPs.resourcesReady - 1);
+                    }
+                    ps.resourcesReady += 1;
+                }
+                break;
+            }
+            if (!ARENA_ZONES.has(e.zone ?? '')) {
+                break; // no zone (an early-1.0 note) or a zone the fold doesn't track: nothing to re-seat
+            }
+            for (const seat of [1, 2] as Seat[]) {
+                const owner = s.players[seat];
+                if (!owner || seat === e.p) {
+                    continue;
+                }
+                const idx = owner.cards.findIndex((c) => c.id === e.card);
+                if (idx >= 0) {
+                    ps.cards.push(owner.cards.splice(idx, 1)[0]);
+                    break;
+                }
+            }
+            break;
+        }
         case 'CREATE_TOKEN':
             if (e.kind !== 'upgrade') { placeCard(s, e.p, e.token, e.zone); }
             break;
@@ -236,8 +324,8 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         // membership (see applyMoveCounts). DRAW/DISCARD/RESOURCE no longer mutate those
         // counts — they coincide with the underlying MOVEs and would double-count.
         case 'MOVE': applyMoveCounts(s, e); break;
-        case 'DRAW': { player(s, e.p)?.hand.push(...e.cards); break; }
-        case 'DISCARD': { player(s, e.p)?.discard.push(...e.cards); break; }
+        case 'DRAW': { player(s, e.p)?.hand.push(...arr<string>(e.cards)); break; }
+        case 'DISCARD': { player(s, e.p)?.discard.push(...arr<string>(e.cards)); break; }
         case 'RESOURCE': break;
         case 'SHIELD_GAIN': { const c = findCard(s, e.card); if (c) { c.shields += e.count ?? 1; } break; }
         case 'SHIELD_USE': { const c = findCard(s, e.card); if (c) { c.shields = Math.max(0, c.shields - (e.count ?? 1)); } break; }
@@ -260,7 +348,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         // Pure-log events with no state delta:
         case 'ATTACK': case 'PASS': case 'CHOICE': case 'MULLIGAN':
         case 'KEEP_HAND': case 'MODAL_CHOICE': case 'ABILITY_ACTIVATE': case 'SHUFFLE':
-        case 'CAPTURE': case 'RESCUE': case 'TAKE_CONTROL': case 'SEARCH': case 'REVEAL':
+        case 'CAPTURE': case 'RESCUE': case 'SEARCH': case 'REVEAL':
         case 'TRIGGER': case 'PHASE_END': case 'ROUND_END': case 'GAME_END':
             break;
         default: { const _exhaustive: never = e; void _exhaustive; break; }
@@ -268,12 +356,14 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
     return s;
 }
 
-export function fold(events: GameEvent[]): ReducedState {
-    let s = emptyState();
-    for (const e of events) {
-        // A keyframe is authoritative: snap to it, then continue folding.
-        if ((e.t === 'ROUND_START' || e.t === 'ROUND_END') && e.keyframe) {
-            s = JSON.parse(JSON.stringify(e.keyframe));
+/** Fold `events[start..end]` (inclusive) onto `s`. */
+function foldRange(events: GameEvent[], start: number, end: number, s: ReducedState): ReducedState {
+    for (let i = start; i <= end; i++) {
+        const e = events[i];
+        // A keyframe is authoritative: snap to it, then continue folding. A damaged one is
+        // ignored (spec §13) and the event falls through to its ordinary rule.
+        if (hasSnapKeyframe(e)) {
+            s = snapTo(e.keyframe);
             continue;
         }
         s = reduce(s, e);
@@ -281,9 +371,25 @@ export function fold(events: GameEvent[]): ReducedState {
     return s;
 }
 
-/** Fold up to and including `seq`. */
+export function fold(events: GameEvent[]): ReducedState {
+    return foldRange(events, 0, events.length - 1, emptyState());
+}
+
+/**
+ * Fold up to and including `seq`.
+ *
+ * Starts from the last usable keyframe at or before `seq` rather than from the beginning:
+ * everything before a keyframe is disposable, and a replay scrubber calls this once per
+ * position, which made a full scrub O(n^2) in the stream length.
+ */
 export function stateAt(events: GameEvent[], seq: string): ReducedState {
     const idx = events.findIndex((e) => e.seq === seq);
-    const slice = idx >= 0 ? events.slice(0, idx + 1) : events;
-    return fold(slice);
+    const end = idx >= 0 ? idx : events.length - 1;
+    for (let i = end; i >= 0; i--) {
+        const e = events[i];
+        if (hasSnapKeyframe(e)) {
+            return foldRange(events, i + 1, end, snapTo(e.keyframe));
+        }
+    }
+    return foldRange(events, 0, end, emptyState());
 }

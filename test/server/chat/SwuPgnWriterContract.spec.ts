@@ -1,6 +1,6 @@
 import { parse, render } from '../../../swupgn/src/index';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
-import { fold } from '../../../swupgn/src/fold';
+import { fold, stateAt } from '../../../swupgn/src/fold';
 import type { GameEvent } from '../../../swupgn/src/types';
 
 /**
@@ -325,8 +325,10 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             const playUpgrades = doc.events.filter((e: any) => e.t === 'PLAY_UPGRADE') as any[];
             expect(playUpgrades.length).toBeGreaterThan(0);
             expect(playUpgrades.filter((e) => e.target == null)).toEqual([]);
+            // Only an ARENA-bound upgrade move attaches (spec §10.1). The natural setup phase
+            // can resource an upgrade card from hand, and that move rightly names no host.
             const upgradeMoves = doc.events.filter(
-                (e: any) => e.t === 'MOVE' && e.kind === 'upgrade' && e.to !== 'hand'
+                (e: any) => e.t === 'MOVE' && e.kind === 'upgrade' && (e.to === 'ground' || e.to === 'space')
             ) as any[];
             expect(upgradeMoves.length).toBeGreaterThan(0);
             expect(upgradeMoves.filter((e) => e.attachedTo == null)).toEqual([]);
@@ -432,6 +434,93 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             const arena = ([1, 2] as const).flatMap((seat) => state.players[seat]?.cards ?? []);
             expect(arena.map((c) => c.id)).not.toContain(pilotId);
             expect(arena.find((c) => c.id === hostId)!.upgrades).toContain(pilotId);
+        });
+    });
+});
+
+// A leader deployed AS A PILOT is an attachment: the same OnLeaderDeployed event, but the leader
+// becomes an upgrade on the vehicle rather than a body in the arena. DEPLOY_LEADER used to carry
+// no `kind`/`target`, so the fold placed the leader as its own unit that no keyframe agreed with.
+describe('SWU-PGN/1.0 writer contract (pilot leader)', function () {
+    integration(function (contextRef) {
+        it('records a leader deployed as a pilot as an attachment, never as its own unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                    spaceArena: ['n1-starfighter'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.kazudaXiono);
+            context.player1.clickPrompt('Deploy Kazuda Xiono as a Pilot');
+            context.player1.clickCard(context.n1Starfighter);
+            context.player2.passAction();
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const deploy = doc.events.find((e: any) => e.t === 'DEPLOY_LEADER') as any;
+            expect(deploy).toBeDefined();
+            expect(deploy.kind).toBe('upgrade');
+            const hostId = deploy.target as string;
+            expect(hostId).toBeDefined();
+
+            const cardMismatches = checkKeyframes(doc.events).mismatches.filter((m) => m.path.includes('cards['));
+            if (cardMismatches.length > 0) {
+                const around = doc.events.filter((e: any) => e.card === deploy.card || e.t === 'DEPLOY_LEADER');
+                fail('pilot-leader mismatches:\n' + JSON.stringify(cardMismatches, null, 2) + '\nrecords naming the leader:\n' + JSON.stringify(around, null, 2));
+            }
+            const state = fold(doc.events);
+            const arena = ([1, 2] as const).flatMap((seat) => state.players[seat]?.cards ?? []);
+            expect(arena.map((c) => c.id)).not.toContain(deploy.card);
+            expect(arena.find((c) => c.id === hostId)?.upgrades).toContain(deploy.card);
+        });
+    });
+});
+
+// A control change is not a zone change: a stolen unit stays in the same arena, so the engine
+// emits no OnCardMoved and the file carried no MOVE. TAKE_CONTROL was a pure note, so the fold
+// left the unit under its old seat while every keyframe put it under the new controller, and the
+// integrity gate failed on any game with Change of Heart, Traitorous or Commandeer in it.
+describe('SWU-PGN/1.0 writer contract (control change)', function () {
+    integration(function (contextRef) {
+        it('re-seats a stolen unit, and again when control returns, so the fold agrees with every keyframe', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    hand: ['change-of-heart'],
+                    groundArena: ['battlefield-marine'],
+                    hasInitiative: true,
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.changeOfHeart);
+            context.player2.clickCard(context.wampa);
+            context.player1.passAction();
+            // Change of Heart hands the unit back at the start of the regroup phase.
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const steals = doc.events.filter((e: any) => e.t === 'TAKE_CONTROL') as any[];
+            expect(steals.map((s) => [s.p, s.zone, s.from])).toEqual([[2, 'ground', 1], [1, 'ground', 2]]);
+
+            expect(checkKeyframes(doc.events).mismatches.filter((m) => m.path.includes('cards['))).toEqual([]);
+            // Between the steal and the return, the fold has the Wampa under seat 2.
+            const mid = stateAt(doc.events, steals[0].seq);
+            expect(mid.players[2]?.cards.map((c) => c.id)).toContain(steals[0].card);
+            expect(mid.players[1]?.cards.map((c) => c.id)).not.toContain(steals[0].card);
         });
     });
 });

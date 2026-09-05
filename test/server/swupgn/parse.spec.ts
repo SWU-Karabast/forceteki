@@ -97,4 +97,17 @@ describe('parse header numbers', function () {
         expect(Number.isFinite(rounds)).toBe(true);
         expect(rounds).toBe(0);
     });
+
+    it('reads RecorderErrors when present and leaves it absent otherwise', function () {
+        expect(parse(header('4')).header.recorderErrors).toBeUndefined();
+        const withErrors = header('4').replace('[Rounds "4"]', '[Rounds "4"] [RecorderErrors "2"]');
+        expect(withErrors).not.toBe(header('4'));
+        expect(parse(withErrors).header.recorderErrors).toBe(2);
+    });
+
+    it('does not mistake a [-prefixed record inside a JSON section for a header line', function () {
+        const text = header('4') + '\n%%% EVENTS\n["not","an","event"]\n';
+        const doc = parse(text);
+        expect(doc.events.length).toBe(1); // it reached the record path (validate() rejects it)
+    });
 });

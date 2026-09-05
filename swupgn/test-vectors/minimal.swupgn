@@ -2,7 +2,7 @@
 [GameId "vector-minimal"]
 [Date "2026-06-16T00:00:00Z"]
 [Format "Premier"] [CardPool "SOR"] [Engine "forceteki@reference"]
-[Seed "0"] [Perspective "P1"]
+[Seed "0"]
 [P1Id "sha256:aaaa"] [P2Id "sha256:bbbb"] [P1 "Player 1"] [P2 "Player 2"]
 [P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]
 [Result "Incomplete"] [Reason "Sample"] [Rounds "1"]

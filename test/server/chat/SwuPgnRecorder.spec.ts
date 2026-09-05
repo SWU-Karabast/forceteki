@@ -660,3 +660,129 @@ describe('SwuPgnRecorder internals', function () {
         }
     });
 });
+
+describe('SwuPgnRecorder: review regressions', function () {
+    const mk = () => {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, resolver);
+        return { game, rec };
+    };
+    const last = (rec: SwuPgnRecorder): any => rec.getEvents()[rec.getEvents().length - 1];
+
+    it('GAME_END takes the .game-end step of the phase it happened in and never collides with PHASE_END', function () {
+        const { game, rec } = mk();
+        game.emit(EventName.OnPhaseStarted, { phase: 'regroup' });
+        rec.addGameEndRecord(1, 'Concession');
+        expect(last(rec).t).toBe('GAME_END');
+        expect(last(rec).seq).toBe('R1.G.game-end');
+        // Play may continue after game end, so that phase's PHASE_END is still written.
+        game.emit(EventName.OnPhaseEnded, { phase: 'regroup' });
+        const seqs = rec.getEvents().map((e) => e.seq);
+        expect(new Set(seqs).size).toBe(seqs.length);
+    });
+
+    it('backfills a host only onto records of the action being recorded', function () {
+        const { game, rec } = mk();
+        const p1 = { id: 'p1' };
+        const hostA = fakeCard({ uuid: 'HOST-A', zoneName: 'groundArena', owner: p1 });
+        const hostB = fakeCard({ uuid: 'HOST-B', zoneName: 'groundArena', owner: p1 });
+        const upg: any = fakeCard({ uuid: 'UPG', zoneName: 'groundArena', owner: p1, printedType: 'basicUpgrade' });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardPlayed, { card: hostA, player: p1, playType: 'play' });
+        game.emit(EventName.OnCardPlayed, { card: hostB, player: p1, playType: 'play' });
+
+        // Engine order for a played upgrade: MOVE, attach, then OnCardPlayed (host reachable).
+        game.emit(EventName.OnCardMoved, { card: upg, originalZone: 'hand', newZone: 'groundArena' });
+        upg.parentCard = hostA;
+        game.emit(EventName.OnUpgradeAttached, { parentCard: hostA, upgradeCard: upg });
+        game.emit(EventName.OnCardPlayed, { card: upg, player: p1, playType: 'play' });
+
+        // A later action bounces it and re-plays it onto a different host.
+        game.emit(EventName.OnCardMoved, { card: upg, originalZone: 'groundArena', newZone: 'hand' });
+        game.emit(EventName.OnCardMoved, { card: upg, originalZone: 'hand', newZone: 'groundArena' });
+        upg.parentCard = hostB;
+        game.emit(EventName.OnUpgradeAttached, { parentCard: hostB, upgradeCard: upg });
+        game.emit(EventName.OnCardPlayed, { card: upg, player: p1, playType: 'play' });
+
+        const arenaMoves = rec.getEvents().filter((e: any) => e.t === 'MOVE' && e.card === 'UPG' && e.to === 'ground') as any[];
+        expect(arenaMoves.map((m) => m.attachedTo)).toEqual(['HOST-A', 'HOST-B']);
+        expect(arenaMoves.map((m) => m.kind)).toEqual(['upgrade', 'upgrade']);
+        const plays = rec.getEvents().filter((e: any) => e.t === 'PLAY_UPGRADE') as any[];
+        expect(plays.map((p) => p.target)).toEqual(['HOST-A', 'HOST-B']);
+        // The move back to hand attaches nothing and names no host.
+        const toHand = rec.getEvents().find((e: any) => e.t === 'MOVE' && e.card === 'UPG' && e.to === 'hand') as any;
+        expect(toHand.attachedTo).toBeUndefined();
+    });
+
+    it('TAKE_CONTROL re-seats a stolen unit and shifts a stolen resource; credits are skipped', function () {
+        const { game, rec } = mk();
+        const p1 = { id: 'p1' };
+        const p2 = { id: 'p2' };
+        const unit: any = fakeCard({ uuid: 'SOR#108', zoneName: 'groundArena', owner: p1 });
+        const res: any = fakeCard({ uuid: 'SOR#050', zoneName: 'hand', owner: p1 });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play' });
+        game.emit(EventName.OnCardMoved, { card: res, originalZone: 'hand', newZone: 'resource' });
+        res.zoneName = 'resource';
+
+        // A control change is not a zone change: the engine changes the controller in place.
+        unit.controller = p2;
+        game.emit(EventName.OnTakeControl, { card: unit, newController: p2 });
+        res.controller = p2;
+        game.emit(EventName.OnTakeControl, { card: res, newController: p2 });
+        game.emit(EventName.OnTakeControl, { newController: p2, amount: 1, player: p1 }); // credit tokens
+
+        const events = rec.getEvents() as GameEvent[];
+        const steals = events.filter((e) => e.t === 'TAKE_CONTROL') as any[];
+        expect(steals.map((s) => [s.p, s.zone, s.from])).toEqual([[2, 'ground', 1], [2, 'resource', 1]]);
+
+        const s = fold(events);
+        expect(s.players[1]?.cards.map((c) => c.id)).toEqual([]);
+        expect(s.players[2]?.cards.map((c) => c.id)).toEqual(['SOR#108']);
+        expect(s.players[1]?.resourcesReady).toBe(0);
+        expect(s.players[2]?.resourcesReady).toBe(1);
+    });
+
+    it('records a leader deployed as a pilot as an attachment, never as its own unit', function () {
+        const { game, rec } = mk();
+        const p1 = { id: 'p1' };
+        const xwing = fakeCard({ uuid: 'LAW#253', zoneName: 'spaceArena', owner: p1 });
+        const leader = fakeCard({ uuid: 'SOR#001', zoneName: 'spaceArena', owner: p1, printedType: 'leader' });
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardPlayed, { card: xwing, player: p1, playType: 'play' });
+        game.emit(EventName.OnLeaderDeployed, { card: leader, player: p1, type: 'leaderUpgrade', leaderAttachTarget: xwing });
+
+        const deploy = rec.getEvents().find((e) => e.t === 'DEPLOY_LEADER') as any;
+        expect(deploy.kind).toBe('upgrade');
+        expect(deploy.target).toBe('LAW#253');
+        const s = fold(rec.getEvents());
+        expect(s.players[1]?.cards.map((c) => c.id)).toEqual(['LAW#253']);
+        expect(s.players[1]?.cards[0].upgrades).toContain('SOR#001');
+    });
+
+    it('counts every handler failure, capped logging or not, for the RecorderErrors header', function () {
+        const { game, rec } = mk();
+        spyOn(logger, 'warn');
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        for (let i = 0; i < 25; i++) {
+            // A damage event whose target throws on every read.
+            const hostile = new Proxy({}, {
+                get: () => {
+                    throw new Error('boom');
+                },
+            });
+            game.emit(EventName.OnDamageDealt, { card: hostile });
+        }
+        expect(rec.getErrorCount()).toBe(25);
+        const h = buildHeader({
+            gameId: 'g', date: 'd', cardPool: 'SOR', engineVersion: 'forceteki@t', seed: 's', perspective: null,
+            rounds: 1, result: 'Incomplete', reason: 'x',
+            p1: { username: 'a', leader: 'L', base: 'B' }, p2: { username: 'b', leader: 'L', base: 'B' },
+            recorderErrors: rec.getErrorCount(),
+        });
+        expect(h.recorderErrors).toBe(25);
+    });
+});

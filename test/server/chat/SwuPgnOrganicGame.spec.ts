@@ -39,6 +39,9 @@ describe('SWU-PGN/1.0 writer contract (organic game)', function () {
             const baseOf = (p: any) => (p === p1 ? context.p2Base : context.p1Base);
             const active = () => (p1.canAct ? p1 : p2);
 
+            // Seed before the first shuffle so a failure on an unlucky draw is reproducible.
+            game.setRandomSeed('swu-pgn-organic-game');
+
             // ── setup: initiative, mulligan, two resources each ──
             context.selectInitiativePlayer(p1);
             p1.clickPrompt('Mulligan');
@@ -97,12 +100,17 @@ describe('SWU-PGN/1.0 writer contract (organic game)', function () {
             expect(validate(text).issues).toEqual([]);
 
             // 3. Date is when the game started, not when the file was written (spec §5.1).
-            expect(doc.header.date).toBe((game.startedAt ?? game.createdAt).toISOString());
+            expect(game.startedAt).toBeDefined();
+            expect(doc.header.date).toBe(game.startedAt.toISOString());
 
-            // 4. GAME_END is the last record and sits at the .end of the phase it happened in (§9.1).
+            // 4. GAME_END is the last record and takes its own step in the phase it happened
+            //    in (§9.1), so it never shares a seq with that phase's PHASE_END.
             const last = doc.events[doc.events.length - 1] as any;
             expect(last.t).toBe('GAME_END');
-            expect(last.seq).toBe(`R${game.roundNumber}.A.end`);
+            expect(last.seq).toBe(`R${game.roundNumber}.A.game-end`);
+            expect(new Set(doc.events.map((e) => e.seq)).size).toBe(doc.events.length);
+            // 4b. No handler failed while recording: the header carries no error marker.
+            expect(doc.header.recorderErrors).toBeUndefined();
             expect(doc.header.result).toBe('P1');
             expect(doc.header.reason).toBe('Concession');
 

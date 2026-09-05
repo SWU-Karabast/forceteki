@@ -119,3 +119,24 @@ describe('SwuPgnGameAdapter.engineVersion', function () {
         expect(shaSpy.calls.count()).toBe(1);
     });
 });
+
+describe('SwuPgnGameAdapter header Date', function () {
+    const players = () => [1, 2].map((n) => ({
+        id: `p${n}`, name: `Player${n}`, user: { username: `user${n}` },
+        deckLeader: { setId: { set: 'sor', number: 10 } }, base: { setId: { set: 'sor', number: 20 } },
+    }));
+    const headerFor = (extra: Record<string, unknown>) => (new SwuPgnGameAdapter({
+        ...fakeGame({ players: players() }), id: 'g', gameMode: 'premier', roundNumber: 3, randomSeed: 'seed', ...extra,
+    }) as any).swuPgnHeaderContext();
+
+    it('is when the game STARTED, falling back to creation for a game that never started', function () {
+        const started = new Date('2026-01-01T10:00:00Z');
+        const created = new Date('2026-01-01T09:00:00Z');
+        expect(headerFor({ startedAt: started, createdAt: created }).date).toBe(started.toISOString());
+        expect(headerFor({ createdAt: created }).date).toBe(created.toISOString());
+    });
+
+    it('omits RecorderErrors when no handler failed', function () {
+        expect(headerFor({ createdAt: new Date() }).recorderErrors).toBeUndefined();
+    });
+});

@@ -240,6 +240,7 @@ banner.
 |---|---|
 | `Format` | The tournament format, e.g. `"premier"`. Case is **not** standardised — accept any case. |
 | `Perspective` | `"P1"` or `"P2"`. If it's there, the file was recorded through that player's eyes, so the other player's hidden cards MAY be missing. If it's absent, the file sees everything. |
+| `RecorderErrors` | How many of the writer's event handlers failed while recording, as digits, e.g. `"2"`. **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so `checkKeyframes()` will report mismatches and `stateAt()` between keyframes may be wrong. A reader SHOULD surface it. |
 
 Unknown tags MUST be accepted and ignored.
 
@@ -411,16 +412,25 @@ it exactly when the card is neither. That covers more than tokens:
 | A base, an undeployed leader | *absent* | Neither, by printed type. |
 
 The same rule holds wherever `kind` appears — `%%% CARDS`, `MOVE`, `CREATE_TOKEN`: an Event's
-and a Credit token's records carry no `kind`, and every unit's and upgrade's records do.
+and a Credit token's records carry no `kind`, and every unit's and upgrade's records do, with
+one exception: a leader's **undeploy** `MOVE` (`ground` → `base`) is emitted after the engine
+has already stopped counting the card as a unit, so it carries no `kind`. Leaving an arena
+needs none.
 
 Note that this index reports what a card **is** (its printed type), while the same field on an
 event reports what that **event did**. They disagree for pilots, deliberately — see
 [§10.1](#kind-on-an-event-is-a-role-kind-in--cards-is-an-identity).
 
-A reader MUST therefore treat an absent `kind` as **not an upgrade** (it never attaches) and
-equally as **not a unit** (it never joins arena membership). Do not guess from the id, and do
-not read the omission as a writer that forgot the field — absent is a positive statement. A
-future card that is neither also carries no `kind` and needs no format change to be handled.
+In `%%% CARDS`, a reader MUST therefore treat an absent `kind` as **not an upgrade** (it never
+attaches) and equally as **not a unit** (it never joins arena membership). Do not guess from
+the id, and do not read the omission as a writer that forgot the field — absent is a positive
+statement. A future card that is neither also carries no `kind` and needs no format change to
+be handled.
+
+On an **event** the fold never consults identity: a `MOVE` or `CREATE_TOKEN` whose `kind` is
+absent is folded as a unit move ([§12.1](#121-the-move-rule-the-big-one) step 3), because
+only `"upgrade"` switches that step off. That is deliberate — every pre-release 1.1 file
+consists of kind-less `MOVE`s ([§22.1](#221-files-that-say-swu-pgn11)), and they fold.
 
 Rules:
 
@@ -552,9 +562,11 @@ So "everything action `N` did" is the `Na…` records *after* it, **plus** any t
 not re-number them: when they arrive it cannot know that an action is about to follow, and
 guessing would mis-file a previous action's genuine consequences.
 
-`R1.A.start` / `R1.A.end` mark the edges of a phase. `GAME_END` is written with the
-`.end` step of the phase it happened in — `R7.A.end` for a base destroyed in the action
-phase, `R5.G.end` for a concession during regroup.
+`R1.A.start` / `R1.A.end` mark the edges of a phase. `GAME_END` takes its own step,
+`.game-end`, in the phase it happened in — `R7.A.game-end` for a base destroyed in the action
+phase, `R5.G.game-end` for a concession during regroup. It is its own step because play may
+continue after game end, in which case that phase's `PHASE_END` is written too, and every
+`seq` in a file is unique.
 
 ---
 
@@ -698,18 +710,47 @@ Event cards go straight to the discard pile — never into play.
 | `p` | 1 or 2 | yes | Who played it. |
 | `card` | string | yes | The upgrade's card id. |
 | `target` | string | no | The unit it went onto. |
-| `zone` | string | no | Fallback zone if the unit can't be found. |
+| `zone` | string | no | Where the card went, recorded for completeness. It is **not** a fallback placement. |
 | `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. |
 
 If `target` is given and that unit is on the board, the upgrade id is pushed onto that
-unit's `upgrades` list. Otherwise the upgrade is tracked as its own card.
+unit's `upgrades` list. Otherwise the event changes **nothing**: an upgrade is never an
+arena card, so there is no fallback placement ([§12.2](#122-every-other-rule-in-one-table)).
 
 ---
 
 **`DEPLOY_LEADER` — a leader stepped out of the base zone into an arena.**
 
-Fields: `p`, `card`, optional `zone` (default `"ground"`), optional `cost`.
-Puts the leader in play.
+Fields: `p`, `card`, optional `zone` (default `"ground"`), optional `cost`, and, together,
+optional `kind` + `target`.
+Puts the leader in play — unless it deployed **as a pilot**: then `kind` is `"upgrade"`,
+`target` is the vehicle it flew onto, and the leader is pushed onto that unit's `upgrades`
+exactly as `PLAY_UPGRADE` does. It is never an arena card of its own.
+
+---
+
+**`TAKE_CONTROL` — `p` took control of `card`.**
+
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `p` | 1 or 2 | yes | The new controller. |
+| `card` | string | yes | The card id. |
+| `zone` | string | no | Where the card is now (`ground`, `space`, `resource`). |
+| `from` | 1 or 2 | no | The seat it left. Present only when this record has to carry the counts (see below). |
+
+**A control change is not a zone change**, so no `MOVE` accompanies it: a stolen unit stays in
+the same arena, a stolen resource stays a resource. This record therefore re-seats the card
+itself:
+
+- `zone` is an arena → take the card entry, with its damage, exhaustion and tokens, out of
+  whichever seat's `cards` holds it and push it onto `players[p].cards`.
+- `zone` is `resource` and `from` is present → `players[from].resourcesReady - 1` (never
+  below 0), `players[p].resourcesReady + 1`.
+- otherwise → nothing.
+
+`from` is omitted when the steal **did** change zone (a unit taken straight into the resource
+row): a `MOVE` was written beside it and already carried the counts, and shifting them twice
+would be wrong. Recording it for credit tokens is skipped; credits are not folded.
 
 ---
 
@@ -902,7 +943,7 @@ These never change the board. A folder MUST read them and do nothing.
 | `KEEP_HAND` | `p` | A player kept their hand. |
 | `ABILITY_ACTIVATE` | `p`, `card`, `ability` (optional) | An ability was used. |
 | `SHUFFLE` | `p` | A deck was shuffled. |
-| `CAPTURE` / `RESCUE` / `TAKE_CONTROL` | `p`, `card` | Captured / rescued / control taken. |
+| `CAPTURE` / `RESCUE` | `p`, `card` | Captured / rescued. (`TAKE_CONTROL` re-seats a card and lives in [§10.1](#101-events-that-carry-board-detail).) |
 | `SEARCH` | `p`, `found` (optional), `zone` (optional) | A player searched. See the rule below. |
 | `REVEAL` | `p`, `zone`, `cards` | Cards were shown. |
 | `TRIGGER` | `card`, `p` (optional) | A triggered ability fired. |
@@ -997,7 +1038,7 @@ players 1 and 2, each:
 fold(events):
   state = emptyState()
   for each event e:
-    if (e.t is ROUND_START or ROUND_END) and e.keyframe exists:
+    if (e.t is ROUND_START or ROUND_END) and e.keyframe is complete:   # both seats, see §13
       state = deepCopy(e.keyframe)   # the keyframe is the truth
       continue                       # and skip the normal rule
     state = reduce(state, e)
@@ -1044,7 +1085,8 @@ twice.
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
 | `PLAY_EVENT` | push `card` onto `players[p].discard` |
 | `PLAY_UPGRADE` | if `target` is set and that card is on the board → push `card` onto its `upgrades`; otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
-| `DEPLOY_LEADER` | place `card` in `zone ?? "ground"`, idempotent by id |
+| `DEPLOY_LEADER` | if `kind` is `"upgrade"` → push `card` onto `target`'s `upgrades` (nothing if the host isn't tracked); else place `card` in `zone ?? "ground"`, idempotent by id |
+| `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one `resourcesReady` from `from` to `p`; otherwise nothing ([§10.1](#101-events-that-carry-board-detail)) |
 | `CREATE_TOKEN` | place `token` in `zone`, idempotent by id — unless `kind` is `"upgrade"`, then nothing |
 | `MOVE` | see [§12.1](#121-the-move-rule-the-big-one) |
 | `DAMAGE` | `base@N` → `players[N].baseHp = hp`; else `card.damage = max(0, damage + amt)` |
@@ -1165,7 +1207,7 @@ Everything except `baseHp` is compared at **every** keyframe, the first one incl
 | `hasForce` | No event carries the Force yet. |
 | `resourcesExhausted` | Nothing tracks resource exhaustion yet. |
 | `hand` / `discard` **contents** | Only the counts are reconstructable today. |
-| `upgrades` | Upgrade nesting isn't modelled in the fold. |
+| `upgrades` | Modelled by `PLAY_UPGRADE.target` ([§12.2](#122-every-other-rule-in-one-table)), but not yet compared by `checkKeyframes`. |
 
 Closing these is future work. Until then, do not assume a passing check proves those
 fields.
@@ -1177,6 +1219,10 @@ A mismatch looks like:
 ```
 
 `expected` is the keyframe (the engine's truth). `got` is what folding produced.
+
+A keyframe that is **damaged** — missing a seat, or with `cards`/`hand`/`discard` that are
+not arrays — is never compared or snapped to ([§13](#13-keyframes)). It is reported as one
+mismatch with `path: "keyframe"`, and folding carries on from the running state.
 
 ---
 
@@ -1491,8 +1537,8 @@ so this is low priority — but emitting it would give the keyframe gate an inde
 to check the first keyframe against, which is the one place it currently can't
 ([§14](#14-checking-a-file-is-honest)).
 
-Closing those needs new events (there is no event for credits or the Force today) and a fold
-rule for upgrade nesting.
+Closing those needs new events (there is no event for credits or the Force today); `upgrades`
+only needs the comparison added to `checkKeyframes`.
 
 Some defined event types still never appear in a real file, simply because nothing in a
 given game triggers them (`CAPTURE`, `RESCUE`, `TAKE_CONTROL`, `OVERWHELM`, `MULLIGAN` and
@@ -1520,6 +1566,26 @@ Future versions follow the rules in [§18](#18-versions-and-unknown-things): a M
 for additions old readers can ignore, a MAJOR bump for anything that would break them. When
 one lands, this section gains a row per behaviour change and how to detect it from the file,
 so a reader can tell versions apart without trusting the header alone.
+
+### 1.0 writer changes before first release
+
+The reference writer changed behaviour several times while 1.0 was being shaken out against
+real games, before any 1.0 file was published. None of these needed a version bump — every
+one is an addition, a correction, or a wording change that a 1.0 reader already tolerates —
+but each is detectable from the file, so a reader that meets an early 1.0 file can tell:
+
+| Earlier 1.0 files | Current 1.0 files | Detect |
+|---|---|---|
+| Story wrote `(2 resources)` after a play | `(cost 2)` — it is the printed cost ([§10.1](#101-events-that-carry-board-detail)) | a story line containing `resources)` |
+| `CHOICE.offered` named a base by its card id (`SOR#029`) | `base@N` ([§6.3](#63-pointing-at-a-base)) | `offered` entry matching `^base@[12]$` |
+| Deck construction emitted 40 `MOVE`s `outsideTheGame` → `deck` | not recorded ([§10.1](#101-events-that-carry-board-detail)) | any `MOVE` with `from: "outsideTheGame"`, `to: "deck"` |
+| `%%% CARDS.kind` followed the live role (a pilot said `upgrade` while attached) | the printed identity ([§10.1](#kind-on-an-event-is-a-role-kind-in--cards-is-an-identity)) | not detectable from the index alone; a pilot's `MOVE` `kind` disagreeing with its index `kind` shows the current writer |
+| `%%% CARDS` covered only ids that events mentioned | also the header's leaders/bases and every deck id ([§6.5](#65-the-cards-index)) | an undeployed leader (`P1Leader`) absent from the index |
+| `GAME_END` seq was `R<n>.A.end`, shared with that phase's `PHASE_END` | `R<n>.<phase>.game-end`, its own step ([§9.1](#91-how-seq-is-built)) | a `GAME_END` whose seq ends in `.game-end` |
+| A control change (`TAKE_CONTROL`) was a note with no fold effect, so a stolen unit stayed under its old seat | it re-seats the card ([§10.1](#101-events-that-carry-board-detail)) | a `TAKE_CONTROL` carrying `zone` |
+| A leader deployed as a pilot was a `DEPLOY_LEADER` with no host, folded as its own unit | `kind: "upgrade"` + `target` ([§10.1](#101-events-that-carry-board-detail)) | a `DEPLOY_LEADER` carrying `target` |
+| `%%% CARDS` covered only ids that events mentioned; `RecorderErrors` did not exist | header carries `RecorderErrors` when a handler failed ([§5.2](#52-you-may-have-these)) | the tag's presence |
+| `Date` was when the file was written | when the game started ([§5.1](#51-you-must-have-these)) | not detectable; treat an early file's `Date` as "at or after game end" |
 
 ### 22.1 Files that say `SWU-PGN/1.1`
 
@@ -1578,7 +1644,7 @@ A.3 exactly.
 [GameId "vector-minimal"]
 [Date "2026-06-16T00:00:00Z"]
 [Format "Premier"] [CardPool "SOR"] [Engine "forceteki@reference"]
-[Seed "0"] [Perspective "P1"]
+[Seed "0"]
 [P1Id "sha256:aaaa"] [P2Id "sha256:bbbb"] [P1 "Player 1"] [P2 "Player 2"]
 [P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]
 [Result "Incomplete"] [Reason "Sample"] [Rounds "1"]

@@ -1900,6 +1900,17 @@ export class Game extends EventEmitter {
 
         const player = this.getPlayerById(playerId);
 
+        // Once the SWU-PGN log has been served, the game is closed to undo. The file carries
+        // both players' remaining deck order, hands and the RNG seed; in a free-undo lobby a
+        // player could concede, download it, undo past game end and resume play holding all
+        // of that. Whether a given rollback would cross game end is only known after it runs
+        // (SnapshotManager.rolledPastGameEnd), so every rollback of an ended, served game is
+        // refused rather than just the ones that reopen it.
+        if (this.isEnded && this._swuPgnFileServed) {
+            this.addAlert(AlertType.Warning, '{0} cannot undo: the game log has already been downloaded', player);
+            return false;
+        }
+
         const rollbackInformation = this.snapshotManager.getRollbackInformation(settings);
 
         let message: string;
@@ -2058,6 +2069,13 @@ export class Game extends EventEmitter {
      * holding the opponent's remaining deck order.
      */
     public markSwuPgnServed(): void {
+        // Public Game methods are reachable as socket game commands (Lobby.onGameMessage
+        // dispatches by name). Only a served file can have been served, so a mid-game call
+        // must be a no-op: otherwise a client could set the flag, undo, and have the
+        // opponent's replay withheld for the rest of the game.
+        if (!this.isEnded) {
+            return;
+        }
         this._swuPgnFileServed = true;
     }
 
@@ -2079,7 +2097,12 @@ export class Game extends EventEmitter {
         // the restored snapshot id drops exactly the events recorded after it and restores
         // counters + shieldParents. currentSnapshotId already reflects the restored snapshot.
         this._swuPgnAdapter.rollbackTo(this._snapshotManager.currentSnapshotId);
-        this._cachedSwuPgnFile = undefined;
+        // Only an undo that reopens the game invalidates the pinned end-of-game file. Players
+        // may keep playing after game end; an undo within that post-game play must not
+        // regenerate (and re-serve) a file that now differs from the one already downloaded.
+        if (!this.isEnded) {
+            this._cachedSwuPgnFile = undefined;
+        }
 
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();

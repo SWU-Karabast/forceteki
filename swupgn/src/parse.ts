@@ -41,6 +41,7 @@ function buildHeader(raw: Record<string, string>): Header {
         p2Leader: req('P2Leader'), p2Base: req('P2Base'),
         result: req('Result') as Header['result'], reason: req('Reason'),
         rounds: finiteOr(req('Rounds'), 0),
+        ...(raw['RecorderErrors'] != null ? { recorderErrors: finiteOr(raw['RecorderErrors'], 0) } : {}),
     };
 }
 
@@ -86,7 +87,10 @@ export function parse(text: string): SwuPgnDocument {
         if (line.length === 0) {
             continue;
         }
-        if (line.startsWith('[')) {
+        // Header lines only exist before the first banner (spec §4). Inside a JSON section a
+        // `[`-prefixed line is a record (a JSON array), and must reach the JSON path below so
+        // that validate() can reject it, rather than vanish as a mis-parsed header.
+        if (section === 'NONE' && line.startsWith('[')) {
             parseHeaderLine(line, raw);
             continue;
         }
