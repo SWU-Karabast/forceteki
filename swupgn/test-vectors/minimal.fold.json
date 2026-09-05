@@ -1,18 +1,19 @@
 {
-  "round": 1,
+  "round": 2,
   "phase": "action",
   "initiative": 1,
+  "initiativeTaken": false,
   "players": {
     "1": {
       "seat": 1,
       "baseHp": 30,
       "baseMaxHp": 30,
-      "handSize": 0,
+      "handSize": 1,
       "hand": [
-        "SOR#108"
+        "SOR#108:5"
       ],
-      "resourcesReady": 0,
-      "resourcesExhausted": 2,
+      "resourcesReady": 3,
+      "resourcesExhausted": 0,
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -26,24 +27,44 @@
           "shields": 0,
           "experience": 0,
           "statusTokens": {},
-          "captured": []
+          "captured": [],
+          "power": 4,
+          "hp": 5,
+          "keywords": [
+            "overwhelm"
+          ]
         }
-      ]
+      ],
+      "deckSize": 0,
+      "leader": {
+        "id": "SOR#010",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     },
     "2": {
       "seat": 2,
       "baseHp": 26,
       "baseMaxHp": 30,
-      "handSize": 1,
+      "handSize": 2,
       "hand": [
-        "SOR#045"
+        "SOR#045",
+        "SOR#045:5"
       ],
-      "resourcesReady": 2,
+      "resourcesReady": 3,
       "resourcesExhausted": 0,
       "credits": 0,
       "hasForce": false,
       "discard": [],
-      "cards": []
+      "cards": [],
+      "deckSize": 0,
+      "leader": {
+        "id": "SOR#005",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     }
   }
 }

@@ -9,7 +9,7 @@ describe('swupgn public API', function () {
         expect(validate(text).valid).toBe(true);
         const doc = parse(text);
         const s = fold(doc.events);
-        expect(s.round).toBe(1);
+        expect(s.round).toBe(2);
         const story = render(doc, { nameOf: (id) => id });
         expect(story.length).toBeGreaterThan(0);
         const mid = stateAt(doc.events, 'R1.A.1');

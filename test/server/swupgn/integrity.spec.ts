@@ -231,11 +231,43 @@ describe('checkKeyframes — the resource, credit, Force and attachment fields',
         expect(checkKeyframes(events).mismatches).toEqual([]);
     });
 
-    it('does not compare power/hp: they are snapshot fields, not folded ones', function () {
+    it('compares power/hp/keywords once STATS has stated them, and skips them when the keyframe has none', function () {
+        const enter: GameEvent = { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' };
+        const stats: GameEvent = { seq: 'R1.A.0b', t: 'STATS', card: 'SOR#095', power: 5, hp: 3, keywords: ['raid 2', 'sentinel'] };
+        // Agreement.
+        expect(checkKeyframes([enter, stats, kf('R1.end', seat(1, { cards: [card('SOR#095', { power: 5, hp: 3, keywords: ['sentinel', 'raid 2'] })] }), seat(2))]).mismatches).toEqual([]);
+        // The stream never said: reported, because the keyframe did.
+        expect(checkKeyframes([enter, kf('R1.end', seat(1, { cards: [card('SOR#095', { power: 5, hp: 3 })] }), seat(2))]).mismatches.map((m) => m.path))
+            .toEqual(['players.1.cards[SOR#095].power', 'players.1.cards[SOR#095].hp']);
+        // An older keyframe with no stats has nothing to compare.
+        expect(checkKeyframes([enter, stats, kf('R1.end', seat(1, { cards: [card('SOR#095')] }), seat(2))]).mismatches).toEqual([]);
+    });
+
+    it('gates the leader, the deck count (first keyframe exempt) and the initiative status', function () {
+        const leader = (over = {}) => ({ id: 'SOR#010', deployed: false, exhausted: false, epicActionUsed: false, ...over });
         const events: GameEvent[] = [
-            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
-            kf('R1.end', seat(1, { cards: [card('SOR#095', { power: 5, hp: 3 })] }), seat(2)),
+            { seq: 'R1.start', t: 'ROUND_START', round: 1, keyframe: { round: 1, phase: 'action', initiative: 1, initiativeTaken: false, players: { 1: seat(1, { deckSize: 40, leader: leader() }), 2: seat(2, { deckSize: 40, leader: leader({ id: 'SOR#005' }) }) } } },
+            { seq: 'R1.A.1', t: 'DEPLOY_LEADER', p: 1, card: 'SOR#010', zone: 'ground', epic: true },
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'SOR#010', from: 'base', to: 'ground', p: 1 },
+            { seq: 'R1.A.2', t: 'CLAIM_INITIATIVE', p: 2 },
+            { seq: 'R1.A.2a', t: 'EXHAUST', card: 'SOR#005' },
+            { seq: 'R1.G.1', t: 'MOVE', card: 'X', from: 'deck', to: 'hand', p: 1 },
+            { seq: 'R1.end', t: 'ROUND_END', round: 1, keyframe: { round: 1, phase: 'regroup', initiative: 2, initiativeTaken: true, players: { 1: seat(1, { handSize: 1, deckSize: 39, leader: leader({ deployed: true, epicActionUsed: true }), cards: [card('SOR#010')] }),
+                2: seat(2, { deckSize: 40, leader: leader({ id: 'SOR#005', exhausted: true }) }) } } },
+            // Round 2 opens: the counter is available again, and the deck count is now compared.
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'action', initiative: 2, initiativeTaken: false, players: { 1: seat(1, { handSize: 1, deckSize: 39, leader: leader({ deployed: true, epicActionUsed: true }), cards: [card('SOR#010')] }),
+                2: seat(2, { deckSize: 40, leader: leader({ id: 'SOR#005', exhausted: true }) }) } } },
         ];
         expect(checkKeyframes(events).mismatches).toEqual([]);
+        // ...and each is reported when wrong.
+        const wrong = JSON.parse(JSON.stringify(events)) as any[];
+        wrong[6].keyframe.initiativeTaken = false;
+        wrong[6].keyframe.players[1].deckSize = 38;
+        wrong[6].keyframe.players[1].leader.epicActionUsed = false;
+        wrong[6].keyframe.players[2].leader.exhausted = false;
+        expect(checkKeyframes(wrong).mismatches.filter((m) => m.seq === 'R1.end').map((m) => m.path)
+            .sort()).toEqual([
+            'initiativeTaken', 'players.1.deckSize', 'players.1.leader.epicActionUsed', 'players.2.leader.exhausted',
+        ]);
     });
 });

@@ -9,7 +9,30 @@ function emptyPlayer(seat: Seat): PlayerState {
 }
 
 export function emptyState(): ReducedState {
-    return { round: 0, phase: 'setup', initiative: null, players: { 1: emptyPlayer(1), 2: emptyPlayer(2) } };
+    return { round: 0, phase: 'setup', initiative: null, initiativeTaken: false, players: { 1: emptyPlayer(1), 2: emptyPlayer(2) } };
+}
+
+/** The seat whose leader is `id`, if a keyframe or a DEPLOY_LEADER has told us. */
+function leaderOwner(s: ReducedState, id: string): PlayerState | undefined {
+    for (const seat of [1, 2] as Seat[]) {
+        const ps = s.players[seat];
+        if (ps?.leader?.id === id) {
+            return ps;
+        }
+    }
+    return undefined;
+}
+
+/** Set the ready/exhausted flag of `id` wherever it lives: an arena card, the leader, or both. */
+function setExhausted(s: ReducedState, id: string, exhausted: boolean): void {
+    const c = findCard(s, id);
+    if (c) {
+        c.exhausted = exhausted;
+    }
+    const owner = leaderOwner(s, id);
+    if (owner?.leader) {
+        owner.leader.exhausted = exhausted;
+    }
 }
 
 /** `x` if it is an array, else `[]`. A file is untrusted input; `cards: 5` must not throw. */
@@ -215,6 +238,7 @@ function countBaseToken(ps: PlayerState, id: string, delta: 1 | -1): void {
 }
 
 const ARENA_ZONES = new Set(['ground', 'space']);
+const isArena = (z: string): boolean => ARENA_ZONES.has(z);
 
 /**
  * Engine truth: every zone transition is an OnCardMoved → MOVE event. handSize, the resource
@@ -255,6 +279,24 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         ps.handSize += 1;
     } else if (e.from === 'hand' && e.to !== 'hand') {
         ps.handSize = Math.max(0, ps.handSize - 1);
+    }
+
+    // Deck count, once a keyframe has told us where it started.
+    if (typeof ps.deckSize === 'number') {
+        if (e.to === 'deck' && e.from !== 'deck') {
+            ps.deckSize += 1;
+        } else if (e.from === 'deck' && e.to !== 'deck') {
+            ps.deckSize = Math.max(0, ps.deckSize - 1);
+        }
+    }
+
+    // The leader coming home: its Leader Unit side left play. The recorder writes an EXHAUST
+    // beside this move when the card came back exhausted (CR 3.4.5), so nothing to guess here.
+    if (e.to === 'base' && isArena(e.from)) {
+        const owner = leaderOwner(s, e.card);
+        if (owner?.leader) {
+            owner.leader.deployed = false;
+        }
     }
 
     // Resource row. A card enters ready (an EXHAUST_RESOURCES beside the move says otherwise);
@@ -306,9 +348,9 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
 /** Apply a single event to state, mutating and returning it. */
 export function reduce(s: ReducedState, e: GameEvent): ReducedState {
     switch (e.t) {
-        case 'ROUND_START': s.round = e.round; break;
+        case 'ROUND_START': s.round = e.round; s.initiativeTaken = false; break;
         case 'PHASE_START': s.phase = (e.phase as ReducedState['phase']); break;
-        case 'CLAIM_INITIATIVE': s.initiative = e.p; break;
+        case 'CLAIM_INITIATIVE': s.initiative = e.p; s.initiativeTaken = true; break;
         // handSize/resourcesReady are driven by MOVE (the engine's source of truth for
         // zone transitions); see applyMoveCounts. PLAY only places the card in its zone —
         // the matching hand->zone MOVE accounts for the hand decrement.
@@ -327,6 +369,19 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             break;
         }
         case 'DEPLOY_LEADER': {
+            // The leader's status: this record names the leader (so a reader that saw no keyframe
+            // yet learns which card it is), deploys it, and readies it -- a leader deploys ready
+            // whatever state it was in (CR 3.4.4). An Epic Action deploy spends the Epic Action.
+            const ps = player(s, e.p);
+            if (ps) {
+                const prev = ps.leader;
+                ps.leader = {
+                    id: e.card,
+                    deployed: true,
+                    exhausted: false,
+                    epicActionUsed: (prev?.id === e.card && prev.epicActionUsed) || e.epic === true,
+                };
+            }
             // Deployed as a pilot: an attachment, never a body. Same rule as PLAY_UPGRADE.
             if (e.kind === 'upgrade') {
                 if (e.target) {
@@ -335,6 +390,27 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                 break;
             }
             placeCard(s, e.p, e.card, e.zone ?? 'ground');
+            break;
+        }
+        case 'ABILITY_ACTIVATE': {
+            if (e.epic === true) {
+                const owner = leaderOwner(s, e.card);
+                if (owner?.leader) {
+                    owner.leader.epicActionUsed = true;
+                }
+            }
+            break;
+        }
+        case 'STATS': {
+            // The engine's live numbers, stated outright. Nothing here is derived.
+            const c = findCard(s, e.card);
+            if (c) {
+                c.power = e.power;
+                c.hp = e.hp;
+                if (Array.isArray(e.keywords)) {
+                    c.keywords = [...e.keywords].map(String).sort();
+                }
+            }
             break;
         }
         case 'TAKE_CONTROL': {
@@ -467,8 +543,8 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             }
             break;
         }
-        case 'EXHAUST': { const c = findCard(s, e.card); if (c) { c.exhausted = true; } break; }
-        case 'READY': { const c = findCard(s, e.card); if (c) { c.exhausted = false; } break; }
+        case 'EXHAUST': setExhausted(s, e.card, true); break;
+        case 'READY': setExhausted(s, e.card, false); break;
         // MOVE is the single source of truth for handSize/resourcesReady and arena
         // membership (see applyMoveCounts). DRAW/DISCARD/RESOURCE no longer mutate those
         // counts — they coincide with the underlying MOVEs and would double-count.
@@ -496,7 +572,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         }
         // Pure-log events with no state delta:
         case 'ATTACK': case 'PASS': case 'CHOICE': case 'MULLIGAN':
-        case 'KEEP_HAND': case 'MODAL_CHOICE': case 'ABILITY_ACTIVATE': case 'SHUFFLE':
+        case 'KEEP_HAND': case 'MODAL_CHOICE': case 'SHUFFLE':
         case 'SEARCH': case 'REVEAL':
         case 'TRIGGER': case 'PHASE_END': case 'ROUND_END': case 'GAME_END':
             break;

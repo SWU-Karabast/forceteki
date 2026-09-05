@@ -4,11 +4,11 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, GameEndReason, PhaseName, ZoneName } from '../Constants';
 import { SwuPgn } from './SwuPgn';
-import { attachedHost, buildHeader, cardKind, printedCardKind, SwuPgnRecorder, tokenUpgradeKind } from './SwuPgnRecorder';
+import { attachedHost, buildHeader, cardKind, liveStats, printedCardKind, SwuPgnRecorder, tokenUpgradeKind } from './SwuPgnRecorder';
 import type { HeaderContext, SwuPgnResolver } from './SwuPgnRecorder';
 import { SwuPgnWriter } from './SwuPgnWriter';
 import { render } from '../../../../swupgn/src/render';
-import type { CardIndexRecord, CardInstanceState, DeckRecord, PlayerState, ReducedState, Seat, SwuPgnDocument } from '../../../../swupgn/src/types';
+import type { CardIndexRecord, CardInstanceState, DeckRecord, LeaderState, PlayerState, ReducedState, Seat, SwuPgnDocument } from '../../../../swupgn/src/types';
 
 /**
  * Read one engine value, falling back if the accessor throws.
@@ -347,6 +347,8 @@ export class SwuPgnGameAdapter {
         } catch {
             state.initiative = null;
         }
+        // CR 1.16: the counter's taken/available status is game state.
+        state.initiativeTaken = read(() => this.game.isInitiativeClaimed === true, false);
 
         // A keyframe REPLACES the reader's whole running state (spec §13), so a keyframe
         // missing a seat silently ERASES that player's board. Both seats are therefore
@@ -407,6 +409,20 @@ export class SwuPgnGameAdapter {
             }
         }
 
+        // The leader's status is game state the arena list cannot carry: in the base zone it
+        // is not a card in play, yet its ready/exhausted flag and its spent Epic Action decide
+        // what its owner can still do (CR 1.16).
+        const leaderCard = read<any>(() => player.deckLeader, null);
+        const leader: LeaderState | undefined = leaderCard
+            ? {
+                id: read(() => SwuPgn.formatSetId(leaderCard.setId.set, leaderCard.setId.number), 'unknown'),
+                deployed: read(() => leaderCard.deployed === true, false),
+                exhausted: read(() => leaderCard.exhausted === true, false),
+                epicActionUsed: read(() => (leaderCard.getActionAbilities?.() ?? [])
+                    .some((a: any) => a?.isEpicAction === true && a?.limit?.isAtMax?.(player) === true), false),
+            }
+            : undefined;
+
         return {
             seat,
             baseHp: read(() => base?.remainingHp ?? 0, 0),
@@ -419,6 +435,8 @@ export class SwuPgnGameAdapter {
             hasForce: read(() => player.hasTheForce ?? false, false),
             discard: cardIds(discardCards),
             cards,
+            deckSize: read<number>(() => (player.drawDeck ?? []).length, 0),
+            ...(leader ? { leader } : {}),
         };
     }
 
@@ -454,10 +472,9 @@ export class SwuPgnGameAdapter {
             .map((c: any) => read(() => (c?.uuid != null ? this.swuPgnCardId(c.uuid) : 'unknown'), 'unknown'))
             .filter((id: string) => id !== 'unknown');
 
-        // Live stats INCLUDING ability effects, which no reader can derive from the events
-        // (spec §11). Optional: absent when the engine can't compute them for this card.
-        const power = read<number | undefined>(() => (typeof card?.getPower === 'function' ? card.getPower() : undefined), undefined);
-        const hp = read<number | undefined>(() => (typeof card?.getHp === 'function' ? card.getHp() : undefined), undefined);
+        // Live stats INCLUDING ability effects, read by the same function the recorder's STATS
+        // records use, so the snapshot and the deltas agree by construction (spec §11).
+        const stats = read(() => liveStats(card), null);
 
         return {
             // `damage` and `exhausted` throw for a card in a zone where they don't apply,
@@ -471,8 +488,7 @@ export class SwuPgnGameAdapter {
             experience,
             statusTokens,
             captured,
-            ...(typeof power === 'number' ? { power } : {}),
-            ...(typeof hp === 'number' ? { hp } : {}),
+            ...(stats ? { power: stats.power, hp: stats.hp, keywords: stats.keywords } : {}),
         };
     }
 

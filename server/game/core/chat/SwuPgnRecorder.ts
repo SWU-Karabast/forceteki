@@ -117,6 +117,41 @@ export function cardKind(card: any): 'unit' | 'upgrade' | undefined {
 /** Spec §6.2 arena zones -- the destinations a reader turns into arena membership. */
 const ARENA_ZONE_NAMES = new Set(['ground', 'space']);
 
+/** What a `STATS` record and a keyframe card both state about an in-play unit. */
+export interface LiveStats {
+    power: number; hp: number; keywords: string[];
+}
+
+/**
+ * A unit's live power, HP and keywords AS THE ENGINE COMPUTES THEM -- printed values, upgrades,
+ * tokens, lasting effects, Raid while attacking, Grit, everything. Read here and nowhere else,
+ * so the STATS deltas and the keyframe snapshot can never disagree. A numeric keyword is
+ * `"raid 2"`; keywords the engine has blanked are left out; the list is sorted. Returns null
+ * when the card cannot answer (not a unit, or not in a zone where stats apply).
+ */
+export function liveStats(card: any): LiveStats | null {
+    try {
+        if (typeof card?.getPower !== 'function' || typeof card?.getHp !== 'function') {
+            return null;
+        }
+        const keywords: string[] = [];
+        for (const k of card.keywords ?? []) {
+            if (k?.isBlank) {
+                continue;
+            }
+            const name = String(k?.name ?? '');
+            if (!name) {
+                continue;
+            }
+            keywords.push(typeof k.hasNumericValue === 'function' && k.hasNumericValue() ? `${name} ${k.value}` : name);
+        }
+        keywords.sort();
+        return { power: card.getPower(), hp: card.getHp(), keywords };
+    } catch {
+        return null;
+    }
+}
+
 /**
  * The unit an upgrade is attached to, or null. The public `parentCard` getter throws once an
  * upgrade has been unattached (which happens during shield defeat), so the internal
@@ -185,19 +220,19 @@ export class SwuPgnRecorder {
     private readonly setup: (SetupInitRecord | GameEvent)[] = [];
 
     /** Current round number. */
-    private currentRound: number = 0;
+    private currentRound = 0;
 
     /** Current phase abbreviation: 'S', 'A', or 'G' (port of v1.0 scheme). */
-    private currentPhase: string = 'S';
+    private currentPhase = 'S';
 
     /** Incremented for top-level player actions during the Action Phase. */
-    private actionCounter: number = 0;
+    private actionCounter = 0;
 
     /** Incremented for events in Setup/Regroup phases. */
-    private phaseEventCounter: number = 0;
+    private phaseEventCounter = 0;
 
     /** Incremented for sub-events within an action; reset when actionCounter increments. */
-    private subEventCounter: number = 0;
+    private subEventCounter = 0;
 
     /** Caps repeated recorder-error logging so a broken handler can't flood the logs. */
     private static readonly maxLoggedErrors = 20;
@@ -225,6 +260,14 @@ export class SwuPgnRecorder {
     private readonly tokenParents = new Map<string, { parent: any; kind: TokenUpgradeKind }>();
 
     /**
+     * The last `STATS` written per in-play unit (uuid -> JSON of the record's fields), so the
+     * sync after each engine event writes a record only when something changed. Checkpointed
+     * with the rest of the recorder state: after an undo the engine's stats revert, and a stale
+     * map would suppress the record that says so.
+     */
+    private readonly lastStats = new Map<string, string>();
+
+    /**
      * Rollback checkpoints (array lengths + counters + tokenParents snapshot) keyed by
      * snapshot id, so the recorder rewinds in lockstep with the game on undo.
      * tokenParents is captured here because a
@@ -243,6 +286,7 @@ export class SwuPgnRecorder {
         loggedErrorCount: number;
         errorCount: number;
         tokenParents: [string, { parent: any; kind: TokenUpgradeKind }][];
+        lastStats: [string, string][];
     }[] = [];
 
     public constructor(game: Game, resolver: SwuPgnResolver) {
@@ -345,6 +389,10 @@ export class SwuPgnRecorder {
             for (const [uuid, entry] of boundary.tokenParents) {
                 this.tokenParents.set(uuid, entry);
             }
+            this.lastStats.clear();
+            for (const [uuid, key] of boundary.lastStats) {
+                this.lastStats.set(uuid, key);
+            }
             // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
             this.checkpoints.length = idx;
         } catch (error) {
@@ -380,6 +428,7 @@ export class SwuPgnRecorder {
                 loggedErrorCount: this.loggedErrorCount,
                 errorCount: this.errorCount,
                 tokenParents: [...this.tokenParents.entries()],
+                lastStats: [...this.lastStats.entries()],
             });
             // The engine retains only a handful of snapshots (SnapshotManager keeps 3 action + 2
             // phase), so a checkpoint older than that can never be rolled back to. Without a
@@ -686,6 +735,7 @@ export class SwuPgnRecorder {
         // 1.1 reader uses it both as a fast-forward anchor and as an integrity checkpoint
         // (checkKeyframes folds forward and asserts the running fold equals each keyframe).
         // Absent a resolver projection, ROUND_START stays valid without a keyframe.
+        this.syncStats();
         const event: GameEvent = {
             seq: `R${this.currentRound}.start`,
             t: 'ROUND_START',
@@ -733,8 +783,58 @@ export class SwuPgnRecorder {
     }
 
     /**
+     * Write a `STATS` record for every in-play unit whose live power, HP or keywords differ from
+     * the last one written for it, and forget units that left play (so a return writes fresh).
+     *
+     * Runs after every engine event, because that is the only honest granularity: a lasting
+     * effect ("+3/+0 for this attack"), Raid, Grit, an upgrade landing or leaving -- all of it
+     * changes a unit's numbers without any event naming the change. A reader with no rules
+     * engine cannot derive them; this tells it. Also run just before a keyframe is projected,
+     * so the snapshot never gets ahead of the deltas within one engine event.
+     */
+    private syncStats(): void {
+        let players: any[];
+        try {
+            players = this.game.getPlayers?.() ?? [];
+        } catch {
+            return;
+        }
+        const seen = new Set<string>();
+        for (const player of players) {
+            let units: any[];
+            try {
+                units = player?.getArenaUnits?.() ?? [];
+            } catch {
+                continue;
+            }
+            for (const unit of units) {
+                if (unit?.uuid == null) {
+                    continue;
+                }
+                const stats = liveStats(unit);
+                if (!stats) {
+                    continue;
+                }
+                seen.add(unit.uuid);
+                const key = JSON.stringify(stats);
+                if (this.lastStats.get(unit.uuid) === key) {
+                    continue;
+                }
+                this.lastStats.set(unit.uuid, key);
+                this.push({ seq: this.nextSeq(false), t: 'STATS', card: this.idOf(unit), power: stats.power, hp: stats.hp, keywords: stats.keywords });
+            }
+        }
+        for (const uuid of [...this.lastStats.keys()]) {
+            if (!seen.has(uuid)) {
+                this.lastStats.delete(uuid);
+            }
+        }
+    }
+
+    /**
      * Subscribe with the recorder's one error policy: a handler that throws is logged
-     * (rate-limited) and its record skipped, and gameplay never sees the exception.
+     * (rate-limited) and its record skipped, and gameplay never sees the exception. Every
+     * event, handled or not, is followed by a stats sync (see syncStats).
      */
     private on(name: EventName, fn: (event: any) => void): void {
         this.game.on(name, (event: any) => {
@@ -742,6 +842,11 @@ export class SwuPgnRecorder {
                 fn(event);
             } catch (error) {
                 this.logError(name, error);
+            }
+            try {
+                this.syncStats();
+            } catch (error) {
+                this.logError('syncStats', error);
             }
         });
     }
@@ -760,6 +865,7 @@ export class SwuPgnRecorder {
             // trustworthy, an end-of-round snapshot is the cheapest place to catch a round's
             // worth of fold drift: it halves the window between checkpoints at the cost of
             // one snapshot per round.
+            this.syncStats();
             const event: GameEvent = { seq: `R${this.currentRound}.end`, t: 'ROUND_END', round: this.currentRound };
             const keyframe = this.projectKeyframe();
             if (keyframe) {
@@ -855,6 +961,9 @@ export class SwuPgnRecorder {
                 this.backfillAttachedTo(this.idOf(card), this.idOf(host));
             }
             const seq = this.nextSeq(true);
+            // Which ability deployed it matters to the rules: an Epic Action is spent for the game
+            // (CR 1.16 lists that as game state), an Action ability is not.
+            const epic = event?.context?.ability?.isEpicAction === true;
             this.push({
                 seq,
                 t: 'DEPLOY_LEADER',
@@ -862,6 +971,7 @@ export class SwuPgnRecorder {
                 card: this.idOf(card),
                 zone: this.normalizeZone(card?.zoneName),
                 ...(host ? { kind: 'upgrade' as const, target: this.idOf(host) } : {}),
+                ...(epic ? { epic: true } : {}),
                 // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
                 // penalties, discounts and Exploit -- are resolved inside the engine's cost
                 // payment and never reach this event; `costs` here is targeted-adjuster
@@ -1079,6 +1189,20 @@ export class SwuPgnRecorder {
                 ...(leftExhausted ? { exhausted: true } : {}),
             });
 
+            // A Leader Unit that was defeated comes home to the base zone EXHAUSTED (CR 3.4.5),
+            // by direct assignment in the engine, so the move is the only place to say so.
+            if (to === 'base' && ARENA_ZONE_NAMES.has(from) && card?.isLeader?.()) {
+                let exhausted = false;
+                try {
+                    exhausted = card.exhausted === true;
+                } catch {
+                    exhausted = false;
+                }
+                if (exhausted) {
+                    this.push({ seq: this.nextSeq(false), t: 'EXHAUST', card: this.idOf(card) });
+                }
+            }
+
             // RESOURCE is the human-readable summary of "a card became a resource", the way
             // DRAW summarises the deck->hand MOVEs beside it. It is derived from the move
             // rather than from OnCardResourced because that engine event only fires for
@@ -1136,6 +1260,26 @@ export class SwuPgnRecorder {
             // never has to infer the binding from event adjacency.
             this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
             this.push(this.tokenRecord(this.nextSeq(false), kind, this.idOf(parent), 1));
+        });
+
+        // A unit's ready/exhausted flag on ENTERING play is set by the engine directly
+        // (PutIntoPlaySystem calls ready()/exhaust() on the card, RescueSystem and the leader
+        // deploy likewise), so no OnCardExhausted ever reports it -- and every replay showed a
+        // just-played unit ready. This fires once the put-into-play has resolved and the flag is
+        // final: a unit that entered exhausted (the rule, CR 5.4.5.a) gets its EXHAUST; one that
+        // entered ready (Ambush does not: it attacks exhausted; "enters ready" effects do) gets
+        // nothing. Deploys as a pilot upgrade have no flag and write nothing.
+        this.on(EventName.OnUnitEntersPlay, (event: any) => {
+            const card = event?.card;
+            let exhausted = false;
+            try {
+                exhausted = card?.exhausted === true;
+            } catch {
+                return; // an upgrade, or a zone where the property is disabled
+            }
+            if (exhausted && !this.isInResourceRow(card)) {
+                this.push({ seq: this.nextSeq(false), t: 'EXHAUST', card: this.idOf(card) });
+            }
         });
 
         // A card in the resource row is one of the counted resources, not a named card: its
@@ -1345,6 +1489,7 @@ export class SwuPgnRecorder {
                 p: this.seatOf(player),
                 card: cardId,
                 ability: typeof ability === 'string' ? ability : undefined,
+                ...(event?.ability?.isEpicAction === true ? { epic: true } : {}),
             });
         });
 

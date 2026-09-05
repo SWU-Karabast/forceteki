@@ -68,16 +68,24 @@ export interface SetupInitRecord {
  * - `CAPTURE`: `p` captured `card` with `by` (a unit id, or `base@N` for a base captor). `p` is
  *   the captor's controller — the seat that holds the card from now on. `RESCUE`: `card`
  *   returned to play under `p`, its owner; the paired `MOVE` out of `capture` places it.
+ * - `STATS`: an in-play unit's live power, HP and keywords as the engine computes them — ability
+ *   effects, upgrades, Raid during an attack, all of it — written whenever they change. This is
+ *   what lets a reader show a modified unit correctly without a rules engine: it never derives
+ *   stats, it is told them. `keywords` is the sorted list of active keywords, a numeric one as
+ *   `"raid 2"`; absent means the writer did not record keywords.
+ * - `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`: the ability used was an Epic Action, which
+ *   the rules track as used/unused game state (CR 1.16).
  */
 export type GameEvent =
   | { seq: string; t: 'PLAY' | 'PLAY_EVENT' | 'PLAY_UPGRADE' | 'PLAY_SMUGGLE'; p: Seat; card: string; zone?: string; cost?: number; target?: string }
-  | { seq: string; t: 'DEPLOY_LEADER'; p: Seat; card: string; zone?: string; cost?: number; kind?: CardKind; target?: string }
+  | { seq: string; t: 'DEPLOY_LEADER'; p: Seat; card: string; zone?: string; cost?: number; kind?: CardKind; target?: string; epic?: boolean }
   | { seq: string; t: 'ATTACK'; p: Seat; atk: string; def: string; defenderType: 'unit' | 'base' }
   | { seq: string; t: 'PASS' | 'CLAIM_INITIATIVE'; p: Seat }
   | { seq: string; t: 'CHOICE'; p: Seat; prompt?: string; offered: string[]; chose: number }
   | { seq: string; t: 'MULLIGAN' | 'KEEP_HAND'; p: Seat }
   | { seq: string; t: 'MODAL_CHOICE'; p: Seat; offered: string[]; chose: number }
-  | { seq: string; t: 'ABILITY_ACTIVATE'; p: Seat; card: string; ability?: string }
+  | { seq: string; t: 'ABILITY_ACTIVATE'; p: Seat; card: string; ability?: string; epic?: boolean }
+  | { seq: string; t: 'STATS'; card: string; power: number; hp: number; keywords?: string[] }
   | { seq: string; t: 'DAMAGE'; src: string; tgt: string; amt: number; damageType: string; hp: number }
   | { seq: string; t: 'HEAL'; tgt: string; amt: number; hp: number }
   | { seq: string; t: 'DEFEAT'; card: string; reason: string; defeatedBy?: string }
@@ -195,12 +203,22 @@ export interface CardInstanceState {
      *  a reader treats absent as `[]`. */
     captured: string[];
 
-    /** Current power/HP as the engine computed them, INCLUDING ability effects. Snapshot-only:
-     *  present in keyframes, never maintained by the fold (which has no rules engine), and
-     *  not compared by `checkKeyframes`. A reader may use them to correct its own arithmetic
-     *  at every round boundary. */
+    /** Live power/HP as the engine computed them, INCLUDING ability effects. Set by `STATS`
+     *  records and by keyframes; absent until the first `STATS` names the card (older files
+     *  never do). */
     power?: number;
     hp?: number;
+
+    /** Active keywords, sorted, a numeric one as `"raid 2"`. Same provenance as `power`. */
+    keywords?: string[];
+}
+
+/** The leader card's status: where it is and whether it can still act. */
+export interface LeaderState {
+    id: string;                     // SET#NUM
+    deployed: boolean;              // Leader Unit side in play (as a unit or a pilot upgrade)
+    exhausted: boolean;             // the card's ready/exhausted flag, wherever it is
+    epicActionUsed: boolean;        // CR 1.16: Epic Action status is game state
 }
 
 export interface PlayerState {
@@ -214,13 +232,25 @@ export interface PlayerState {
     credits: number;
     hasForce: boolean;
     discard: string[];
-    cards: CardInstanceState[];     // units/upgrades in play
+    cards: CardInstanceState[];     // units in play (upgrades ride on their host)
+
+    /** Cards left in the deck. Absent in older files; the fold learns it from the first
+     *  keyframe and keeps it by MOVE. */
+    deckSize?: number;
+
+    /** Absent in older files, and until the first keyframe: the fold learns the leader's id
+     *  from a keyframe or a `DEPLOY_LEADER`. */
+    leader?: LeaderState;
 }
 
 export interface ReducedState {
     round: number;
     phase: 'setup' | 'action' | 'regroup';
     initiative: Seat | null;
+
+    /** The initiative counter's status (CR 1.16): `true` once a player has taken it this round,
+     *  back to `false` when a round starts. Absent in older files. */
+    initiativeTaken?: boolean;
     players: Partial<Record<Seat, PlayerState>>;
 }
 

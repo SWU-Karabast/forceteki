@@ -31,7 +31,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         },
         {
           "id": "LOF#164:4",
@@ -44,7 +45,10 @@
           "statusTokens": {},
           "captured": [],
           "power": 4,
-          "hp": 5
+          "hp": 5,
+          "keywords": [
+            "overwhelm"
+          ]
         },
         {
           "id": "SOR#128:4",
@@ -57,7 +61,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         },
         {
           "id": "SOR#128:2",
@@ -70,9 +75,17 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         }
-      ]
+      ],
+      "deckSize": 6,
+      "leader": {
+        "id": "SOR#010",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     },
     "2": {
       "seat": 2,
@@ -102,7 +115,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 3
+          "hp": 3,
+          "keywords": []
         },
         {
           "id": "SOR#095:9",
@@ -115,7 +129,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 3
+          "hp": 3,
+          "keywords": []
         },
         {
           "id": "LAW#253:6",
@@ -128,7 +143,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 2,
-          "hp": 3
+          "hp": 3,
+          "keywords": []
         },
         {
           "id": "LAW#253:7",
@@ -141,9 +157,18 @@
           "statusTokens": {},
           "captured": [],
           "power": 2,
-          "hp": 3
+          "hp": 3,
+          "keywords": []
         }
-      ]
+      ],
+      "deckSize": 6,
+      "leader": {
+        "id": "SOR#005",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     }
-  }
+  },
+  "initiativeTaken": false
 }

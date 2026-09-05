@@ -16,7 +16,7 @@ describe('fold', function () {
 
     it('places a played card into its zone', function () {
         const s = fold(events.slice(0, 2));
-        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')!.zone).toBe('ground');
+        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')?.zone).toBe('ground');
     });
 
     it('applies damage to a base via remaining hp delta', function () {
@@ -26,12 +26,12 @@ describe('fold', function () {
 
     it('marks the attacker exhausted', function () {
         const s = fold(events);
-        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')!.exhausted).toBe(true);
+        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')?.exhausted).toBe(true);
     });
 
     it('stateAt stops at the given seq (exclusive of later events)', function () {
         const s = stateAt(events, 'R1.A.1');
-        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')!.exhausted).toBe(false);
+        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')?.exhausted).toBe(false);
     });
 });
 
@@ -129,8 +129,8 @@ describe('fold event coverage', function () {
             { seq: 'R1.A.1', t: 'DEPLOY_LEADER', p: 1, card: 'SOR#010', zone: 'ground' },
             { seq: 'R1.A.2', t: 'CREATE_TOKEN', p: 2, token: 'TOKEN:X-Wing', zone: 'space' },
         ] as any);
-        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#010')!.zone).toBe('ground');
-        expect(s.players[2]?.cards.find((c) => c.id === 'TOKEN:X-Wing')!.zone).toBe('space');
+        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#010')?.zone).toBe('ground');
+        expect(s.players[2]?.cards.find((c) => c.id === 'TOKEN:X-Wing')?.zone).toBe('space');
     });
 
     it('OVERWHELM sets the defender base hp', function () {
@@ -180,7 +180,7 @@ describe('fold event coverage — regression gaps', function () {
             { seq: 'R1.A.3', t: 'SHIELD_USE', card: 'SOR#108', count: 1 },
         ] as any);
         // Must end non-zero so a broken (no-op) SHIELD_USE can't pass: 2 gained, 1 used → 1.
-        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')!.shields).toBe(1);
+        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')?.shields).toBe(1);
     });
 
     it('HEAL on a base raises baseHp to the reported value', function () {
@@ -197,7 +197,7 @@ describe('fold event coverage — regression gaps', function () {
             { seq: 'R1.A.2', t: 'EXHAUST', card: 'SOR#108' },
             { seq: 'R1.A.3', t: 'READY', card: 'SOR#108' },
         ] as any);
-        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')!.exhausted).toBe(false);
+        expect(s.players[1]?.cards.find((c) => c.id === 'SOR#108')?.exhausted).toBe(false);
     });
 
     it('a TAKE_CONTROL with no zone (an early-1.0 note) leaves the board unchanged', function () {
@@ -347,6 +347,57 @@ describe('fold attachments', function () {
             { seq: 'R1.A.3b', t: 'DEFEAT', card: 'LOF#215', reason: 'ability' },
         ] as any);
         expect(s.players[1]?.cards[0].upgrades).toEqual([]);
+    });
+});
+
+// CR 1.16 lists the game state; these are the parts the file carries that no arena card does.
+describe('fold game state beyond the arenas', function () {
+    it('STATS states a unit\'s live numbers and keywords; nothing is derived', function () {
+        const s = fold([
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.0b', t: 'STATS', card: 'SOR#095', power: 3, hp: 3, keywords: [] },
+            { seq: 'R1.A.2a', t: 'STATS', card: 'SOR#095', power: 5, hp: 3, keywords: ['sentinel', 'raid 2'] },
+        ] as any);
+        expect(s.players[1]?.cards[0]).toEqual(jasmine.objectContaining({ power: 5, hp: 3, keywords: ['raid 2', 'sentinel'] }));
+    });
+
+    it('the leader: named and readied by DEPLOY_LEADER, exhausted by EXHAUST, home again on the MOVE back, its Epic Action spent', function () {
+        const events: any[] = [
+            { seq: 'R1.A.1', t: 'DEPLOY_LEADER', p: 1, card: 'SOR#010', zone: 'ground', epic: true },
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'SOR#010', from: 'base', to: 'ground', p: 1 },
+            { seq: 'R2.A.3a', t: 'MOVE', card: 'SOR#010', from: 'ground', to: 'base', p: 1 },
+            { seq: 'R2.A.3b', t: 'EXHAUST', card: 'SOR#010' },
+        ];
+        const deployed = fold(events.slice(0, 2)).players[1]?.leader;
+        expect(deployed).toEqual({ id: 'SOR#010', deployed: true, exhausted: false, epicActionUsed: true });
+        const home = fold(events).players[1]!;
+        expect(home.leader).toEqual({ id: 'SOR#010', deployed: false, exhausted: true, epicActionUsed: true });
+        expect(home.cards).toEqual([]);
+        // Readied at regroup like anything else.
+        expect(fold([...events, { seq: 'R2.G.1', t: 'READY', card: 'SOR#010' }]).players[1]?.leader?.exhausted).toBe(false);
+        // A non-epic ability on the leader spends nothing; an epic one does.
+        const kf: any = { seq: 'R1.start', t: 'ROUND_START', round: 1, keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [], leader: { id: 'SOR#010', deployed: false, exhausted: false, epicActionUsed: false } },
+            2: { seat: 2, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] } } } };
+        expect(fold([kf, { seq: 'R1.A.1', t: 'ABILITY_ACTIVATE', p: 1, card: 'SOR#010', ability: 'x' }]).players[1]?.leader?.epicActionUsed).toBe(false);
+        expect(fold([kf, { seq: 'R1.A.1', t: 'ABILITY_ACTIVATE', p: 1, card: 'SOR#010', ability: 'x', epic: true }]).players[1]?.leader?.epicActionUsed).toBe(true);
+    });
+
+    it('deck count follows MOVE once a keyframe has supplied it; initiative status resets each round', function () {
+        const kf: any = { seq: 'R1.start', t: 'ROUND_START', round: 1, keyframe: { round: 1, phase: 'action', initiative: 1, initiativeTaken: false, players: { 1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [], deckSize: 10 },
+            2: { seat: 2, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] } } } };
+        const s = fold([
+            kf,
+            { seq: 'R1.A.1', t: 'CLAIM_INITIATIVE', p: 2 },
+            { seq: 'R1.G.1', t: 'MOVE', card: 'A', from: 'deck', to: 'hand', p: 1 },
+            { seq: 'R1.G.2', t: 'MOVE', card: 'B', from: 'hand', to: 'deck', p: 1 },
+            { seq: 'R1.G.3', t: 'MOVE', card: 'C', from: 'deck', to: 'hand', p: 1 },
+            { seq: 'R1.G.4', t: 'MOVE', card: 'D', from: 'deck', to: 'hand', p: 2 },   // never told: stays unknown
+        ] as any);
+        expect(s.players[1]?.deckSize).toBe(9);
+        expect(s.players[2]?.deckSize).toBeUndefined();
+        expect(s.initiative).toBe(2);
+        expect(s.initiativeTaken).toBe(true);
+        expect(fold([kf, { seq: 'R1.A.1', t: 'CLAIM_INITIATIVE', p: 2 }, { seq: 'R2.start', t: 'ROUND_START', round: 2 }] as any).initiativeTaken).toBe(false);
     });
 });
 

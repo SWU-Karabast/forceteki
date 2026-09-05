@@ -34,7 +34,10 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 5
+          "hp": 5,
+          "keywords": [
+            "sentinel"
+          ]
         },
         {
           "id": "LAW#253:3",
@@ -49,9 +52,19 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 5
+          "hp": 5,
+          "keywords": [
+            "sentinel"
+          ]
         }
-      ]
+      ],
+      "deckSize": 2,
+      "leader": {
+        "id": "SOR#005",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     },
     "2": {
       "seat": 2,
@@ -82,7 +95,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         },
         {
           "id": "SOR#128:3",
@@ -95,7 +109,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         },
         {
           "id": "SHD#238:3",
@@ -108,7 +123,10 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 3
+          "hp": 3,
+          "keywords": [
+            "sentinel"
+          ]
         },
         {
           "id": "SOR#128:5",
@@ -121,9 +139,18 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         }
-      ]
+      ],
+      "deckSize": 2,
+      "leader": {
+        "id": "SOR#010",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     }
-  }
+  },
+  "initiativeTaken": false
 }

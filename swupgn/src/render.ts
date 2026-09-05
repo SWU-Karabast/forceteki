@@ -78,7 +78,7 @@ function line(e: GameEvent, n: NameResolver): string | null {
         // counters fire on every play and every regroup.
         case 'CHOICE': case 'PHASE_END': case 'ROUND_END': case 'SHUFFLE':
         case 'MODAL_CHOICE': case 'MOVE': case 'EXHAUST': case 'READY':
-        case 'EXHAUST_RESOURCES': case 'READY_RESOURCES':
+        case 'EXHAUST_RESOURCES': case 'READY_RESOURCES': case 'STATS':
             return null;
         case 'PHASE_START': return null;       // handled as a banner below
         case 'ROUND_START': return null;       // handled as a banner below
@@ -106,7 +106,16 @@ function boardSummary(k: ReducedState, n: NameResolver): string[] {
             out.push(` P${seat}  (not recorded)`);
             continue;
         }
-        out.push(` P${seat}  base ${p.baseHp}/${p.baseMaxHp}   hand ${p.handSize}   resources ${p.resourcesReady}`);
+        // Resources read ready/total; deck and the leader's status appear when the file has them.
+        const total = p.resourcesReady + (p.resourcesExhausted ?? 0);
+        let line = ` P${seat}  base ${p.baseHp}/${p.baseMaxHp}   hand ${p.handSize}   resources ${p.resourcesReady}/${total}`;
+        if (typeof p.deckSize === 'number') {
+            line += `   deck ${p.deckSize}`;
+        }
+        if (p.leader) {
+            line += `   leader ${p.leader.deployed ? 'deployed' : p.leader.exhausted ? 'exhausted' : 'ready'}`;
+        }
+        out.push(line);
         for (const zone of ['ground', 'space']) {
             const inZone = p.cards.filter((c) => c.zone === zone);
             if (inZone.length === 0) {
@@ -114,6 +123,8 @@ function boardSummary(k: ReducedState, n: NameResolver): string[] {
             }
             const rendered = inZone.map((c) => {
                 const bits: string[] = [];
+                // Live stats first, as the engine computed them, so a buffed unit reads right.
+                const stats = typeof c.power === 'number' && typeof c.hp === 'number' ? ` ${c.power}/${c.hp}` : '';
                 if (c.damage) {
                     bits.push(`${c.damage} dmg`);
                 }
@@ -135,7 +146,7 @@ function boardSummary(k: ReducedState, n: NameResolver): string[] {
                 for (const held of c.captured ?? []) {
                     bits.push(`holds ${nm(held)}`);
                 }
-                return nm(c.id) + (bits.length ? ` [${bits.join(', ')}]` : '');
+                return nm(c.id) + stats + (bits.length ? ` [${bits.join(', ')}]` : '');
             });
             out.push(`      ${zone}: ${rendered.join('  ·  ')}`);
         }

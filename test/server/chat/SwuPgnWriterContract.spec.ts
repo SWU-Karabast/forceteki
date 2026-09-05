@@ -85,7 +85,7 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             const integrity = checkKeyframes(doc.events);
             const isHarnessCountArtifact = (m: { seq: string; path: string }) =>
                 m.seq !== 'R1.start' &&
-                (m.path.endsWith('.handSize') || m.path.endsWith('.resourcesReady'));
+                (m.path.endsWith('.handSize') || m.path.endsWith('.resourcesReady') || m.path.endsWith('.deckSize'));
             const real = integrity.mismatches.filter((m) => !isHarnessCountArtifact(m));
             const deferred = integrity.mismatches.filter(isHarnessCountArtifact);
 

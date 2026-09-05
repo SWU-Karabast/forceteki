@@ -11,8 +11,8 @@
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 1                                                 initiative: Player 1 
- P1  base 30/30   hand 4   resources 2
- P2  base 30/30   hand 4   resources 2
+ P1  base 30/30   hand 4   resources 2/2   deck 14   leader ready
+ P2  base 30/30   hand 4   resources 2/2   deck 14   leader ready
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
@@ -29,10 +29,10 @@
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 2                                                 initiative: Player 1 
- P1  base 30/30   hand 4   resources 3
-      ground: Death Star Stormtrooper #3
- P2  base 30/30   hand 4   resources 3
-      space: Alliance X-Wing #6
+ P1  base 30/30   hand 4   resources 3/3   deck 12   leader ready
+      ground: Death Star Stormtrooper #3 3/1
+ P2  base 30/30   hand 4   resources 3/3   deck 12   leader ready
+      space: Alliance X-Wing #6 2/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
@@ -54,10 +54,10 @@
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 3                                                 initiative: Player 1 
- P1  base 28/30   hand 5   resources 4
-      ground: Death Star Stormtrooper #3
- P2  base 27/30   hand 4   resources 4
-      space: Alliance X-Wing #6  ·  Alliance X-Wing #7
+ P1  base 28/30   hand 5   resources 4/4   deck 10   leader ready
+      ground: Death Star Stormtrooper #3 3/1
+ P2  base 27/30   hand 4   resources 4/4   deck 10   leader ready
+      space: Alliance X-Wing #6 2/3  ·  Alliance X-Wing #7 2/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
@@ -84,11 +84,11 @@
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 4                                                 initiative: Player 1 
- P1  base 24/30   hand 5   resources 5
-      ground: Death Star Stormtrooper #3  ·  Wampa #4
- P2  base 24/30   hand 4   resources 5
-      ground: Battlefield Marine #8
-      space: Alliance X-Wing #6  ·  Alliance X-Wing #7
+ P1  base 24/30   hand 5   resources 5/5   deck 8   leader ready
+      ground: Death Star Stormtrooper #3 3/1  ·  Wampa #4 4/5
+ P2  base 24/30   hand 4   resources 5/5   deck 8   leader ready
+      ground: Battlefield Marine #8 3/3
+      space: Alliance X-Wing #6 2/3  ·  Alliance X-Wing #7 2/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
@@ -122,11 +122,11 @@
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 5                                                 initiative: Player 1 
- P1  base 17/30   hand 4   resources 6
-      ground: Death Star Stormtrooper #3  ·  Wampa #4  ·  Death Star Stormtrooper #4  ·  Death Star Stormtrooper #2
- P2  base 17/30   hand 4   resources 6
-      ground: Battlefield Marine #8  ·  Battlefield Marine #9
-      space: Alliance X-Wing #6  ·  Alliance X-Wing #7
+ P1  base 17/30   hand 4   resources 6/6   deck 6   leader ready
+      ground: Death Star Stormtrooper #3 3/1  ·  Wampa #4 4/5  ·  Death Star Stormtrooper #4 3/1  ·  Death Star Stormtrooper #2 3/1
+ P2  base 17/30   hand 4   resources 6/6   deck 6   leader ready
+      ground: Battlefield Marine #8 3/3  ·  Battlefield Marine #9 3/3
+      space: Alliance X-Wing #6 2/3  ·  Alliance X-Wing #7 2/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──

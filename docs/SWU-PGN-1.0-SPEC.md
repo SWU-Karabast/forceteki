@@ -49,7 +49,9 @@ needing the game engine**. That is the whole point.
 You can:
 
 - **read the game** like a story,
-- **rebuild the board** at any moment,
+- **rebuild the board** at any moment — **without knowing the rules of the game**: every
+  change to the board is a line, and no line's meaning depends on a rule (see
+  [§11](#what-the-board-covers-against-the-rules)),
 - **jump to any round** instantly (see [keyframes](#13-keyframes)),
 - **add notes** afterwards ("this attack was a mistake"),
 - **share it safely** — no real names are in the file.
@@ -110,6 +112,15 @@ There are four jobs. You might do one, or all of them.
   ([§10.1](#binding-an-attachment-to-its-host)).
 - MUST record a capture as a `CAPTURE` whose `p` is the seat that now holds the card and whose
   `by` is the captor ([§10.1](#101-events-that-carry-board-detail)).
+- MUST write an `EXHAUST` for a unit that enters play exhausted — the normal case, which no
+  attack or ability announces — and nothing for one that enters ready
+  ([§10.1](#101-events-that-carry-board-detail)).
+- MUST write a `STATS` record whenever an in-play unit's live power, HP or keywords change,
+  with the values the engine computed — a reader has no rules engine to derive them
+  ([§10.1](#stats)).
+- MUST mark a `DEPLOY_LEADER` or `ABILITY_ACTIVATE` that spends an Epic Action with `epic: true`,
+  and MUST carry the leader's status, the deck count and the initiative counter's status in
+  every keyframe ([§11](#11-the-board-you-build-reducedstate)).
 
 ### The Folder (rebuilds the board)
 
@@ -766,11 +777,28 @@ placement ([§12.2](#122-every-other-rule-in-one-table)).
 
 **`DEPLOY_LEADER` — a leader stepped out of the base zone into an arena.**
 
-Fields: `p`, `card`, optional `zone` (default `"ground"`), optional `cost`, and, together,
-optional `kind` + `target`.
+Fields: `p`, `card`, optional `zone` (default `"ground"`), optional `cost`, optional `epic`,
+and, together, optional `kind` + `target`.
 Puts the leader in play — unless it deployed **as a pilot**: then `kind` is `"upgrade"`,
 `target` is the vehicle it flew onto, and the leader is pushed onto that unit's `upgrades`
 exactly as `PLAY_UPGRADE` does. It is never an arena card of its own.
+
+It also sets the seat's **leader status** ([§11](#11-the-board-you-build-reducedstate)): the
+leader is `card`, it is `deployed`, and it is **ready** — a leader deploys ready whatever
+state it was in (CR 3.4.4), so this record is where a reader that never saw a keyframe learns
+which card the leader is. `epic: true` means the deploy spent the leader's Epic Action, which
+is then `epicActionUsed` for the rest of the game (CR 1.16 counts that as game state); an
+Action-ability deploy carries no `epic`. The move home is the leader's `MOVE` from the arena
+to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhausted, CR
+3.4.5).
+
+---
+
+**`ABILITY_ACTIVATE` — a player used an ability.**
+
+Fields: `p`, `card`, optional `ability` (the engine's identifier), optional `epic`.
+Changes nothing — except that `epic: true` marks the leader's Epic Action as used when `card`
+is the leader. Everything an ability *did* is recorded by the records that follow it.
 
 ---
 
@@ -915,9 +943,42 @@ and nobody's captive. An upgrade was never an arena card, so for one only the de
 
 ---
 
-**`EXHAUST` / `READY`** — field `card`. Sets `exhausted` to `true` / `false`. Never written
-for a card in the resource row: the row is counted, and those are `EXHAUST_RESOURCES` /
-`READY_RESOURCES` ([above](#101-events-that-carry-board-detail)).
+**`EXHAUST` / `READY`** — field `card`. Sets `exhausted` to `true` / `false` on the arena card
+of that id, on the seat's leader if that is its id, or both. Never written for a card in the
+resource row: the row is counted, and those are `EXHAUST_RESOURCES` / `READY_RESOURCES`
+([above](#101-events-that-carry-board-detail)).
+
+**Entering play is an `EXHAUST`.** A non-leader unit enters play exhausted (CR 5.4.5.a) — when
+played, created, smuggled or rescued — and no attack or ability announces it, so the writer
+does: an `EXHAUST` for the card right after its arrival. A unit that enters **ready** (an
+"enters ready" effect) gets no record; Ambush is not one of those — an Ambush unit enters
+exhausted and attacks anyway. A reader that starts every new card at `exhausted: false` and
+applies these records is right; one that assumed the rule instead would be wrong for every
+enters-ready unit. Before this record existed every replay showed a just-played unit ready
+until the next regroup.
+
+---
+
+<a id="stats"></a>
+**`STATS` — an in-play unit's live power, HP and keywords.**
+
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `card` | string | yes | The unit. |
+| `power` | integer | yes | Its power right now, as the engine computes it. |
+| `hp` | integer | yes | Its HP right now (the maximum, not remaining HP — damage is separate). |
+| `keywords` | string[] | no | Its active keywords, sorted; a numeric one as `"raid 2"`. |
+
+Sets those fields on the card. Printed values, upgrades, tokens, lasting effects ("+3/+0 for
+this attack"), Raid while attacking, Grit — the engine has already added them up, and this
+record states the result. The writer emits one whenever a unit's live values differ from the
+last `STATS` it wrote for that unit, after **every** engine event, so a reader can show the
+right numbers at every moment without evaluating a single card ability. A unit's first
+`STATS` arrives right after it enters play; a unit that leaves and returns starts over.
+
+`keywords` covers what CR 1.16 calls a card's attributes as far as the text box goes: the
+keyword abilities in effect (printed, granted by an upgrade, or given for a phase). Full
+ability text is not recorded — it is card data, and the `%%% CARDS` index names the card.
 
 ---
 
@@ -1063,7 +1124,6 @@ These never change the board. A folder MUST read them and do nothing.
 | `MODAL_CHOICE` | `p`, `offered`, `chose` | A player picked an ability mode. |
 | `MULLIGAN` | `p` | A player mulliganed. |
 | `KEEP_HAND` | `p` | A player kept their hand. |
-| `ABILITY_ACTIVATE` | `p`, `card`, `ability` (optional) | An ability was used. |
 | `SHUFFLE` | `p` | A deck was shuffled. |
 | `SEARCH` | `p`, `found` (optional), `zone` (optional) | A player searched. See the rule below. |
 | `REVEAL` | `p`, `zone`, `cards` | Cards were shown. |
@@ -1101,7 +1161,8 @@ This is the whole board, and it's all you ever need to build.
 interface ReducedState {
     round: number;                            // 0 before the game starts
     phase: 'setup' | 'action' | 'regroup';
-    initiative: 1 | 2 | null;
+    initiative: 1 | 2 | null;                 // who holds the initiative counter
+    initiativeTaken?: boolean;                // it was taken this round (back to false each round)
     players: Partial<Record<1 | 2, PlayerState>>;
 }
 
@@ -1111,12 +1172,21 @@ interface PlayerState {
     baseMaxHp: number;          // the base card's printed HP
     handSize: number;           // how many cards in hand
     hand: string[];             // which cards, if we're allowed to know
+    deckSize?: number;          // cards left in the deck
     resourcesReady: number;     // ready resources
     resourcesExhausted: number; // spent resources
     credits: number;
     hasForce: boolean;
     discard: string[];          // discard pile, in order
     cards: CardInstanceState[]; // ONLY cards in the ground/space arenas
+    leader?: LeaderState;       // the leader card's status, wherever it is
+}
+
+interface LeaderState {
+    id: string;                 // the leader card
+    deployed: boolean;          // Leader Unit side in play (as a unit, or as a pilot upgrade)
+    exhausted: boolean;         // its ready/exhausted flag
+    epicActionUsed: boolean;    // its Epic Action is spent for the game
 }
 
 interface CardInstanceState {
@@ -1129,19 +1199,52 @@ interface CardInstanceState {
     experience: number;    // Experience tokens
     statusTokens: Record<string, number>;   // every other token upgrade, by name: { advantage: 2 }
     captured: string[];    // enemy units this one holds captured
-    power?: number;        // snapshot only: the engine's live power, ability effects included
-    hp?: number;           // snapshot only: the engine's live HP
+    power?: number;        // live power, ability effects included — from STATS / keyframes
+    hp?: number;           // live HP, likewise
+    keywords?: string[];   // active keywords, sorted; "raid 2" for a numeric one
 }
 ```
 
 Token upgrades are never in `upgrades[]`: they are the three counters. `captured` is absent in
 files written before it existed; a reader treats absent as `[]`.
 
-`power` and `hp` are **snapshot fields**: a keyframe carries them, the fold never maintains
-them (it has no rules engine to evaluate "+2/+0 while you control a leader unit"), and the
-integrity check never compares them. A reader that computes stats itself from card data can
-correct its arithmetic against them at every round boundary; one that doesn't can show them
-between boundaries as "as of the last keyframe".
+`power`, `hp` and `keywords` are the engine's **live** values, stated by `STATS` records
+([§10.1](#stats)) and by keyframes. They are absent until the first `STATS` names the card
+(older files never do), and a reader never computes them: it is told.
+
+The optional fields marked `?` — `initiativeTaken`, `deckSize`, `leader`, `power`, `hp`,
+`keywords` — are optional only because files written before they existed lack them. A
+current writer fills every one, and the integrity check compares each whenever the keyframe
+carries it.
+
+<a id="what-the-board-covers-against-the-rules"></a>
+### What the board covers, against the rules
+
+The Comprehensive Rules define "the game state" in one paragraph (CR 1.16.1, v8.0): each card's
+zone, controller, attributes and status (ready/exhausted, faceup/facedown); the initiative
+counter's controller and status; the status of open and hidden information; the status of
+lasting and delayed effects; and the status of Epic Actions. The format's promise is that a
+reader rebuilds **all of that** from the file with no knowledge of the rules — the engine
+already applied the rules, and the file records what it decided. Where each part lives:
+
+| Game state (CR 1.16) | Where the file carries it |
+|---|---|
+| Each card's **zone** | `MOVE` (every zone change, [§12.1](#121-the-move-rule-the-big-one)); `deckSize`, `handSize`, `hand`, `discard`, the resource counts, `cards`, `captured`, `credits`, `hasForce`; the leader's `deployed` |
+| Each card's **controller** | the seat whose lists hold it; `TAKE_CONTROL` re-seats a unit, a resource, a Credit token or the Force; an upgrade's controller is the `p` of its `PLAY_UPGRADE` |
+| Each card's **attributes** — power, HP, keywords, modifiers | `STATS` after every change ([§10.1](#stats)), snapshotted in keyframes; `damage`, `upgrades`, `shields`, `experience`, `statusTokens` |
+| Each card's **status** — ready/exhausted | `EXHAUST` / `READY` for arena cards and the leader, including the `EXHAUST` a unit gets on entering play; `EXHAUST_RESOURCES` / `READY_RESOURCES` and the `MOVE.exhausted` flag for the resource row |
+| Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
+| The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`; `CLAIM_INITIATIVE`, reset at `ROUND_START` |
+| **Open and hidden information** | the archive is omniscient ([§17](#17-privacy)): `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards; `Perspective` in the header says when a file is not |
+| **Lasting effects** | by their observable consequences: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase), and the records they cause. The effect's text is not recorded — the card is named, and card data has the text |
+| **Delayed effects** | by the records they produce when they fire (a Change of Heart return is a `TAKE_CONTROL` at regroup); they are invisible until then, as they are on a table |
+| **Epic Actions** used/unused | `epic: true` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; the leader's `epicActionUsed` |
+
+What the file deliberately does **not** encode is the rulebook itself: why a cost was 4 and
+not 5, what Sentinel means, that a unit dies at 0 remaining HP. Those are derivations, and
+encoding them would make every file a copy of the engine. A human reads them off the card; a
+computer replaying the board never needs them, because every consequence is already a line.
+The format covers the two-player game; multiplayer formats (CR 11–12) are out of scope.
 
 ### The starting board
 
@@ -1196,6 +1299,14 @@ If `p` is there, do all of these:
 - moving *into* `hand` from somewhere else → `handSize + 1`
 - moving *out of* `hand` to somewhere else → `handSize - 1` (never below 0)
 
+**1b. Deck count**, once a keyframe has supplied it (before that, leave it absent)
+
+- moving *into* `deck` from somewhere else → `deckSize + 1`
+- moving *out of* `deck` to somewhere else → `deckSize - 1` (never below 0)
+
+**1c. The leader coming home**: a move from an arena to `base` by the card the seat's
+`leader.id` names → `leader.deployed = false`. (An `EXHAUST` beside it sets its flag.)
+
 **2. Resource row** — two counts, `resourcesReady` and `resourcesExhausted`
 
 - moving *into* `resource` from somewhere else → `resourcesReady + 1`. A card enters the
@@ -1237,13 +1348,15 @@ twice.
 
 | `t` | What you do |
 |---|---|
-| `ROUND_START` | `round = event.round` |
+| `ROUND_START` | `round = event.round`; `initiativeTaken = false` |
 | `PHASE_START` | `phase = event.phase` |
-| `CLAIM_INITIATIVE` | `initiative = event.p` |
+| `CLAIM_INITIATIVE` | `initiative = event.p`; `initiativeTaken = true` |
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
 | `PLAY_EVENT` | push `card` onto `players[p].discard` |
 | `PLAY_UPGRADE` | if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
-| `DEPLOY_LEADER` | if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
+| `DEPLOY_LEADER` | `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
+| `ABILITY_ACTIVATE` | if `epic` and `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`; otherwise nothing |
+| `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given |
 | `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
 | `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); if `by` names a tracked card, push `card` onto its `captured`, idempotently |
 | `RESCUE` | `detach(state, card)` — the `MOVE` out of `capture` beside it places the card |
@@ -1255,8 +1368,8 @@ twice.
 | `OVERWHELM` | `base@N` → `players[N].baseHp = hp`; anything else → nothing |
 | `HEAL` | `base@N` → `players[N].baseHp = hp`; else `card.damage = max(0, damage - amt)` |
 | `DEFEAT` | `detach(state, card)`; then, if the card is in someone's `cards`, remove it and push its id onto that player's `discard` |
-| `EXHAUST` | `card.exhausted = true` |
-| `READY` | `card.exhausted = false` |
+| `EXHAUST` | `exhausted = true` on the arena card of that id, and on `leader` if it is the leader's id |
+| `READY` | `exhausted = false`, likewise |
 | `DRAW` | push each id in `cards` onto `players[p].hand`. **Nothing else.** |
 | `DISCARD` | push each id in `cards` onto `players[p].discard`. **Nothing else.** |
 | `RESOURCE` | **nothing** — the paired `MOVE` into `resource` carries the change ([§10.1](#101-events-that-carry-board-detail)) |
@@ -1319,6 +1432,10 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   ship a partial one.
 - A keyframe's `cards` list contains **only** ground and space arena cards. Hand,
   resources and discard are described by their counts and lists, not by `cards`.
+- A keyframe carries every field of [§11](#11-the-board-you-build-reducedstate): the
+  initiative status, and per seat the deck count, the leader's status, and each card's live
+  `power`/`hp`/`keywords`. A writer that cannot read one of them omits that field rather than
+  inventing a value.
 - Emit a keyframe on `ROUND_END` as well as `ROUND_START` when you can. It halves the
   window between checkpoints, so a round's worth of fold drift is caught a round earlier,
   and costs one snapshot.
@@ -1361,24 +1478,31 @@ problem. A writer that has no such cost SHOULD treat `ok: false` as fatal.
   starting HP, so before the first keyframe there is nothing to compare against but the
   placeholder 30 ([§11](#11-the-board-you-build-reducedstate)). The first keyframe is what
   *supplies* the real number; every keyframe after it is compared normally.
+- `deckSize` — **except at the very first keyframe**, for the same reason as `baseHp`: the
+  starting deck is not in the stream.
 - `handSize`
 - `resourcesReady` and `resourcesExhausted`
 - `credits` and `hasForce`
+- the leader's `id`, `deployed`, `exhausted` and `epicActionUsed`
+- `initiativeTaken`
 - for each in-play card matched by `id`: `zone`, `damage`, `exhausted`, `shields`,
-  `experience`, `statusTokens`, and `upgrades` and `captured` **as sets** (attachment order
-  is not part of the model; a missing list counts as empty)
+  `experience`, `statusTokens`, `upgrades` and `captured` **as sets** (attachment order
+  is not part of the model; a missing list counts as empty), `power`, `hp`, and `keywords`
+  as a set
 - a card being in one side but not the other (reported both ways)
 
-Everything except `baseHp` is compared at **every** keyframe, the first one included.
+Everything except `baseHp` and `deckSize` is compared at **every** keyframe, the first one
+included. A field the keyframe does not carry — `deckSize`, `leader`, `initiativeTaken`, a
+card's `power`/`hp`/`keywords` — is skipped, so a file written before the field existed still
+passes: absent means "not recorded", never "zero".
 
 **Not checked, and why:**
 
 | Field | Why not |
 |---|---|
 | `hand` / `discard` **contents** | Only the counts are reconstructable: `DRAW` appends to `hand`, nothing removes from it. |
-| a card's `power` / `hp` | Snapshot fields ([§11](#11-the-board-you-build-reducedstate)): the engine's live stats include ability effects the fold has no rules engine to evaluate. A reader may correct its own arithmetic against them; the gate cannot. |
 
-Do not assume a passing check proves those two.
+Do not assume a passing check proves that one.
 
 A mismatch looks like:
 
@@ -1492,19 +1616,22 @@ width. Then, from that round's keyframe, one block per seat:
 ```
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 7                                                 initiative: Player 2
- P1  base 16/33   hand 3   resources 7
-      ground: Kelleran Beq, The Sabered Hand
-      space: Bravo Squadron Fighter  ·  Emissary's Sheathipede #2 [1 dmg]
- P2  base 22/28   hand 2   resources 5
-      ground: Darth Maul, Sith Revealed [exhausted]
+ P1  base 16/33   hand 3   resources 7/7   deck 31   leader deployed
+      ground: Kelleran Beq, The Sabered Hand 4/7
+      space: Bravo Squadron Fighter 2/3  ·  Emissary's Sheathipede #2 2/3 [1 dmg]
+ P2  base 22/28   hand 2   resources 5/5   deck 34   leader exhausted
+      ground: Darth Maul, Sith Revealed 5/7 [exhausted]
 ══════════════════════════════════════════════════════════════════════════════
 ```
 
-- One line per seat: `base {hp}/{max}   hand {n}   resources {n}`.
+- One line per seat: `base {hp}/{max}   hand {n}   resources {ready}/{ready+exhausted}`, then
+  `   deck {n}` when the keyframe has `deckSize`, then `   leader deployed|exhausted|ready`
+  when it has `leader`.
 - Then a line per non-empty arena, cards joined by `  ·  `.
-- A card's non-default state goes in `[...]`, comma-separated, in this order: damage
-  (`3 dmg`), `exhausted`, shields (`2 shield`), experience (`1 xp`), each status token
-  (`1 advantage`), each attached upgrade by name, then each captive as `holds {name}`.
+- A card is its name, then ` {power}/{hp}` when the keyframe has both, then its non-default
+  state in `[...]`, comma-separated, in this order: damage (`3 dmg`), `exhausted`, shields
+  (`2 shield`), experience (`1 xp`), each status token (`1 advantage`), each attached upgrade
+  by name, then each captive as `holds {name}`.
 - A seat with no keyframe entry prints ` P{n}  (not recorded)` — see
   [§13](#13-keyframes); this should never happen in a conformant file.
 - No keyframe on the `ROUND_START`, or a damaged one ([§13](#13-keyframes)) → no summary,
@@ -1547,7 +1674,7 @@ read.
 | `GAME_END` | `*** {who(winner)} wins — {reason} ***` · draw: `*** Game ends in a draw — {reason} ***` |
 
 **These print nothing**: `MOVE`, `EXHAUST`, `READY`, `EXHAUST_RESOURCES`, `READY_RESOURCES`,
-`CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`.
+`STATS`, `CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`.
 
 They are mechanism, not story. `MOVE` is the fold's source of truth and appears beside every
 play, draw and discard — printing it would roughly triple the narrative for no reader
@@ -1674,7 +1801,7 @@ To be conformant:
 
 | Vector | Covers |
 |---|---|
-| `minimal` | Hand-written. A setup phase (draws, resourcing, the `R1.start` keyframe it leads to), then one round: `EXHAUST_RESOURCES`, `PLAY`, `EXHAUST`, `ATTACK`, `DAMAGE`. Appendix A walks through it. |
+| `minimal` | Hand-written, rules-legal. A setup phase (draws, resourcing, the `R1.start` keyframe it leads to), a unit played in round 1 (`EXHAUST_RESOURCES`, `MOVE`, `STATS`, `PLAY`, the entering `EXHAUST`), a regroup (`READY`, `READY_RESOURCES`, two more keyframes), and the attack in round 2. Appendix A walks through it. |
 | `organic` | A real game the reference writer produced: natural setup with a mulligan, four rounds of plays, attacks and regroups, a concession. Keyframes at every round boundary. |
 | `upgrades` | Real game: a printed upgrade (`PLAY_UPGRADE` + `attachedTo`), Advantage and Experience tokens, Shield tokens, and the host defeated with all of it attached — every removal record, and the detach on exit. |
 | `pilot` | Real game: a pilot flown onto a vehicle (`kind: "upgrade"` on a unit card, `%%% CARDS` saying `unit`), a second one, and a piloted vehicle Vanquished. |
@@ -1717,9 +1844,12 @@ hand and resource counts past `R1.start`.) The credit rule was additionally chec
 real 10-round export in which one Credit token was created, held across two rounds and spent:
 0 mismatches under the widened gate.
 
-What remains genuinely unverified is the un-gated pair in [§14](#14-checking-a-file-is-honest):
-the **contents** of `hand` and `discard`, and a card's `power`/`hp`. A passing integrity check
-says nothing about those.
+What remains genuinely unverified is the one un-gated field in
+[§14](#14-checking-a-file-is-honest): the **contents** of `hand` and `discard`. A passing
+integrity check says nothing about those. Everything else in CR 1.16's definition of the game
+state ([§11](#what-the-board-covers-against-the-rules)) is reconstructed and gated, and the
+four real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture, leaders
+in and out of the base zone — pass with nothing to report.
 
 Three engine paths the resource rule covers by construction have no dedicated real-game gate
 yet, and a reader should treat their split (not their total, which every regroup re-syncs) as
@@ -1797,6 +1927,10 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | Keyframe cards carried no stats and no captives | `power`, `hp` and `captured` ([§11](#11-the-board-you-build-reducedstate)) | the fields' presence |
 | `Engine` preferred the package version, so every production file said `forceteki@0.1.0` | git SHA before package version ([§5.3](#53-provenance-engine-and-seed)) | an `Engine` that is a SHA |
 | The `minimal` vector began at the `R1.start` keyframe and failed its own gate | a setup prologue; four real-game vectors added ([§20](#20-test-vectors)) | not a file change |
+| A unit entering play exhausted was never written, so every replay showed a just-played unit ready | an `EXHAUST` right after its arrival ([§10.1](#101-events-that-carry-board-detail)) | an `EXHAUST` for a card in the same action as its `PLAY` |
+| Nothing carried a unit's live stats between keyframes; keyframes carried none at all | `STATS` after every change; `power`/`hp`/`keywords` on keyframe cards, gated ([§10.1](#stats)) | any `STATS` record |
+| The leader in the base zone, the deck count and the initiative counter's status were not in the board | `leader`, `deckSize`, `initiativeTaken` in every keyframe; `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; a returning Leader Unit's `EXHAUST` ([§11](#11-the-board-you-build-reducedstate)) | a keyframe carrying `leader` |
+| The `minimal` vector attacked with a unit the turn it was played | rules-legal two-round game ([§20](#20-test-vectors)) | not a file change |
 
 ### 22.1 Files that say `SWU-PGN/1.1`
 
@@ -1858,7 +1992,7 @@ A.3 exactly.
 [Seed "0"]
 [P1Id "sha256:aaaa"] [P2Id "sha256:bbbb"] [P1 "Player 1"] [P2 "Player 2"]
 [P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]
-[Result "Incomplete"] [Reason "Sample"] [Rounds "1"]
+[Result "Incomplete"] [Reason "Sample"] [Rounds "2"]
 
 %%% STORY
  ── setup ──
@@ -1873,18 +2007,34 @@ A.3 exactly.
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 1                                                 initiative: Player 1 
- P1  base 30/30   hand 1   resources 2
- P2  base 30/30   hand 1   resources 2
+ P1  base 30/30   hand 1   resources 2/2   deck 2   leader ready
+ P2  base 30/30   hand 1   resources 2/2   deck 2   leader ready
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
   1. Player 1 plays Wampa to ground (cost 2)
-  2. Player 1 attacks Player 2's base with Wampa
+  2. Player 2 passes
+  3. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Wampa #4, Wampa #5
+       ↳ Player 2 draws 2: Cell Block Guard #4, Cell Block Guard #5
+       ↳ Player 1 resources Wampa #4
+       ↳ Player 2 resources Cell Block Guard #4
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 3/3   deck 0   leader ready
+      ground: Wampa 4/5
+ P2  base 30/30   hand 2   resources 3/3   deck 0   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Player 2's base with Wampa
        ↳ 4 damage to Player 2's base — 26 HP left
 
 %%% DECKS
-{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]]}
-{"p":2,"leader":"SOR#005","base":"SOR#020","deck":[["SOR#045",3]]}
+{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",5]]}
+{"p":2,"leader":"SOR#005","base":"SOR#020","deck":[["SOR#045",5]]}
 
 %%% CARDS
 {"id":"SOR#005","name":"Darth Vader, Dark Lord of the Sith"}
@@ -1895,7 +2045,7 @@ A.3 exactly.
 {"id":"SOR#108","name":"Wampa","kind":"unit"}
 
 %%% SETUP
-{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3"]}
+{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3","SOR#108:4","SOR#108:5"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3","SOR#045:4","SOR#045:5"]}
 
 %%% EVENTS
 {"seq":"R0.S.start","t":"PHASE_START","phase":"setup"}
@@ -1921,37 +2071,62 @@ A.3 exactly.
 {"seq":"R0.S.20","t":"MOVE","card":"SOR#045:3","from":"hand","to":"resource","p":2,"kind":"unit"}
 {"seq":"R0.S.21","t":"RESOURCE","p":2,"card":"SOR#045:3"}
 {"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
-{"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[]}}}}
+{"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
 {"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2}
 {"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit"}
+{"seq":"R1.A.0c","t":"STATS","card":"SOR#108","power":4,"hp":5,"keywords":["overwhelm"]}
 {"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
 {"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}
-{"seq":"R1.A.2","t":"ATTACK","p":1,"atk":"SOR#108","def":"base@2","defenderType":"base"}
-{"seq":"R1.A.2a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":4,"damageType":"combat","hp":26}
+{"seq":"R1.A.2","t":"PASS","p":2}
+{"seq":"R1.A.3","t":"PASS","p":1}
+{"seq":"R1.A.end","t":"PHASE_END","phase":"action"}
+{"seq":"R1.G.start","t":"PHASE_START","phase":"regroup"}
+{"seq":"R1.G.1","t":"MOVE","card":"SOR#108:4","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R1.G.2","t":"MOVE","card":"SOR#108:5","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R1.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#108:4","SOR#108:5"]}
+{"seq":"R1.G.4","t":"MOVE","card":"SOR#045:4","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R1.G.5","t":"MOVE","card":"SOR#045:5","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R1.G.6","t":"DRAW","p":2,"count":2,"cards":["SOR#045:4","SOR#045:5"]}
+{"seq":"R1.G.7","t":"MOVE","card":"SOR#108:4","from":"hand","to":"resource","p":1,"kind":"unit"}
+{"seq":"R1.G.8","t":"RESOURCE","p":1,"card":"SOR#108:4"}
+{"seq":"R1.G.9","t":"MOVE","card":"SOR#045:4","from":"hand","to":"resource","p":2,"kind":"unit"}
+{"seq":"R1.G.10","t":"RESOURCE","p":2,"card":"SOR#045:4"}
+{"seq":"R1.G.11","t":"READY","card":"SOR#108"}
+{"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":1}
+{"seq":"R1.G.13","t":"READY_RESOURCES","p":1,"amount":1}
+{"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
+{"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R2.start","t":"ROUND_START","round":2,"keyframe":{"round":2,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R2.A.start","t":"PHASE_START","phase":"action"}
+{"seq":"R2.A.0a","t":"CHOICE","p":1,"prompt":"Wampa","offered":["base@2"],"chose":0}
+{"seq":"R2.A.0b","t":"EXHAUST","card":"SOR#108"}
+{"seq":"R2.A.1","t":"ATTACK","p":1,"atk":"SOR#108","def":"base@2","defenderType":"base"}
+{"seq":"R2.A.1a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":4,"damageType":"combat","hp":26}
 
 %%% ANNOTATIONS
-{"ref":"R1.A.2","nag":"?!","text":"attacking the base too early"}
+{"ref":"R2.A.1","nag":"?!","text":"attacking the base rather than developing the board"}
 ```
 
 ### A.2 The board it folds to
 
 ```json
 {
-  "round": 1,
+  "round": 2,
   "phase": "action",
   "initiative": 1,
+  "initiativeTaken": false,
   "players": {
     "1": {
       "seat": 1,
       "baseHp": 30,
       "baseMaxHp": 30,
-      "handSize": 0,
+      "handSize": 1,
       "hand": [
-        "SOR#108"
+        "SOR#108:5"
       ],
-      "resourcesReady": 0,
-      "resourcesExhausted": 2,
+      "resourcesReady": 3,
+      "resourcesExhausted": 0,
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -1965,24 +2140,44 @@ A.3 exactly.
           "shields": 0,
           "experience": 0,
           "statusTokens": {},
-          "captured": []
+          "captured": [],
+          "power": 4,
+          "hp": 5,
+          "keywords": [
+            "overwhelm"
+          ]
         }
-      ]
+      ],
+      "deckSize": 0,
+      "leader": {
+        "id": "SOR#010",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     },
     "2": {
       "seat": 2,
       "baseHp": 26,
       "baseMaxHp": 30,
-      "handSize": 1,
+      "handSize": 2,
       "hand": [
-        "SOR#045"
+        "SOR#045",
+        "SOR#045:5"
       ],
-      "resourcesReady": 2,
+      "resourcesReady": 3,
       "resourcesExhausted": 0,
       "credits": 0,
       "hasForce": false,
       "discard": [],
-      "cards": []
+      "cards": [],
+      "deckSize": 0,
+      "leader": {
+        "id": "SOR#005",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     }
   }
 }
@@ -2003,13 +2198,29 @@ A.3 exactly.
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 1                                                 initiative: Player 1 
- P1  base 30/30   hand 1   resources 2
- P2  base 30/30   hand 1   resources 2
+ P1  base 30/30   hand 1   resources 2/2   deck 2   leader ready
+ P2  base 30/30   hand 1   resources 2/2   deck 2   leader ready
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
   1. Player 1 plays Wampa to ground (cost 2)
-  2. Player 1 attacks Player 2's base with Wampa
+  2. Player 2 passes
+  3. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Wampa #4, Wampa #5
+       ↳ Player 2 draws 2: Cell Block Guard #4, Cell Block Guard #5
+       ↳ Player 1 resources Wampa #4
+       ↳ Player 2 resources Cell Block Guard #4
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 3/3   deck 0   leader ready
+      ground: Wampa 4/5
+ P2  base 30/30   hand 2   resources 3/3   deck 0   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Player 2's base with Wampa
        ↳ 4 damage to Player 2's base — 26 HP left
 ```
 
@@ -2020,14 +2231,14 @@ A.3 exactly.
 **STORY** — plain text, kept verbatim. It is what §16 produces from the sections below, so a
 reader can check it rather than trust it.
 
-**DECKS** — two lines, one per player. Player 1 runs 3 copies of `SOR#108`.
+**DECKS** — two lines, one per player. Player 1 runs 5 copies of `SOR#108`.
 
 **CARDS** — six entries. This is why the story says `Wampa` and not `SOR#108`, with no card
 database involved. The two units carry `kind: "unit"`; the leaders and bases carry none.
 
-**SETUP** — `INIT` says Player 1's deck is three Wampas, `SOR#108` on top.
+**SETUP** — `INIT` says Player 1's deck is five Wampas, `SOR#108` on top.
 
-**EVENTS, folding** — the setup phase is round 0, and the keyframe comes only when round 1
+**EVENTS, folding** — the setup phase is round 0, and the first keyframe comes when round 1
 begins, so the setup deltas are what it has to add up to:
 
 | Event | What happens to the board |
@@ -2035,39 +2246,49 @@ begins, so the setup deltas are what it has to add up to:
 | `PHASE_START {phase:"setup"}` | `phase = "setup"` |
 | `MODAL_CHOICE` | nothing (a note: Player 1 chose to go first) |
 | `SHUFFLE` | nothing |
-| three `MOVE deck → hand` for Player 1 | `handSize` 0 → 3; the cards are not in play, so `cards` stays empty |
+| three `MOVE deck → hand` for Player 1 | `handSize` 0 → 3; `deckSize` is still unknown (no keyframe yet), so untouched; the cards are not in play, so `cards` stays empty |
 | `DRAW {count:3, cards:[…]}` | the three ids go onto `hand`; **`handSize` is untouched** — the MOVEs did that |
 | the same for Player 2 | `handSize` 3, `hand` filled |
 | `KEEP_HAND` ×2 | nothing |
-| `MOVE hand → resource` (`SOR#108:2`) | `handSize` 3 → 2, `resourcesReady` 0 → 1 |
-| `RESOURCE` | nothing — the MOVE carried the change |
+| `MOVE hand → resource` (`SOR#108:2`) + `RESOURCE` | `handSize` 3 → 2, `resourcesReady` 0 → 1; `RESOURCE` itself does nothing |
 | `MOVE` + `RESOURCE` (`SOR#108:3`) | `handSize` 1, `resourcesReady` 2 |
 | the same two for Player 2 | `handSize` 1, `resourcesReady` 2 |
 | `PHASE_END` | nothing |
-| `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — and is authoritative: the state is **replaced** by it and the normal `round = 1` rule is skipped. `checkKeyframes()` compares first and finds nothing to report. |
+| `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — plus what the fold could not know: `deckSize` 2 and each `leader` (both in the base zone, ready, Epic Action unused). It is authoritative: the state is **replaced** by it. `checkKeyframes()` compares first and finds nothing to report (`baseHp` and `deckSize` are exempt here, [§14](#14-checking-a-file-is-honest)). |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |
-| `EXHAUST_RESOURCES {p:1, amount:2}` | Player 1 pays for the Wampa: `resourcesReady` 2 → 0, `resourcesExhausted` 0 → 2. It lands under action `0` because the engine pays before it announces the play ([§9.1](#91-how-seq-is-built)). |
-| `MOVE hand → ground` (`SOR#108`) | `handSize` 1 → 0; a fresh `SOR#108` is added to player 1's `cards` |
+| `EXHAUST_RESOURCES {p:1, amount:2}` | Player 1 pays for the Wampa: `resourcesReady` 2 → 0, `resourcesExhausted` 0 → 2. Under action `0`: the engine pays before it announces the play ([§9.1](#91-how-seq-is-built)). |
+| `MOVE hand → ground` (`SOR#108`) | `handSize` 1 → 0; a fresh `SOR#108` is added to player 1's `cards` — `exhausted: false`, no stats yet |
+| `STATS {power:4, hp:5, keywords:["overwhelm"]}` | the Wampa's live numbers, stated; nothing was derived |
 | `PLAY {p:1, card:"SOR#108", zone:"ground"}` | already tracked: nothing but its zone, which is unchanged. **Not** added twice. |
-| `EXHAUST {card:"SOR#108"}` | that card's `exhausted = true` (the engine exhausts the attacker before it announces the attack) |
+| `EXHAUST {card:"SOR#108"}` | it entered play exhausted, as units do — this record is how the file says so |
+| `PASS` ×2 | nothing |
+| `PHASE_END`, `PHASE_START {regroup}` | `phase = "regroup"` |
+| two `MOVE deck → hand` + `DRAW`, each player | `handSize` 0 → 2 / 1 → 3; `deckSize` 2 → 0 (known since the keyframe) |
+| `MOVE hand → resource` + `RESOURCE`, each player | `handSize` 1 / 2, `resourcesReady` 3 |
+| `READY {card:"SOR#108"}` | the Wampa readies |
+| `READY_RESOURCES {p:1, amount:1}` ×2 | Player 1's two exhausted resources ready, one record each: `resourcesExhausted` 2 → 0, `resourcesReady` 1 → 3 |
+| `PHASE_END`, `ROUND_END {keyframe}` | compared — every field, `deckSize` now included — and matched; then snapped to |
+| `ROUND_START {round:2, keyframe}` | likewise; `initiativeTaken` is `false` again |
+| `PHASE_START {phase:"action"}` | `phase = "action"` |
+| `CHOICE` | nothing (a note: the attack target was picked) |
+| `EXHAUST {card:"SOR#108"}` | the attacker exhausts, before the attack is announced ([§9.1](#91-how-seq-is-built)) |
 | `ATTACK` | nothing (it's just a note) |
 | `DAMAGE {tgt:"base@2", amt:4, hp:26}` | `players[2].baseHp = 26` — a Wampa hits for 4 |
 
-**ANNOTATIONS** — one note on `R1.A.2`, glyph `?!` ("dubious"), with a comment.
+**ANNOTATIONS** — one note on `R2.A.1`, glyph `?!` ("dubious"), with a comment.
 
 **EVENTS, rendering:**
 
 | Event | What gets printed |
 |---|---|
 | `PHASE_START {setup}` | ` ── setup ──` · counter → 0 |
-| `MODAL_CHOICE`, `SHUFFLE`, every `MOVE` | nothing — mechanism |
+| `MODAL_CHOICE`, `SHUFFLE`, every `MOVE`, `STATS`, `EXHAUST`, `READY`, the resource counters | nothing — mechanism |
 | `DRAW` | indented: `       ↳ Player 1 draws 3: Wampa, Wampa #2, Wampa #3` — the `:N` copy suffix becomes ` #N` |
 | `KEEP_HAND` | indented: `       ↳ Player 1 keeps their hand` |
 | `RESOURCE` | indented: `       ↳ Player 1 resources Wampa #2` — this is what `RESOURCE` is for; its `MOVE` printed nothing |
-| `ROUND_START` | blank, rule, ` ROUND 1` + initiative, the board from its keyframe, rule, blank · counter → 0 |
-| `PHASE_START {action}` | ` ── action ──` · counter → 0 |
-| `EXHAUST_RESOURCES` | nothing — mechanism |
+| `ROUND_START` | blank, rule, ` ROUND 1` + initiative, the board from its keyframe (`resources 2/2   deck 2   leader ready`; in round 2 `ground: Wampa 4/5`), rule, blank · counter → 0 |
+| `PHASE_START {action}` / `{regroup}` | ` ── action ──` / ` ── regroup ──` · counter → 0 |
 | `PLAY` | numbered: `  1. Player 1 plays Wampa to ground (cost 2)` — the printed cost; what was paid is in the events |
-| `EXHAUST` | nothing — the board summary shows what is exhausted |
-| `ATTACK` | numbered: `  2. Player 1 attacks Player 2's base with Wampa` |
-| `DAMAGE` | indented under action 2: `       ↳ 4 damage to Player 2's base — 26 HP left` |
+| `PASS` | numbered: `  2. Player 2 passes` |
+| `ATTACK` | numbered: `  1. Player 1 attacks Player 2's base with Wampa` |
+| `DAMAGE` | indented under it: `       ↳ 4 damage to Player 2's base — 26 HP left` |

@@ -14,15 +14,17 @@ function sameSet(a: unknown, b: unknown): boolean {
  * Fields that the keyframe gate verifies, per seat.
  *
  * GATED (reconstructable from the event model, single source of truth = the event stream):
- * `baseHp`, `handSize`, `resourcesReady`, `resourcesExhausted`, `credits`, `hasForce`, and
- * per in-play card matched by id: `zone`, `damage`, `exhausted`, `shields`, `experience`,
- * `statusTokens`, `upgrades` and `captured` (both compared as sets — attachment order is not
- * part of the model). `baseHp` is exempt at the first keyframe only — see checkKeyframes.
+ * `initiativeTaken`; per seat `baseHp`, `handSize`, `deckSize`, `resourcesReady`,
+ * `resourcesExhausted`, `credits`, `hasForce`, the leader's `id`/`deployed`/`exhausted`/
+ * `epicActionUsed`; and per in-play card matched by id: `zone`, `damage`, `exhausted`,
+ * `shields`, `experience`, `statusTokens`, `upgrades` and `captured` (both as sets — attachment
+ * order is not part of the model), `power`, `hp` and `keywords` (the live values `STATS`
+ * records carry). `baseHp` and `deckSize` are exempt at the first keyframe only — see
+ * checkKeyframes. Fields an older file's keyframe lacks (`deckSize`, `leader`, `power`,
+ * `hp`, `keywords`, `initiativeTaken`) are skipped: absent is "not recorded", not "zero".
  *
  * NOT GATED (and why): `hand`/`discard` CONTENTS (only the counts are reconstructed: DRAW
- * appends to `hand[]` but nothing removes from it), and a card's `power`/`hp` (the engine's
- * live stats, which depend on ability effects the fold has no rules engine to evaluate —
- * they are snapshot fields a reader may correct itself against, spec §11). The keyframe's
+ * appends to `hand[]` but nothing removes from it). The keyframe's
  * `cards` array only contains ground/space arena cards (see
  * SwuPgnGameAdapter.buildSwuPgnPlayerState), so card-level checks are scoped to arena cards
  * by construction.
@@ -61,6 +63,17 @@ function diffCard(seq: string, seat: 1 | 2, e: CardInstanceState, g: CardInstanc
     if (!sameSet(e.captured, g.captured)) {
         out.push({ seq, path: `${base}.captured`, expected: e.captured, got: g.captured });
     }
+    // Live stats are compared only when the keyframe recorded them: an older file carries
+    // none, and "absent" is "not recorded", never "zero".
+    if (typeof e.power === 'number' && e.power !== g.power) {
+        out.push({ seq, path: `${base}.power`, expected: e.power, got: g.power });
+    }
+    if (typeof e.hp === 'number' && e.hp !== g.hp) {
+        out.push({ seq, path: `${base}.hp`, expected: e.hp, got: g.hp });
+    }
+    if (Array.isArray(e.keywords) && !sameSet(e.keywords, g.keywords)) {
+        out.push({ seq, path: `${base}.keywords`, expected: e.keywords, got: g.keywords });
+    }
     return out;
 }
 
@@ -72,6 +85,19 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
     for (const field of ['handSize', 'resourcesReady', 'resourcesExhausted', 'credits', 'hasForce'] as const) {
         if (e[field] !== g[field]) {
             out.push({ seq, path: `players.${seat}.${field}`, expected: e[field], got: g[field] });
+        }
+    }
+    // Like baseHp, the starting deck is not in the stream, so the first keyframe supplies it.
+    if (checkBaseHp && typeof e.deckSize === 'number' && e.deckSize !== g.deckSize) {
+        out.push({ seq, path: `players.${seat}.deckSize`, expected: e.deckSize, got: g.deckSize });
+    }
+    // The leader is compared once a keyframe has named it (its id comes from the keyframe or
+    // a DEPLOY_LEADER; before either the fold has no leader to be wrong about).
+    if (e.leader && g.leader) {
+        for (const field of ['id', 'deployed', 'exhausted', 'epicActionUsed'] as const) {
+            if (e.leader[field] !== g.leader[field]) {
+                out.push({ seq, path: `players.${seat}.leader.${field}`, expected: e.leader[field], got: g.leader[field] });
+            }
         }
     }
 
@@ -97,6 +123,9 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
 /** Compares the gated set of fold-tracked invariants against each keyframe (see above). */
 function diff(seq: string, expected: ReducedState, got: ReducedState, checkBaseHp: boolean): KeyframeMismatch[] {
     const out: KeyframeMismatch[] = [];
+    if (typeof expected.initiativeTaken === 'boolean' && expected.initiativeTaken !== (got.initiativeTaken ?? false)) {
+        out.push({ seq, path: 'initiativeTaken', expected: expected.initiativeTaken, got: got.initiativeTaken ?? false });
+    }
     for (const seat of [1, 2] as const) {
         const e = expected.players[seat];
         const g = got.players[seat];
@@ -130,6 +159,12 @@ export function checkKeyframes(events: GameEvent[]): IntegrityResult {
                 mismatches.push({ seq: e.seq, path: 'keyframe', expected: 'both seats, with array cards/hand/discard', got: 'damaged keyframe (ignored)' });
                 s = reduce(s, e);
                 continue;
+            }
+            // A ROUND_START keyframe describes a round that has begun: the initiative counter is
+            // available again, whatever last round did with it (the ROUND_START rule the snap
+            // skips would have reset it).
+            if (e.t === 'ROUND_START') {
+                s.initiativeTaken = false;
             }
             mismatches.push(...diff(e.seq, e.keyframe, s, seenKeyframe));
             seenKeyframe = true;

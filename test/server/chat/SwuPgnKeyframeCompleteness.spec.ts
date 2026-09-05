@@ -74,7 +74,7 @@ describe('SWU-PGN/1.0 keyframe completeness (real game)', function () {
             // compares all fields); the artifact lives entirely in the integration bootstrap.
             const isCountFieldPastFirstKeyframe = (m: { seq: string; path: string }) =>
                 m.seq !== 'R1.start'
-                && (m.path.endsWith('.handSize') || m.path.endsWith('.resourcesReady'));
+                && (m.path.endsWith('.handSize') || m.path.endsWith('.resourcesReady') || m.path.endsWith('.deckSize'));
 
             const gatedMismatches = r.mismatches.filter((m) => !isCountFieldPastFirstKeyframe(m));
             const deferred = r.mismatches.filter(isCountFieldPastFirstKeyframe);

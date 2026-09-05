@@ -923,6 +923,66 @@ describe('SwuPgnRecorder: resources, base tokens, captures, exits', function () 
         expect(fold(rec.getEvents()).players[1]?.cards[0]).toEqual(jasmine.objectContaining({ upgrades: [], statusTokens: {} }));
     });
 
+    it('writes EXHAUST for a unit that entered play exhausted, nothing for one that entered ready', function () {
+        const { game, rec } = mk();
+        const tired: any = fakeCard({ uuid: 'SOR#095', zoneName: 'groundArena', owner: p1, exhausted: true });
+        const fresh: any = fakeCard({ uuid: 'SOR#128', zoneName: 'groundArena', owner: p1, exhausted: false });
+        game.emit(EventName.OnCardMoved, { card: tired, originalZone: 'hand', newZone: 'groundArena' });
+        game.emit(EventName.OnUnitEntersPlay, { card: tired, player: p1 });
+        game.emit(EventName.OnCardMoved, { card: fresh, originalZone: 'hand', newZone: 'groundArena' });
+        game.emit(EventName.OnUnitEntersPlay, { card: fresh, player: p1 });
+        expect(ofType(rec, 'EXHAUST').map((e) => e.card)).toEqual(['SOR#095']);
+        const cards = fold(rec.getEvents()).players[1]?.cards ?? [];
+        expect(cards.map((c) => [c.id, c.exhausted])).toEqual([['SOR#095', true], ['SOR#128', false]]);
+    });
+
+    it('a Leader Unit sent home writes its EXHAUST beside the move back; the deploy says whether an Epic Action was spent', function () {
+        const { game, rec } = mk();
+        const leader: any = fakeCard({ uuid: 'SOR#010', zoneName: 'groundArena', owner: p1, printedType: 'leader' });
+        leader.isLeader = () => true;
+        game.emit(EventName.OnLeaderDeployed, { card: leader, player: p1, context: { ability: { isEpicAction: true } } });
+        leader.zoneName = 'base';
+        leader.exhausted = true;
+        game.emit(EventName.OnCardMoved, { card: leader, originalZone: 'groundArena', newZone: 'base' });
+        expect(ofType(rec, 'DEPLOY_LEADER')[0].epic).toBe(true);
+        const tail = rec.getEvents().slice(-2)
+            .map((e: any) => [e.t, e.card, e.from, e.to]);
+        expect(tail).toEqual([['MOVE', 'SOR#010', 'ground', 'base'], ['EXHAUST', 'SOR#010', undefined, undefined]]);
+        expect(fold(rec.getEvents()).players[1]?.leader).toEqual({ id: 'SOR#010', deployed: false, exhausted: true, epicActionUsed: true });
+    });
+
+    it('writes STATS after any event that changed a unit\'s live power, HP or keywords, and forgets units that left', function () {
+        const game: any = new FakeEmitter();
+        const unit: any = fakeCard({ uuid: 'SOR#095', zoneName: 'groundArena', owner: p1 });
+        let power = 3;
+        let keywords: any[] = [];
+        unit.getPower = () => power;
+        unit.getHp = () => 3;
+        Object.defineProperty(unit, 'keywords', { get: () => keywords });
+        let arena: any[] = [unit];
+        game.getPlayers = () => [{ id: 'p1', getArenaUnits: () => arena }, { id: 'p2', getArenaUnits: () => [] }];
+        const rec = new SwuPgnRecorder(game, resolver);
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardPlayed, { card: unit, player: p1, playType: 'play' });
+        // Raid during an attack: +2 while attacking, back afterwards.
+        power = 5;
+        keywords = [{ name: 'raid', hasNumericValue: () => true, value: 2, isBlank: false }];
+        game.emit(EventName.OnAttackDeclared, { attack: { attacker: unit, attackingPlayer: p1, getAllTargets: () => [] } });
+        power = 3;
+        keywords = [];
+        game.emit(EventName.OnCardExhausted, { card: unit });
+        // Nothing changed: no record.
+        game.emit(EventName.OnCardReadied, { card: unit });
+        arena = [];
+        game.emit(EventName.OnCardMoved, { card: unit, originalZone: 'groundArena', newZone: 'discard' });
+        arena = [unit];
+        game.emit(EventName.OnCardMoved, { card: unit, originalZone: 'discard', newZone: 'groundArena' });
+
+        expect(ofType(rec, 'STATS').map((e) => [e.power, e.hp, e.keywords])).toEqual([
+            [3, 3, []], [5, 3, ['raid 2']], [3, 3, []], [3, 3, []],
+        ]);
+    });
+
     it('a stolen exhausted resource says so', function () {
         const { game, rec } = mk();
         const res: any = fakeCard({ uuid: 'SOR#050', zoneName: 'resource', owner: p1, exhausted: true });

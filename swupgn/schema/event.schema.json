@@ -45,6 +45,10 @@
       "then": { "properties": { "amount": { "type": "integer", "minimum": 0 } }, "required": ["p","amount"] }
     },
     {
+      "if": { "properties": { "t": { "const": "STATS" } }, "required": ["t"] },
+      "then": { "properties": { "card": { "type": "string" }, "power": { "type": "integer" }, "hp": { "type": "integer" }, "keywords": { "type": "array", "items": { "type": "string" } } }, "required": ["card","power","hp"] }
+    },
+    {
       "if": { "properties": { "t": { "const": "CAPTURE" } }, "required": ["t"] },
       "then": { "properties": { "by": { "type": "string" } } }
     },
@@ -71,6 +75,7 @@
       "required": ["players"],
       "properties": {
         "round": { "type": "integer" },
+        "initiativeTaken": { "type": "boolean" },
         "players": {
           "type": "object",
           "properties": {
@@ -92,7 +97,9 @@
         "resourcesReady": { "type": "integer" },
         "resourcesExhausted": { "type": "integer" },
         "credits": { "type": "integer" },
-        "hasForce": { "type": "boolean" }
+        "hasForce": { "type": "boolean" },
+        "deckSize": { "type": "integer" },
+        "leader": { "type": "object", "properties": { "id": { "type": "string" }, "deployed": { "type": "boolean" }, "exhausted": { "type": "boolean" }, "epicActionUsed": { "type": "boolean" } } }
       }
     },
     "cardState": {
@@ -104,7 +111,8 @@
         "captured": { "type": "array", "items": { "type": "string" } },
         "statusTokens": { "type": "object", "additionalProperties": { "type": "integer" } },
         "power": { "type": "integer" },
-        "hp": { "type": "integer" }
+        "hp": { "type": "integer" },
+        "keywords": { "type": "array", "items": { "type": "string" } }
       }
     }
   }

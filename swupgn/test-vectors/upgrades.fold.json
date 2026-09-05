@@ -34,7 +34,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 1,
-          "hp": 2
+          "hp": 2,
+          "keywords": []
         },
         {
           "id": "JTL#067",
@@ -47,9 +48,17 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 2
+          "hp": 2,
+          "keywords": []
         }
-      ]
+      ],
+      "deckSize": 2,
+      "leader": {
+        "id": "SOR#005",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     },
     "2": {
       "seat": 2,
@@ -80,7 +89,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         },
         {
           "id": "SOR#128:4",
@@ -93,7 +103,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         },
         {
           "id": "SOR#128:6",
@@ -106,7 +117,8 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         },
         {
           "id": "SOR#128:8",
@@ -119,9 +131,18 @@
           "statusTokens": {},
           "captured": [],
           "power": 3,
-          "hp": 1
+          "hp": 1,
+          "keywords": []
         }
-      ]
+      ],
+      "deckSize": 2,
+      "leader": {
+        "id": "SOR#010",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
     }
-  }
+  },
+  "initiativeTaken": false
 }
