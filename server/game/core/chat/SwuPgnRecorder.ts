@@ -64,6 +64,42 @@ export interface SwuPgnResolver {
  * it is right for every token — including Weakness (a token upgrade matching none of those
  * predicates) and any upgrade token printed in future.
  */
+/**
+ * What a card IS, from its printed type — stable for the whole game.
+ *
+ * Distinct from `cardKind`, which reports the role a card is currently PLAYING. The two
+ * disagree for pilots: a Pilot is printed as a unit (`printedType: 'basicUnit'`) but, once
+ * flown onto a vehicle, its live `type` becomes `nonLeaderUnitUpgrade` and `isUpgrade()`
+ * starts returning true. `%%% CARDS` is an identity index keyed by base id, so it must use
+ * this one: keying it off the live role would make a pilot's entry say `unit` or `upgrade`
+ * depending on whether it happened to be attached when the file was written.
+ */
+export function printedCardKind(card: any): 'unit' | 'upgrade' | undefined {
+    try {
+        switch (card?.printedType) {
+            case CardType.BasicUnit:
+            case CardType.NonTokenLeaderUnit:
+            case CardType.TokenLeaderUnit:
+            case CardType.TokenUnit:
+                return 'unit';
+            case CardType.BasicUpgrade:
+            case CardType.LeaderUpgrade:
+            case CardType.TokenUpgrade:
+            case CardType.NonLeaderUnitUpgrade:
+                return 'upgrade';
+            default:
+                // Base, Event, Leader, TokenCard: neither. See spec §7.2 on absent `kind`.
+                return undefined;
+        }
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * The role a card is currently playing (`isUpgrade()`/`isUnit()` follow the live `type`).
+ * This is what an EVENT's `kind` needs: an event states what it did, not what the card is.
+ */
 export function cardKind(card: any): 'unit' | 'upgrade' | undefined {
     try {
         if (card?.isUpgrade?.()) {
@@ -77,6 +113,9 @@ export function cardKind(card: any): 'unit' | 'upgrade' | undefined {
     }
     return undefined;
 }
+
+/** Spec §6.2 arena zones -- the destinations a reader turns into arena membership. */
+const ARENA_ZONE_NAMES = new Set(['ground', 'space']);
 
 /** The three token-upgrade kinds the fold models, each with its own gain/removal record. */
 type TokenUpgradeKind = 'shield' | 'experience' | 'advantage';
@@ -423,13 +462,24 @@ export class SwuPgnRecorder {
     }
 
     /**
-     * Name `hostId` on the upgrade's entry MOVE and, for a played upgrade, on its PLAY_UPGRADE.
+     * Name `hostId` on the upgrade's entry MOVE and, for a played upgrade, on its PLAY_UPGRADE,
+     * and correct the MOVE's `kind` to the role the event actually enacts.
      *
-     * The engine moves an upgrade into play BEFORE attaching it, so both records were emitted
-     * while the host was still unknown. The scan is bounded to the action being recorded: an
-     * earlier action's MOVE of the same card belongs to a different attachment and must not be
-     * rewritten. (A played upgrade emits MOVE then PLAY_UPGRADE then the attach, so looking only
-     * at the immediately preceding event -- which is all the token path needed -- misses it.)
+     * The `kind` correction is the point of this for pilots. A pilot (Han Solo, Has His
+     * Moments; Academy Graduate) is a unit card played onto a vehicle AS an upgrade, and
+     * `isUpgrade()` only becomes true once it is attached -- which happens after its MOVE was
+     * emitted. So the MOVE went out saying `kind: 'unit'`, and a reader that trusts it (as
+     * `applyMoveCounts` does) put a standalone body in the arena that no keyframe agrees with.
+     * An event's `kind` states the role THAT EVENT enacts, which is only knowable here.
+     * Only arena-bound MOVEs are corrected: those are the ones a reader turns into arena
+     * membership, and the card really was an ordinary card in hand before this.
+     *
+     * The engine moves an upgrade into play BEFORE attaching it, so these records were all
+     * emitted while the host was still unknown. The scan is bounded to the action being
+     * recorded: an earlier action's MOVE of the same card belongs to a different attachment and
+     * must not be rewritten. (A played upgrade emits MOVE, then the attach, then PLAY_UPGRADE,
+     * so looking only at the immediately preceding event -- all the token path needed -- misses
+     * it; PLAY_UPGRADE additionally reads its host directly at emission time.)
      */
     private backfillAttachedTo(upgradeId: string, hostId: string): void {
         for (let i = this.events.length - 1; i >= 0; i--) {
@@ -437,8 +487,13 @@ export class SwuPgnRecorder {
             if (!this.inCurrentAction(e.seq)) {
                 return;
             }
-            if (e.t === 'MOVE' && e.card === upgradeId && e.attachedTo == null) {
-                e.attachedTo = hostId;
+            if (e.t === 'MOVE' && e.card === upgradeId) {
+                if (e.attachedTo == null) {
+                    e.attachedTo = hostId;
+                }
+                if (ARENA_ZONE_NAMES.has(e.to)) {
+                    e.kind = 'upgrade';
+                }
             } else if (e.t === 'PLAY_UPGRADE' && e.card === upgradeId && e.target == null) {
                 e.target = hostId;
             }

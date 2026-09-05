@@ -409,6 +409,10 @@ it exactly when the card is neither. That covers more than tokens:
 The same rule holds wherever `kind` appears — `%%% CARDS`, `MOVE`, `CREATE_TOKEN`: an Event's
 and a Credit token's records carry no `kind`, and every unit's and upgrade's records do.
 
+Note that this index reports what a card **is** (its printed type), while the same field on an
+event reports what that **event did**. They disagree for pilots, deliberately — see
+[§10.1](#kind-on-an-event-is-a-role-kind-in--cards-is-an-identity).
+
 A reader MUST therefore treat an absent `kind` as **not an upgrade** (it never attaches) and
 equally as **not a unit** (it never joins arena membership). Do not guess from the id, and do
 not read the omission as a writer that forgot the field — absent is a positive statement. A
@@ -555,13 +559,49 @@ doesn't move the needle. They are documented here rather than with the pure note
 | `from` | string | yes | Zone it left. |
 | `to` | string | yes | Zone it arrived in. |
 | `p` | 1 or 2 | no | Whose card. Real engine files always include this. |
-| `attachedTo` | string | no | For a token-upgrade (shield / experience / advantage), the card id of the unit it is bound to. REQUIRED whenever the moving card is a token-upgrade; absent otherwise. |
-| `kind` | `"unit"` or `"upgrade"` | no | What the moving card **is**. REQUIRED whenever determinable — see below. |
+| `attachedTo` | string | no | The card id of the unit the moving card is bound to. REQUIRED whenever the move attaches a card — a token-upgrade, a printed upgrade, or a pilot; absent otherwise. |
+| `kind` | `"unit"` or `"upgrade"` | no | The **role this move enacts**, not what the card is. REQUIRED whenever determinable — see below. |
 
 **`MOVE` is the most important event in the format.** It is the *single source of truth*
 for hand size, ready resources, and which cards are in play. Every other "a card went
 somewhere" event (`DRAW`, `PLAY`, `DISCARD`, `RESOURCE`) is a **summary** that sits next
 to the MOVEs, and MUST NOT be counted a second time.
+
+#### `kind` on an event is a ROLE. `kind` in `%%% CARDS` is an IDENTITY.
+
+The field name is the same in both places and the meaning is not. Read it as:
+
+| Where | Answers | Example |
+|---|---|---|
+| `%%% CARDS` | *What is this card?* | Academy Graduate is `"unit"` — it is a unit card. |
+| `MOVE`, `CREATE_TOKEN` | *What did this event do?* | The move that flies it onto an X-Wing is `"upgrade"` — that move attached it. |
+
+**Pilots are why this matters.** A Pilot (Academy Graduate; Han Solo, Has His Moments) is a
+unit card that may be played onto a vehicle *as an upgrade*. The same card, in the same game,
+is a standalone body when played normally and an attachment when played with Piloting. So a
+writer MUST derive an event's `kind` from what the event does, not from the card's type:
+
+```jsonc
+// Drawn into hand: this move attaches nothing, so the card's own type stands.
+{"seq":"R1.A.0ce","t":"MOVE","card":"JTL#058","from":"outsideTheGame","to":"hand","p":1,"kind":"unit"}
+
+// Flown onto the X-Wing: this move attaches, so it is an upgrade move.
+{"seq":"R1.A.0cn","t":"MOVE","card":"JTL#058","from":"hand","to":"space","p":1,
+ "kind":"upgrade","attachedTo":"LAW#253"}
+{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":5}
+```
+
+A reader applies `kind` exactly as [§12.1](#121-the-move-rule-the-big-one) says: an
+`"upgrade"` move never contributes arena membership. Getting this wrong puts a pilot in an
+arena as its own unit — in the *space* arena, for a card whose printed arena is ground — and
+no keyframe will agree with the resulting state.
+
+**Every attaching move MUST also carry `attachedTo`, and the matching `PLAY_UPGRADE` MUST
+carry `target`.** Without a host there is nothing to attach to: `kind: "upgrade"` correctly
+keeps the card out of the arena, so a reader that is told the role but not the host loses the
+card entirely and the replay shows the play doing nothing. Note the writer learns the host
+only when the attachment happens, which is *after* the move is emitted — so both fields are
+resolved at attach time, not at move time.
 
 **Rules for `from` and `to`:**
 

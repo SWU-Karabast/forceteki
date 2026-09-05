@@ -4,7 +4,7 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, GameEndReason, PhaseName, ZoneName } from '../Constants';
 import { SwuPgn } from './SwuPgn';
-import { buildHeader, cardKind, SwuPgnRecorder } from './SwuPgnRecorder';
+import { buildHeader, cardKind, printedCardKind, SwuPgnRecorder } from './SwuPgnRecorder';
 import type { HeaderContext, SwuPgnResolver } from './SwuPgnRecorder';
 import { SwuPgnWriter } from './SwuPgnWriter';
 import { render } from '../../../../swupgn/src/render';
@@ -119,8 +119,14 @@ export class SwuPgnGameAdapter {
             }
             // `kind` lets a client classify a card from its id alone — in particular which
             // `TOKEN:` ids are upgrades (never in an arena) and which are units.
+            //
+            // This index is an IDENTITY keyed by base id, so it reads the printed type, not the
+            // live role. A pilot's role flips to upgrade the moment it is flown onto a vehicle,
+            // so `cardKind` here would make its entry say `unit` or `upgrade` depending on
+            // whether it happened to be attached when the file was written. The per-event
+            // `kind` on MOVE/CREATE_TOKEN is the one that reports role.
             const kind = read<'unit' | 'upgrade' | undefined>(
-                () => (cardKind(card)),
+                () => printedCardKind(card),
                 undefined
             );
             entries.set(base, {
@@ -369,7 +375,12 @@ export class SwuPgnGameAdapter {
         for (const zone of [ZoneName.GroundArena, ZoneName.SpaceArena]) {
             const inZone = read<any[]>(() => (player.getCardsInZone?.(zone) ?? []) as any[], []);
             for (const card of inZone) {
-                if (read(() => cardKind(card), undefined) === 'upgrade') {
+                // Attached-ness is the primary test, not the card's type. A pilot is a UNIT
+                // card played onto a vehicle as an upgrade, so `isUpgrade()` is true only while
+                // it is attached; asking the type alone would list it as its own body in the
+                // arena the moment that ever stops holding.
+                const attached = read(() => card?._parentCard ?? card?.parentCard ?? null, null);
+                if (attached != null || read(() => cardKind(card), undefined) === 'upgrade') {
                     continue;
                 }
                 cards.push(this.buildSwuPgnCardInstance(card, zone === ZoneName.GroundArena ? 'ground' : 'space'));

@@ -362,6 +362,76 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             expect(story).not.toMatch(/·\s*Advantage\b/);
         });
     });
+
+    // Regression: a PILOT is a unit card played onto a vehicle AS an upgrade. `isUpgrade()`
+    // flips to true only once it is attached, which happens after its MOVE was emitted -- so
+    // the MOVE went out saying `kind: 'unit'` and a reader that trusts it (applyMoveCounts
+    // does) put a standalone body in the arena that no keyframe agreed with. An event's `kind`
+    // has to state the role THAT EVENT enacts, not what the card is.
+    integration(function (contextRef) {
+        it('records a pilot played as an upgrade by its role, not its card type', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['academy-graduate'],
+                    spaceArena: ['alliance-xwing'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.academyGraduate);
+            context.player1.clickPrompt('Play Academy Graduate with Piloting');
+            context.player1.clickCard(context.allianceXwing);
+            context.player2.passAction();
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const play = doc.events.find((e: any) => e.t === 'PLAY_UPGRADE') as any;
+            expect(play).toBeDefined();
+            const pilotId = play.card as string;
+            const hostId = play.target as string;
+            expect(hostId).toBeDefined();
+
+            // The MOVE that puts the pilot into an arena enacts an attachment, so it must say
+            // so -- otherwise the fold gives the pilot its own arena slot.
+            const intoArena = doc.events.filter(
+                (e: any) => e.t === 'MOVE' && e.card === pilotId && (e.to === 'space' || e.to === 'ground')
+            ) as any[];
+            expect(intoArena.length).toBeGreaterThan(0);
+            for (const mv of intoArena) {
+                expect(mv.kind).toBe('upgrade');
+                expect(mv.attachedTo).toBe(hostId);
+            }
+
+            // Drawing the same card into hand enacts no attachment, so that MOVE keeps the
+            // card's own type: `kind` is per-event, and correcting it everywhere would be a
+            // different lie.
+            const intoHand = doc.events.filter(
+                (e: any) => e.t === 'MOVE' && e.card === pilotId && e.to === 'hand'
+            ) as any[];
+            for (const mv of intoHand) {
+                expect(mv.kind).toBe('unit');
+            }
+
+            // %%% CARDS is an identity index, so it reports what the pilot IS -- a unit card --
+            // regardless of the role it happened to be in when the file was written.
+            const indexEntry = doc.cards.find((c) => c.id === pilotId);
+            expect(indexEntry).toBeDefined();
+            expect(indexEntry!.kind).toBe('unit');
+
+            // Reader and writer agree, and the pilot lives on its host rather than beside it.
+            expect(checkKeyframes(doc.events).mismatches.filter((m) => m.path.includes('cards['))).toEqual([]);
+            const state = fold(doc.events);
+            const arena = ([1, 2] as const).flatMap((seat) => state.players[seat]?.cards ?? []);
+            expect(arena.map((c) => c.id)).not.toContain(pilotId);
+            expect(arena.find((c) => c.id === hostId)!.upgrades).toContain(pilotId);
+        });
+    });
 });
 
 /**
