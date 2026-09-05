@@ -722,7 +722,7 @@ hand.
 | `p` | 1 or 2 | yes | Who played it. |
 | `card` | string | yes | The card id. |
 | `zone` | string | no | Where it went. Defaults to `"ground"`. |
-| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. |
+| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
 
 Puts the card in play. The matching `MOVE` (hand → ground) handles the hand count, so
 `PLAY` MUST NOT touch `handSize`.
@@ -740,7 +740,7 @@ Puts the card in play. The matching `MOVE` (hand → ground) handles the hand co
 | `p` | 1 or 2 | yes | Who played it. |
 | `card` | string | yes | The card id. |
 | `zone` | string | no | Recorded for completeness; usually `"discard"`. |
-| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. |
+| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
 
 Event cards go straight to the discard pile — never into play.
 
@@ -754,7 +754,7 @@ Event cards go straight to the discard pile — never into play.
 | `card` | string | yes | The upgrade's card id. |
 | `target` | string | no | The unit it went onto. |
 | `zone` | string | no | Where the card went, recorded for completeness. It is **not** a fallback placement. |
-| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. |
+| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
 
 If `target` is given and that unit is on the board, the upgrade id is pushed onto that
 unit's `upgrades` list — **idempotently**, because the attaching `MOVE` beside this record
