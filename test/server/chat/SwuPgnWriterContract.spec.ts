@@ -1,5 +1,6 @@
 import { parse, render } from '../../../swupgn/src/index';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
+import { fold } from '../../../swupgn/src/fold';
 import type { GameEvent } from '../../../swupgn/src/types';
 
 /**
@@ -273,6 +274,92 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             expect(statusTokens.filter((e: any) => e.count > 0).length).toBe(2);
             expect(statusTokens.filter((e: any) => e.count < 0).length).toBe(2);
             expect(statusTokenBalance(doc.events)).toEqual({});
+        });
+    });
+
+    // Regression: the writer built a keyframe's arena `cards[]` from everything
+    // getCardsInZone returned, and the engine reports an attached upgrade as being in its
+    // host's arena zone. So every upgrade was listed twice -- once folded correctly into its
+    // host, once as a standalone pseudo-unit with no printed identity. A keyframe replaces
+    // reader state wholesale, so that entry rendered as `TOKEN:advantage#... IMAGE NOT FOUND`
+    // in an arena beside real units. Separately, PLAY_UPGRADE carried no `target`, so a
+    // printed upgrade folded to nowhere at all and vanished from the replay.
+    // The keyframe gate above only catches either one if the game it plays has upgrades.
+    integration(function (contextRef) {
+        it('keeps upgrades out of arena membership and names every upgrade host', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['ascension-cable'],
+                    groundArena: ['wampa'],
+                    spaceArena: ['gallofree-transport'],
+                },
+                player2: {
+                    hand: ['vanquish'],
+                    groundArena: ['battlefield-marine'],
+                    hasInitiative: true,
+                },
+            });
+            const { context } = contextRef;
+
+            // Vanquish P1's transport, which hands P1 two Advantage tokens to place. Wampa
+            // ends up carrying BOTH a token upgrade and, next, an ordinary printed one.
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.gallofreeTransport);
+            context.player1.clickCard(context.wampa);
+
+            context.player1.clickCard(context.ascensionCable);
+            context.player1.clickCard(context.wampa);
+            context.player2.passAction();
+            context.moveToNextActionPhase();
+
+            const text = (context.game as any).getCachedSwuPgn() as string;
+            const doc = parse(text);
+
+            // 1. The reference reader agrees with the writer about what is in an arena.
+            const cardMismatches = checkKeyframes(doc.events)
+                .mismatches.filter((m) => m.path.includes('cards['));
+            expect(cardMismatches).toEqual([]);
+
+            // 2. Every upgrade names its host, or no reader can place it.
+            const playUpgrades = doc.events.filter((e: any) => e.t === 'PLAY_UPGRADE') as any[];
+            expect(playUpgrades.length).toBeGreaterThan(0);
+            expect(playUpgrades.filter((e) => e.target == null)).toEqual([]);
+            const upgradeMoves = doc.events.filter(
+                (e: any) => e.t === 'MOVE' && e.kind === 'upgrade' && e.to !== 'hand'
+            ) as any[];
+            expect(upgradeMoves.length).toBeGreaterThan(0);
+            expect(upgradeMoves.filter((e) => e.attachedTo == null)).toEqual([]);
+
+            // 3. No keyframe lists an upgrade as its own arena card.
+            const upgradeIds = new Set<string>([
+                ...playUpgrades.map((e) => e.card as string),
+                ...upgradeMoves.map((e) => e.card as string),
+            ]);
+            const keyframes = doc.events
+                .filter((e: any) => e.keyframe != null)
+                .map((e: any) => e.keyframe);
+            expect(keyframes.length).toBeGreaterThan(0);
+            for (const k of keyframes) {
+                for (const seat of [1, 2]) {
+                    const listed = ((k.players[seat]?.cards ?? []) as any[]).map((c) => c.id as string);
+                    expect(listed.filter((id) => upgradeIds.has(id))).toEqual([]);
+                }
+            }
+
+            // 4. The printed upgrade sits on its host in the folded state, not missing from it.
+            const hostId = playUpgrades[0].target as string;
+            const state = fold(doc.events);
+            const hosts = ([1, 2] as const)
+                .flatMap((seat) => (state.players[seat]?.cards ?? []))
+                .filter((c) => c.id === hostId);
+            expect(hosts.length).toBe(1);
+            expect(hosts[0].upgrades).toContain(playUpgrades[0].card as string);
+
+            // 5. And the narrative board summary shows it on its host, never as its own entry.
+            const story = text.split('%%% STORY')[1]?.split('\n%%% ')[0] ?? '';
+            expect(story.length).toBeGreaterThan(0);
+            expect(story).not.toMatch(/·\s*Advantage\b/);
         });
     });
 });

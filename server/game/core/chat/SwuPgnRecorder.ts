@@ -64,7 +64,7 @@ export interface SwuPgnResolver {
  * it is right for every token — including Weakness (a token upgrade matching none of those
  * predicates) and any upgrade token printed in future.
  */
-function cardKind(card: any): 'unit' | 'upgrade' | undefined {
+export function cardKind(card: any): 'unit' | 'upgrade' | undefined {
     try {
         if (card?.isUpgrade?.()) {
             return 'upgrade';
@@ -408,17 +408,40 @@ export class SwuPgnRecorder {
     }
 
     /**
-     * Name `hostId` on the token's entry MOVE, which was emitted a moment ago while the token
-     * was still unattached.
+     * True when `seq` belongs to the action currently being recorded.
      *
-     * Only the immediately preceding event is considered: the engine emits the token's MOVE and
-     * its attach back to back, so anything further back belongs to a different action and must
-     * not be rewritten.
+     * Sub-events share their action's seq and add a letter (`R1.A.7` -> `R1.A.7a`), so a prefix
+     * match is right as long as the next character isn't a digit -- otherwise `R1.A.7` would also
+     * claim `R1.A.70`.
      */
-    private backfillAttachedTo(tokenId: string, hostId: string): void {
-        const last = this.events[this.events.length - 1];
-        if (last?.t === 'MOVE' && last.card === tokenId && last.attachedTo == null) {
-            last.attachedTo = hostId;
+    private inCurrentAction(seq: string): boolean {
+        const prefix = this.buildSeq(true);
+        if (seq === prefix) {
+            return true;
+        }
+        return seq.startsWith(prefix) && !(/^[0-9]/).test(seq.slice(prefix.length));
+    }
+
+    /**
+     * Name `hostId` on the upgrade's entry MOVE and, for a played upgrade, on its PLAY_UPGRADE.
+     *
+     * The engine moves an upgrade into play BEFORE attaching it, so both records were emitted
+     * while the host was still unknown. The scan is bounded to the action being recorded: an
+     * earlier action's MOVE of the same card belongs to a different attachment and must not be
+     * rewritten. (A played upgrade emits MOVE then PLAY_UPGRADE then the attach, so looking only
+     * at the immediately preceding event -- which is all the token path needed -- misses it.)
+     */
+    private backfillAttachedTo(upgradeId: string, hostId: string): void {
+        for (let i = this.events.length - 1; i >= 0; i--) {
+            const e = this.events[i];
+            if (!this.inCurrentAction(e.seq)) {
+                return;
+            }
+            if (e.t === 'MOVE' && e.card === upgradeId && e.attachedTo == null) {
+                e.attachedTo = hostId;
+            } else if (e.t === 'PLAY_UPGRADE' && e.card === upgradeId && e.target == null) {
+                e.target = hostId;
+            }
         }
     }
 
@@ -665,6 +688,14 @@ export class SwuPgnRecorder {
                 } else if (playType === PlayType.Smuggle) {
                     t = 'PLAY_SMUGGLE';
                 }
+                // Name the host on the way out. The engine attaches an upgrade BEFORE it emits
+                // OnCardPlayed, so the parent is already reachable here -- and it has to be
+                // recorded, because `kind: 'upgrade'` keeps the card out of the arena and
+                // `PLAY_UPGRADE.target` is the only thing left that tells a reader where it went.
+                // Without it the fold has nowhere to put the card and the upgrade disappears from
+                // the replay entirely. (backfillAttachedTo covers the reverse order, where the
+                // attach lands after the play.)
+                const host = t === 'PLAY_UPGRADE' ? this.parentOf(card) : null;
                 const seq = this.nextSeq(true);
                 this.push({
                     seq,
@@ -672,6 +703,7 @@ export class SwuPgnRecorder {
                     p: this.seatOf(player),
                     card: this.idOf(card),
                     zone: this.normalizeZone(card?.zoneName),
+                    target: host ? this.idOf(host) : undefined,
                     // The OnCardPlayed/OnLeaderDeployed event carries `costs` (resolved cost objects),
                     // not a numeric `cost`; read the card's effective cost instead so the notation
                     // records a real resource cost rather than always-undefined.
@@ -942,12 +974,18 @@ export class SwuPgnRecorder {
         this.game.on(EventName.OnUpgradeAttached, (event: any) => {
             try {
                 const upgrade = event?.upgradeCard;
-                const kind = tokenUpgradeKind(upgrade);
-                if (!kind) {
-                    return;
-                }
                 const parent = event?.parentCard ?? this.parentOf(upgrade);
                 if (!parent) {
+                    return;
+                }
+                const kind = tokenUpgradeKind(upgrade);
+                if (!kind) {
+                    // An ordinary printed upgrade. It gets no token record -- a second
+                    // PLAY_UPGRADE would corrupt the fold -- but it still needs its host named.
+                    // `kind: 'upgrade'` correctly keeps it out of the arena, so without a host
+                    // there is nothing to attach it to and it folds to nowhere at all: the player
+                    // plays an upgrade and the replay shows nothing happening.
+                    this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
                     return;
                 }
                 // Remember the host for the matching removal record: by the time the token is

@@ -307,6 +307,32 @@ The `:N` suffix is what makes each card **unique for the whole game**, so `EXHAU
 `ASH#110:2` can never hit the wrong copy. When you look up a card's *display name*,
 strip the `:N` first (`baseId()` does this).
 
+#### Extracting the resolvable id — strip `:N` FIRST
+
+The copy suffix is always **last**, so on a token it trails the numeric card id rather than
+sitting between the name and the id:
+
+```
+TOKEN:advantage#5844562972:2
+                └────────┘└┘
+                  cardId  copy
+```
+
+A reader that splits on `#` before removing the suffix gets `5844562972:2`, which fails any
+numeric check — the second copy of a token then silently loses its art, while the first copy
+resolves fine, so the bug looks like bad data rather than bad parsing.
+
+```js
+// WRONG — yields "5844562972:2" for the second copy
+const cardId = id.split('#')[1];
+
+// RIGHT — strip the copy suffix, then split
+const cardId = baseId(id).split('#')[1];   // baseId(x) = x.replace(/:\d+$/, '')
+```
+
+The same order applies to `SET#NUM:N`: strip `:N`, then read `SET` and `NUM`. Always
+`baseId()` first, for both id shapes and for both art lookup and name lookup.
+
 ### 6.2 Zone names
 
 These are the strings that appear in `from`, `to`, and `zone`:
@@ -366,7 +392,27 @@ One JSON object per line:
 |---|---|---|---|
 | `id` | string | Yes | A **base** id — no `:N` copy suffix, since every copy shares a name. |
 | `name` | string | Yes | What to show a human. Include the subtitle: `"Greef Karga, Gracious Magistrate"`. |
-| `kind` | `"unit"` or `"upgrade"` | No | What the card is, when determinable. Lets a reader classify from the id alone — in particular which `TOKEN:` ids are upgrades. |
+| `kind` | `"unit"` or `"upgrade"` | No | What the card is. Lets a reader classify from the id alone — in particular which `TOKEN:` ids are upgrades. **Absent is meaningful: it means neither** — see below. |
+
+**An absent `kind` means "neither a unit nor an upgrade", not "unknown".** `kind` is derived
+from the card's printed type, so a writer emits it for every unit and every upgrade and omits
+it exactly when the card is neither. That covers more than tokens:
+
+| Card | `kind` | Why |
+|---|---|---|
+| Wampa, Battle Droid token | `"unit"` | Enters an arena. |
+| Ascension Cable, Shield, Experience, Advantage | `"upgrade"` | Attaches to a unit; never enters an arena. |
+| Vanquish and every other Event | *absent* | Resolves and goes to the discard pile. |
+| A Credit token | *absent* | Moves `outsideTheGame` ↔ `base`; neither attaches nor takes an arena slot. |
+| A base, an undeployed leader | *absent* | Neither, by printed type. |
+
+The same rule holds wherever `kind` appears — `%%% CARDS`, `MOVE`, `CREATE_TOKEN`: an Event's
+and a Credit token's records carry no `kind`, and every unit's and upgrade's records do.
+
+A reader MUST therefore treat an absent `kind` as **not an upgrade** (it never attaches) and
+equally as **not a unit** (it never joins arena membership). Do not guess from the id, and do
+not read the omission as a writer that forgot the field — absent is a positive statement. A
+future card that is neither also carries no `kind` and needs no format change to be handled.
 
 Rules:
 

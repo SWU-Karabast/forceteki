@@ -4,7 +4,7 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, GameEndReason, PhaseName, ZoneName } from '../Constants';
 import { SwuPgn } from './SwuPgn';
-import { buildHeader, SwuPgnRecorder } from './SwuPgnRecorder';
+import { buildHeader, cardKind, SwuPgnRecorder } from './SwuPgnRecorder';
 import type { HeaderContext, SwuPgnResolver } from './SwuPgnRecorder';
 import { SwuPgnWriter } from './SwuPgnWriter';
 import { render } from '../../../../swupgn/src/render';
@@ -120,7 +120,7 @@ export class SwuPgnGameAdapter {
             // `kind` lets a client classify a card from its id alone — in particular which
             // `TOKEN:` ids are upgrades (never in an arena) and which are units.
             const kind = read<'unit' | 'upgrade' | undefined>(
-                () => (card?.isUpgrade?.() ? 'upgrade' : card?.isUnit?.() ? 'unit' : undefined),
+                () => (cardKind(card)),
                 undefined
             );
             entries.set(base, {
@@ -357,10 +357,21 @@ export class SwuPgnGameAdapter {
         const handCards = read<any[]>(() => player.hand ?? [], []);
         const discardCards = read<any[]>(() => player.getCardsInZone?.(ZoneName.Discard) ?? [], []);
 
+        // Arena membership is UNITS ONLY, matching the reader: `fold` refuses to put an
+        // upgrade in an arena (applyMoveCounts returns early on kind === 'upgrade', and
+        // PLAY_UPGRADE has no placement fallback). The engine reports an attached upgrade as
+        // being in its host's arena zone, so listing everything getCardsInZone returns put the
+        // upgrade in `cards[]` a second time -- once as a pseudo-unit with no printed identity,
+        // once correctly folded into its host's upgrades/statusTokens below. A keyframe replaces
+        // reader state wholesale, so that pseudo-card rendered as `TOKEN:advantage#... IMAGE NOT
+        // FOUND` sitting in an arena next to real units.
         const cards: CardInstanceState[] = [];
         for (const zone of [ZoneName.GroundArena, ZoneName.SpaceArena]) {
             const inZone = read<any[]>(() => (player.getCardsInZone?.(zone) ?? []) as any[], []);
             for (const card of inZone) {
+                if (read(() => cardKind(card), undefined) === 'upgrade') {
+                    continue;
+                }
                 cards.push(this.buildSwuPgnCardInstance(card, zone === ZoneName.GroundArena ? 'ground' : 'space'));
             }
         }
