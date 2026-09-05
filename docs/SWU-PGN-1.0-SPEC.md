@@ -95,6 +95,12 @@ There are four jobs. You might do one, or all of them.
 - SHOULD emit `%%% CARDS` covering every id the file mentions, and `%%% STORY` matching
   what the renderer produces ([§6.5](#65-the-cards-index), [§16](#16-turning-a-file-into-a-story)).
 - MUST NOT put real usernames or any real identifying info in the file.
+- MUST record a control change as a `TAKE_CONTROL` carrying `zone` (and `from` when no
+  `MOVE` carried the counts), and a leader deployed as a pilot as a `DEPLOY_LEADER` carrying
+  `kind: "upgrade"` + `target` — neither is a zone move, so nothing else tells a reader
+  ([§10.1](#101-events-that-carry-board-detail)).
+- MUST write `RecorderErrors` in the header if any of its handlers failed
+  ([§5.2](#52-you-may-have-these)); a silently under-recorded file must not look complete.
 
 ### The Folder (rebuilds the board)
 
@@ -174,7 +180,9 @@ use. See [§6.5](#65-the-cards-index) and [§16](#16-turning-a-file-into-a-story
 - Tag names are letters and digits only, and are **case-sensitive**.
 - Values are in double quotes. Inside a value, a backslash means "take the next
   character literally" — so `\"` is a quote and `\\` is a backslash.
-- All header lines MUST come **before** the first `%%%` banner.
+- All header lines MUST come **before** the first `%%%` banner. Inside a section, a line
+  starting with `[` is a record (a JSON array), not a header: it reaches the JSON path so
+  that `validate()` can reject it.
 - If the same tag appears twice, the **last one wins**.
 
 The exact pattern used to find tags is:
@@ -514,7 +522,11 @@ Every line here is one event. Every event MUST have:
 | `seq` | string | A label for this line, unique in the file. |
 | `t` | string | The event type. |
 
-Everything else depends on `t`.
+Everything else depends on `t`. `event.schema.json` stays open (unknown fields and unknown
+types pass, [§18](#18-versions-and-unknown-things)) but pins, per known `t`, the **shape** of
+the fields the fold dereferences — `cards` is an array, `amt`/`hp`/`count` are integers, a
+`keyframe`'s per-seat lists are arrays — so a malformed file fails `validate()` instead of
+throwing inside a reader.
 
 ### 9.1 How `seq` is built
 
@@ -1117,6 +1129,10 @@ Three small helpers:
 `stateAt(events, seq)` = fold everything up to and including the event with that `seq`.
 If no event has that `seq`, it folds the whole list.
 
+The reference reader starts from the last usable keyframe at or before `seq` rather than
+from the beginning — everything before a keyframe is disposable, so the result is identical
+and a replay scrubber calling it once per position stays linear instead of quadratic.
+
 ---
 
 ## 13. Keyframes
@@ -1154,7 +1170,8 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   window between checkpoints, so a round's worth of fold drift is caught a round earlier,
   and costs one snapshot.
 
-**Readers, on meeting a keyframe that is missing a seat:** do NOT snap to it — snapping
+**Readers, on meeting a keyframe that is missing a seat, or malformed** (a `cards`, `hand`
+or `discard` that is not an array, or a `cards` entry that is not an object)**:** do NOT snap to it — snapping
 would delete a player you have correct state for. **Ignore the keyframe**, keep folding
 your running state, and report the file as non-conformant. Treat it as a damaged
 checkpoint, not as truth. (Files written before this rule was enforced are in the wild;
@@ -1339,7 +1356,8 @@ width. Then, from that round's keyframe, one block per seat:
   (`1 advantage`), then each attached upgrade by name.
 - A seat with no keyframe entry prints ` P{n}  (not recorded)` — see
   [§13](#13-keyframes); this should never happen in a conformant file.
-- No keyframe on the `ROUND_START` → no summary, just the banner.
+- No keyframe on the `ROUND_START`, or a damaged one ([§13](#13-keyframes)) → no summary,
+  just the banner.
 
 This costs nothing to record: it is the keyframe the file already carries, laid out to be
 read.
@@ -1521,8 +1539,10 @@ It is gated again on an **organic** game by `test/server/chat/SwuPgnOrganicGame.
 a natural setup phase (initiative, mulligan, resourcing) through four rounds of plays,
 attacks and regroup resourcing to a concession in round 5, folded with **no** field excluded.
 Every keyframe's `handSize` and `resourcesReady` reproduce exactly, `validate()` returns no
-issue at all, `%%% CARDS` covers every leader, base and deck id, and `GAME_END` sits at the
-`.end` of the phase it happened in. (The other real-game specs bootstrap at the action
+issue at all, `%%% CARDS` covers every leader, base and deck id, and `GAME_END` takes the
+`.game-end` step of the phase it happened in. Two further real-game gates cover the cases
+that first broke the fold: a Change of Heart steal and return (`TAKE_CONTROL` re-seating),
+and Kazuda Xiono deploying as a pilot (`DEPLOY_LEADER` with `target`). (The other real-game specs bootstrap at the action
 phase, which discards the natural hand without a `MOVE`, so they cannot assert those two
 counts past `R1.start`.)
 
@@ -1541,7 +1561,7 @@ Closing those needs new events (there is no event for credits or the Force today
 only needs the comparison added to `checkKeyframes`.
 
 Some defined event types still never appear in a real file, simply because nothing in a
-given game triggers them (`CAPTURE`, `RESCUE`, `TAKE_CONTROL`, `OVERWHELM`, `MULLIGAN` and
+given game triggers them (`CAPTURE`, `RESCUE`, `OVERWHELM`, `MULLIGAN` and
 friends). That is absence of the situation, not a gap — unlike `RESOURCE`, which was
 specified, folded and rendered but had no code path that emitted it at all; it is now
 emitted for every resourcing ([§10.1](#101-events-that-carry-board-detail)).
@@ -1584,7 +1604,8 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | `GAME_END` seq was `R<n>.A.end`, shared with that phase's `PHASE_END` | `R<n>.<phase>.game-end`, its own step ([§9.1](#91-how-seq-is-built)) | a `GAME_END` whose seq ends in `.game-end` |
 | A control change (`TAKE_CONTROL`) was a note with no fold effect, so a stolen unit stayed under its old seat | it re-seats the card ([§10.1](#101-events-that-carry-board-detail)) | a `TAKE_CONTROL` carrying `zone` |
 | A leader deployed as a pilot was a `DEPLOY_LEADER` with no host, folded as its own unit | `kind: "upgrade"` + `target` ([§10.1](#101-events-that-carry-board-detail)) | a `DEPLOY_LEADER` carrying `target` |
-| `%%% CARDS` covered only ids that events mentioned; `RecorderErrors` did not exist | header carries `RecorderErrors` when a handler failed ([§5.2](#52-you-may-have-these)) | the tag's presence |
+| No way to tell a complete file from one whose writer dropped events | header carries `RecorderErrors` when a handler failed ([§5.2](#52-you-may-have-these)) | the tag's presence |
+| A malformed keyframe, or a non-array `cards`/`hand`/`discard`, crashed the reference reader | ignored and reported ([§13](#13-keyframes), [§14](#14-checking-a-file-is-honest)); `validate()` rejects the shapes the fold dereferences | `validate()` errors, or a `keyframe` mismatch |
 | `Date` was when the file was written | when the game started ([§5.1](#51-you-must-have-these)) | not detectable; treat an early file's `Date` as "at or after game end" |
 
 ### 22.1 Files that say `SWU-PGN/1.1`
