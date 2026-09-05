@@ -2,7 +2,7 @@
 
 Engine-independent reference reader for the SWU-PGN/1.0 game format.
 
-- `parse(text)` -> structured document (header, decks, events, annotations)
+- `parse(text)` -> structured document (header, story, decks, cards, setup, events, annotations)
 - `fold(events)` / `stateAt(events, seq)` -> reconstructed board state (no rules engine)
 - `render(doc)` -> the normative human-readable game story
 - `validate(text)` -> conformance report

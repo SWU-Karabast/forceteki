@@ -130,7 +130,7 @@ It has two parts:
 [Tag "Value"]
 
 %%% STORY              ← the game, written out for a human. PLAIN TEXT, not JSON.
- 1. Player 1 plays Wampa to ground (2 resources)
+ 1. Player 1 plays Wampa to ground (cost 2)
       ↳ 2 damage to Player 2's base — 28 HP left
 
 %%% DECKS              ← every other banner is followed by NDJSON
@@ -209,7 +209,7 @@ banner.
 |---|---|
 | A required header tag is missing | `SWU-PGN: missing required header tag [TagName]` |
 | A line isn't valid JSON | `SWU-PGN: invalid JSON on line N` |
-| A JSON line sits under a banner that isn't one of the four | `SWU-PGN: JSON record in unrecognized section on line N` |
+| A JSON line sits under a banner that isn't one of the five NDJSON sections | `SWU-PGN: JSON record in unrecognized section on line N` |
 | A JSON line appears before any banner | `SWU-PGN: record before any %%% section on line N` |
 
 ---
@@ -360,15 +360,19 @@ Only `ground` and `space` count as "in play". That matters a lot in
 
 A base is written `base@N`, where N is the seat number: `base@1`, `base@2`.
 
-Anything that is **not** `base@N` in a `tgt` / `def` field is a card id.
+Anything that is **not** `base@N` in a `tgt` / `def` / `CHOICE.offered` field is a card id.
+A base is `base@N` **everywhere** it is pointed at, including when a target prompt offered it —
+never its `SET#NUM` card id. (The header's `P1Base`/`P2Base` and the `%%% CARDS` index name
+the base *card*; a `base@N` ref names the *thing being hit*.)
 
 ### 6.4 Small vocabularies
 
 | Field | Values seen in real files (more MAY appear) |
 |---|---|
-| `damageType` | `combat`, `ability` |
+| `damageType` | `combat`, `ability`, `excess`. Overwhelm onto a base is written as its own `OVERWHELM` record, never as a `DAMAGE` with `damageType: "overwhelm"`. |
 | `defenderType` | `unit`, `base` |
-| `DEFEAT.reason` | `attack`, `ability`, `nonCombatDamage`, `frameworkEffect` |
+| `DEFEAT.reason` | `attack`, `ability`, `nonCombatDamage`, `frameworkEffect`, `uniqueRule` |
+| `CHOICE.prompt` | The prompt's title as the engine built it. For an attack-target choice this is the attacking card's name. |
 | `STATUS_TOKEN.token` | `advantage` |
 | `PHASE_START.phase` | `setup`, `action`, `regroup` |
 | `ABILITY_ACTIVATE.ability` | `card-slug#subtitle_triggered_N`, `card-slug_action_N`, `name_anonymous` |
@@ -420,9 +424,10 @@ future card that is neither also carries no `kind` and needs no format change to
 
 Rules:
 
-- A writer SHOULD emit an entry for **every** id that appears anywhere in the file, and
-  MUST derive them from the ids actually written rather than from the decks (which miss
-  tokens, and miss the opponent's revealed cards).
+- A writer SHOULD emit an entry for **every** id that appears anywhere in the file: the
+  header's leaders and bases, every `DECKS` entry, and every id an event writes. The reference
+  writer takes the **union** of all three — the deck lists alone miss tokens, and the events
+  alone miss a leader that was never deployed or a card that was never drawn.
 - A reader looks up `baseId(ref)` — strip the `:N` first.
 - An id with no entry falls back to **the id itself**. An incomplete index degrades to
   unreadable names, never to a lost event.
@@ -529,8 +534,27 @@ The numbers-and-letters rule is the useful part:
 So `3a` through `3z` all belong to action `3`. That's how a reader groups a play with
 its consequences.
 
+**One wrinkle, and it is in every real file.** The engine performs part of an action
+*before* it announces the action: a card's `MOVE` into the arena lands before its `PLAY`, and
+an attack's target `CHOICE` and the attacker's `EXHAUST` land before its `ATTACK`. Those
+records are numbered when they arrive, so they carry the **previous** action's number. A real
+file reads:
+
+```
+R2.A.0a  CHOICE   (target picked)
+R2.A.0b  EXHAUST  (attacker exhausts)
+R2.A.1   ATTACK
+R2.A.1a  DAMAGE
+```
+
+So "everything action `N` did" is the `Na…` records *after* it, **plus** any trailing
+`MOVE` / `CHOICE` / `EXHAUST` immediately *before* it that name the same card. The writer does
+not re-number them: when they arrive it cannot know that an action is about to follow, and
+guessing would mis-file a previous action's genuine consequences.
+
 `R1.A.start` / `R1.A.end` mark the edges of a phase. `GAME_END` is written with the
-`.end` step of the phase it happened in (e.g. `R7.A.end`).
+`.end` step of the phase it happened in — `R7.A.end` for a base destroyed in the action
+phase, `R5.G.end` for a concession during regroup.
 
 ---
 
@@ -611,6 +635,11 @@ resolved at attach time, not at move time.
   `resource`, `ground`, `space`, `discard`, `base`, `outsideTheGame`, `capture`.
 - `from` MUST NOT equal `to`. A move that doesn't change zone carries no information, and
   a reader gains nothing from it. Writers MUST drop these rather than emit them.
+- **Building the decks is not a move.** Before the first shuffle every card enters its deck
+  from `outsideTheGame`. That is the deck list, which `DECKS` already states and `INIT`
+  already orders, so the reference writer does not emit those `outsideTheGame` → `deck`
+  records (they were 40 of one organic game's 237 events). A token, or anything else, that
+  later enters **play** from `outsideTheGame` is still recorded.
 
 A reader that meets a MOVE breaking any of these rules SHOULD ignore that record and
 report the file as non-conformant. It MUST NOT crash.
@@ -638,7 +667,7 @@ hand.
 | `p` | 1 or 2 | yes | Who played it. |
 | `card` | string | yes | The card id. |
 | `zone` | string | no | Where it went. Defaults to `"ground"`. |
-| `cost` | integer | no | Resources paid. |
+| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. |
 
 Puts the card in play. The matching `MOVE` (hand → ground) handles the hand count, so
 `PLAY` MUST NOT touch `handSize`.
@@ -656,7 +685,7 @@ Puts the card in play. The matching `MOVE` (hand → ground) handles the hand co
 | `p` | 1 or 2 | yes | Who played it. |
 | `card` | string | yes | The card id. |
 | `zone` | string | no | Recorded for completeness; usually `"discard"`. |
-| `cost` | integer | no | Resources paid. |
+| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. |
 
 Event cards go straight to the discard pile — never into play.
 
@@ -670,7 +699,7 @@ Event cards go straight to the discard pile — never into play.
 | `card` | string | yes | The upgrade's card id. |
 | `target` | string | no | The unit it went onto. |
 | `zone` | string | no | Fallback zone if the unit can't be found. |
-| `cost` | integer | no | Resources paid. |
+| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. |
 
 If `target` is given and that unit is on the board, the upgrade id is pushed onto that
 unit's `upgrades` list. Otherwise the upgrade is tracked as its own card.
@@ -889,7 +918,9 @@ These never change the board. A folder MUST read them and do nothing.
 Searching a deck looks at cards and usually puts most of them back. A conformant search
 emits:
 
-1. one **`SEARCH`** record, with `found` when the searcher learns what they found;
+1. one **`SEARCH`** record. `found` is optional, and the reference writer omits it: the
+   engine announces the search before the player has chosen, and what left the deck is
+   stated by the `MOVE` in step 3;
 2. a **`REVEAL`** where the opponent gets to see the cards too;
 3. a **`MOVE`** for **only** the card (or cards) that actually **leave** the searched zone.
 
@@ -1262,8 +1293,8 @@ read.
 
 | `t` | Line |
 |---|---|
-| `PLAY`, `PLAY_UPGRADE`, `PLAY_SMUGGLE` | `{who(p)} plays {nm(card)}` + ` to {zone}` if `zone` + ` ({cost} resources)` if `cost` |
-| `PLAY_EVENT` | `{who(p)} plays {nm(card)}` + ` ({cost} resources)` if `cost` — no zone |
+| `PLAY`, `PLAY_UPGRADE`, `PLAY_SMUGGLE` | `{who(p)} plays {nm(card)}` + ` to {zone}` if `zone` + ` (cost {cost})` if `cost` |
+| `PLAY_EVENT` | `{who(p)} plays {nm(card)}` + ` (cost {cost})` if `cost` — no zone |
 | `DEPLOY_LEADER` | `{who(p)} deploys {nm(card)}` |
 | `ATTACK` | base: `{who(p)} attacks {who(other)}'s base with {nm(atk)}` · unit: `{who(p)} attacks {nm(def)} with {nm(atk)}` |
 | `PASS` | `{who(p)} passes` |
@@ -1326,21 +1357,31 @@ events.
 A `.swupgn` file MUST NOT contain a real username, account id, email address, IP address,
 or anything else that points at a real person.
 
-- `P1Id` / `P2Id` MUST be `sha256:<hex>` — the real id plus a **secret server salt**,
-  hashed. The salt MUST stay on the server and MUST NOT be in the file.
+- `P1Id` / `P2Id` MUST be `sha256:<hex>` — the username, salted and hashed. The
+  reference writer's salt is the **`GameId`**: `sha256("<GameId>:<username>")`.
 - `P1` / `P2` MUST be generic labels like `"Player 1"`.
 - `by` in an annotation MUST be a fake name.
 - Spectator ids MUST NOT appear anywhere.
 
-The salted hash is:
+What a `GameId`-salted hash gives you, and what it does not:
 
-- **stable** — the same player always hashes the same, so you can spot them across games;
-- **not reversible** — you can't get the name back without the salt;
-- **not global** — a different server (different salt) gives a different hash for the
-  same person.
+- **per-game** — the same player hashes *differently* in every file. Ids cannot be joined
+  across games; that is the point of a per-game salt.
+- **not casually readable** — nobody opening the file sees a username.
+- **not resistant to a targeted guess.** The salt sits two lines above the id, and usernames
+  are low-entropy: anyone holding the file and a candidate list can confirm a player by
+  re-hashing `"<GameId>:<candidate>"`.
 
-A writer MUST run a PII scan over every string in the file before saving. If the scan
-finds anything, the file MUST NOT be written.
+A writer whose files are **published** SHOULD salt with a server-side secret instead (an HMAC
+keyed by an environment variable). That flips the first property — the same player then hashes
+the *same* across that server's games — and makes the id genuinely non-reversible. It costs one
+env var, and a reader cannot tell the two schemes apart, so it needs no format change.
+
+A writer MUST have a PII gate. The reference writer's gate is structural plus CI: no field is
+ever built from a username except the salted id, and
+`test/server/chat/SwuPgnPiiScan.spec.ts` stamps sentinel identities onto a live game and fails
+if any of them survive into the file. A writer that builds strings from user data SHOULD also
+scan the finished file, and MUST NOT write one the scan rejects.
 
 When `Perspective` is `P1` or `P2`, the other player's hidden cards SHOULD be missing or
 blanked. Files that see everything MUST only be produced by a trusted server.
@@ -1420,6 +1461,15 @@ The writer contract is gated on a real completed game by
 the events forward reproduces every keyframe, every status-token gain has a matching removal
 by game end, no `MOVE` has an empty or identical `from`/`to` (and every zone named is in the
 vocabulary), and `Engine`/`Seed` are not placeholders.
+
+It is gated again on an **organic** game by `test/server/chat/SwuPgnOrganicGame.spec.ts`:
+a natural setup phase (initiative, mulligan, resourcing) through four rounds of plays,
+attacks and regroup resourcing to a concession in round 5, folded with **no** field excluded.
+Every keyframe's `handSize` and `resourcesReady` reproduce exactly, `validate()` returns no
+issue at all, `%%% CARDS` covers every leader, base and deck id, and `GAME_END` sits at the
+`.end` of the phase it happened in. (The other real-game specs bootstrap at the action
+phase, which discards the natural hand without a `MOVE`, so they cannot assert those two
+counts past `R1.start`.)
 
 What remains genuinely unverified is the un-gated field list in
 [§14](#14-checking-a-file-is-honest): `credits`, `hasForce`, `resourcesExhausted`, the
@@ -1533,7 +1583,7 @@ A.3 exactly.
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
-  1. Player 1 plays Wampa to ground (2 resources)
+  1. Player 1 plays Wampa to ground (cost 2)
   2. Player 1 attacks Player 2's base with Wampa
        ↳ 2 damage to Player 2's base — 28 HP left
 
@@ -1563,9 +1613,6 @@ A.3 exactly.
 %%% ANNOTATIONS
 {"ref":"R1.A.2","nag":"?!","text":"attacking the base too early"}
 ```
-
-> This vector writes `"def":"base"`. Real engine files write `"def":"base@2"`. Both parse;
-> prefer `base@N` in new files.
 
 ### A.2 The board it folds to
 
@@ -1631,7 +1678,7 @@ A.3 exactly.
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
-  1. Player 1 plays Wampa to ground (2 resources)
+  1. Player 1 plays Wampa to ground (cost 2)
   2. Player 1 attacks Player 2's base with Wampa
        ↳ 2 damage to Player 2's base — 28 HP left
 ```
@@ -1669,7 +1716,7 @@ database involved.
 |---|---|
 | `ROUND_START` | blank, rule, ` ROUND 1` + initiative, the board from its keyframe, rule, blank · counter → 0 |
 | `PHASE_START` | ` ── action ──` · counter → 0 |
-| `PLAY` | numbered: `  1. Player 1 plays Wampa to ground (2 resources)` |
+| `PLAY` | numbered: `  1. Player 1 plays Wampa to ground (cost 2)` |
 | `ATTACK` | numbered: `  2. Player 1 attacks Player 2's base with Wampa` |
 | `DAMAGE` | indented under action 2: `       ↳ 2 damage to Player 2's base — 28 HP left` |
 | `EXHAUST` | nothing — mechanism, not story; the board summary shows what is exhausted |

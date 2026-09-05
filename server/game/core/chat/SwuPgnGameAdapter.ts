@@ -106,17 +106,15 @@ export class SwuPgnGameAdapter {
      */
     private buildSwuPgnCardIndex(): CardIndexRecord[] {
         const entries = new Map<string, CardIndexRecord>();
-        for (const [uuid, id] of this.cardIdByUuid) {
-            const base = id.replace(/:\d+$/, '');
-            if (entries.has(base)) {
-                continue;
+        const add = (id: string, card: any): void => {
+            if (entries.has(id)) {
+                return;
             }
-            const card = read<any>(() => this.game.getFromUuidUnsafe(uuid as any), null);
             const title = read<string>(() => card?.title, '');
-            const subtitle = read<string | null>(() => card?.subtitle, null);
             if (!title) {
-                continue;
+                return;
             }
+            const subtitle = read<string | null>(() => card?.subtitle, null);
             // `kind` lets a client classify a card from its id alone — in particular which
             // `TOKEN:` ids are upgrades (never in an arena) and which are units.
             //
@@ -125,15 +123,33 @@ export class SwuPgnGameAdapter {
             // so `cardKind` here would make its entry say `unit` or `upgrade` depending on
             // whether it happened to be attached when the file was written. The per-event
             // `kind` on MOVE/CREATE_TOKEN is the one that reports role.
-            const kind = read<'unit' | 'upgrade' | undefined>(
-                () => printedCardKind(card),
-                undefined
-            );
-            entries.set(base, {
-                id: base,
+            const kind = read<'unit' | 'upgrade' | undefined>(() => printedCardKind(card), undefined);
+            entries.set(id, {
+                id,
                 name: subtitle ? `${title}, ${subtitle}` : title,
                 ...(kind ? { kind } : {}),
             });
+        };
+
+        // Every id an event wrote.
+        for (const [uuid, id] of this.cardIdByUuid) {
+            add(id.replace(/:\d+$/, ''), read<any>(() => this.game.getFromUuidUnsafe(uuid as any), null));
+        }
+
+        // Every id the header and %%% DECKS mention that no event happened to: a leader that
+        // was never deployed, a card that was never drawn. These are added by PRINTED id only.
+        // Assigning them an instance id here would make copy numbering depend on when the
+        // file was generated. Tokens are skipped: they only exist once an event names them.
+        for (const player of this.game.getPlayers()) {
+            for (const card of [player.deckLeader, player.base, ...player.allCards] as any[]) {
+                const printedId = read<string | null>(
+                    () => (card?.isToken?.() || !card?.setId ? null : SwuPgn.formatSetId(card.setId.set, card.setId.number)),
+                    null
+                );
+                if (printedId) {
+                    add(printedId, card);
+                }
+            }
         }
         return [...entries.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     }
@@ -552,7 +568,9 @@ export class SwuPgnGameAdapter {
 
         return {
             gameId: this.game.id,
-            date: new Date().toISOString(),
+            // Spec §5.1: `Date` is when the game STARTED. Fall back to creation, then to now,
+            // so the tag is never empty for a game that was never formally started.
+            date: (this.game.startedAt ?? this.game.createdAt ?? new Date()).toISOString(),
             format: this.game.gameMode,
             cardPool: this.swuPgnCardPool(),
             engineVersion: SwuPgnGameAdapter.engineVersion(),

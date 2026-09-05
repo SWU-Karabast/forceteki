@@ -244,8 +244,10 @@ export class SwuPgnRecorder {
 
     public addGameEndRecord(winner: Seat | 'Draw', reason: string): void {
         try {
+            // Spec §9.1: GAME_END takes the `.end` step of the phase it happened in. A
+            // concession or disconnect can land in setup or regroup, not only the action phase.
             this.push({
-                seq: `R${this.currentRound}.A.end`,
+                seq: `R${this.currentRound}.${this.currentPhase}.end`,
                 t: 'GAME_END',
                 winner,
                 reason,
@@ -759,9 +761,10 @@ export class SwuPgnRecorder {
                     card: this.idOf(card),
                     zone: this.normalizeZone(card?.zoneName),
                     target: host ? this.idOf(host) : undefined,
-                    // The OnCardPlayed/OnLeaderDeployed event carries `costs` (resolved cost objects),
-                    // not a numeric `cost`; read the card's effective cost instead so the notation
-                    // records a real resource cost rather than always-undefined.
+                    // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
+                    // penalties, discounts and Exploit -- are resolved inside the engine's cost
+                    // payment and never reach this event; `costs` here is targeted-adjuster
+                    // bookkeeping, not an amount.
                     cost: typeof card?.cost === 'number' ? card.cost : undefined,
                 } as GameEvent);
             } catch (error) {
@@ -780,9 +783,10 @@ export class SwuPgnRecorder {
                     p: this.seatOf(player),
                     card: this.idOf(card),
                     zone: this.normalizeZone(card?.zoneName),
-                    // The OnCardPlayed/OnLeaderDeployed event carries `costs` (resolved cost objects),
-                    // not a numeric `cost`; read the card's effective cost instead so the notation
-                    // records a real resource cost rather than always-undefined.
+                    // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
+                    // penalties, discounts and Exploit -- are resolved inside the engine's cost
+                    // payment and never reach this event; `costs` here is targeted-adjuster
+                    // bookkeeping, not an amount.
                     cost: typeof card?.cost === 'number' ? card.cost : undefined,
                 });
             } catch (error) {
@@ -966,6 +970,14 @@ export class SwuPgnRecorder {
                 // produce 20% of a real game's MOVE records. Examining a card is reported by
                 // SEARCH (and REVEAL); only a card that actually leaves its zone gets a MOVE.
                 if (from === to || from === '' || to === '') {
+                    return;
+                }
+
+                // Building the decks is not a game event. Before the first shuffle every card
+                // enters its deck from outsideTheGame; that is the deck list, which %%% DECKS
+                // already states and the INIT record already orders. Recording it was 40 of one
+                // organic game's 237 events. A token entering PLAY from outsideTheGame is kept.
+                if (from === 'outsideTheGame' && to === 'deck') {
                     return;
                 }
 
@@ -1324,15 +1336,17 @@ export class SwuPgnRecorder {
         // pool (a malformed pairing) rather than emit a sentinel. Pure log — no fold delta.
         this.game.on(EventName.OnCardSelection, (event: any) => {
             try {
+                // targetRef, not idOf: an attack-target prompt offers the opponent's base, and a
+                // base is written `base@N` everywhere else in the file (spec §6.3).
                 const offeredCards: any[] = Array.isArray(event?.offered) ? event.offered : [];
                 const offered = offeredCards
-                    .map((c: any) => this.idOf(c))
+                    .map((c: any) => this.targetRef(c))
                     .filter((id: string) => id !== 'unknown');
                 const chosen = event?.chosen;
                 if (chosen?.uuid == null) {
                     return;
                 }
-                const chose = offered.indexOf(this.idOf(chosen));
+                const chose = offered.indexOf(this.targetRef(chosen));
                 if (chose < 0) {
                     return;
                 }

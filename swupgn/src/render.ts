@@ -30,9 +30,11 @@ function line(e: GameEvent, n: NameResolver): string | null {
         return n.nameOf(baseId(id)) + copySuffix(id);
     };
     switch (e.t) {
+        // `cost` is the PRINTED cost (spec §10.1), so it is worded as such: "(2 resources)"
+        // read as resources paid, which is wrong whenever an aspect penalty or discount applied.
         case 'PLAY': case 'PLAY_UPGRADE': case 'PLAY_SMUGGLE':
-            return `${who(e.p)} plays ${nm(e.card)}${e.zone ? ` to ${e.zone}` : ''}${e.cost != null ? ` (${e.cost} resources)` : ''}`;
-        case 'PLAY_EVENT': return `${who(e.p)} plays ${nm(e.card)}${e.cost != null ? ` (${e.cost} resources)` : ''}`;
+            return `${who(e.p)} plays ${nm(e.card)}${e.zone ? ` to ${e.zone}` : ''}${e.cost != null ? ` (cost ${e.cost})` : ''}`;
+        case 'PLAY_EVENT': return `${who(e.p)} plays ${nm(e.card)}${e.cost != null ? ` (cost ${e.cost})` : ''}`;
         case 'DEPLOY_LEADER': return `${who(e.p)} deploys ${nm(e.card)}`;
         case 'ATTACK': return `${who(e.p)} attacks ${e.defenderType === 'base' ? `${who(e.p === 1 ? 2 : 1)}'s base` : nm(e.def)} with ${nm(e.atk)}`;
         case 'PASS': return `${who(e.p)} passes`;
