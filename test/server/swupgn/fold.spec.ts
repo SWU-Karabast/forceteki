@@ -229,8 +229,8 @@ describe('fold resources', function () {
             { seq: 'R1.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 },
             { seq: 'R1.G.1', t: 'READY_RESOURCES', p: 1, amount: 1 },
             { seq: 'R1.G.2', t: 'READY_RESOURCES', p: 1, amount: 1 },
-            // The regroup step readies EVERY resource, ready ones included: a third record
-            // finds nothing exhausted and does nothing.
+            // A record for a resource that was already ready (a writer may emit one) finds
+            // nothing exhausted and does nothing.
             { seq: 'R1.G.3', t: 'READY_RESOURCES', p: 1, amount: 1 },
         ] as any).players[1]!;
         expect([readied.resourcesReady, readied.resourcesExhausted]).toEqual([3, 0]);
