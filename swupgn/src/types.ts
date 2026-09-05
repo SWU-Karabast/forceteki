@@ -110,6 +110,9 @@ export interface Annotation {
     text?: string;
     by?: string;                    // pseudonymous author
     line?: GameEvent[];             // engine-free variation
+    id?: string;                    // stable, opaque; lets another note reply to this one (spec §15)
+    parent?: string;                // the `id` this note replies to; absent for a top-level note
+    ts?: number;                    // epoch milliseconds; orders a thread
 }
 
 /**

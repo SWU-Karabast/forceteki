@@ -46,4 +46,27 @@ describe('validate edge cases', function () {
         expect(report.valid).toBe(false);
         expect(report.issues.some((i) => /^setup /.test(i.message))).toBe(true);
     });
+
+    it('accepts a threaded annotation (spec §15 id/parent/ts)', function () {
+        const threaded = good.replace(
+            '{"ref":"R1.A.2","nag":"?!","text":"attacking the base too early"}',
+            '{"ref":"R1.A.2","nag":"?!","text":"attacking the base too early","id":"n1","ts":1}\n' +
+            '{"ref":"R1.A.2","text":"disagree, the tempo is worth it","by":"someone","id":"n2","parent":"n1","ts":2}');
+        const report = validate(threaded);
+        expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
+        expect(report.valid).toBe(true);
+    });
+
+    it('rejects the field shapes the fold dereferences (spec §9): a malformed keyframe, a non-array cards', function () {
+        const badKeyframe = good.replace((/"keyframe":\{.*\}\}\}/), '"keyframe":{"players":{"1":{"cards":"x","hand":[],"discard":[]}}}');
+        expect(badKeyframe).not.toBe(good);
+        expect(validate(badKeyframe).valid).toBe(false);
+
+        const badDraw = good.replace(
+            '{"seq":"R1.A.2b","t":"EXHAUST","card":"SOR#108"}',
+            '{"seq":"R1.A.2b","t":"EXHAUST","card":"SOR#108"}\n{"seq":"R1.A.2c","t":"DRAW","p":1,"count":1,"cards":5}');
+        const report = validate(badDraw);
+        expect(report.valid).toBe(false);
+        expect(report.issues.some((i) => (/R1\.A\.2c/).test(i.message))).toBe(true);
+    });
 });
