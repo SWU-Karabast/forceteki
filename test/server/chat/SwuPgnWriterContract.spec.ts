@@ -416,6 +416,8 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             ) as any[];
             for (const mv of intoHand) {
                 expect(mv.kind).toBe('unit');
+                // ...and names no host: it attaches nothing (spec §10.1, "absent otherwise").
+                expect(mv.attachedTo).toBeUndefined();
             }
 
             // %%% CARDS is an identity index, so it reports what the pilot IS -- a unit card --

@@ -490,10 +490,13 @@ export class SwuPgnRecorder {
                 return;
             }
             if (e.t === 'MOVE' && e.card === upgradeId) {
-                if (e.attachedTo == null) {
-                    e.attachedTo = hostId;
-                }
+                // Only the arena-bound MOVE enacts the attachment. Spec §10.1 makes `attachedTo`
+                // REQUIRED on that record and absent otherwise; a same-action draw of the pilot
+                // into hand used to be stamped with a host it was not attached to yet.
                 if (ARENA_ZONE_NAMES.has(e.to)) {
+                    if (e.attachedTo == null) {
+                        e.attachedTo = hostId;
+                    }
                     e.kind = 'upgrade';
                 }
             } else if (e.t === 'PLAY_UPGRADE' && e.card === upgradeId && e.target == null) {

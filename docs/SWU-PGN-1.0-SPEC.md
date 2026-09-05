@@ -1191,8 +1191,17 @@ Notes people add after the game. One JSON object per line in `%%% ANNOTATIONS`.
 | `text` | string | no | What you want to say. |
 | `by` | string | no | A fake name for the author. Never a real one. |
 | `line` | GameEvent[] | no | A "what if" — a made-up sequence of events. |
+| `id` | string | no | A stable id for this note, so another note can reply to it. Opaque; a UUID is fine. |
+| `parent` | string | no | The `id` of the note this one replies to. Absent for a top-level note. |
+| `ts` | integer | no | When the note was written, epoch milliseconds. Orders a thread; never a real-name timestamp. |
 
 No other fields are allowed.
+
+`id`, `parent` and `ts` are what let several notes form a **thread** on one `seq`. A reader
+that does not thread simply ignores them and shows the notes in file order — they are optional
+in both directions, and a note carrying none of them is a complete note. A `parent` that names
+no `id` in the file is a reply to a note that is not there; show it as a top-level note rather
+than dropping it.
 
 ### The glyphs
 
