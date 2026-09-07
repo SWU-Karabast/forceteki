@@ -24,21 +24,24 @@ export default class KelnaccaSolitaryMaster extends NonLeaderUnitCard {
                     target: context.player
                 })),
             },
-            then: (thenContext) => ({
-                title: `Deal ${thenContext.source.getPower()} damage to an enemy unit`,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous(
-                    Array.from({ length: Math.floor(parseInt(thenContext.select) / 3) }, () =>
-                        AbilityHelper.immediateEffects.selectCard({
-                            activePromptTitle: `Deal ${thenContext.source.getPower()} damage to an enemy unit`,
-                            cardTypeFilter: WildcardCardType.Unit,
-                            controller: RelativePlayer.Opponent,
-                            immediateEffect: AbilityHelper.immediateEffects.damage({
-                                amount: thenContext.source.getPower(),
+            then: (thenContext) => {
+                const damageInstances = Math.floor(parseInt(thenContext.select) / 3);
+                return {
+                    title: `Deal ${thenContext.source.getPower()} damage to an enemy unit`,
+                    immediateEffect: AbilityHelper.immediateEffects.simultaneous(
+                        Array.from({ length: damageInstances }, (_, i) =>
+                            AbilityHelper.immediateEffects.selectCard({
+                                activePromptTitle: `Deal ${thenContext.source.getPower()} damage to an enemy unit (${i + 1}/${damageInstances})`,
+                                cardTypeFilter: WildcardCardType.Unit,
+                                controller: RelativePlayer.Opponent,
+                                immediateEffect: AbilityHelper.immediateEffects.damage({
+                                    amount: thenContext.source.getPower(),
+                                })
                             })
-                        })
+                        )
                     )
-                )
-            })
+                };
+            }
         });
     }
 }

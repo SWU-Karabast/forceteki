@@ -67,7 +67,7 @@ describe('Kelnacca, Solitary Master', function () {
             expect(context.player1).toHaveNumericPromptRange(0, 4);
             context.player1.chooseListOption('3');
 
-            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit');
+            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit (1/1)');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
             context.player1.clickCard(context.wampa);
 
@@ -96,7 +96,7 @@ describe('Kelnacca, Solitary Master', function () {
             expect(context.player1).toHaveNumericPromptRange(0, 7);
             context.player1.chooseListOption('5');
 
-            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit');
+            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit (1/1)');
             context.player1.clickCard(context.wampa);
 
             // floor(5 / 3) === 1, so exactly one 4-damage instance is dealt, never 4.5 or 8
@@ -124,15 +124,12 @@ describe('Kelnacca, Solitary Master', function () {
             expect(context.player1).toHaveNumericPromptRange(0, 7);
             context.player1.chooseListOption('6');
 
-            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit');
+            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit (1/2)');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
-            // uses the non-checking click variant since this prompt looks identical (same title, same two
-            // selectable units) both before and after — the underlying game state (damage dealt) still changes,
-            // it's just not reflected in the prompt shape the "expect change" heuristic compares
             context.player1.clickCardNonChecking(context.wampa);
 
             // second damage instance is a fresh target selection, not part of a single lump-sum hit
-            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit');
+            expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit (2/2)');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
             context.player1.clickCardNonChecking(context.battlefieldMarine);
 
