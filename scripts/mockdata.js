@@ -2960,6 +2960,82 @@ const mockCards = [
         arena: 'ground',
         internalName: 'nute-gunray#perfectly-legal'
     }),
+    buildMockCard({
+        title: 'Mother Talzin',
+        subtitle: 'Pledged to the Sisterhood',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['raid 1'],
+        traits: ['force', 'night'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 39
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mother-talzin#pledged-to-the-sisterhood'
+    }),
+    buildMockCard({
+        title: 'Talzin\'s Shuttle',
+        subtitle: 'Mysterious Arrival',
+        cost: 3,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['raid 1'],
+        traits: ['night', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 40
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'talzins-shuttle#mysterious-arrival'
+    }),
+    buildMockCard({
+        title: 'Keeper of Skara Nal',
+        subtitle: 'Awoken',
+        cost: 6,
+        power: 5,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['restore 2'],
+        traits: ['droid', 'vehicle', 'walker'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 41
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'keeper-of-skara-nal#awoken'
+    }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'No Time For Regret',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['restore 2'],
+        traits: ['force', 'night'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 1
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#no-time-for-regret'
+    }),
     // -------- End Mock Cards --------
 ];
 
