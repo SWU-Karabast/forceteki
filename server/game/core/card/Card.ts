@@ -722,6 +722,8 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
+        keywordInstances = KeywordHelpers.applyKeywordReplacements(keywordInstances, this.getOngoingEffectValues(EffectName.ReplaceKeyword), this);
+
         return KeywordHelpers.dedupeKeywords(keywordInstances, this);
     }
 
@@ -745,6 +747,11 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     /** Optimized check for a single keyword - avoids array allocation from getKeywords() */
     private hasSingleKeyword(keyword: KeywordName): boolean {
+        // the fast path below can't account for keywords being replaced by other keywords, so fall back to the full calculation
+        if (this.hasOngoingEffect(EffectName.ReplaceKeyword)) {
+            return this.getKeywords().some((instance) => instance.name === keyword);
+        }
+
         // Check printed keywords first (fast path)
         const printedKeywords = this.printedKeywords;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of

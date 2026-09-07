@@ -2446,6 +2446,25 @@ const mockCards = [
         internalName: 'queen-amidala#retaking-theed',
     }),
     buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'No Time for Regret',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['restore 2'],
+        traits: ['force', 'night'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 1
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#no-time-for-regret'
+    }),
+    buildMockCard({
         title: 'Bossk',
         subtitle: 'Cruel Hunter',
         cost: 5,

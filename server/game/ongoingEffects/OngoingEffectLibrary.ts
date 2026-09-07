@@ -29,6 +29,8 @@ import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
+import type { IReplaceKeywordProperties } from '../core/ongoingEffect/effectImpl/ReplaceKeyword';
+import { ReplaceKeyword } from '../core/ongoingEffect/effectImpl/ReplaceKeyword';
 import StatsModifierWrapper from '../core/ongoingEffect/effectImpl/StatsModifierWrapper';
 import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
 import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/NumericKeywordMultiplier';
@@ -143,6 +145,7 @@ export = {
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
+    replaceKeyword: (properties: IReplaceKeywordProperties) => OngoingEffectBuilder.card.static(EffectName.ReplaceKeyword, (game) => new ReplaceKeyword(game, properties)),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseAllOtherAbilities: (properties: { exceptKeyword: KeywordName }) =>
         OngoingEffectBuilder.card.static(EffectName.BlankExceptKeyword, properties),
