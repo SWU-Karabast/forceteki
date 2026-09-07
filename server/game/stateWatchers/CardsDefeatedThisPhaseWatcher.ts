@@ -1,5 +1,5 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
-import type { CardType, Trait } from '../core/Constants';
+import type { CardType, Trait, ZoneName } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { Player } from '../core/Player';
@@ -15,9 +15,11 @@ import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 /**
  * Simplified last known information for defeated cards
  */
-export interface IDefeatedCardLKIEntry {
+export interface IStateWatcherLKIEntry {
     traits: Set<Trait>;
     type: CardType;
+    power?: number;
+    arena?: ZoneName;
     // TODO: Add more fields if needed
 }
 
@@ -27,7 +29,7 @@ export interface DefeatedCardEntry {
     controlledBy: GameObjectId<Player>;
     defeatedBy?: GameObjectId<Player>;
     wasDefeatedWhileAttacking: IDefeatSource;
-    lastKnownInformation: IDefeatedCardLKIEntry;
+    lastKnownInformation: IStateWatcherLKIEntry;
 }
 
 interface InPlayUnit {
@@ -59,6 +61,8 @@ export class CardsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedCardEntr
             lastKnownInformation: {
                 traits: x.lastKnownInformation.traits,
                 type: x.lastKnownInformation.type,
+                power: x.lastKnownInformation.power,
+                arena: x.lastKnownInformation.arena,
             }
         }));
     }
@@ -141,6 +145,8 @@ export class CardsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedCardEntr
                     lastKnownInformation: {
                         traits: event.lastKnownInformation.traits,
                         type: event.lastKnownInformation.type,
+                        power: event.lastKnownInformation.power,
+                        arena: event.lastKnownInformation.arena,
                     }
                 })
         });

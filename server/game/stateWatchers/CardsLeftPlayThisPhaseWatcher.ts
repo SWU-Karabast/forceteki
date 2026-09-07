@@ -1,25 +1,18 @@
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
-import type { CardType, ZoneName } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { Game } from '../core/Game';
 import type { UnwrapRef } from '../core/GameObjectBase';
+import { type GameObjectId, registerState } from '../core/GameObjectUtils';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
-
-import { registerState, type GameObjectId } from '../core/GameObjectUtils';
+import type { IStateWatcherLKIEntry } from './CardsDefeatedThisPhaseWatcher';
 
 export interface CardLeftPlayEntry {
     card: GameObjectId<IInPlayCard>;
     controlledBy: GameObjectId<Player>;
-    cardType: CardType;
-
-    /** The card's power when it left play */
-    power?: number;
-
-    /** Arena card was in when it left play */
-    arena?: ZoneName;
+    lastKnownInformation: IStateWatcherLKIEntry;
 }
 
 @registerState()
@@ -29,7 +22,11 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
     }
 
     protected override mapCurrentValue(stateValue: CardLeftPlayEntry[]): UnwrapRef<CardLeftPlayEntry[]> {
-        return stateValue.map((x) => ({ controlledBy: this.game.getFromId(x.controlledBy), card: this.game.getFromId(x.card), cardType: x.cardType, power: x.power, arena: x.arena }));
+        return stateValue.map((x) => ({
+            card: this.game.getFromId(x.card),
+            controlledBy: this.game.getFromId(x.controlledBy),
+            lastKnownInformation: x.lastKnownInformation
+        }));
     }
 
     public override getCurrentValue() {
@@ -70,7 +67,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
     }) {
         const playerFilter = (entry: UnwrapRef<CardLeftPlayEntry>) => (controller != null ? entry.controlledBy === controller : true);
 
-        const unitsLeftPlay = this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.cardType));
+        const unitsLeftPlay = this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.lastKnownInformation.type));
 
         if (filter != null) {
             return unitsLeftPlay.filter(filter)
@@ -86,7 +83,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
         controller?: Player;
         filter?: (event: UnwrapRef<CardLeftPlayEntry>) => boolean;
     }) {
-        const leaderUnitFilter = (entry: UnwrapRef<CardLeftPlayEntry>) => EnumHelpers.isLeaderUnit(entry.cardType);
+        const leaderUnitFilter = (entry: UnwrapRef<CardLeftPlayEntry>) => EnumHelpers.isLeaderUnit(entry.lastKnownInformation.type);
 
         return this.someUnitLeftPlay({
             controller,
@@ -104,9 +101,12 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             update: (currentState, event) => currentState.concat({
                 card: event.card.getObjectId(),
                 controlledBy: event.lastKnownInformation.controller.getObjectId(),
-                cardType: event.lastKnownInformation.type,
-                power: event.lastKnownInformation.power,
-                arena: event.lastKnownInformation.arena
+                lastKnownInformation: {
+                    traits: event.lastKnownInformation.traits,
+                    type: event.lastKnownInformation.type,
+                    power: event.lastKnownInformation.power,
+                    arena: event.lastKnownInformation.arena
+                }
             })
         });
     }
