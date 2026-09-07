@@ -1,5 +1,5 @@
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
-import type { CardType } from '../core/Constants';
+import type { CardType, ZoneName } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { Game } from '../core/Game';
 import type { UnwrapRef } from '../core/GameObjectBase';
@@ -14,6 +14,12 @@ export interface CardLeftPlayEntry {
     card: GameObjectId<IInPlayCard>;
     controlledBy: GameObjectId<Player>;
     cardType: CardType;
+
+    /** The card's power when it left play */
+    power?: number;
+
+    /** Arena card was in when it left play */
+    arena?: ZoneName;
 }
 
 @registerState()
@@ -23,7 +29,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
     }
 
     protected override mapCurrentValue(stateValue: CardLeftPlayEntry[]): UnwrapRef<CardLeftPlayEntry[]> {
-        return stateValue.map((x) => ({ controlledBy: this.game.getFromId(x.controlledBy), card: this.game.getFromId(x.card), cardType: x.cardType }));
+        return stateValue.map((x) => ({ controlledBy: this.game.getFromId(x.controlledBy), card: this.game.getFromId(x.card), cardType: x.cardType, power: x.power, arena: x.arena }));
     }
 
     public override getCurrentValue() {
@@ -44,6 +50,11 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
 
         return this.getCurrentValue().filter(playerFilter)
             .map((entry) => entry.card);
+    }
+
+    public getMostRecentLeftPlayEntry(card: IInPlayCard): UnwrapRef<CardLeftPlayEntry> | undefined {
+        const entries = this.getCurrentValue().filter((entry) => entry.card === card);
+        return entries[entries.length - 1];
     }
 
     public someCardLeftPlay({ controller, filter }: {
@@ -93,7 +104,9 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             update: (currentState, event) => currentState.concat({
                 card: event.card.getObjectId(),
                 controlledBy: event.lastKnownInformation.controller.getObjectId(),
-                cardType: event.lastKnownInformation.type
+                cardType: event.lastKnownInformation.type,
+                power: event.lastKnownInformation.power,
+                arena: event.lastKnownInformation.arena
             })
         });
     }
