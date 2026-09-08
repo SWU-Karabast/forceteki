@@ -115,7 +115,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             update: (currentState, event) => currentState.concat({
                 card: event.card.getObjectId(),
                 controlledBy: event.lastKnownInformation.controller.getObjectId(),
-                inPlayId: this.readInPlayId(event.card),
+                inPlayId: this.getCardId(event.card),
                 lastKnownInformation: {
                     traits: event.lastKnownInformation.traits,
                     type: event.lastKnownInformation.type,
