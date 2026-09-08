@@ -5,14 +5,15 @@ import type { UnwrapRef } from '../core/GameObjectBase';
 import { type GameObjectId, registerState } from '../core/GameObjectUtils';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
+import type { IStateWatcherLKIEntry } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
-import type { IStateWatcherLKIEntry } from './CardsDefeatedThisPhaseWatcher';
 
 export interface CardLeftPlayEntry {
     card: GameObjectId<IInPlayCard>;
     controlledBy: GameObjectId<Player>;
     lastKnownInformation: IStateWatcherLKIEntry;
+    inPlayId?: number;
 }
 
 @registerState()
@@ -25,7 +26,8 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
         return stateValue.map((x) => ({
             card: this.game.getFromId(x.card),
             controlledBy: this.game.getFromId(x.controlledBy),
-            lastKnownInformation: x.lastKnownInformation
+            lastKnownInformation: x.lastKnownInformation,
+            inPlayId: x.inPlayId
         }));
     }
 
@@ -49,9 +51,21 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             .map((entry) => entry.card);
     }
 
-    public getMostRecentLeftPlayEntry(card: IInPlayCard): UnwrapRef<CardLeftPlayEntry> | undefined {
-        const entries = this.getCurrentValue().filter((entry) => entry.card === card);
-        return entries[entries.length - 1];
+    public getLeftPlayEntry(card: IInPlayCard, inPlayId?: number): UnwrapRef<CardLeftPlayEntry> | undefined {
+        const inPlayIdToCheck = inPlayId ?? this.getCardId(card);
+        if (inPlayIdToCheck == null) {
+            return undefined;
+        }
+
+        return this.getCurrentValue().find((entry) => entry.card === card && entry.inPlayId === inPlayIdToCheck);
+    }
+
+    private getCardId(card: IInPlayCard): number | undefined {
+        if (card.isInPlay()) {
+            return card.inPlayId;
+        }
+
+        return card.zone.hiddenForPlayers == null ? card.mostRecentInPlayId : undefined;
     }
 
     public someCardLeftPlay({ controller, filter }: {
@@ -101,6 +115,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             update: (currentState, event) => currentState.concat({
                 card: event.card.getObjectId(),
                 controlledBy: event.lastKnownInformation.controller.getObjectId(),
+                inPlayId: this.readInPlayId(event.card),
                 lastKnownInformation: {
                     traits: event.lastKnownInformation.traits,
                     type: event.lastKnownInformation.type,

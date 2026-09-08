@@ -50,7 +50,7 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
         if (playedCard.isInPlay()) {
             return playedCard.getPower();
         }
-        return this.cardsLeftPlayThisPhaseWatcher.getMostRecentLeftPlayEntry(playedCard)?.lastKnownInformation.power ?? playedCard.getPrintedPower();
+        return this.cardsLeftPlayThisPhaseWatcher.getLeftPlayEntry(playedCard)?.lastKnownInformation.power ?? playedCard.getPrintedPower();
     }
 
     /** The arena the played unit is in, or was in when it left play.*/
@@ -59,7 +59,7 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
         if (playedCard.isInPlay()) {
             return playedCard.zoneName;
         }
-        const arena = this.cardsLeftPlayThisPhaseWatcher.getMostRecentLeftPlayEntry(playedCard)?.lastKnownInformation.arena;
+        const arena = this.cardsLeftPlayThisPhaseWatcher.getLeftPlayEntry(playedCard)?.lastKnownInformation.arena;
         return EnumHelpers.isArena(arena) ? arena : playedCard.defaultArena;
     }
 }
