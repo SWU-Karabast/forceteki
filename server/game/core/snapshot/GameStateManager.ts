@@ -133,6 +133,20 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
     }
 
+    public destroy(): void {
+        for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
+            const gameObject = this.allGameObjects[i];
+            if (!gameObject.initialized) {
+                continue;
+            }
+
+            gameObject.cleanupOnRemove(gameObject.getStateUnsafe());
+        }
+
+        this.allGameObjects = [];
+        this.gameObjectMapping.clear();
+    }
+
     public buildGameStateForSnapshot(): Buffer {
         this.removeUnusedGameObjects();
 

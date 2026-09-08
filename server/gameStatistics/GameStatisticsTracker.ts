@@ -3,7 +3,7 @@ import { EventName } from '../game/core/Constants';
 import { EventRegistrar } from '../game/core/event/EventRegistrar';
 import type { GameEvent } from '../game/core/event/GameEvent';
 import type { Game } from '../game/core/Game';
-import { GameObjectBase } from '../game/core/GameObjectBase';
+import { GameObjectBase, type IGameObjectBaseState } from '../game/core/GameObjectBase';
 import { registerState, stateRefArray } from '../game/core/GameObjectUtils';
 import type { Player } from '../game/core/Player';
 import { Helpers } from '../game/core/utils/Helpers';
@@ -90,6 +90,10 @@ export class GameStatisticsLogger extends GameObjectBase implements IGameStatist
         player: Player
     ): void {
         this.cardMetrics = [...this.cardMetrics, new TrackedGameCardMetric(this.game, metric, card, player)];
+    }
+
+    public override cleanupOnRemove(_oldState: IGameObjectBaseState): void {
+        this.events.unregisterAll();
     }
 
     /**
