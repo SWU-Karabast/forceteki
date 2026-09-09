@@ -2960,6 +2960,151 @@ const mockCards = [
         arena: 'ground',
         internalName: 'nute-gunray#perfectly-legal'
     }),
+    buildMockCard({
+        title: 'Mother Talzin',
+        subtitle: 'Pledged to the Sisterhood',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['raid 1'],
+        traits: ['force', 'night'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 39
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mother-talzin#pledged-to-the-sisterhood'
+    }),
+    buildMockCard({
+        title: 'Talzin\'s Shuttle',
+        subtitle: 'Mysterious Arrival',
+        cost: 3,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['raid 1'],
+        traits: ['night', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 40
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'talzins-shuttle#mysterious-arrival'
+    }),
+    buildMockCard({
+        title: 'Keeper of Skara Nal',
+        subtitle: 'Awoken',
+        cost: 6,
+        power: 5,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['restore 2'],
+        traits: ['droid', 'vehicle', 'walker'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 41
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'keeper-of-skara-nal#awoken'
+    }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'No Time For Regret',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['restore 2'],
+        traits: ['force', 'night'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 1
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#no-time-for-regret'
+    }),
+    buildMockCard({
+        title: 'Mace Windu',
+        subtitle: 'Austere Centrist',
+        cost: 3,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'command'],
+        traits: ['force', 'jedi'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 128
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mace-windu#austere-centrist'
+    }),
+    buildMockCard({
+        title: 'A\'Koba',
+        subtitle: 'Restless Raider',
+        cost: 2,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        keywords: ['raid 1'],
+        traits: ['tusken'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 52
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'akoba#restless-raider'
+    }),
+    buildMockCard({
+        title: 'Fett\'s Firespray',
+        subtitle: 'Settling the Score',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 53
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'fetts-firespray#settling-the-score'
+    }),
+    buildMockCard({
+        title: 'Seismic Detonation',
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 54
+        },
+        unique: false,
+        internalName: 'seismic-detonation'
+    }),
     // -------- End Mock Cards --------
 ];
 
