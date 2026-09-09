@@ -17,7 +17,7 @@ export default class AKobaRestlessRaider extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: abilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
+                    effect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
                 })
             }
         });

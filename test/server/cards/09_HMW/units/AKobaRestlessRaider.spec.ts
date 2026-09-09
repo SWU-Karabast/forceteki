@@ -1,6 +1,6 @@
 describe('A\'Koba, Restless Raider', function () {
     integration(function (contextRef) {
-        it('A\'Koba\'s when played ability must give a unit -2/-0 for this phase', async function () {
+        it('A\'Koba\'s when played ability must give a unit +2/+0 for this phase', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -23,7 +23,7 @@ describe('A\'Koba, Restless Raider', function () {
             context.player1.clickCard(context.wampa);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.wampa.getPower()).toBe(2);
+            expect(context.wampa.getPower()).toBe(6);
             expect(context.wampa.getHp()).toBe(5);
 
             context.moveToNextActionPhase();
