@@ -3036,6 +3036,75 @@ const mockCards = [
         arena: 'ground',
         internalName: 'asajj-ventress#no-time-for-regret'
     }),
+    buildMockCard({
+        title: 'Mace Windu',
+        subtitle: 'Austere Centrist',
+        cost: 3,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'command'],
+        traits: ['force', 'jedi'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 128
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mace-windu#austere-centrist'
+    }),
+    buildMockCard({
+        title: 'A\'Koba',
+        subtitle: 'Restless Raider',
+        cost: 2,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        keywords: ['raid 1'],
+        traits: ['tusken'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 52
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'akoba#restless-raider'
+    }),
+    buildMockCard({
+        title: 'Fett\'s Firespray',
+        subtitle: 'Settling the Score',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 53
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'fetts-firespray#settling-the-score'
+    }),
+    buildMockCard({
+        title: 'Seismic Detonation',
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 54
+        },
+        unique: false,
+        internalName: 'seismic-detonation'
+    }),
     // -------- End Mock Cards --------
 ];
 
