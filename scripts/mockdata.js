@@ -3105,6 +3105,130 @@ const mockCards = [
         unique: false,
         internalName: 'seismic-detonation'
     }),
+    buildMockCard({
+        title: 'Nala Se',
+        subtitle: 'Silent Survivor',
+        cost: 2,
+        power: 1,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'vigilance'],
+        traits: ['kaminoan'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 82
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'nala-se#silent-survivor'
+    }),
+    buildMockCard({
+        title: 'Verdant Fortress',
+        cost: 2,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 126
+        },
+        unique: false,
+        internalName: 'verdant-fortress',
+    }),
+    buildMockCard({
+        title: 'Garnac',
+        subtitle: 'Let The Hunt Begin!',
+        cost: 1,
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 104
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'garnac#let-the-hunt-begin'
+    }),
+    buildMockCard({
+        title: 'Low Altitude Combat',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 50
+        },
+        unique: false,
+        internalName: 'low-altitude-combat'
+    }),
+    buildMockCard({
+        title: 'Greater Sarlacc',
+        cost: 9,
+        power: 9,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        keywords: ['overwhelm'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 49
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'greater-sarlacc'
+    }),
+    buildMockCard({
+        title: 'Eravana',
+        subtitle: 'Hauling Rathtars',
+        cost: 5,
+        power: 1,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 47
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'eravana#hauling-rathtars'
+    }),
+    buildMockCard({
+        title: 'Maz Kanata',
+        subtitle: 'Eclectic Pirate Queen',
+        cost: 6,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        keywords: ['hidden'],
+        traits: ['underworld'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 2
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maz-kanata#eclectic-pirate-queen'
+    }),
     // -------- End Mock Cards --------
 ];
 
