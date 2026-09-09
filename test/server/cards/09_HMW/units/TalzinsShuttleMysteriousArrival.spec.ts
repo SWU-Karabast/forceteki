@@ -35,7 +35,7 @@ describe('Talzin\'s Shuttle, Mysterious Arrival', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['wampa','talzins-shuttle#mysterious-arrival'],
+                        hand: ['wampa', 'talzins-shuttle#mysterious-arrival'],
                     },
                     player2: {
                         hand: ['porg'],
@@ -45,9 +45,9 @@ describe('Talzin\'s Shuttle, Mysterious Arrival', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.wampa)
-                context.player2.clickCard(context.porg)
-                context.player1.clickCard(context.talzinsShuttle)
+                context.player1.clickCard(context.wampa);
+                context.player2.clickCard(context.porg);
+                context.player1.clickCard(context.talzinsShuttle);
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.awing).toHaveExactUpgradeNames([]);
