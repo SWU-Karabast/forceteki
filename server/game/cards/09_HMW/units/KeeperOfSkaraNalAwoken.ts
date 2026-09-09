@@ -26,7 +26,7 @@ export default class KeeperOfSkaraNalAwoken extends NonLeaderUnitCard {
                 immediateEffect: abilityHelper.immediateEffects.discardSpecificCard()
             },
             ifYouDo: {
-                title: `This unit gets +15/+0 and gains ${TextHelper} for this attack`,
+                title: `This unit gets +15/+0 and gains ${TextHelper.Overwhelm} for this attack`,
                 immediateEffect: abilityHelper.immediateEffects.forThisAttackCardEffect({
                     effect: [
                         abilityHelper.ongoingEffects.modifyStats({ power: 15, hp: 0 }),
