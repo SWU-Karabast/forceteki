@@ -278,6 +278,33 @@ describe('Maz Kanata, Eclectic Pirate Queen', function() {
                     'player1 uses Rhokai Gunship to deal 1 damage to player2\'s base'
                 ]);
             });
+
+            it('should apply power and hp modification to LKI to use for When Defeated ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maz-kanata#eclectic-pirate-queen',
+                        hand: ['latts-razzi#deadly-whipmaster'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.mazKanata);
+                context.player1.clickPrompt(abilityTitle);
+                context.player1.clickCard(context.lattsRazzi);
+
+                expect(context.lattsRazzi).toBeInZone('discard', context.player1);
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to an enemy ground unit');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine.damage).toBe(1);
+            });
         });
     });
 });
