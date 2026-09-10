@@ -55,6 +55,75 @@ const mockCards = [
         internalName: 'moff-gideon#cold-calling'
     }),
     buildMockCard({
+        title: 'Admiral Holdo',
+        subtitle: 'We Are The Spark',
+        cost: 5,
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['resistance', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 38
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'admiral-holdo#we-are-the-spark'
+    }),
+    buildMockCard({
+        title: 'Grand Inquisitor',
+        subtitle: 'How The Mighty Will Fall',
+        cost: 4,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['force', 'imperial', 'inquisitor'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 103
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-inquisitor#how-the-mighty-will-fall'
+    }),
+    buildMockCard({
+        title: 'Captain Rex',
+        subtitle: 'Staunch Advocate',
+        cost: 7,
+        power: 7,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['republic', 'clone', 'trooper'],
+        keywords: ['sentinel', 'shielded', 'restore 3'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 41
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-rex#staunch-advocate'
+    }),
+    buildMockCard({
+        title: 'I\'ve Got A Bad Feeling',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 166
+        },
+        unique: false,
+        internalName: 'ive-got-a-bad-feeling'
+    }),
+    buildMockCard({
         title: 'Darth Sidious',
         subtitle: 'Move Against the Jedi',
         cost: 7,
