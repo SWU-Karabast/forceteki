@@ -3,6 +3,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 import { EventCard } from '../../../core/card/EventCard';
 import type { Arena } from '../../../core/Constants';
 import { PhaseName, TargetMode, ZoneName } from '../../../core/Constants';
+import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class SeismicDetonation extends EventCard {
     protected override getImplementationId() {
@@ -28,8 +29,8 @@ export default class SeismicDetonation extends EventCard {
 
     private eventEffect(arena: Arena, abilityHelper: IAbilityHelper) {
         return abilityHelper.immediateEffects.delayedPlayerEffect({
-            title: 'Deal 3 damage to each enemy unit in that arena',
-            effectDescription: `deal 3 damage to each enemy unit in the ${arena === ZoneName.SpaceArena ? 'Space' : 'Ground'} arena`,
+            title: `Deal 3 damage to each enemy unit in the ${EnumHelpers.arenaName(arena)}`,
+            effectDescription: `deal 3 damage to each enemy unit in the ${EnumHelpers.arenaName(arena)}`,
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup,
             },
